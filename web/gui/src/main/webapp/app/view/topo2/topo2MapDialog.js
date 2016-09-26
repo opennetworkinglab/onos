@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-/*
- ONOS GUI -- Topology Force Module.
- Visualization of the topology in an SVG layer, using a D3 Force Layout.
- */
+ /*
+  ONOS GUI -- Topology Map Dialog
+  Display of the dialog window to select a background map for the current topology view
+  NOTE: This will be deprecated in the future
+  */
 
 (function () {
     'use strict';

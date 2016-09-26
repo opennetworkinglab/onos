@@ -102,7 +102,7 @@
     }
 
     function incDevLabIndex() {
-        setDevLabIndex(device3ndex+1);
+        setDevLabIndex(deviceLabelIndex+1);
         switch(deviceLabelIndex) {
             case 0: return 'Hide device labels';
             case 1: return 'Show friendly device labels';

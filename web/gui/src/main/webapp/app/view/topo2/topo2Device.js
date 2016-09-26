@@ -22,15 +22,12 @@
 (function () {
     'use strict';
 
-    var Collection, Model, is, sus, ts;
+    var Collection, Model;
 
     var remappedDeviceTypes = {
+        switch: 'm_switch',
         virtual: 'cord'
     };
-
-    // configuration
-    var devIconDim = 36,
-        halfDevIcon = devIconDim / 2;
 
     function createDeviceCollection(data, region) {
 
@@ -57,78 +54,23 @@
         return deviceCollection;
     }
 
-    function mapDeviceTypeToGlyph(type) {
-        return remappedDeviceTypes[type] || type || 'unknown';
-    }
-
-    // note: these are the device icon colors without affinity (no master)
-    var dColTheme = {
-        light: {
-            online: '#444444',
-            offline: '#cccccc'
-        },
-        dark: {
-            // TODO: theme
-            online: '#444444',
-            offline: '#cccccc'
-        }
-    };
-
-    function deviceGlyphColor(d) {
-        var o = this.node.online,
-            id = this.node.master, // TODO: This should be from node.master
-            otag = o ? 'online' : 'offline';
-
-        return o ? sus.cat7().getColor(id, 0, ts.theme()) :
-            dColTheme[ts.theme()][otag];
-    }
-
-    function setDeviceColor() {
-        this.el.select('use')
-            .style('fill', this.deviceGlyphColor());
-    }
 
     angular.module('ovTopo2')
     .factory('Topo2DeviceService',
-        ['Topo2Collection', 'Topo2NodeModel', 'IconService',
-        'SvgUtilService', 'ThemeService',
+        ['Topo2Collection', 'Topo2NodeModel',
+            function (_c_, _nm_) {
 
-            function (_c_, _nm_, _is_, _sus_, _ts_, classnames) {
-
-                is = _is_;
-                sus = _sus_;
-                ts = _ts_;
                 Collection = _c_;
 
                 Model = _nm_.extend({
                     initialize: function () {
-                        this.set('weight', 0);
-                        this.constructor.__super__.initialize.apply(this, arguments);
+                        this.super = this.constructor.__super__;
+                        this.super.initialize.apply(this, arguments);
                     },
                     nodeType: 'device',
-                    deviceGlyphColor: deviceGlyphColor,
-                    mapDeviceTypeToGlyph: mapDeviceTypeToGlyph,
-                    setDeviceColor: setDeviceColor,
-                    onEnter: function (el) {
-
-                        var node = d3.select(el),
-                            glyphId = mapDeviceTypeToGlyph(this.get('type')),
-                            label = this.trimLabel(this.label()),
-                            glyph, labelWidth;
-
-                        this.el = node;
-
-                        // Label
-                        var labelElements = this.addLabelElements(label);
-                        labelWidth = label ? this.computeLabelWidth(node) : 0;
-                        labelElements.rect.attr(this.iconBox(devIconDim, labelWidth));
-
-                        // Icon
-                        glyph = is.addDeviceIcon(node, glyphId, devIconDim);
-                        glyph.attr(this.iconBox(devIconDim, 0));
-
-                        node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
-                        this.render();
+                    icon: function () {
+                        var type = this.get('type');
+                        return remappedDeviceTypes[type] || type || 'unknown';
                     },
                     onExit: function () {
                         var node = this.el;
@@ -142,9 +84,6 @@
                             .style('stroke-fill', '#555')
                             .style('fill', '#888')
                             .style('opacity', 0.5);
-                    },
-                    render: function () {
-                        this.setDeviceColor();
                     }
                 });
 
