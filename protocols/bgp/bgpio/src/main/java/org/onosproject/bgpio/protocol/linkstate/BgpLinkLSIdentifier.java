@@ -166,7 +166,7 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
                 break;
             case BgpAttrNodeMultiTopologyId.ATTRNODE_MULTITOPOLOGY:
                 tlv = BgpAttrNodeMultiTopologyId.read(tempCb);
-                count = count++;
+                count++;
                 //MultiTopologyId TLV cannot repeat more than once
                 if (count > 1) {
                     //length + 4 implies data contains type, length and value
