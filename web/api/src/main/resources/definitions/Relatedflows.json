@@ -1,0 +1,208 @@
+{
+  "type": "object",
+  "title": "relatedflows",
+  "required": [
+    "id",
+    "appId",
+    "type",
+    "paths"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "example": "0x5"
+    },
+    "appId": {
+      "type": "string",
+      "example": "org.onosproject.ovsdb"
+    },
+    "type": {
+      "type": "string",
+      "example": "HostToHostIntent"
+    },
+    "paths": {
+      "type": "array",
+      "xml": {
+        "name": "paths",
+        "wrapped": true
+      },
+      "items": {
+        "type": "array",
+        "xml": {
+          "name": "flows",
+          "wrapped": true
+        },
+        "items": {
+          "type": "object",
+          "title": "flow",
+          "required": [
+            "id",
+            "tableId",
+            "appId",
+            "groupId",
+            "priority",
+            "timeout",
+            "isPermanent",
+            "deviceId",
+            "state",
+            "life",
+            "packets",
+            "bytes",
+            "lastSeen"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "example": "12103425214920339"
+            },
+            "tableId": {
+              "type": "integer",
+              "format": "int32",
+              "example": 3
+            },
+            "appId": {
+              "type": "string",
+              "example": "org.onosproject.core"
+            },
+            "groupId": {
+              "type": "integer",
+              "format": "int64",
+              "example": 0
+            },
+            "priority": {
+              "type": "integer",
+              "format": "int32",
+              "example": 40000
+            },
+            "timeout": {
+              "type": "integer",
+              "format": "int32",
+              "example": 0
+            },
+            "isPermanent": {
+              "type": "boolean",
+              "example": true
+            },
+            "deviceId": {
+              "type": "string",
+              "example": "of:0000000000000003"
+            },
+            "state": {
+              "type": "string",
+              "example": "ADDED"
+            },
+            "life": {
+              "type": "integer",
+              "format": "int64",
+              "example": 69889
+            },
+            "packets": {
+              "type": "integer",
+              "format": "int64",
+              "example": 22546
+            },
+            "bytes": {
+              "type": "integer",
+              "format": "int64",
+              "example": 1826226
+            },
+            "lastSeen": {
+              "type": "integer",
+              "format": "int64",
+              "example": 1447892365670
+            },
+            "treatment": {
+              "type": "object",
+              "title": "treatment",
+              "required": [
+                "instructions",
+                "deferred"
+              ],
+              "properties": {
+                "instructions": {
+                  "type": "array",
+                  "title": "treatment",
+                  "required": [
+                    "properties",
+                    "port"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "title": "instruction",
+                    "required": [
+                      "type",
+                      "port"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "OUTPUT"
+                      },
+                      "port": {
+                        "type": "string",
+                        "example": "CONTROLLER"
+                      }
+                    }
+                  }
+                },
+                "deferred": {
+                  "type": "array",
+                  "xml": {
+                    "name": "deferred",
+                    "wrapped": true
+                  },
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "selector": {
+              "type": "object",
+              "title": "selector",
+              "required": [
+                "criteria"
+              ],
+              "properties": {
+                "criteria": {
+                  "type": "array",
+                  "xml": {
+                    "name": "criteria",
+                    "wrapped": true
+                  },
+                  "items": {
+                    "type": "object",
+                    "title": "criteria",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "description": "Ethernet field name",
+                        "example": "ETH_TYPE"
+                      },
+                      "ethType": {
+                        "type": "int64",
+                        "format": "int64",
+                        "example": "0x88cc",
+                        "description": "Ethernet frame type"
+                      },
+                      "mac": {
+                        "type": "string",
+                        "example": "00:00:11:00:00:01"
+                      },
+                      "port": {
+                        "type": "int64",
+                        "format": "int64",
+                        "example": 1,
+                        "description": "Match port"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
