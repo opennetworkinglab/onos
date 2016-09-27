@@ -63,6 +63,7 @@
 
         // If the device contains explicit LONG/LAT data, use that to position
         if (setLongLat(node)) {
+            // Indicate we want to update cached meta data...
             return true;
         }
 
@@ -114,29 +115,37 @@
         angular.extend(node, xy);
     }
 
-    function setLongLat(node) {
-        var loc = node.location,
+    function setLongLat(el) {
+        var loc = el.get('location'),
             coord;
 
         if (loc && loc.type === 'lnglat') {
+
+            if (loc.lat === 0 && loc.lng === 0) {
+                return false;
+            }
+
             coord = coordFromLngLat(loc);
-            node.fixed = true;
-            node.px = node.x = coord[0];
-            node.py = node.y = coord[1];
+            el.fixed = true;
+            el.x = el.px = coord[0];
+            el.y = el.py = coord[1];
+
             return true;
         }
     }
 
     function coordFromLngLat(loc) {
         var p = t2mcs.projection();
-        return p ? p.invert([loc.lng, loc.lat]) : [0, 0];
+        return p ? p([loc.lng, loc.lat]) : [0, 0];
     }
 
     angular.module('ovTopo2')
     .factory('Topo2NodeModel',
         ['Topo2Model', 'FnService', 'RandomService', 'Topo2PrefsService',
-        'SvgUtilService', 'IconService', 'ThemeService', 'Topo2MapConfigService',
-        function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_, _t2mcs_) {
+        'SvgUtilService', 'IconService', 'ThemeService',
+        'Topo2MapConfigService',
+        function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_,
+            _t2mcs_) {
 
             randomService = _RandomService_;
             ts = _ts_;
@@ -148,6 +157,8 @@
 
             return Model.extend({
                 initialize: function () {
+                    this.set('class', this.nodeType);
+                    this.set('svgClass', this.svgClassName());
                     this.node = this.createNode();
                 },
                 createNode: function () {

@@ -383,12 +383,15 @@ class Topo2Jsonifier {
 
 
     private ObjectNode jsonClosedRegion(UiRegion region) {
-        return objectNode()
+        ObjectNode node = objectNode()
                 .put("id", region.idAsString())
                 .put("name", region.name())
                 .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount());
         // TODO: complete closed-region details
+
+        addMetaUi(node, region.idAsString());
+        return node;
     }
 
     /**
