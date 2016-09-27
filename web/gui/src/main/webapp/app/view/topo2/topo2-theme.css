@@ -56,80 +56,80 @@
     background-color: #cccccc;
 }
 
-#topo-p-detail svg {
+#topo2-p-detail svg {
     background: none;
 }
 
-#topo-p-detail .header svg .glyph {
+#topo2-p-detail .header svg .glyph {
     fill: #c0242b;
 }
 
 
 /* --- Topo Instance Panel --- */
 
-#topo-p-instance svg rect {
+#topo2-p-instance svg rect {
     stroke-width: 0;
     fill: #fbfbfb;
 }
 
 /* body of an instance */
-#topo-p-instance .online svg rect {
+#topo2-p-instance .online svg rect {
     opacity: 1;
     fill: #fbfbfb;
 }
 
-#topo-p-instance svg .glyph {
+#topo2-p-instance svg .glyph {
     fill: #fff;
 }
-#topo-p-instance .online svg .glyph {
+#topo2-p-instance .online svg .glyph {
     fill: #fff;
 }
 
 
 /* offline */
-#topo-p-instance svg .badgeIcon {
+#topo2-p-instance svg .badgeIcon {
     opacity: 0.4;
     fill: #939598;
 }
 
 /* online */
-#topo-p-instance .online svg .badgeIcon {
+#topo2-p-instance .online svg .badgeIcon {
     opacity: 1.0;
     fill: #939598;
 }
-#topo-p-instance .online svg .badgeIcon.bird {
+#topo2-p-instance .online svg .badgeIcon.bird {
     fill: #ffffff;
 }
 
-#topo-p-instance svg .readyBadge {
+#topo2-p-instance svg .readyBadge {
     visibility: hidden;
 }
-#topo-p-instance .ready svg .readyBadge {
+#topo2-p-instance .ready svg .readyBadge {
     visibility: visible;
 }
 
-#topo-p-instance svg text {
+#topo2-p-instance svg text {
     text-anchor: left;
     opacity: 0.5;
     fill: #3c3a3a;
 }
 
-#topo-p-instance .online svg text {
+#topo2-p-instance .online svg text {
     opacity: 1.0;
     fill: #3c3a3a;
 }
 
-#topo-p-instance .onosInst.mastership {
+#topo2-p-instance .onosInst.mastership {
     opacity: 0.3;
 }
-#topo-p-instance .onosInst.mastership.affinity {
+#topo2-p-instance .onosInst.mastership.affinity {
     opacity: 1.0;
 }
-#topo-p-instance .onosInst.mastership.affinity svg rect {
+#topo2-p-instance .onosInst.mastership.affinity svg rect {
     filter: url(#blue-glow);
 }
 
-.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+.firefox #topo2-p-instance .onosInst.mastership.affinity svg rect {
     filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
 }
 

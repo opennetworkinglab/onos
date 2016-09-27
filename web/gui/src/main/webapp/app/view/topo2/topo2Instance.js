@@ -9,7 +9,7 @@
 
     // configuration
     var showLogicErrors = true,
-        idIns = 'topo-p-instance',
+        idIns = 'topo2-p-instance',
         instOpts = {
             edge: 'left',
             width: 20
@@ -238,6 +238,16 @@
         });
     }
 
+    function destroy() {
+        ts.removeListener(updateInstances);
+
+        ps.destroyPanel(idIns);
+        oiBox = null;
+
+        onosInstances = {};
+        onosOrder = [];
+    }
+
     angular.module('ovTopo2')
         .factory('Topo2InstanceService',
         ['$log', 'PanelService', 'SvgUtilService', 'GlyphService',
@@ -252,7 +262,8 @@
 
             return {
                 initInst: initInst,
-                allInstances: allInstances
+                allInstances: allInstances,
+                destroy: destroy
             };
         }]);
 

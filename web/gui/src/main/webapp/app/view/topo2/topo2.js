@@ -152,6 +152,7 @@
                 t2es.stop();
                 ks.unbindKeys();
                 t2fs.destroy();
+                t2is.destroy();
             });
 
             // svg layer and initialization of components
