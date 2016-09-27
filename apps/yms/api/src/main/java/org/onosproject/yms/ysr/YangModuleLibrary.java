@@ -63,7 +63,7 @@ public interface YangModuleLibrary {
      *
      * @return module set id of the YANG library
      */
-    String getModuleSetId();
+    String moduleSetId();
 
     /**
      * Retrieves the current list of YANG modules supported in the server.
@@ -80,5 +80,5 @@ public interface YangModuleLibrary {
      *
      * @return the current list of YANG modules supported in the server
      */
-    List<YangModuleInformation> getYangModuleList();
+    List<YangModuleInformation> yangModuleList();
 }

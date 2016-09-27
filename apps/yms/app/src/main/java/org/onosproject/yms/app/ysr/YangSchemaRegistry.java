@@ -1,0 +1,110 @@
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.yms.app.ysr;
+
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
+
+/**
+ * Abstraction of entity which provides interfaces to YANG schema registry.
+ */
+public interface YangSchemaRegistry {
+
+    /**
+     * Registers applications to YMS.
+     *
+     * @param managerObject               application's object
+     * @param serviceClass                service class which needs to be
+     *                                    registered
+     * @param notificationExtendedService notification extended service to
+     *                                    register application object with YNH
+     */
+    void registerApplication(Object managerObject, Class<?> serviceClass,
+                             YangNotificationExtendedService
+                                     notificationExtendedService);
+
+    /**
+     * Unregisters applications to YMS.
+     *
+     * @param managerObject application's object
+     * @param serviceClass  service class which needs to be unregistered
+     */
+    void unRegisterApplication(Object managerObject, Class<?> serviceClass);
+
+    /**
+     * Returns application's implementation's class object.
+     *
+     * @param yangSchemaNode application's schema node
+     * @return application's implementation's class object
+     */
+    Object getRegisteredApplication(YangSchemaNode yangSchemaNode);
+
+    /**
+     * Returns YANG schema node using schema name.
+     *
+     * @param schemaName module name.
+     * @return YANG schema node using schema name
+     */
+    YangSchemaNode getYangSchemaNodeUsingSchemaName(String schemaName);
+
+    /**
+     * Returns YANG schema nodes using application name.
+     *
+     * @param appName application's service name
+     * @return YANG schema nodes using application name
+     */
+    YangSchemaNode getYangSchemaNodeUsingAppName(String appName);
+
+    /**
+     * Returns YANG schema nodes using root interface file name.
+     *
+     * @param rootInterfaceFileName name of generated interface file
+     *                              for root node
+     * @return YANG schema nodes using root interface file name
+     */
+    YangSchemaNode
+    getYangSchemaNodeUsingGeneratedRootNodeInterfaceFileName(
+            String rootInterfaceFileName);
+
+    /**
+     * Returns YANG schema nodes using root op param file name.
+     *
+     * @param rootOpParamFileName name of generated op param file for root node
+     * @return YANG schema nodes using root op param file name
+     */
+    YangSchemaNode
+    getYangSchemaNodeUsingGeneratedRootNodeOpPramFileName(
+            String rootOpParamFileName);
+
+    /**
+     * Returns YANG schema node of root for notifications.
+     *
+     * @param eventSubject event subject
+     * @return YANG schema node of root for notifications
+     */
+    YangSchemaNode getRootYangSchemaNodeForNotification(String eventSubject);
+
+    /**
+     * Returns registered service class.
+     *
+     * @param schemaNode YANG schema node
+     * @param appName    application's name
+     * @return registered service class
+     */
+    Class<?> getRegisteredClass(YangSchemaNode schemaNode, String appName);
+
+}

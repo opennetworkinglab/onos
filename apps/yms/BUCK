@@ -1,6 +1,5 @@
 BUNDLES = [
   '//apps/yms/api:onos-apps-yms-api',
-  '//apps/yms/app:onos-apps-yms-app',
 ]
 
 onos_app(

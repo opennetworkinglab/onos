@@ -28,11 +28,11 @@ public interface YangModuleIdentifier {
      *
      * @return the name of the YANG module
      */
-    String getModuleName();
+    String moduleName();
 
     /**
      * Retrieves revision of the YANG module.
-     *
+     * <p>
      * Reference RFC 7895
      * Each YANG module and submodule within the library has a
      * revision.  This is derived from the most recent revision statement
@@ -42,5 +42,5 @@ public interface YangModuleIdentifier {
      *
      * @return revision of the YANG module
      */
-    String getRevision();
+    String revision();
 }

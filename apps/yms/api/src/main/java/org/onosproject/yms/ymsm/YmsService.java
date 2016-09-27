@@ -26,6 +26,7 @@ import org.onosproject.yms.ydt.YdtResponse;
 import org.onosproject.yms.ydt.YdtWalker;
 import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ynh.YangNotificationService;
+import org.onosproject.yms.ysr.YangModuleIdentifier;
 import org.onosproject.yms.ysr.YangModuleLibrary;
 
 /**
@@ -310,11 +311,11 @@ public interface YmsService {
      * The server can optionally support retrieval of the YANG modules it
      * supports.
      *
-     * @param moduleName      YANG module name.
-     * @param moduleNamespace namespace in which the module is defined.
+     *
+     * @param moduleIdentifier module's identifier
      * @return YANG file contents of the requested YANG module.
      */
-    String getYangFile(String moduleName, String moduleNamespace);
+    String getYangFile(YangModuleIdentifier moduleIdentifier);
 
     /**
      * Register protocol specific default CODEC. This is can be used by 1st
