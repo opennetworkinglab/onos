@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var $log, sus, t2rs, t2d3, t2vs, t2ss;
+    var $log, wss, sus, t2rs, t2d3, t2vs, t2ss;
 
     var uplink, linkG, linkLabelG, nodeG;
     var link, node;
@@ -142,7 +142,7 @@
         // once we've finished moving, pin the node in position
         d.fixed = true;
         d3.select(this).classed('fixed', true);
-        // TODO: sendUpdateMeta(d);
+        sendUpdateMeta(d);
         t2ss.clickConsumed(true);
     }
 
@@ -151,6 +151,31 @@
         var ev = d3.event.sourceEvent;
         // nodeLock means we aren't allowing nodes to be dragged...
         return !nodeLock && !zoomingOrPanning(ev);
+    }
+
+    function sendUpdateMeta(d, clearPos) {
+        var metaUi = {},
+            ll;
+
+        // if we are not clearing the position data (unpinning),
+        // attach the x, y, (and equivalent longitude, latitude)...
+        if (!clearPos) {
+            ll = d.lngLatFromCoord([d.x, d.y]);
+            metaUi = {
+                x: d.x,
+                y: d.y,
+                equivLoc: {
+                    lng: ll[0],
+                    lat: ll[1]
+                }
+            };
+        }
+        d.metaUi = metaUi;
+        wss.sendEvent('updateMeta2', {
+            id: d.get('id'),
+            class: d.get('class'),
+            memento: metaUi
+        });
     }
 
     // predicate that indicates when clicking is active
@@ -396,12 +421,13 @@
     angular.module('ovTopo2')
     .factory('Topo2LayoutService',
         [
-            '$log', 'SvgUtilService', 'Topo2RegionService',
+            '$log', 'WebSocketService', 'SvgUtilService', 'Topo2RegionService',
             'Topo2D3Service', 'Topo2ViewService', 'Topo2SelectService',
 
-            function (_$log_, _sus_, _t2rs_, _t2d3_, _t2vs_, _t2ss_) {
+            function (_$log_, _wss_, _sus_, _t2rs_, _t2d3_, _t2vs_, _t2ss_) {
 
                 $log = _$log_;
+                wss = _wss_;
                 t2rs = _t2rs_;
                 t2d3 = _t2d3_;
                 t2vs = _t2vs_;

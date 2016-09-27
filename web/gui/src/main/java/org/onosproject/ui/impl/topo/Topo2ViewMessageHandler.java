@@ -60,6 +60,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private static final String START = "topo2Start";
     private static final String NAV_REGION = "topo2navRegion";
     private static final String STOP = "topo2Stop";
+    private static final String UPDATE_META2 = "updateMeta2";
 
     // === Outbound event identifiers
     private static final String ALL_INSTANCES = "topo2AllInstances";
@@ -87,7 +88,8 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(
                 new Topo2Start(),
                 new Topo2NavRegion(),
-                new Topo2Stop()
+                new Topo2Stop(),
+                new Topo2UpdateMeta()
         );
     }
 
@@ -193,6 +195,17 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 //            removeListeners();
 //            stopSummaryMonitoring();
 //            traffic.stopMonitoring();
+        }
+    }
+
+    private final class Topo2UpdateMeta extends RequestHandler {
+        private Topo2UpdateMeta() {
+            super(UPDATE_META2);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            t2json.updateMeta(payload);
         }
     }
 

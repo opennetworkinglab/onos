@@ -55,7 +55,7 @@
 
         if (mapFilePath === '*countries') {
             cfilter = countryFilters[mapId] || countryFilters.uk;
-            loadMap = ms.loadMapRegionInto
+            loadMap = ms.loadMapRegionInto;
         }
 
         promise = loadMap(mapG, mapFilePath, mapId, {

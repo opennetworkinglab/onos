@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var randomService, ps, sus, is, ts;
+    var randomService, ps, sus, is, ts, t2mcs;
     var fn;
 
     // Internal state;
@@ -55,8 +55,7 @@
     }
 
     function positionNode(node, forUpdate) {
-
-        var meta = node.metaUi,
+        var meta = node.get('metaUi'),
             x = meta && meta.x,
             y = meta && meta.y,
             dim = [800, 600],
@@ -64,7 +63,6 @@
 
         // If the device contains explicit LONG/LAT data, use that to position
         if (setLongLat(node)) {
-            // Indicate we want to update cached meta data...
             return true;
         }
 
@@ -103,13 +101,16 @@
         }
 
         function getDevice(cp) {
-            // console.log(cp);
-            // var d = lu[cp.device];
-            // return d || rand();
             return rand();
         }
 
         xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
+
+        if (node.class === 'sub-region') {
+            xy = rand();
+            node.x = node.px = xy.x;
+            node.y = node.py = xy.y;
+        }
         angular.extend(node, xy);
     }
 
@@ -118,7 +119,7 @@
             coord;
 
         if (loc && loc.type === 'lnglat') {
-            coord = [0, 0];
+            coord = coordFromLngLat(loc);
             node.fixed = true;
             node.px = node.x = coord[0];
             node.py = node.y = coord[1];
@@ -126,11 +127,16 @@
         }
     }
 
+    function coordFromLngLat(loc) {
+        var p = t2mcs.projection();
+        return p ? p.invert([loc.lng, loc.lat]) : [0, 0];
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2NodeModel',
         ['Topo2Model', 'FnService', 'RandomService', 'Topo2PrefsService',
-        'SvgUtilService', 'IconService', 'ThemeService',
-        function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_) {
+        'SvgUtilService', 'IconService', 'ThemeService', 'Topo2MapConfigService',
+        function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_, _t2mcs_) {
 
             randomService = _RandomService_;
             ts = _ts_;
@@ -138,10 +144,17 @@
             ps = _ps_;
             sus = _sus_;
             is = _is_;
+            t2mcs = _t2mcs_;
 
             return Model.extend({
                 initialize: function () {
                     this.node = this.createNode();
+                },
+                createNode: function () {
+                    this.set('class', this.nodeType);
+                    this.set('svgClass', this.svgClassName());
+                    positionNode(this);
+                    return this;
                 },
                 setUpEvents: function () {
                     var _this = this;
@@ -221,6 +234,10 @@
                         }
                     );
                 },
+                lngLatFromCoord: function (coord) {
+                    var p = t2mcs.projection();
+                    return p ? p.invert(coord) : [0, 0];
+                },
                 update: function () {
                     this.updateLabel();
                 },
@@ -235,15 +252,6 @@
                     node.select('rect')
                         .transition()
                         .attr(this.labelBox(devIconDim, labelWidth));
-                },
-                createNode: function () {
-                    var node = angular.extend({}, this.attributes);
-
-                    // Augment as needed...
-                    node.class = this.nodeType;
-                    node.svgClass = this.svgClassName();
-                    positionNode(node);
-                    return node;
                 },
                 onEnter: function (el) {
                     this.el = d3.select(el);

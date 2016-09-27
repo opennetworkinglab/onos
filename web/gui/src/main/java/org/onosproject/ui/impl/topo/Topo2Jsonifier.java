@@ -36,6 +36,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiHost;
@@ -481,5 +482,19 @@ class Topo2Jsonifier {
         }
 
         return splitList;
+    }
+
+    /**
+     * Stores the memento for an element.
+     * This method assumes the payload has an id String, memento ObjectNode
+     *
+     * @param payload event payload
+     */
+    void updateMeta(ObjectNode payload) {
+
+        String id = JsonUtils.string(payload, "id");
+        metaUi.put(id, JsonUtils.node(payload, "memento"));
+
+        log.debug("Storing metadata for {}", id);
     }
 }
