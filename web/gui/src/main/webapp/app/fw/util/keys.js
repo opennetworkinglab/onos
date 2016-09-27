@@ -65,17 +65,12 @@
             case 8: return 'delete';
             case 9: return 'tab';
             case 13: return 'enter';
-            case 16: return 'shift';
-            case 17: return 'ctrl';
-            case 18: return 'alt';
             case 27: return 'esc';
             case 32: return 'space';
             case 37: return 'leftArrow';
             case 38: return 'upArrow';
             case 39: return 'rightArrow';
             case 40: return 'downArrow';
-            case 91: return 'cmdLeft';
-            case 93: return 'cmdRight';
             case 186: return 'semicolon';
             case 187: return 'equals';
             case 188: return 'comma';
@@ -94,7 +89,7 @@
                 } else if (code >= 112 && code <= 123) {
                     return 'F' + (code - 111);
                 }
-                return '.';
+                return null;
         }
     }
 
@@ -112,7 +107,19 @@
         var event = d3.event,
             keyCode = event.keyCode,
             key = whatKey(keyCode),
-            textBlockable = !textFieldDoesNotBlock[key];
+            textBlockable = !textFieldDoesNotBlock[key],
+            modifiers = [];
+
+        event.metaKey && modifiers.push('cmd');
+        event.altKey && modifiers.push('alt');
+        event.shiftKey && modifiers.push('shift');
+
+        if (!key) {
+            return;
+        }
+
+        modifiers.push(key);
+        key = modifiers.join('-');
 
         if (textBlockable && textFieldInput()) {
             return;
