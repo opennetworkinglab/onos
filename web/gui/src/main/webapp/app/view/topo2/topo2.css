@@ -79,6 +79,12 @@
     margin-left: 5px;
 }
 
+#breadcrumbs .breadcrumb:last-child a {
+    pointer-events: none;
+    font-weight: 600;
+    color: #757575;
+}
+
 #breadcrumbs .breadcrumb:last-child:after {
     display: none;
 }
