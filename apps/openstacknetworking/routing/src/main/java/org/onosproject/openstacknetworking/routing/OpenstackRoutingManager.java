@@ -276,6 +276,12 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 .map(OpenstackSubnet::id)
                 .collect(Collectors.toSet());
 
+        if (host.isPresent()) {
+            if (!routableSubNetIds.contains(host.get().annotations().value(SUBNET_ID))) {
+                // subnet of host is not connected to this router, do nothing.
+                return;
+            }
+        }
 
         Set<Host> hosts = host.isPresent() ? ImmutableSet.of(host.get()) :
                 Tools.stream(hostService.getHosts())
@@ -307,11 +313,12 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
                 r.id().equals(routerId)).iterator().next();
     }
 
-    private Optional<OpenstackPort> routerIfacePort(String osNetId) {
+    private Optional<OpenstackPort> routerIfacePort(String osNetId, String osSubNetId) {
         // FIXME router interface is subnet specific, not network
         return openstackService.ports().stream()
                 .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
-                        p.networkId().equals(osNetId))
+                        p.networkId().equals(osNetId) &&
+                        p.fixedIps().containsKey(osSubNetId))
                 .findAny();
     }
 
@@ -538,7 +545,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
     @Override
     protected void hostDetected(Host host) {
         String osNetId = host.annotations().value(NETWORK_ID);
-        Optional<OpenstackPort> routerIface = routerIfacePort(osNetId);
+        String osSubNetId = host.annotations().value(SUBNET_ID);
+        Optional<OpenstackPort> routerIface = routerIfacePort(osNetId, osSubNetId);
         if (!routerIface.isPresent()) {
             return;
         }
@@ -550,7 +558,8 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
     @Override
     protected void hostRemoved(Host host) {
         String osNetId = host.annotations().value(NETWORK_ID);
-        Optional<OpenstackPort> routerIface = routerIfacePort(osNetId);
+        String osSubNetId = host.annotations().value(SUBNET_ID);
+        Optional<OpenstackPort> routerIface = routerIfacePort(osNetId, osSubNetId);
         if (!routerIface.isPresent()) {
             return;
         }

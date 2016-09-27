@@ -161,8 +161,11 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
             return;
         }
 
+        Map.Entry<String, Ip4Address> fixedIp = osPort.fixedIps().entrySet().stream().findFirst().get();
+
         OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
-                .filter(n -> n.networkId().equals(osPort.networkId()))
+                .filter(n -> n.networkId().equals(osPort.networkId()) &&
+                n.id().equals(fixedIp.getKey()))
                 .findFirst().orElse(null);
         if (openstackSubnet == null) {
             log.warn("Failed to find subnet for {}", osPort);
@@ -171,8 +174,7 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
 
         registerDhcpInfo(osPort, openstackSubnet);
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
-        // TODO remove gateway IP from host annotation
-        Map.Entry<String, Ip4Address> fixedIp = osPort.fixedIps().entrySet().stream().findFirst().get();
+
 
         // Added CREATE_TIME intentionally to trigger HOST_UPDATED event for the
         // existing instances.

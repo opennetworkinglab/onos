@@ -33,6 +33,7 @@ import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -78,7 +79,9 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
     private static final String PROTO_UDP = "UDP";
     private static final String ETHTYPE_IPV4 = "IPV4";
 
-    private final Map<Host, Set<SecurityGroupRule>> securityGroupRuleMap = Maps.newConcurrentMap();
+    private final Map<HostId, Set<SecurityGroupRule>> securityGroupRuleMap = Maps.newConcurrentMap();
+    private final Map<HostId, Host> hostInfoMap = Maps.newHashMap();
+
     private ApplicationId appId;
 
     @Activate
@@ -118,9 +121,9 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
      */
     private void populateSecurityGroupRules(String tenantId, boolean install) {
         securityGroupRuleMap.entrySet().stream()
-                .filter(entry -> getTenantId(entry.getKey()).equals(tenantId))
+                .filter(entry -> getTenantId(hostInfoMap.get(entry.getKey())).equals(tenantId))
                 .forEach(entry -> {
-                    Host local = entry.getKey();
+                    Host local = hostInfoMap.get(entry.getKey());
                     entry.getValue().forEach(sgRule -> {
                         setSecurityGroupRule(local.location().deviceId(),
                                 sgRule.rule(),
@@ -259,7 +262,8 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
                 log.warn("Failed to get security group {}", sgId);
             }
         });
-        securityGroupRuleMap.put(host, rules);
+        hostInfoMap.put(host.id(), host);
+        securityGroupRuleMap.put(host.id(), rules);
     }
 
     /**
@@ -293,11 +297,11 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
     private Set<IpPrefix> getRemoteIps(String tenantId, String sgId) {
         Set<IpPrefix> remoteIps = Sets.newHashSet();
         securityGroupRuleMap.entrySet().stream()
-                .filter(entry -> Objects.equals(getTenantId(entry.getKey()), tenantId))
+                .filter(entry -> Objects.equals(getTenantId(hostInfoMap.get(entry.getKey())), tenantId))
                 .forEach(entry -> {
                     if (entry.getValue().stream()
                             .anyMatch(rule -> rule.rule().secuityGroupId().equals(sgId))) {
-                        remoteIps.add(IpPrefix.valueOf(getIp(entry.getKey()), 32));
+                        remoteIps.add(IpPrefix.valueOf(getIp(hostInfoMap.get(entry.getKey())), 32));
                     }
                 });
         return remoteIps;
@@ -310,7 +314,8 @@ public class OpenstackSecurityGroupManager extends AbstractVmHandler
         if (isHostAdded) {
             updateSecurityGroupRulesMap(host);
         } else {
-            securityGroupRuleMap.remove(host);
+            securityGroupRuleMap.remove(host.id());
+            hostInfoMap.remove(host.id());
         }
 
         Tools.stream(hostService.getHosts())
