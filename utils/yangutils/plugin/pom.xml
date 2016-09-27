@@ -103,7 +103,7 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
+            <version>1.7.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
