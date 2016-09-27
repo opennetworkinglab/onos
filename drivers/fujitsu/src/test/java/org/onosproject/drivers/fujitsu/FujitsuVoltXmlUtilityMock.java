@@ -58,6 +58,7 @@ final class FujitsuVoltXmlUtilityMock {
     public static final int FIRST_PART = 0;
     public static final int SECOND_PART = 1;
     public static final int THIRD_PART = 2;
+    public static final int ZERO = 0;
     public static final int ONE = 1;
 
     private FujitsuVoltXmlUtilityMock() {
