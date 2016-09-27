@@ -32,7 +32,8 @@
     function init() {
         $log.debug("Topo2BreadcrumbService Initiated");
         breadcrumbs = [];
-        breadcrumbContainer = d3.select('#breadcrumbs');
+        breadcrumbContainer = d3.select('#breadcrumbs').append('span')
+            .text('Regions: ');
         render();
     }
 
@@ -69,7 +70,7 @@
             .append('div')
                 .attr('class', 'breadcrumb')
                 .on('click', navigateToRegion)
-            .append('text')
+            .append('a')
                 .text(function (d) {
                     return d.name;
                 });

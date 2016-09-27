@@ -52,15 +52,35 @@
 }
 
 #breadcrumbs {
+    font-size: 13px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #c7c7c0;
     position: absolute;
-    padding: 10px 30px;
-    top: 54px;
+    padding: 10px 20px;
+    left: 0;
+    top: 48px;
     width: 100%;
 }
 
 #breadcrumbs .breadcrumb {
     display: inline-block;
-    margin-right: 20px;
+    margin-right: 5px;
+}
+
+#breadcrumbs .breadcrumb a {
+    cursor: pointer;
+}
+
+#breadcrumbs .breadcrumb:after {
+    content: '»';
+    pointer-events: none;
+    color: #353535;
+    line-height: 20px;
+    margin-left: 5px;
+}
+
+#breadcrumbs .breadcrumb:last-child:after {
+    display: none;
 }
 
 #topo2-p-instance.floatpanel {
