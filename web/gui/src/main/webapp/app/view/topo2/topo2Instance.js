@@ -2,7 +2,7 @@
     'use strict';
 
     // injected refs
-    var $log, ps, sus, gs, ts;
+    var $log, ps, sus, gs, flash, ts;
 
     // api from topo
     var api;
@@ -238,6 +238,26 @@
         });
     }
 
+    function toggle(x) {
+        var kev = (x === 'keyev'),
+            on,
+            verb;
+
+        if (kev) {
+            on = oiBox.toggle();
+        } else {
+            on = Boolean(x);
+            if (on) {
+                oiBox.show();
+            } else {
+                oiBox.hide();
+            }
+        }
+        verb = on ? 'Show' : 'Hide';
+        flash.flash(verb + ' instances panel');
+        return on;
+    }
+
     function destroy() {
         ts.removeListener(updateInstances);
 
@@ -250,20 +270,22 @@
 
     angular.module('ovTopo2')
         .factory('Topo2InstanceService',
-        ['$log', 'PanelService', 'SvgUtilService', 'GlyphService',
+        ['$log', 'PanelService', 'SvgUtilService', 'GlyphService', 'FlashService',
         'ThemeService',
 
-        function (_$log_, _ps_, _sus_, _gs_, _ts_) {
+        function (_$log_, _ps_, _sus_, _gs_, _flash_, _ts_) {
             $log = _$log_;
             ps = _ps_;
             sus = _sus_;
             gs = _gs_;
+            flash = _flash_;
             ts = _ts_;
 
             return {
                 initInst: initInst,
                 allInstances: allInstances,
-                destroy: destroy
+                destroy: destroy,
+                toggle: toggle
             };
         }]);
 

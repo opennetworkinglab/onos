@@ -17,7 +17,7 @@
 (function () {
 
     // Injected Services
-    var ks, t2ps, t2ms;
+    var ks, t2ps, t2ms, ps, t2is;
     var topo2ForceService;
 
     // Commmands
@@ -25,6 +25,7 @@
         L: [cycleDeviceLabels, 'Cycle device labels'],
         G: [openMapSelection, 'Select background geo map'],
         B: [toggleMap, 'Toggle background geo map'],
+        I: [toggleInstancePanel, 'Toggle ONOS Instance Panel']
     };
 
     function init(t2fs) {
@@ -45,6 +46,13 @@
         ]);
     }
 
+    var prefsState = {};
+
+    function updatePrefsState(what, b) {
+        prefsState[what] = b ? 1 : 0;
+        ps.setPrefs('topo_prefs', prefsState);
+    }
+
     function cycleDeviceLabels() {
         var deviceLabelIndex = t2ps.get('dlbls') + 1;
         t2ps.set('dlbls', deviceLabelIndex % 3);
@@ -59,14 +67,20 @@
         t2ms.toggle(x);
     }
 
+    function toggleInstancePanel(x) {
+        updatePrefsState('insts', t2is.toggle(x));
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService',
-    ['KeyService', 'Topo2PrefsService', 'Topo2MapService',
-
-        function (_ks_, _t2ps_, _t2ms_) {
+    ['KeyService', 'Topo2PrefsService', 'Topo2MapService', 'PrefsService',
+    'Topo2InstanceService',
+        function (_ks_, _t2ps_, _t2ms_, _ps_, _t2is_) {
 
             t2ps = _t2ps_;
             t2ms = _t2ms_;
+            t2is = _t2is_;
+            ps = _ps_;
             ks = _ks_;
 
             return {
