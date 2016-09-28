@@ -18,8 +18,6 @@
  ONOS GUI -- Button Service (theme) -- CSS file
  */
 
-/* TODO: dark theme */
-
 
 /* === SELECTED BUTTONS === */
 
@@ -76,4 +74,13 @@
 .light .toggleButton:hover:not(.selected) svg.embeddedIcon .glyph,
 .light .radioButton:hover:not(.selected) svg.embeddedIcon .glyph {
     fill: #5b99d2;
+}
+
+
+/* TODO: dark theme */
+/* Selected toggle / radio button */
+
+.dark .toggleButton.selected svg.embeddedIcon .icon rect,
+.dark .radioButton.selected svg.embeddedIcon .icon rect {
+    fill: #e7e7e7;
 }

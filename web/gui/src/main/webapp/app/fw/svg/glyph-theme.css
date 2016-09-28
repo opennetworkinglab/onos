@@ -23,7 +23,11 @@
     fill: black;
 }
 
+/*
+* NOTE: Keeping the theme black while we
+* wait for the mockup theme designs to be made
+*/
 .dark svg .glyph,
 .light svg .glyph.overlay {
-    fill: white;
+    fill: black;
 }
