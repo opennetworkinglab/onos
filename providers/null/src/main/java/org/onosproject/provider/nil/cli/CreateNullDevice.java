@@ -68,7 +68,7 @@ public class CreateNullDevice extends AbstractShellCommand {
         DeviceId deviceId = sim.nextDeviceId();
         BasicDeviceConfig cfg = cfgService.addConfig(deviceId, BasicDeviceConfig.class);
         cfg.name(name);
-        if (latitude != 0 && longitude != 0) {
+        if (latitude != 0 || longitude != 0) {
             cfg.latitude(latitude);
             cfg.longitude(longitude);
         }
