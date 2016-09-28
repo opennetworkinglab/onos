@@ -87,10 +87,13 @@ public class MetersResourceTest extends ResourceTest {
     final DeviceId deviceId1 = DeviceId.deviceId("1");
     final DeviceId deviceId2 = DeviceId.deviceId("2");
     final DeviceId deviceId3 = DeviceId.deviceId("3");
+    final DeviceId deviceId4 = DeviceId.deviceId("of:0000000000000001");
     final Device device1 = new DefaultDevice(null, deviceId1, Device.Type.OTHER,
             "", "", "", "", null);
     final Device device2 = new DefaultDevice(null, deviceId2, Device.Type.OTHER,
             "", "", "", "", null);
+    final Device device4 = new DefaultDevice(null, deviceId4, Device.Type.OTHER,
+                                             "", "", "", "", null);
 
     final MockMeter meter1 = new MockMeter(deviceId1, 1, 111, 1);
     final MockMeter meter2 = new MockMeter(deviceId1, 2, 222, 2);
@@ -214,8 +217,10 @@ public class MetersResourceTest extends ResourceTest {
                 .andReturn(device1);
         expect(mockDeviceService.getDevice(deviceId2))
                 .andReturn(device2);
+        expect(mockDeviceService.getDevice(deviceId4))
+                .andReturn(device4);
         expect(mockDeviceService.getDevices())
-                .andReturn(ImmutableSet.of(device1, device2));
+                .andReturn(ImmutableSet.of(device1, device2, device4));
 
         // Mock Core Service
         expect(mockCoreService.getAppId(anyShort()))
@@ -475,6 +480,7 @@ public class MetersResourceTest extends ResourceTest {
         mockMeterService.submit(anyObject());
         expectLastCall().andReturn(meter5).anyTimes();
         replay(mockMeterService);
+        replay(mockDeviceService);
 
         WebTarget wt = target();
         InputStream jsonStream = MetersResourceTest.class
@@ -486,6 +492,26 @@ public class MetersResourceTest extends ResourceTest {
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/meters/of:0000000000000001/"));
+    }
+
+    /**
+     * Tests creating a meter with POST, but wrong deviceID.
+     */
+    @Test
+    public void testPostWithWrongDevice() {
+        mockMeterService.submit(anyObject());
+        expectLastCall().andReturn(meter5).anyTimes();
+        replay(mockMeterService);
+        replay(mockDeviceService);
+
+        WebTarget wt = target();
+        InputStream jsonStream = MetersResourceTest.class
+                .getResourceAsStream("post-meter.json");
+
+        Response response = wt.path("meters/of:0000000000000002")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_BAD_REQUEST));
     }
 
     /**
