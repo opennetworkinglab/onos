@@ -88,13 +88,15 @@
         'WebSocketService', 'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
-        'Topo2MapConfigService',
+        'Topo2MapConfigService', 'Topo2SummaryPanelService',
 
         function (_$scope_, _$log_, _$loc_,
             _fs_, _mast_, _ks_, _zs_,
             _gs_, _ms_, _sus_, _flash_,
             _wss_, _ps_, _th_,
-            _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_, _t2ms_, _t2mcs_) {
+            _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_, _t2ms_, _t2mcs_,
+            summaryPanel
+        ) {
 
             var params = _$loc_.search(),
                 dim,
@@ -217,6 +219,8 @@
             // ttbs.setDefaultOverlay(prefsState.ovidx);
 
             // $log.debug('registered overlays...', tov.list());
+
+            summaryPanel.init();
 
             $log.log('OvTopo2Ctrl has been created');
         }]);
