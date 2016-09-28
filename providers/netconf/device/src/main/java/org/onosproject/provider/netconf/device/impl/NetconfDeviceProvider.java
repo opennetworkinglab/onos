@@ -24,8 +24,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.ConfigException;
@@ -84,7 +82,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
 
-    public static final String ACTIVE = "active";
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -108,10 +105,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
-    private static final String APP_NAME = "org.onosproject.netconf";
+    protected static final String APP_NAME = "org.onosproject.netconf";
     private static final String SCHEME_NAME = "netconf";
     private static final String DEVICE_PROVIDER_PACKAGE = "org.onosproject.netconf.provider.device";
     private static final String UNKNOWN = "unknown";
@@ -124,7 +118,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final int ISREACHABLE_TIMEOUT = 2000;
     private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
 
-    private final ExecutorService executor =
+    protected final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
                                                            "device-installer-%d", log));
     protected ScheduledExecutorService connectionExecutor
@@ -132,11 +126,10 @@ public class NetconfDeviceProvider extends AbstractProvider
                                      groupedThreads("onos/netconfdeviceprovider",
                                                     "connection-executor-%d", log));
 
-    private DeviceProviderService providerService;
+    protected DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
-    private NodeId localNodeId;
-    private ScheduledFuture<?> scheduledTask;
+    protected ScheduledFuture<?> scheduledTask;
 
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
@@ -148,7 +141,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                     return new NetconfProviderConfig();
                 }
             };
-    private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
+    protected final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
     private ApplicationId appId;
     private boolean active;
 
@@ -163,7 +156,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
         executor.execute(NetconfDeviceProvider.this::connectDevices);
-        localNodeId = clusterService.getLocalNode().id();
         scheduledTask = schedulePolling();
         log.info("Started");
     }
@@ -359,6 +351,10 @@ public class NetconfDeviceProvider extends AbstractProvider
                             providerService.deviceConnected(
                                     deviceId, new DefaultDeviceDescription(
                                             updatedDeviceDescription, true, updatedDeviceDescription.annotations()));
+                        } else if (updatedDeviceDescription == null) {
+                            providerService.deviceConnected(
+                                    deviceId, new DefaultDeviceDescription(
+                                            deviceDescription, true, deviceDescription.annotations()));
                         }
                         //if ports are not discovered, retry the discovery
                         if (deviceService.getPorts(deviceId).isEmpty()) {
@@ -366,7 +362,11 @@ public class NetconfDeviceProvider extends AbstractProvider
                         }
                     }
                 } else {
-                    log.warn("No DeviceDescriptionDiscovery behaviour for device {}", deviceId);
+                    log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
+                                     "using DefaultDeviceDescription", deviceId);
+                            providerService.deviceConnected(
+                                    deviceId, new DefaultDeviceDescription(
+                                    deviceDescription, true, deviceDescription.annotations()));
                 }
             } else if (!isReachable && deviceService.isAvailable(deviceId)) {
                 providerService.deviceDisconnected(deviceId);
@@ -511,7 +511,7 @@ public class NetconfDeviceProvider extends AbstractProvider
             }
             return event.subject().annotations().value(AnnotationKeys.PROTOCOL)
                     .equals(SCHEME_NAME.toUpperCase()) &&
-                    mastershipService.getMasterFor(event.subject().id()).equals(localNodeId);
+                    mastershipService.isLocalMaster(event.subject().id());
         }
     }
 }
