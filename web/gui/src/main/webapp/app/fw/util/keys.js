@@ -40,7 +40,7 @@
         lookup;
 
     function matchSeq(key) {
-        if (!matching && key === 'shift') {
+        if (!matching && key === 'shift-shift') {
             matching = true;
             return true;
         }
@@ -65,6 +65,7 @@
             case 8: return 'delete';
             case 9: return 'tab';
             case 13: return 'enter';
+            case 16: return 'shift';
             case 27: return 'esc';
             case 32: return 'space';
             case 37: return 'leftArrow';
