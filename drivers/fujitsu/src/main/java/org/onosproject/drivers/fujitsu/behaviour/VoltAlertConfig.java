@@ -36,13 +36,15 @@ public interface VoltAlertConfig extends HandlerBehaviour {
      * Set alert filter severity level.
      *
      * @param severity input data in string
+     * @return true if success
      */
-    void setAlertFilter(String severity);
+    boolean setAlertFilter(String severity);
 
     /**
      * Subscribe to receive notifications or unsubscribe.
      *
      * @param mode disable subscription
+     * @return true if success
      */
-    void subscribe(String mode);
+    boolean subscribe(String mode);
 }

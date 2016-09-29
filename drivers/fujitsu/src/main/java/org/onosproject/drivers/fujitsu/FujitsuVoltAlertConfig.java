@@ -43,8 +43,8 @@ public class FujitsuVoltAlertConfig extends AbstractHandlerBehaviour
     private static final String VOLT_ALERTS = "volt-alerts";
     private static final String ALERT_FILTER = "alert-filter";
     private static final String NOTIFY_ALERT = "notify-alert";
-    private final Set<String> severityLevels = ImmutableSet.of(
-            "none", "info", "minor", "major", "critical");
+    private static final Set<String> SEVERITYLEVELS =
+            ImmutableSet.of("none", "info", "minor", "major", "critical");
     private static final String DISABLE = "disable";
 
 
@@ -61,29 +61,31 @@ public class FujitsuVoltAlertConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
-            request.append(buildStartTag(VOLT_ALERTS));
-            request.append(buildEmptyTag(ALERT_FILTER));
-            request.append(buildEndTag(VOLT_ALERTS));
-            request.append(VOLT_NE_CLOSE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
+            request.append(buildStartTag(VOLT_ALERTS))
+                .append(buildEmptyTag(ALERT_FILTER))
+                .append(buildEndTag(VOLT_ALERTS))
+                .append(VOLT_NE_CLOSE);
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    get(request.toString(), REPORT_ALL);
+            reply = controller
+                    .getDevicesMap()
+                    .get(ncDeviceId)
+                    .getSession()
+                    .get(request.toString(), REPORT_ALL);
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
 
     @Override
-    public void setAlertFilter(String severity) {
+    public boolean setAlertFilter(String severity) {
         DriverHandler handler = handler();
         NetconfController controller = handler.get(NetconfController.class);
         MastershipService mastershipService = handler.get(MastershipService.class);
@@ -94,34 +96,36 @@ public class FujitsuVoltAlertConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return;
+            return false;
         }
 
-        if (!severityLevels.contains(severity)) {
-            log.error("Invalid severity level: " + severity);
-            return;
+        if (!SEVERITYLEVELS.contains(severity)) {
+            log.error("Invalid severity level: {}", severity);
+            return false;
         }
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
-            request.append(buildStartTag(VOLT_ALERTS));
-            request.append(buildStartTag(ALERT_FILTER, false));
-            request.append(severity);
-            request.append(buildEndTag(ALERT_FILTER));
-            request.append(buildEndTag(VOLT_ALERTS));
-            request.append(VOLT_NE_CLOSE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
+            request.append(buildStartTag(VOLT_ALERTS))
+                .append(buildStartTag(ALERT_FILTER, false))
+                .append(severity)
+                .append(buildEndTag(ALERT_FILTER))
+                .append(buildEndTag(VOLT_ALERTS))
+                .append(VOLT_NE_CLOSE);
 
             controller.getDevicesMap().get(ncDeviceId).getSession().
                     editConfig(RUNNING, null, request.toString());
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
+            return false;
         }
+        return true;
     }
 
     @Override
-    public void subscribe(String mode) {
+    public boolean subscribe(String mode) {
         DriverHandler handler = handler();
         NetconfController controller = handler.get(NetconfController.class);
         MastershipService mastershipService = handler.get(MastershipService.class);
@@ -132,13 +136,13 @@ public class FujitsuVoltAlertConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return;
+            return false;
         }
 
         if (mode != null) {
             if (!DISABLE.equals(mode)) {
-                log.error("Invalid mode: " + mode);
-                return;
+                log.error("Invalid mode: {}", mode);
+                return false;
             }
         }
 
@@ -148,15 +152,17 @@ public class FujitsuVoltAlertConfig extends AbstractHandlerBehaviour
                         endSubscription();
             } else {
                 StringBuilder request = new StringBuilder();
-                request.append(ANGLE_LEFT).append(NOTIFY_ALERT).append(SPACE);
-                request.append(VOLT_NE_NAMESPACE).append(SLASH).append(ANGLE_RIGHT);
+                request.append(ANGLE_LEFT + NOTIFY_ALERT + SPACE);
+                request.append(VOLT_NE_NAMESPACE + SLASH + ANGLE_RIGHT);
 
                 controller.getDevicesMap().get(ncDeviceId).getSession().
                         startSubscription(request.toString());
             }
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
+            return false;
         }
+        return true;
     }
 
 }
