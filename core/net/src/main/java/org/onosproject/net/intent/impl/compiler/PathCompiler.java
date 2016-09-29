@@ -15,16 +15,15 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.math.RandomUtils;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Identifier;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -40,21 +39,15 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
-import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.Resources;
+import org.onosproject.net.resource.impl.LabelAllocator;
 import org.slf4j.Logger;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.onosproject.net.LinkKey.linkKey;
 
@@ -64,7 +57,10 @@ import static org.onosproject.net.LinkKey.linkKey;
 
 public class PathCompiler<T> {
 
-    public static final boolean RANDOM_SELECTION = true;
+    private static final String ERROR_VLAN = "No VLAN Ids available for ";
+    private static final String ERROR_MPLS = "No available MPLS labels for ";
+
+    static LabelAllocator labelAllocator;
 
     /**
      * Defines methods used to create objects representing flows.
@@ -88,108 +84,46 @@ public class PathCompiler<T> {
         return i == links.size() - 2;
     }
 
-    private Map<LinkKey, VlanId> assignVlanId(PathCompilerCreateFlow creator, PathIntent intent) {
-        Set<LinkKey> linkRequest =
-                Sets.newHashSetWithExpectedSize(intent.path()
-                        .links().size() - 2);
-        for (int i = 1; i <= intent.path().links().size() - 2; i++) {
-            LinkKey link = linkKey(intent.path().links().get(i));
-            linkRequest.add(link);
-            // add the inverse link. I want that the VLANID is reserved both for
-            // the direct and inverse link
-            linkRequest.add(linkKey(link.dst(), link.src()));
-        }
-
-        Map<LinkKey, VlanId> vlanIds = findVlanIds(creator, linkRequest);
-        if (vlanIds.isEmpty()) {
-            creator.log().warn("No VLAN IDs available");
-            return Collections.emptyMap();
-        }
-
-        //same VLANID is used for both directions
-        Set<Resource> resources = vlanIds.entrySet().stream()
-                .flatMap(x -> Stream.of(
-                        Resources.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
-                                .resource(),
-                        Resources.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
-                                .resource()
-                ))
-                .collect(Collectors.toSet());
-        List<ResourceAllocation> allocations =
-                creator.resourceService().allocate(intent.id(), ImmutableList.copyOf(resources));
-        if (allocations.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        return vlanIds;
-    }
-
     /**
-     * Implements the first fit selection behavior.
+     * Returns the ethertype match needed. If the selector provides
+     * an ethertype, it will be used. IPv4 will be used otherwise.
      *
-     * @param available the set of available VLAN ids.
-     * @return the chosen VLAN id.
+     * @param selector the traffic selector.
+     * @return the ethertype we should match against
      */
-    private VlanId firsFitSelection(Set<VlanId> available) {
-        if (!available.isEmpty()) {
-            return available.iterator().next();
+    private EthType getEthType(TrafficSelector selector) {
+        Criterion c = selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if (c != null && c instanceof EthTypeCriterion) {
+            EthTypeCriterion ethertype = (EthTypeCriterion) c;
+            return ethertype.ethType();
+        } else {
+            return EthType.EtherType.IPV4.ethType();
         }
-        return VlanId.vlanId(VlanId.NO_VID);
     }
 
     /**
-     * Implements the random selection behavior.
+     * Creates the flow rules for the path intent using VLAN
+     * encapsulation.
      *
-     * @param available the set of available VLAN ids.
-     * @return the chosen VLAN id.
+     * @param creator the flowrules creator
+     * @param flows the list of flows to fill
+     * @param devices the devices on the path
+     * @param intent the PathIntent to compile
      */
-    private VlanId randomSelection(Set<VlanId> available) {
-        if (!available.isEmpty()) {
-            int size = available.size();
-            int index = RandomUtils.nextInt(size);
-            return Iterables.get(available, index);
-        }
-        return VlanId.vlanId(VlanId.NO_VID);
-    }
-
-    /**
-    * Select a VLAN id from the set of available VLAN ids.
-    *
-    * @param available the set of available VLAN ids.
-    * @return the chosen VLAN id.
-    */
-    private VlanId selectVlanId(Set<VlanId> available) {
-        return RANDOM_SELECTION ? randomSelection(available) : firsFitSelection(available);
-    }
-
-    private Map<LinkKey, VlanId> findVlanIds(PathCompilerCreateFlow creator, Set<LinkKey> links) {
-        Map<LinkKey, VlanId> vlanIds = new HashMap<>();
-        for (LinkKey link : links) {
-            Set<VlanId> forward = findVlanId(creator, link.src());
-            Set<VlanId> backward = findVlanId(creator, link.dst());
-            Set<VlanId> common = Sets.intersection(forward, backward);
-            if (common.isEmpty()) {
-                continue;
-            }
-            VlanId selected = selectVlanId(common);
-            if (selected.toShort() == VlanId.NO_VID) {
-                continue;
-            }
-            vlanIds.put(link, selected);
-        }
-        return vlanIds;
-    }
-
-    private Set<VlanId> findVlanId(PathCompilerCreateFlow creator, ConnectPoint cp) {
-        return creator.resourceService().getAvailableResourceValues(
-                Resources.discrete(cp.deviceId(), cp.port()).id(),
-                VlanId.class);
-    }
-
     private void manageVlanEncap(PathCompilerCreateFlow<T> creator, List<T> flows,
                                  List<DeviceId> devices,
                                  PathIntent intent) {
-        Map<LinkKey, VlanId> vlanIds = assignVlanId(creator, intent);
+
+        Set<Link> linksSet = Sets.newConcurrentHashSet();
+        for (int i = 1; i <= intent.path().links().size() - 2; i++) {
+            linksSet.add(intent.path().links().get(i));
+        }
+
+        Map<LinkKey, Identifier<?>> vlanIds = labelAllocator.assignLabelToLinks(
+                linksSet,
+                intent.id(),
+                EncapsulationType.VLAN
+        );
 
         Iterator<Link> links = intent.path().links().iterator();
         Link srcLink = links.next();
@@ -197,9 +131,9 @@ public class PathCompiler<T> {
         Link link = links.next();
 
         // Ingress traffic
-        VlanId vlanId = vlanIds.get(linkKey(link));
+        VlanId vlanId = (VlanId) vlanIds.get(linkKey(link));
         if (vlanId == null) {
-            throw new IntentCompilationException("No available VLAN ID for " + link);
+            throw new IntentCompilationException(ERROR_VLAN + link);
         }
         VlanId prevVlanId = vlanId;
 
@@ -227,9 +161,9 @@ public class PathCompiler<T> {
 
             if (links.hasNext()) {
                 // Transit traffic
-                VlanId egressVlanId = vlanIds.get(linkKey(link));
+                VlanId egressVlanId = (VlanId) vlanIds.get(linkKey(link));
                 if (egressVlanId == null) {
-                    throw new IntentCompilationException("No available VLAN ID for " + link);
+                    throw new IntentCompilationException(ERROR_VLAN + link);
                 }
 
                 TrafficSelector transitSelector = DefaultTrafficSelector.builder()
@@ -284,68 +218,29 @@ public class PathCompiler<T> {
         }
     }
 
-    private Map<LinkKey, MplsLabel> assignMplsLabel(PathCompilerCreateFlow creator, PathIntent intent) {
-                Set<LinkKey> linkRequest =
-                Sets.newHashSetWithExpectedSize(intent.path()
-                        .links().size() - 2);
-        for (int i = 1; i <= intent.path().links().size() - 2; i++) {
-            LinkKey link = linkKey(intent.path().links().get(i));
-            linkRequest.add(link);
-            // add the inverse link. I want that the VLANID is reserved both for
-            // the direct and inverse link
-            linkRequest.add(linkKey(link.dst(), link.src()));
-        }
-
-        Map<LinkKey, MplsLabel> labels = findMplsLabels(creator, linkRequest);
-        if (labels.isEmpty()) {
-            throw new IntentCompilationException("No available MPLS Label");
-        }
-
-        // for short term solution: same label is used for both directions
-        // TODO: introduce the concept of Tx and Rx resources of a port
-        Set<Resource> resources = labels.entrySet().stream()
-                .flatMap(x -> Stream.of(
-                        Resources.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
-                                .resource(),
-                        Resources.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
-                                .resource()
-                ))
-                .collect(Collectors.toSet());
-        List<ResourceAllocation> allocations =
-                creator.resourceService().allocate(intent.id(), ImmutableList.copyOf(resources));
-        if (allocations.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        return labels;
-    }
-
-    private Map<LinkKey, MplsLabel> findMplsLabels(PathCompilerCreateFlow creator, Set<LinkKey> links) {
-        Map<LinkKey, MplsLabel> labels = new HashMap<>();
-        for (LinkKey link : links) {
-            Set<MplsLabel> forward = findMplsLabel(creator, link.src());
-            Set<MplsLabel> backward = findMplsLabel(creator, link.dst());
-            Set<MplsLabel> common = Sets.intersection(forward, backward);
-            if (common.isEmpty()) {
-                continue;
-            }
-            labels.put(link, common.iterator().next());
-        }
-
-        return labels;
-    }
-
-    private Set<MplsLabel> findMplsLabel(PathCompilerCreateFlow creator, ConnectPoint cp) {
-        return creator.resourceService().getAvailableResourceValues(
-                Resources.discrete(cp.deviceId(), cp.port()).id(),
-                MplsLabel.class);
-    }
-
+    /**
+     * Creates the flow rules for the path intent using MPLS
+     * encapsulation.
+     *
+     * @param creator the flowrules creator
+     * @param flows the list of flows to fill
+     * @param devices the devices on the path
+     * @param intent the PathIntent to compile
+     */
     private void manageMplsEncap(PathCompilerCreateFlow<T> creator, List<T> flows,
                                            List<DeviceId> devices,
                                            PathIntent intent) {
-        Map<LinkKey, MplsLabel> mplsLabels = assignMplsLabel(creator, intent);
 
+        Set<Link> linksSet = Sets.newConcurrentHashSet();
+        for (int i = 1; i <= intent.path().links().size() - 2; i++) {
+            linksSet.add(intent.path().links().get(i));
+        }
+
+        Map<LinkKey, Identifier<?>> mplsLabels = labelAllocator.assignLabelToLinks(
+                linksSet,
+                intent.id(),
+                EncapsulationType.MPLS
+        );
         Iterator<Link> links = intent.path().links().iterator();
         Link srcLink = links.next();
 
@@ -353,9 +248,9 @@ public class PathCompiler<T> {
         // List of flow rules to be installed
 
         // Ingress traffic
-        MplsLabel mplsLabel = mplsLabels.get(linkKey(link));
+        MplsLabel mplsLabel = (MplsLabel) mplsLabels.get(linkKey(link));
         if (mplsLabel == null) {
-            throw new IntentCompilationException("No available MPLS Label for " + link);
+            throw new IntentCompilationException(ERROR_MPLS + link);
         }
         MplsLabel prevMplsLabel = mplsLabel;
 
@@ -382,12 +277,10 @@ public class PathCompiler<T> {
 
             if (links.hasNext()) {
                 // Transit traffic
-                MplsLabel transitMplsLabel = mplsLabels.get(linkKey(link));
+                MplsLabel transitMplsLabel = (MplsLabel) mplsLabels.get(linkKey(link));
                 if (transitMplsLabel == null) {
-                    throw new IntentCompilationException("No available MPLS label for " + link);
+                    throw new IntentCompilationException(ERROR_MPLS + link);
                 }
-                prevMplsLabel = transitMplsLabel;
-
                 TrafficSelector transitSelector = DefaultTrafficSelector.builder()
                         .matchInPort(prev.port())
                         .matchEthType(Ethernet.MPLS_UNICAST)
@@ -395,12 +288,13 @@ public class PathCompiler<T> {
 
                 TrafficTreatment.Builder transitTreat = DefaultTrafficTreatment.builder();
 
-                // Set the new MPLS Label only if the previous one is different
+                // Set the new MPLS label only if the previous one is different
                 if (!prevMplsLabel.equals(transitMplsLabel)) {
                     transitTreat.setMpls(transitMplsLabel);
                 }
                 creator.createFlow(transitSelector,
                         transitTreat.build(), prev, link.src(), intent.priority(), true, flows, devices);
+                prevMplsLabel = transitMplsLabel;
                 prev = link.dst();
             } else {
                 TrafficSelector.Builder egressSelector = DefaultTrafficSelector.builder()
@@ -428,14 +322,7 @@ public class PathCompiler<T> {
                 if (mplsCriterion.isPresent()) {
                     egressTreat.setMpls(mplsCriterion.get().label());
                 } else {
-                    egressTreat.popMpls(outputEthType(intent.selector()));
-                }
-
-
-                if (mplsCriterion.isPresent()) {
-                    egressTreat.setMpls(mplsCriterion.get().label());
-                } else {
-                    egressTreat.popVlan();
+                    egressTreat.popMpls(getEthType(intent.selector()));
                 }
 
                 creator.createFlow(egressSelector.build(),
@@ -445,23 +332,6 @@ public class PathCompiler<T> {
         }
 
     }
-
-    private MplsLabel getMplsLabel(Map<LinkKey, MplsLabel> labels, LinkKey link) {
-        return labels.get(link);
-    }
-
-    // if the ingress ethertype is defined, the egress traffic
-    // will be use that value, otherwise the IPv4 ethertype is used.
-    private EthType outputEthType(TrafficSelector selector) {
-        Criterion c = selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if (c != null && c instanceof EthTypeCriterion) {
-            EthTypeCriterion ethertype = (EthTypeCriterion) c;
-            return ethertype.ethType();
-        } else {
-            return EthType.EtherType.IPV4.ethType();
-        }
-    }
-
 
     /**
      * Compiles an intent down to flows.

@@ -30,6 +30,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.resource.impl.LabelAllocator;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -57,8 +58,14 @@ public class IntentConfigurableRegistrator {
     private static final boolean DEFAULT_FLOW_OBJECTIVES = false;
     @Property(name = "useFlowObjectives",
             boolValue = DEFAULT_FLOW_OBJECTIVES,
-            label = "Indicates whether to use flow objective-based compilers")
+            label = "Indicates whether or not to use flow objective-based compilers")
     private boolean useFlowObjectives = DEFAULT_FLOW_OBJECTIVES;
+
+    private static final String DEFAULT_LABEL_SELECTION = "RANDOM";
+    @Property(name = "labelSelection",
+            value = DEFAULT_LABEL_SELECTION,
+            label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
+    private String labelSelection = DEFAULT_LABEL_SELECTION;
 
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowRuleBased = Maps.newConcurrentMap();
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowObjectiveBased = Maps.newConcurrentMap();
@@ -79,6 +86,7 @@ public class IntentConfigurableRegistrator {
     public void modified(ComponentContext context) {
         if (context == null) {
             log.info("Settings: useFlowObjectives={}", useFlowObjectives);
+            log.info("Settings: labelSelection={}", labelSelection);
             return;
         }
 
@@ -95,13 +103,27 @@ public class IntentConfigurableRegistrator {
             changeCompilers();
             log.info("Settings: useFlowObjectives={}", useFlowObjectives);
         }
+
+        String newLabelSelection;
+        try {
+            String s = Tools.get(context.getProperties(), "labelSelection");
+            newLabelSelection = isNullOrEmpty(s) ? labelSelection : s.trim();
+        } catch (ClassCastException e) {
+            newLabelSelection = labelSelection;
+        }
+
+        if (!labelSelection.equals(newLabelSelection) && LabelAllocator.isInEnum(newLabelSelection)) {
+            labelSelection = newLabelSelection;
+            changeLabelSelections();
+            log.info("Settings: labelSelection={}", labelSelection);
+        }
     }
 
     /**
      * Registers the specified compiler for the given intent class.
      *
-     * @param cls       intent class
-     * @param compiler  intent compiler
+     * @param cls       the intent class
+     * @param compiler  the intent compiler
      * @param flowBased true if the compiler is flow based
      * @param <T>       the type of intent
      */
@@ -121,7 +143,7 @@ public class IntentConfigurableRegistrator {
     /**
      * Unregisters the compiler for the specified intent class.
      *
-     * @param cls       intent class
+     * @param cls       the intent class
      * @param flowBased true if the compiler is flow based
      * @param <T>       the type of intent
      */
@@ -145,6 +167,10 @@ public class IntentConfigurableRegistrator {
             flowObjectiveBased.forEach((cls, compiler) -> extensionService.unregisterCompiler(cls));
             flowRuleBased.forEach((cls, compiler) -> extensionService.registerCompiler(cls, compiler));
         }
+    }
+
+    private void changeLabelSelections() {
+        PathCompiler.labelAllocator.setLabelSelection(labelSelection);
     }
 
 }
