@@ -32,6 +32,11 @@
                  tooltip tt-msg="topoTip"
                  ng-click="showIntent()"></div>
 
+            <div ng-class="{'active': !!selId && isIntentWithdrawn()}"
+                 icon icon-id="play" icon-size="42"
+                 tooltip tt-msg="resubmitTip"
+                 ng-click="(!!selId && isIntentWithdrawn()) ? resubmitIntent():''"></div>
+
             <div ng-class="{'active': !!selId && isIntentInstalled()}"
                  icon icon-id="stop" icon-size="42"
                  tooltip tt-msg="deactivateTip"

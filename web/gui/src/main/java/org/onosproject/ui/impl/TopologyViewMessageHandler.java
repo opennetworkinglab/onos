@@ -102,6 +102,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String UPDATE_META = "updateMeta";
     private static final String ADD_HOST_INTENT = "addHostIntent";
     private static final String REMOVE_INTENT = "removeIntent";
+    private static final String RESUBMIT_INTENT = "resubmitIntent";
     private static final String ADD_MULTI_SRC_INTENT = "addMultiSourceIntent";
     private static final String REQ_RELATED_INTENTS = "requestRelatedIntents";
     private static final String REQ_NEXT_INTENT = "requestNextRelatedIntent";
@@ -224,6 +225,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new AddHostIntent(),
                 new AddMultiSourceIntent(),
                 new RemoveIntent(),
+                new ResubmitIntent(),
 
                 new ReqAllFlowTraffic(),
                 new ReqAllPortTraffic(),
@@ -463,6 +465,23 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 } else {
                     intentService.withdraw(intent);
                 }
+            }
+        }
+    }
+
+    private final class ResubmitIntent extends RequestHandler {
+        private ResubmitIntent() {
+            super(RESUBMIT_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            Intent intent = findIntentByPayload(payload);
+            if (intent == null) {
+                log.warn("Unable to find intent from payload {}", payload);
+            } else {
+                log.debug("Resubmitting intent {}", intent.key());
+                intentService.submit(intent);
             }
         }
     }

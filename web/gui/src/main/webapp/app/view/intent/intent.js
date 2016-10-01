@@ -71,6 +71,7 @@
             });
 
             $scope.topoTip = 'Show selected intent on topology view';
+            $scope.resubmitTip = 'Resubmit selected intent';
             $scope.deactivateTip = 'Remove selected intent';
             $scope.purgeTip = 'Purge selected intent';
 
@@ -87,20 +88,22 @@
                 return $scope.intentState === 'Withdrawn';
             };
 
-            function executeAction(bPurge) {
+            function executeAction(action) {
                 var content = ds.createDiv(),
-                    txt = bPurge ? 'purge' : 'withdraw' ;
+                    txt,
+                    bPurge = action === 'purge';
 
                 $scope.intentData.intentPurge = bPurge;
 
                 content.append('p').
-                        text('Are you sure you want to '+ txt +
+                        text('Are you sure you want to '+ action +
                         ' the selected intent?');
 
                 function dOk() {
                     var d = $scope.intentData;
                     $log.debug(d);
-                    d && tts.removeIntent(d);
+                    d && (action === 'resubmit' ? tts.resubmitIntent(d) :
+                                    tts.removeIntent(d));
                     $scope.fired = true;
                 }
 
@@ -118,11 +121,15 @@
             }
 
             $scope.deactivateIntent = function () {
-                executeAction(false);
+                executeAction("withdraw");
+            };
+
+            $scope.resubmitIntent = function () {
+                executeAction("resubmit");
             };
 
             $scope.purgeIntent = function () {
-                executeAction(true);
+                executeAction("purge");
             };
 
             $scope.briefToggle = function () {
