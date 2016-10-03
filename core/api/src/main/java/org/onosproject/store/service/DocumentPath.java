@@ -86,6 +86,17 @@ public class DocumentPath implements Comparable<DocumentPath> {
     }
 
     /**
+     * Returns the relative  path to the given node.
+     *
+     * @return relative  path to the given node.
+     */
+    public DocumentPath childPath() {
+        if (pathElements.size() <= 1) {
+            return null;
+        }
+        return new DocumentPath(this.pathElements.subList(pathElements.size() - 1, pathElements.size()));
+    }
+    /**
      * Returns a path for the parent of this node.
      *
      * @return parent node path. If this path is for the root, returns {@code null}.
@@ -183,7 +194,6 @@ public class DocumentPath implements Comparable<DocumentPath> {
                 return this.pathElements.get(i).compareTo(that.pathElements.get(i));
             }
         }
-
         if (this.pathElements.size() > that.pathElements.size()) {
             return 1;
         } else if (that.pathElements.size() > this.pathElements.size()) {
