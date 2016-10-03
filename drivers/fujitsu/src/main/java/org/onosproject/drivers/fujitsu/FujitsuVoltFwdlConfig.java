@@ -43,9 +43,8 @@ public class FujitsuVoltFwdlConfig extends AbstractHandlerBehaviour
     private static final String MEMBER = "member";
     private static final String IMAGE_NAME = "image-name";
     private static final String REBOOT_MODE = "reboot-mode";
-    private int pon;
-    private int onu;
-
+    private static final String AUTO = "auto";
+    private static final String COMMA = ",";
 
     @Override
     public String upgradeFirmwareOndemand(String target) {
@@ -61,67 +60,84 @@ public class FujitsuVoltFwdlConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
-        String[] data = target.split(":");
-        if ((data.length < 2) || (data.length > 3)) {
+        String[] data = target.split(COLON);
+        if ((data.length < TWO) || (data.length > THREE)) {
             log.error("Invalid number of arguments");
-            return reply;
+            return null;
         }
 
-        String[] onuList = data[1].split(",");
-        if (onuList.length == 0) {
+        String[] onuList = data[SECOND_PART].split(COMMA);
+        if (onuList.length == ZERO) {
             log.error("No ONU listed");
-            return reply;
+            return null;
+        }
+
+        if ((data.length > TWO) && (!AUTO.equals(data[THIRD_PART]))) {
+            log.error("Invalid reboot-mode {}", data[THIRD_PART]);
+            return null;
         }
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(ANGLE_LEFT).append(ONDEMAND_FIRMWARE_UPGRADE).append(SPACE);
-            request.append(VOLT_NE_NAMESPACE).append(ANGLE_RIGHT).append(NEW_LINE);
+            request.append(ANGLE_LEFT + ONDEMAND_FIRMWARE_UPGRADE + SPACE);
+            request.append(VOLT_NE_NAMESPACE + ANGLE_RIGHT + NEW_LINE);
             request.append(buildStartTag(PARTICIPANT_LIST));
 
-            for (count = 0; count < onuList.length; count++) {
-                String[] onuId = onuList[count].split("-");
-                if (onuId.length != 2) {
+            for (count = ZERO; count < onuList.length; count++) {
+                String[] onuId = onuList[count].split(HYPHEN);
+                if (onuId.length != TWO) {
                     log.error("Invalid ONU identifier");
-                    return reply;
+                    return null;
                 }
 
                 try {
-                    pon = Integer.parseInt(onuId[0]);
-                    onu = Integer.parseInt(onuId[1]);
+                    int pon;
+                    pon = Integer.parseInt(onuId[FIRST_PART]);
+                    if (pon <= ZERO) {
+                        log.error("Invalid integer for ponlink-id:{}", onuId[FIRST_PART]);
+                        return null;
+                    }
+                    int onu;
+                    onu = Integer.parseInt(onuId[SECOND_PART]);
+                    if (onu <= ZERO) {
+                        log.error("Invalid integer for onu-id:{}", onuId[SECOND_PART]);
+                        return null;
+                    }
                 } catch (NumberFormatException e) {
                     log.error("Non-number input");
-                    return reply;
+                    return null;
                 }
 
-                request.append(buildStartTag(MEMBER));
-                request.append(buildStartTag(PONLINK_ID));
-                request.append(onuId[0]);
-                request.append(buildEndTag(PONLINK_ID));
-                request.append(buildStartTag(ONU_ID));
-                request.append(onuId[1]);
-                request.append(buildEndTag(ONU_ID));
-                request.append(buildEndTag(MEMBER));
+                request.append(buildStartTag(MEMBER))
+                    .append(buildStartTag(PONLINK_ID))
+                    .append(onuId[FIRST_PART])
+                    .append(buildEndTag(PONLINK_ID))
+                    .append(buildStartTag(ONU_ID))
+                    .append(onuId[SECOND_PART])
+                    .append(buildEndTag(ONU_ID))
+                    .append(buildEndTag(MEMBER));
             }
-            request.append(buildEndTag(PARTICIPANT_LIST));
-            request.append(buildStartTag(IMAGE_NAME));
-            request.append(data[0]);
-            request.append(buildEndTag(IMAGE_NAME));
-            if (data.length == 3) {
-                request.append(buildStartTag(REBOOT_MODE));
-                request.append(data[2]);
-                request.append(buildEndTag(REBOOT_MODE));
+            request.append(buildEndTag(PARTICIPANT_LIST))
+                .append(buildStartTag(IMAGE_NAME))
+                .append(data[FIRST_PART])
+                .append(buildEndTag(IMAGE_NAME));
+            if (data.length == THREE) {
+                request.append(buildStartTag(REBOOT_MODE))
+                    .append(data[THIRD_PART])
+                    .append(buildEndTag(REBOOT_MODE));
             }
             request.append(buildEndTag(ONDEMAND_FIRMWARE_UPGRADE));
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    doWrappedRpc(request.toString());
+            reply = controller
+                    .getDevicesMap()
+                    .get(ncDeviceId)
+                    .getSession()
+                    .doWrappedRpc(request.toString());
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
