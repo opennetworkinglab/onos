@@ -62,6 +62,8 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
 
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";
+    protected static final String ERROR_MESSAGE =
+            " not specified in Instruction";
 
 
     @Override
