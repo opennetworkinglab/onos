@@ -1,0 +1,20 @@
+module YtbAugmentForRpcInput {
+    yang-version 1;
+    namespace "yms:test:ytb:augment:for:rpc:input";
+    prefix "sch";
+    import YtbRpcResponseWithAdvancedInputAndOutput {
+        prefix rpc;
+    }
+    revision "2016-08-26";
+
+    augment "/rpc:activate-software-image/rpc:output/" {
+        choice selection {
+            list value-in {
+                key "kinetic";
+                leaf kinetic {
+                    type "string";
+                }
+            }
+        }
+    }
+}

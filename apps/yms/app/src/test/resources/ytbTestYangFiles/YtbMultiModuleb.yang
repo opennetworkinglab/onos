@@ -1,0 +1,12 @@
+module YtbMultiModuleb {
+    yang-version 1;
+    namespace "yms:test:ytb:multi:module:b";
+    prefix "sch";
+    revision "2016-08-26";
+    list ytbmultilistb {
+        config false;
+        leaf-list checkin {
+            type string;
+        }
+    }
+}

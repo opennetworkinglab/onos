@@ -1,0 +1,76 @@
+module YtbChoiceWithContainerAndLeafList {
+    yang-version 1;
+    namespace "yms:test:ytb:choice:with:container:and:leaf:list";
+    prefix "sch";
+    revision "2016-08-26";
+    leaf refer {
+        type binary;
+    }
+    rpc invalid1 {
+        input {
+            leaf value {
+                type string;
+            }
+        }
+        output {
+            leaf value {
+                type string;
+            }
+        }
+    }
+    choice content-test {
+        leaf-list list-items {
+            type leafref {
+                path "/refer";
+            }
+        }
+        container choice-container {
+            list predict {
+                config "false";
+                container reproduce {
+                    leaf catch {
+                        type int16;
+                    }
+                }
+            }
+        }
+        case valid {
+            list validlistincase {
+                config "false";
+                leaf validity {
+                    type int32;
+                }
+            }
+        }
+        case invalid {
+            leaf create-invalid {
+                type uint16;
+            }
+        }
+    }
+    notification invalid {
+        leaf value {
+            type string;
+        }
+    }
+    notification invalid2 {
+        list node {
+            config false;
+            leaf value {
+                type string;
+            }
+        }
+    }
+    choice current-value {
+        case ytb-present {
+            leaf-list represent {
+                type uint32;
+            }
+        }
+        case ytb-absent {
+            leaf-list final {
+                type instance-identifier;
+            }
+        }
+    }
+}

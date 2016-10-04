@@ -1,0 +1,26 @@
+module YtbSimpleAugment {
+    yang-version 1;
+    namespace "yms:test:ytb:simple:augment";
+    prefix "sch";
+    revision "2016-08-26";
+    container cont1 {
+        container cont2 {
+            leaf fine {
+                type string;
+            }
+        }
+     }
+
+    augment /cont1/cont2 {
+        leaf leaf4 {
+            type int32;
+        }
+        container cont1s {
+            container cont1s {
+                leaf fine {
+                    type string;
+                }
+            }
+        }
+    }
+}
