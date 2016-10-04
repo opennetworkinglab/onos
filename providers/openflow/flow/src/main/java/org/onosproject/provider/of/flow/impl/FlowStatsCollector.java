@@ -16,7 +16,6 @@
 package org.onosproject.provider.of.flow.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsRequest;
@@ -88,8 +87,8 @@ class FlowStatsCollector implements SwitchDataCollector {
         // Initially start polling quickly. Then drop down to configured value
         log.debug("Starting Stats collection thread for {}", sw.getStringId());
         task = new InternalTimerTask();
-        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1 * SECONDS,
-                                                       pollInterval * SECONDS);
+        timer.scheduleAtFixedRate(task, 1 * SECONDS,
+                                  pollInterval * SECONDS);
     }
 
     public synchronized void stop() {

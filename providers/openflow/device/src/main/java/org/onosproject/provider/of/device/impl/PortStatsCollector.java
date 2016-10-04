@@ -16,7 +16,6 @@
 
 package org.onosproject.provider.of.device.impl;
 
-import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsRequest;
@@ -73,8 +72,8 @@ public class PortStatsCollector {
     public synchronized void start() {
         log.info("Starting Port Stats collection thread for {}", sw.getStringId());
         task = new InternalTimerTask();
-        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1 * SECONDS,
-                                                       refreshInterval * SECONDS);
+        timer.scheduleAtFixedRate(task, 1 * SECONDS,
+                                  refreshInterval * SECONDS);
     }
 
     /**

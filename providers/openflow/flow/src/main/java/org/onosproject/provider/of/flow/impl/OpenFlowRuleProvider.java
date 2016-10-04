@@ -140,7 +140,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     private Cache<Long, InternalCacheEntry> pendingBatches;
 
-    private final Timer timer = new Timer("onos-openflow-collector");
+    private final Timer timer = new Timer("onos-openflow-flowstats-collector");
     private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newConcurrentMap();
 
     // NewAdaptiveFlowStatsCollector Set

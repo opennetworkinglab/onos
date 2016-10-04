@@ -162,7 +162,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
 
-    private final Timer timer = new Timer("onos-openflow-collector");
+    private final Timer timer = new Timer("onos-openflow-portstats-collector");
 
     private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
