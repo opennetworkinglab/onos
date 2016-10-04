@@ -1,0 +1,18 @@
+# For demo with GEANT topology and three ONOS instances using vagrant devmachine
+
+export OCI="10.100.198.201"
+export OC1="10.100.198.201"
+export OC2="10.100.198.202"
+export OC3="10.100.198.203"
+export OCN="10.100.198.200"
+export ONOS_NIC="10.100.198.*"
+export ONOS_APPS=drivers,openflow,proxyarp,mobility,mlb,pathpainter
+export ONOS_GROUP=sdn
+export ONOS_SCENARIOS=$ONOS/tools/test/scenarios
+export ONOS_TOPO=geant
+export ONOS_USER=sdn
+export ONOS_USE_SSH=true
+export ONOS_WEB_PASS=rocks
+export ONOS_WEB_USER=onos
+alias demo-reset='stc net-teardown; stc teardown; topo geant; stc setup && stc net-setup'
+alias onos-down='onos-die $OC3; sleep 10; onos-service $OC3 start'
