@@ -34,6 +34,7 @@ public enum LispCanonicalAddressFormatEnum {
     SECURITY(11),               // Security Key Type
     SOURCE_DEST(12),            // Source/Dest Key Type
     TRAFFIC_ENGINEERING(10),    // Explicit Locator Path Type
+    UNSPECIFIED(0),             // Unspecified Type
     UNKNOWN(-1);                // Unknown Type
 
     private byte lispCode;
