@@ -4,7 +4,8 @@ COMPILE_DEPS = [
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//lib:netty-buffer',
     '//lib:netty-codec',
-    '//lib:netty-transport'
+    '//lib:netty-transport',
+    '//lib:netty-handler'
 ]
 
 TEST_DEPS = [
