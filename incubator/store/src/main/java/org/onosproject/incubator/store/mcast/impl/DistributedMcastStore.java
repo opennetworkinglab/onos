@@ -54,7 +54,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
     // map and not emitting events but rather use a provider-like mechanism
     // to program the dataplane.
 
-    private static final String MCASTRIB = "mcast-rib-table";
+    private static final String MCASTRIB = "onos-mcast-rib-table";
     private Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

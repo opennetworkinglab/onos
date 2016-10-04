@@ -75,7 +75,7 @@ public class DistributedLabelResourceStore
         implements LabelResourceStore {
     private final Logger log = getLogger(getClass());
 
-    private static final String POOL_MAP_NAME = "labelresourcepool";
+    private static final String POOL_MAP_NAME = "onos-label-resource-pool";
 
     private static final String GLOBAL_RESOURCE_POOL_DEVICE_ID = "global_resource_pool_device_id";
 

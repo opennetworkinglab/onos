@@ -75,7 +75,7 @@ public class DistributedFlowObjectiveStore
         eventQ = new LinkedBlockingQueue<ObjectiveEvent>();
         tpool.execute(new FlowObjectiveNotifier());
         nextGroups = storageService.<Integer, byte[]>consistentMapBuilder()
-                .withName("flowobjective-groups")
+                .withName("onos-flowobjective-groups")
                 .withSerializer(Serializer.using(
                         new KryoNamespace.Builder()
                                 .register(byte[].class)

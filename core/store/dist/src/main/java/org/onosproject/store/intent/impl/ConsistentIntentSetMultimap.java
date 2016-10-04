@@ -47,7 +47,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ConsistentIntentSetMultimap implements IntentSetMultimap {
     private final Logger log = getLogger(getClass());
 
-    private static final String INTENT_MAPPING = "IntentMapping";
+    private static final String INTENT_MAPPING = "onos-intent-mapping";
 
     private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
