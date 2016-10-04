@@ -51,6 +51,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
      *
      * @param nonce              nonce
      * @param keyId              key identifier
+     * @param authDataLength     authentication data length
      * @param authenticationData authentication data
      * @param mapRecords         a collection of map records
      * @param proxyMapReply      proxy map reply flag

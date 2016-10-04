@@ -27,6 +27,7 @@ public enum LispType {
     LISP_MAP_REPLY(2),              // LISP Map-Reply Message
     LISP_MAP_REGISTER(3),           // LISP Map-Register Message
     LISP_MAP_NOTIFY(4),             // LISP Map-Notify Message
+    LISP_INFO(7),                   // LISP Info-Request or Info-Reply Message
     UNKNOWN(-1);                    // Other Enums for internal use
 
     private final short type;
