@@ -53,20 +53,22 @@ public class FujitsuVoltNeConfig extends AbstractHandlerBehaviour
             log.warn("Not master for {} Use {} to execute command",
                      ncDeviceId,
                      mastershipService.getMasterFor(ncDeviceId));
-            return reply;
+            return null;
         }
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
             request.append(VOLT_NE_CLOSE);
 
-            reply = controller.
-                    getDevicesMap().get(ncDeviceId).getSession().
-                    get(request.toString(), REPORT_ALL);
+            reply = controller
+                    .getDevicesMap()
+                    .get(ncDeviceId)
+                    .getSession()
+                    .get(request.toString(), REPORT_ALL);
         } catch (IOException e) {
-            log.error("Cannot communicate to device {} exception ", ncDeviceId, e);
+            log.error("Cannot communicate to device {} exception {}", ncDeviceId, e);
         }
         return reply;
     }
