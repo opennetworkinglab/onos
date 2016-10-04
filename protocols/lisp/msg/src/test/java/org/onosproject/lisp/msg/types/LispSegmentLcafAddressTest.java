@@ -24,6 +24,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentAddressBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -42,8 +43,7 @@ public class LispSegmentLcafAddressTest {
     @Before
     public void setup() {
 
-        LispSegmentLcafAddress.SegmentAddressBuilder builder1 =
-                            new LispSegmentLcafAddress.SegmentAddressBuilder();
+        SegmentAddressBuilder builder1 = new SegmentAddressBuilder();
 
         LispIpv4Address ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
@@ -53,8 +53,7 @@ public class LispSegmentLcafAddressTest {
                         .withAddress(ipv4Address1)
                         .build();
 
-        LispSegmentLcafAddress.SegmentAddressBuilder builder2 =
-                            new LispSegmentLcafAddress.SegmentAddressBuilder();
+        SegmentAddressBuilder builder2 = new SegmentAddressBuilder();
 
         sameAsAddress1 = builder2
                             .withIdMaskLength((byte) 0x01)
@@ -62,8 +61,7 @@ public class LispSegmentLcafAddressTest {
                             .withAddress(ipv4Address1)
                             .build();
 
-        LispSegmentLcafAddress.SegmentAddressBuilder builder3 =
-                            new LispSegmentLcafAddress.SegmentAddressBuilder();
+        SegmentAddressBuilder builder3 = new SegmentAddressBuilder();
 
         LispIpv4Address ipv4Address2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
         address2 = builder3

@@ -43,8 +43,7 @@ public class LispAppDataLcafAddressTest {
     @Before
     public void setup() {
 
-        AppDataAddressBuilder builder1 =
-                new AppDataAddressBuilder();
+        AppDataAddressBuilder builder1 = new AppDataAddressBuilder();
 
         LispAfiAddress ipv4Address1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
@@ -58,8 +57,7 @@ public class LispAppDataLcafAddressTest {
                     .withAddress(ipv4Address1)
                     .build();
 
-        AppDataAddressBuilder builder2 =
-                new AppDataAddressBuilder();
+        AppDataAddressBuilder builder2 = new AppDataAddressBuilder();
 
         sameAsAddress1 = builder2
                             .withProtocol((byte) 0x01)
@@ -71,8 +69,7 @@ public class LispAppDataLcafAddressTest {
                             .withAddress(ipv4Address1)
                             .build();
 
-        AppDataAddressBuilder builder3 =
-                new AppDataAddressBuilder();
+        AppDataAddressBuilder builder3 = new AppDataAddressBuilder();
 
         LispAfiAddress ipv4Address2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
 

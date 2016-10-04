@@ -24,6 +24,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestAddressBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -42,8 +43,7 @@ public class LispSourceDestLcafAddressTest {
     @Before
     public void setup() {
 
-        LispSourceDestLcafAddress.SourceDestAddressBuilder builder1 =
-                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
+        SourceDestAddressBuilder builder1 = new SourceDestAddressBuilder();
 
         LispIpv4Address srcAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
         LispIpv4Address dstAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
@@ -56,8 +56,7 @@ public class LispSourceDestLcafAddressTest {
                         .withDstPrefix(dstAddress1)
                         .build();
 
-        LispSourceDestLcafAddress.SourceDestAddressBuilder builder2 =
-                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
+        SourceDestAddressBuilder builder2 = new SourceDestAddressBuilder();
 
         sameAsAddress1 = builder2
                             .withReserved((short) 1)
@@ -67,8 +66,7 @@ public class LispSourceDestLcafAddressTest {
                             .withDstPrefix(dstAddress1)
                             .build();
 
-        LispSourceDestLcafAddress.SourceDestAddressBuilder builder3 =
-                new LispSourceDestLcafAddress.SourceDestAddressBuilder();
+        SourceDestAddressBuilder builder3 = new SourceDestAddressBuilder();
 
         LispIpv4Address srcAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.1"));
         LispIpv4Address dstAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.2"));

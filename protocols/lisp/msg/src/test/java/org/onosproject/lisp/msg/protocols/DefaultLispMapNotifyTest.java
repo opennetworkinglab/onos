@@ -47,8 +47,7 @@ public final class DefaultLispMapNotifyTest {
     @Before
     public void setup() {
 
-        NotifyBuilder builder1 =
-                        new DefaultNotifyBuilder();
+        NotifyBuilder builder1 = new DefaultNotifyBuilder();
 
         List<LispMapRecord> records1 = ImmutableList.of(getMapRecord(), getMapRecord());
 
@@ -58,8 +57,7 @@ public final class DefaultLispMapNotifyTest {
                         .withMapRecords(records1)
                         .build();
 
-        NotifyBuilder builder2 =
-                        new DefaultNotifyBuilder();
+        NotifyBuilder builder2 = new DefaultNotifyBuilder();
 
         List<LispMapRecord> records2 = ImmutableList.of(getMapRecord(), getMapRecord());
 
@@ -69,8 +67,7 @@ public final class DefaultLispMapNotifyTest {
                         .withMapRecords(records2)
                         .build();
 
-        NotifyBuilder builder3 =
-                        new DefaultNotifyBuilder();
+        NotifyBuilder builder3 = new DefaultNotifyBuilder();
 
         notify2 = builder3
                         .withKeyId((short) 2)

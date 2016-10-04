@@ -42,8 +42,7 @@ public final class DefaultLispLocatorRecordTest {
     @Before
     public void setup() {
 
-        LispLocatorRecord.LocatorRecordBuilder builder1 =
-                    new DefaultLocatorRecordBuilder();
+        LocatorRecordBuilder builder1 = new DefaultLocatorRecordBuilder();
 
         LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
@@ -58,8 +57,7 @@ public final class DefaultLispLocatorRecordTest {
                         .withLocatorAfi(ipv4Locator1)
                         .build();
 
-        LispLocatorRecord.LocatorRecordBuilder builder2 =
-                    new DefaultLocatorRecordBuilder();
+        LocatorRecordBuilder builder2 = new DefaultLocatorRecordBuilder();
 
         sameAsRecord1 = builder2
                         .withPriority((byte) 0x01)
@@ -72,8 +70,7 @@ public final class DefaultLispLocatorRecordTest {
                         .withLocatorAfi(ipv4Locator1)
                         .build();
 
-        LispLocatorRecord.LocatorRecordBuilder builder3 =
-                    new DefaultLocatorRecordBuilder();
+        LocatorRecordBuilder builder3 = new DefaultLocatorRecordBuilder();
 
         LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
 
