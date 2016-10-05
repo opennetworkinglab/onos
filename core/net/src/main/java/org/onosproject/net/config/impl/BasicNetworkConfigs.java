@@ -34,13 +34,19 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.config.basics.BasicRegionConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.region.RegionId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.onosproject.net.config.basics.SubjectFactories.*;
+import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.HOST_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.LINK_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.REGION_SUBJECT_FACTORY;
 
 /**
  * Component for registration of builtin basic network configurations.
@@ -49,40 +55,51 @@ import static org.onosproject.net.config.basics.SubjectFactories.*;
 @Component(immediate = true)
 public class BasicNetworkConfigs implements BasicNetworkConfigService {
 
+    private static final String BASIC = "basic";
+    private static final String INTERFACES = "interfaces";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<DeviceId, BasicDeviceConfig>(DEVICE_SUBJECT_FACTORY,
-                                                           BasicDeviceConfig.class,
-                                                           "basic") {
+                    BasicDeviceConfig.class,
+                    BASIC) {
                 @Override
                 public BasicDeviceConfig createConfig() {
                     return new BasicDeviceConfig();
                 }
             },
             new ConfigFactory<ConnectPoint, InterfaceConfig>(CONNECT_POINT_SUBJECT_FACTORY,
-                                                             InterfaceConfig.class,
-                                                             "interfaces",
-                                                             true) {
+                    InterfaceConfig.class,
+                    INTERFACES,
+                    true) {
                 @Override
                 public InterfaceConfig createConfig() {
                     return new InterfaceConfig();
                 }
             },
             new ConfigFactory<HostId, BasicHostConfig>(HOST_SUBJECT_FACTORY,
-                                                       BasicHostConfig.class,
-                                                       "basic") {
+                    BasicHostConfig.class,
+                    BASIC) {
                 @Override
                 public BasicHostConfig createConfig() {
                     return new BasicHostConfig();
                 }
             },
             new ConfigFactory<LinkKey, BasicLinkConfig>(LINK_SUBJECT_FACTORY,
-                                                        BasicLinkConfig.class,
-                                                        "basic") {
+                    BasicLinkConfig.class,
+                    BASIC) {
                 @Override
                 public BasicLinkConfig createConfig() {
                     return new BasicLinkConfig();
+                }
+            },
+            new ConfigFactory<RegionId, BasicRegionConfig>(REGION_SUBJECT_FACTORY,
+                    BasicRegionConfig.class,
+                    BASIC) {
+                @Override
+                public BasicRegionConfig createConfig() {
+                    return new BasicRegionConfig();
                 }
             }
     );

@@ -490,8 +490,12 @@ public class UiTopology extends UiElement {
             log.debug("Synthetic link: {}", synthetic);
         });
 
+
         synthLinks.clear();
         synthLinks.addAll(slinks);
+
+        // TODO : compute and add host-device links to synthLinks...
+
     }
 
     private UiSynthLink inferSyntheticLink(UiDeviceLink link) {

@@ -22,6 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.config.SubjectFactory;
+import org.onosproject.net.region.RegionId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -37,18 +38,25 @@ public final class SubjectFactories {
     // Required for resolving application identifiers
     private static CoreService coreService;
 
+    /**
+     * Application ID subject factory.
+     */
     public static final SubjectFactory<ApplicationId> APP_SUBJECT_FACTORY =
             new SubjectFactory<ApplicationId>(ApplicationId.class, "apps") {
                 @Override
                 public ApplicationId createSubject(String key) {
                     return coreService.registerApplication(key);
                 }
+
                 @Override
                 public String subjectKey(ApplicationId subject) {
                     return subject.name();
                 }
             };
 
+    /**
+     * Device ID subject factory.
+     */
     public static final SubjectFactory<DeviceId> DEVICE_SUBJECT_FACTORY =
             new SubjectFactory<DeviceId>(DeviceId.class, "devices") {
                 @Override
@@ -57,18 +65,25 @@ public final class SubjectFactories {
                 }
             };
 
+    /**
+     * Connect point subject factory.
+     */
     public static final SubjectFactory<ConnectPoint> CONNECT_POINT_SUBJECT_FACTORY =
             new SubjectFactory<ConnectPoint>(ConnectPoint.class, "ports") {
                 @Override
                 public ConnectPoint createSubject(String key) {
                     return ConnectPoint.deviceConnectPoint(key);
                 }
+
                 @Override
                 public String subjectKey(ConnectPoint subject) {
                     return key(subject);
                 }
             };
 
+    /**
+     * Host ID subject factory.
+     */
     public static final SubjectFactory<HostId> HOST_SUBJECT_FACTORY =
             new SubjectFactory<HostId>(HostId.class, "hosts") {
                 @Override
@@ -77,6 +92,9 @@ public final class SubjectFactories {
                 }
             };
 
+    /**
+     * Link key subject factory.
+     */
     public static final SubjectFactory<LinkKey> LINK_SUBJECT_FACTORY =
             new SubjectFactory<LinkKey>(LinkKey.class, "links") {
                 @Override
@@ -84,11 +102,23 @@ public final class SubjectFactories {
                     String[] cps = key.split("-");
                     checkArgument(cps.length == 2, "Incorrect link key format: %s", key);
                     return LinkKey.linkKey(ConnectPoint.deviceConnectPoint(cps[0]),
-                                           ConnectPoint.deviceConnectPoint(cps[1]));
+                            ConnectPoint.deviceConnectPoint(cps[1]));
                 }
+
                 @Override
                 public String subjectKey(LinkKey subject) {
                     return key(subject.src()) + "-" + key(subject.dst());
+                }
+            };
+
+    /**
+     * Region ID subject factory.
+     */
+    public static final SubjectFactory<RegionId> REGION_SUBJECT_FACTORY =
+            new SubjectFactory<RegionId>(RegionId.class, "regions") {
+                @Override
+                public RegionId createSubject(String key) {
+                    return RegionId.regionId(key);
                 }
             };
 

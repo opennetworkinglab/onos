@@ -1,0 +1,35 @@
+{
+  "layouts": {
+    "_default_": {
+      "basic": {
+        "region": "",
+        "geomap": "uk",
+        "scale": 1.2,
+        "offsetX": -50,
+        "offsetY": 0
+      }
+    },
+    "l1": {
+      "basic": {
+        "region": "r1",
+        "geomap": "uk-brighton",
+        "scale": 0.9,
+        "offsetX": 200,
+        "offsetY": -45
+      }
+    },
+    "l2": {
+      "basic": {
+        "region": "r2",
+        "geomap": "uk-london"
+      }
+    },
+    "l3": {
+      "basic": {
+        "parent": "l2",
+        "region": "r3",
+        "sprites": "uk-london-westminster"
+      }
+    }
+  }
+}
