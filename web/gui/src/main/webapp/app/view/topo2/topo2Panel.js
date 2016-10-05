@@ -29,7 +29,9 @@
         this.p = ps.createPanel(this.id, options);
         this.setup();
 
-        this.p.show();
+        if (options.show) {
+            this.p.show();
+        }
     };
 
     Panel.prototype = {
@@ -59,8 +61,8 @@
             this.body.selectAll("*").remove();
             this.footer.selectAll("*").remove();
         },
-        destory: function () {
-            ps.destroy(this.id);
+        destroy: function () {
+            ps.destroyPanel(this.id);
         }
     };
 

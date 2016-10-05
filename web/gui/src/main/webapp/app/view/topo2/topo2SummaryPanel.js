@@ -29,8 +29,12 @@
     var summaryPanel, summaryData;
 
     // configuration
-    var id = 'topo-p-summary',
+    var id = 'topo2-p-summary',
         className = 'topo-p',
+        panelOpts = {
+            show: true,
+            width: 260          // summary and detail panel width
+        },
         handlerMap = {
             showSummary: handleSummaryData
         };
@@ -40,9 +44,11 @@
         bindHandlers();
         wss.sendEvent('requestSummary');
 
-        summaryPanel = new Panel(id, {
+        var options = angular.extend({}, panelOpts, {
             class: className
         });
+
+        summaryPanel = new Panel(id, options);
 
         summaryPanel.p.classed(className, true);
     }
@@ -107,6 +113,11 @@
         flash.flash(verb + ' Summary Panel');
     }
 
+    function destroy() {
+        wss.unbindHandlers(handlerMap);
+        summaryPanel.destroy();
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2SummaryPanelService',
     ['Topo2PanelService', 'GlyphService', 'WebSocketService', 'FlashService',
@@ -120,7 +131,8 @@
             return {
                 init: init,
 
-                toggle: toggle
+                toggle: toggle,
+                destroy: destroy
             };
         }
     ]);

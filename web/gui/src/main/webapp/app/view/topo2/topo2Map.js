@@ -29,13 +29,15 @@
     var MapSelectionDialog;
 
     // internal state
-    var mapG;
+    var mapG, zoomLayer, zoomer;
 
-    function init(zoomLayer) {
-        return setUpMap(zoomLayer);
+    function init(_zoomLayer_, _zoomer_) {
+        zoomLayer = _zoomLayer_;
+        zoomer = _zoomer_;
+        return setUpMap();
     }
 
-    function setUpMap(zoomLayer) {
+    function setUpMap() {
         var prefs = currentMap(),
             mapId = prefs.mapid,
             mapFilePath = prefs.mapfilepath,
@@ -124,6 +126,10 @@
         }).open();
     }
 
+    function resetZoom() {
+        zoomer.reset();
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2MapService',
         ['$location', 'PrefsService', 'MapService',
@@ -140,7 +146,9 @@
                 return {
                     init: init,
                     openMapSelection: openMapSelection,
-                    toggle: toggle
+                    toggle: toggle,
+
+                    resetZoom: resetZoom
                 };
             }
         ]);

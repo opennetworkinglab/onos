@@ -181,7 +181,7 @@
 }
 
 
-#ov-topo2 svg .node.device.selected rect {
+#ov-topo2 svg .node.device.selected .node-container {
     stroke-width: 2.0;
     stroke: #009fdb;
 }

@@ -66,7 +66,6 @@
     }
     
     function updatePrefs(data) {
-        $log.info('User properties updated');
         cache = data;
         listeners.forEach(function (lsnr) { lsnr(); });
     }

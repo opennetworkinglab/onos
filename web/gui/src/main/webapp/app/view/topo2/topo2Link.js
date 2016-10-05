@@ -22,8 +22,7 @@
 (function () {
     'use strict';
 
-    var $log;
-    var Collection, Model, ts, sus, t2zs;
+    var $log, Collection, Model, ts, sus, t2zs, t2vs;
 
     var linkLabelOffset = '0.35em';
 
@@ -59,7 +58,6 @@
         var attrs = angular.extend({}, linkPoints, {
             key: this.get('id'),
             class: 'link',
-            weight: 1,
             srcPort: this.get('srcPort'),
             tgtPort: this.get('dstPort'),
             position: {
@@ -144,44 +142,47 @@
                 });
 
                 this.el.classed('enhanced', true);
-                point = this.locatePortLabel();
-                angular.extend(point, {
-                    id: 'topo-port-tgt',
-                    num: this.get('portB')
-                });
-                data.push(point);
 
-                if (this.get('portA')) {
-                    point = this.locatePortLabel(1);
+                if (showPort()) {
+                    point = this.locatePortLabel();
                     angular.extend(point, {
-                        id: 'topo-port-src',
-                        num: this.get('portA')
+                        id: 'topo-port-tgt',
+                        num: this.get('portB')
                     });
                     data.push(point);
+
+                    if (this.get('portA')) {
+                        point = this.locatePortLabel(1);
+                        angular.extend(point, {
+                            id: 'topo-port-src',
+                            num: this.get('portA')
+                        });
+                        data.push(point);
+                    }
+
+                    var entering = d3.select('#topo-portLabels')
+                        .selectAll('.portLabel')
+                        .data(data).enter().append('g')
+                        .classed('portLabel', true)
+                        .attr('id', function (d) { return d.id; });
+
+                    entering.each(function (d) {
+                        var el = d3.select(this),
+                            rect = el.append('rect'),
+                            text = el.append('text').text(d.num);
+
+                        var rectSize = rectAroundText(el);
+
+                        rect.attr(rectSize)
+                            .attr('rx', 2)
+                            .attr('ry', 2);
+
+                        text.attr('dy', linkLabelOffset)
+                            .attr('text-anchor', 'middle');
+
+                        el.attr('transform', sus.translate(d.x, d.y));
+                    });
                 }
-
-                var entering = d3.select('#topo-portLabels')
-                    .selectAll('.portLabel')
-                    .data(data).enter().append('g')
-                    .classed('portLabel', true)
-                    .attr('id', function (d) { return d.id; });
-
-                entering.each(function (d) {
-                    var el = d3.select(this),
-                        rect = el.append('rect'),
-                        text = el.append('text').text(d.num);
-
-                    var rectSize = rectAroundText(el);
-
-                    rect.attr(rectSize)
-                        .attr('rx', 2)
-                        .attr('ry', 2);
-
-                    text.attr('dy', linkLabelOffset)
-                        .attr('text-anchor', 'middle');
-
-                    el.attr('transform', sus.translate(d.x, d.y));
-                });
             },
             unenhance: function () {
                 this.el.classed('enhanced', false);
@@ -248,6 +249,11 @@
             setScale: function () {
                 var width = linkScale(widthRatio / t2zs.scale());
                 this.el.style('stroke-width', width + 'px');
+            },
+            update: function () {
+                if (this.el.classed('enhanced')) {
+                    this.enhance();
+                }
             }
         });
 
@@ -258,17 +264,23 @@
         return new LinkCollection(data);
     }
 
+    function showPort() {
+        return t2vs.getPortHighlighting();
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2LinkService',
         ['$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
-
-            function (_$log_, _Collection_, _Model_, _ts_, _sus_, _t2zs_) {
+        'Topo2ViewService',
+            function (_$log_, _Collection_, _Model_, _ts_, _sus_,
+                _t2zs_, _t2vs_) {
 
                 $log = _$log_;
                 ts = _ts_;
                 sus = _sus_;
                 t2zs = _t2zs_;
+                t2vs = _t2vs_;
                 Collection = _Collection_;
                 Model = _Model_;
 

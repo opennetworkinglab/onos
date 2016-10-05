@@ -17,9 +17,9 @@
 (function () {
 
     // Injected Services
-    var ks, t2ps, t2ms, ps, t2is, t2sp;
+    var ks, flash, wss, t2ps, t2ms, ps, t2is, t2sp, t2vs;
 
-    var topo2ForceService;
+    var t2fs;
 
     // Commmands
     var actionMap = {
@@ -27,11 +27,16 @@
         G: [openMapSelection, 'Select background geo map'],
         B: [toggleMap, 'Toggle background geo map'],
         I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
-        O: [toggleSummary, 'Toggle the Summary Panel']
+        O: [toggleSummary, 'Toggle the Summary Panel'],
+        R: [resetZoom, 'Reset pan / zoom'],
+        P: [togglePorts, 'Toggle Port Highlighting'],
+        E: [equalizeMasters, 'Equalize mastership roles'],
+        X: [resetAllNodeLocations, 'Reset Node Location'],
+        U: [unpinNode, 'Unpin node (mouse over)']
     };
 
-    function init(t2fs) {
-        topo2ForceService = t2fs;
+    function init(_t2fs_) {
+        t2fs = _t2fs_;
         bindCommands();
     }
 
@@ -58,7 +63,7 @@
     function cycleDeviceLabels() {
         var deviceLabelIndex = t2ps.get('dlbls') + 1;
         t2ps.set('dlbls', deviceLabelIndex % 3);
-        topo2ForceService.updateNodes();
+        t2fs.updateNodes();
     }
 
     function openMapSelection() {
@@ -77,17 +82,47 @@
         t2sp.toggle();
     }
 
+    function resetZoom() {
+        t2ms.resetZoom();
+        flash.flash('Pan and zoom reset');
+    }
+
+    function togglePorts(x) {
+        updatePrefsState('porthl', t2vs.togglePortHighlights(x));
+        t2fs.updateLinks();
+    }
+
+    function equalizeMasters() {
+        wss.sendEvent('equalizeMasters');
+        flash.flash('Equalizing master roles');
+    }
+
+    function resetAllNodeLocations() {
+        t2fs.resetAllLocations();
+        flash.flash('Reset node locations');
+    }
+
+    function unpinNode() {
+        t2fs.unpin();
+        flash.flash('Unpin node');
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService',
-    ['KeyService', 'Topo2PrefsService', 'Topo2MapService', 'PrefsService',
-    'Topo2InstanceService', 'Topo2SummaryPanelService',
-        function (_ks_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_) {
+    ['KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
+    'Topo2MapService', 'PrefsService', 'Topo2InstanceService',
+    'Topo2SummaryPanelService', 'Topo2ViewService',
+        function (_ks_, _flash_, _wss_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_, _t2vs_) {
+
+            ks = _ks_;
+            flash = _flash_;
+            wss = _wss_;
             t2ps = _t2ps_;
             t2ms = _t2ms_;
             t2is = _t2is_;
             ps = _ps_;
-            ks = _ks_;
             t2sp = _t2sp_;
+            t2vs = _t2vs_;
 
             return {
                 init: init,

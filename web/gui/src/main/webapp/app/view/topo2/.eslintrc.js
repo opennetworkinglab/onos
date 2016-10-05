@@ -3,7 +3,8 @@ module.exports = {
     "installedESLint": true,
     "globals": {
         "angular": true,
-        "d3": true
+        "d3": true,
+        "_": true
     },
     "rules": {
         "brace-style": 0,

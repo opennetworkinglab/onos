@@ -99,3 +99,29 @@
     cursor: pointer;
     fill-rule: evenodd;
 }
+
+/* --- Topo Summary Panel --- */
+
+#topo2-p-summary {
+    padding: 16px;
+}
+
+
+/* --- Topo Detail Panel --- */
+
+#topo2-p-detail {
+    padding: 16px;
+    top: 370px;
+}
+html[data-platform='iPad'] #topo2-p-detail {
+    top: 386px;
+}
+
+#topo2-p-detail .actionBtns .actionBtn {
+    display: inline-block;
+}
+#topo2-p-detail .actionBtns .actionBtn svg {
+    width: 28px;
+    height: 28px;
+}
+

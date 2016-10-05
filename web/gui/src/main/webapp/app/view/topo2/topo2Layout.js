@@ -438,6 +438,7 @@
                     init: init,
                     createForceLayout: createForceLayout,
                     update: update,
+                    tick: tick,
                     start: start,
 
                     setDimensions: setDimensions

@@ -34,10 +34,10 @@
         var DeviceCollection = Collection.extend({
             model: Model,
             comparator: function (a, b) {
-                var order = region.get('layerOrder'),
-                    aLayer = a.get('layer'),
-                    bLayer = b.get('layer');
-                return order.indexOf(aLayer - order.indexOf(bLayer));
+                // var order = region.get('layerOrder'),
+                //     aLayer = a.get('id'),
+                //     bLayer = b.get('layer');
+                // return order.indexOf(aLayer - order.indexOf(bLayer));
             }
         });
 
@@ -54,11 +54,10 @@
         return deviceCollection;
     }
 
-
     angular.module('ovTopo2')
     .factory('Topo2DeviceService',
-        ['Topo2Collection', 'Topo2NodeModel',
-            function (_c_, _nm_) {
+        ['Topo2Collection', 'Topo2NodeModel', 'Topo2DeviceDetailsPanel',
+            function (_c_, _nm_, detailsPanel) {
 
                 Collection = _c_;
 
@@ -67,10 +66,26 @@
                         this.super = this.constructor.__super__;
                         this.super.initialize.apply(this, arguments);
                     },
+                    events: {
+                        'click': 'onClick'
+                    },
                     nodeType: 'device',
                     icon: function () {
                         var type = this.get('type');
                         return remappedDeviceTypes[type] || type || 'unknown';
+                    },
+                    onClick: function () {
+
+                        if (this.get('selected')) {
+                            this.set('selected', false);
+                            detailsPanel.hide();
+                        } else {
+                            this.set('selected', true);
+                            detailsPanel.updateDetails(this.get('id'), this.get('nodeType'));
+                            detailsPanel.show();
+                        }
+
+                        this.el.attr('class', this.svgClassName());
                     },
                     onExit: function () {
                         var node = this.el;

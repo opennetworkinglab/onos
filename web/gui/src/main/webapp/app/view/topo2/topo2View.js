@@ -15,14 +15,21 @@
  */
 
 /*
- ONOS GUI -- Topology Layout Module.
- Module that contains the d3.force.layout logic
+ ONOS GUI -- Topology View Module.
+ Module that contains the topology view variables
  */
 
 (function () {
     'use strict';
 
-    var dimensions;
+    // Injected Services
+    var flash;
+
+    // Internal State
+    var dimensions,
+        viewOptions = {
+            linkPortHighlighting: true
+        };
 
     function newDim(_dimensions) {
         dimensions = _dimensions;
@@ -32,13 +39,33 @@
         return dimensions;
     }
 
+    function togglePortHighlights(x) {
+        var kev = (x === 'keyev'),
+            on = kev ? !viewOptions.linkPortHighlighting : Boolean(x),
+            what = on ? 'Enable' : 'Disable';
+
+        viewOptions.linkPortHighlighting = on;
+        flash.flash(what + ' port highlighting');
+        return on;
+    }
+
+    function getPortHighlighting() {
+        return viewOptions.linkPortHighlighting;
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2ViewService',
-        [
-            function () {
+        ['FlashService',
+            function (_flash_) {
+
+                flash = _flash_;
+
                 return {
                     newDim: newDim,
-                    getDimensions: getDimensions
+                    getDimensions: getDimensions,
+
+                    togglePortHighlights: togglePortHighlights,
+                    getPortHighlighting: getPortHighlighting
                 };
             }
         ]

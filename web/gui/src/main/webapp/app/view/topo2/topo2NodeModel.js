@@ -15,18 +15,14 @@
  */
 
 /*
- ONOS GUI -- Topology Layout Module.
- Module that contains the d3.force.layout logic
+ ONOS GUI -- Topology Node Module.
+ Module that contains model for nodes within the topology
  */
 
 (function () {
     'use strict';
 
-    var randomService, ps, sus, is, ts, t2mcs;
-    var fn;
-
-    // Internal state;
-    var nearDist = 15;
+    var ps, sus, is, ts, t2mcs, t2nps, fn;
 
     var devIconDim = 36,
         devIconDimMin = 20,
@@ -56,124 +52,47 @@
             dColTheme[ts.theme()][otag];
     }
 
-    function positionNode(node, forUpdate) {
-        var meta = node.get('metaUi'),
-            x = meta && meta.x,
-            y = meta && meta.y,
-            dim = [800, 600],
-            xy;
-
-        // If the device contains explicit LONG/LAT data, use that to position
-        if (setLongLat(node)) {
-            // Indicate we want to update cached meta data...
-            return true;
-        }
-
-        // else if we have [x,y] cached in meta data, use that...
-        if (x !== undefined && y !== undefined) {
-            node.fixed = true;
-            node.px = node.x = x;
-            node.py = node.y = y;
-            return;
-        }
-
-        // if this is a node update (not a node add).. skip randomizer
-        if (forUpdate) {
-            return;
-        }
-
-        // Note: Placing incoming unpinned nodes at exactly the same point
-        //        (center of the view) causes them to explode outwards when
-        //        the force layout kicks in. So, we spread them out a bit
-        //        initially, to provide a more serene layout convergence.
-        //       Additionally, if the node is a host, we place it near
-        //        the device it is connected to.
-
-        function rand() {
-            return {
-                x: randomService.randDim(dim[0]),
-                y: randomService.randDim(dim[1])
-            };
-        }
-
-        function near(node) {
-            return {
-                x: node.x + nearDist + randomService.spread(nearDist),
-                y: node.y + nearDist + randomService.spread(nearDist)
-            };
-        }
-
-        function getDevice(cp) {
-            return rand();
-        }
-
-        xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
-
-        if (node.class === 'sub-region') {
-            xy = rand();
-            node.x = node.px = xy.x;
-            node.y = node.py = xy.y;
-        }
-        angular.extend(node, xy);
-    }
-
-    function setLongLat(el) {
-        var loc = el.get('location'),
-            coord;
-
-        if (loc && loc.type === 'lnglat') {
-
-            if (loc.lat === 0 && loc.lng === 0) {
-                return false;
-            }
-
-            coord = coordFromLngLat(loc);
-            el.fixed = true;
-            el.x = el.px = coord[0];
-            el.y = el.py = coord[1];
-
-            return true;
-        }
-    }
-
-    function coordFromLngLat(loc) {
-        var p = t2mcs.projection();
-        return p ? p([loc.lng, loc.lat]) : [0, 0];
-    }
-
     angular.module('ovTopo2')
     .factory('Topo2NodeModel',
-        ['Topo2Model', 'FnService', 'RandomService', 'Topo2PrefsService',
+        ['Topo2Model', 'FnService', 'Topo2PrefsService',
         'SvgUtilService', 'IconService', 'ThemeService',
-        'Topo2MapConfigService', 'Topo2ZoomService',
-        function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_,
-            _t2mcs_, zoomService) {
+        'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2NodePositionService',
+        function (Model, _fn_, _ps_, _sus_, _is_, _ts_,
+            _t2mcs_, zoomService, _t2nps_) {
 
-            randomService = _RandomService_;
             ts = _ts_;
             fn = _fn_;
             ps = _ps_;
             sus = _sus_;
             is = _is_;
             t2mcs = _t2mcs_;
+            t2nps = _t2nps_;
 
             return Model.extend({
                 initialize: function () {
-                    this.set('class', this.nodeType);
-                    this.set('svgClass', this.svgClassName());
                     this.node = this.createNode();
+                    this._events = {
+                        'mouseover': 'mouseoverHandler',
+                        'mouseout': 'mouseoutHandler'
+                    };
                 },
                 createNode: function () {
-                    this.set('class', this.nodeType);
                     this.set('svgClass', this.svgClassName());
-                    positionNode(this);
+                    t2nps.positionNode(this);
                     return this;
                 },
                 setUpEvents: function () {
-                    var _this = this;
-                    angular.forEach(this.events, function (handler, key) {
+                    var _this = this,
+                        events = angular.extend({}, this._events, this.events);
+                    angular.forEach(events, function (handler, key) {
                         _this.el.on(key, _this[handler].bind(_this));
                     });
+                },
+                mouseoverHandler: function () {
+                    this.set('hovered', true);
+                },
+                mouseoutHandler: function () {
+                    this.set('hovered', false);
                 },
                 icon: function () {
                     return 'unknown';
@@ -181,8 +100,8 @@
                 label: function () {
                     var props = this.get('props'),
                         id = this.get('id'),
-                        friendlyName = props ? props.name : id,
-                        labels = ['', friendlyName, id],
+                        friendlyName = props && props.name ? props.name : id,
+                        labels = ['', friendlyName || id, id],
                         nli = ps.get('dlbls'),
                         idx = (nli < labels.length) ? nli : 0;
 
@@ -197,7 +116,8 @@
                     return box.width + labelPad * 2;
                 },
                 addLabelElements: function (label) {
-                    var rect = this.el.append('rect');
+                    var rect = this.el.append('rect')
+                        .attr('class', 'node-container');
                     var glythRect = this.el.append('rect')
                         .attr('y', -halfDevIcon)
                         .attr('x', -halfDevIcon)
@@ -243,13 +163,17 @@
                         this.nodeType,
                         this.get('type'),
                         {
-                            online: this.get('online')
+                            online: this.get('online'),
+                            selected: this.get('selected')
                         }
                     );
                 },
                 lngLatFromCoord: function (coord) {
                     var p = t2mcs.projection();
                     return p ? p.invert(coord) : [0, 0];
+                },
+                resetPosition: function () {
+                    t2nps.setLongLat(this);
                 },
                 update: function () {
                     this.updateLabel();
@@ -281,8 +205,8 @@
                         multipler = devIconDimMax / (dim * zoomService.scale());
                     }
 
-
-                    this.el.selectAll('*').style('transform', 'scale(' + multipler + ')');
+                    this.el.selectAll('*')
+                        .style('transform', 'scale(' + multipler + ')');
                 },
                 render: function () {
                     var node = this.el,
@@ -293,7 +217,8 @@
                     // Label
                     var labelElements = this.addLabelElements(label);
                     labelWidth = label ? this.computeLabelWidth(node) : 0;
-                    labelElements.rect.attr(this.labelBox(devIconDim, labelWidth));
+                    labelElements.rect
+                        .attr(this.labelBox(devIconDim, labelWidth));
 
                     // Icon
                     glyph = is.addDeviceIcon(node, glyphId, devIconDim);
