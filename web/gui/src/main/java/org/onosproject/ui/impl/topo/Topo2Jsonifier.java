@@ -387,7 +387,8 @@ class Topo2Jsonifier {
                 .put("id", region.idAsString())
                 .put("name", region.name())
                 .put("nodeType", REGION)
-                .put("nDevs", region.deviceCount());
+                .put("nDevs", region.deviceCount())
+                .put("nHosts", region.hostCount());
         // TODO: complete closed-region details
 
         addMetaUi(node, region.idAsString());

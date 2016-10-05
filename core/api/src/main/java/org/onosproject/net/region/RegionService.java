@@ -18,6 +18,7 @@ package org.onosproject.net.region;
 
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
 
 import java.util.Set;
 
@@ -58,5 +59,13 @@ public interface RegionService extends ListenerService<RegionEvent, RegionListen
      * @return set of identifiers for devices in the given region
      */
     Set<DeviceId> getRegionDevices(RegionId regionId);
+
+    /**
+     * Returns the set of hosts that belong to the specified region.
+     *
+     * @param regionId region identifier
+     * @return set of identifiers for hosts in the given region
+     */
+    Set<HostId> getRegionHosts(RegionId regionId);
 
 }

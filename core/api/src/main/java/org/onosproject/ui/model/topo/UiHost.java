@@ -20,6 +20,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.region.RegionId;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -36,6 +37,7 @@ public class UiHost extends UiNode {
     private PortNumber locPort;
 
     private UiLinkId edgeLinkId;
+    private RegionId regionId;
 
     /**
      * Creates a new UI host.
@@ -68,6 +70,15 @@ public class UiHost extends UiNode {
      */
     public HostId id() {
         return host.id();
+    }
+
+    /**
+     * Sets the ID of the region to which this device belongs.
+     *
+     * @param regionId region identifier
+     */
+    public void setRegionId(RegionId regionId) {
+        this.regionId = regionId;
     }
 
     @Override

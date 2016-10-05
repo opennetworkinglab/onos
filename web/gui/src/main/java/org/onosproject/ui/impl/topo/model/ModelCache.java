@@ -193,6 +193,7 @@ class ModelCache {
     private void updateRegion(UiRegion region) {
         RegionId rid = region.id();
         Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
+        Set<HostId> hostIds = services.region().getRegionHosts(rid);
 
         // Make sure device objects refer to their region
         deviceIds.forEach(d -> {
@@ -205,8 +206,19 @@ class ModelCache {
             }
         });
 
+        hostIds.forEach(d -> {
+            UiHost host = uiTopology.findHost(d);
+            if (host != null) {
+                host.setRegionId(rid);
+            } else {
+                // if we don't have the UiDevice in the topology, what can we do?
+                log.warn("Region host {}, but we don't have UiHost in topology", d);
+            }
+        });
+
         // Make sure the region object refers to the devices
         region.reconcileDevices(deviceIds);
+        region.reconcileHosts(hostIds);
 
         fixupContainmentHierarchy(region);
     }
@@ -526,26 +538,17 @@ class ModelCache {
         fixupContainmentHierarchy(uiTopology.nullRegion());
         uiTopology.allRegions().forEach(this::fixupContainmentHierarchy);
 
-        // make sure devices are in the correct region
+        // make sure devices and hosts are in the correct region
         Set<UiDevice> allDevices = uiTopology.allDevices();
+        Set<UiHost> allHosts = uiTopology.allHosts();
 
         services.region().getRegions().forEach(r -> {
             RegionId rid = r.id();
             UiRegion region = uiTopology.findRegion(rid);
             if (region != null) {
-                Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
-                region.reconcileDevices(deviceIds);
+                reconcileDevicesWithRegion(allDevices, r, rid, region);
+                reconcileHostsWithRegion(allHosts, r, rid, region);
 
-                deviceIds.forEach(devId -> {
-                    UiDevice dev = uiTopology.findDevice(devId);
-                    if (dev != null) {
-                        dev.setRegionId(r.id());
-                        allDevices.remove(dev);
-                    } else {
-                        log.warn("Region device ID {} but no UiDevice in topology",
-                                devId);
-                    }
-                });
             } else {
                 log.warn("No UiRegion in topology for ID {}", rid);
             }
@@ -556,9 +559,47 @@ class ModelCache {
         allDevices.forEach(d -> leftOver.add(d.id()));
         uiTopology.nullRegion().reconcileDevices(leftOver);
 
+        Set<HostId> leftOverHosts = new HashSet<>(allHosts.size());
+        allHosts.forEach(h -> leftOverHosts.add(h.id()));
+        uiTopology.nullRegion().reconcileHosts(leftOverHosts);
+
         // now that we have correct region hierarchy, and devices are in their
         //  respective regions, we can compute synthetic links for each region.
         uiTopology.computeSynthLinks();
+    }
+
+    private void reconcileHostsWithRegion(Set<UiHost> allHosts, Region r,
+                                          RegionId rid, UiRegion region) {
+        Set<HostId> hostIds = services.region().getRegionHosts(rid);
+        region.reconcileHosts(hostIds);
+
+        hostIds.forEach(hId -> {
+            UiHost h = uiTopology.findHost(hId);
+            if (h != null) {
+                h.setRegionId(r.id());
+                allHosts.remove(h);
+            } else {
+                log.warn("Region host ID {} but no UiHost in topology",
+                        hId);
+            }
+        });
+    }
+
+    private void reconcileDevicesWithRegion(Set<UiDevice> allDevices, Region r,
+                                            RegionId rid, UiRegion region) {
+        Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
+        region.reconcileDevices(deviceIds);
+
+        deviceIds.forEach(devId -> {
+            UiDevice dev = uiTopology.findDevice(devId);
+            if (dev != null) {
+                dev.setRegionId(r.id());
+                allDevices.remove(dev);
+            } else {
+                log.warn("Region device ID {} but no UiDevice in topology",
+                        devId);
+            }
+        });
     }
 
 

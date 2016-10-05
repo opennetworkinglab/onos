@@ -241,6 +241,17 @@ public class UiRegion extends UiNode {
         return topology.deviceSet(deviceIds);
     }
 
+
+    /**
+     * Make sure we have only these hosts in the region.
+     *
+     * @param hosts hosts in the region
+     */
+    public void reconcileHosts(Set<HostId> hosts) {
+        hostIds.clear();
+        hostIds.addAll(hosts);
+    }
+
     /**
      * Returns the set of host identifiers for this region.
      *
@@ -257,6 +268,15 @@ public class UiRegion extends UiNode {
      */
     public Set<UiHost> hosts() {
         return topology.hostSet(hostIds);
+    }
+
+    /**
+     * Returns the count of devices in this region.
+     *
+     * @return the device count
+     */
+    public int hostCount() {
+        return hostIds.size();
     }
 
     /**
