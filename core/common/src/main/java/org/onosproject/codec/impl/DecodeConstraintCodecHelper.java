@@ -195,10 +195,6 @@ public final class DecodeConstraintCodecHelper {
             return decodeWaypointConstraint();
         } else if (type.equals(AsymmetricPathConstraint.class.getSimpleName())) {
             return decodeAsymmetricPathConstraint();
-        } else if (type.equals(LinkTypeConstraint.class.getSimpleName())) {
-            return decodeLinkTypeConstraint();
-        } else if (type.equals(AnnotationConstraint.class.getSimpleName())) {
-            return decodeAnnotationConstraint();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");
