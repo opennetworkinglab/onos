@@ -125,7 +125,7 @@ public class OpenstackIcmpHandler {
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                 .build();
 
-        gatewayService.getGatewayDeviceIds().stream().forEach(gateway -> {
+        gatewayService.getGatewayDeviceIds().forEach(gateway -> {
             packetService.requestPackets(icmpSelector,
                                          PacketPriority.CONTROL,
                                          appId,

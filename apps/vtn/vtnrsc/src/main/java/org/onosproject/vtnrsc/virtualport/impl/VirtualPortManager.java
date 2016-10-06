@@ -191,7 +191,7 @@ implements VirtualPortService {
     public VirtualPort getPort(MacAddress mac) {
         checkNotNull(mac, MAC_NOT_NULL);
         List<VirtualPort> vPorts = new ArrayList<>();
-        vPortStore.values().stream().forEach(p -> {
+        vPortStore.values().forEach(p -> {
             if (p.macAddress().equals(mac)) {
                 vPorts.add(p);
             }

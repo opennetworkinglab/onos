@@ -315,7 +315,7 @@ public class OpenstackPnatHandler {
         }
 
         tBuilder.setIpSrc(externalIp);
-        gatewayService.getGatewayNodes().stream().forEach(gateway -> {
+        gatewayService.getGatewayNodes().forEach(gateway -> {
             TrafficTreatment.Builder tmpBuilder = DefaultTrafficTreatment.builder(tBuilder.build());
             tmpBuilder.setOutput(gatewayService.getUplinkPort(gateway.getGatewayDeviceId()));
             ForwardingObjective fo = DefaultForwardingObjective.builder()
@@ -374,7 +374,7 @@ public class OpenstackPnatHandler {
             return;
         }
 
-        gatewayService.getGatewayDeviceIds().stream().forEach(deviceId -> {
+        gatewayService.getGatewayDeviceIds().forEach(deviceId -> {
             DeviceId srcDeviceId = srcVm.get().location().deviceId();
             TrafficTreatment.Builder tmpBuilder = DefaultTrafficTreatment.builder(tBuilder.build());
             tmpBuilder.extension(RulePopulatorUtil.buildExtension(

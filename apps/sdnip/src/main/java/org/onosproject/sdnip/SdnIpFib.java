@@ -166,17 +166,16 @@ public class SdnIpFib {
         Set<FilteredConnectPoint> ingressFilteredCPs = Sets.newHashSet();
 
         // TODO this should be only peering interfaces
-        interfaceService.getInterfaces().stream()
-                .forEach(intf -> {
-                    // Get ony ingress interfaces with IPs configured
-                    if (validIngressIntf(intf, egressInterface)) {
-                        TrafficSelector.Builder selector =
-                                buildIngressTrafficSelector(intf, prefix);
-                        FilteredConnectPoint ingressFilteredCP =
-                                new FilteredConnectPoint(intf.connectPoint(), selector.build());
-                        ingressFilteredCPs.add(ingressFilteredCP);
-                    }
-                });
+        interfaceService.getInterfaces().forEach(intf -> {
+            // Get ony ingress interfaces with IPs configured
+            if (validIngressIntf(intf, egressInterface)) {
+                TrafficSelector.Builder selector =
+                        buildIngressTrafficSelector(intf, prefix);
+                FilteredConnectPoint ingressFilteredCP =
+                        new FilteredConnectPoint(intf.connectPoint(), selector.build());
+                ingressFilteredCPs.add(ingressFilteredCP);
+            }
+        });
 
         // Build treatment: rewrite the destination MAC address
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()

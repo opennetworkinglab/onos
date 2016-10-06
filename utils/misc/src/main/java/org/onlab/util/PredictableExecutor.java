@@ -137,7 +137,7 @@ public class PredictableExecutor
 
     @Override
     public void shutdown() {
-        backends.stream().forEach(ExecutorService::shutdown);
+        backends.forEach(ExecutorService::shutdown);
     }
 
     @Override

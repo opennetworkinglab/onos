@@ -197,9 +197,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         if (gatewayIp == null) {
             return;
         }
-        gatewayService.getGatewayDeviceIds().stream().forEach(deviceId -> {
-            populateGatewayIcmpRule(gatewayIp, deviceId);
-        });
+        gatewayService.getGatewayDeviceIds().forEach(deviceId -> populateGatewayIcmpRule(gatewayIp, deviceId));
     }
 
     private void populateGatewayIcmpRule(Ip4Address gatewayIp, DeviceId deviceId) {
@@ -371,7 +369,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         }
 
         Map<String, String> vniMap = new HashMap<>();
-        openstackService.networks().stream().forEach(n -> vniMap.put(n.id(), n.segmentId()));
+        openstackService.networks().forEach(n -> vniMap.put(n.id(), n.segmentId()));
 
         // TODO improve pipeline, do we have to install access rules between networks
         // for every single VMs?
@@ -402,7 +400,7 @@ public class OpenstackRoutingManager extends AbstractVmHandler implements Openst
         }
 
         Map<String, String> vniMap = new HashMap<>();
-        openstackService.networks().stream().forEach(n -> vniMap.put(n.id(), n.segmentId()));
+        openstackService.networks().forEach(n -> vniMap.put(n.id(), n.segmentId()));
 
         osSubNets.stream().filter(osSubNet -> !osSubNet.id().equals(osSubNetId)).forEach(osSubNet -> {
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();

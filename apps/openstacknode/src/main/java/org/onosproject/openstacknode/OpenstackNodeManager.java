@@ -663,7 +663,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
             prevNodeMap.remove(node.hostname());
             addOrUpdateNode(node);
         });
-        prevNodeMap.values().stream().forEach(this::deleteNode);
+        prevNodeMap.values().forEach(this::deleteNode);
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
