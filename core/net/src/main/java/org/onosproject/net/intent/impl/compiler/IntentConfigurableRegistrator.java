@@ -170,7 +170,7 @@ public class IntentConfigurableRegistrator {
     }
 
     private void changeLabelSelections() {
-        PathCompiler.labelAllocator.setLabelSelection(labelSelection);
+        LinkCollectionCompiler.labelAllocator.setLabelSelection(labelSelection);
     }
 
 }

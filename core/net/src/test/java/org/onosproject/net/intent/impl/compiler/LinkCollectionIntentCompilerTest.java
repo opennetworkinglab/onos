@@ -16,20 +16,16 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableSet;
+import org.hamcrest.core.Is;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -38,11 +34,13 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.MockIdGenerator;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -58,75 +56,15 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.packet.EthType.EtherType.IPV4;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.*;
+import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
 
-public class LinkCollectionIntentCompilerTest {
-
-    private final ApplicationId appId = new TestApplicationId("test");
-
-    private final ConnectPoint d1p1 = connectPoint("s1", 1);
-    private final ConnectPoint d2p0 = connectPoint("s2", 0);
-    private final ConnectPoint d2p1 = connectPoint("s2", 1);
-    private final ConnectPoint d3p1 = connectPoint("s3", 1);
-    private final ConnectPoint d3p0 = connectPoint("s3", 10);
-    private final ConnectPoint d1p0 = connectPoint("s1", 10);
-
-    private final DeviceId of1Id = DeviceId.deviceId("of:of1");
-    private final DeviceId of2Id = DeviceId.deviceId("of:of2");
-    private final DeviceId of3Id = DeviceId.deviceId("of:of3");
-    private final DeviceId of4Id = DeviceId.deviceId("of:of4");
-
-    private final ConnectPoint of1p1 = connectPoint("of1", 1);
-    private final ConnectPoint of1p2 = connectPoint("of1", 2);
-    private final ConnectPoint of2p1 = connectPoint("of2", 1);
-    private final ConnectPoint of2p2 = connectPoint("of2", 2);
-    private final ConnectPoint of2p3 = connectPoint("of2", 3);
-    private final ConnectPoint of3p1 = connectPoint("of3", 1);
-    private final ConnectPoint of3p2 = connectPoint("of3", 2);
-    private final ConnectPoint of4p1 = connectPoint("of4", 1);
-    private final ConnectPoint of4p2 = connectPoint("of4", 2);
-
-    private final Set<Link> links = ImmutableSet.of(
-            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
-            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build(),
-            DefaultLink.builder().providerId(PID).src(d1p1).dst(d3p1).type(DIRECT).build());
-
-    private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
-    private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
-
-    private final TrafficSelector vlan100Selector = DefaultTrafficSelector.builder()
-            .matchVlanId(VlanId.vlanId("100"))
-            .build();
-
-    private final TrafficSelector vlan200Selector = DefaultTrafficSelector.builder()
-            .matchVlanId(VlanId.vlanId("200"))
-            .build();
-
-    private final TrafficSelector ipPrefixSelector = DefaultTrafficSelector.builder()
-            .matchIPDst(IpPrefix.valueOf("192.168.100.0/24"))
-            .build();
-
-    private final TrafficTreatment ethDstTreatment = DefaultTrafficTreatment.builder()
-            .setEthDst(MacAddress.valueOf("C0:FF:EE:C0:FF:EE"))
-            .build();
-
-    private CoreService coreService;
-    private IntentExtensionService intentExtensionService;
-    private IntentConfigurableRegistrator registrator;
-    private IdGenerator idGenerator = new MockIdGenerator();
-
-    private LinkCollectionIntent intent;
-
-    private LinkCollectionIntentCompiler sut;
-
-
-
-    private List<FlowRule> getFlowRulesByDevice(DeviceId deviceId, Collection<FlowRule> flowRules) {
-        return flowRules.stream()
-                .filter(fr -> fr.deviceId().equals(deviceId))
-                .collect(Collectors.toList());
-    }
+public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest {
 
     @Before
     public void setUp() {
@@ -181,7 +119,7 @@ public class LinkCollectionIntentCompilerTest {
 
         // if not found, get() raises an exception
         FlowRule rule1 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .filter(rule -> rule.deviceId().equals(d1p10.deviceId()))
                 .findFirst()
                 .get();
         assertThat(rule1.selector(), is(
@@ -226,7 +164,7 @@ public class LinkCollectionIntentCompilerTest {
      *             `-1 of4 2-
      */
     @Test
-    public void testFilteredConnectPoint1() {
+    public void testFilteredConnectPointForSp() {
         sut.activate();
         Set<Link> testLinks = ImmutableSet.of(
                 DefaultLink.builder().providerId(PID).src(of1p2).dst(of2p1).type(DIRECT).build(),
@@ -346,7 +284,7 @@ public class LinkCollectionIntentCompilerTest {
      * -1 of3 2---/
      */
     @Test
-    public void testFilteredConnectPoint2() {
+    public void testFilteredConnectPointForMp() {
         sut.activate();
         Set<Link> testlinks = ImmutableSet.of(
                 DefaultLink.builder().providerId(PID).src(of1p2).dst(of2p1).type(DIRECT).build(),
@@ -467,7 +405,7 @@ public class LinkCollectionIntentCompilerTest {
      *             `-1 of4 2-
      */
     @Test
-    public void nonTrivialTranslation1() {
+    public void nonTrivialTranslationForSp() {
         sut.activate();
         Set<Link> testLinks = ImmutableSet.of(
                 DefaultLink.builder().providerId(PID).src(of1p2).dst(of2p1).type(DIRECT).build(),
@@ -587,7 +525,7 @@ public class LinkCollectionIntentCompilerTest {
      * -1 of3 2---/
      */
     @Test
-    public void nonTrivialTranslation2() {
+    public void nonTrivialTranslationForMp() {
         sut.activate();
         Set<Link> testlinks = ImmutableSet.of(
                 DefaultLink.builder().providerId(PID).src(of1p2).dst(of2p1).type(DIRECT).build(),
@@ -701,4 +639,442 @@ public class LinkCollectionIntentCompilerTest {
 
         sut.deactivate();
     }
+
+    /**
+     * We test the proper compilation of mp2sp with
+     * trivial selector, trivial treatment and 1 hop.
+     */
+    @Test
+    public void singleHopTestForMp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .links(ImmutableSet.of())
+                .filteredIngressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10),
+                        new FilteredConnectPoint(d1p11)
+                ))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(2));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(2));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p10.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d1p10.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p11.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d1p11.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of sp2mp with
+     * trivial selector, trivial treatment and 1 hop.
+     */
+    @Test
+    public void singleHopTestForSp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .applyTreatmentOnEgress(true)
+                .links(ImmutableSet.of())
+                .filteredEgressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10),
+                        new FilteredConnectPoint(d1p11)
+                ))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(1));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p0.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d1p0.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setOutput(d1p10.port())
+                        .setOutput(d1p11.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of mp2sp with
+     * trivial selector, trivial treatment, filtered
+     * points and 1 hop.
+     */
+    @Test
+    public void singleHopTestFilteredForMp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .links(ImmutableSet.of())
+                .filteredIngressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10, vlan100Selector),
+                        new FilteredConnectPoint(d1p11, mpls69Selector)
+                ))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0, vlan200Selector)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(2));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(2));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p10.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(vlan100Selector)
+                        .matchInPort(d1p10.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p11.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(mpls69Selector)
+                        .matchInPort(d1p11.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .popMpls(IPV4.ethType())
+                        .pushVlan()
+                        .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of sp2mp with
+     * trivial selector, trivial treatment and 1 hop.
+     */
+    @Test
+    public void singleHopTestFilteredForSp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .applyTreatmentOnEgress(true)
+                .links(ImmutableSet.of())
+                .filteredEgressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10, vlan100Selector),
+                        new FilteredConnectPoint(d1p11, mpls80Selector)
+                ))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0, vlan200Selector)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(1));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p0.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(vlan200Selector)
+                        .matchInPort(d1p0.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p10.port())
+                        .popVlan()
+                        .pushMpls()
+                        .setMpls(((MplsCriterion) mpls80Selector.getCriterion(MPLS_LABEL)).label())
+                        .setOutput(d1p11.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of mp2sp with
+     * selector, treatment, filtered
+     * points and 1 hop.
+     */
+    @Test
+    public void singleHopNonTrivialForMp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(ipPrefixSelector)
+                .treatment(ethDstTreatment)
+                .links(ImmutableSet.of())
+                .filteredIngressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10, vlan100Selector),
+                        new FilteredConnectPoint(d1p11, mpls100Selector)
+                ))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0, vlan200Selector)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(2));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(2));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p10.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(ipPrefixSelector)
+                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .matchInPort(d1p10.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p11.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(ipPrefixSelector)
+                        .matchMplsLabel(((MplsCriterion) mpls100Selector.getCriterion(MPLS_LABEL)).label())
+                        .matchInPort(d1p11.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .popMpls(IPV4.ethType())
+                        .pushVlan()
+                        .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of sp2mp with
+     * selector, treatment and 1 hop.
+     */
+    @Test
+    public void singleHopNonTrivialForSp() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(ipPrefixSelector)
+                .treatment(ethDstTreatment)
+                .applyTreatmentOnEgress(true)
+                .links(ImmutableSet.of())
+                .filteredEgressPoints(ImmutableSet.of(
+                        new FilteredConnectPoint(d1p10, vlan100Selector),
+                        new FilteredConnectPoint(d1p11, mpls200Selector)
+                ))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p0, vlan200Selector)))
+                .build();
+
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(1));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(1));
+        FlowRule ruleS1 = rulesS1.stream()
+                .filter(rule -> {
+                    PortCriterion inPort = (PortCriterion) rule.selector().getCriterion(IN_PORT);
+                    return inPort.port().equals(d1p0.port());
+                })
+                .findFirst()
+                .get();
+        assertThat(ruleS1.selector(), Is.is(
+                DefaultTrafficSelector
+                        .builder(ipPrefixSelector)
+                        .matchVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
+                        .matchInPort(d1p0.port())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), Is.is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .setVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p10.port())
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .popVlan()
+                        .pushMpls()
+                        .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
+                        .setOutput(d1p11.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
 }

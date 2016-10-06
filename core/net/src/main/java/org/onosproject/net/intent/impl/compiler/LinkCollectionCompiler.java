@@ -16,12 +16,19 @@
 
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import org.onlab.packet.EthType;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
+import org.onlab.util.Identifier;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.FilteredConnectPoint;
@@ -31,6 +38,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
@@ -54,27 +62,696 @@ import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.resource.impl.LabelAllocator;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
-
 
 /**
  * Shared APIs and implementations for Link Collection compilers.
  */
 public class LinkCollectionCompiler<T> {
 
+    /**
+     * Reference to the label allocator.
+     */
+    static LabelAllocator labelAllocator;
+
+    /**
+     * The allowed tag criterions.
+     */
     private static final Set<Criterion.Type> TAG_CRITERION_TYPES =
             Sets.immutableEnumSet(VLAN_VID, MPLS_LABEL, TUNNEL_ID);
 
     /**
-     * Helper class to encapsulate treatment and selector.
+     * Error message for wrong egress scenario.
+     */
+    private static final String WRONG_EGRESS = "Egress points not equal to 1 " +
+            "and apply treatment at ingress, " +
+            "which treatments should I apply ???";
+
+    /**
+     * Error message for wrong ingress scenario.
+     */
+    private static final String WRONG_INGRESS = "Ingress points not equal to 1 " +
+            "and apply treatment at egress, " +
+            "how can I match in the core ???";
+
+    /**
+     * Error message for wrong encapsulation scenario.
+     */
+    private static final String WRONG_ENCAPSULATION = "Wrong scenario - 1 hop with " +
+            "encapsualtion";
+
+    /**
+     * Error message for unavailable labels.
+     */
+    private static final String NO_LABELS = "No available label for %s";
+
+    /**
+     * Error message for wrong encapsulation.
+     */
+    private static final String UNKNOWN_ENCAPSULATION = "Unknown encapsulation type";
+
+    /**
+     * Error message for unsupported L0 instructions.
+     */
+    private static final String UNSUPPORTED_L0 = "L0 not supported";
+
+    /**
+     * Error message for unsupported L1 instructions.
+     */
+    private static final String UNSUPPORTED_L1 = "L1 not supported";
+
+    /**
+     * Error message for unsupported eth subtype.
+     */
+    private static final String UNSUPPORTED_ETH_SUBTYPE = "Bad eth subtype";
+
+    /**
+     * Error message for unsupported pop action.
+     */
+    private static final String UNSUPPORTED_POP_ACTION = "Can't handle pop label";
+
+    /**
+     * Error message for unsupported L2 instructions.
+     */
+    private static final String UNSUPPORTED_L2 = "Unknown L2 Modification instruction";
+
+    /**
+     * Error message for unsupported IP subtype.
+     */
+    private static final String UNSUPPORTED_IP_SUBTYPE = "Bad ip subtype";
+
+    /**
+     * Error message for unsupported ARP.
+     */
+    private static final String UNSUPPORTED_ARP = "IPv6 not supported for ARP";
+
+    /**
+     * Error message for unsupported L3 instructions.
+     */
+    private static final String UNSUPPORTED_L3 = "Unknown L3 Modification instruction";
+
+    /**
+     * Error message for unsupported L4 subtype.
+     */
+    private static final String UNSUPPORTED_L4_SUBTYPE = "Unknown L4 subtype";
+
+    /**
+     * Error message for unsupported L4 instructions.
+     */
+    private static final String UNSUPPORTED_L4 = "Unknown L4 Modification instruction";
+
+    /**
+     * Error message for unsupported instructions.
+     */
+    private static final String UNSUPPORTED_INSTRUCTION = "Unknown instruction type";
+
+    /**
+     * Creates the flows representations. This default implementation does
+     * nothing. Subclasses should override this method to create their
+     * specific flows representations (flow rule, flow objective).
+     *
+     * @param intent the intent to compile
+     * @param deviceId the affected device
+     * @param inPorts the input ports
+     * @param outPorts the output ports
+     * @param labels the labels for the label switching hop by hop
+     * @return the list of flows representations
+     */
+    protected List<T> createRules(LinkCollectionIntent intent,
+                                  DeviceId deviceId,
+                                  Set<PortNumber> inPorts,
+                                  Set<PortNumber> outPorts,
+                                  Map<ConnectPoint, Identifier<?>> labels) {
+        return null;
+    }
+
+    /**
+     * Helper method to handle the different scenario (not encap, single hop, encap).
+     *
+     * @param encapConstraint the encapsulation constraint if it is present
+     * @param intent the link collection intent
+     * @param inPort the in port
+     * @param outPorts the out ports
+     * @param deviceId the current device
+     * @param labels the labels used by the encapsulation
+     * @return the forwarding instruction
+     */
+    protected ForwardingInstructions createForwardingInstruction(Optional<EncapsulationConstraint> encapConstraint,
+                                                                 LinkCollectionIntent intent,
+                                                                 PortNumber inPort,
+                                                                 Set<PortNumber> outPorts,
+                                                                 DeviceId deviceId,
+                                                                 Map<ConnectPoint, Identifier<?>> labels) {
+        ForwardingInstructions instructions = null;
+        /*
+         * If not encapsulation or single hop.
+         */
+        if (!encapConstraint.isPresent() || intent.links().isEmpty()) {
+            instructions = this.createForwardingInstructions(
+                    intent,
+                    inPort,
+                    deviceId,
+                    outPorts
+            );
+        /*
+         * If encapsulation is present. We retrieve the labels
+         * for this iteration;
+         */
+        } else {
+            Identifier<?> inLabel = labels.get(new ConnectPoint(deviceId, inPort));
+            Map<ConnectPoint, Identifier<?>> outLabels = Maps.newHashMap();
+            outPorts.forEach(outPort -> {
+                ConnectPoint key = new ConnectPoint(deviceId, outPort);
+                outLabels.put(key, labels.get(key));
+            });
+            instructions = this.createForwardingInstructions(
+                    intent,
+                    inPort,
+                    inLabel,
+                    deviceId,
+                    outPorts,
+                    outLabels,
+                    encapConstraint.get().encapType()
+            );
+        }
+        return instructions;
+    }
+
+    /**
+     * Manages the Intents with a single ingress point (p2p, sp2mp)
+     * creating properly the selector builder and the treatment builder.
+     *
+     * @param selectorBuilder the selector builder to update
+     * @param treatmentBuilder the treatment builder to update
+     * @param intent the intent to compile
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     */
+    private void manageSpIntent(TrafficSelector.Builder selectorBuilder,
+                                TrafficTreatment.Builder treatmentBuilder,
+                                LinkCollectionIntent intent,
+                                DeviceId deviceId,
+                                Set<PortNumber> outPorts) {
+        /*
+         * Sanity check.
+         */
+        if (intent.filteredIngressPoints().size() != 1) {
+            throw new IntentCompilationException(WRONG_INGRESS);
+        }
+        /*
+         * For the p2p and sp2mp the transition initial state
+         * to final state is performed at the egress.
+         */
+        Optional<FilteredConnectPoint> filteredIngressPoint =
+                intent.filteredIngressPoints().stream().findFirst();
+        /*
+         * We build the final selector, adding the selector
+         * of the FIP to the Intent selector and potentially
+         * overriding its matches.
+         */
+        filteredIngressPoint.get()
+                .trafficSelector()
+                .criteria()
+                .forEach(selectorBuilder::add);
+        /*
+         * In this scenario, potentially we can have several output
+         * ports.
+         */
+        for (PortNumber outPort : outPorts) {
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+            /*
+             * If we are at the egress, we have to transit to the final
+             * state.
+             */
+            if (filteredEgressPoint.isPresent()) {
+                /*
+                 * We add the Intent treatment.
+                 */
+                intent.treatment().allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+                /*
+                 * We generate the transition FIP->FEP.
+                 */
+                TrafficTreatment forwardingTreatment =
+                        forwardingTreatment(filteredIngressPoint.get().trafficSelector(),
+                                            filteredEgressPoint.get().trafficSelector(),
+                                            getEthType(intent.selector()));
+                /*
+                 * We add the instruction necessary to the transition.
+                 * Potentially we override the intent treatment.
+                 */
+                forwardingTreatment.allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+            }
+            /*
+             * Finally we set the output action.
+             */
+            treatmentBuilder.setOutput(outPort);
+        }
+    }
+
+    /**
+     * Manages the Intents with multiple ingress points creating properly
+     * the selector builder and the treatment builder.
+     *
+     * @param selectorBuilder the selector builder to update
+     * @param treatmentBuilder the treatment builder to update
+     * @param intent the intent to compile
+     * @param inPort the input port of the current device
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     */
+    private void manageMpIntent(TrafficSelector.Builder selectorBuilder,
+                                TrafficTreatment.Builder treatmentBuilder,
+                                LinkCollectionIntent intent,
+                                PortNumber inPort,
+                                DeviceId deviceId,
+                                Set<PortNumber> outPorts) {
+        /*
+         * Sanity check
+         */
+        if (intent.filteredEgressPoints().size() != 1) {
+            throw new IntentCompilationException(WRONG_EGRESS);
+        }
+        /*
+         * We try to understand if the device is one of the ingress points.
+         */
+        Optional<FilteredConnectPoint> filteredIngressPoint =
+                getFilteredConnectPointFromIntent(deviceId, inPort, intent);
+        /*
+         * We retrieve from the Intent the unique egress points.
+         */
+        Optional<FilteredConnectPoint> filteredEgressPoint =
+                intent.filteredEgressPoints().stream().findFirst();
+        /*
+         * We check if the device is the ingress device
+         */
+        if (filteredIngressPoint.isPresent()) {
+            /*
+             * We are at ingress, so basically what we have to do is this:
+             * apply a set of operations (treatment, FEP) in order to have
+             * a transition from the initial state to the final state.
+             *
+             * We initialize the treatment with the Intent treatment
+             */
+            intent.treatment().allInstructions().stream()
+                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                    .forEach(treatmentBuilder::add);
+            /*
+             * We build the final selector, adding the selector
+             * of the FIP to the Intent selector and potentially
+             * overriding its matches.
+             */
+            filteredIngressPoint.get()
+                    .trafficSelector()
+                    .criteria()
+                    .forEach(selectorBuilder::add);
+            /*
+             * We define the transition FIP->FEP, basically
+             * the set of the operations we need for reaching
+             * the final state.
+             */
+            TrafficTreatment forwardingTreatment =
+                    forwardingTreatment(filteredIngressPoint.get().trafficSelector(),
+                                        filteredEgressPoint.get().trafficSelector(),
+                                        getEthType(intent.selector()));
+            /*
+             * We add to the treatment the actions necessary for the
+             * transition, potentially overriding the treatment of the
+             * Intent. The Intent treatment has always a low priority
+             * in respect of the FEP.
+             */
+            forwardingTreatment.allInstructions().stream()
+                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                    .forEach(treatmentBuilder::add);
+        } else {
+            /*
+             * We are in the core or in the egress switch.
+             * The packets are in their final state. We need
+             * to match against this final state.
+             *
+             * we derive the final state defined by the intent
+             * treatment.
+             */
+            updateBuilder(selectorBuilder, intent.treatment());
+            /*
+             * We derive the final state defined by the unique
+             * FEP. We merge the two states.
+             */
+            filteredEgressPoint.get()
+                    .trafficSelector()
+                    .criteria()
+                    .forEach(selectorBuilder::add);
+        }
+        /*
+         * Finally we set the output action.
+         */
+        outPorts.forEach(treatmentBuilder::setOutput);
+    }
+
+    /**
+     * Computes treatment and selector which will be used
+     * in the flow representation (Rule, Objective).
+     *
+     * @param intent the intent to compile
+     * @param inPort the input port of this device
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     * @return the forwarding instruction object which encapsulates treatment and selector
+     */
+    protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent,
+                                                                  PortNumber inPort,
+                                                                  DeviceId deviceId,
+                                                                  Set<PortNumber> outPorts) {
+
+        /*
+         * We build an empty treatment and we initialize the selector with
+         * the intent selector.
+         */
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
+                .builder();
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector
+                .builder(intent.selector())
+                .matchInPort(inPort);
+
+        if (!intent.applyTreatmentOnEgress()) {
+            manageMpIntent(selectorBuilder,
+                           treatmentBuilder,
+                           intent,
+                           inPort,
+                           deviceId,
+                           outPorts
+            );
+        } else {
+            manageSpIntent(selectorBuilder,
+                           treatmentBuilder,
+                           intent,
+                           deviceId,
+                           outPorts
+            );
+        }
+        /*
+         * We return selector and treatment necessary to build the flow rule
+         * or the flow objective.
+         */
+        return new ForwardingInstructions(treatmentBuilder.build(), selectorBuilder.build());
+    }
+
+    /**
+     * Manages the ingress of the Intents (p2p, sp2mp, mp2sp) with encapsulation.
+     *
+     * @param selectorBuilder the selector builder to update
+     * @param treatmentBuilder the treatment builder to update
+     * @param intent the intent to compile
+     * @param inPort the input port of this device
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     * @param outLabels the labels associated to the output port
+     * @param type the encapsulation type
+     */
+    private void manageEncapAtIngress(TrafficSelector.Builder selectorBuilder,
+                                      TrafficTreatment.Builder treatmentBuilder,
+                                      LinkCollectionIntent intent,
+                                      PortNumber inPort,
+                                      DeviceId deviceId,
+                                      Set<PortNumber> outPorts,
+                                      Map<ConnectPoint, Identifier<?>> outLabels,
+                                      EncapsulationType type) {
+
+        Optional<FilteredConnectPoint> filteredIngressPoint =
+                getFilteredConnectPointFromIntent(deviceId, inPort, intent);
+        /*
+         * We fill the selector builder with the intent selector.
+         */
+        intent.selector().criteria().forEach(selectorBuilder::add);
+        /*
+         * We build the final selector, adding the selector
+         * of the FIP to the Intent selector and potentially
+         * overriding its matches.
+         */
+        filteredIngressPoint.get()
+                .trafficSelector()
+                .criteria()
+                .forEach(selectorBuilder::add);
+        /*
+         * In this scenario, we can have several output ports.
+         */
+        outPorts.forEach(outPort -> {
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+            /*
+             * If we are at the egress, we don't handle
+             * with encapsulation. Error scenario
+             */
+            if (filteredEgressPoint.isPresent()) {
+                throw new IntentCompilationException(WRONG_ENCAPSULATION);
+            }
+            /*
+             * Transit/core, we have to transit to the intermediate
+             * state. We build a temporary selector for the encapsulation.
+             */
+            TrafficSelector.Builder encapBuilder = DefaultTrafficSelector.builder();
+            /*
+             * We retrieve the associated label to the output port.
+             */
+            ConnectPoint cp = new ConnectPoint(deviceId, outPort);
+            Identifier<?> outLabel = outLabels.get(cp);
+            /*
+             * If there aren't labels, we cannot handle.
+             */
+            if (outLabel == null) {
+                throw new IntentCompilationException(String.format(NO_LABELS, cp));
+            }
+            /*
+             * In the core we match using encapsulation.
+             */
+            updateSelectorFromEncapsulation(
+                    encapBuilder,
+                    type,
+                    outLabel
+            );
+            /*
+             * We generate the transition.
+             */
+            TrafficTreatment forwardingTreatment =
+                    forwardingTreatment(filteredIngressPoint.get().trafficSelector(),
+                                        encapBuilder.build(),
+                                        getEthType(intent.selector()));
+            /*
+             * We add the instruction necessary to the transition.
+             */
+            forwardingTreatment.allInstructions().stream()
+                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                    .forEach(treatmentBuilder::add);
+            /*
+             * Finally we set the output action.
+             */
+            treatmentBuilder.setOutput(outPort);
+        });
+
+    }
+
+    /**
+     * Manages the core and transit of the Intents (p2p, sp2mp, mp2sp)
+     * with encapsulation.
+     *
+     * @param selectorBuilder the selector builder to update
+     * @param treatmentBuilder the treatment builder to update
+     * @param intent the intent to compile
+     * @param inPort the input port of this device
+     * @param inLabel the label associated to the input port
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     * @param outLabels the labels associated to the output port
+     * @param type the encapsulation type
+     */
+    private void manageEncapAtCoreAndEgress(TrafficSelector.Builder selectorBuilder,
+                                            TrafficTreatment.Builder treatmentBuilder,
+                                            LinkCollectionIntent intent,
+                                            PortNumber inPort,
+                                            Identifier<?> inLabel,
+                                            DeviceId deviceId,
+                                            Set<PortNumber> outPorts,
+                                            Map<ConnectPoint, Identifier<?>> outLabels,
+                                            EncapsulationType type) {
+
+        /*
+         * If there are not labels, we cannot handle.
+         */
+        ConnectPoint inCp = new ConnectPoint(deviceId, inPort);
+        if (inLabel == null) {
+            throw new IntentCompilationException(String.format(NO_LABELS, inCp));
+        }
+        /*
+         * In the core and at egress we match using encapsulation.
+         */
+        updateSelectorFromEncapsulation(
+                selectorBuilder,
+                type,
+                inLabel
+        );
+        /*
+         * We need to order the actions. First the actions
+         * related to the not-egress points.
+         */
+        outPorts.forEach(outPort -> {
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+            if (!filteredEgressPoint.isPresent()) {
+                /*
+                 * We build a temporary selector for the encapsulation.
+                 */
+                TrafficSelector.Builder encapBuilder = DefaultTrafficSelector.builder();
+                /*
+                 * We retrieve the associated label to the output port.
+                 */
+                ConnectPoint cp = new ConnectPoint(deviceId, outPort);
+                Identifier<?> outLabel = outLabels.get(cp);
+                /*
+                 * If there are not labels, we cannot handle.
+                 */
+                if (outLabel == null) {
+                    throw new IntentCompilationException(String.format(NO_LABELS, cp));
+                }
+                /*
+                 * In the core we match using encapsulation.
+                 */
+                updateSelectorFromEncapsulation(
+                        encapBuilder,
+                        type,
+                        outLabel
+                );
+                /*
+                 * We generate the transition.
+                 */
+                TrafficTreatment forwardingTreatment =
+                        forwardingTreatment(selectorBuilder.build(),
+                                            encapBuilder.build(),
+                                            getEthType(intent.selector()));
+                /*
+                 * We add the instruction necessary to the transition.
+                 */
+                forwardingTreatment.allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+                /*
+                 * Finally we set the output action.
+                 */
+                treatmentBuilder.setOutput(outPort);
+            }
+
+        });
+        /*
+         * In this case, we have to transit to the final
+         * state.
+         */
+        outPorts.forEach(outPort -> {
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+            if (filteredEgressPoint.isPresent()) {
+                /*
+                 * We add the Intent treatment to the final
+                 * treatment.
+                 */
+                intent.treatment().allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+                /*
+                 * We generate the transition FIP->FEP.
+                 */
+                TrafficTreatment forwardingTreatment =
+                        forwardingTreatment(selectorBuilder.build(),
+                                            filteredEgressPoint.get().trafficSelector(),
+                                            getEthType(intent.selector()));
+                /*
+                 * We add the instruction necessary to the transition.
+                 * Potentially we override the intent treatment.
+                 */
+                forwardingTreatment.allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+                /*
+                 * Finally we set the output action.
+                 */
+                treatmentBuilder.setOutput(outPort);
+            }
+        });
+
+    }
+
+    /**
+     * Computes treatment and selector which will be used
+     * in the flow representation (Rule, Objective).
+     *
+     * @param intent the intent to compile
+     * @param inPort the input port of this device
+     * @param inLabel the label associated to the input port
+     * @param deviceId the current device
+     * @param outPorts the output ports of this device
+     * @param outLabels the labels associated to the output port
+     * @param type the encapsulation type
+     * @return the forwarding instruction object which encapsulates treatment and selector
+     */
+    protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent,
+                                                                  PortNumber inPort,
+                                                                  Identifier<?> inLabel,
+                                                                  DeviceId deviceId,
+                                                                  Set<PortNumber> outPorts,
+                                                                  Map<ConnectPoint, Identifier<?>> outLabels,
+                                                                  EncapsulationType type) {
+        /*
+         * We build an empty treatment and an empty selector.
+         */
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchInPort(inPort);
+        Optional<FilteredConnectPoint> filteredIngressPoint =
+                getFilteredConnectPointFromIntent(deviceId, inPort, intent);
+
+        if (filteredIngressPoint.isPresent()) {
+            manageEncapAtIngress(selectorBuilder,
+                                 treatmentBuilder,
+                                 intent,
+                                 inPort,
+                                 deviceId,
+                                 outPorts,
+                                 outLabels,
+                                 type
+            );
+        } else {
+            manageEncapAtCoreAndEgress(selectorBuilder,
+                                       treatmentBuilder,
+                                       intent,
+                                       inPort,
+                                       inLabel,
+                                       deviceId,
+                                       outPorts,
+                                       outLabels,
+                                       type);
+        }
+        /*
+         * We return selector and treatment necessary to build the flow rule
+         * or the flow objective.
+         */
+        return new ForwardingInstructions(treatmentBuilder.build(), selectorBuilder.build());
+    }
+
+    /**
+     * Helper class to encapsulate treatment and selector
+     * in an unique abstraction.
      */
     protected class ForwardingInstructions {
 
@@ -100,7 +777,8 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
-     * Helper method to compute input and output ports.
+     * Helper method to compute input and output ports
+     * for each device crossed in the path.
      *
      * @param intent the related intents
      * @param inputPorts the input ports to compute
@@ -122,169 +800,25 @@ public class LinkCollectionCompiler<T> {
         for (ConnectPoint egressPoint : intent.egressPoints()) {
             outputPorts.put(egressPoint.deviceId(), egressPoint.port());
         }
-    }
-
-    /**
-     * Gets ingress and egress port number of specific device.
-     *
-     * @param intent the related
-     * @param deviceId device Id
-     * @param ingressPorts the ingress ports to compute
-     * @param egressPorts the egress ports to compute
-     */
-    protected void computePorts(LinkCollectionIntent intent,
-                                DeviceId deviceId,
-                                Set<PortNumber> ingressPorts,
-                                Set<PortNumber> egressPorts) {
-
-        if (!intent.applyTreatmentOnEgress()) {
-            ingressPorts.addAll(intent.ingressPoints().stream()
-                    .filter(point -> point.deviceId().equals(deviceId))
-                    .map(ConnectPoint::port)
-                    .collect(Collectors.toSet()));
-        } else {
-            egressPorts.addAll(intent.egressPoints().stream()
-                    .filter(point -> point.deviceId().equals(deviceId))
-                    .map(ConnectPoint::port)
-                    .collect(Collectors.toSet()));
-        }
 
     }
 
     /**
-     * Creates the flows representations.
+     * Retrieves the encapsulation constraint from the link collection intent.
      *
-     * @param intent the intent to compile
-     * @param deviceId the affected device
-     * @param inPorts the input ports
-     * @param outPorts the output ports
-     * @return the list of flows representations
+     * @param intent the intent to analyze
+     * @return the encapsulation constraint
      */
-    protected List<T> createRules(LinkCollectionIntent intent, DeviceId deviceId,
-                                       Set<PortNumber> inPorts, Set<PortNumber> outPorts) {
-        return null;
+    protected Optional<EncapsulationConstraint> getIntentEncapConstraint(LinkCollectionIntent intent) {
+        return intent.constraints().stream()
+                .filter(constraint -> constraint instanceof EncapsulationConstraint)
+                .map(x -> (EncapsulationConstraint) x).findAny();
     }
 
-
-    /**
-     * Computes treatment and selector which will be used
-     * in the flow representation (Rule, Objective).
-     *
-     * @param intent the intent to compile
-     * @param inPort the input port of this device
-     * @param deviceId the current device
-     * @param outPorts the output ports of this device
-     * @param ingressPorts intent ingress ports of this device
-     * @param egressPorts intent egress ports of this device
-     * @return the forwarding instruction object which encapsulates treatment and selector
-     */
-    protected ForwardingInstructions createForwardingInstructions(LinkCollectionIntent intent,
-                                                                  PortNumber inPort,
-                                                                  DeviceId deviceId,
-                                                                  Set<PortNumber> outPorts,
-                                                                  Set<PortNumber> ingressPorts,
-                                                                  Set<PortNumber> egressPorts) {
-
-        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder(intent.selector());
-        selectorBuilder.matchInPort(inPort);
-
-        if (!intent.applyTreatmentOnEgress()) {
-            // FIXME: currently, we assume this intent is compile from mp2sp intent
-            Optional<FilteredConnectPoint> filteredIngressPoint =
-                    getFilteredConnectPointFromIntent(deviceId, inPort, intent);
-            Optional<FilteredConnectPoint> filteredEgressPoint =
-                    intent.filteredEgressPoints().stream().findFirst();
-
-            if (filteredIngressPoint.isPresent()) {
-                // Ingress device
-                intent.treatment().allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
-
-                if (filteredEgressPoint.isPresent()) {
-                    // Apply selector from ingress point
-                    filteredIngressPoint.get()
-                            .trafficSelector()
-                            .criteria()
-                            .forEach(selectorBuilder::add);
-
-                    TrafficTreatment forwardingTreatment =
-                            forwardingTreatment(filteredIngressPoint.get(),
-                                                filteredEgressPoint.get());
-
-                    forwardingTreatment.allInstructions().stream()
-                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                            .forEach(treatmentBuilder::add);
-                } else {
-                    throw new IntentCompilationException("Can't find filtered connection point");
-                }
-
-            } else {
-                // Not ingress device, won't apply treatments.
-                // Use selector by treatment from intent.
-                updateBuilder(selectorBuilder, intent.treatment());
-
-                // Selector should be overridden by selector from connect point.
-                if (filteredEgressPoint.isPresent()) {
-                    filteredEgressPoint.get()
-                            .trafficSelector()
-                            .criteria()
-                            .forEach(selectorBuilder::add);
-                }
-
-            }
-
-            outPorts.forEach(treatmentBuilder::setOutput);
-
-        } else {
-            // FIXME: currently, we assume this intent is compile from sp2mp intent
-            Optional<FilteredConnectPoint> filteredIngressPoint =
-                    intent.filteredIngressPoints().stream().findFirst();
-
-            if (filteredIngressPoint.isPresent()) {
-                // Apply selector from ingress point
-                filteredIngressPoint.get()
-                        .trafficSelector()
-                        .criteria()
-                        .forEach(selectorBuilder::add);
-            } else {
-                throw new IntentCompilationException(
-                        "Filtered connection point for ingress" +
-                                "point does not exist");
-            }
-
-            for (PortNumber outPort : outPorts) {
-                Optional<FilteredConnectPoint> filteredEgressPoint =
-                        getFilteredConnectPointFromIntent(deviceId, outPort, intent);
-
-                if (filteredEgressPoint.isPresent()) {
-                    // Egress port, apply treatment + forwarding treatment
-                    intent.treatment().allInstructions().stream()
-                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                            .forEach(treatmentBuilder::add);
-
-                    TrafficTreatment forwardingTreatment =
-                            forwardingTreatment(filteredIngressPoint.get(),
-                                                filteredEgressPoint.get());
-                    forwardingTreatment.allInstructions().stream()
-                            .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                            .forEach(treatmentBuilder::add);
-                }
-
-                treatmentBuilder.setOutput(outPort);
-
-            }
-
-        }
-
-
-        return new ForwardingInstructions(treatmentBuilder.build(), selectorBuilder.build());
-
-    }
 
     /**
      * Get FilteredConnectPoint from LinkCollectionIntent.
+     *
      * @param deviceId device Id for connect point
      * @param portNumber port number
      * @param intent source intent
@@ -320,15 +854,17 @@ public class LinkCollectionCompiler<T> {
      * Compares tag type between ingress and egress point and generate
      * treatment for egress point of intent.
      *
-     * @param ingress ingress point for the intent
-     * @param egress egress point for the intent
+     * @param ingress ingress selector for the intent
+     * @param egress egress selector for the intent
+     * @param ethType the ethertype to use in mpls_pop
      * @return Builder of TrafficTreatment
      */
-    private TrafficTreatment forwardingTreatment(FilteredConnectPoint ingress,
-                                                         FilteredConnectPoint egress) {
+    private TrafficTreatment forwardingTreatment(TrafficSelector ingress,
+                                                 TrafficSelector egress,
+                                                 EthType ethType) {
 
 
-        if (ingress.trafficSelector().equals(egress.trafficSelector())) {
+        if (ingress.equals(egress)) {
             return DefaultTrafficTreatment.emptyTreatment();
         }
 
@@ -338,8 +874,8 @@ public class LinkCollectionCompiler<T> {
          * "null" means there is no tag for the port
          * Tag criterion will be null if port is normal connection point
          */
-        Criterion ingressTagCriterion = getTagCriterion(ingress.trafficSelector());
-        Criterion egressTagCriterion = getTagCriterion(egress.trafficSelector());
+        Criterion ingressTagCriterion = getTagCriterion(ingress);
+        Criterion egressTagCriterion = getTagCriterion(egress);
 
         if (ingressTagCriterion.type() != egressTagCriterion.type()) {
 
@@ -353,11 +889,14 @@ public class LinkCollectionCompiler<T> {
                 case VLAN_VID:
                     builder.popVlan();
                     break;
+
                 case MPLS_LABEL:
-                    builder.popMpls();
+                    builder.popMpls(ethType);
                     break;
+
                 default:
                     break;
+
             }
 
             /*
@@ -367,11 +906,14 @@ public class LinkCollectionCompiler<T> {
                 case VLAN_VID:
                     builder.pushVlan();
                     break;
+
                 case MPLS_LABEL:
                     builder.pushMpls();
                     break;
+
                 default:
                     break;
+
             }
         }
 
@@ -380,16 +922,20 @@ public class LinkCollectionCompiler<T> {
                 VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) egressTagCriterion;
                 builder.setVlanId(vlanIdCriterion.vlanId());
                 break;
+
             case MPLS_LABEL:
                 MplsCriterion mplsCriterion = (MplsCriterion) egressTagCriterion;
                 builder.setMpls(mplsCriterion.label());
                 break;
+
             case TUNNEL_ID:
                 TunnelIdCriterion tunnelIdCriterion = (TunnelIdCriterion) egressTagCriterion;
                 builder.setTunnelId(tunnelIdCriterion.tunnelId());
                 break;
+
             default:
                 break;
+
         }
 
         return builder.build();
@@ -402,7 +948,7 @@ public class LinkCollectionCompiler<T> {
      * @param l0instruction the l0 instruction to use
      */
     private void updateBuilder(TrafficSelector.Builder builder, L0ModificationInstruction l0instruction) {
-        throw new IntentCompilationException("L0 not supported");
+        throw new IntentCompilationException(UNSUPPORTED_L0);
     }
 
     /**
@@ -412,7 +958,7 @@ public class LinkCollectionCompiler<T> {
      * @param l1instruction the l1 instruction to use
      */
     private void updateBuilder(TrafficSelector.Builder builder, L1ModificationInstruction l1instruction) {
-        throw new IntentCompilationException("L1 not supported");
+        throw new IntentCompilationException(UNSUPPORTED_L1);
     }
 
     /**
@@ -430,49 +976,59 @@ public class LinkCollectionCompiler<T> {
                     case ETH_SRC:
                         builder.matchEthSrc(ethInstr.mac());
                         break;
+
                     case ETH_DST:
                         builder.matchEthDst(ethInstr.mac());
                         break;
+
                     default:
-                        throw new IntentCompilationException("Bad eth subtype");
+                        throw new IntentCompilationException(UNSUPPORTED_ETH_SUBTYPE);
                 }
                 break;
+
             case VLAN_ID:
                 ModVlanIdInstruction vlanIdInstr = (ModVlanIdInstruction) l2instruction;
                 builder.matchVlanId(vlanIdInstr.vlanId());
                 break;
+
             case VLAN_PUSH:
                 //FIXME
                 break;
+
             case VLAN_POP:
                 //TODO how do we handle dropped label? remove the selector?
-                throw new IntentCompilationException("Can't handle pop label");
+                throw new IntentCompilationException(UNSUPPORTED_POP_ACTION);
             case VLAN_PCP:
                 ModVlanPcpInstruction vlanPcpInstruction = (ModVlanPcpInstruction) l2instruction;
                 builder.matchVlanPcp(vlanPcpInstruction.vlanPcp());
                 break;
+
             case MPLS_LABEL:
             case MPLS_PUSH:
                 //FIXME
                 ModMplsLabelInstruction mplsInstr = (ModMplsLabelInstruction) l2instruction;
                 builder.matchMplsLabel(mplsInstr.label());
                 break;
+
             case MPLS_POP:
                 //TODO how do we handle dropped label? remove the selector?
-                throw new IntentCompilationException("Can't handle pop label");
+                throw new IntentCompilationException(UNSUPPORTED_POP_ACTION);
             case DEC_MPLS_TTL:
                 // no-op
                 break;
+
             case MPLS_BOS:
                 ModMplsBosInstruction mplsBosInstr = (ModMplsBosInstruction) l2instruction;
                 builder.matchMplsBos(mplsBosInstr.mplsBos());
                 break;
+
             case TUNNEL_ID:
                 ModTunnelIdInstruction tunInstr = (ModTunnelIdInstruction) l2instruction;
                 builder.matchTunnelId(tunInstr.tunnelId());
                 break;
+
             default:
-                throw new IntentCompilationException("Unknown L2 Modification instruction");
+                throw new IntentCompilationException(UNSUPPORTED_L2);
         }
 
     }
@@ -497,51 +1053,63 @@ public class LinkCollectionCompiler<T> {
                     case IPV4_SRC:
                         builder.matchIPSrc(prefix);
                         break;
+
                     case IPV4_DST:
                         builder.matchIPSrc(prefix);
                         break;
+
                     case IPV6_SRC:
                         builder.matchIPv6Src(prefix);
                         break;
+
                     case IPV6_DST:
                         builder.matchIPv6Dst(prefix);
                         break;
+
                     default:
-                        throw new IntentCompilationException("Bad type for IP instruction");
+                        throw new IntentCompilationException(UNSUPPORTED_IP_SUBTYPE);
                 }
                 break;
+
             case IPV6_FLABEL:
                 ModIPv6FlowLabelInstruction ipFlowInstr = (ModIPv6FlowLabelInstruction) l3instruction;
                 builder.matchIPv6FlowLabel(ipFlowInstr.flowLabel());
                 break;
+
             case DEC_TTL:
                 // no-op
                 break;
+
             case TTL_OUT:
                 // no-op
                 break;
+
             case TTL_IN:
                 // no-op
                 break;
+
             case ARP_SPA:
                 ModArpIPInstruction arpIpInstr = (ModArpIPInstruction) l3instruction;
                 if (arpIpInstr.ip().isIp4()) {
                     builder.matchArpSpa((Ip4Address) arpIpInstr.ip());
                 } else {
-                    throw new IntentCompilationException("IPv6 not supported for ARP");
+                    throw new IntentCompilationException(UNSUPPORTED_ARP);
                 }
                 break;
+
             case ARP_SHA:
                 ModArpEthInstruction arpEthInstr = (ModArpEthInstruction) l3instruction;
                 builder.matchArpSha(arpEthInstr.mac());
                 break;
+
             case ARP_OP:
                 ModArpOpInstruction arpOpInstr = (ModArpOpInstruction) l3instruction;
                 //FIXME is the long to int cast safe?
                 builder.matchArpOp((int) arpOpInstr.op());
                 break;
+
             default:
-                throw new IntentCompilationException("Unknown L3 Modification instruction");
+                throw new IntentCompilationException(UNSUPPORTED_L3);
         }
     }
 
@@ -559,20 +1127,24 @@ public class LinkCollectionCompiler<T> {
                 case TCP_SRC:
                     builder.matchTcpSrc(l4mod.port());
                     break;
+
                 case TCP_DST:
                     builder.matchTcpDst(l4mod.port());
                     break;
+
                 case UDP_SRC:
                     builder.matchUdpSrc(l4mod.port());
                     break;
+
                 case UDP_DST:
                     builder.matchUdpDst(l4mod.port());
                     break;
+
                 default:
-                    throw new IntentCompilationException("Unknown L4 Modification instruction");
+                    throw new IntentCompilationException(UNSUPPORTED_L4_SUBTYPE);
             }
         } else {
-            throw new IntentCompilationException("Unknown L4 Modification instruction");
+            throw new IntentCompilationException(UNSUPPORTED_L4);
         }
     }
 
@@ -589,18 +1161,23 @@ public class LinkCollectionCompiler<T> {
                 case L0MODIFICATION:
                     updateBuilder(builder, (L0ModificationInstruction) instruction);
                     break;
+
                 case L1MODIFICATION:
                     updateBuilder(builder, (L1ModificationInstruction) instruction);
                     break;
+
                 case L2MODIFICATION:
                     updateBuilder(builder, (L2ModificationInstruction) instruction);
                     break;
+
                 case L3MODIFICATION:
                     updateBuilder(builder, (L3ModificationInstruction) instruction);
                     break;
+
                 case L4MODIFICATION:
                     updateBuilder(builder, (L4ModificationInstruction) instruction);
                     break;
+
                 case NOACTION:
                 case OUTPUT:
                 case GROUP:
@@ -611,11 +1188,57 @@ public class LinkCollectionCompiler<T> {
                 case EXTENSION: // TODO is extension no-op or unsupported?
                     // Nothing to do
                     break;
+
                 default:
-                    throw new IntentCompilationException("Unknown instruction type");
+                    throw new IntentCompilationException(UNSUPPORTED_INSTRUCTION);
             }
         });
 
+    }
+
+    /**
+     * The method generates a selector starting from
+     * the encapsulation information (type and label to match).
+     *
+     * @param selectorBuilder the builder to update
+     * @param type the type of encapsulation
+     * @param identifier the label to match
+     */
+    private void updateSelectorFromEncapsulation(TrafficSelector.Builder selectorBuilder,
+                                                 EncapsulationType type,
+                                                 Identifier<?> identifier) {
+        switch (type) {
+            case MPLS:
+                MplsLabel label = (MplsLabel) identifier;
+                selectorBuilder.matchMplsLabel(label);
+                selectorBuilder.matchEthType(Ethernet.MPLS_UNICAST);
+                break;
+
+            case VLAN:
+                VlanId id = (VlanId) identifier;
+                selectorBuilder.matchVlanId(id);
+                break;
+
+            default:
+                throw new IntentCompilationException(UNKNOWN_ENCAPSULATION);
+        }
+    }
+
+    /**
+     * Helper function to define the match on the ethertype.
+     * If the selector define an ethertype we will use it,
+     * otherwise IPv4 will be used by default.
+     *
+     * @param selector the traffic selector
+     * @return the ethertype we should match
+     */
+    private EthType getEthType(TrafficSelector selector) {
+        Criterion c = selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if (c != null && c instanceof EthTypeCriterion) {
+            EthTypeCriterion ethertype = (EthTypeCriterion) c;
+            return ethertype.ethType();
+        }
+        return EthType.EtherType.IPV4.ethType();
     }
 
 }
