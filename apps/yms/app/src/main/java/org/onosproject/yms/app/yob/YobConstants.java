@@ -34,6 +34,7 @@ final class YobConstants {
     static final String OP_TYPE = "OnosYangNodeOperationType";
     static final String OF = "of";
     static final String PERIOD = ".";
+    static final String SPACE = " ";
     static final String ADD_AUGMENT_METHOD = "addYangAugmentedInfo";
 
     //Error strings

@@ -17,7 +17,10 @@
 package org.onosproject.yms.app.yob;
 
 import org.onosproject.yangutils.datamodel.RpcNotificationContainer;
-import org.onosproject.yangutils.datamodel.YangBinary;
+import org.onosproject.yangutils.datamodel.YangBit;
+import org.onosproject.yangutils.datamodel.YangBits;
+import org.onosproject.yangutils.datamodel.YangLeaf;
+import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangSchemaNodeContextInfo;
@@ -33,6 +36,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Base64;
+import java.util.BitSet;
+import java.util.Map;
 
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_AUGMENT_NODE;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
@@ -46,6 +52,7 @@ import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_LOAD_CLASS;
 import static org.onosproject.yms.app.yob.YobConstants.OF;
 import static org.onosproject.yms.app.yob.YobConstants.OP_PARAM;
 import static org.onosproject.yms.app.yob.YobConstants.PERIOD;
+import static org.onosproject.yms.app.yob.YobConstants.SPACE;
 
 /**
  * Utils to support object creation.
@@ -121,12 +128,15 @@ final class YobUtils {
                 break;
 
             case BINARY:
-                parentSetterMethod.invoke(parentBuilderObject,
-                                          new YangBinary(leafValue));
+                byte[] value = Base64.getDecoder().decode(leafValue);
+                parentSetterMethod.invoke(parentBuilderObject, value);
                 break;
 
             case BITS:
-                //TODO
+                YangBits yangBits = (YangBits) type.getDataTypeExtendedInfo();
+                parentSetterMethod.invoke(parentBuilderObject,
+                                          getBitSetValueFromString(yangBits,
+                                                                   leafValue));
                 break;
 
             case DECIMAL64:
@@ -140,11 +150,13 @@ final class YobUtils {
                 break;
 
             case UNION:
-                // TODO
+                parseDerivedTypeInfo(ydtExtendedContext, parentSetterMethod,
+                                     parentBuilderObject, leafValue, false);
                 break;
 
             case LEAFREF:
-                // TODO
+                parseLeafRefTypeInfo(ydtExtendedContext, parentSetterMethod,
+                                     parentBuilderObject, leafValue);
                 break;
 
             case ENUMERATION:
@@ -233,6 +245,32 @@ final class YobUtils {
     }
 
     /**
+     * To set data into parent setter method from string value for leafref type.
+     *
+     * @param leafValue           leaf value to be set
+     * @param parentSetterMethod  the parent setter method to be invoked
+     * @param parentBuilderObject the parent build object on which to invoke
+     *                            the method
+     * @param ydtExtendedContext  application context
+     * @throws InvocationTargetException if method could not be invoked
+     * @throws IllegalAccessException    if method could not be accessed
+     * @throws NoSuchMethodException     if method does not exist
+     */
+    private static void parseLeafRefTypeInfo(YdtExtendedContext ydtExtendedContext,
+                                             Method parentSetterMethod,
+                                             Object parentBuilderObject,
+                                             String leafValue)
+            throws InvocationTargetException, IllegalAccessException,
+            NoSuchMethodException {
+        YangSchemaNode schemaNode = ydtExtendedContext.getYangSchemaNode();
+        YangLeafRef leafRef = (YangLeafRef) ((YangLeaf) schemaNode)
+                .getDataType().getDataTypeExtendedInfo();
+        YobUtils.setDataFromStringValue(leafRef.getEffectiveDataType(),
+                                        leafValue, parentSetterMethod,
+                                        parentBuilderObject, ydtExtendedContext);
+    }
+
+    /**
      * Updates class loader for all the classes.
      *
      * @param registry           YANG schema registry
@@ -246,8 +284,6 @@ final class YobUtils {
                                       String qualifiedClassName,
                                       YdtExtendedContext curNode,
                                       YdtExtendedContext rootNode) {
-
-
         if (rootNode != null && curNode == rootNode) {
             YangSchemaNode curSchemaNode = curNode.getYangSchemaNode();
             while (!(curSchemaNode instanceof RpcNotificationContainer)) {
@@ -330,5 +366,29 @@ final class YobUtils {
                 schemaNode.getJavaClassNameOrBuiltInType());
 
         return packageName + PERIOD + className;
+    }
+
+    /**
+     * Returns BitSet value from string.
+     *
+     * @param yangBits  schema node of the YANG bits
+     * @param leafValue leaf value from RESTCONF
+     * @return BitSet value
+     */
+    private static BitSet getBitSetValueFromString(YangBits yangBits,
+                                                   String leafValue) {
+        String[] bitNames = leafValue.trim().split(SPACE);
+        Map<String, YangBit> bitNameMap = yangBits.getBitNameMap();
+        BitSet bitDataSet = new BitSet();
+        YangBit bit;
+        for (String bitName : bitNames) {
+            bit = bitNameMap.get(bitName);
+            if (bit == null) {
+                throw new YobException("Unable to find corresponding bit" +
+                                               " position for bit : " + bitName);
+            }
+            bitDataSet.set(bit.getPosition());
+        }
+        return bitDataSet;
     }
 }
