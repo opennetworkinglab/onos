@@ -8,4 +8,6 @@ COMPILE_DEPS = [
 osgi_jar_with_tests (
     name = 'onos-api',
     deps = COMPILE_DEPS,
+    javadoc_files = glob(['src/main/javadoc/**/*']),
+    javadoc_files_root = 'src/main/javadoc',
 )

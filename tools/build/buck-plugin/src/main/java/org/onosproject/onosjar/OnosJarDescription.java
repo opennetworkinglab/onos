@@ -42,6 +42,7 @@ import com.facebook.buck.rules.BuildRuleType;
 import com.facebook.buck.rules.BuildRules;
 import com.facebook.buck.rules.BuildTargetSourcePath;
 import com.facebook.buck.rules.Description;
+import com.facebook.buck.rules.SourcePath;
 import com.facebook.buck.rules.SourcePathResolver;
 import com.facebook.buck.rules.SourcePaths;
 import com.facebook.buck.rules.TargetGraph;
@@ -49,6 +50,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 
@@ -149,17 +151,35 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                         }
                     });
 
+            JavadocJar.JavadocArgs.Builder javadocArgs = JavadocJar.JavadocArgs.builder()
+                    .addArg("-windowtitle", target.getShortName())
+                    .addArg("-link", "http://docs.oracle.com/javase/8/docs/api")
+                    .addArg("-tag", "onos.rsModel:a:\"onos model\""); //FIXME from buckconfig + rule
+
+            final ImmutableSortedMap.Builder<SourcePath, Path> javadocFiles = ImmutableSortedMap.naturalOrder();
+            if (args.javadocFiles.isPresent()) {
+                for (SourcePath path : args.javadocFiles.get()) {
+                    javadocFiles.put(path,
+                                     JavadocJar.getDocfileWithPath(pathResolver, path, args.javadocFilesRoot.orNull()));
+                }
+            }
+
+
             if (!flavors.contains(JavaLibrary.MAVEN_JAR)) {
                 return new JavadocJar(
                         params,
                         pathResolver,
                         args.srcs.get(),
+                        javadocFiles.build(),
+                        javadocArgs.build(),
                         args.mavenCoords);
             } else {
                 return MavenUberJar.MavenJavadocJar.create(
                         Preconditions.checkNotNull(paramsWithMavenFlavor),
                         pathResolver,
                         args.srcs.get(),
+                        javadocFiles.build(),
+                        javadocArgs.build(),
                         args.mavenCoords);
             }
         }
