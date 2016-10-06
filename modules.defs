@@ -1,10 +1,16 @@
-CORE = [
+UTILS = [
     '//utils/osgi:onlab-osgi',
     '//utils/junit:onlab-junit',
     '//utils/misc:onlab-misc',
     '//utils/rest:onlab-rest',
+]
 
+API = [
     '//core/api:onos-api',
+    '//incubator/api:onos-incubator-api',
+]
+
+CORE = UTILS + API + [
     '//core/net:onos-core-net',
     '//core/common:onos-core-common',
     '//core/store/primitives:onos-core-primitives',
@@ -13,7 +19,6 @@ CORE = [
     '//core/security:onos-security',
     '//core/store/persistence:onos-core-persistence',
 
-    '//incubator/api:onos-incubator-api',
     '//incubator/net:onos-incubator-net',
     '//incubator/core:onos-incubator-core',
     '//incubator/store:onos-incubator-store',
