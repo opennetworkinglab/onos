@@ -68,6 +68,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
 import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -500,6 +501,7 @@ public final class KryoNamespaces {
             .register(new DefaultPortSerializer(), DefaultPort.class)
             .register(new LinkKeySerializer(), LinkKey.class)
             .register(new ConnectPointSerializer(), ConnectPoint.class)
+            .register(new FilteredConnectPointSerializer(), FilteredConnectPoint.class)
             .register(new DefaultLinkSerializer(), DefaultLink.class)
             .register(new MastershipTermSerializer(), MastershipTerm.class)
             .register(new HostLocationSerializer(), HostLocation.class)
