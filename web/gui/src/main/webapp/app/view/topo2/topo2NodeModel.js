@@ -29,6 +29,8 @@
     var nearDist = 15;
 
     var devIconDim = 36,
+        devIconDimMin = 20,
+        devIconDimMax = 40,
         labelPad = 5,
         textPad = 5,
         halfDevIcon = devIconDim / 2;
@@ -143,9 +145,9 @@
     .factory('Topo2NodeModel',
         ['Topo2Model', 'FnService', 'RandomService', 'Topo2PrefsService',
         'SvgUtilService', 'IconService', 'ThemeService',
-        'Topo2MapConfigService',
+        'Topo2MapConfigService', 'Topo2ZoomService',
         function (Model, _fn_, _RandomService_, _ps_, _sus_, _is_, _ts_,
-            _t2mcs_) {
+            _t2mcs_, zoomService) {
 
             randomService = _RandomService_;
             ts = _ts_;
@@ -268,6 +270,20 @@
                     this.el = d3.select(el);
                     this.render();
                 },
+                setScale: function () {
+
+                    var dim = devIconDim,
+                        multipler = 1;
+
+                    if (dim * zoomService.scale() < devIconDimMin) {
+                        multipler = devIconDimMin / (dim * zoomService.scale());
+                    } else if (dim * zoomService.scale() > devIconDimMax) {
+                        multipler = devIconDimMax / (dim * zoomService.scale());
+                    }
+
+
+                    this.el.selectAll('*').style('transform', 'scale(' + multipler + ')');
+                },
                 render: function () {
                     var node = this.el,
                         glyphId = this.icon(this.get('type')),
@@ -289,6 +305,8 @@
                     if (this.events) {
                         this.setUpEvents();
                     }
+
+                    this.setScale();
                 }
             });
         }]

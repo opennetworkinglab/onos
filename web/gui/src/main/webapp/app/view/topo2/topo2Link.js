@@ -23,7 +23,7 @@
     'use strict';
 
     var $log;
-    var Collection, Model, ts, sus;
+    var Collection, Model, ts, sus, t2zs;
 
     var linkLabelOffset = '0.35em';
 
@@ -171,7 +171,9 @@
                         rect = el.append('rect'),
                         text = el.append('text').text(d.num);
 
-                    rect.attr(rectAroundText(el))
+                    var rectSize = rectAroundText(el);
+
+                    rect.attr(rectSize)
                         .attr('rx', 2)
                         .attr('ry', 2);
 
@@ -211,7 +213,6 @@
                     type = this.get('type'),
                     online = this.online(),
                     modeCls = this.expected() ? 'inactive' : 'not-permitted',
-                    lw = 1.2,
                     delay = immediate ? 0 : 1000;
 
                 // NOTE: understand why el is sometimes undefined on addLink events...
@@ -230,7 +231,7 @@
                     }
                     el.transition()
                         .duration(delay)
-                        .attr('stroke-width', linkScale(lw))
+                        .attr('stroke-width', linkScale(widthRatio))
                         .attr('stroke', linkConfig[th].baseColor);
                 }
             },
@@ -243,6 +244,10 @@
                 if (this.get('type') === 'hostLink') {
                     // sus.visible(link, api.showHosts());
                 }
+            },
+            setScale: function () {
+                var width = linkScale(widthRatio / t2zs.scale());
+                this.el.style('stroke-width', width + 'px');
             }
         });
 
@@ -256,13 +261,14 @@
     angular.module('ovTopo2')
     .factory('Topo2LinkService',
         ['$log', 'Topo2Collection', 'Topo2Model',
-        'ThemeService', 'SvgUtilService',
+        'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
 
-            function (_$log_, _Collection_, _Model_, _ts_, _sus_) {
+            function (_$log_, _Collection_, _Model_, _ts_, _sus_, _t2zs_) {
 
                 $log = _$log_;
                 ts = _ts_;
                 sus = _sus_;
+                t2zs = _t2zs_;
                 Collection = _Collection_;
                 Model = _Model_;
 

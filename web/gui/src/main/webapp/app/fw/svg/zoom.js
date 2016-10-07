@@ -93,7 +93,7 @@
                 function adjustZoomLayer(translate, scale) {
                     settings.zoomLayer.attr('transform',
                         'translate(' + translate + ')scale(' + scale + ')');
-                    settings.zoomCallback();
+                    settings.zoomCallback(translate, scale);
                 }
 
                 zoomer = {

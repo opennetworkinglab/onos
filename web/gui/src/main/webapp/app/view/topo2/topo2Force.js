@@ -194,14 +194,14 @@
         var allNodes = t2rs.regionNodes();
         angular.forEach(allNodes, function (node) {
             node.update();
-        })
+        });
     }
 
     angular.module('ovTopo2')
     .factory('Topo2ForceService',
         ['$log', 'WebSocketService', 'Topo2InstanceService', 'Topo2RegionService',
-        'Topo2LayoutService', 'Topo2ViewService', 'Topo2BreadcrumbService',
-        function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_, _t2vs_, _t2bcs_) {
+        'Topo2LayoutService', 'Topo2ViewService', 'Topo2BreadcrumbService', 'Topo2ZoomService',
+        function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_, _t2vs_, _t2bcs_, zoomService) {
 
             $log = _$log_;
             wss = _wss_;
@@ -210,6 +210,19 @@
             t2ls = _t2ls_;
             t2vs = _t2vs_;
             t2bcs = _t2bcs_;
+
+            var onZoom = function () {
+                var nodes = [].concat(
+                        t2rs.regionNodes(),
+                        t2rs.regionLinks()
+                    );
+
+                angular.forEach(nodes, function (node) {
+                    node.setScale();
+                });
+            };
+
+            zoomService.addZoomEventListener(onZoom);
 
             return {
 

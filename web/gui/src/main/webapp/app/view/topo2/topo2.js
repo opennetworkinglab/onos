@@ -25,7 +25,7 @@
 
     // references to injected services
     var $scope, $log, fs, mast, ks, zs,
-        gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2mcs;
+        gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2mcs, t2zs;
 
     // DOM elements
     var ovtopo2, svg, defs, zoomLayer, forceG;
@@ -63,14 +63,12 @@
             tr = zoomer.translate();
 
         ps.setPrefs('topo_zoom', { tx: tr[0], ty: tr[1], sc: sc });
-
-        // keep the map lines constant width while zooming
-        // mapG.style('stroke-width', (2.0 / sc) + 'px');
     }
 
     function setUpZoom() {
         zoomLayer = svg.append('g').attr('id', 'topo-zoomlayer');
-        zoomer = zs.createZoomer({
+
+        zoomer = t2zs.createZoomer({
             svg: svg,
             zoomLayer: zoomLayer,
             zoomEnabled: zoomEnabled,
@@ -88,14 +86,14 @@
         'WebSocketService', 'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
-        'Topo2MapConfigService', 'Topo2SummaryPanelService',
+        'Topo2MapConfigService', 'Topo2SummaryPanelService', 'Topo2ZoomService',
 
         function (_$scope_, _$log_, _$loc_,
             _fs_, _mast_, _ks_, _zs_,
             _gs_, _ms_, _sus_, _flash_,
             _wss_, _ps_, _th_,
             _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_, _t2ms_, _t2mcs_,
-            summaryPanel
+            summaryPanel, _t2zs_
         ) {
 
             var params = _$loc_.search(),
@@ -131,6 +129,7 @@
             t2kcs = _t2kcs_;
             t2ms = _t2ms_;
             t2mcs = _t2mcs_;
+            t2zs = _t2zs_;
 
             // capture selected intent parameters (if they are set in the
             //  query string) so that the traffic overlay can highlight
@@ -189,7 +188,6 @@
                     // Now the map has load and we have a projection we can
                     // get the info from the server
                     t2es.start();
-
                 }
             );
 
