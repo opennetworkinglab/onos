@@ -25,6 +25,9 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.MeterQuery;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
@@ -75,6 +78,9 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MeterStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private Map<DeviceId, AtomicCounter> meterIdCounters
             = Maps.newConcurrentMap();
@@ -173,8 +179,21 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         return store.getAllMeters();
     }
 
+    private long queryMeters(DeviceId device) {
+            DriverHandler handler = driverService.createHandler(device);
+            if (handler == null || !handler.hasBehaviour(MeterQuery.class)) {
+                return 0L;
+            }
+            MeterQuery query = handler.behaviour(MeterQuery.class);
+            return query.getMaxMeters();
+    }
+
     private MeterId allocateMeterId(DeviceId deviceId) {
         long maxMeters = store.getMaxMeters(MeterFeaturesKey.key(deviceId));
+        if (maxMeters == 0L) {
+            // MeterFeatures couldn't be retrieved, trying with queryMeters
+            maxMeters = queryMeters(deviceId);
+        }
 
         if (maxMeters == 0L) {
             throw new IllegalStateException("Meters not supported by device " + deviceId);
