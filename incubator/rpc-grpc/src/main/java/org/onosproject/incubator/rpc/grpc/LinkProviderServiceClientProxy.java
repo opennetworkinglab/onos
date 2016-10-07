@@ -82,10 +82,7 @@ class LinkProviderServiceClientProxy
             log.error("linkDetected({}) failed", linkDescription, e);
             invalidate();
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("linkDetected({}) failed", linkDescription, e);
-            invalidate();
-        } catch (TimeoutException e) {
+        } catch (ExecutionException | TimeoutException e) {
             log.error("linkDetected({}) failed", linkDescription, e);
             invalidate();
         }
@@ -105,10 +102,7 @@ class LinkProviderServiceClientProxy
             log.error("linkVanished({}) failed", linkDescription, e);
             invalidate();
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("linkVanished({}) failed", linkDescription, e);
-            invalidate();
-        } catch (TimeoutException e) {
+        } catch (ExecutionException | TimeoutException e) {
             log.error("linkVanished({}) failed", linkDescription, e);
             invalidate();
         }
@@ -128,10 +122,7 @@ class LinkProviderServiceClientProxy
             log.error("linksVanished({}) failed", connectPoint, e);
             invalidate();
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("linksVanished({}) failed", connectPoint, e);
-            invalidate();
-        } catch (TimeoutException e) {
+        } catch (ExecutionException | TimeoutException e) {
             log.error("linksVanished({}) failed", connectPoint, e);
             invalidate();
         }
@@ -151,10 +142,7 @@ class LinkProviderServiceClientProxy
             log.error("linksVanished({}) failed", deviceId, e);
             invalidate();
             Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("linksVanished({}) failed", deviceId, e);
-            invalidate();
-        } catch (TimeoutException e) {
+        } catch (ExecutionException | TimeoutException e) {
             log.error("linksVanished({}) failed", deviceId, e);
             invalidate();
         }
