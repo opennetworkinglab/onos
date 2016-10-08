@@ -21,6 +21,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.onosproject.protocol.restconf.server.utils.exceptions.JsonParseException;
 import org.onosproject.protocol.restconf.server.utils.parser.api.JsonBuilder;
+import org.onosproject.protocol.restconf.server.utils.parser.api.NormalizedYangNode;
 import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YdtContextOperationType;
@@ -142,25 +143,6 @@ public final class ParserUtils {
         return builder;
     }
 
-    private static YdtBuilder addModule(YdtBuilder builder, String path) {
-        String moduleName = getPreSegment(path, COLON);
-        if (moduleName == null) {
-            throw new JsonParseException(ERROR_MODULE_MSG);
-        }
-        builder.addChild(moduleName, null, YdtType.SINGLE_INSTANCE_NODE);
-        return builder;
-    }
-
-    private static YdtBuilder addNode(String path, YdtBuilder builder,
-                                      YdtContextOperationType opType) {
-        String nodeName = getLatterSegment(path, COLON);
-        builder.addChild(nodeName,
-                         null,
-                         YdtType.SINGLE_INSTANCE_NODE,
-                         opType);
-        return builder;
-    }
-
     private static YdtBuilder addListOrLeafList(String path,
                                                 YdtBuilder builder,
                                                 YdtContextOperationType opType) {
@@ -185,6 +167,25 @@ public final class ParserUtils {
                                       YdtContextOperationType opType) {
         checkNotNull(path);
         builder.addChild(path, null, opType);
+        return builder;
+    }
+
+    private static YdtBuilder addModule(YdtBuilder builder, String path) {
+        String moduleName = getPreSegment(path, COLON);
+        if (moduleName == null) {
+            throw new JsonParseException(ERROR_MODULE_MSG);
+        }
+        builder.addChild(moduleName, null, YdtType.SINGLE_INSTANCE_NODE);
+        return builder;
+    }
+
+    private static YdtBuilder addNode(String path, YdtBuilder builder,
+                                      YdtContextOperationType opType) {
+        String nodeName = getLatterSegment(path, COLON);
+        builder.addChild(nodeName,
+                         null,
+                         YdtType.SINGLE_INSTANCE_NODE,
+                         opType);
         return builder;
     }
 
@@ -255,5 +256,19 @@ public final class ParserUtils {
             throw new JsonParseException("Invalid URL path arg '" +
                                                  paths + "': ", e);
         }
+    }
+
+    /**
+     * Converts a field to a simple YANG node description which contains the
+     * namespace and name information.
+     *
+     * @param field field name of a JSON body, or a segment of a URI
+     *              in a request of RESTCONF
+     * @return a simple normalized YANG node
+     */
+    public static NormalizedYangNode buildNormalizedNode(String field) {
+        String namespace = getPreSegment(field, COLON);
+        String name = getLatterSegment(field, COLON);
+        return new NormalizedYangNode(namespace, name);
     }
 }

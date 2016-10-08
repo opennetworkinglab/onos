@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.onosproject.protocol.restconf.server.utils.exceptions.JsonParseException;
 import org.onosproject.protocol.restconf.server.utils.parser.api.JsonListener;
+import org.onosproject.protocol.restconf.server.utils.parser.api.NormalizedYangNode;
 import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtContext;
 import org.slf4j.Logger;
@@ -28,9 +29,11 @@ import org.slf4j.Logger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.ARRAY;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.buildNormalizedNode;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
 import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_NODE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -49,8 +52,10 @@ public class JsonToYdtListener implements JsonListener {
     private Logger log = getLogger(getClass());
 
     private YdtBuilder ydtBuilder;
-    private String defaultMultiInsNodeName;
+    private NormalizedYangNode defaultMultiInsNode;
+    private Stack<NormalizedYangNode> nameStack = new Stack<>();
     private YdtContext rpcModule;
+    private boolean isListArray = false;
 
     /**
      * Creates a listener for the process of a Json Object, the listener will
@@ -65,27 +70,29 @@ public class JsonToYdtListener implements JsonListener {
     @Override
     public void enterJsonNode(String fieldName, JsonNode node) {
         if (isNullOrEmpty(fieldName)) {
-            if (!isNullOrEmpty(defaultMultiInsNodeName)) {
-                ydtBuilder.addChild(defaultMultiInsNodeName, null,
+            if (defaultMultiInsNode != null) {
+                ydtBuilder.addChild(defaultMultiInsNode.getName(),
+                                    defaultMultiInsNode.getNamespace(),
                                     MULTI_INSTANCE_NODE);
             }
             return;
         }
+        NormalizedYangNode normalizedNode = buildNormalizedNode(fieldName);
         JsonNodeType nodeType = node.getNodeType();
         switch (nodeType) {
             case OBJECT:
-                processObjectNode(fieldName);
+                processObjectNode(normalizedNode);
                 break;
 
             case ARRAY:
-                processArrayNode(fieldName, node);
+                processArrayNode(normalizedNode, node);
                 break;
 
             //TODO for now, just process the following three node type
             case STRING:
             case NUMBER:
             case BOOLEAN:
-                ydtBuilder.addLeaf(fieldName, null, node.asText());
+                processLeafNode(normalizedNode, node.asText());
                 break;
 
             case BINARY:
@@ -103,41 +110,40 @@ public class JsonToYdtListener implements JsonListener {
 
     @Override
     public void exitJsonNode(JsonNode jsonNode) {
-        if (jsonNode.getNodeType() == ARRAY) {
+        if (jsonNode.getNodeType() == ARRAY && nameStack.empty()) {
             return;
         }
+
+        if (jsonNode.getNodeType() == ARRAY && !isListArray) {
+            nameStack.pop();
+            if (nameStack.empty()) {
+                return;
+            }
+            defaultMultiInsNode = nameStack.get(nameStack.size() - 1);
+            return;
+        }
+        if (isListArray) {
+            isListArray = false;
+        }
+
         ydtBuilder.traverseToParent();
-        YdtContext curNode = ydtBuilder.getCurNode();
-        //if the current node is the RPC node, then should go to the father
-        //for we have enter the RPC node and Input node at the same time
-        //and the input is the only child of RPC node.
+    }
 
-        if (curNode == null) {
+    private void processObjectNode(NormalizedYangNode node) {
+        ydtBuilder.addChild(node.getName(), node.getNamespace(),
+                            SINGLE_INSTANCE_NODE);
+    }
+
+    private void processLeafNode(NormalizedYangNode node, String value) {
+        ydtBuilder.addLeaf(node.getName(), node.getNamespace(), value);
+    }
+
+    private void processArrayNode(NormalizedYangNode normalizedNode,
+                                  JsonNode node) {
+        ArrayNode arrayNode = (ArrayNode) node;
+        if (arrayNode.size() == 0) {
             return;
         }
-        String name = curNode.getName();
-        if (rpcModule != null && name.equals(rpcModule.getName())) {
-            ydtBuilder.traverseToParent();
-        }
-    }
-
-    private void processObjectNode(String fieldName) {
-        String[] segments = fieldName.split(COLON);
-        Boolean isLastInput = segments.length == INPUT_FIELD_LENGTH &&
-                segments[INPUT_FIELD_LENGTH - 1].equals(INPUT_FIELD_NAME);
-        int first = 0;
-        int second = 1;
-        if (isLastInput) {
-            ydtBuilder.addChild(segments[first], null, SINGLE_INSTANCE_NODE);
-            rpcModule = ydtBuilder.getCurNode();
-            ydtBuilder.addChild(segments[second], null, SINGLE_INSTANCE_NODE);
-        } else {
-            ydtBuilder.addChild(fieldName, null, SINGLE_INSTANCE_NODE);
-        }
-    }
-
-    private void processArrayNode(String fieldName, JsonNode node) {
-        ArrayNode arrayNode = (ArrayNode) node;
         Set<String> sets = new HashSet<>();
         Iterator<JsonNode> elements = arrayNode.elements();
         boolean isLeafList = true;
@@ -155,9 +161,12 @@ public class JsonToYdtListener implements JsonListener {
         }
         if (isLeafList) {
             //leaf-list
-            ydtBuilder.addLeaf(fieldName, null, sets);
+            ydtBuilder.addLeaf(normalizedNode.getName(),
+                               normalizedNode.getNamespace(), sets);
+            isListArray = true;
         } else {
-            this.defaultMultiInsNodeName = fieldName;
+            defaultMultiInsNode = normalizedNode;
+            nameStack.push(defaultMultiInsNode);
         }
     }
 }
