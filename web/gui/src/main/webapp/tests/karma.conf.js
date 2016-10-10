@@ -49,6 +49,7 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
+        '../app/view/topo2/node_modules/**/*'
     ],
 
 
