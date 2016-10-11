@@ -1,0 +1,12 @@
+{
+  "leaf-identifier1": "1",
+  "leaf-list-identifier1": [
+    "5",
+    "12"
+  ],
+  "list-identifier1": [
+    {
+      "leaf-identifier2": "5"
+    }
+  ]
+}

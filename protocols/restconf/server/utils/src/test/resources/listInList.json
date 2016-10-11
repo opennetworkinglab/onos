@@ -1,0 +1,39 @@
+{
+  "container-identifier1": {
+    "list-identifier2": [
+      {
+        "leaf-identifier3": "enum1",
+        "container-identifier3": {
+          "leaf-identifier4": "",
+          "leaf-list-identifier4": [
+            "type-pattern-string6"
+          ],
+          "list-identifier4": [
+            {
+              "leaf-identifier5": "type-pattern-string7",
+              "leaf-list-identifier5": [
+                "type-pattern-string7",
+                "type-pattern-string7",
+                "type-pattern-string7"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "leaf-identifier3": "enum2",
+        "list-identifier3": [
+          {
+            "leaf-identifier4": "myidentity",
+            "container-identifier4": {
+              "leaf-identifier5": "type-pattern-string3",
+              "leaf-list-identifier5": [
+                "type-pattern-string3"
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

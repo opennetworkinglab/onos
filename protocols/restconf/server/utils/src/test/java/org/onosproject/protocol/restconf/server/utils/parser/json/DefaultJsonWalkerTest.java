@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.restconf.utils.parser.json;
+package org.onosproject.protocol.restconf.server.utils.parser.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.protocol.restconf.server.utils.parser.api.JsonListener;
-import org.onosproject.protocol.restconf.server.utils.parser.json.DefaultJsonWalker;
 
 import java.io.InputStream;
 import java.util.ArrayList;
