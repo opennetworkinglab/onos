@@ -34,6 +34,8 @@ import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
 import org.onosproject.incubator.net.neighbour.NeighbourProtocol;
 import org.onosproject.net.ConnectPoint;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -148,6 +150,27 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
     @Override
     public void drop() {
         actions.drop(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(protocol, type, target, sender, eth, inPort);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DefaultNeighbourMessageContext)) {
+            return false;
+        }
+
+        DefaultNeighbourMessageContext that = (DefaultNeighbourMessageContext) obj;
+
+        return Objects.equals(protocol, that.protocol) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(target, that.target) &&
+                Objects.equals(sender, that.sender) &&
+                Objects.equals(eth, that.eth) &&
+                Objects.equals(inPort, that.inPort);
     }
 
     /**

@@ -15,15 +15,14 @@
  */
 package org.onosproject.net.packet;
 
-import java.nio.ByteBuffer;
-
+import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.IntentTestsMocks;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.IntentTestsMocks;
 
-import com.google.common.testing.EqualsTester;
+import java.nio.ByteBuffer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -50,30 +49,12 @@ public class DefaultPacketContextTest {
                     treatment,
                     byteBuffer);
 
-    static class MockPacketContext extends DefaultPacketContext {
-
-        protected MockPacketContext(long time, InboundPacket inPkt,
-                                       OutboundPacket outPkt, boolean block) {
-            super(time, inPkt, outPkt, block);
-        }
-
-        @Override
-        public void send() {
-
-        }
-
-        @Override
-        public boolean block() {
-            return super.block();
-        }
-    }
-
     final DefaultPacketContext context1 =
-            new MockPacketContext(123L, inPacket, outPacket, true);
+            new PacketContextAdapter(123L, inPacket, outPacket, true);
     final DefaultPacketContext sameAsContext1 =
-            new MockPacketContext(123L, inPacket, outPacket, true);
+            new PacketContextAdapter(123L, inPacket, outPacket, true);
     final DefaultPacketContext context2 =
-            new MockPacketContext(123123L, inPacket, outPacket, true);
+            new PacketContextAdapter(123123L, inPacket, outPacket, true);
 
     /**
      * Checks that the DefaultOutboundPacket class is immutable but can be
