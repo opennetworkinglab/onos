@@ -1,9 +1,0 @@
-{
-  "bundle": "Family Bundle",
-  "users": [
-    { "id": 1, "name": "Mom's MacBook", "mac": "00:11:22:33:44:55" },
-    { "id": 1, "name": "Dad's iPad", "mac": "00:11:22:33:44:66" },
-    { "id": 1, "name": "Dick's laptop", "mac": "00:11:22:33:44:77" },
-    { "id": 1, "name": "Jane's laptop", "mac": "00:11:22:33:44:88" }
-  ]
-}
