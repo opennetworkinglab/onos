@@ -507,9 +507,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 break;
         }
 
-        //TODO: need to get explicit paths [temporarily using null as the value]
-        path = pceService.setupPath((DeviceId) src, (DeviceId) dst, tunnelName, listConstrnt, lspTypeVal,
-                null);
+        path = pceService.setupPath((DeviceId) src, (DeviceId) dst, tunnelName, listConstrnt, lspTypeVal);
         if (!path) {
              log.error("setup path is failed");
              return;

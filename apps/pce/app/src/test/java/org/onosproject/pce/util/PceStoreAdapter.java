@@ -22,14 +22,13 @@ import java.util.concurrent.ConcurrentMap;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 
@@ -44,8 +43,8 @@ public class PceStoreAdapter implements PceStore {
     // Set of Path info
     private Set<PcePathInfo> failedPathInfoSet = new HashSet<>();
 
-    // Locally maintain with tunnel name as key and corresponding list of explicit path object
-    private Map<String, List<ExplicitPathInfo>> tunnelNameExplicitPathInfoMap = new HashMap<>();
+    // Locally maintain LSRID to device id mapping for better performance.
+    private Map<String, DeviceId> lsrIdDeviceIdMap = new HashMap<>();
 
     @Override
     public boolean existsTunnelInfo(TunnelId tunnelId) {
@@ -108,16 +107,5 @@ public class PceStoreAdapter implements PceStore {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public boolean tunnelNameExplicitPathInfoMap(String tunnelName, List<ExplicitPathInfo> explicitPathInfo) {
-        tunnelNameExplicitPathInfoMap.put(tunnelName, explicitPathInfo);
-        return false;
-    }
-
-    @Override
-    public List<ExplicitPathInfo> getTunnelNameExplicitPathInfoMap(String tunnelName) {
-        return tunnelNameExplicitPathInfoMap.get(tunnelName);
     }
 }

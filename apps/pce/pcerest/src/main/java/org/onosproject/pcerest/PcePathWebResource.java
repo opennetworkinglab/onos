@@ -35,13 +35,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.common.collect.ImmutableList;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pceservice.PcePath;
 import org.onosproject.pce.pceservice.DefaultPcePath;
@@ -152,14 +150,8 @@ public class PcePathWebResource extends AbstractWebResource {
             // Add cost
             listConstrnt.add(path.costConstraint());
 
-            List<ExplicitPathInfo> explicitPathInfoList = null;
-            if (explicitPathInfoList != null) {
-                explicitPathInfoList = ImmutableList.copyOf(path.explicitPathInfo());
-            }
-
             Boolean issuccess = nullIsNotFound(get(PceService.class)
-                                               .setupPath(srcDevice, dstDevice, path.name(), listConstrnt,
-                                                       lspType, explicitPathInfoList),
+                                               .setupPath(srcDevice, dstDevice, path.name(), listConstrnt, lspType),
                                                PCE_SETUP_PATH_FAILED);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException e) {

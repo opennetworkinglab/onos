@@ -105,10 +105,5 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-pcep-api</artifactId>
         </dependency>
-       <dependency>
-           <groupId>org.easymock</groupId>
-           <artifactId>easymock</artifactId>
-           <scope>test</scope>
-       </dependency>
-   </dependencies>
+    </dependencies>
 </project>

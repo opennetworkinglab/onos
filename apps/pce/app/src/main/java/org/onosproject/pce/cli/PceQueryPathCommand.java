@@ -24,12 +24,9 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.AnnotationKeys;
-import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.api.PceService;
 
 import org.slf4j.Logger;
-
-import java.util.List;
 
 /**
  * Supports quering PCE path.
@@ -75,28 +72,17 @@ public class PceQueryPathCommand extends AbstractShellCommand {
      * @param tunnel pce tunnel
      */
     void display(Tunnel tunnel) {
-        List<ExplicitPathInfo> explicitPathInfoList = AbstractShellCommand.get(PceService.class)
-                .explicitPathInfoList(tunnel.tunnelName().value());
-
-        print("\npath-id                  : %s \n" +
-                "source                   : %s \n" +
-                "destination              : %s \n" +
-                "path-type                : %s \n" +
-                "symbolic-path-name       : %s \n" +
+        print("\npath-id            : %s \n" +
+                "source             : %s \n" +
+                "destination        : %s \n" +
+                "path-type          : %s \n" +
+                "symbolic-path-name : %s \n" +
                 "constraints:            \n" +
-                "   cost                  : %s \n" +
-                "   bandwidth             : %s",
+                "   cost            : %s \n" +
+                "   bandwidth       : %s",
                 tunnel.tunnelId().id(), tunnel.path().src().deviceId().toString(),
                 tunnel.path().dst().deviceId().toString(),
                 tunnel.type().name(), tunnel.tunnelName(), tunnel.annotations().value(COST_TYPE),
                 tunnel.annotations().value(AnnotationKeys.BANDWIDTH));
-        if (explicitPathInfoList != null) {
-            for (ExplicitPathInfo e : explicitPathInfoList) {
-                print("explicitPathObjects      : \n" +
-                      "    type                 : %s \n" +
-                      "    value                : %s ",
-                      String.valueOf(e.type().type()), e.value().toString());
-            }
-        }
     }
 }

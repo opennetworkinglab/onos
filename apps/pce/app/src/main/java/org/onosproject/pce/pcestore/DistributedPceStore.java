@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableSet;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,7 +33,6 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.TunnelConsumerId;
@@ -71,9 +69,6 @@ public class DistributedPceStore implements PceStore {
     // List of Failed path info
     private DistributedSet<PcePathInfo> failedPathSet;
 
-    // Maintains tunnel name mapped to explicit path info
-    private ConsistentMap<String, List<ExplicitPathInfo>> tunnelNameExplicitPathInfoMap;
-
     private static final Serializer SERIALIZER = Serializer
             .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
                     .register(PcePathInfo.class)
@@ -103,16 +98,6 @@ public class DistributedPceStore implements PceStore {
                 .withSerializer(SERIALIZER)
                 .build()
                 .asDistributedSet();
-
-        tunnelNameExplicitPathInfoMap = storageService.<String, List<ExplicitPathInfo>>consistentMapBuilder()
-                .withName("onos-pce-explicitpathinfo")
-                .withSerializer(Serializer.using(
-                        new KryoNamespace.Builder()
-                                .register(KryoNamespaces.API)
-                                .register(ExplicitPathInfo.class)
-                                .register(ExplicitPathInfo.Type.class)
-                                .build()))
-                .build();
 
         log.info("Started");
     }
@@ -196,18 +181,4 @@ public class DistributedPceStore implements PceStore {
         }
         return true;
     }
-
-    @Override
-    public boolean tunnelNameExplicitPathInfoMap(String tunnelName, List<ExplicitPathInfo> explicitPathInfo) {
-        checkNotNull(tunnelName);
-        checkNotNull(explicitPathInfo);
-        return tunnelNameExplicitPathInfoMap.put(tunnelName, explicitPathInfo) != null ? true : false;
-    }
-
-    @Override
-    public List<ExplicitPathInfo> getTunnelNameExplicitPathInfoMap(String tunnelName) {
-        checkNotNull(tunnelName);
-        return tunnelNameExplicitPathInfoMap.get(tunnelName).value();
-    }
-
 }
