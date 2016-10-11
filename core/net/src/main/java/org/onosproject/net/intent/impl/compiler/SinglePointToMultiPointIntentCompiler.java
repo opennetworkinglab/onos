@@ -69,6 +69,7 @@ public class SinglePointToMultiPointIntentCompiler
         Intent result = LinkCollectionIntent.builder()
                 .appId(intent.appId())
                 .key(intent.key())
+                .selector(intent.selector())
                 .treatment(intent.treatment())
                 .links(links)
                 .filteredIngressPoints(ImmutableSet.of(intent.filteredIngressPoint()))

@@ -19,6 +19,7 @@ package org.onosproject.net.intent.impl.compiler;
 import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
@@ -91,10 +92,12 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
      * @return
      */
     private SinglePointToMultiPointIntent makeFilteredConnectPointIntent(FilteredConnectPoint ingress,
-                                                                         Set<FilteredConnectPoint> egress) {
+                                                                         Set<FilteredConnectPoint> egress,
+                                                                         TrafficSelector trafficSelector) {
         return SinglePointToMultiPointIntent.builder()
                 .appId(APPID)
                 .treatment(treatment)
+                .selector(trafficSelector)
                 .filteredIngressPoint(ingress)
                 .filteredEgressPoints(egress)
                 .build();
@@ -260,7 +263,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
         );
 
 
-        SinglePointToMultiPointIntent intent = makeFilteredConnectPointIntent(ingress, egress);
+        SinglePointToMultiPointIntent intent = makeFilteredConnectPointIntent(ingress, egress, selector);
         String[] hops = {"of2"};
 
         SinglePointToMultiPointIntentCompiler compiler = makeCompiler(hops);
@@ -287,6 +290,57 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
 
             assertThat("Link collection egress points do not match base intent",
                        linkIntent.filteredEgressPoints().equals(intent.filteredEgressPoints()));
+        }
+
+    }
+
+    /**
+     * Tests selector, filtered ingress and egress.
+     */
+    @Test
+    public void testNonTrivialSelectorsIntent() {
+
+        FilteredConnectPoint ingress = new FilteredConnectPoint(connectPoint("of1", 1));
+
+        Set<FilteredConnectPoint> egress = ImmutableSet.of(
+                new FilteredConnectPoint(connectPoint("of3", 1),
+                                         DefaultTrafficSelector.builder().matchVlanId(VlanId.vlanId("100")).build()),
+                new FilteredConnectPoint(connectPoint("of4", 1),
+                                         DefaultTrafficSelector.builder().matchVlanId(VlanId.vlanId("200")).build())
+        );
+
+        TrafficSelector ipPrefixSelector = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf("192.168.100.0/24"))
+                .build();
+
+        SinglePointToMultiPointIntent intent = makeFilteredConnectPointIntent(ingress, egress, ipPrefixSelector);
+        String[] hops = {"of2"};
+
+        SinglePointToMultiPointIntentCompiler compiler = makeCompiler(hops);
+        assertThat(compiler, is(notNullValue()));
+
+        List<Intent> result = compiler.compile(intent, null);
+        assertThat(result, is(notNullValue()));
+        assertThat(result, hasSize(1));
+
+        Intent resultIntent = result.get(0);
+        assertThat(resultIntent, instanceOf(LinkCollectionIntent.class));
+
+        if (resultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent linkIntent = (LinkCollectionIntent) resultIntent;
+            assertThat(linkIntent.links(), hasSize(3));
+
+            assertThat(linkIntent.links(), linksHasPath("of1", "of2"));
+            assertThat(linkIntent.links(), linksHasPath("of2", "of3"));
+            assertThat(linkIntent.links(), linksHasPath("of2", "of4"));
+
+            Set<FilteredConnectPoint> ingressPoints = linkIntent.filteredIngressPoints();
+            assertThat("Link collection ingress points do not match base intent",
+                       ingressPoints.size() == 1 && ingressPoints.contains(intent.filteredIngressPoint()));
+
+            assertThat("Link collection egress points do not match base intent",
+                       linkIntent.filteredEgressPoints().equals(intent.filteredEgressPoints()));
+            assertThat(linkIntent.selector(), is(ipPrefixSelector));
         }
 
     }

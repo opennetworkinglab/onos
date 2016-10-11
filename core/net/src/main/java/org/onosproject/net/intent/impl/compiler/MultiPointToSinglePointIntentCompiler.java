@@ -120,6 +120,7 @@ public class MultiPointToSinglePointIntentCompiler
         Intent result = LinkCollectionIntent.builder()
                 .appId(intent.appId())
                 .treatment(intent.treatment())
+                .selector(intent.selector())
                 .links(Sets.newHashSet(links.values()))
                 .filteredIngressPoints(intent.filteredIngressPoints())
                 .filteredEgressPoints(ImmutableSet.of(intent.filteredEgressPoint()))

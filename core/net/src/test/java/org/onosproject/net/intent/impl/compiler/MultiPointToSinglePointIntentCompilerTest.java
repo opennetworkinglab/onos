@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.compiler;
 import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
@@ -87,10 +88,12 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
      * @return
      */
     private MultiPointToSinglePointIntent makeFilteredConnectPointIntent(Set<FilteredConnectPoint> ingress,
-                                                                         FilteredConnectPoint egress) {
+                                                                         FilteredConnectPoint egress,
+                                                                         TrafficSelector trafficSelector) {
         return MultiPointToSinglePointIntent.builder()
                 .appId(APPID)
                 .treatment(treatment)
+                .selector(trafficSelector)
                 .filteredIngressPoints(ingress)
                 .filteredEgressPoint(egress)
                 .build();
@@ -257,7 +260,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
 
         FilteredConnectPoint egress = new FilteredConnectPoint(connectPoint("of4", 1));
 
-        MultiPointToSinglePointIntent intent = makeFilteredConnectPointIntent(ingress, egress);
+        MultiPointToSinglePointIntent intent = makeFilteredConnectPointIntent(ingress, egress, selector);
         String[] hops = {"of3"};
 
         MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
@@ -276,6 +279,49 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("of1", "of3"));
             assertThat(linkIntent.links(), linksHasPath("of2", "of3"));
             assertThat(linkIntent.links(), linksHasPath("of3", "of4"));
+        }
+
+    }
+
+    /**
+     * Tests selector, filtered ingress and egress.
+     */
+    @Test
+    public void testNonTrivialSelectorsIntent() {
+
+        Set<FilteredConnectPoint> ingress = ImmutableSet.of(
+                new FilteredConnectPoint(connectPoint("of1", 1),
+                                         DefaultTrafficSelector.builder().matchVlanId(VlanId.vlanId("100")).build()),
+                new FilteredConnectPoint(connectPoint("of2", 1),
+                                         DefaultTrafficSelector.builder().matchVlanId(VlanId.vlanId("200")).build())
+        );
+
+        TrafficSelector ipPrefixSelector = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf("192.168.100.0/24"))
+                .build();
+
+        FilteredConnectPoint egress = new FilteredConnectPoint(connectPoint("of4", 1));
+
+        MultiPointToSinglePointIntent intent = makeFilteredConnectPointIntent(ingress, egress, ipPrefixSelector);
+        String[] hops = {"of3"};
+
+        MultiPointToSinglePointIntentCompiler compiler = makeCompiler(hops);
+        assertThat(compiler, is(notNullValue()));
+
+        List<Intent> result = compiler.compile(intent, null);
+        assertThat(result, is(notNullValue()));
+        assertThat(result, hasSize(1));
+
+        Intent resultIntent = result.get(0);
+        assertThat(resultIntent, instanceOf(LinkCollectionIntent.class));
+
+        if (resultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent linkIntent = (LinkCollectionIntent) resultIntent;
+            assertThat(linkIntent.links(), hasSize(3));
+            assertThat(linkIntent.links(), linksHasPath("of1", "of3"));
+            assertThat(linkIntent.links(), linksHasPath("of2", "of3"));
+            assertThat(linkIntent.links(), linksHasPath("of3", "of4"));
+            assertThat(linkIntent.selector(), is(ipPrefixSelector));
         }
 
     }
