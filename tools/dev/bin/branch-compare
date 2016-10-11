@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import os
+import re
+import sys
+
+from git import Git
+
+g = Git(os.getcwd())
+
+commitMsgs = {}
+
+def getCommits(srcRef, dstRef):
+  commits = {}
+  
+  commit = ''
+  changeId = ''
+  commitHash = ''
+  for line in g.log('--format=fuller', '%s..%s' % (srcRef, dstRef)).split('\n'):
+    if len(commit) > 0 and line.find('commit') == 0:
+      commits[changeId] = commitHash
+      commitMsgs[commitHash] = commit
+      commit = ''
+      size = 0
+      match = re.search(r'commit ([0-9a-f]+)', line)
+      if match:
+        commitHash = match.group(1)
+      else:
+        raise Exception('Bad commit hash in line:\n%s' % line)
+    elif line.find('Change-Id:') >= 0:
+      match = re.search(r'Change-Id: (I[0-9a-f]+)', line)
+      if match:
+        changeId = match.group(1)
+      else:
+        raise Exception('Bad Change-Id in line:\n%s' % line)
+    commit += line + '\n'
+  
+  return commits
+
+
+if __name__ == '__main__':
+  try:
+    sourceRef, targetRef = sys.argv[1:3]
+  except ValueError:
+    print 'branch-compare <source ref> <target ref>'
+
+  targetCommits = getCommits(sourceRef, targetRef)
+  sourceCommits = getCommits(targetRef, sourceRef)
+  
+  missingCommitsFromTarget = set(sourceCommits.keys()) - set(targetCommits.keys())
+  
+  for id in missingCommitsFromTarget:
+    hash = sourceCommits[id]
+    print 'git cherry-pick', hash
+    print commitMsgs[hash] 
