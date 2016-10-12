@@ -13,8 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -25,7 +26,6 @@
     </parent>
 
     <artifactId>yangutils-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
     <name>onos-yang-utils-plugin</name>
     <packaging>maven-plugin</packaging>
 
@@ -34,10 +34,10 @@
     </properties>
 
     <dependencies>
-         <dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>yangutils-datamodel</artifactId>
-            <version>1.6.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -103,7 +103,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
-            <version>1.6.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -134,7 +133,9 @@
                 </executions>
                 <configuration>
                     <sourceDirectory>src/main/resources</sourceDirectory>
-                    <outputDirectory>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode</outputDirectory>
+                    <outputDirectory>
+                        target/generated-sources/org/onosproject/yangutils/parser/antlrgencode
+                    </outputDirectory>
                     <visitor>false</visitor>
                     <listener>true</listener>
                 </configuration>
@@ -159,12 +160,24 @@
                             <followSymlinks>false</followSymlinks>
                             <useDefaultExcludes>true</useDefaultExcludes>
                             <excludes>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYang.tokens</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangParser.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.tokens</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.java</exclude>
-                                <exclude>**/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.tokens</exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYang.tokens
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangParser.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/GeneratedYangLexer.tokens
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.java
+                                </exclude>
+                                <exclude>
+                                    **/generated-sources/org/onosproject/yangutils/parser/antlrgencode/YangLexer.tokens
+                                </exclude>
                             </excludes>
                         </fileset>
                     </filesets>
@@ -184,7 +197,9 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>target/generated-sources/org/onosproject/yangutils/parser/antlrgencode</source>
+                                <source>
+                                    target/generated-sources/org/onosproject/yangutils/parser/antlrgencode
+                                </source>
                             </sources>
                         </configuration>
                     </execution>
@@ -207,7 +222,8 @@
                 <artifactId>maven-plugin-plugin</artifactId>
                 <version>3.4</version>
                 <configuration>
-                    <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                    <skipErrorNoDescriptorsFound>true
+                    </skipErrorNoDescriptorsFound>
                 </configuration>
                 <executions>
                     <execution>
