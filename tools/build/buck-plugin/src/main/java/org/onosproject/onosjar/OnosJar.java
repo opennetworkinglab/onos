@@ -74,6 +74,7 @@ public class OnosJar extends DefaultJavaLibrary
                    ImmutableSet<Path> additionalClasspathEntries,
                    CompileToJarStepFactory compileStepFactory,
                    Optional<Path> resourcesRoot,
+                   Optional<SourcePath> manifestFile,
                    Optional<String> mavenCoords,
                    ImmutableSortedSet<BuildTarget> tests,
                    ImmutableSet<Pattern> classesToRemoveFromJar,
@@ -85,8 +86,8 @@ public class OnosJar extends DefaultJavaLibrary
         super(params, resolver, srcs, resources, generatedSourceFolder,
               proguardConfig, postprocessClassesCommands, exportedDeps,
               providedDeps, abiJar, trackClassUsage, additionalClasspathEntries,
-              compileStepFactory, resourcesRoot, mavenCoords, tests,
-              classesToRemoveFromJar);
+              compileStepFactory, resourcesRoot, manifestFile, mavenCoords,
+              tests, classesToRemoveFromJar);
         this.webContext = webContext;
         this.apiTitle = apiTitle;
         this.apiVersion = apiVersion;
@@ -119,5 +120,11 @@ public class OnosJar extends DefaultJavaLibrary
     public Iterable<BuildRule> getPackagedDependencies() {
         //FIXME this is not supported at the moment
         return ImmutableList.of();
+    }
+
+    @Override
+    public Optional<Path> getPomTemplate() {
+        //FIXME we should consider supporting this
+        return Optional.absent();
     }
 }

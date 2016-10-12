@@ -138,7 +138,8 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                         Preconditions.checkNotNull(paramsWithMavenFlavor),
                         pathResolver,
                         args.srcs.get(),
-                        args.mavenCoords);
+                        args.mavenCoords,
+                        Optional.absent()); //FIXME
             }
         }
 
@@ -180,7 +181,8 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                         args.srcs.get(),
                         javadocFiles.build(),
                         javadocArgs.build(),
-                        args.mavenCoords);
+                        args.mavenCoords,
+                        Optional.absent()); //FIXME
             }
         }
 
@@ -232,6 +234,7 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                                                            args.bundleLicense, args.bundleDescription, args.importPackages,
                                                            args.exportPackages, args.includeResources, args.dynamicimportPackages),
                                     args.resourcesRoot,
+                                    args.manifestFile,
                                     args.mavenCoords,
                                     args.tests.get(),
                                     javacOptions.getClassesToRemoveFromJar(),
@@ -270,6 +273,7 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                                     /* additionalClasspathEntries */ ImmutableSet.<Path>of(),
                                     new JavacToJarStepFactory(javacOptions, JavacOptionsAmender.IDENTITY),
                                     args.resourcesRoot,
+                                    args.manifestFile,
                                     args.mavenCoords,
                                     args.tests.get(),
                                     javacOptions.getClassesToRemoveFromJar()));
