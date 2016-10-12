@@ -5,9 +5,9 @@
 
 set -e
 
-BUCK_URL="https://github.com/bocon13/buck/releases/download/v2016.09.13.01/buck"
-BUCK_SHA="e72cf2e9ef719fa81fd4e0d1b620f20448c10a9d"
-REQUIRED_VERSION="buck version 0b60c3d7f8d54b2e6e6607749b748c0f240a6eb3"
+BUCK_URL="http://onlab.vicci.org/onos/third-party/buck.zip"
+BUCK_SHA="26652b4f49849517fd19abd782bd8cd6f28e11a9"
+REQUIRED_VERSION="buck version 7eb2adae2aa1e4d38ce2f5b9f907878687bf19cf"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
@@ -16,48 +16,24 @@ pushd $ONOS_ROOT/bin > /dev/null
 
 if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat .buck_version)" ]; then
     echo "Downloading Buck..."
-    rm -f .buck_version buck
-    curl -o ./buck -L $BUCK_URL
+    rm -fr .buck_version buck buck.zip plugins
+    curl -o ./buck.zip -L $BUCK_URL
     if [ -n "$(which shasum)" ]; then
-        SHA=$(shasum ./buck | cut -d' ' -f1)
+        SHA=$(shasum ./buck.zip | cut -d' ' -f1)
         [ "$SHA" != "$BUCK_SHA" ] &&
            echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
            exit 1
     else
         echo "SHA cannot be verified"
     fi
-    chmod 555 ./buck
-    echo $(./buck --version 2>/dev/null) > .buck_version
-    chmod 444 .buck_version
-    rm -rf ./buck-out
+    unzip buck.zip
+    rm buck.zip
+    rm -rf $ONOS_ROOT/buck-out
     printf "Successfully downloaded Buck to $ONOS_ROOT/bin/buck\n\n"
-    ONOS_BUILD_PLUGIN="true"
 fi
 popd > /dev/null
 
 BUCK=$ONOS_ROOT/bin/buck
-PLUGINS=$ONOS_ROOT/bucklets/plugins
-ONOS_PLUGIN=$PLUGINS/onosjar.jar
-
-if [ ! -f "$ONOS_PLUGIN" -o -n "$ONOS_BUILD_PLUGIN" ]; then
-    echo "Building ONOS Buck plugins..."
-
-    # Build it first
-    pluginJar=$(NO_BUCKD=1 $BUCK build //tools/build/buck-plugin:onosjar --show-output 2>/dev/null | grep onosjar.jar | cut -d\  -f2)
-
-    CHK_NEW=$(cksum $ONOS_ROOT/$pluginJar | cut -d' ' -f1-2)
-    CHK_OLD=$(cksum $ONOS_PLUGIN 2>/dev/null | cut -d' ' -f1-2)
-    if [ "$CHK_NEW" != "$CHK_OLD" ]; then
-        # diff plugins... if different, copy and restart buckd
-        # Then install it
-        mkdir -p $PLUGINS
-        cp $ONOS_ROOT/$pluginJar $PLUGINS
-        echo "Updated to the latest plugin."
-        $BUCK clean 2>/dev/null
-    else
-        echo "Plugin was already up to date."
-    fi
-fi
 
 # Finally, run the Buck command...
 $BUCK "$@"

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+BUCK_LOCAL_CONFIG=${BUCK_LOCAL_CONFIG:-$ONOS_ROOT/.buckconfig.local}
+MVN_REPO="https://oss.sonatype.org/content/repositories/snapshots"
+NO_BUCKD=1
+
+set -e
+set -x
+
+#FIXME if pwd != buck
+pushd buck
+
+# build buck
+scripts/create_tag.sh
+buck build buck --show-output
+
+# publish cli:main-fixed as buck-api
+cp $BUCK_LOCAL_CONFIG .
+buck publish //src/com/facebook/buck/cli:main-fixed \
+    --remote-repo=https://oss.sonatype.org/content/repositories/snapshots/ \
+    | tee ../api-publish.txt
+
+# Alternatively, we can deploy org.onosproject:buck-api with the following:
+#mvn deploy:deploy-file -DgroupId=org.onosproject -DartifactId=buck-api \
+#  -Dversion=0.1-SNAPSHOT -DgeneratePom=true -Dpackaging=jar \
+#  -DrepositoryId=snapshot -Durl=https://oss.sonatype.org/content/repositories/snapshots/ \
+#  -Dfile=buck-out/gen/src/com/facebook/buck/cli/main-fixed/main-fixed.jar
+
+#FIXME upload API to S3 for backup
+
+popd #buck
+
+SNAPSHOT_VERSION=$(cat api-publish.txt | grep "^org.onosproject:buck-api:jar" \
+                       | cut -d' ' -f1 | cut -d: -f4)
+BUCK_API_URL="$MVN_REPO/org/onosproject/buck-api/0.1-SNAPSHOT/buck-api-$SNAPSHOT_VERSION.jar"
+echo $BUCK_API_URL
+
+BUCK_API_SHA=$(shasum buck-out/gen/src/com/facebook/buck/cli/main-fixed/main-fixed.jar | cut -d' ' -f1)
+echo $BUCK_API_SHA
+
+pushd onos
+sed -i "" -E "s#url =.*#url = '$BUCK_API_URL',#" tools/build/buck-plugin/BUCK
+sed -i "" -E "s#sha1 =.*#sha1 = '$BUCK_API_SHA',#" tools/build/buck-plugin/BUCK
+popd #onos
+
+#pushd onos-yang-tools
+#FIXME update version (assume 0.1-SNAPSHOT for now)
+#popd #onos-yang-tools
+
+set +x
+
+echo
+echo "Please build and verify the ONOS Buck plugin and the Yang tools plugin:"
+echo "  cd onos; buck build //tools/build/buck-plugin:onosjar"
+echo "  cd onos-yang-tools; mvn clean package"
+echo "You should commit and push any required changes."

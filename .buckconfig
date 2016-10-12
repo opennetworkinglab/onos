@@ -2,7 +2,7 @@
   includes = //buck-tools/default.defs
 
 [plugins]
-  directory = //bucklets/plugins
+  directory = //bin/plugins
 
 [java]
   source_level = 8

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+BUCK_REF="10-11-2016"
+ONOS_REF="master"
+YANG_REF="master"
+
+set -x
+
+# change to tmpdir
+DIR=$(mktemp -d /tmp/buck-publish.XXXXX) || { echo "Failed to create temp file"; exit 1; }
+cd $DIR
+
+# checkout buck
+git clone -b $BUCK_REF https://github.com/bocon13/buck
+
+# checkout plugins
+git clone -b $ONOS_REF https://gerrit.onosproject.org/onos.git
+git clone -b $YANG_REF https://gerrit.onosproject.org/onos-yang-tools.git
+
+set +x
+
+echo
+echo "Buck publish area:"
+echo "  cd $DIR"
