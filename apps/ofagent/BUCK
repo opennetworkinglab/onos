@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:netty-transport',
+    '//lib:netty-buffer',
+    '//lib:netty-codec',
+    '//lib:netty-handler',
+    '//incubator/api:onos-incubator-api',
+    '//lib:openflowj-3.0',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:openflowj-3.0',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'OpenFlow Agent App',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'OpenFlow agent application for virtualization subsystem.',
+    excluded_bundles = EXCLUDED_BUNDLES
+)

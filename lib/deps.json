@@ -209,6 +209,10 @@
     "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.11",
     "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.11",
     "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.11",
-    "org.apache.servicemix.bundles.dom4j":"mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:1.6.1_5"
+    "org.apache.servicemix.bundles.dom4j":"mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:1.6.1_5",
+    "openflowj-3.0": {
+      "uri": "mvn:org.projectfloodlight:openflowj:3.0.0-SNAPSHOT",
+      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
+    }
   }
 }

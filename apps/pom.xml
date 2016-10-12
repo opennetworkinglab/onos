@@ -85,6 +85,7 @@
         <module>actn-mdsc</module>
         <module>config</module>
         <module>restconf</module>
+        <module>ofagent</module>
     </modules>
 
     <properties>
