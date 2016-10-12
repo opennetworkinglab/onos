@@ -1,0 +1,57 @@
+#!/bin/bash
+
+DEFAULT_TAG=${TAG:-$(date +v%Y.%m.%d.01)}
+NO_BUCKD=1
+
+DOWNLOAD_BASE="http://onlab.vicci.org/onos/third-party"
+BUCK_ZIP="buck-$DEFAULT_TAG.zip"
+ZIP_STAGE="buck-bin"
+
+rm -rf $ZIP_STAGE
+
+set -e
+set -x
+
+# build plugins
+
+pushd onos
+buck build //tools/build/buck-plugin:onosjar
+popd #onos
+
+pushd onos-yang-tools
+mvn clean package
+popd #onos-yang-tools
+
+# assemble zip
+
+mkdir -p buck-bin/plugins
+
+cp buck/buck-out/gen/programs/buck.pex $ZIP_STAGE/buck
+cp onos/buck-out/gen/tools/build/buck-plugin/onosjar.jar $ZIP_STAGE/plugins/onos.jar
+cp onos-yang-tools/plugin/buck/target/onos-yang-buck-plugin-1.9-SNAPSHOT.jar $ZIP_STAGE/plugins/yang.jar
+
+BUCK_VERSION=$(buck/buck-out/gen/programs/buck.pex -V)
+echo $BUCK_VERSION > $ZIP_STAGE/.buck_version
+
+chmod 555 $ZIP_STAGE/buck
+chmod 444 $ZIP_STAGE/.buck_version
+
+pushd $ZIP_STAGE
+zip -r ../$BUCK_ZIP buck .buck_version plugins
+popd #$ZIP_STAGE
+
+# publish zip
+#FIXME check for s3 credentials
+uploadToS3.py --dest third-party/ $BUCK_ZIP
+
+# update version in onos-buck
+URL="$DOWNLOAD_BASE/$BUCK_ZIP"
+SHA=$(shasum $BUCK_ZIP | cut -d' ' -f1)
+
+sed -i "" -E "s#BUCK_URL=.*#BUCK_URL=\"$URL\"#" onos/tools/build/onos-buck
+sed -i "" -E "s#BUCK_SHA=.*#BUCK_SHA=\"$SHA\"#" onos/tools/build/onos-buck
+sed -i "" -E "s#REQUIRED_VERSION=.*#REQUIRED_VERSION=\"$BUCK_VERSION\"#" onos/tools/build/onos-buck
+
+set +x
+echo
+echo "Commit and push change to onos-buck on the onos directory."
