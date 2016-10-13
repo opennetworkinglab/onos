@@ -62,7 +62,7 @@ public interface DeviceProvider extends Provider {
      * Administratively enables or disables a port.
      *
      * @param deviceId device identifier
-     * @param portNumber device identifier
+     * @param portNumber port number
      * @param enable true if port is to be enabled, false to disable
      */
     void changePortState(DeviceId deviceId, PortNumber portNumber,
