@@ -15,6 +15,6 @@
  */
 
 /**
- * Network virtualization data models and services.
+ * Network virtualization provider interfaces and implementation.
  */
 package org.onosproject.incubator.net.virtual.provider;
