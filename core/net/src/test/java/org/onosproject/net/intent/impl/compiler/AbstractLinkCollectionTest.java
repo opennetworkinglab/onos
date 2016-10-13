@@ -98,6 +98,11 @@ class AbstractLinkCollectionTest {
             link(d2p0, d1p0)
     );
 
+    final Set<Link> p2pLinks = ImmutableSet.of(
+            link(d1p0, d2p0),
+            link(d2p1, d3p1)
+    );
+
     final TrafficTreatment treatment = emptyTreatment();
     final TrafficTreatment ethDstTreatment = macDstTreatment("C0:FF:EE:C0:FF:EE");
     final TrafficTreatment decTllTreatment = decTtlTreatment();

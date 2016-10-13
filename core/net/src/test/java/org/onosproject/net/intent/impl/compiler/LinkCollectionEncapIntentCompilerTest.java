@@ -1166,7 +1166,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
 
     /**
      * We test the proper compilation of p2p with the VLAN
-     * encapsulation and filtered points.
+     * encapsulation and trivial filtered points.
      */
     @Test
     public void testVlanEncapsulationForP2P() {
@@ -1260,7 +1260,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
 
     /**
      * We test the proper compilation of p2p with the MPLS
-     * encapsulation and filtered points.
+     * encapsulation and trivial filtered points.
      */
     @Test
     public void testMplsEncapsulationForP2P() {
@@ -1346,6 +1346,208 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                 DefaultTrafficTreatment
                         .builder()
                         .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
+                        .setOutput(d3p10.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of p2p with the VLAN
+     * encapsulation, filtered points, selector and treatment.
+     */
+    @Test
+    public void testVlanEncapsulationNonTrivialForP2P() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(ipPrefixSelector)
+                .treatment(ethDstTreatment)
+                .constraints(constraintsForVlan)
+                .links(linksForMp2Sp)
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p10, vlan100Selector)))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d3p10, mpls69Selector)))
+                .build();
+
+        sut.activate();
+        /*
+         * We use the FIRST_FIT to simplify tests.
+         */
+        LinkCollectionCompiler.labelAllocator.setLabelSelection(LABEL_SELECTION);
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(3));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(1));
+        FlowRule ruleS1 = rulesS1.iterator().next();
+        assertThat(ruleS1.selector(), is(
+                DefaultTrafficSelector
+                        .builder(ipPrefixSelector)
+                        .matchInPort(d1p10.port())
+                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setVlanId(VlanId.vlanId(LABEL))
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        Collection<FlowRule> rulesS2 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS2, hasSize(1));
+        FlowRule ruleS2 = rulesS2.iterator().next();
+        assertThat(ruleS2.selector(), is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d2p0.port())
+                        .matchVlanId(VlanId.vlanId(LABEL))
+                        .build()
+        ));
+        assertThat(ruleS2.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setVlanId(VlanId.vlanId(LABEL))
+                        .setOutput(d2p1.port())
+                        .build()
+        ));
+
+        Collection<FlowRule> rulesS3 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d3p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS3, hasSize(1));
+        FlowRule ruleS3 = rulesS3.iterator().next();
+        assertThat(ruleS3.selector(), is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d3p0.port())
+                        .matchVlanId(VlanId.vlanId(LABEL))
+                        .build()
+        ));
+        assertThat(ruleS3.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .popVlan()
+                        .pushMpls()
+                        .setMpls(((MplsCriterion) mpls69Selector.getCriterion(MPLS_LABEL)).label())
+                        .setOutput(d3p10.port())
+                        .build()
+        ));
+
+        sut.deactivate();
+
+    }
+
+    /**
+     * We test the proper compilation of p2p with the MPLS
+     * encapsulation, filtered points, selector and treatment.
+     */
+    @Test
+    public void testMplsEncapsulationNonTrivialForP2P() {
+
+        intent = LinkCollectionIntent.builder()
+                .appId(APP_ID)
+                .selector(ipPrefixSelector)
+                .treatment(ethDstTreatment)
+                .constraints(constraintsForMPLS)
+                .links(linksForMp2Sp)
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p10, vlan100Selector)))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d3p10, mpls69Selector)))
+                .build();
+
+        sut.activate();
+        /*
+         * We use the FIRST_FIT to simplify tests.
+         */
+        LinkCollectionCompiler.labelAllocator.setLabelSelection(LABEL_SELECTION);
+
+        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(3));
+
+        Collection<FlowRule> rulesS1 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS1, hasSize(1));
+        FlowRule ruleS1 = rulesS1.iterator().next();
+        assertThat(ruleS1.selector(), is(
+                DefaultTrafficSelector
+                        .builder(ipPrefixSelector)
+                        .matchInPort(d1p10.port())
+                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .build()
+        ));
+        assertThat(ruleS1.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .popVlan()
+                        .pushMpls()
+                        .setMpls(MplsLabel.mplsLabel(LABEL))
+                        .setOutput(d1p0.port())
+                        .build()
+        ));
+
+        Collection<FlowRule> rulesS2 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS2, hasSize(1));
+        FlowRule ruleS2 = rulesS2.iterator().next();
+        assertThat(ruleS2.selector(), is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d2p0.port())
+                        .matchMplsLabel(MplsLabel.mplsLabel(LABEL))
+                        .matchEthType(Ethernet.MPLS_UNICAST)
+                        .build()
+        ));
+        assertThat(ruleS2.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setMpls(MplsLabel.mplsLabel(LABEL))
+                        .setOutput(d2p1.port())
+                        .build()
+        ));
+
+        Collection<FlowRule> rulesS3 = rules.stream()
+                .filter(rule -> rule.deviceId().equals(d3p0.deviceId()))
+                .collect(Collectors.toSet());
+        assertThat(rulesS3, hasSize(1));
+        FlowRule ruleS3 = rulesS3.iterator().next();
+        assertThat(ruleS3.selector(), is(
+                DefaultTrafficSelector
+                        .builder()
+                        .matchInPort(d3p0.port())
+                        .matchMplsLabel(MplsLabel.mplsLabel(LABEL))
+                        .matchEthType(Ethernet.MPLS_UNICAST)
+                        .build()
+        ));
+        assertThat(ruleS3.treatment(), is(
+                DefaultTrafficTreatment
+                        .builder()
+                        .setEthDst(((ModEtherInstruction) ethDstTreatment
+                                .allInstructions()
+                                .stream()
+                                .filter(instruction -> instruction instanceof ModEtherInstruction)
+                                .findFirst().get()).mac())
+                        .setMpls(((MplsCriterion) mpls69Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d3p10.port())
                         .build()
         ));

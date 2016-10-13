@@ -83,7 +83,6 @@ public class PathIntentCompiler
         List<DeviceId> devices = new LinkedList<>();
         compile(this, intent, rules, devices);
 
-
         return ImmutableList.of(new FlowRuleIntent(appId, null, rules, intent.resources(), intent.type()));
     }
 
