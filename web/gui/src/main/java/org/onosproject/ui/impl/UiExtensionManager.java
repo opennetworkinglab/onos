@@ -133,6 +133,7 @@ public class UiExtensionManager
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
 
                 // FIXME: leave commented out for now, while still under development
+                // (remember to also comment out inclusions in index.html)
 //                new UiView(NETWORK, "topo2", "New-Topo"),
 //                new UiView(NETWORK, "topoX", "Topo-X"),
 

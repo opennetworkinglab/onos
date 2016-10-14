@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Identifier;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.HostId;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionEvent;
@@ -79,7 +78,6 @@ public class DistributedRegionStore
 
     private ConsistentMap<RegionId, Set<DeviceId>> membershipRepo;
     private Map<RegionId, Set<DeviceId>> regionDevices;
-    private Map<RegionId, Set<HostId>> regionHosts;
 
     private Map<DeviceId, Region> regionsByDevice = new HashMap<>();
 
@@ -139,12 +137,6 @@ public class DistributedRegionStore
     public Set<DeviceId> getRegionDevices(RegionId regionId) {
         Set<DeviceId> deviceIds = regionDevices.get(regionId);
         return deviceIds != null ? ImmutableSet.copyOf(deviceIds) : ImmutableSet.of();
-    }
-
-    @Override
-    public Set<HostId> getRegionHosts(RegionId regionId) {
-        Set<HostId> hostIds = regionHosts.get(regionId);
-        return hostIds != null ? ImmutableSet.copyOf(hostIds) : ImmutableSet.of();
     }
 
     @Override

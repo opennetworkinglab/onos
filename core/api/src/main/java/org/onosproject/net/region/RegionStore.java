@@ -17,7 +17,6 @@ package org.onosproject.net.region;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.HostId;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
@@ -110,13 +109,5 @@ public interface RegionStore extends Store<RegionEvent, RegionStoreDelegate> {
      * @param deviceIds list of device identifiers
      */
     void removeDevices(RegionId regionId, Collection<DeviceId> deviceIds);
-
-    /**
-     * Returns the set of hosts that belong to the specified region.
-     *
-     * @param regionId region identifier
-     * @return set of identifiers for hosts in the given region
-     */
-    Set<HostId> getRegionHosts(RegionId regionId);
 
 }

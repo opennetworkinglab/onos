@@ -573,14 +573,13 @@ class ModelCache {
         Set<HostId> hostIds = services.region().getRegionHosts(rid);
         region.reconcileHosts(hostIds);
 
-        hostIds.forEach(hId -> {
-            UiHost h = uiTopology.findHost(hId);
+        hostIds.forEach(hid -> {
+            UiHost h = uiTopology.findHost(hid);
             if (h != null) {
                 h.setRegionId(r.id());
                 allHosts.remove(h);
             } else {
-                log.warn("Region host ID {} but no UiHost in topology",
-                        hId);
+                log.warn("Region host ID {} but no UiHost in topology", hid);
             }
         });
     }

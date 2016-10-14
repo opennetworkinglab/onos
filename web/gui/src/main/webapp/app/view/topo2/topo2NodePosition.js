@@ -115,7 +115,7 @@
 
     angular.module('ovTopo2')
     .factory('Topo2NodePositionService',
-        ['RandomService',
+        ['RandomService', 'Topo2MapConfigService',
             function (_rs_, _t2mcs_) {
 
                 rs = _rs_;
