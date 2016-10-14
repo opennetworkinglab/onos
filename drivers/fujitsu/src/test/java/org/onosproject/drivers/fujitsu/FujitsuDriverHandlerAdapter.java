@@ -31,7 +31,7 @@ import org.onosproject.netconf.NetconfController;
 public class FujitsuDriverHandlerAdapter extends DefaultDriverHandler {
 
     private NetconfController controller;
-    private final MastershipService mastershipService = new InternalMastershipServiceMock();;
+    private final MastershipService mastershipService = new InternalMastershipServiceMock();
 
     /**
      * Creates new driver handler with the attached driver data.
