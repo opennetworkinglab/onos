@@ -17,31 +17,61 @@ onos ${host} null-simulation start custom
 
 onos ${host} <<-EOF
 
-null-create-device switch s1-Bristol 10 51.4500 -2.5833
-null-create-device switch s2-London 10 51.5072 -0.1275
-null-create-device switch s3-Dover 10 51.1295 1.3089
-null-create-device switch s4-Brighton 10 50.8429 -0.1313
-null-create-device switch s5 10 0 0
-null-create-device switch s6 10 0 0
-null-create-device switch s7 10 0 0
-null-create-device switch s8 10 0 0
-null-create-device switch s9 10 0 0
-# null-create-device switch s10 10 0 0
+# root region
+null-create-device switch DOVER 10 51.1295 1.3089
 
-null-create-link direct s1-Bristol s2-London
-null-create-link direct s2-London s3-Dover
-null-create-link direct s2-London s4-Brighton
-null-create-link direct s3-Dover s4-Brighton
-null-create-link direct s3-Dover s5
-null-create-link direct s6 s5
-null-create-link direct s6 s8
-null-create-link direct s7 s9
-null-create-link direct s8 s9
-null-create-link direct s5 s7
-null-create-link direct s8 s7
+# region 1
+null-create-device switch BRGHTN-A 10 50.9000 -0.1313
+null-create-device switch BRGHTN-B 10 50.8429 -0.1413
+null-create-device switch BRGHTN-C 10 50.8429 -0.1213
+
+# region 2
+null-create-device switch LONDON-A 10 51.5091 -0.2704
+null-create-device switch LONDON-B 10 51.5091 0.0432
+# region 3 (subregion of 2)
+null-create-device switch LONDON-C 10 51.4513 -0.1058
+null-create-device switch LONDON-D 10 51.5418 -0.1931
+null-create-device switch LONDON-E 10 51.5072 -0.1175
+
+## NOTE: create more than 9 devices seems to be broken
+
+null-create-link direct DOVER BRGHTN-A
+
+null-create-link direct BRGHTN-A BRGHTN-B
+null-create-link direct BRGHTN-A BRGHTN-C
+null-create-link direct BRGHTN-B BRGHTN-C
+
+null-create-link direct BRGHTN-B LONDON-A
+null-create-link direct LONDON-A LONDON-B
+
+null-create-link direct LONDON-A LONDON-C
+null-create-link direct LONDON-B LONDON-D
+
+null-create-link direct LONDON-C LONDON-D
+null-create-link direct LONDON-C LONDON-E
+null-create-link direct LONDON-D LONDON-E
 
 EOF
 
+### Add a host per device
+#
+# null-create-host <device-id> <host-ip> <latitude> <longitude>
+
+onos ${host} <<-EOF
+
+null-create-host DOVER 192.168.1.1 51.4780 1.6369
+
+null-create-host BRGHTN-A 192.168.2.10 0 0
+null-create-host BRGHTN-B 192.168.2.11 0 0
+null-create-host BRGHTN-C 192.168.2.12 0 0
+
+null-create-host LONDON-A 192.168.3.31 0 0
+null-create-host LONDON-B 192.168.3.32 0 0
+null-create-host LONDON-C 192.168.3.33 0 0
+null-create-host LONDON-D 192.168.3.34 0 0
+null-create-host LONDON-E 192.168.3.35 0 0
+
+EOF
 
 ### Add regions and associate devices with them
 #
@@ -50,20 +80,20 @@ EOF
 
 onos ${host} <<-EOF
 
-region-add r1 Region1 METRO ${host}
-region-add r2 Region2 METRO ${host}
-region-add r3 Region3 CAMPUS ${host}
+region-add rBrg Brighton METRO ${host}
+region-add rLon London METRO ${host}
+region-add rTha Thames CAMPUS ${host}
 
-region-add-devices r1 \
+region-add-devices rBrg \
     null:0000000000000002 \
     null:0000000000000003 \
     null:0000000000000004
 
-region-add-devices r2 \
+region-add-devices rLon \
     null:0000000000000005 \
     null:0000000000000006
 
-region-add-devices r3 \
+region-add-devices rTha \
     null:0000000000000007 \
     null:0000000000000008 \
     null:0000000000000009
@@ -78,9 +108,9 @@ EOF
 
 onos ${host} <<-EOF
 
-layout-add l1 r1
-layout-add l2 r2
-layout-add l3 r3 l2
+layout-add lBrg rBrg
+layout-add lLon rLon
+layout-add lTha rTha lLon
 
 layouts
 EOF
