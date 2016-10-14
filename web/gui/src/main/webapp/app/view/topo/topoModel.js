@@ -248,6 +248,7 @@
             //logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
             return null;
         }
+
         return {
             source: srcNode,
             target: dstNode

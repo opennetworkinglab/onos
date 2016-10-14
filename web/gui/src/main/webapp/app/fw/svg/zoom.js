@@ -69,6 +69,7 @@
                     fail = false,
                     zoomer;
 
+
                 if (!settings.svg) {
                     $log.error(cz + 'No "svg" (svg tag)' + d3s);
                     fail = true;
@@ -121,6 +122,10 @@
 
                 // apply the zoom behavior to the SVG element
                 settings.svg && settings.svg.call(zoom);
+
+                // Remove zoom on double click (prevents a
+                // false zoom navigating regions)
+                settings.svg.on("dblclick.zoom", null);
                 return zoomer;
             }
 

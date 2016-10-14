@@ -110,28 +110,39 @@
         link = linkG.selectAll('.link');
         linkLabelG.selectAll('.linkLabel');
         node = nodeG.selectAll('.node');
-
-        _svg_.on('mousemove', mouseMoveHandler);
     }
 
     function createForceLayout() {
 
+        var regionLinks = t2rs.regionLinks(),
+            regionNodes = t2rs.regionNodes();
+
         force = d3.layout.force()
             .size(t2vs.getDimensions())
-            .nodes(t2rs.regionNodes())
-            .links(t2rs.regionLinks())
-            .gravity(settings.gravity)
-            .friction(settings.friction)
             .charge(settings.charge._def_)
             .linkDistance(settings.linkDistance._def_)
-            .linkStrength(settings.linkStrength._def_)
-            .on('tick', tick);
+            .on("tick", tick);
+
+        force
+            .nodes(t2rs.regionNodes())
+            .links(regionLinks)
+            .start();
+
+        link = linkG.selectAll('.link')
+            .data(regionLinks, function (d) { return d.get('key'); });
+
+        node = nodeG.selectAll('.node')
+            .data(regionNodes, function (d) { return d.get('id'); });
 
         drag = sus.createDragBehavior(force,
-            t2ss.selectObject, atDragEnd, dragEnabled, clickEnabled);
+          t2ss.selectObject, atDragEnd, dragEnabled, clickEnabled);
 
-        start();
         update();
+    }
+
+    // predicate that indicates when clicking is active
+    function clickEnabled() {
+        return true;
     }
 
     function zoomingOrPanning(ev) {
@@ -178,21 +189,21 @@
         });
     }
 
-    // predicate that indicates when clicking is active
-    function clickEnabled() {
-        return true;
-    }
-
     function tick() {
-        // guard against null (which can happen when our view pages out)...
-        if (node && node.size()) {
-            node.attr(tickStuff.nodeAttr);
-        }
-        if (link && link.size()) {
-            link.call(calcPosition)
-                .attr(tickStuff.linkAttr);
-            // t2d3.applyNumLinkLabels(linkNums, numLinkLabelsG);
-        }
+        link
+            .attr("x1", function (d) { return d.source.x; })
+            .attr("y1", function (d) { return d.source.y; })
+            .attr("x2", function (d) { return d.target.x; })
+            .attr("y2", function (d) { return d.target.y; });
+
+        node
+            .attr({
+                transform: function (d) {
+                    var dx = isNaN(d.x) ? 0 : d.x,
+                        dy = isNaN(d.y) ? 0 : d.y;
+                    return sus.translate(dx, dy);
+                }
+            });
     }
 
     function update() {
@@ -305,7 +316,6 @@
     }
 
     function getDefaultPos(link) {
-
         return {
             x1: link.get('source').x,
             y1: link.get('source').y,
@@ -322,100 +332,6 @@
 
     function start() {
         force.start();
-    }
-
-    // Mouse Events
-    function mouseMoveHandler() {
-        var mp = getLogicalMousePosition(this),
-            link = computeNearestLink(mp);
-
-        if (highlightedLink) {
-            highlightedLink.unenhance();
-            highlightedLink = null;
-        }
-
-        if (link) {
-            link.enhance();
-            highlightedLink = link;
-        }
-    }
-
-    // ======== ALGORITHM TO FIND LINK CLOSEST TO MOUSE ========
-
-    function getLogicalMousePosition(container) {
-        var m = d3.mouse(container),
-            sc = uplink.zoomer().scale(),
-            tr = uplink.zoomer().translate(),
-            mx = (m[0] - tr[0]) / sc,
-            my = (m[1] - tr[1]) / sc;
-        return { x: mx, y: my };
-    }
-
-    function sq(x) {
-        return x * x;
-    }
-
-    function mdist(p, m) {
-        return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
-    }
-
-    function prox(dist) {
-        return dist / uplink.zoomer().scale();
-    }
-
-    function computeNearestLink(mouse) {
-        var proximity = prox(30),
-            nearest = null,
-            minDist,
-            regionLinks = t2rs.regionLinks();
-
-        function pdrop(line, mouse) {
-
-            var x1 = line.x1,
-                y1 = line.y1,
-                x2 = line.x2,
-                y2 = line.y2,
-                x3 = mouse.x,
-                y3 = mouse.y,
-                k = ((y2 - y1) * (x3 - x1) - (x2 - x1) * (y3 - y1)) /
-                    (sq(y2 - y1) + sq(x2 - x1)),
-                x4 = x3 - k * (y2 - y1),
-                y4 = y3 + k * (x2 - x1);
-            return { x: x4, y: y4 };
-        }
-
-        function lineHit(line, p, m) {
-            if (p.x < line.x1 && p.x < line.x2) return false;
-            if (p.x > line.x1 && p.x > line.x2) return false;
-            if (p.y < line.y1 && p.y < line.y2) return false;
-            if (p.y > line.y1 && p.y > line.y2) return false;
-            // line intersects, but are we close enough?
-            return mdist(p, m) <= proximity;
-        }
-
-        if (regionLinks.length) {
-            minDist = proximity * 2;
-
-            regionLinks.forEach(function (d) {
-                // if (!api.showHosts() && d.type() === 'hostLink') {
-                //     return; // skip hidden host links
-                // }
-
-                var line = d.get('position'),
-                    point = pdrop(line, mouse),
-                    hit = lineHit(line, point, mouse),
-                    dist;
-
-                if (hit) {
-                    dist = mdist(point, mouse);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        nearest = d;
-                    }
-                }
-            });
-        }
-        return nearest;
     }
 
     angular.module('ovTopo2')

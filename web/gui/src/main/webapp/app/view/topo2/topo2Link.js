@@ -32,7 +32,8 @@
             .range([widthRatio, 12 * widthRatio])
             .clamp(true),
         allLinkTypes = 'direct indirect optical tunnel UiDeviceLink',
-        allLinkSubTypes = 'inactive not-permitted';
+        allLinkSubTypes = 'inactive not-permitted',
+        labelDim = 30;
 
     // configuration
     var linkConfig = {
@@ -93,6 +94,7 @@
 
     function linkEndPoints(srcId, dstId) {
 
+        var allNodes = this.region.nodes();
         var sourceNode = this.region.findNodeById(srcId);
         var targetNode = this.region.findNodeById(dstId);
 
@@ -102,8 +104,10 @@
             return null;
         }
 
-        this.source = sourceNode.toJSON();
-        this.target = targetNode.toJSON();
+        this.source = allNodes.indexOf(sourceNode);
+        this.target = allNodes.indexOf(targetNode);
+        this.sourceNode = sourceNode;
+        this.targetNode = targetNode;
 
         return {
             source: sourceNode,
@@ -162,9 +166,10 @@
 
                     var entering = d3.select('#topo-portLabels')
                         .selectAll('.portLabel')
-                        .data(data).enter().append('g')
+                        .data(data)
+                        .enter().append('g')
                         .classed('portLabel', true)
-                        .attr('id', function (d) { return d.id; });
+                        .attr('id', function (d) { return d.id; })
 
                     entering.each(function (d) {
                         var el = d3.select(this),
@@ -181,7 +186,10 @@
                             .attr('text-anchor', 'middle');
 
                         el.attr('transform', sus.translate(d.x, d.y));
+
                     });
+
+                    this.setScale();
                 }
             },
             unenhance: function () {
@@ -189,12 +197,16 @@
                 d3.select('#topo-portLabels').selectAll('.portLabel').remove();
             },
             locatePortLabel: function (src) {
-                var offset = 32,
-                    pos = this.get('position'),
-                    nearX = src ? pos.x1 : pos.x2,
-                    nearY = src ? pos.y1 : pos.y2,
-                    farX = src ? pos.x2 : pos.x1,
-                    farY = src ? pos.y2 : pos.y1;
+
+                var offset = 32 / (labelDim * t2zs.scale()),
+                    sourceX = this.get('position').x1,
+                    sourceY = this.get('position').y1,
+                    targetX = this.get('position').x2,
+                    targetY = this.get('position').y2,
+                    nearX = src ? sourceX : targetX,
+                    nearY = src ? sourceY : targetY,
+                    farX = src ? targetX : sourceX,
+                    farY = src ? targetY : sourceY;
 
                 function dist(x, y) {
                     return Math.sqrt(x * x + y * y);
@@ -202,7 +214,7 @@
 
                 var dx = farX - nearX,
                     dy = farY - nearY,
-                    k = offset / dist(dx, dy);
+                    k = (32 * offset) / dist(dx, dy);
 
                 return { x: k * dx + nearX, y: k * dy + nearY };
             },
@@ -232,8 +244,9 @@
                     }
                     el.transition()
                         .duration(delay)
-                        .attr('stroke-width', linkScale(widthRatio))
                         .attr('stroke', linkConfig[th].baseColor);
+
+                    this.setScale();
                 }
             },
             onEnter: function (el) {
@@ -242,13 +255,26 @@
                 this.el = link;
                 this.restyleLinkElement();
 
+                // TODO: Needs improving - originally this was calculated
+                // from mouse position.
+                this.el.on('mouseover', this.enhance.bind(this));
+                this.el.on('mouseout', this.unenhance.bind(this));
+
                 if (this.get('type') === 'hostLink') {
                     // sus.visible(link, api.showHosts());
                 }
             },
             setScale: function () {
-                var width = linkScale(widthRatio / t2zs.scale());
+                var width = linkScale(widthRatio) / t2zs.scale();
                 this.el.style('stroke-width', width + 'px');
+
+                var labelScale = labelDim / (labelDim * t2zs.scale());
+
+                d3.select('#topo-portLabels')
+                    .selectAll('.portLabel')
+                    .selectAll('*')
+                    .style('transform', 'scale(' + labelScale + ')');
+
             },
             update: function () {
                 if (this.el.classed('enhanced')) {

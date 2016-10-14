@@ -183,9 +183,6 @@
     function newDim(_dim_) {
         dim = _dim_;
         t2vs.newDim(dim);
-        // force.size(dim);
-        // tms.newDim(dim);
-        t2ls.setDimensions();
     }
 
     // ========================== Main Service Definition

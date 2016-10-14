@@ -195,9 +195,9 @@
         var offset = 32,
             pos = link.position,
             nearX = src ? pos.x1 : pos.x2,
-            nearY = src ? pos.y1 : pos.y2,
+            nearY = src ? pos.y2 : pos.y1,
             farX = src ? pos.x2 : pos.x1,
-            farY = src ? pos.y2 : pos.y1;
+            farY = src ? pos.y1 : pos.y2;
 
         function dist(x, y) { return Math.sqrt(x*x + y*y); }
 
