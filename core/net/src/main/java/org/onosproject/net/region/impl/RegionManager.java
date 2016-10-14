@@ -25,7 +25,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.net.region.RegionEvent;
@@ -37,15 +39,17 @@ import org.onosproject.net.region.RegionStoreDelegate;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.of;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.REGION_READ;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the region service APIs.
@@ -68,6 +72,9 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RegionStore store;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     @Activate
     public void activate() {
@@ -154,7 +161,14 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
     public Set<HostId> getRegionHosts(RegionId regionId) {
         checkPermission(REGION_READ);
         checkNotNull(regionId, REGION_ID_NULL);
-        return store.getRegionHosts(regionId);
+        Set<DeviceId> devs = getRegionDevices(regionId);
+        Set<HostId> hostIds = new HashSet<>();
+        for (DeviceId d : devs) {
+            Set<HostId> ids = hostService.getConnectedHosts(d).stream()
+                    .map(Host::id)
+                    .collect(Collectors.toSet());
+            hostIds.addAll(ids);
+        }
+        return hostIds;
     }
-
 }

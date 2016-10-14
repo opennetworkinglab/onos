@@ -38,9 +38,16 @@ import org.onosproject.store.service.TestStorageService;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
-import static org.onosproject.net.region.Region.Type.*;
-import static org.onosproject.net.region.RegionEvent.Type.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.region.Region.Type.CAMPUS;
+import static org.onosproject.net.region.Region.Type.COUNTRY;
+import static org.onosproject.net.region.Region.Type.METRO;
+import static org.onosproject.net.region.RegionEvent.Type.REGION_ADDED;
+import static org.onosproject.net.region.RegionEvent.Type.REGION_MEMBERSHIP_CHANGED;
+import static org.onosproject.net.region.RegionEvent.Type.REGION_REMOVED;
+import static org.onosproject.net.region.RegionEvent.Type.REGION_UPDATED;
 
 /**
  * Tests of the region service implementation.
@@ -67,6 +74,8 @@ public class RegionManagerTest {
     public void setUp() throws Exception {
         TestUtils.setField(store, "storageService", new TestStorageService());
         store.activate();
+
+        // possibly manager.hostService = new MockHostService();
 
         manager.store = store;
         manager.addListener(listener);
