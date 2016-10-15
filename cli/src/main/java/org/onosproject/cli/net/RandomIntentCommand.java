@@ -33,14 +33,22 @@ import org.onosproject.net.intent.IntentService;
 import com.google.common.collect.Lists;
 
 /**
- * Installs bulk point-to-point connectivity intents between random ingress/egress devices.
+ * Installs bulk host-to-host intents between hosts of the network.
  */
 @Command(scope = "onos", name = "push-random-intents",
-         description = "Installs random intents to test throughput")
+         description = "It installs random intents to test throughput. The " +
+                 "maximum number of intents is determined by the number of " +
+                 "hosts in the network. The command will push an intent for " +
+                 "each unordered pair of hosts. The maximum intent number " +
+                 "will be n(n-1)/2, where n represents the number of hosts " +
+                 "present")
+
 public class RandomIntentCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "count",
-              description = "Number of intents to push",
+              description = "Max number of intents to push. The value will " +
+                      "not be taken into account if it exceeds the maximum " +
+                      "number of intents the command can push",
               required = true, multiValued = false)
     String countString = null;
 
