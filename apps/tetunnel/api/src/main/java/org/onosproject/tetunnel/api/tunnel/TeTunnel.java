@@ -182,14 +182,14 @@ public interface TeTunnel {
      *
      * @return key of the corresponding E2E TE tunnel
      */
-    TeTunnelKey e2eTunnel();
+    TeTunnelKey e2eTunnelKey();
 
     /**
      * Sets the E2E tunnel of this (segment) tunnel.
      *
-     * @param e2eTunnel key of the corresponding E2E tunnel
+     * @param e2eTunnelKey key of the corresponding E2E tunnel
      */
-    void e2eTunnel(TeTunnelKey e2eTunnel);
+    void e2eTunnelKey(TeTunnelKey e2eTunnelKey);
 
     //TODO: add more required TE attributes
 }

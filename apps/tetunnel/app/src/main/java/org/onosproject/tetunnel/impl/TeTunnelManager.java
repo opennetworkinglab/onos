@@ -168,7 +168,7 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
                                  List<TeTunnelKey> segmentTunnels) {
         TeTunnel e2eTunnel = store.getTeTunnel(e2eTunnelKey);
         if (e2eTunnel == null) {
-            log.error("unknown e2eTunnel: {}", e2eTunnelKey);
+            log.error("unknown e2eTunnelKey: {}", e2eTunnelKey);
             return;
         }
         e2eTunnel.segmentTunnels(segmentTunnels);
@@ -179,7 +179,7 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
                 log.warn("unknown segmentTunnel: {}", key);
                 continue;
             }
-            segmentTunnel.e2eTunnel(e2eTunnelKey);
+            segmentTunnel.e2eTunnelKey(e2eTunnelKey);
         }
     }
 
@@ -221,7 +221,7 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
 
     @Override
     public void teTunnelRemoved(TeTunnel teTunnel) {
-        TeTunnelKey e2eTunnelKey = teTunnel.e2eTunnel();
+        TeTunnelKey e2eTunnelKey = teTunnel.e2eTunnelKey();
         store.removeTeTunnel(teTunnel.teTunnelKey());
 
         // it's a segment tunnel

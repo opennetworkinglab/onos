@@ -125,13 +125,13 @@ public class DefaultTeTunnel implements TeTunnel {
     }
 
     @Override
-    public TeTunnelKey e2eTunnel() {
+    public TeTunnelKey e2eTunnelKey() {
         return e2eTunnel;
     }
 
     @Override
-    public void e2eTunnel(TeTunnelKey e2eTunnel) {
-        this.e2eTunnel = e2eTunnel;
+    public void e2eTunnelKey(TeTunnelKey e2eTunnelKey) {
+        this.e2eTunnel = e2eTunnelKey;
     }
 
     @Override
