@@ -21,6 +21,7 @@ import org.onosproject.yangutils.datamodel.YangBinary;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
+import org.onosproject.yms.app.yob.exception.YobExceptions;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,8 +71,9 @@ abstract class YobHandler {
         YangSchemaNode node = curYdtNode.getYangSchemaNode();
 
         String qualName = getQualifiedDefaultClassName(node);
-        ClassLoader classLoader = getClassLoader(registry, qualName,
-                                                 curYdtNode);
+        ClassLoader classLoader = getClassLoader(registry,
+                                                 qualName,
+                                                 curYdtNode, rootYdtNode);
 
         if (curYdtNode != rootYdtNode) {
             setterName = node.getJavaAttributeName();
@@ -248,7 +250,7 @@ abstract class YobHandler {
         String qualifiedClassName = packageName + PERIOD + className;
         ClassLoader classLoader = getClassLoader(registry,
                                                  qualifiedClassName,
-                                                 ydtExtendedContext);
+                                                 ydtExtendedContext, null);
         try {
             childSetClass = classLoader.loadClass(qualifiedClassName);
         } catch (ClassNotFoundException e) {
@@ -292,27 +294,35 @@ abstract class YobHandler {
      * Updates class loader for all the classes.
      *
      * @param registry           YANG schema registry
-     * @param context            YDT context
+     * @param curNode            YDT context
      * @param qualifiedClassName qualified class name
      * @return current class loader
      */
     private ClassLoader getClassLoader(YangSchemaRegistry registry,
                                        String qualifiedClassName,
+                                       YdtExtendedContext curNode,
                                        YdtExtendedContext context) {
 
-        YangSchemaNode yangSchemaNode = context.getYangSchemaNode();
-        if (yangSchemaNode instanceof RpcNotificationContainer) {
+        if (context != null && curNode == context) {
+            YangSchemaNode yangSchemaNode = curNode.getYangSchemaNode();
+            while (!(yangSchemaNode instanceof RpcNotificationContainer)) {
+                curNode = (YdtExtendedContext) curNode.getParent();
+                if (curNode == null) {
+                    throw new YobExceptions("Invalid YANG data tree");
+                }
+                yangSchemaNode = curNode.getYangSchemaNode();
+            }
+
             Class<?> regClass = registry.getRegisteredClass(yangSchemaNode,
                                                             qualifiedClassName);
             return regClass.getClassLoader();
         } else {
-
             YdtExtendedContext parent =
-                    (YdtExtendedContext) context.getParent();
+                    (YdtExtendedContext) curNode.getParent();
             YobWorkBench parentBuilderContainer =
                     (YobWorkBench) parent.getAppInfo(YOB);
             Object parentObj =
-                    parentBuilderContainer.getParentBuilder(context, registry);
+                    parentBuilderContainer.getParentBuilder(curNode, registry);
             return parentObj.getClass().getClassLoader();
         }
     }

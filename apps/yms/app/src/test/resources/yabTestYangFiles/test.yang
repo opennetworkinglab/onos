@@ -1,0 +1,111 @@
+module test {
+
+    yang-version 1;
+    namespace "ydt.test";
+    prefix "t6";
+    organization "ON-LAB";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    container cont1 {
+        container cont2 {
+                container cont3 {
+                    leaf leaf1 {
+                        type string;
+                    }
+                }
+        }
+        list list1 {
+           key leaf2;
+           leaf leaf2 {
+               type string;
+           }
+           leaf leaf3 {
+               type string;
+           }
+       }
+       leaf leaf4 {
+          type string;
+       }
+    }
+    list list2 {
+        key "leaf5 leaf6";
+        leaf leaf5 {
+            type string;
+        }
+        leaf leaf6 {
+            type string;
+        }
+        leaf leaf7 {
+            type string;
+        }
+        leaf-list leaflist8 {
+            type string;
+        }
+        container cont7 {
+            leaf leaf12 {
+                type string;
+            }
+        }
+    }
+    container cont4 {
+        container cont5 {
+            leaf leaf9 {
+                type string;
+            }
+        }
+    }
+    leaf leaf10 {
+       type string;
+    }
+
+    rpc rock-the-house {
+        input {
+            leaf zip-code {
+                type string;
+            }
+        }
+        output {
+            leaf hello {
+                type string;
+            }
+        }
+    }
+
+    rpc rock-the-house1 {
+        input {
+            leaf leaf13 {
+               type string;
+            }
+        }
+    }
+
+    rpc rock-the-house2 {
+        output {
+            leaf leaf14 {
+                type string;
+            }
+        }
+    }
+
+    rpc rock-the-house3 {
+    }
+
+    augment "/cont4" {
+        container cont6 {
+            leaf leaf11 {
+                type string;
+            }
+        }
+    }
+
+    augment "/cont4/cont6" {
+        container cont7 {
+            leaf leaf12 {
+                type string;
+            }
+        }
+    }
+}

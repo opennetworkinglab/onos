@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.yms.app.yab.YangApplicationBroker;
 import org.onosproject.yms.app.ydt.DefaultYdtWalker;
 import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
@@ -126,6 +127,24 @@ public class YmsManager
 
     @Override
     public YdtResponse executeOperation(YdtBuilder operationRequest) {
+        YangApplicationBroker requestBroker =
+                new YangApplicationBroker(schemaRegistry);
+        switch (operationRequest.getYmsOperationType()) {
+            case EDIT_CONFIG_REQUEST:
+                try {
+                    return requestBroker.processEdit(operationRequest);
+                } catch (CloneNotSupportedException e) {
+                    log.error("YAB: failed to process edit request.");
+                }
+            case QUERY_CONFIG_REQUEST:
+                // TODO : to be implemented
+            case QUERY_REQUEST:
+                return requestBroker.processQuery(operationRequest);
+            case RPC_REQUEST:
+                return requestBroker.processOperation(operationRequest);
+            default:
+                // TODO : throw exception
+        }
         return null;
     }
 

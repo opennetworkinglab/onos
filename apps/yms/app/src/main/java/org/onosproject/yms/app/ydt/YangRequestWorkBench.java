@@ -125,7 +125,7 @@ public class YangRequestWorkBench implements YdtExtendedBuilder {
     /*
      * Flag to identify data validation need to be done by YDT or not.
      */
-    private final boolean validate;
+    private boolean validate = false;
     // TODO validate need to be handle later with interaction type basis in
     // future when it will be supported
 
@@ -161,6 +161,19 @@ public class YangRequestWorkBench implements YdtExtendedBuilder {
         DefaultYdtAppContext appNode = getAppContext(true);
 
         setAppRootNode(appNode);
+    }
+
+    /**
+     * Creates an instance of YANG request work bench which is used to build YDT
+     * tree in YAB.
+     *
+     * @param curNode       current YDT node
+     * @param operationType YMS operation type
+     */
+    public YangRequestWorkBench(YdtNode curNode,
+                                YmsOperationType operationType) {
+        this.curNode = curNode;
+        ymsOperationType = operationType;
     }
 
     /**
