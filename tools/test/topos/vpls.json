@@ -1,0 +1,64 @@
+{
+  "devices": {
+    "of:0000000000000001": { "basic": { "name": "s1", "latitude": 37.7576793, "longitude": -122.5076405 }},
+    "of:0000000000000002": { "basic": { "name": "s2", "latitude": 34.0502337, "longitude": -118.3263353 }},
+    "of:0000000000000003": { "basic": { "name": "s3", "latitude": 38.9082909, "longitude": -77.0886051 }},
+    "of:0000000000000004": { "basic": { "name": "s4", "latitude": 30.2787717, "longitude": -82.3069047 }}
+  },
+  "hosts": {
+    "00:00:00:00:00:01/100": { "basic": { "location": "of:0000000000000001/1", "ips": [ "10.0.0.1" ], "name": "v100h1", "latitude": 37.7576793, "longitude": -125.0076405  }},
+    "00:00:00:00:00:02/200": { "basic": { "location": "of:0000000000000002/1", "ips": [ "10.0.0.2" ], "name": "v200h1", "latitude": 34.0502337, "longitude": -120.8263353  }},
+    "00:00:00:00:00:03/300": { "basic": { "location": "of:0000000000000003/1", "ips": [ "10.0.0.3" ], "name": "v300h1", "latitude": 38.9082909, "longitude": -74.5886051  }},
+    "00:00:00:00:00:04/400": { "basic": { "location": "of:0000000000000004/1", "ips": [ "10.0.0.4" ], "name": "v400h1", "latitude": 30.2787717, "longitude": -79.8069047  }}
+  },
+  "ports": {
+    "of:0000000000000001/1": {
+      "interfaces": [
+        {
+          "name": "vlan100H1",
+          "vlan": "100"
+        }
+      ]
+    },
+    "of:0000000000000002/1": {
+      "interfaces": [
+        {
+          "name": "vlan200H1",
+          "vlan": "200"
+        }
+      ]
+    },
+    "of:0000000000000003/1": {
+      "interfaces": [
+        {
+          "name": "vlan300H1",
+          "vlan": "300"
+        }
+      ]
+    },
+    "of:0000000000000004/1": {
+      "interfaces": [
+        {
+          "name": "vlan400H1",
+          "vlan": "400"
+        }
+      ]
+    }
+  },
+  "apps" : {
+    "org.onosproject.vpls" : {
+      "vpls" : {
+        "vplsNetworks" : [
+          {
+            "name" : "net1",
+            "interfaces" : ["vlan100H1", "vlan200H1"]
+          },
+          {
+            "name" : "net2",
+            "interfaces" : []
+          }
+        ]
+      }
+    }
+  }
+}
