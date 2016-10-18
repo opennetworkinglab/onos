@@ -422,10 +422,10 @@ public class ARP extends BasePacket {
                 .add("hardwareAddressLength", Byte.toString(hardwareAddressLength))
                 .add("protocolAddressLength", Byte.toString(protocolAddressLength))
                 .add("opCode", Short.toString(opCode))
-                .add("senderHardwareAddress", Arrays.toString(senderHardwareAddress))
-                .add("senderProtocolAddress", Arrays.toString(senderProtocolAddress))
-                .add("targetHardwareAddress", Arrays.toString(targetHardwareAddress))
-                .add("targetProtocolAddress", Arrays.toString(targetProtocolAddress))
+                .add("senderHardwareAddress", MacAddress.valueOf(senderHardwareAddress))
+                .add("senderProtocolAddress", Ip4Address.valueOf(senderProtocolAddress))
+                .add("targetHardwareAddress", MacAddress.valueOf(targetHardwareAddress))
+                .add("targetProtocolAddress", Ip4Address.valueOf(targetProtocolAddress))
                 .toString();
     }
 }

@@ -99,9 +99,9 @@ public class ArpTest {
         String str = arp.toString();
         assertTrue(StringUtils.contains(str, "hardwareAddressLength=" + hwAddressLength));
         assertTrue(StringUtils.contains(str, "protocolAddressLength=" + protoAddressLength));
-        assertTrue(StringUtils.contains(str, "senderHardwareAddress=" + Arrays.toString(srcMac.toBytes())));
-        assertTrue(StringUtils.contains(str, "senderProtocolAddress=" + Arrays.toString(srcIp.toOctets())));
-        assertTrue(StringUtils.contains(str, "targetHardwareAddress=" + Arrays.toString(targetMac.toBytes())));
-        assertTrue(StringUtils.contains(str, "targetProtocolAddress=" + Arrays.toString(targetIp.toOctets())));
+        assertTrue(StringUtils.contains(str, "senderHardwareAddress=" + srcMac));
+        assertTrue(StringUtils.contains(str, "senderProtocolAddress=" + srcIp));
+        assertTrue(StringUtils.contains(str, "targetHardwareAddress=" + targetMac));
+        assertTrue(StringUtils.contains(str, "targetProtocolAddress=" + targetIp));
     }
 }

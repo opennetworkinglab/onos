@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -82,12 +83,17 @@ public class ArpHandler {
      * @param pkt incoming packet
      */
     public void processPacketIn(InboundPacket pkt) {
-
         Ethernet ethernet = pkt.parsed();
         ARP arp = (ARP) ethernet.getPayload();
-
         ConnectPoint connectPoint = pkt.receivedFrom();
         DeviceId deviceId = connectPoint.deviceId();
+
+        if (!validateArpSpa(connectPoint, arp)) {
+            log.warn("Ignore ARP packet discovered on {} with unexpected src protocol address {}.",
+                    connectPoint, Ip4Address.valueOf(arp.getSenderProtocolAddress()));
+            return;
+        }
+
         if (arp.getOpCode() == ARP.OP_REQUEST) {
             handleArpRequest(deviceId, connectPoint, ethernet);
         } else {
@@ -144,6 +150,20 @@ public class ArpHandler {
                 removeVlanAndFlood(payload, inPort);
             }
         }
+    }
+
+    /**
+     * Check if the source protocol address of an ARP packet belongs to the same
+     * subnet configured on the port it is seen.
+     *
+     * @param connectPoint connect point where the ARP packet is seen
+     * @param arpPacket ARP packet
+     * @return true if the source protocol address belongs to the configured subnet
+     */
+    private boolean validateArpSpa(ConnectPoint connectPoint, ARP arpPacket) {
+        Ip4Address spa = Ip4Address.valueOf(arpPacket.getSenderProtocolAddress());
+        Ip4Prefix subnet = config.getPortSubnet(connectPoint.deviceId(), connectPoint.port());
+        return subnet.contains(spa);
     }
 
 
