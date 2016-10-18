@@ -579,6 +579,7 @@ public class FlowEntryBuilder {
             builder.setArpSpa(Ip4Address.valueOf(arpspa.getValue().getInt()));
             break;
         case OFDPA_MPLS_TYPE:
+        case OFDPA_OVID:
             if (treatmentInterpreter != null) {
                 try {
                     builder.extension(treatmentInterpreter.mapAction(action), deviceId);
@@ -956,6 +957,18 @@ public class FlowEntryBuilder {
                         builder.extension(selectorInterpreter.mapOxm(oxm), deviceId);
                     } catch (UnsupportedOperationException e) {
                         log.debug(e.getMessage());
+                    }
+                }
+                break;
+            case OFDPA_OVID:
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_OVID.type())) {
+                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_OVID);
+                        builder.extension(selectorInterpreter.mapOxm(oxm),
+                                          deviceId);
+                    } else {
+                        break;
                     }
                 }
                 break;
