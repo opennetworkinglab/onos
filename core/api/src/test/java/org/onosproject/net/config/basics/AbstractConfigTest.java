@@ -18,6 +18,7 @@ package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigApplyDelegate;
 
@@ -33,14 +34,14 @@ abstract class AbstractConfigTest {
 
     private static final String D_PREFIX = "of:00000000000000";
 
-    /**
-     * Shared object mapper.
-     */
+    static final String BASIC = "basic";
+    static final String JSON_LOADED = "%nJSON loaded: %s";
+    static final String CHECKING_S = "   checking: %s";
+
+    // Shared object mapper.
     final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Shared null-delegate.
-     */
+    // Shared null-delegate.
     final ConfigApplyDelegate delegate = config -> {
     };
 
@@ -92,5 +93,38 @@ abstract class AbstractConfigTest {
      */
     static DeviceId dstr(String suffix) {
         return DeviceId.deviceId(D_PREFIX + suffix);
+    }
+
+    /**
+     * Utility class to build quick JSON structures.
+     */
+    final class TmpJson {
+
+        final ObjectNode root = mapper.createObjectNode();
+
+        TmpJson props(String... keys) {
+            for (String k : keys) {
+                root.put(k, k);
+            }
+            return this;
+        }
+
+        TmpJson arrays(String... keys) {
+            for (String k : keys) {
+                root.set(k, mapper.createArrayNode());
+            }
+            return this;
+        }
+
+        TmpJson objects(String... keys) {
+            for (String k : keys) {
+                root.set(k, mapper.createObjectNode());
+            }
+            return this;
+        }
+
+        ObjectNode node() {
+            return root;
+        }
     }
 }

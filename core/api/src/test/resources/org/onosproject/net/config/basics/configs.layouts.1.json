@@ -2,7 +2,6 @@
   "layouts": {
     "_default_": {
       "basic": {
-        "region": "",
         "geomap": "uk",
         "scale": 1.2,
         "offsetX": -50,

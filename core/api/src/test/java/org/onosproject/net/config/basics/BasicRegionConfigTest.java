@@ -17,16 +17,20 @@
 package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.InvalidFieldException;
 import org.onosproject.net.region.Region;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.region.RegionId.regionId;
 
@@ -36,9 +40,18 @@ import static org.onosproject.net.region.RegionId.regionId;
 public class BasicRegionConfigTest extends AbstractConfigTest {
 
     private static final String REGION_JSON = "configs.regions.1.json";
+
+    private static final String NAME = "name";
+    private static final String TYPE = "type";
+    private static final String DEVICES = "devices";
+
     private static final String R1 = "r1";
     private static final String R2 = "r2";
     private static final String R3 = "r3";
+
+    private static final String EUROPE = "Europe";
+    private static final String PARIS = "Paris";
+    private static final String AUSTRALIA = "Australia";
 
     private static final Set<DeviceId> R1_DEVS =
             ImmutableSet.of(dstr("01"), dstr("02"), dstr("03"));
@@ -46,9 +59,11 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
             ImmutableSet.of(dstr("04"), dstr("05"), dstr("06"));
     private static final Set<DeviceId> R3_DEVS =
             ImmutableSet.of(dstr("07"), dstr("08"), dstr("09"));
-
+    private static final Set<DeviceId> ALT_DEVICES =
+            ImmutableSet.of(dstr("0a"), dstr("0b"), dstr("0c"));
 
     private JsonNode data;
+    private BasicRegionConfig cfg;
 
     @Before
     public void setUp() {
@@ -59,36 +74,114 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
         return data.get("regions").get(key).get("basic");
     }
 
-    private void checkRegion(String rid, Region.Type expT, Set<DeviceId> expD) {
-        JsonNode r1json = getR(rid);
-        print(r1json);
+    // loads a region config from the test resource file
+    private void loadRegion(String rid) {
+        JsonNode node = getR(rid);
+        print(JSON_LOADED, node);
 
-        BasicRegionConfig brc = new BasicRegionConfig();
-        brc.init(regionId(rid), rid, r1json, mapper, delegate);
+        cfg = new BasicRegionConfig();
+        cfg.init(regionId(rid), rid, node, mapper, delegate);
+    }
 
-        Region.Type type = brc.getType();
-        assertEquals("wrong type", expT, type);
+    private void checkRegion(String expN, Region.Type expT, Set<DeviceId> expD) {
+        print(CHECKING_S, cfg);
+        assertEquals("wrong name", expN, cfg.name());
+        assertEquals("wrong type", expT, cfg.type());
 
-        List<DeviceId> devs = brc.getDevices();
-        assertEquals("wr.size", expD.size(), devs.size());
-        for (DeviceId d : expD) {
-            assertTrue("missing dev: " + d, devs.contains(d));
+        List<DeviceId> devs = cfg.devices();
+        if (expD == null) {
+            assertNull("unexp device list", devs);
+        } else {
+            assertNotNull(devs);
+            assertEquals("wr.size", expD.size(), devs.size());
+            for (DeviceId d : expD) {
+                assertTrue("missing dev: " + d, devs.contains(d));
+            }
         }
     }
 
     @Test
     public void region1Config() {
-        checkRegion(R1, Region.Type.CONTINENT, R1_DEVS);
+        loadRegion(R1);
+        checkRegion(EUROPE, Region.Type.CONTINENT, R1_DEVS);
     }
 
     @Test
     public void region2Config() {
-        checkRegion(R2, Region.Type.METRO, R2_DEVS);
+        loadRegion(R2);
+        checkRegion(PARIS, Region.Type.METRO, R2_DEVS);
     }
 
     @Test
     public void region3Config() {
-        checkRegion(R3, null, R3_DEVS);
+        loadRegion(R3);
+        checkRegion(null, null, R3_DEVS);
     }
 
+    @Test
+    public void modifyName() {
+        loadRegion(R1);
+        cfg.name(AUSTRALIA);
+        checkRegion(AUSTRALIA, Region.Type.CONTINENT, R1_DEVS);
+    }
+
+    @Test
+    public void clearName() {
+        loadRegion(R1);
+        cfg.name(null);
+        checkRegion(null, Region.Type.CONTINENT, R1_DEVS);
+    }
+
+    @Test
+    public void modifyType() {
+        loadRegion(R2);
+        cfg.type(Region.Type.CAMPUS);
+        checkRegion(PARIS, Region.Type.CAMPUS, R2_DEVS);
+    }
+
+    @Test
+    public void clearType() {
+        loadRegion(R2);
+        cfg.type(null);
+        checkRegion(PARIS, null, R2_DEVS);
+    }
+
+    @Test
+    public void modifyDevices() {
+        loadRegion(R3);
+        cfg.devices(ALT_DEVICES);
+        checkRegion(null, null, ALT_DEVICES);
+    }
+
+    @Test
+    public void clearDevices() {
+        loadRegion(R3);
+        cfg.devices(null);
+        checkRegion(null, null, null);
+    }
+
+
+    @Test
+    public void sampleValidConfig() {
+        ObjectNode node = new TmpJson()
+                .props(NAME, TYPE)
+                .arrays(DEVICES)
+                .node();
+        cfg = new BasicRegionConfig();
+        cfg.init(regionId(R1), BASIC, node, mapper, delegate);
+
+        assertTrue("not valid: " + cfg, cfg.isValid());
+    }
+
+    @Test(expected = InvalidFieldException.class)
+    public void sampleInvalidConfig() {
+        ObjectNode node = new TmpJson()
+                .props(NAME, TYPE, "foo")
+                .arrays(DEVICES)
+                .node();
+        cfg = new BasicRegionConfig();
+        cfg.init(regionId(R1), BASIC, node, mapper, delegate);
+
+        cfg.isValid();
+    }
 }

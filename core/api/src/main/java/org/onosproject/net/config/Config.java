@@ -29,6 +29,7 @@ import org.onlab.packet.TpPort;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -86,7 +87,7 @@ public abstract class Config<S> {
      * @param delegate delegate context, or null for detached configs.
      */
     public final void init(S subject, String key, JsonNode node, ObjectMapper mapper,
-                     ConfigApplyDelegate delegate) {
+                           ConfigApplyDelegate delegate) {
         this.subject = checkNotNull(subject, "Subject cannot be null");
         this.key = key;
         this.node = checkNotNull(node, "Node cannot be null");
@@ -206,7 +207,7 @@ public abstract class Config<S> {
     /**
      * Clears the specified property.
      *
-     * @param name  property name
+     * @param name property name
      * @return self
      */
     protected Config<S> clear(String name) {
@@ -364,10 +365,10 @@ public abstract class Config<S> {
     /**
      * Gets the specified array property as a list of items.
      *
-     * @param name     property name
-     * @param function mapper from string to item
+     * @param name         property name
+     * @param function     mapper from string to item
      * @param defaultValue default value if property not set
-     * @param <T>      type of item
+     * @param <T>          type of item
      * @return list of items
      */
     protected <T> List<T> getList(String name, Function<String, T> function, List<T> defaultValue) {
@@ -402,6 +403,33 @@ public abstract class Config<S> {
     }
 
     /**
+     * Returns true if this config contains a field with the given name.
+     *
+     * @param name the field name
+     * @return true if field is present, false otherwise
+     */
+    protected boolean hasField(String name) {
+        return hasField(object, name);
+    }
+
+    /**
+     * Returns true if the given node contains a field with the given name.
+     *
+     * @param node the node to examine
+     * @param name the name to look for
+     * @return true if the node has a field with the given name, false otherwise
+     */
+    protected boolean hasField(ObjectNode node, String name) {
+        Iterator<String> fnames = node.fieldNames();
+        while (fnames.hasNext()) {
+            if (fnames.next().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Indicates whether only the specified fields are present in the backing JSON.
      *
      * @param allowedFields allowed field names
@@ -415,7 +443,7 @@ public abstract class Config<S> {
      * Indicates whether only the specified fields are present in a particular
      * JSON object.
      *
-     * @param node node whose fields to check
+     * @param node          node whose fields to check
      * @param allowedFields allowed field names
      * @return true if only allowedFields are present; false otherwise
      */
@@ -443,7 +471,7 @@ public abstract class Config<S> {
      * Indicates whether all specified fields are present in a particular
      * JSON object.
      *
-     * @param node node whose fields to check
+     * @param node            node whose fields to check
      * @param mandatoryFields mandatory field names
      * @return true if all mandatory fields are present; false otherwise
      */
@@ -474,8 +502,8 @@ public abstract class Config<S> {
      * MAC address.
      *
      * @param objectNode JSON node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -502,9 +530,9 @@ public abstract class Config<S> {
      * Indicates whether the specified field of a particular node holds a valid
      * IP address.
      *
-     * @param objectNode     node from whom to access the field
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param objectNode node from whom to access the field
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -531,9 +559,9 @@ public abstract class Config<S> {
      * Indicates whether the specified field of a particular node holds a valid
      * IP prefix.
      *
-     * @param objectNode     node from whom to access the field
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param objectNode node from whom to access the field
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -547,7 +575,7 @@ public abstract class Config<S> {
     /**
      * Indicates whether the specified field holds a valid transport layer port.
      *
-     * @param field JSON field name
+     * @param field    JSON field name
      * @param presence specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
@@ -561,8 +589,8 @@ public abstract class Config<S> {
      * transport layer port.
      *
      * @param objectNode node from whom to access the field
-     * @param field JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -590,8 +618,8 @@ public abstract class Config<S> {
      * connect point string.
      *
      * @param objectNode JSON node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -620,9 +648,9 @@ public abstract class Config<S> {
      * string value.
      *
      * @param objectNode JSON node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
-     * @param pattern  optional regex pattern
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
+     * @param pattern    optional regex pattern
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -655,9 +683,9 @@ public abstract class Config<S> {
      * valid number.
      *
      * @param objectNode JSON object
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
-     * @param minMax   optional min/max values
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
+     * @param minMax     optional min/max values
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -692,9 +720,9 @@ public abstract class Config<S> {
      * integer.
      *
      * @param objectNode JSON node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
-     * @param minMax   optional min/max values
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
+     * @param minMax     optional min/max values
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -729,9 +757,9 @@ public abstract class Config<S> {
      * decimal number.
      *
      * @param objectNode JSON node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
-     * @param minMax   optional min/max values
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
+     * @param minMax     optional min/max values
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -765,8 +793,8 @@ public abstract class Config<S> {
      * boolean value.
      *
      * @param objectNode JSON object node
-     * @param field    JSON field name
-     * @param presence specifies if field is optional or mandatory
+     * @param field      JSON field name
+     * @param presence   specifies if field is optional or mandatory
      * @return true if valid; false otherwise
      * @throws InvalidFieldException if the field is present but not valid
      */
@@ -794,9 +822,9 @@ public abstract class Config<S> {
      * Indicates whether a field in the node is present and of correct value or
      * not mandatory and absent.
      *
-     * @param objectNode JSON object node containing field to validate
-     * @param field name of field to validate
-     * @param presence specified if field is optional or mandatory
+     * @param objectNode         JSON object node containing field to validate
+     * @param field              name of field to validate
+     * @param presence           specified if field is optional or mandatory
      * @param validationFunction function which can be used to verify if the
      *                           node has the correct value
      * @return true if the field is as expected

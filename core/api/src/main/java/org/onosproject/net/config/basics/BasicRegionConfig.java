@@ -16,24 +16,55 @@
 
 package org.onosproject.net.config.basics;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Basic configuration for network regions.
  */
 public final class BasicRegionConfig extends Config<RegionId> {
 
+    private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String DEVICES = "devices";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(TYPE, DEVICES);
+        return hasOnlyFields(NAME, TYPE, DEVICES);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("name", name())
+                .add("type", type())
+                .add("devices", devices())
+                .toString();
+    }
+
+    /**
+     * Returns the region name.
+     *
+     * @return the region name
+     */
+    public String name() {
+        return get(NAME, null);
+    }
+
+    /**
+     * Sets the name of this region.
+     *
+     * @param name name of region, or null to unset
+     * @return the config of the region
+     */
+    public BasicRegionConfig name(String name) {
+        return (BasicRegionConfig) setOrClear(NAME, name);
     }
 
     /**
@@ -41,7 +72,7 @@ public final class BasicRegionConfig extends Config<RegionId> {
      *
      * @return the region type
      */
-    public Region.Type getType() {
+    public Region.Type type() {
         String t = get(TYPE, null);
         return t == null ? null : regionTypeFor(t);
     }
@@ -55,13 +86,32 @@ public final class BasicRegionConfig extends Config<RegionId> {
     }
 
     /**
+     * Sets the region type.
+     *
+     * @param type the region type, or null to unset
+     * @return the config of the region
+     */
+    public BasicRegionConfig type(Region.Type type) {
+        String t = type == null ? null : type.name().toLowerCase();
+        return (BasicRegionConfig) setOrClear(TYPE, t);
+    }
+
+    /**
      * Returns the identities of the devices in this region.
      *
      * @return list of device identifiers
      */
-    public List<DeviceId> getDevices() {
-        return getList(DEVICES, DeviceId::deviceId);
+    public List<DeviceId> devices() {
+        return object.has(DEVICES) ? getList(DEVICES, DeviceId::deviceId) : null;
     }
 
-    // TODO: implement setters
+    /**
+     * Sets the devices of this region.
+     *
+     * @param devices the device identifiers, or null to unset
+     * @return the config of the region
+     */
+    public BasicRegionConfig devices(Set<DeviceId> devices) {
+        return (BasicRegionConfig) setOrClear(DEVICES, devices);
+    }
 }

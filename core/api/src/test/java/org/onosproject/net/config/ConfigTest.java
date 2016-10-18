@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
 import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
@@ -67,6 +68,12 @@ public class ConfigTest {
                 .put(TP_PORT, 65535).put(BAD_TP_PORT, 65536);
         cfg = new TestConfig();
         cfg.init(SUBJECT, KEY, json, mapper, delegate);
+    }
+
+    @Test
+    public void hasField() {
+        assertTrue("missing field", cfg.hasField(MAC));
+        assertFalse("unexpected field", cfg.hasField("non-existent"));
     }
 
     @Test

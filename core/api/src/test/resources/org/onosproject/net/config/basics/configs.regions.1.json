@@ -2,6 +2,7 @@
   "regions": {
     "r1": {
       "basic": {
+        "name": "Europe",
         "type": "continent",
         "devices": [
           "of:0000000000000001",
@@ -12,6 +13,7 @@
     },
     "r2": {
       "basic": {
+        "name": "Paris",
         "type": "metro",
         "devices": [
           "of:0000000000000004",
