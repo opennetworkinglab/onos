@@ -24,10 +24,9 @@ import org.onosproject.tetopology.management.api.KeyId;
 import org.onosproject.tetopology.management.api.link.NetworkLink;
 import org.onosproject.tetopology.management.api.node.NetworkNode;
 import org.onosproject.teyang.api.OperationType;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork.OnosYangOpType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
         .ietfnetwork.DefaultNetworks;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
-        .ietfnetwork.DefaultNetworks.OnosYangNodeOperationType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
         .ietfnetwork.DefaultNetworksState;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
@@ -65,17 +64,13 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
         .ietftetopology.networks.network.DefaultAugmentedNwNetwork;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-        .ietftetopology.networks.network.augmentednwnetwork.DefaultTe;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-        .ietftetopology.networks.network.augmentednwnetwork.Te;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
         .ietftetopology.networks.network.networktypes.AugmentedNwNetworkTypes;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
         .ietftetopology.networks.network.networktypes.DefaultAugmentedNwNetworkTypes;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-        .ietftetopology.networks.network.networktypes.augmentednwnetworktypes.DefaultTeTopology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-        .ietftetopology.networks.network.networktypes.augmentednwnetworktypes.TeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologyaugment.DefaultTe;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologyaugment.Te;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologytype.DefaultTeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologytype.TeTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705
         .ietftetypes.TeGlobalId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705
@@ -121,25 +116,25 @@ public final class NetworkConverter {
     private NetworkConverter() {
     }
 
-    private static OnosYangNodeOperationType toNetworksOperationType(OperationType operation) {
+    private static OnosYangOpType toNetworksOperationType(OperationType operation) {
         switch (operation) {
         case CREATE:
-            return OnosYangNodeOperationType.CREATE;
+            return OnosYangOpType.CREATE;
 
         case DELETE:
-            return OnosYangNodeOperationType.DELETE;
+            return OnosYangOpType.DELETE;
 
         case REMOVE:
-            return OnosYangNodeOperationType.REMOVE;
+            return OnosYangOpType.REMOVE;
 
         case MERGE:
-            return OnosYangNodeOperationType.MERGE;
+            return OnosYangOpType.MERGE;
 
         case REPLACE:
-            return OnosYangNodeOperationType.REPLACE;
+            return OnosYangOpType.REPLACE;
 
         default:
-            return OnosYangNodeOperationType.NONE;
+            return OnosYangOpType.NONE;
         }
     }
 
@@ -156,36 +151,14 @@ public final class NetworkConverter {
         checkNotNull(teSubsystem, E_NULL_TE_NETWORKS);
         checkNotNull(teSubsystem.networks(), E_NULL_TE_NETWORK_LIST);
         Networks.NetworksBuilder builder =
-                DefaultNetworks.builder().onosYangNodeOperationType(toNetworksOperationType(operation));
+                DefaultNetworks.builder()
+                        .yangNetworksOpType(toNetworksOperationType(operation));
         List<Network> networks = Lists.newArrayList();
         for (org.onosproject.tetopology.management.api.Network teNetwork : teSubsystem.networks()) {
             networks.add(teSubsystem2YangNetwork(teNetwork, operation));
         }
         builder.network(networks);
         return builder.build();
-    }
-
-    private static DefaultNetworksState.OnosYangNodeOperationType
-                           toNetworksStateOperationType(OperationType operation) {
-        switch (operation) {
-        case CREATE:
-            return DefaultNetworksState.OnosYangNodeOperationType.CREATE;
-
-        case DELETE:
-            return DefaultNetworksState.OnosYangNodeOperationType.DELETE;
-
-        case REMOVE:
-            return DefaultNetworksState.OnosYangNodeOperationType.REMOVE;
-
-        case MERGE:
-            return DefaultNetworksState.OnosYangNodeOperationType.MERGE;
-
-        case REPLACE:
-            return DefaultNetworksState.OnosYangNodeOperationType.REPLACE;
-
-        default:
-            return DefaultNetworksState.OnosYangNodeOperationType.NONE;
-        }
     }
 
     /**
@@ -201,7 +174,8 @@ public final class NetworkConverter {
         checkNotNull(teSubsystem, "teSubsystem object cannot be null");
         checkNotNull(teSubsystem.networks(), "TeSubsystem Networks object cannot be null");
         NetworksState.NetworksStateBuilder builder =
-                DefaultNetworksState.builder().onosYangNodeOperationType(toNetworksStateOperationType(operation));
+                DefaultNetworksState.builder()
+                        .yangNetworksStateOpType(toNetworksOperationType(operation));
         List<org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
                 .ietfnetwork.networksstate.Network> networks = Lists.newArrayList();
         for (org.onosproject.tetopology.management.api.Network teNetwork : teSubsystem.networks()) {
@@ -262,28 +236,6 @@ public final class NetworkConverter {
 
         defaultNetworks.setNetworks(networks);
         return defaultNetworks;
-    }
-
-    private static DefaultNetwork.OnosYangNodeOperationType toNetworkOperationType(OperationType operation) {
-        switch (operation) {
-        case CREATE:
-            return DefaultNetwork.OnosYangNodeOperationType.CREATE;
-
-        case DELETE:
-            return DefaultNetwork.OnosYangNodeOperationType.DELETE;
-
-        case REMOVE:
-            return DefaultNetwork.OnosYangNodeOperationType.REMOVE;
-
-        case MERGE:
-            return DefaultNetwork.OnosYangNodeOperationType.MERGE;
-
-        case REPLACE:
-            return DefaultNetwork.OnosYangNodeOperationType.REPLACE;
-
-        default:
-            return DefaultNetwork.OnosYangNodeOperationType.NONE;
-        }
     }
 
     private static NetworkBuilder te2YangSupportingNetwork(NetworkBuilder builder,
@@ -370,8 +322,8 @@ public final class NetworkConverter {
         // Generate a network builder with the specific networkId.
         NetworkId networkId = NetworkId.fromString(teSubsystem.networkId().toString());
         NetworkBuilder builder = DefaultNetwork.builder()
-                                               .onosYangNodeOperationType(
-                                                       toNetworkOperationType(operation))
+                                               .yangNetworkOpType(
+                                                       toNetworksOperationType(operation))
                                                .networkId(networkId);
 
         // Supporting networks
@@ -519,7 +471,7 @@ public final class NetworkConverter {
 
         checkNotNull(yangNetworkState, E_NULL_YANG_NETWORKSSTATE_NETWORK);
         checkNotNull(yangNetworkState.networkRef(), E_NULL_YANG_NETWORKSSTATE_NETWORKREF);
-        String networkref = yangNetworkState.networkRef().uri().string();
+        String networkref = yangNetworkState.networkRef().toString();
         checkState(teNetwork.networkId().toString().equals(networkref),
                    E_DIFF_YANG_NETWORKID);
 

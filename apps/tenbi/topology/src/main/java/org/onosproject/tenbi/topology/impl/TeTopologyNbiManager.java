@@ -28,6 +28,7 @@ import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.teyang.api.OperationType;
 import org.onosproject.teyang.utils.topology.NetworkConverter;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork.OnosYangOpType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetworkOpParam;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetworkService;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.Networks;
@@ -102,12 +103,14 @@ public class TeTopologyNbiManager
         IetfNetworkOpParam.IetfNetworkBuilder builder =  new IetfNetworkOpParam.IetfNetworkBuilder();
         IetfNetwork newNetwork = builder.networks(networks)
                                         .networksState(networkStates)
-                                        .onosYangNodeOperationType(IetfNetworkOpParam.OnosYangNodeOperationType.NONE)
+                                        .yangIetfNetworkOpType(OnosYangOpType.NONE)
                                         .build();
 
         // processSubtreeFiltering() filters the entire data tree based on the
         // user's query and returns the filtered data.
-        return ietfNetwork.processSubtreeFiltering(newNetwork, false);
+        return ietfNetwork.processSubtreeFiltering(
+                                                   (IetfNetworkOpParam) newNetwork,
+                                                   false);
     }
 
     @Override
