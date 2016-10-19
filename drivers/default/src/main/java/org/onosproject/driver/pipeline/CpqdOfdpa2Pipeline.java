@@ -757,8 +757,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
         treatment.transition(BRIDGING_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -885,8 +883,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
         treatment.transition(ACL_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -915,8 +911,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector.build())
