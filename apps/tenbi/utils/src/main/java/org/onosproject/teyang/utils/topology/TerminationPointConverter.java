@@ -36,29 +36,19 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208
                .ietfnetworktopology.networks.network.node.augmentedndnode.terminationpoint
                        .SupportingTerminationPoint;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.DefaultTe;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.Te.TeBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.te.Config;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.te.DefaultConfig;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.te.DefaultState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint.te.State;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint
-                       .te.config.DefaultInterfaceSwitchingCapability;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-               .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint
-                       .te.config.InterfaceSwitchingCapability;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTpId;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.DefaultInterfaceSwitchingCapability;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.InterfaceSwitchingCapability;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
                .ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
                .ietftetopology.networks.network.node.terminationpoint.DefaultAugmentedNtTerminationPoint;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.DefaultTe;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.DefaultTe.TeBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.Config;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.DefaultConfig;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.DefaultState;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.State;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTpId;
 
 import com.google.common.collect.Lists;
 
@@ -132,12 +122,8 @@ public final class TerminationPointConverter {
         if (teSubsystemTe.interfaceSwitchingCapabilities() != null) {
             for (org.onosproject.tetopology.management.api.node.InterfaceSwitchingCapability teIsc :
                     teSubsystemTe.interfaceSwitchingCapabilities()) {
-                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-                    .ietftetopology.networks.network.node.terminationpoint.augmentedntterminationpoint
-                        .te.state.InterfaceSwitchingCapability.InterfaceSwitchingCapabilityBuilder
-                isc = org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology
-                          .rev20160708.ietftetopology.networks.network.node.terminationpoint
-                              .augmentedntterminationpoint.te.state.DefaultInterfaceSwitchingCapability.builder();
+                InterfaceSwitchingCapability.InterfaceSwitchingCapabilityBuilder isc =
+                        DefaultInterfaceSwitchingCapability.builder();
                 // FIXME: teIsc at this moment is empty, therefore we cannot
                 // really add its attributes to isc
                 yangStateBuilder.addToInterfaceSwitchingCapability(isc.build());
@@ -197,9 +183,6 @@ public final class TerminationPointConverter {
                     long interLayerLockId = yangTpAugment.te().config().interLayerLockId();
                     List<org.onosproject.tetopology.management.api.node.InterfaceSwitchingCapability>
                             teIscList = Lists.newArrayList();
-                    // FIXME: the following line is for config. State also has
-                    // similar stuff, but Te Subsystem does not diffrentiate
-                    // between the two
                     if (yangTpAugment.te().config().interfaceSwitchingCapability() != null) {
                         for (InterfaceSwitchingCapability iscConfigYang :
                                 yangTpAugment.te().config().interfaceSwitchingCapability()) {
