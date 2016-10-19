@@ -98,6 +98,8 @@
                 </tr>
 
                 <tr ng-repeat-start="flow in tableData | filter:queryFilter track by $index"
+                    ng-click="selectCallback($event, flow)"
+                    ng-class="{selected: flow.id === selId}"
                     ng-repeat-complete row-id="{{flow.id}}">
                     <td>{{flow.id}}</td>
                     <td>{{flow.appId}}</td>
@@ -120,5 +122,6 @@
         </div>
 
     </div>
+    <flow-details-panel></flow-details-panel>
 
 </div>
