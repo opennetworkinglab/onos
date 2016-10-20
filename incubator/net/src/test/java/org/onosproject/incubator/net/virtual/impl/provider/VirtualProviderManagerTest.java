@@ -81,7 +81,7 @@ public class VirtualProviderManagerTest {
         virtualProviderManager.registerProviderService(NETWORK_ID1, providerService1);
 
         assertEquals(providerService1,
-                     virtualProviderManager.getProviderService(NETWORK_ID1, provider1));
+                     virtualProviderManager.getProviderService(NETWORK_ID1, TestProvider1.class));
     }
 
     private class TestProvider1 extends AbstractVirtualProvider {

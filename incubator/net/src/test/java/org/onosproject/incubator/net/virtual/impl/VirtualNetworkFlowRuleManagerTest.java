@@ -164,9 +164,9 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         vnetFlowRuleService2.deviceInstallers = MoreExecutors.newDirectExecutorService();
 
         providerService1 = (VirtualFlowRuleProviderService)
-                providerRegistryService.getProviderService(vnet1.id(), provider);
+                providerRegistryService.getProviderService(vnet1.id(), VirtualFlowRuleProvider.class);
         providerService2 = (VirtualFlowRuleProviderService)
-                providerRegistryService.getProviderService(vnet2.id(), provider);
+                providerRegistryService.getProviderService(vnet2.id(), VirtualFlowRuleProvider.class);
     }
 
     @After

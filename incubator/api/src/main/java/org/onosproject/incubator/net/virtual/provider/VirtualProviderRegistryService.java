@@ -110,12 +110,13 @@ public interface VirtualProviderRegistryService {
     VirtualProvider getProvider(String scheme);
 
     /**
-     * Returns the virtual provider service corresponding to the virtual network and provider.
+     * Returns a virtual provider service corresponding to
+     * the virtual network and provider class type.
      *
      * @param networkId a virtual network identifier
-     * @param virtualProvider a virtual provider
+     * @param providerClass a type of virtual provider
      * @return a virtual provider service
      */
     VirtualProviderService getProviderService(NetworkId networkId,
-                                              VirtualProvider virtualProvider);
+                                              Class<? extends VirtualProvider> providerClass);
 }

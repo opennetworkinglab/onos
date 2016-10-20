@@ -137,7 +137,7 @@ public class VirtualProviderManager
 
     @Override
     public synchronized VirtualProviderService
-    getProviderService(NetworkId networkId, VirtualProvider virtualProvider) {
+    getProviderService(NetworkId networkId, Class<? extends VirtualProvider> providerClass) {
         Set<VirtualProviderService> services = servicesByNetwork.get(networkId);
 
         if (services == null) {
@@ -145,7 +145,7 @@ public class VirtualProviderManager
         }
 
         return services.stream()
-                .filter(s -> getProviderClass(s).isInstance(virtualProvider))
+                .filter(s -> getProviderClass(s).equals(providerClass))
                 .findFirst().get();
     }
 
