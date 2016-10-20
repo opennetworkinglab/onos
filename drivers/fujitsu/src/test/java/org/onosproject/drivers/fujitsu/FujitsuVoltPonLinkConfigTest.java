@@ -19,9 +19,6 @@ package org.onosproject.drivers.fujitsu;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -33,64 +30,54 @@ import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtilityMock.*;
  */
 public class FujitsuVoltPonLinkConfigTest {
 
-    private FujitsuNetconfControllerMock controller;
-    private FujitsuDriverHandlerAdapter driverHandler;
-    private FujitsuVoltPonLinkConfig voltConfig;
-
     private final FujitsuNetconfSessionListenerTest listener = new InternalSessionListenerTest();
 
     private static final String TEST_VOLT_PORTS = "volt-ports";
     private static final String TEST_GPON_PONLINK_PORTS = "gpon-ponlink-ports";
     private static final String TEST_GPON_PONLINK_PORT = "gpon-ponlink-port";
 
-    private static final Map<Integer, String> INVALID_GET_TCS = new HashMap<Integer, String>() {
-        {
-            put(1, "a-b-c");
-            put(2, "--1");
-            put(3, "s-1");
-            put(4, "1-1");
-            put(5, "1 A");
-            put(6, "1*A");
-        }
+    private static final String[] INVALID_GET_TCS = {
+        "a-b-c",
+        "--1",
+        "s-1",
+        "1-1",
+        "1 A",
+        "1*A",
     };
-    private static final Map<Integer, String> VALID_GET_TCS = new HashMap<Integer, String>() {
-        {
-            put(1, "1");
-            put(2, null);
-        }
+    private static final String[] VALID_GET_TCS = {
+        "1",
+        null,
     };
-    private static final Map<Integer, String> INVALID_SET_TCS = new HashMap<Integer, String>() {
-        {
-            put(1, "-11:admin-state:enable");
-            put(2, "1:admin-state:false");
-            put(3, "2-1:onu-discovery-mode:manual");
-            put(4, "2:onu-discovery-mode:abcdef");
-            put(5, "3:a:onu-discovery-interval:8");
-            put(6, "3:onu-discovery-interval:-1");
-            put(7, "3:onu-discovery-interval:s1");
-            put(8, "4:dba-cycle-time:41");
-            put(9, "5*8:mac-age-time:30000");
-            put(10, "8:mac-age-time:3699999");
-            put(11, "1:lof-threshold:111");
-            put(12, "2:los-threshold:22");
-            put(13, "3:pm-enable:xyz");
-            put(14, "3:abc-enable:xyz");
-        }
+    private static final String[] INVALID_SET_TCS = {
+        "-11:admin-state:enable",
+        "1:admin-state:false",
+        "2-1:onu-discovery-mode:manual",
+        "2:onu-discovery-mode:abcdef",
+        "3:a:onu-discovery-interval:8",
+        "3:onu-discovery-interval:-1",
+        "3:onu-discovery-interval:s1",
+        "4:dba-cycle-time:41",
+        "5*8:mac-age-time:30000",
+        "8:mac-age-time:3699999",
+        "1:lof-threshold:111",
+        "2:los-threshold:22",
+        "3:pm-enable:xyz",
+        "3:abc-enable:xyz",
     };
-    private static final Map<Integer, String> VALID_SET_TCS = new HashMap<Integer, String>() {
-        {
-            put(1, "1:admin-state:disable");
-            put(2, "2:onu-discovery-mode:manual");
-            put(3, "3:onu-discovery-interval:8");
-            put(4, "4:dba-cycle-time:8");
-            put(5, "5:mac-age-time:33333");
-            put(6, "6:lof-threshold:7");
-            put(7, "7:los-threshold:5");
-            put(8, "8:pm-enable:true");
-        }
+    private static final String[] VALID_SET_TCS = {
+        "1:admin-state:disable",
+        "2:onu-discovery-mode:manual",
+        "3:onu-discovery-interval:8",
+        "4:dba-cycle-time:8",
+        "5:mac-age-time:33333",
+        "6:lof-threshold:7",
+        "7:los-threshold:5",
+        "8:pm-enable:true",
     };
     private Integer currentKey;
-
+    private FujitsuNetconfControllerMock controller;
+    private FujitsuDriverHandlerAdapter driverHandler;
+    private FujitsuVoltPonLinkConfig voltConfig;
 
     @Before
     public void setUp() throws Exception {
@@ -108,10 +95,10 @@ public class FujitsuVoltPonLinkConfigTest {
         String reply;
         String target;
 
-        for (Integer key : INVALID_GET_TCS.keySet()) {
-            target = INVALID_GET_TCS.get(key);
+        for (int i = ZERO; i < INVALID_GET_TCS.length; i++) {
+            target = INVALID_GET_TCS[i];
             reply = voltConfig.getPonLinks(target);
-            assertNull("Incorrect response for " + target, reply);
+            assertNull("Incorrect response for INVALID_GET_TCS", reply);
         }
     }
 
@@ -123,11 +110,11 @@ public class FujitsuVoltPonLinkConfigTest {
         String reply;
         String target;
 
-        for (Integer key : VALID_GET_TCS.keySet()) {
-            target = VALID_GET_TCS.get(key);
-            currentKey = key;
+        for (int i = ZERO; i < VALID_GET_TCS.length; i++) {
+            target = VALID_GET_TCS[i];
+            currentKey = i;
             reply = voltConfig.getPonLinks(target);
-            assertNotNull("Incorrect response for " + target, reply);
+            assertNotNull("Incorrect response for VALID_GET_TCS", reply);
         }
     }
 
@@ -139,10 +126,10 @@ public class FujitsuVoltPonLinkConfigTest {
         String target;
         boolean result;
 
-        for (Integer key : INVALID_SET_TCS.keySet()) {
-            target = INVALID_SET_TCS.get(key);
+        for (int i = ZERO; i < INVALID_SET_TCS.length; i++) {
+            target = INVALID_SET_TCS[i];
             result = voltConfig.setPonLink(target);
-            assertFalse("Incorrect response for ", result);
+            assertFalse("Incorrect response for INVALID_SET_TCS", result);
         }
     }
 
@@ -154,11 +141,11 @@ public class FujitsuVoltPonLinkConfigTest {
         String target;
         boolean result;
 
-        for (Integer key : VALID_SET_TCS.keySet()) {
-            target = VALID_SET_TCS.get(key);
-            currentKey = key;
+        for (int i = ZERO; i < VALID_SET_TCS.length; i++) {
+            target = VALID_SET_TCS[i];
+            currentKey = i;
             result = voltConfig.setPonLink(target);
-            assertTrue("Incorrect response for ", result);
+            assertTrue("Incorrect response for VALID_SET_TCS", result);
         }
     }
 
@@ -170,28 +157,26 @@ public class FujitsuVoltPonLinkConfigTest {
      */
     private boolean verifyGetRequest(String request) {
         StringBuilder rpc = new StringBuilder();
-        String target = VALID_GET_TCS.get(currentKey);
+        String target = VALID_GET_TCS[currentKey];
 
-        rpc.append(TEST_VOLT_NE_OPEN).append(TEST_VOLT_NE_NAMESPACE);
-        rpc.append(TEST_ANGLE_RIGHT).append(TEST_NEW_LINE);
+        rpc.append(TEST_VOLT_NE_OPEN + TEST_VOLT_NE_NAMESPACE);
+        rpc.append(TEST_ANGLE_RIGHT + TEST_NEW_LINE);
         rpc.append(startTag(TEST_VOLT_PORTS));
         if (target != null) {
-            rpc.append(startTag(TEST_GPON_PONLINK_PORTS));
-            rpc.append(startTag(TEST_GPON_PONLINK_PORT));
-            rpc.append(startTag(TEST_PONLINK_ID, false));
-            rpc.append(target);
-            rpc.append(endTag(TEST_PONLINK_ID));
-            rpc.append(endTag(TEST_GPON_PONLINK_PORT));
-            rpc.append(endTag(TEST_GPON_PONLINK_PORTS));
+            rpc.append(startTag(TEST_GPON_PONLINK_PORTS))
+                .append(startTag(TEST_GPON_PONLINK_PORT))
+                .append(startTag(TEST_PONLINK_ID, false))
+                .append(target)
+                .append(endTag(TEST_PONLINK_ID))
+                .append(endTag(TEST_GPON_PONLINK_PORT))
+                .append(endTag(TEST_GPON_PONLINK_PORTS));
         } else {
             rpc.append(emptyTag(TEST_GPON_PONLINK_PORTS));
         }
-        rpc.append(endTag(TEST_VOLT_PORTS));
-        rpc.append(TEST_VOLT_NE_CLOSE);
+        rpc.append(endTag(TEST_VOLT_PORTS))
+            .append(TEST_VOLT_NE_CLOSE);
 
         String testRequest = rpc.toString();
-        testRequest = testRequest.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
-        request = request.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
         boolean result = request.equals(testRequest);
         assertTrue("Does not match with generated string", result);
         return result;
@@ -205,28 +190,26 @@ public class FujitsuVoltPonLinkConfigTest {
      */
     private boolean verifyEditConfigRequest(String request) {
         StringBuilder rpc = new StringBuilder();
-        String target = VALID_SET_TCS.get(currentKey);
+        String target = VALID_SET_TCS[currentKey];
         String[] data = target.split(TEST_COLON);
 
-        rpc.append(TEST_VOLT_NE_OPEN).append(TEST_VOLT_NE_NAMESPACE);
-        rpc.append(TEST_ANGLE_RIGHT).append(TEST_NEW_LINE);
-        rpc.append(startTag(TEST_VOLT_PORTS));
-        rpc.append(startTag(TEST_GPON_PONLINK_PORTS));
-        rpc.append(startTag(TEST_GPON_PONLINK_PORT));
-        rpc.append(startTag(TEST_PONLINK_ID, false));
-        rpc.append(data[FIRST_PART]);
-        rpc.append(endTag(TEST_PONLINK_ID));
-        rpc.append(startTag(data[SECOND_PART], false));
-        rpc.append(data[THIRD_PART]);
-        rpc.append(endTag(data[SECOND_PART]));
-        rpc.append(endTag(TEST_GPON_PONLINK_PORT));
-        rpc.append(endTag(TEST_GPON_PONLINK_PORTS));
-        rpc.append(endTag(TEST_VOLT_PORTS));
-        rpc.append(TEST_VOLT_NE_CLOSE);
+        rpc.append(TEST_VOLT_NE_OPEN + TEST_VOLT_NE_NAMESPACE);
+        rpc.append(TEST_ANGLE_RIGHT + TEST_NEW_LINE);
+        rpc.append(startTag(TEST_VOLT_PORTS))
+            .append(startTag(TEST_GPON_PONLINK_PORTS))
+            .append(startTag(TEST_GPON_PONLINK_PORT))
+            .append(startTag(TEST_PONLINK_ID, false))
+            .append(data[FIRST_PART])
+            .append(endTag(TEST_PONLINK_ID))
+            .append(startTag(data[SECOND_PART], false))
+            .append(data[THIRD_PART])
+            .append(endTag(data[SECOND_PART]))
+            .append(endTag(TEST_GPON_PONLINK_PORT))
+            .append(endTag(TEST_GPON_PONLINK_PORTS))
+            .append(endTag(TEST_VOLT_PORTS))
+            .append(TEST_VOLT_NE_CLOSE);
 
         String testRequest = rpc.toString();
-        testRequest = testRequest.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
-        request = request.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
         boolean result = request.equals(testRequest);
         assertTrue("Does not match with generated string", result);
         return result;

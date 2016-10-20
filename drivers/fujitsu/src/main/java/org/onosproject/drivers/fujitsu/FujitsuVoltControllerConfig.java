@@ -97,7 +97,7 @@ public class FujitsuVoltControllerConfig extends AbstractHandlerBehaviour
         if (mastershipService.isLocalMaster(ncDeviceId)) {
             try {
                 StringBuilder request = new StringBuilder();
-                request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE).append(">\n");
+                request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE + ">\n");
                 request.append(buildEmptyTag(VOLT_OFCONFIG));
                 request.append(VOLT_NE_CLOSE);
 

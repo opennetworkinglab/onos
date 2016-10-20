@@ -161,12 +161,6 @@ public class FujitsuVoltAlertConfigTest {
             .append(TEST_VOLT_NE_CLOSE);
 
         String testRequest = rpc.toString();
-        String regex = TEST_WHITESPACES_REGEX;
-        int index = rpc.indexOf(regex);
-        while (index >= ZERO) {
-            testRequest = rpc.replace(index, index + regex.length(), TEST_EMPTY_STRING).toString();
-            request = request.replaceAll(regex, TEST_EMPTY_STRING);
-        }
         boolean result = request.equals(testRequest);
         assertTrue("Does not match with generated string", result);
         return result;
@@ -192,12 +186,6 @@ public class FujitsuVoltAlertConfigTest {
             .append(TEST_VOLT_NE_CLOSE);
 
         String testRequest = rpc.toString();
-        String regex = TEST_WHITESPACES_REGEX;
-        int index = rpc.indexOf(regex);
-        while (index >= ZERO) {
-            testRequest = rpc.replace(index, index + regex.length(), TEST_EMPTY_STRING).toString();
-            request = request.replaceAll(regex, TEST_EMPTY_STRING);
-        }
         boolean result = request.equals(testRequest);
         assertTrue("Does not match with generated string", result);
         return result;
@@ -292,14 +280,8 @@ public class FujitsuVoltAlertConfigTest {
             rpc.append(TEST_VOLT_NE_NAMESPACE + TEST_SLASH + TEST_ANGLE_RIGHT);
 
             String testRequest = rpc.toString();
-            String regex = TEST_WHITESPACES_REGEX;
-            int index = rpc.indexOf(regex);
-            while (index >= ZERO) {
-                testRequest = rpc.replace(index, index + regex.length(), TEST_EMPTY_STRING).toString();
-                filterSchema = filterSchema.replaceAll(regex, TEST_EMPTY_STRING);
-            }
-            assertTrue("Does not match with generated string",
-                    filterSchema.equals(testRequest));
+            boolean result = filterSchema.equals(testRequest);
+            assertTrue("Does not match with generated string", result);
         }
     }
 

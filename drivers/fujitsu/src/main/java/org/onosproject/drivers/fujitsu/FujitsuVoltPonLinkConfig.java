@@ -100,8 +100,8 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
             request.append(buildStartTag(VOLT_PORTS));
             if (target != null) {
                 int pon;
@@ -115,14 +115,13 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
                     log.error("Non-number input for ponlink-id:{}", target);
                     return null;
                 }
-                request.append(buildStartTag(GPON_PONLINK_PORTS));
-                request.append(buildStartTag(GPON_PONLINK_PORT));
-                request.append(buildStartTag(PONLINK_ID, false));
-                request.append(target);
-                request.append(buildEndTag(PONLINK_ID));
-
-                request.append(buildEndTag(GPON_PONLINK_PORT));
-                request.append(buildEndTag(GPON_PONLINK_PORTS));
+                request.append(buildStartTag(GPON_PONLINK_PORTS))
+                    .append(buildStartTag(GPON_PONLINK_PORT))
+                    .append(buildStartTag(PONLINK_ID, false))
+                    .append(target)
+                    .append(buildEndTag(PONLINK_ID))
+                    .append(buildEndTag(GPON_PONLINK_PORT))
+                    .append(buildEndTag(GPON_PONLINK_PORTS));
             } else {
                 request.append(buildEmptyTag(GPON_PONLINK_PORTS));
             }
@@ -164,23 +163,21 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
         boolean result = false;
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
-            request.append(buildStartTag(VOLT_PORTS));
-            request.append(buildStartTag(GPON_PONLINK_PORTS));
-            request.append(buildStartTag(GPON_PONLINK_PORT));
-            request.append(buildStartTag(PONLINK_ID, false));
-            request.append(data[FIRST_PART]);
-            request.append(buildEndTag(PONLINK_ID));
-
-            request.append(buildStartTag(data[SECOND_PART], false));
-            request.append(data[THIRD_PART]);
-            request.append(buildEndTag(data[SECOND_PART]));
-
-            request.append(buildEndTag(GPON_PONLINK_PORT));
-            request.append(buildEndTag(GPON_PONLINK_PORTS));
-            request.append(buildEndTag(VOLT_PORTS));
-            request.append(VOLT_NE_CLOSE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
+            request.append(buildStartTag(VOLT_PORTS))
+                .append(buildStartTag(GPON_PONLINK_PORTS))
+                .append(buildStartTag(GPON_PONLINK_PORT))
+                .append(buildStartTag(PONLINK_ID, false))
+                .append(data[FIRST_PART])
+                .append(buildEndTag(PONLINK_ID))
+                .append(buildStartTag(data[SECOND_PART], false))
+                .append(data[THIRD_PART])
+                .append(buildEndTag(data[SECOND_PART]))
+                .append(buildEndTag(GPON_PONLINK_PORT))
+                .append(buildEndTag(GPON_PONLINK_PORTS))
+                .append(buildEndTag(VOLT_PORTS))
+                .append(VOLT_NE_CLOSE);
 
             result = controller.getDevicesMap().get(ncDeviceId).getSession().
                     editConfig(RUNNING, null, request.toString());
@@ -194,8 +191,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
      * Verifies input string for valid options.
      *
      * @param target input data in string
-     * @return String array
-     * @return null if an error condition is detected
+     * @return String array containing IDs; may be null if an error is detected
      */
     private String[] checkSetInput(String target) {
         String[] data = target.split(COLON);
@@ -273,8 +269,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
      * @param states input data in string for parameter state
      * @param name input data in string for parameter name
      * @param value input data in string for parameter value
-     * @return true if the param is valid
-     * @return false if the param is invalid
+     * @return true/false if the param is valid/invalid
      */
     private boolean validState(Set<String> states, String name, String value) {
         if (!states.contains(value)) {

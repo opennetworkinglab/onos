@@ -89,25 +89,25 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
             if (onuId != null) {
-                request.append(buildStartTag(VOLT_ONUS));
-                request.append(buildStartTag(ONUS_PERLINK));
-                request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[FIRST_PART]);
-                request.append(buildEndTag(PONLINK_ID));
+                request.append(buildStartTag(VOLT_ONUS))
+                    .append(buildStartTag(ONUS_PERLINK))
+                    .append(buildStartTag(PONLINK_ID, false))
+                    .append(onuId[FIRST_PART])
+                    .append(buildEndTag(PONLINK_ID));
                 if (onuId.length > ONE) {
-                    request.append(buildStartTag(ONUS_LIST));
-                    request.append(buildStartTag(ONU_INFO));
-                    request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[SECOND_PART]);
-                    request.append(buildEndTag(ONU_ID));
-                    request.append(buildEndTag(ONU_INFO));
-                    request.append(buildEndTag(ONUS_LIST));
+                    request.append(buildStartTag(ONUS_LIST))
+                        .append(buildStartTag(ONU_INFO))
+                        .append(buildStartTag(ONU_ID, false))
+                        .append(onuId[SECOND_PART])
+                        .append(buildEndTag(ONU_ID))
+                        .append(buildEndTag(ONU_INFO))
+                        .append(buildEndTag(ONUS_LIST));
                 }
-                request.append(buildEndTag(ONUS_PERLINK));
-                request.append(buildEndTag(VOLT_ONUS));
+                request.append(buildEndTag(ONUS_PERLINK))
+                    .append(buildEndTag(VOLT_ONUS));
             } else {
                 request.append(buildEmptyTag(VOLT_ONUS));
             }
@@ -160,20 +160,20 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(ANGLE_LEFT).append(ONU_SET_CONFIG).append(SPACE);
-            request.append(VOLT_NE_NAMESPACE).append(ANGLE_RIGHT).append(NEW_LINE);
-            request.append(buildStartTag(PONLINK_ID, false));
-            request.append(onuId[FIRST_PART]);
-            request.append(buildEndTag(PONLINK_ID));
-            request.append(buildStartTag(ONU_ID, false));
-            request.append(onuId[SECOND_PART]);
-            request.append(buildEndTag(ONU_ID));
-            request.append(buildStartTag(CONFIG_INFO));
-            request.append(buildStartTag(data[SECOND_PART], false));
-            request.append(data[THIRD_PART]);
-            request.append(buildEndTag(data[SECOND_PART]));
-            request.append(buildEndTag(CONFIG_INFO));
-            request.append(buildEndTag(ONU_SET_CONFIG));
+            request.append(ANGLE_LEFT + ONU_SET_CONFIG + SPACE);
+            request.append(VOLT_NE_NAMESPACE + ANGLE_RIGHT + NEW_LINE);
+            request.append(buildStartTag(PONLINK_ID, false))
+                .append(onuId[FIRST_PART])
+                .append(buildEndTag(PONLINK_ID))
+                .append(buildStartTag(ONU_ID, false))
+                .append(onuId[SECOND_PART])
+                .append(buildEndTag(ONU_ID))
+                .append(buildStartTag(CONFIG_INFO))
+                .append(buildStartTag(data[SECOND_PART], false))
+                .append(data[THIRD_PART])
+                .append(buildEndTag(data[SECOND_PART]))
+                .append(buildEndTag(CONFIG_INFO))
+                .append(buildEndTag(ONU_SET_CONFIG));
 
             reply = controller
                         .getDevicesMap()
@@ -213,42 +213,42 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
 
         try {
             StringBuilder request = new StringBuilder();
-            request.append(VOLT_NE_OPEN).append(VOLT_NE_NAMESPACE);
-            request.append(ANGLE_RIGHT).append(NEW_LINE);
+            request.append(VOLT_NE_OPEN + VOLT_NE_NAMESPACE);
+            request.append(ANGLE_RIGHT + NEW_LINE);
             request.append(buildStartTag(VOLT_STATISTICS));
             if (onuId != null) {
-                request.append(buildStartTag(ONU_STATISTICS));
-                request.append(buildStartTag(ONU_GEM_STATS));
-                request.append(buildStartTag(GEM_STATS));
-                request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[FIRST_PART]);
-                request.append(buildEndTag(PONLINK_ID));
+                request.append(buildStartTag(ONU_STATISTICS))
+                    .append(buildStartTag(ONU_GEM_STATS))
+                    .append(buildStartTag(GEM_STATS))
+                    .append(buildStartTag(PONLINK_ID, false))
+                    .append(onuId[FIRST_PART])
+                    .append(buildEndTag(PONLINK_ID));
                 if (onuId.length > ONE) {
-                    request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[SECOND_PART]);
-                    request.append(buildEndTag(ONU_ID));
+                    request.append(buildStartTag(ONU_ID, false))
+                        .append(onuId[SECOND_PART])
+                        .append(buildEndTag(ONU_ID));
                 }
-                request.append(buildEndTag(GEM_STATS));
-                request.append(buildEndTag(ONU_GEM_STATS));
+                request.append(buildEndTag(GEM_STATS))
+                    .append(buildEndTag(ONU_GEM_STATS));
 
-                request.append(buildStartTag(ONU_ETH_STATS));
-                request.append(buildStartTag(ETH_STATS));
-                request.append(buildStartTag(PONLINK_ID, false));
-                request.append(onuId[FIRST_PART]);
-                request.append(buildEndTag(PONLINK_ID));
+                request.append(buildStartTag(ONU_ETH_STATS))
+                    .append(buildStartTag(ETH_STATS))
+                    .append(buildStartTag(PONLINK_ID, false))
+                    .append(onuId[FIRST_PART])
+                    .append(buildEndTag(PONLINK_ID));
                 if (onuId.length > ONE) {
-                    request.append(buildStartTag(ONU_ID, false));
-                    request.append(onuId[SECOND_PART]);
-                    request.append(buildEndTag(ONU_ID));
+                    request.append(buildStartTag(ONU_ID, false))
+                        .append(onuId[SECOND_PART])
+                        .append(buildEndTag(ONU_ID));
                 }
-                request.append(buildEndTag(ETH_STATS));
-                request.append(buildEndTag(ONU_ETH_STATS));
-                request.append(buildEndTag(ONU_STATISTICS));
+                request.append(buildEndTag(ETH_STATS))
+                    .append(buildEndTag(ONU_ETH_STATS))
+                    .append(buildEndTag(ONU_STATISTICS));
             } else  {
                 request.append(buildEmptyTag(ONU_STATISTICS));
             }
-            request.append(buildEndTag(VOLT_STATISTICS));
-            request.append(VOLT_NE_CLOSE);
+            request.append(buildEndTag(VOLT_STATISTICS))
+                .append(VOLT_NE_CLOSE);
 
             reply = controller
                         .getDevicesMap()
@@ -265,8 +265,7 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
      * Verifies input string for ponlink-id{-onu-id}.
      *
      * @param target input data in string
-     * @return String array
-     * @return null if an error condition is detected
+     * @return String array containing IDs; may be null if an error is detected
      */
     private String[] checkIdString(String target) {
         String[] onuId = target.split(HYPHEN);
@@ -302,8 +301,7 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
      *
      * @param name input data in string
      * @param value input data in string
-     * @return true if the parameter is valid
-     * @return false if the parameter is invalid
+     * @return true/false if the parameter is valid/invalid
      */
     private boolean checkSetParam(String name, String value) {
         if (!ONUCONFIGPARAMS.contains(name)) {
@@ -338,8 +336,7 @@ public class FujitsuVoltOnuConfig extends AbstractHandlerBehaviour
      * @param states input data in string for parameter state
      * @param name input data in string for parameter name
      * @param value input data in string for parameter value
-     * @return true if the param is valid
-     * @return false if the param is invalid
+     * @return true/false if the parameter is valid/invalid
      */
     private boolean validState(Set<String> states, String name, String value) {
         if (!states.contains(value)) {

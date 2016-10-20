@@ -32,9 +32,9 @@
               </controller-info>
             </of-controller>
             <of-controller>
-              <ofconfig-id>3</ofconfig-id>
+              <ofconfig-id>2</ofconfig-id>
               <controller-info>
-                <id>3</id>
+                <id>2</id>
                 <ip-address>172.20.33.11</ip-address>
                 <port>6633</port>
                 <protocol>tcp</protocol>

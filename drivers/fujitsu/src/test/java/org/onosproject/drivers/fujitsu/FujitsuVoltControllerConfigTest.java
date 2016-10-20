@@ -27,8 +27,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 import java.nio.charset.StandardCharsets;
 import java.io.InputStream;
@@ -43,31 +41,27 @@ import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtilityMock.*;
  */
 public class FujitsuVoltControllerConfigTest {
 
-    private FujitsuNetconfControllerMock controller;
-    private FujitsuDriverHandlerAdapter driverHandler;
-    private FujitsuVoltControllerConfig voltConfig;
-
     private final FujitsuNetconfSessionListenerTest listener = new InternalSessionListenerTest();
 
     private static final String TEST_VOLT_OFCONFIG = "volt-ofconfig";
     private static final String TEST_OFCONFIG_ID = "ofconfig-id";
     private static final String TEST_END_LICENSE_HEADER = "-->";
 
-    private static final Map<Integer, String> GET_CONTROLLERS = new HashMap<Integer, String>() {
-        {
-            put(1, "tcp:172.10.10.45:6633");
-            put(2, "tcp:100.0.0.22:5555");
-        }
+    private static final String[] GET_CONTROLLERS = {
+            "tcp:172.10.10.45:6633",
+            "tcp:100.0.0.22:5555",
     };
-    private static final Map<Integer, String> SET_CONTROLLERS = new HashMap<Integer, String>() {
-        {
-            put(1, "tcp:172.10.10.55:2222");
-            put(3, "tcp:172.20.33.11:6633");
-        }
+    private static final String[] SET_CONTROLLERS = {
+            "tcp:172.10.10.55:2222",
+            "tcp:172.20.33.11:6633",
     };
     private static final String GET_CONTROLLERS_RSP_FILE = "/getcontrollers.xml";
     private static final String SET_CONTROLLERS_REQ_FILE = "/setcontrollers.xml";
 
+    private Integer currentKey;
+    private FujitsuNetconfControllerMock controller;
+    private FujitsuDriverHandlerAdapter driverHandler;
+    private FujitsuVoltControllerConfig voltConfig;
 
     @Before
     public void setUp() throws Exception {
@@ -85,13 +79,14 @@ public class FujitsuVoltControllerConfigTest {
         List<ControllerInfo> controllers;
         List<ControllerInfo> expectedControllers = new ArrayList<>();
 
-        for (Integer key : GET_CONTROLLERS.keySet()) {
-            String target = GET_CONTROLLERS.get(key);
+        for (int i = ZERO; i < GET_CONTROLLERS.length; i++) {
+            String target = GET_CONTROLLERS[i];
             String[] data = target.split(TEST_COLON);
+            currentKey = i + ONE;
 
             Annotations annotations = DefaultAnnotations
                                           .builder()
-                                          .set(TEST_OFCONFIG_ID, key.toString())
+                                          .set(TEST_OFCONFIG_ID, currentKey.toString())
                                           .build();
             ControllerInfo controller = new ControllerInfo(
                     IpAddress.valueOf(data[SECOND_PART]),
@@ -111,13 +106,14 @@ public class FujitsuVoltControllerConfigTest {
     public void testSetControllers() throws Exception {
         List<ControllerInfo> controllers = new ArrayList<>();
 
-        for (Integer key : SET_CONTROLLERS.keySet()) {
-            String target = SET_CONTROLLERS.get(key);
+        for (int i = ZERO; i < SET_CONTROLLERS.length; i++) {
+            String target = SET_CONTROLLERS[i];
             String[] data = target.split(TEST_COLON);
+            currentKey = i + ONE;
 
             Annotations annotations = DefaultAnnotations
                                           .builder()
-                                          .set(TEST_OFCONFIG_ID, key.toString())
+                                          .set(TEST_OFCONFIG_ID, currentKey.toString())
                                           .build();
             ControllerInfo controller = new ControllerInfo(
                     IpAddress.valueOf(data[SECOND_PART]),
@@ -137,14 +133,12 @@ public class FujitsuVoltControllerConfigTest {
      */
     private boolean verifyGetRequest(String request) {
         StringBuilder rpc = new StringBuilder();
-        rpc.append(TEST_VOLT_NE_OPEN).append(TEST_VOLT_NE_NAMESPACE);
-        rpc.append(TEST_ANGLE_RIGHT).append(TEST_NEW_LINE);
-        rpc.append(emptyTag(TEST_VOLT_OFCONFIG));
-        rpc.append(endTag(TEST_VOLT_NE));
+        rpc.append(TEST_VOLT_NE_OPEN + TEST_VOLT_NE_NAMESPACE);
+        rpc.append(TEST_ANGLE_RIGHT + TEST_NEW_LINE);
+        rpc.append(emptyTag(TEST_VOLT_OFCONFIG))
+            .append(TEST_VOLT_NE_CLOSE);
 
         String testRequest = rpc.toString();
-        testRequest = testRequest.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
-        request = request.replaceAll(TEST_WHITESPACES_REGEX, TEST_EMPTY_STRING);
         boolean result = request.equals(testRequest);
         assertTrue("Does not match with generated string", result);
         return result;
