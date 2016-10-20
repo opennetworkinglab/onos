@@ -14,8 +14,12 @@ set -x
 
 # build plugins
 
+pushd buck
+buck build buck
+popd #buck
+
 pushd onos
-buck build //tools/build/buck-plugin:onosjar
+buck build //tools/build/buck-plugin:onos
 popd #onos
 
 pushd onos-yang-tools
@@ -27,8 +31,8 @@ popd #onos-yang-tools
 mkdir -p buck-bin/plugins
 
 cp buck/buck-out/gen/programs/buck.pex $ZIP_STAGE/buck
-cp onos/buck-out/gen/tools/build/buck-plugin/onosjar.jar $ZIP_STAGE/plugins/onos.jar
-cp onos-yang-tools/plugin/buck/target/onos-yang-buck-plugin-1.9-SNAPSHOT.jar $ZIP_STAGE/plugins/yang.jar
+cp onos/buck-out/gen/tools/build/buck-plugin/onos.jar $ZIP_STAGE/plugins/onos.jar
+cp onos-yang-tools/plugin/buck/target/onos-yang-buck-plugin-*.jar $ZIP_STAGE/plugins/yang.jar
 
 BUCK_VERSION=$(buck/buck-out/gen/programs/buck.pex -V)
 echo $BUCK_VERSION > $ZIP_STAGE/.buck_version
