@@ -31,7 +31,7 @@ java_library(
 )
 
 java_binary(
-  name = 'onosjar',
+  name = 'onos',
   deps = [':lib'],
   visibility = ['PUBLIC'],
 )

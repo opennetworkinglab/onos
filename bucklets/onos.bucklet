@@ -106,9 +106,9 @@ def osgi_jar(
     dynamicimport_packages = '',
     export_packages = '*',
     package_name_root = 'org.onosproject',
-    include_resources = NONE,
+    include_resources = {},
     web_context = NONE,
-    api_title = NONE,
+    api_title = None,
     api_version = NONE,
     api_package = NONE,
     api_description = NONE,
@@ -133,10 +133,6 @@ def osgi_jar(
 
   if resources and not resources_root:
       resources_root = RESOURCES_ROOT
-
-  if api_title != NONE:
-      r = 'WEB-INF/classes/apidoc/swagger.json=swagger.json'
-      include_resources = include_resources + ',' + r if include_resources != NONE else r
 
   mvn_coords = group_id + ':' + name + ':' + version
 

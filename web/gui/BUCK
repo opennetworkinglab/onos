@@ -19,21 +19,21 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
 ]
 
-RESOURCES = [
-    'WEB-INF/classes/index.html=src/main/webapp/index.html',
-    'WEB-INF/classes/login.html=src/main/webapp/login.html',
-    'WEB-INF/classes/error.html=src/main/webapp/error.html',
-    'WEB-INF/classes/not-ready.html=src/main/webapp/not-ready.html',
-    'WEB-INF/classes/onos.js=src/main/webapp/onos.js',
-    'WEB-INF/classes/nav.html=src/main/webapp/nav.html',
-    'WEB-INF/classes/app/view=src/main/webapp/app/view',
-    'WEB-INF/classes/raw=src/main/webapp/raw',
-]
+RESOURCES = {
+    'WEB-INF/classes/index.html': 'src/main/webapp/index.html',
+    'WEB-INF/classes/login.html': 'src/main/webapp/login.html',
+    'WEB-INF/classes/error.html': 'src/main/webapp/error.html',
+    'WEB-INF/classes/not-ready.html': 'src/main/webapp/not-ready.html',
+    'WEB-INF/classes/onos.js': 'src/main/webapp/onos.js',
+    'WEB-INF/classes/nav.html': 'src/main/webapp/nav.html',
+    'WEB-INF/classes/app/view': 'src/main/webapp/app/view',
+    'WEB-INF/classes/raw': 'src/main/webapp/raw',
+}
 
 osgi_jar_with_tests (
     name = 'onos-gui',
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
-    include_resources = ','.join(RESOURCES),
+    include_resources = RESOURCES,
     web_context = '/onos/ui',
 )
