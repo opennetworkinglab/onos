@@ -19,8 +19,11 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -47,7 +50,13 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String FLOW_DATA_RESP = "flowDataResponse";
     private static final String FLOWS = "flows";
 
+    private static final String FLOW_DETAILS_REQ = "flowDetailsRequest";
+    private static final String FLOW_DETAILS_RESP = "flowDetailsResponse";
+    private static final String DETAILS = "details";
+    private static final String FLOW_PRIORITY = "priority";
+
     private static final String ID = "id";
+    private static final String FLOW_ID = "flowId";
     private static final String APP_ID = "appId";
     private static final String GROUP_ID = "groupId";
     private static final String TABLE_ID = "tableId";
@@ -69,7 +78,10 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new FlowDataRequest());
+        return ImmutableSet.of(
+                new FlowDataRequest(),
+                new DetailRequestHandler()
+        );
     }
 
     // handler for flow table requests
@@ -181,6 +193,45 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             int pos = sb.lastIndexOf(COMMA);
             sb.delete(pos, sb.length());
             return sb;
+        }
+    }
+
+    private final class DetailRequestHandler extends RequestHandler {
+        private DetailRequestHandler() {
+            super(FLOW_DETAILS_REQ);
+        }
+
+        private FlowRule findFlowById(String appIdText, String flowId) {
+            FlowRuleService fs = get(FlowRuleService.class);
+            int appIdInt = Integer.parseInt(appIdText);
+            ApplicationId appId = new DefaultApplicationId(appIdInt, "details");
+            Iterable<FlowRule> flows = fs.getFlowRulesById(appId);
+
+            for (FlowRule flow : flows) {
+                if (flow.id().toString().equals(flowId)) {
+                    return flow;
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+
+            String flowId = string(payload, FLOW_ID);
+            String appId = string(payload, APP_ID);
+            FlowRule flow = findFlowById(appId, flowId);
+            ObjectNode data = objectNode();
+
+            data.put(FLOW_ID, flow.id().toString());
+            data.put(FLOW_PRIORITY, flow.priority());
+
+            //TODO put more detail info to data
+
+            ObjectNode rootNode = objectNode();
+            rootNode.set(DETAILS, data);
+            sendMessage(FLOW_DETAILS_RESP, rootNode);
         }
     }
 }
