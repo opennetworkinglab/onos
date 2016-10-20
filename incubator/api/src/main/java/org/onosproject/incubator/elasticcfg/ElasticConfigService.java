@@ -133,11 +133,10 @@ public interface ElasticConfigService
      * after applying the filter, the result is an empty list of nodes.
      * Future will be completed with a {@code FailedException} if path
      * does not point to a valid node.
-     *
      */
-   CompletableFuture<ConfigNode> getNode(ConfigStoreType store,
-                                         ConfigNodePath path, TraversalMode mode,
-                                         ConfigFilter filter);
+    CompletableFuture<ConfigNode> getNode(ConfigStoreType store,
+                                          ConfigNodePath path, TraversalMode mode,
+                                          ConfigFilter filter);
 
     /**
      * Returns the number of children under the given path, excluding
@@ -191,5 +190,5 @@ public interface ElasticConfigService
      * @param listener listener to unregister
      * @return a future that is completed when the operation completes
      */
-  CompletableFuture<Void> removeConfigListener(ElasticConfigListener listener);
+    CompletableFuture<Void> removeConfigListener(ElasticConfigListener listener);
 }
