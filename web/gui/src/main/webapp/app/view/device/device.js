@@ -46,6 +46,7 @@
         nameChangeReq = 'deviceNameChangeRequest',
         nameChangeResp = 'deviceNameChangeResponse',
 
+        propSplit = 4,
         propOrder = [
             'id', 'type', 'masterid', 'chassisid',
             'mfr', 'hw', 'sw', 'protocol', 'serial'
@@ -174,7 +175,7 @@
 
         propOrder.forEach(function (prop, i) {
             // properties are split into two tables
-            addProp(i < 4 ? leftTbl : rightTbl, i, details[prop]);
+            addProp(i < propSplit ? leftTbl : rightTbl, i, details[prop]);
         });
     }
 
@@ -216,23 +217,15 @@
         detailsPanel.width(tbWidth + ctnrPdg);
     }
 
-    function populateName(div, name) {
-        var lab = div.select('.label'),
-            val = div.select('.value');
-        lab.html('Friendly Name:');
-        val.html(name);
-    }
-
     function populateDetails(details) {
-        var nameDiv, topTbs, btmTbl, ports;
+        var topTbs, btmTbl, ports;
+
         setUpPanel();
 
-        nameDiv = top.select('.name-div');
         topTbs = top.select('.top-tables');
         btmTbl = bottom.select('table');
         ports = details.ports;
 
-        populateName(nameDiv, details.name);
         populateTop(topTbs, details);
         populateBottom(btmTbl, ports);
 
