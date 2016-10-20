@@ -9,8 +9,8 @@
   target_level = 8
 
 [alias]
-    onos = //tools/package:onos-run
-    package = //tools/package:onos-package
+    onos = //tools/package:onos-package
+    onos-local = //tools/package:onos-run
 
 [download]
   in_build = true
