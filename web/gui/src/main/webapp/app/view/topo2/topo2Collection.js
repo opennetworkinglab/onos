@@ -77,6 +77,9 @@
 
             return this;
         },
+        filter: function (comparator) {
+            return _.filter(this.models, comparator);
+        },
         _reset: function () {
             this._byId = [];
             this.models = [];

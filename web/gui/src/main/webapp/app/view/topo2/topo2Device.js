@@ -60,6 +60,13 @@
                     events: {
                         'click': 'onClick'
                     },
+                    onChange: function () {
+
+                        // Update class names when the model changes
+                        if (this.el) {
+                            this.el.attr('class', this.svgClassName());
+                        }
+                    },
                     nodeType: 'device',
                     icon: function () {
                         var type = this.get('type');
@@ -71,27 +78,35 @@
 
                         if (ev.shiftKey) {
                             // TODO: Multi-Select Details Panel
+                            this.set('selected', true);
                         } else {
 
-                            var selected = this.get('selected'),
-                                id = this.get('id'),
-                                nodeType = this.get('nodeType');
-
+                            var s = Boolean(this.get('selected'));
+                            // Clear all selected Items
                             _.each(this.collection.models, function (m) {
                                 m.set('selected', false);
-                                m.el.attr('class', m.svgClassName());
                             });
 
-                            if (selected) {
-                                this.set('selected', false);
-                                detailsPanel.hide();
-                            } else {
-                                this.set('selected', true);
+                            this.set('selected', !s);
+                        }
+
+                        var selected = this.collection.filter(function (m) {
+                            return m.get('selected');
+                        });
+
+                        if (_.isArray(selected) && selected.length > 0) {
+                            if (selected.length === 1) {
+                                var model = selected[0],
+                                    id = model.get('id'),
+                                    nodeType = model.get('nodeType');
                                 detailsPanel.updateDetails(id, nodeType);
                                 detailsPanel.show();
+                            } else {
+                                // Multi Panel
+                                detailsPanel.showMulti(selected);
                             }
-
-                            this.el.attr('class', this.svgClassName());
+                        } else {
+                            detailsPanel.hide();
                         }
                     },
                     onExit: function () {

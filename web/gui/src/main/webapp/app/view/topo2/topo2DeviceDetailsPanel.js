@@ -136,6 +136,7 @@
                     cb: function () { ns.navTo(path, { devId: devId }); }
                 });
             }
+            // TODO: Implement Overlay service
             // else if (btn = _getButtonDef(id, data)) {
             //     addAction(btn);
             // }
@@ -152,26 +153,30 @@
             title = detailsPanel.appendToHeader('h2')
                 .classed('clickable', true),
             table = detailsPanel.appendToBody('table'),
-            tbody = table.append('tbody'),
-            navFn;
+            tbody = table.append('tbody');
 
         gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
-
-        // // only add navigation when displaying a device
-        // if (isDevice[data.type]) {
-        //     navFn = function () {
-        //         ns.navTo(devPath, { devId: data.id });
-        //     };
-        //
-        //     svg.on('click', navFn);
-        //     title.on('click', navFn);
-        // }
 
         listProps(tbody, data);
         addBtnFooter();
     }
 
+    function renderMulti(nodes) {
+        detailsPanel.emptyRegions();
+
+        var title = detailsPanel.appendToHeader('h3'),
+            table = detailsPanel.appendToBody('table'),
+            tbody = table.append('tbody');
+
+        title.text('Selected Items');
+        nodes.forEach(function (n, i) {
+            addProp(tbody, i + 1, n.get('id'));
+        });
+
+        // addBtnFooter();
+        show();
+    }
 
     function bindHandlers() {
         wss.bindHandlers(handlerMap);
@@ -226,6 +231,7 @@
             return {
                 init: init,
                 updateDetails: updateDetails,
+                showMulti: renderMulti,
 
                 toggle: toggle,
                 show: show,
