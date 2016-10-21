@@ -24,6 +24,11 @@
 
     var Collection, Model;
 
+    var hostIconDim = 20,
+        hostIconDimMin = 15,
+        hostIconDimMax = 20,
+        remappedDeviceTypes = {};
+
     function createHostCollection(data, region) {
 
         var HostCollection = Collection.extend({
@@ -43,12 +48,58 @@
     angular.module('ovTopo2')
     .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
-        function (_Collection_, _NodeModel_, classnames, _t2vs_) {
+        'IconService', 'Topo2ZoomService',
+        function (_Collection_, _NodeModel_, _t2vs_, is, zs) {
 
             Collection = _Collection_;
 
             Model = _NodeModel_.extend({
-                nodeType: 'host'
+                nodeType: 'host',
+                icon: function () {
+                    var type = this.get('type');
+                    return remappedDeviceTypes[type] || type || 'endstation';
+                },
+                setScale: function () {
+
+                    var dim = hostIconDim,
+                        multipler = 1;
+
+                    if (dim * zs.scale() < hostIconDimMin) {
+                        multipler = hostIconDimMin / (dim * zs.scale());
+                    } else if (dim * zs.scale() > hostIconDimMax) {
+                        multipler = hostIconDimMax / (dim * zs.scale());
+                    }
+
+                    this.el.select('g').selectAll('*')
+                        .style('transform', 'scale(' + multipler + ')');
+                },
+                onEnter: function (el) {
+                    var node = d3.select(el),
+                        icon = this.icon(),
+                        textDy = hostIconDim + 15,
+                        iconDim = hostIconDim;
+
+                    this.el = node;
+
+                    var g = node.append('g')
+                        .attr('class', 'svgIcon hostIcon');
+
+                    g.append('circle').attr('r', hostIconDim);
+                    g.append('use').attr({
+                        'xlink:href': '#' + icon,
+                        width: iconDim,
+                        height: iconDim,
+                        x: -iconDim / 2,
+                        y: -iconDim / 2
+                    });
+
+                    g.append('text')
+                        .text(this.get('id'))
+                        .attr('dy', textDy)
+                        .attr('text-anchor', 'middle');
+
+                    this.setScale();
+                }
             });
 
             return {

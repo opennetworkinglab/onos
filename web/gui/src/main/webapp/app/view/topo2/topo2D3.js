@@ -22,13 +22,6 @@ Module that contains the d3.force.layout logic
 (function () {
     'use strict';
 
-    var is;
-
-    // Configuration
-    var hostRadius = 14;
-
-    function init() {}
-
     function nodeEnter(node) {
         node.onEnter(this, node);
     }
@@ -37,27 +30,8 @@ Module that contains the d3.force.layout logic
         node.onExit(this, node);
     }
 
-    function hostLabel(d) {
-        return d.get('id');
-
-        // var idx = (hostLabelIndex < d.get('labels').length) ? hostLabelIndex : 0;
-        // return d.labels[idx];
-    }
-
-    function hostEnter(d) {
-        var node = d3.select(this),
-            gid = d.get('type') || 'unknown',
-            textDy = hostRadius + 10;
-
-        d.el = node;
-        // sus.visible(node, api.showHosts());
-
-        is.addHostIcon(node, hostRadius, gid);
-
-        node.append('text')
-            .text(hostLabel)
-            .attr('dy', textDy)
-            .attr('text-anchor', 'middle');
+    function hostEnter(node) {
+        node.onEnter(this, node);
     }
 
     function linkEntering(link) {
@@ -66,19 +40,13 @@ Module that contains the d3.force.layout logic
 
     angular.module('ovTopo2')
     .factory('Topo2D3Service',
-    ['IconService',
-
-        function (_is_) {
-            is = _is_;
-
-            return {
-                init: init,
-                nodeEnter: nodeEnter,
-                nodeExit: nodeExit,
-                hostEnter: hostEnter,
-                linkEntering: linkEntering
-            };
-        }
-    ]
+    [function (_is_) {
+        return {
+            nodeEnter: nodeEnter,
+            nodeExit: nodeExit,
+            hostEnter: hostEnter,
+            linkEntering: linkEntering
+        };
+    }]
 );
 })();
