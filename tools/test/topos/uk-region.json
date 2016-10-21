@@ -1,0 +1,98 @@
+{
+  "devices": {
+    "of:0000000000000010": { "basic": { "name": "DOVER",    "latitude": 51.1295, "longitude":  1.3089  }},
+
+    "of:0000000000000021": { "basic": { "name": "BRGHTN-A", "latitude": 50.9000, "longitude": -0.1313  }},
+    "of:0000000000000022": { "basic": { "name": "BRGHTN-B", "latitude": 50.8429, "longitude": -0.1413  }},
+    "of:0000000000000023": { "basic": { "name": "BRGHTN-C", "latitude": 50.8429, "longitude": -0.1213  }},
+
+    "of:0000000000000031": { "basic": { "name": "LONDON-A", "latitude": 51.5091, "longitude": -0.2704  }},
+    "of:0000000000000032": { "basic": { "name": "LONDON-B", "latitude": 51.5091, "longitude":  0.0432  }},
+    "of:0000000000000033": { "basic": { "name": "LONDON-C", "latitude": 51.4513, "longitude": -0.1058  }},
+    "of:0000000000000034": { "basic": { "name": "LONDON-D", "latitude": 51.5418, "longitude": -0.1931  }},
+    "of:0000000000000035": { "basic": { "name": "LONDON-E", "latitude": 51.5072, "longitude": -0.1175  }}
+  },
+
+  "hosts": {
+    "00:00:00:00:00:10/-1": { "basic": { "location": "of:0000000000000010/1", "ips": [ "10.0.1.0" ],  "name": "DOVER", "latitude": 51.6295, "longitude":  1.9089 }},
+
+    "00:00:00:00:00:21/-1": { "basic": { "location": "of:0000000000000021/1", "ips": [ "10.0.2.1" ],  "name": "BRGHTN-A", "latitude": 51.4000, "longitude":  -0.6313 }},
+    "00:00:00:00:00:22/-1": { "basic": { "location": "of:0000000000000022/1", "ips": [ "10.0.2.2" ],  "name": "BRGHTN-B", "latitude": 52.3429, "longitude":  -0.6413 }},
+    "00:00:00:00:00:23/-1": { "basic": { "location": "of:0000000000000023/1", "ips": [ "10.0.2.3" ],  "name": "BRGHTN-C", "latitude": 52.3429, "longitude":  -0.6213 }},
+
+    "00:00:00:00:00:31/-1": { "basic": { "location": "of:0000000000000031/1", "ips": [ "10.0.3.1" ],  "name": "LONDON-A", "latitude": 52.0091, "longitude":  -0.7704 }},
+    "00:00:00:00:00:32/-1": { "basic": { "location": "of:0000000000000032/1", "ips": [ "10.0.3.2" ],  "name": "LONDON-B", "latitude": 52.0091, "longitude":   0.0432 }},
+    "00:00:00:00:00:33/-1": { "basic": { "location": "of:0000000000000033/1", "ips": [ "10.0.3.3" ],  "name": "LONDON-C", "latitude": 51.9513, "longitude":  -0.6058 }},
+    "00:00:00:00:00:34/-1": { "basic": { "location": "of:0000000000000034/1", "ips": [ "10.0.3.4" ],  "name": "LONDON-D", "latitude": 52.0418, "longitude":  -0.6931 }},
+    "00:00:00:00:00:35/-1": { "basic": { "location": "of:0000000000000035/1", "ips": [ "10.0.3.5" ],  "name": "LONDON-E", "latitude": 52.0072, "longitude":  -0.6175 }}
+  },
+
+  "regions": {
+    "rBri": {
+      "basic": {
+        "name": "Brighton Area",
+        "type": "metro",
+        "devices": [
+          "of:0000000000000021",
+          "of:0000000000000022",
+          "of:0000000000000023"
+        ]
+      }
+    },
+    "rLon": {
+      "basic": {
+        "name": "Greater London",
+        "type": "metro",
+        "devices": [
+          "of:0000000000000031",
+          "of:0000000000000032"
+        ]
+      }
+    },
+    "rLonWest": {
+      "basic": {
+        "name": "London West End",
+        "type": "metro",
+        "devices": [
+          "of:0000000000000033",
+          "of:0000000000000034",
+          "of:0000000000000035"
+        ]
+      }
+    }
+  },
+
+  "layouts": {
+    "_default_": {
+      "basic": {
+        "geomap": "uk",
+        "scale": 1.2,
+        "offsetX": -50,
+        "offsetY": 0
+      }
+    },
+    "lBri": {
+      "basic": {
+        "region": "rBri",
+        "geomap": "uk-brighton",
+        "scale": 0.9,
+        "offsetX": 200,
+        "offsetY": -45
+      }
+    },
+    "lLon": {
+      "basic": {
+        "region": "rLon",
+        "geomap": "uk-london"
+      }
+    },
+    "lLonWest": {
+      "basic": {
+        "parent": "lLon",
+        "region": "rLonWest",
+        "sprites": "uk-london-westend"
+      }
+    }
+  }
+
+}
