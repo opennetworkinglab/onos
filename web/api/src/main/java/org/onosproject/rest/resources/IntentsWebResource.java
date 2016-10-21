@@ -112,7 +112,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response getIntentById(@PathParam("appId") String appId,
                                   @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
-
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         if (intent == null) {
             long numericalKey = Long.decode(key);
@@ -263,7 +263,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response deleteIntentById(@PathParam("appId") String appId,
                                      @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
-
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         IntentService service = get(IntentService.class);
 
