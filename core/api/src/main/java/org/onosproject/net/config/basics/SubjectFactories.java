@@ -23,6 +23,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.net.region.RegionId;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -119,6 +120,17 @@ public final class SubjectFactories {
                 @Override
                 public RegionId createSubject(String key) {
                     return RegionId.regionId(key);
+                }
+            };
+
+    /**
+     * UI Topology layout ID subject factory.
+     */
+    public static final SubjectFactory<UiTopoLayoutId> LAYOUT_SUBJECT_FACTORY =
+            new SubjectFactory<UiTopoLayoutId>(UiTopoLayoutId.class, "layouts") {
+                @Override
+                public UiTopoLayoutId createSubject(String key) {
+                    return UiTopoLayoutId.layoutId(key);
                 }
             };
 

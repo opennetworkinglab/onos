@@ -59,7 +59,7 @@ public class UiWebSocket
     private static final String USER = "user";
     private static final String BOOTSTRAP = "bootstrap";
 
-    public static final String TOPO = "topo";
+    private static final String TOPO = "topo";
 
     private static final long MAX_AGE_MS = 30_000;
 

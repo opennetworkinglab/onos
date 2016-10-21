@@ -218,6 +218,7 @@ import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.Task;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.WorkQueueStats;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
 import java.net.URI;
 import java.time.Duration;
@@ -513,6 +514,7 @@ public final class KryoNamespaces {
             .register(Region.Type.class)
             .register(RegionId.class)
             .register(DefaultRegion.class)
+            .register(UiTopoLayoutId.class)
             .register(ExtensionSelectorType.class)
             .register(ExtensionTreatmentType.class)
             .register(TransactionId.class)

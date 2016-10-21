@@ -35,8 +35,10 @@ import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.config.basics.BasicRegionConfig;
+import org.onosproject.net.config.basics.BasicUiTopoLayoutConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.region.RegionId;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ import java.util.Set;
 import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.HOST_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.LAYOUT_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.LINK_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.REGION_SUBJECT_FACTORY;
 
@@ -100,6 +103,14 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
                 @Override
                 public BasicRegionConfig createConfig() {
                     return new BasicRegionConfig();
+                }
+            },
+            new ConfigFactory<UiTopoLayoutId, BasicUiTopoLayoutConfig>(LAYOUT_SUBJECT_FACTORY,
+                    BasicUiTopoLayoutConfig.class,
+                    BASIC) {
+                @Override
+                public BasicUiTopoLayoutConfig createConfig() {
+                    return new BasicUiTopoLayoutConfig();
                 }
             }
     );
