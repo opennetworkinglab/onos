@@ -116,16 +116,6 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOfdpa2VlanPipeline"/>
     </driver>
-    <!--  Emulation of the ofdpa pipeline using a CPqD OF 1.3 software switch.
-       ~  Use this driver when MPLS functionality is required.
-       ~  To use this driver, configure ONOS with the dpid of the device.
-      -->
-    <driver name="ofdpa3-cpqd" extends="default"
-            manufacturer="ONF"
-            hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.CpqdOfdpa3Pipeline"/>
-    </driver>
 
     <driver name="celestica" extends="default"
             manufacturer="PMC GPON Networks" hwVersion="PAS5211 v2" swVersion="vOLT version 1.5.3.*">

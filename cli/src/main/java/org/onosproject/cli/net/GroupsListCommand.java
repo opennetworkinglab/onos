@@ -107,8 +107,13 @@ public class GroupsListCommand extends AbstractShellCommand {
         if (state != null && !state.equals("any")) {
             s = GroupState.valueOf(state.toUpperCase());
         }
-        Iterable<Device> devices = (uri == null) ? deviceService.getDevices() :
-                Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
+        Iterable<Device> devices = deviceService.getDevices();
+        if (uri != null) {
+            Device dev = deviceService.getDevice(DeviceId.deviceId(uri));
+            if (dev != null) {
+                devices = Collections.singletonList(dev);
+            }
+        }
         for (Device d : devices) {
             if (s == null) {
                 groups = newArrayList(groupService.getGroups(d.id()));

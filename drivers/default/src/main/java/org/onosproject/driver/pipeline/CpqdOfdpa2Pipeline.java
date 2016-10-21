@@ -238,8 +238,8 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     }
 
     /*
-     * Cpqd emulation does not require the non-OF standard rules for
-     * matching untagged packets.
+     * Cpqd emulation does not require the non OF-standard rules for
+     * matching untagged packets that ofdpa uses.
      *
      * (non-Javadoc)
      * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processVlanIdFilter
@@ -510,7 +510,8 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 // we only need the top level group's key to point the flow to it
                 Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
                 if (group == null) {
-                    log.warn("The group left!");
+                    log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                             gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
                     fail(fwd, ObjectiveError.GROUPMISSING);
                     return Collections.emptySet();
                 }
@@ -549,7 +550,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             flowRuleCollection.add(rule.build());
             log.debug("Default rule 0.0.0.0/0 is being installed two rules");
         }
-
         return flowRuleCollection;
     }
 

@@ -256,25 +256,13 @@ public class DefaultGroupHandler {
                         nextId);
 
                 ObjectiveContext context = new DefaultObjectiveContext(
-                        (objective) -> log.debug("LinkUp installed NextObj {} on {}",
+                        (objective) -> log.debug("LinkUp addedTo NextObj {} on {}",
                                 nextId, deviceId),
                         (objective, error) ->
-                                log.warn("LinkUp failed to install NextObj {} on {}: {}",
+                                log.warn("LinkUp failed to addTo NextObj {} on {}: {}",
                                         nextId, deviceId, error));
                 NextObjective nextObjective = nextObjBuilder.addToExisting(context);
                 flowObjectiveService.next(deviceId, nextObjective);
-
-                // the addition of a bucket may actually change the neighborset
-                // update the global store
-                /*
-                Set<DeviceId> neighbors = new HashSet<DeviceId>(ns.getDeviceIds());
-                boolean newadd = neighbors.add(newLink.dst().deviceId());
-                if (newadd) {
-                    NeighborSet nsnew = new NeighborSet(neighbors, ns.getEdgeLabel());
-                    nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, nsnew),
-                                       nextId);
-                    nsNextObjStore.remove(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
-                }*/
             } else if (isMaster) {
                 log.warn("linkUp in device {}, but global store has no record "
                         + "for neighbor-set {}", deviceId, ns);
@@ -294,7 +282,6 @@ public class DefaultGroupHandler {
             return;
         }
 
-        @SuppressWarnings("unused")
         MacAddress dstMac;
         try {
             dstMac = deviceConfig.getDeviceMac(portDeviceMap.get(port));
@@ -323,13 +310,6 @@ public class DefaultGroupHandler {
                     new NeighborSetNextObjectiveStoreKey(deviceId, ns);
             Integer nextId = nsNextObjStore.get(nsStoreKey);
             if (nextId != null && isMaster) {
-                // XXX This is a workaround for BUG (CORD-611) in current switches.
-                // Should be temporary because this workaround prevents correct
-                // functionality in LAG recovery.
-                log.info("**portDown port:{} in device {}: Invalidating nextId {}",
-                         port, deviceId, nextId);
-                nsNextObjStore.remove(nsStoreKey);
-                /*
                 log.info("**portDown in device {}: Removing Bucket "
                         + "with Port {} to next object id {}",
                         deviceId,
@@ -352,24 +332,17 @@ public class DefaultGroupHandler {
                         .withId(nextId)
                         .fromApp(appId)
                         .addTreatment(tBuilder.build());
+                ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("portDown removedFrom NextObj {} on {}",
+                                             nextId, deviceId),
+                    (objective, error) ->
+                    log.warn("portDown failed to removeFrom NextObj {} on {}: {}",
+                             nextId, deviceId, error));
                 NextObjective nextObjective = nextObjBuilder.
-                        removeFromExisting(new SRNextObjectiveContext(deviceId));
+                        removeFromExisting(context);
 
                 flowObjectiveService.next(deviceId, nextObjective);
-                */
-                // the removal of a bucket may actually change the neighborset
-                // update the global store
-                /*
-                Set<DeviceId> neighbors = new HashSet<DeviceId>(ns.getDeviceIds());
-                boolean removed = neighbors.remove(portDeviceMap.get(port));
-                if (removed) {
-                    NeighborSet nsnew = new NeighborSet(neighbors, ns.getEdgeLabel());
-                    nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, nsnew),
-                                       nextId);
-                    nsNextObjStore.remove(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
-                }*/
             }
-
         }
 
         devicePortMap.get(portDeviceMap.get(port)).remove(port);
