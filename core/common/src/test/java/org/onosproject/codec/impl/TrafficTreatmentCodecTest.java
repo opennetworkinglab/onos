@@ -64,7 +64,7 @@ public class TrafficTreatmentCodecTest {
         Instruction output = Instructions.createOutput(PortNumber.portNumber(0));
         Instruction modL2Src = Instructions.modL2Src(MacAddress.valueOf("11:22:33:44:55:66"));
         Instruction modL2Dst = Instructions.modL2Dst(MacAddress.valueOf("44:55:66:77:88:99"));
-        MeterId meterId = MeterId.meterId(0);
+        MeterId meterId = MeterId.meterId(1);
         Instruction meter = Instructions.meterTraffic(meterId);
         Instruction transition = Instructions.transition(1);
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
