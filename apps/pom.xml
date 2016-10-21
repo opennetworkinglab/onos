@@ -80,6 +80,7 @@
         <module>rabbitmq</module>
         <module>learning-switch</module>
         <module>tenbi</module>
+        <module>tetunnel</module>
     </modules>
 
     <properties>
