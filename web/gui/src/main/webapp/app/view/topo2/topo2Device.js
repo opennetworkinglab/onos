@@ -32,13 +32,7 @@
     function createDeviceCollection(data, region) {
 
         var DeviceCollection = Collection.extend({
-            model: Model,
-            comparator: function (a, b) {
-                // var order = region.get('layerOrder'),
-                //     aLayer = a.get('id'),
-                //     bLayer = b.get('layer');
-                // return order.indexOf(aLayer - order.indexOf(bLayer));
-            }
+            model: Model
         });
 
         var devices = [];
@@ -48,10 +42,7 @@
             });
         });
 
-        var deviceCollection = new DeviceCollection(devices);
-        deviceCollection.sort();
-
-        return deviceCollection;
+        return new DeviceCollection(devices);
     }
 
     angular.module('ovTopo2')
@@ -76,16 +67,32 @@
                     },
                     onClick: function () {
 
-                        if (this.get('selected')) {
-                            this.set('selected', false);
-                            detailsPanel.hide();
-                        } else {
-                            this.set('selected', true);
-                            detailsPanel.updateDetails(this.get('id'), this.get('nodeType'));
-                            detailsPanel.show();
-                        }
+                        var ev = d3.event;
 
-                        this.el.attr('class', this.svgClassName());
+                        if (ev.shiftKey) {
+                            // TODO: Multi-Select Details Panel
+                        } else {
+
+                            var selected = this.get('selected'),
+                                id = this.get('id'),
+                                nodeType = this.get('nodeType');
+
+                            _.each(this.collection.models, function (m) {
+                                m.set('selected', false);
+                                m.el.attr('class', m.svgClassName());
+                            });
+
+                            if (selected) {
+                                this.set('selected', false);
+                                detailsPanel.hide();
+                            } else {
+                                this.set('selected', true);
+                                detailsPanel.updateDetails(id, nodeType);
+                                detailsPanel.show();
+                            }
+
+                            this.el.attr('class', this.svgClassName());
+                        }
                     },
                     onExit: function () {
                         var node = this.el;
