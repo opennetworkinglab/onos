@@ -39,7 +39,7 @@ public enum Ofdpa3MplsType {
     /**
      * L3 unicast.
      */
-    L3_UNICAST ((short) 8),
+    L3_UNICAST((short) 8),
     /**
      * L3 multicast.
      */

@@ -27,9 +27,11 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsL2Port;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsType;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaOvid;
 import org.projectfloodlight.openflow.types.U16;
+import org.projectfloodlight.openflow.types.U32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +51,9 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         } else if (extensionTreatmentType.equals(
                 ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_OVID.type())) {
             return true;
+        } else if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
+            return true;
         }
         return false;
     }
@@ -67,6 +72,20 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             short oVid = (short) (mask | vlanId.toShort());
             return factory.actions().setField(factory.oxms().ofdpaOvid(
                     U16.ofRaw(oVid)));
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
+            Integer mplsL2Port = ((Ofdpa3SetMplsL2Port) extensionTreatment).mplsL2Port();
+            /*
+             * 0x0000XXXX UNI Interface.
+             * 0x0002XXXX NNI Interface
+             */
+            if ((mplsL2Port >= 0 && mplsL2Port <= 0x0000FFFF) ||
+                    (mplsL2Port >= 0x00020000 && mplsL2Port <= 0x0002FFFF)) {
+                return factory.actions().setField(
+                        factory.oxms().ofdpaMplsL2Port(U32.ofRaw(mplsL2Port))
+                );
+            }
+            throw new UnsupportedOperationException(
+                    "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
         }
         throw new UnsupportedOperationException(
                 "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
@@ -87,6 +106,13 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     short oVid = (short) (mask & ovid.getValue().getRaw());
                     VlanId vlanId = VlanId.vlanId(oVid);
                     return new Ofdpa3SetOvid(vlanId);
+                case OFDPA_MPLS_L2_PORT:
+                    OFOxmOfdpaMplsL2Port mplsl2Port = ((OFOxmOfdpaMplsL2Port) oxm);
+                    Integer mplsL2Port = mplsl2Port.getValue().getRaw();
+                    if ((mplsL2Port >= 0 && mplsL2Port <= 0x0000FFFF) ||
+                            (mplsL2Port >= 0x00020000 && mplsL2Port <= 0x0002FFFF)) {
+                        return new Ofdpa3SetMplsL2Port(mplsL2Port);
+                    }
                 default:
                     throw new UnsupportedOperationException(
                             "Driver does not support extension type " + oxm.getMatchField().id);
@@ -102,6 +128,8 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return new Ofdpa3SetMplsType();
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_OVID.type())) {
             return new Ofdpa3SetOvid();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
+            return new Ofdpa3SetMplsL2Port();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());

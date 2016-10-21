@@ -41,6 +41,7 @@ public class ExtensionSelectorType {
         NICIRA_MATCH_ENCAP_ETH_TYPE(6),
         OFDPA_MATCH_VLAN_VID(16),
         OFDPA_MATCH_OVID(17),
+        OFDPA_MATCH_MPLS_L2_PORT(18),
         BMV2_MATCH_PARAMS(128),
 
         UNRESOLVED_TYPE(200);
