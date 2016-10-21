@@ -64,6 +64,7 @@ public class IntentsWebResource extends AbstractWebResource {
     private static final Logger log = getLogger(IntentsWebResource.class);
     private static final int WITHDRAW_EVENT_TIMEOUT_SECONDS = 5;
 
+    private static final String APP_ID_NOT_FOUND = "Application Id not found";
     private static final String INTENT_NOT_FOUND = "Intent is not found";
 
     /**
@@ -96,7 +97,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response getIntentById(@PathParam("appId") String appId,
                                   @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
-
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         if (intent == null) {
             long numericalKey = Long.decode(key);
@@ -188,7 +189,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response deleteIntentById(@PathParam("appId") String appId,
                                      @PathParam("key") String key) {
         final ApplicationId app = get(CoreService.class).getAppId(appId);
-
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
         Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
         IntentService service = get(IntentService.class);
 
