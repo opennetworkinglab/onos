@@ -4,6 +4,12 @@
 # karaf using the supplied arguments.
 # -----------------------------------------------------------------------------
 
+echo "This command is deprecated and will be removed imminently!!!"
+echo "Please use 'buck run onos-local' instead."
+echo "e.g.:  buck run onos-local -- clean debug"
+echo "  or:  buck run onos-local -- debug"
+
+
 . $ONOS_ROOT/tools/build/envDefaults
 if [ -L $ONOS_TAR ]; then
   echo "WARN: This script does not support deploying buck artifacts"

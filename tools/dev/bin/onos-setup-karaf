@@ -10,6 +10,11 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+echo "This command is deprecated and will be removed imminently!!!"
+echo "Please use 'buck run onos-local' instead."
+echo "e.g.:  buck run onos-local -- clean debug"
+echo "  or:  buck run onos-local -- debug"
+
 # TODO: consider putting this under ~/Applications/onos/apache-karaf-...
 export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
 export STAGE=$(dirname $KARAF_ROOT)
