@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -452,6 +453,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             defaultRoutingHandler.populatePortAddressingRules(device.id());
         }
         defaultRoutingHandler.startPopulationProcess();
+    }
+
+    @Override
+    public Map<DeviceId, Set<Ip4Prefix>> getDeviceSubnetMap() {
+        Map<DeviceId, Set<Ip4Prefix>> deviceSubnetMap = Maps.newHashMap();
+        deviceService.getAvailableDevices().forEach(device -> {
+            deviceSubnetMap.put(device.id(), deviceConfiguration.getSubnets(device.id()));
+        });
+        return deviceSubnetMap;
     }
 
     /**

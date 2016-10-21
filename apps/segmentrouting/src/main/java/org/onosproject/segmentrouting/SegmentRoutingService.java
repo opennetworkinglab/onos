@@ -15,7 +15,12 @@
  */
 package org.onosproject.segmentrouting;
 
+import org.onlab.packet.Ip4Prefix;
+import org.onosproject.net.DeviceId;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Segment Routing Service for REST API.
@@ -109,4 +114,11 @@ public interface SegmentRoutingService {
      *
      */
     void rerouteNetwork();
+
+    /**
+     * Returns device-subnet mapping.
+     *
+     * @return device-subnet mapping
+     */
+    Map<DeviceId, Set<Ip4Prefix>> getDeviceSubnetMap();
 }

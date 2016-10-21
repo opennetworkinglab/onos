@@ -16,24 +16,34 @@
 
 package org.onosproject.segmentrouting.cli;
 
-
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.Ip4Prefix;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 
-/**
- * Command to manually trigger routing and rule-population in the network.
- *
- */
-@Command(scope = "onos", name = "sr-reroute-network",
-        description = "Repopulate routing rules given current network state")
-public class RerouteNetworkCommand extends AbstractShellCommand {
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * Command to list device-subnet mapping in Segment Routing.
+ */
+@Command(scope = "onos", name = "sr-device-subnets",
+        description = "List device-subnet mapping in Segment Routing")
+public class DeviceSubnetListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
-        srService.rerouteNetwork();
+        printDeviceSubnetMap(srService.getDeviceSubnetMap());
     }
 
+    private void printDeviceSubnetMap(Map<DeviceId, Set<Ip4Prefix>> deviceSubnetMap) {
+        deviceSubnetMap.forEach(((deviceId, ip4Prefices) -> {
+            print("%s", deviceId);
+            ip4Prefices.forEach(ip4Prefix -> {
+                print("    %s", ip4Prefix);
+            });
+        }));
+    }
 }
