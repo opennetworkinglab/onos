@@ -52,6 +52,7 @@ public final class ExtensionTreatmentType {
         OFDPA_SET_MPLS_TYPE(65),
         OFDPA_SET_OVID(66),
         OFDPA_SET_MPLS_L2_PORT(67),
+        OFDPA_SET_QOS_INDEX(68),
         NICIRA_TUN_GPE_NP(111),
         NICIRA_SET_NSH_SPI(113),
         NICIRA_SET_NSH_SI(114),

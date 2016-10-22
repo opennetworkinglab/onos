@@ -30,8 +30,10 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsL2Port;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsType;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaOvid;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaQosIndex;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +55,9 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return true;
         } else if (extensionTreatmentType.equals(
                 ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
+            return true;
+        } else if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.type())) {
             return true;
         }
         return false;
@@ -86,6 +91,18 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             }
             throw new UnsupportedOperationException(
                     "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.type())) {
+            Integer qosIndex = ((Ofdpa3SetQosIndex) extensionTreatment).qosIndex();
+            /*
+             * Qos index is a single byte [0...255]
+             */
+            if (qosIndex >= 0 && qosIndex <= 255) {
+                return factory.actions().setField(
+                        factory.oxms().ofdpaQosIndex(U8.ofRaw((byte) (qosIndex & 0xFF)))
+                );
+            }
+            throw new UnsupportedOperationException(
+                    "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
         }
         throw new UnsupportedOperationException(
                 "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
@@ -113,6 +130,14 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                             (mplsL2Port >= 0x00020000 && mplsL2Port <= 0x0002FFFF)) {
                         return new Ofdpa3SetMplsL2Port(mplsL2Port);
                     }
+                    break;
+                case OFDPA_QOS_INDEX:
+                    OFOxmOfdpaQosIndex qosindex = ((OFOxmOfdpaQosIndex) oxm);
+                    Integer qosIndex = (int) qosindex.getValue().getRaw();
+                    if (qosIndex >= 0 && qosIndex <= 255) {
+                        return new Ofdpa3SetQosIndex(qosIndex);
+                    }
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Driver does not support extension type " + oxm.getMatchField().id);
@@ -130,6 +155,8 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return new Ofdpa3SetOvid();
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_MPLS_L2_PORT.type())) {
             return new Ofdpa3SetMplsL2Port();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_SET_QOS_INDEX.type())) {
+            return new Ofdpa3SetQosIndex();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());

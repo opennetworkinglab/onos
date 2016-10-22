@@ -582,6 +582,7 @@ public class FlowEntryBuilder {
         case OFDPA_MPLS_TYPE:
         case OFDPA_OVID:
         case OFDPA_MPLS_L2_PORT:
+        case OFDPA_QOS_INDEX:
             if (treatmentInterpreter != null) {
                 try {
                     builder.extension(treatmentInterpreter.mapAction(action), deviceId);
