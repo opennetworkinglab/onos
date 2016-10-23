@@ -25,3 +25,33 @@
 #ov-cluster div.ctrl-btns {
     width: 45px;
 }
+
+
+/* More in generic panel.css */
+
+#node-details-panel.floatpanel {
+    z-index: 0;
+}
+
+
+#node-details-panel .container {
+    padding: 8px 12px;
+}
+
+#node-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#node-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#flow-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
