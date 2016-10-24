@@ -55,18 +55,6 @@ public class ISnmpSessionAdapter implements ISnmpSession {
     }
 
     @Override
-    public WalkResponse walkDevice(IVariableBindingHandler networkDevice, List<OID> oids,
-                                   List<OID> excludeRootColumnOids) {
-        return null;
-    }
-
-    @Override
-    public WalkResponse getTableRowsForColumns(IVariableBindingHandler iVariableBindingHandler,
-                                               Map<String, OID[]> map) {
-        return null;
-    }
-
-    @Override
     public WalkResponse getTableRows(IVariableBindingHandler networkDevice,
                                      Map<DeviceEntityDescription, List<OID>> tableIndexes)
             throws IOException {
