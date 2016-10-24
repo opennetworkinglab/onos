@@ -40,6 +40,10 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String CLUSTER_DATA_RESP = "clusterDataResponse";
     private static final String CLUSTERS = "clusters";
 
+    private static final String CLUSTER_DETAILS_REQ = "clusterNodeDetailsRequest";
+    private static final String CLUSTER_DETAILS_RESP = "clusterNodeDetailsResponse";
+    private static final String DETAILS = "details";
+
     private static final String ID = "id";
     private static final String IP = "ip";
     private static final String TCP_PORT = "tcp";
@@ -56,7 +60,9 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new ClusterDataRequest());
+        return ImmutableSet.of(
+                new ClusterDataRequest(),
+                new DetailRequestHandler());
     }
 
     // handler for cluster table requests
@@ -106,6 +112,31 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
                 .cell(STATE_IID, iconId)
                 .cell(STARTED_IID, startedId)
                 .cell(UPDATED, lastUpdated);
+        }
+    }
+
+    private final class DetailRequestHandler extends RequestHandler {
+
+        public DetailRequestHandler() {
+            super(CLUSTER_DETAILS_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+
+            String id = string(payload, ID);
+            ClusterService cs = get(ClusterService.class);
+            ControllerNode node = cs.getNode(new NodeId(id));
+
+            ObjectNode data = objectNode();
+            data.put(ID, node.id().toString());
+            data.put(IP, node.ip().toString());
+
+            //TODO put more detail info to data
+
+            ObjectNode rootNode = objectNode();
+            rootNode.set(DETAILS, data);
+            sendMessage(CLUSTER_DETAILS_RESP, rootNode);
         }
     }
 }
