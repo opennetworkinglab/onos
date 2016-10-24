@@ -38,35 +38,49 @@ else
     ssh $remote "
         [ "'`uname`'" != "'"Linux"'" ] && alias tac='tail -r'
         tac $LOG | tr -d '\000' | awk '
-            BEGIN { off = 0; fail = 0; }
+            BEGIN { off = 0; fail = 0; exclusion = 0; trace = \"\";}
             / org.apache.karaf.main.lock.SimpleFileLock lock/ {
                 exit fail;
             }
 
             / ERROR / {
-                print \$0;
-                exc = 0;
-                fail = 1;
+                if (exception && !exclusion) {
+                    print \$0;
+                    exception = 0;
+                    fail = 1;
+                }
+                exclusion = 0;
             }
             / WARN / {
-                if (exc) {
+                if (exception && !exclusion) {
                     print \$0;
-                    exc = 0;
+                    exception = 0;
                 }
+                exclusion = 0;
             }
             / INFO / {
-                exc = 0;
+                exception = 0;
+                exclusion = 0;
             }
 
             /^[a-zA-Z0-9.]*(Exception|Error)/ {
-                print \$0;
-                exc = 1;
-                fail = 1;
+                if (!exclusion) {
+                    print trace;
+                    print \$0;
+                    exception = 1;
+                    fail = 1;
+                    trace = \"\";
+                }
             }
 
             /(	at|Caused by:) / {
-                print \$0;
+                trace = trace \"\n\" \$0;
             }
+
+            # Sanctioned exclusions for exceptions in third-party code; one pattern per exclusion
+            /at org\.apache\.felix\.scr\.impl\.ComponentRegistry\.getComponents\(ComponentRegistry\.java:199\)/ { exclusion = 1; }
+            /at org\.apache\.karaf\.service\.guard\.impl\.GuardProxyCatalog.1.run\(GuardProxyCatalog\.java:253\)/ { exclusion = 1; }
+
         END { exit fail; }
         ' > $aux
         status=\$?
