@@ -126,6 +126,8 @@ public class AtomixDocumentTreeState
         try {
             Versioned<TreeNodeValue> value = docTree.get(commit.operation().path());
             return value == null ? null : value.map(node -> node == null ? null : node.value());
+        } catch (IllegalStateException e) {
+            return null;
         } finally {
             commit.close();
         }
