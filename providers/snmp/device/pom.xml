@@ -57,21 +57,21 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.btisystems</groupId>
+            <groupId>org.onosproject</groupId>
             <artifactId>snmp-core</artifactId>
-            <version>1.3-SNAPSHOT</version>
+            <version>1.3-20161021.1</version>
         </dependency>
 
         <dependency>
-            <groupId>com.btisystems.mibbler.mibs</groupId>
-            <artifactId>bti7000</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>mibbler-mibs-bti7000</artifactId>
+            <version>1.0-20151221.1</version>
         </dependency>
 
         <dependency>
-            <groupId>com.btisystems.mibbler.mibs</groupId>
-            <artifactId>net-snmp</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>mibbler-mibs-net-snmp</artifactId>
+            <version>1.0-20151221.1</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

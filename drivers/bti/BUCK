@@ -13,18 +13,19 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
 ]
 
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS,
-    resources_root = 'src/main/resources',
-    resources = glob(['src/main/resources/**']),
-)
-
-onos_app (
-    app_name = 'org.onosproject.drivers.bti',
-    title = 'Bti Device Drivers',
-    category = 'Drivers',
-    url = 'http://onosproject.org',
-    description = 'ONOS Bti Device Drivers application.',
-    required_apps = [ 'org.onosproject.snmp' ],
-)
+# TODO ONOS-5554 excluding from the build
+# osgi_jar_with_tests (
+#     deps = COMPILE_DEPS,
+#     test_deps = TEST_DEPS,
+#     resources_root = 'src/main/resources',
+#     resources = glob(['src/main/resources/**']),
+# )
+#
+# onos_app (
+#     app_name = 'org.onosproject.drivers.bti',
+#     title = 'Bti Device Drivers',
+#     category = 'Drivers',
+#     url = 'http://onosproject.org',
+#     description = 'ONOS Bti Device Drivers application.',
+#     required_apps = [ 'org.onosproject.snmp' ],
+# )

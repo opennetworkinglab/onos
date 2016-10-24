@@ -73,7 +73,8 @@ ONOS_DRIVERS = [
     # Drivers
     '//drivers/default:onos-drivers-default-oar',
     '//drivers/arista:onos-drivers-arista-oar',
-    '//drivers/bti:onos-drivers-bti-oar',
+    # TODO ONOS-5554 excluding from the build
+    #'//drivers/bti:onos-drivers-bti-oar',
     '//drivers/ciena:onos-drivers-ciena-oar',
     '//drivers/cisco:onos-drivers-cisco-oar',
     '//drivers/corsa:onos-drivers-corsa-oar',

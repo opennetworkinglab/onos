@@ -192,22 +192,10 @@
       "uri": "mvn:org.onosproject:org.apache.felix.scr.bnd:1.4.1-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
     },
-    "snmp-core": {
-      "uri": "mvn:com.btisystems:snmp-core:1.3-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
-    "bti7000": {
-      "uri": "mvn:com.btisystems.mibbler.mibs:bti7000:1.0-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
-    "mibs-net-snmp": {
-      "uri": "mvn:com.btisystems.mibbler.mibs:net-snmp:1.0-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
-    "mibs-rfc": {
-      "uri": "mvn:com.btisystems.mibbler.mibs:rfc:1.0-SNAPSHOT",
-      "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    },
+    "snmp-core": "mvn:org.onosproject:snmp-core:1.3-20161021.1",
+    "bti7000": "mvn:org.onosproject:mibbler-mibs-bti7000:1.0-20151221.1",
+    "mibs-net-snmp": "mvn:org.onosproject:mibbler-mibs-net-snmp:1.0-20151221.1",
+    "mibs-rfc": "mvn:org.onosproject:mibbler-mibs-rfc:1.0-20151221.1",
     // Openstack4j related jars
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:2.11",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11",
