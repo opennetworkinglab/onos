@@ -178,12 +178,12 @@ public class RouteManagerTest {
     @Test
     public void testRouteAdd() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
-        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
 
         verifyRouteAdd(route, resolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
-        resolvedRoute = new ResolvedRoute(route, MAC3);
+        resolvedRoute = new ResolvedRoute(route, MAC3, CP1);
 
         verifyRouteAdd(route, resolvedRoute);
     }
@@ -215,7 +215,7 @@ public class RouteManagerTest {
     public void testRouteUpdate() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
         Route updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP2);
-        ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
+        ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
 
         verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
 
@@ -223,13 +223,13 @@ public class RouteManagerTest {
         // In this case we expect to receive a ROUTE_UPDATED event.
         route = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP2);
-        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
+        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
 
         verifyRouteUpdated(route, updatedRoute, updatedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP2);
-        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4);
+        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4, CP1);
 
         verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
     }
@@ -248,7 +248,8 @@ public class RouteManagerTest {
         // First add the original route
         addRoute(original);
 
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, new ResolvedRoute(original, null)));
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
+                new ResolvedRoute(original, null, null)));
         expectLastCall().once();
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, updatedResolvedRoute));
         expectLastCall().once();
@@ -308,7 +309,7 @@ public class RouteManagerTest {
         addRoute(route);
 
         RouteEvent withdrawRouteEvent = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                new ResolvedRoute(route, null));
+                new ResolvedRoute(route, null, null));
 
         reset(routeListener);
         routeListener.event(withdrawRouteEvent);
@@ -346,7 +347,7 @@ public class RouteManagerTest {
         // Now when we send the event, we expect the FIB update to be sent
         reset(routeListener);
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
-                new ResolvedRoute(route, MAC1)));
+                new ResolvedRoute(route, MAC1, CP1)));
         replay(routeListener);
 
         // Send in the host event

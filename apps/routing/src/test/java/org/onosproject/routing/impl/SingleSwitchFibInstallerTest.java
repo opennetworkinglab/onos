@@ -279,7 +279,7 @@ public class SingleSwitchFibInstallerTest {
      */
     @Test
     public void testRouteAdd() {
-        ResolvedRoute resolvedRoute = new ResolvedRoute(PREFIX1, NEXT_HOP1, MAC1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(PREFIX1, NEXT_HOP1, MAC1, SW1_ETH1);
 
         // Create the next objective
         NextObjective nextObjective = createNextObjective(MAC1, MAC1, SW1_ETH1.port(), VlanId.NONE, true);
@@ -305,7 +305,7 @@ public class SingleSwitchFibInstallerTest {
      */
     @Test
     public void testRouteAddWithVlan() {
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2, SW1_ETH2);
 
         // Create the next objective
         NextObjective nextObjective = createNextObjective(MAC2, MAC2, SW1_ETH2.port(), VLAN1, true);
@@ -335,7 +335,7 @@ public class SingleSwitchFibInstallerTest {
         testRouteAdd();
         reset(flowObjectiveService);
 
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2, SW1_ETH2);
 
         // Create the next objective
         NextObjective nextObjective = createNextObjective(MAC2, MAC2, SW1_ETH2.port(), VLAN1, true);
@@ -365,7 +365,7 @@ public class SingleSwitchFibInstallerTest {
         testRouteAdd();
 
         // Construct the existing route
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null, null);
 
         // Create the flow objective
         reset(flowObjectiveService);

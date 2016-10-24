@@ -191,7 +191,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
     @Test
     public void testRouteAddToNoVlan() {
         // Build the expected route
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, IP3, MAC3);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, IP3, MAC3, SW3_ETH1);
 
         MultiPointToSinglePointIntent intent =
                 createIntentToThreeSrcOneTwo(PREFIX1);
@@ -215,7 +215,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
     @Test
     public void testRouteAddToVlan() {
         // Build the expected route
-        ResolvedRoute route = new ResolvedRoute(PREFIX2, IP1, MAC1);
+        ResolvedRoute route = new ResolvedRoute(PREFIX2, IP1, MAC1, SW1_ETH1);
 
         MultiPointToSinglePointIntent intent = createIntentToOne(PREFIX2);
 
@@ -244,7 +244,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToNoVlan();
 
         // Build the new route entries for prefix1 and prefix2
-        ResolvedRoute routePrefixOne = new ResolvedRoute(PREFIX1, IP1, MAC1);
+        ResolvedRoute routePrefixOne = new ResolvedRoute(PREFIX1, IP1, MAC1, SW1_ETH1);
 
         // Create the new expected intents
         MultiPointToSinglePointIntent newPrefixOneIntent = createIntentToOne(PREFIX1);
@@ -278,7 +278,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToVlan();
 
         // Build the new route entries for prefix1 and prefix2
-        ResolvedRoute routePrefix = new ResolvedRoute(PREFIX2, IP3, MAC3);
+        ResolvedRoute routePrefix = new ResolvedRoute(PREFIX2, IP3, MAC3, SW3_ETH1);
 
         // Create the new expected intents
         MultiPointToSinglePointIntent newPrefixIntent =
@@ -310,7 +310,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToNoVlan();
 
         // Construct the existing route entry
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null, null);
 
         // Create existing intent
         MultiPointToSinglePointIntent removedIntent =

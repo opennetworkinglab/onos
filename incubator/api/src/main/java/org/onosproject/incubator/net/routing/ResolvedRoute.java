@@ -19,6 +19,7 @@ package org.onosproject.incubator.net.routing;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
 
 import java.util.Objects;
 
@@ -32,17 +33,20 @@ public class ResolvedRoute {
     private final IpPrefix prefix;
     private final IpAddress nextHop;
     private final MacAddress nextHopMac;
+    private final ConnectPoint location;
 
     /**
      * Creates a new resolved route.
      *
      * @param route input route
      * @param nextHopMac next hop MAC address
+     * @param location connect point where the next hop connects to
      */
-    public ResolvedRoute(Route route, MacAddress nextHopMac) {
+    public ResolvedRoute(Route route, MacAddress nextHopMac, ConnectPoint location) {
         this.prefix = route.prefix();
         this.nextHop = route.nextHop();
         this.nextHopMac = nextHopMac;
+        this.location = location;
     }
 
     /**
@@ -51,11 +55,14 @@ public class ResolvedRoute {
      * @param prefix route prefix
      * @param nextHop route next hop IP address
      * @param nextHopMac next hop MAC address
+     * @param location connect point where the next hop connects to
      */
-    public ResolvedRoute(IpPrefix prefix, IpAddress nextHop, MacAddress nextHopMac) {
+    public ResolvedRoute(IpPrefix prefix, IpAddress nextHop, MacAddress nextHopMac,
+                         ConnectPoint location) {
         this.prefix = prefix;
         this.nextHop = nextHop;
         this.nextHopMac = nextHopMac;
+        this.location = location;
     }
 
     /**
@@ -85,9 +92,18 @@ public class ResolvedRoute {
         return nextHopMac;
     }
 
+    /**
+     * Returns the next hop location.
+     *
+     * @return connect point where the next hop attaches to
+     */
+    public ConnectPoint location() {
+        return location;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(prefix, nextHop, nextHopMac);
+        return Objects.hash(prefix, nextHop, nextHopMac, location);
     }
 
     @Override
@@ -104,7 +120,8 @@ public class ResolvedRoute {
 
         return Objects.equals(this.prefix, that.prefix) &&
                 Objects.equals(this.nextHop, that.nextHop) &&
-                Objects.equals(this.nextHopMac, that.nextHopMac);
+                Objects.equals(this.nextHopMac, that.nextHopMac) &&
+                Objects.equals(this.location, that.location);
     }
 
     @Override
@@ -113,6 +130,7 @@ public class ResolvedRoute {
                 .add("prefix", prefix)
                 .add("nextHop", nextHop)
                 .add("nextHopMac", nextHopMac)
+                .add("location", location)
                 .toString();
     }
 }

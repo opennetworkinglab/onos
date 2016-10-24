@@ -23,8 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
+import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.NextHop;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
@@ -118,9 +118,12 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
             routeStore.getRouteTables().forEach(table -> {
                 Collection<Route> routes = routeStore.getRoutes(table);
                 if (routes != null) {
-                    routes.forEach(route ->
-                        l.post(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
-                                        new ResolvedRoute(route, routeStore.getNextHop(route.nextHop())))));
+                    routes.forEach(route -> {
+                        NextHopData nextHopData = routeStore.getNextHop(route.nextHop());
+                            l.post(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
+                                    new ResolvedRoute(route, nextHopData.mac(),
+                                            nextHopData.location())));
+                    });
                 }
             });
 
@@ -174,7 +177,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     @Override
     public Set<NextHop> getNextHops() {
         return routeStore.getNextHops().entrySet().stream()
-                .map(entry -> new NextHop(entry.getKey(), entry.getValue()))
+                .map(entry -> new NextHop(entry.getKey(), entry.getValue().mac()))
                 .collect(Collectors.toSet());
     }
 
@@ -203,24 +206,24 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
         // Monitor the IP address for updates of the MAC address
         hostService.startMonitoringIp(route.nextHop());
 
-        MacAddress nextHopMac = routeStore.getNextHop(route.nextHop());
-        if (nextHopMac == null) {
+        NextHopData nextHopData = routeStore.getNextHop(route.nextHop());
+        if (nextHopData == null) {
             Set<Host> hosts = hostService.getHostsByIp(route.nextHop());
             Optional<Host> host = hosts.stream().findFirst();
             if (host.isPresent()) {
-                nextHopMac = host.get().mac();
+                nextHopData = NextHopData.fromHost(host.get());
             }
         }
 
-        if (nextHopMac != null) {
-            routeStore.updateNextHop(route.nextHop(), nextHopMac);
+        if (nextHopData != null) {
+            routeStore.updateNextHop(route.nextHop(), nextHopData);
         }
     }
 
     private void hostUpdated(Host host) {
         synchronized (this) {
             for (IpAddress ip : host.ipAddresses()) {
-                routeStore.updateNextHop(ip, host.mac());
+                routeStore.updateNextHop(ip, NextHopData.fromHost(host));
             }
         }
     }
@@ -228,7 +231,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     private void hostRemoved(Host host) {
         synchronized (this) {
             for (IpAddress ip : host.ipAddresses()) {
-                routeStore.removeNextHop(ip, host.mac());
+                routeStore.removeNextHop(ip, NextHopData.fromHost(host));
             }
         }
     }
