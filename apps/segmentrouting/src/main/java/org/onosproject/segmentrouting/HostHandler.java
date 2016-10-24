@@ -16,13 +16,10 @@
 
 package org.onosproject.segmentrouting;
 
-import com.google.common.collect.ImmutableSet;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
@@ -64,7 +61,7 @@ public class HostHandler {
         flowObjectiveService = srManager.flowObjectiveService;
     }
 
-    protected void readInitialHosts(DeviceId devId) {
+    protected void init(DeviceId devId) {
         hostService.getHosts().forEach(host -> {
             DeviceId deviceId = host.location().deviceId();
             // The host does not attach to this device
@@ -106,8 +103,7 @@ public class HostHandler {
 
             ips.forEach(ip -> {
                 // Populate IP table entry
-                if (ip.isIp4()) {
-                    addPerHostRoute(location, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             deviceId, ip.toIpPrefix(), mac, port);
                 }
@@ -144,8 +140,7 @@ public class HostHandler {
 
             // Revoke IP table entry
             ips.forEach(ip -> {
-                if (ip.isIp4()) {
-                    removePerHostRoute(location, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             deviceId, ip.toIpPrefix(), mac, port);
                 }
@@ -183,8 +178,7 @@ public class HostHandler {
 
             // Revoke previous IP table entry
             prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    removePerHostRoute(prevLocation, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
@@ -207,8 +201,7 @@ public class HostHandler {
 
             // Populate new IP table entry
             newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    addPerHostRoute(newLocation, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
@@ -232,8 +225,7 @@ public class HostHandler {
         if (accepted(event.prevSubject())) {
             // Revoke previous IP table entry
             prevIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    removePerHostRoute(prevLocation, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
@@ -243,8 +235,7 @@ public class HostHandler {
         if (accepted(event.subject())) {
             // Populate new IP table entry
             newIps.forEach(ip -> {
-                if (ip.isIp4()) {
-                    addPerHostRoute(newLocation, ip.getIp4Address());
+                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
@@ -313,42 +304,7 @@ public class HostHandler {
     }
 
     /**
-     * Add per host route to subnet list and populate the flow rule if the host
-     * does not belong to the configured subnet.
-     *
-     * @param location location of the host being added
-     * @param ip IP address of the host being added
-     */
-    private void addPerHostRoute(ConnectPoint location, Ip4Address ip) {
-        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(
-                location.deviceId(), location.port());
-        if (portSubnet != null && !portSubnet.contains(ip)) {
-            Ip4Prefix ip4Prefix = ip.toIpPrefix().getIp4Prefix();
-            srManager.deviceConfiguration.addSubnet(location, ip4Prefix);
-            srManager.defaultRoutingHandler.populateSubnet(location,
-                    ImmutableSet.of(ip4Prefix));
-        }
-    }
-
-    /**
-     * Remove per host route from subnet list and revoke the flow rule if the
-     * host does not belong to the configured subnet.
-     *
-     * @param location location of the host being removed
-     * @param ip IP address of the host being removed
-     */
-    private void removePerHostRoute(ConnectPoint location, Ip4Address ip) {
-        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(
-                location.deviceId(), location.port());
-        if (portSubnet != null && !portSubnet.contains(ip)) {
-            Ip4Prefix ip4Prefix = ip.toIpPrefix().getIp4Prefix();
-            srManager.deviceConfiguration.removeSubnet(location, ip4Prefix);
-            srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(ip4Prefix));
-        }
-    }
-
-    /**
-     * Check if a host is accepted or not.
+     * Determines whether a host should be accepted by SR or not.
      *
      * @param host host to be checked
      * @return true if segment routing accepts the host

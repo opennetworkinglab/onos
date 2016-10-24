@@ -94,6 +94,8 @@ public class SingleSwitchFibInstaller {
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
 
+    // FIXME: This should be eliminated when we have an API in SR that
+    //        programs the fabric switches for VR
     public static final short ASSIGNED_VLAN = 4094;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

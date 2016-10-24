@@ -33,6 +33,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +88,13 @@ public class ArpHandler {
         ARP arp = (ARP) ethernet.getPayload();
         ConnectPoint connectPoint = pkt.receivedFrom();
         DeviceId deviceId = connectPoint.deviceId();
+
+        SegmentRoutingAppConfig appConfig = srManager.cfgService
+                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+        if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+            // Ignore ARP packets come from suppressed ports
+            return;
+        }
 
         if (!validateArpSpa(connectPoint, arp)) {
             log.debug("Ignore ARP packet discovered on {} with unexpected src protocol address {}.",

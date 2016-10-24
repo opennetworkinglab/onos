@@ -562,18 +562,21 @@ public class RoutingRulePopulator {
         for (Port port : devPorts) {
             ConnectPoint connectPoint = new ConnectPoint(deviceId, port.number());
             // TODO: Handles dynamic port events when we are ready for dynamic config
-            SegmentRoutingAppConfig appConfig = srManager.cfgService
-                    .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
             if (!port.isEnabled()) {
                 disabledPorts++;
                 continue;
             }
+
+            boolean isSuppressed = false;
+            SegmentRoutingAppConfig appConfig = srManager.cfgService
+                    .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
             if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+                isSuppressed = true;
                 suppressedPorts++;
-                continue;
             }
+
             Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
-            VlanId assignedVlan = (portSubnet == null)
+            VlanId assignedVlan = (portSubnet == null || isSuppressed)
                     ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                     : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
 

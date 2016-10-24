@@ -22,10 +22,8 @@ import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 
-import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -35,7 +33,6 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String VROUTER_MACS = "vRouterMacs";
-    private static final String VROUTER_ID = "vRouterId";
     private static final String SUPPRESS_SUBNET = "suppressSubnet";
     private static final String SUPPRESS_HOST_BY_PORT = "suppressHostByPort";
     // TODO We might want to move SUPPRESS_HOST_BY_PROVIDER to Component Config
@@ -44,9 +41,9 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET,
+        return hasOnlyFields(VROUTER_MACS, SUPPRESS_SUBNET,
                 SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER, MPLS_ECMP) &&
-                vRouterMacs() != null && vRouterId() != null &&
+                vRouterMacs() != null &&
                 suppressSubnet() != null && suppressHostByPort() != null &&
                 suppressHostByProvider() != null;
     }
@@ -120,39 +117,6 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
             });
 
             object.set(VROUTER_MACS, arrayNode);
-        }
-        return this;
-    }
-
-    /**
-     * Gets vRouter device ID.
-     *
-     * @return Optional vRouter device ID,
-     *         empty is not specified or null if not valid
-     */
-    public Optional<DeviceId> vRouterId() {
-        if (!object.has(VROUTER_ID)) {
-            return Optional.empty();
-        }
-
-        try {
-            return Optional.of(DeviceId.deviceId(object.path(VROUTER_ID).asText()));
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Sets vRouter device ID.
-     *
-     * @param vRouterId vRouter device ID
-     * @return this {@link SegmentRoutingAppConfig}
-     */
-    public SegmentRoutingAppConfig setVRouterId(DeviceId vRouterId) {
-        if (vRouterId == null) {
-            object.remove(VROUTER_ID);
-        } else {
-            object.put(VROUTER_ID, vRouterId.toString());
         }
         return this;
     }
@@ -294,7 +258,6 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     public String toString() {
         return toStringHelper(this)
                 .add("vRouterMacs", vRouterMacs())
-                .add("vRouterId", vRouterId())
                 .add("suppressSubnet", suppressSubnet())
                 .add("suppressHostByPort", suppressHostByPort())
                 .add("suppressHostByProvider", suppressHostByProvider())

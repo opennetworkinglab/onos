@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -331,15 +332,7 @@ public class DeviceConfiguration implements DeviceProperties {
                       srinfo.subnets.values());
 
             ImmutableSet.Builder<Ip4Prefix> builder = ImmutableSet.builder();
-            builder.addAll(srinfo.subnets.values());
-            SegmentRoutingAppConfig appConfig =
-                    srManager.cfgService.getConfig(srManager.appId, SegmentRoutingAppConfig.class);
-            if (appConfig != null) {
-                if (deviceId.equals(appConfig.vRouterId().orElse(null))) {
-                    builder.add(Ip4Prefix.valueOf("0.0.0.0/0"));
-                }
-            }
-            return builder.build();
+            return builder.addAll(srinfo.subnets.values()).build();
         }
         return null;
     }
@@ -452,6 +445,20 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
+     * Checks if the IP is in the subnet defined on given connect point.
+     *
+     * @param connectPoint Connect point
+     * @param ip The IP address to check
+     * @return True if the IP belongs to the subnet.
+     *         False if the IP does not belong to the subnet, or
+     *         there is no subnet configuration on given connect point.
+     */
+    public boolean inSameSubnet(ConnectPoint connectPoint, IpAddress ip) {
+        Ip4Prefix portSubnet = getPortSubnet(connectPoint.deviceId(), connectPoint.port());
+        return portSubnet != null && portSubnet.contains(ip);
+    }
+
+    /**
      * Returns the ports corresponding to the adjacency Sid given.
      *
      * @param deviceId device identification of the router
@@ -516,7 +523,7 @@ public class DeviceConfiguration implements DeviceProperties {
         SegmentRoutingAppConfig appConfig = srManager.cfgService
                 .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
         if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
-            log.info("Ignore suppressed port {}", connectPoint);
+            log.info("Interface configuration on port {} is ignored", connectPoint);
             return true;
         }
         return false;

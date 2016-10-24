@@ -108,7 +108,7 @@ public class AppConfigHandler {
      *
      * @param deviceId device ID
      */
-    public void initVRouters(DeviceId deviceId) {
+    public void init(DeviceId deviceId) {
         SegmentRoutingAppConfig config =
                 srManager.cfgService.getConfig(srManager.appId, SegmentRoutingAppConfig.class);
         populateVRouter(deviceId, getMacAddresses(config));

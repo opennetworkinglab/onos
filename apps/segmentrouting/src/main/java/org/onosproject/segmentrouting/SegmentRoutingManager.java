@@ -34,6 +34,9 @@ import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteListener;
+import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -106,7 +109,6 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.util.Tools.groupedThreads;
 
-
 /**
  * Segment routing manager.
  */
@@ -117,70 +119,75 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
+    private ComponentConfigService compCfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PacketService packetService;
+    CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
+    PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
+    DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
+    FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
+    MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    MulticastRouteService multicastRouteService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    TopologyService topologyService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    CordConfigService cordConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    RouteService routeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService compCfgService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MulticastRouteService multicastRouteService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CordConfigService cordConfigService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public InterfaceService interfaceService;
 
-    protected ArpHandler arpHandler = null;
-    protected IcmpHandler icmpHandler = null;
-    protected IpHandler ipHandler = null;
-    protected RoutingRulePopulator routingRulePopulator = null;
+    ArpHandler arpHandler = null;
+    IcmpHandler icmpHandler = null;
+    IpHandler ipHandler = null;
+    RoutingRulePopulator routingRulePopulator = null;
     public ApplicationId appId;
     protected DeviceConfiguration deviceConfiguration = null;
 
-    protected DefaultRoutingHandler defaultRoutingHandler = null;
+    DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
     private PolicyHandler policyHandler = null;
     private InternalPacketProcessor processor = null;
     private InternalLinkListener linkListener = null;
     private InternalDeviceListener deviceListener = null;
     private AppConfigHandler appCfgHandler = null;
-    protected XConnectHandler xConnectHandler = null;
+    XConnectHandler xConnectHandler = null;
     private McastHandler mcastHandler = null;
-    protected HostHandler hostHandler = null;
+    HostHandler hostHandler = null;
     private CordConfigHandler cordConfigHandler = null;
+    RouteHandler routeHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
     private final InternalMcastListener mcastListener = new InternalMcastListener();
     private final InternalCordConfigListener cordConfigListener = new InternalCordConfigListener();
+    private final InternalRouteEventListener routeListener = new InternalRouteEventListener();
 
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1, groupedThreads("SegmentRoutingManager", "event-%d", log));
@@ -329,6 +336,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 "purgeOnDisconnection", "true");
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
                 "purgeOnDisconnection", "true");
+        compCfgService.preSetProperty("org.onosproject.vrouter.Vrouter",
+                "fibInstalledEnabled", "false");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
@@ -338,6 +347,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         mcastHandler = new McastHandler(this);
         hostHandler = new HostHandler(this);
         cordConfigHandler = new CordConfigHandler(this);
+        routeHandler = new RouteHandler(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
@@ -360,6 +370,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId, true);
 
         cfgListener.configureNetwork();
+
+        routeService.addListener(routeListener);
 
         log.info("Started");
     }
@@ -386,6 +398,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
         cfgService.unregisterConfigFactory(appConfigFactory);
+        cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
 
         // Withdraw ARP packet-in
@@ -398,6 +411,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceService.removeListener(deviceListener);
         multicastRouteService.removeListener(mcastListener);
         cordConfigService.removeListener(cordConfigListener);
+        routeService.removeListener(routeListener);
 
         processor = null;
         linkListener = null;
@@ -868,7 +882,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler.populatePortAddressingRules(deviceId);
 
         if (mastershipService.isLocalMaster(deviceId)) {
-            hostHandler.readInitialHosts(deviceId);
+            hostHandler.init(deviceId);
             xConnectHandler.init(deviceId);
             cordConfigHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
@@ -876,7 +890,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
         }
 
-        appCfgHandler.initVRouters(deviceId);
+        appCfgHandler.init(deviceId);
+        routeHandler.init(deviceId);
     }
 
     private void processDeviceRemoved(Device device) {
@@ -1023,6 +1038,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     default:
                         break;
                 }
+                configureNetwork();
             } else if (event.configClass().equals(XConnectConfig.class)) {
                 checkState(xConnectHandler != null, "XConnectHandler is not initialized");
                 switch (event.type()) {
@@ -1108,6 +1124,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case ACCESS_DEVICE_ADDED:
                 case ACCESS_DEVICE_UPDATED:
                 case ACCESS_DEVICE_REMOVED:
+                default:
+                    break;
+            }
+        }
+    }
+
+    private class InternalRouteEventListener implements RouteListener {
+        @Override
+        public void event(RouteEvent event) {
+            switch (event.type()) {
+                case ROUTE_ADDED:
+                    routeHandler.processRouteAdded(event);
+                    break;
+                case ROUTE_UPDATED:
+                    routeHandler.processRouteUpdated(event);
+                    break;
+                case ROUTE_REMOVED:
+                    routeHandler.processRouteRemoved(event);
+                    break;
                 default:
                     break;
             }

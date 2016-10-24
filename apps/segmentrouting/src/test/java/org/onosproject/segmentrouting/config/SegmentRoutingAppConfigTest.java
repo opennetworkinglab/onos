@@ -31,7 +31,6 @@ import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 
 import java.io.InputStream;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
@@ -169,32 +168,6 @@ public class SegmentRoutingAppConfigTest {
         Set<MacAddress> vRouterMacs = config.vRouterMacs();
         assertThat(vRouterMacs.size(), is(1));
         assertTrue(vRouterMacs.contains(ROUTER_MAC_3));
-    }
-
-    /**
-     * Tests vRouterId getter.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testVRouterId() throws Exception {
-        Optional<DeviceId> vRouterId = config.vRouterId();
-        assertTrue(vRouterId.isPresent());
-        assertThat(vRouterId.get(), is(VROUTER_ID_1));
-    }
-
-    /**
-     * Tests vRouterId setter.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testSetVRouterId() throws Exception {
-        config.setVRouterId(VROUTER_ID_2);
-
-        Optional<DeviceId> vRouterId = config.vRouterId();
-        assertTrue(vRouterId.isPresent());
-        assertThat(vRouterId.get(), is(VROUTER_ID_2));
     }
 
     /**
