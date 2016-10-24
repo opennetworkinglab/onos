@@ -46,7 +46,8 @@ CORE = [
     '//protocols/isis/isisio:onos-protocols-isis-isisio',
 
     '//drivers/utilities:onos-drivers-utilities',
-    '//drivers/bti:onos-drivers-bti-oar',
+    #TODO ONOS-5554 excluding from the build
+    #'//drivers/bti:onos-drivers-bti-oar',
     '//drivers/ciena:onos-drivers-ciena-oar',
     '//drivers/cisco:onos-drivers-cisco-oar',
     '//drivers/default:onos-drivers-default-oar',

@@ -34,17 +34,4 @@
         <module>device</module>
         <module>app</module>
     </modules>
-
-    <repositories>
-        <repository>
-            <!-- TODO move over to release snmp-core when it becomes available. ONOS-3646 -->
-            <id>oss.sonatype.org-snapshot</id>
-            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
- 
-
 </project>
