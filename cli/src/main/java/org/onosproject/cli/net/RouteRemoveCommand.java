@@ -37,7 +37,7 @@ public class RouteRemoveCommand extends AbstractShellCommand {
             required = true)
     String prefixString = null;
 
-    @Argument(index = 1, name = "prefix", description = "Next hop IP address",
+    @Argument(index = 1, name = "nextHop", description = "IP address of the next hop",
             required = true)
     String nextHopString = null;
 
