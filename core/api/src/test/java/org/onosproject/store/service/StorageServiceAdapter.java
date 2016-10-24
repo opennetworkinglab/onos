@@ -30,6 +30,11 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public <V> DocumentTreeBuilder<V> documentTreeBuilder() {
+        return null;
+    }
+
+    @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
         return null;
     }

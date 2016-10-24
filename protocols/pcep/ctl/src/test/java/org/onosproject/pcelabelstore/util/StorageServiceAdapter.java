@@ -21,6 +21,7 @@ import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
+import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.Serializer;
@@ -40,6 +41,11 @@ public class StorageServiceAdapter implements StorageService {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
+        return null;
+    }
+
+    @Override
+    public <V> DocumentTreeBuilder<V> documentTreeBuilder() {
         return null;
     }
 

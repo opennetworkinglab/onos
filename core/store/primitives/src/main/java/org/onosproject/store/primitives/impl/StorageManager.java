@@ -50,6 +50,7 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentTreeMapBuilder;
 import org.onosproject.store.service.DistributedSetBuilder;
+import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.MapInfo;
@@ -130,6 +131,12 @@ public class StorageManager implements StorageService, StorageAdminService {
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
         return new DefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
+    }
+
+    @Override
+    public <V> DocumentTreeBuilder<V> documentTreeBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultDocumentTreeBuilder<V>(federatedPrimitiveCreator);
     }
 
     @Override

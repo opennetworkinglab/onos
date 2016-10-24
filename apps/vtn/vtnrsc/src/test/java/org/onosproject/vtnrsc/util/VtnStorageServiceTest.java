@@ -16,8 +16,9 @@
 package org.onosproject.vtnrsc.util;
 
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.StorageServiceAdapter;
 
-public class VtnStorageServiceTest extends VtnStorageServiceAdapter {
+public class VtnStorageServiceTest extends StorageServiceAdapter {
     @Override
     public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
         return VtnEventuallyConsistentMapTest.builder();
