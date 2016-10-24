@@ -55,7 +55,7 @@ public class YdtToJsonListener implements YdtListener {
     public void enterYdtNode(YdtContext ydtContext) {
         String name = ydtContext.getName();
 
-        if (!isBegin && name.equals(rootName)) {
+        if (!isBegin && name != null && name.equals(rootName)) {
             isBegin = true;
         }
         if (!isBegin) {
