@@ -1,20 +1,22 @@
 #!/usr/bin/python
-
-import sys
 import itertools
+import os
 import signal
-from time import sleep
+import sys
+from argparse import ArgumentParser
+from subprocess import call
 from threading import Thread
+from time import sleep
 
-from mininet.net import Mininet
-from mininet.log import setLogLevel
-from mininet.node import RemoteController, Node
-from mininet.log import info, debug, output, error
-from mininet.link import TCLink
-from mininet.cli import CLI
-
-# This is the program that each host will call
 import gratuitousArp
+from mininet.cli import CLI
+from mininet.examples.controlnet import MininetFacade
+from mininet.link import TCLink
+from mininet.log import info, output, error
+from mininet.log import setLogLevel
+from mininet.net import Mininet
+from mininet.node import RemoteController, Node
+
 ARP_PATH = gratuitousArp.__file__.replace('.pyc', '.py')
 
 class ONOSMininet( Mininet ):
@@ -23,9 +25,6 @@ class ONOSMininet( Mininet ):
         """Create Mininet object for ONOS.
         controllers: List of controller IP addresses
         gratuitousArp: Send an ARP from each host to aid controller's host discovery"""
-        # discarding provided controller (if any),
-        # using list of remote controller IPs instead
-        kwargs[ 'controller' ] = None
 
         # delay building for a second
         kwargs[ 'build' ] = False
@@ -34,12 +33,14 @@ class ONOSMininet( Mininet ):
 
         self.gratArp = gratuitousArp
 
-        info ( '*** Adding controllers\n' )
-        ctrl_count = 0
-        for controllerIP in controllers:
-            self.addController( 'c%d' % ctrl_count, RemoteController, ip=controllerIP )
-            info( '   c%d (%s)\n' % ( ctrl_count, controllerIP ) )
-            ctrl_count = ctrl_count + 1
+        # If a controller is not provided, use list of remote controller IPs instead.
+        if 'controller' not in kwargs or not kwargs['controller']:
+            info ( '*** Adding controllers\n' )
+            ctrl_count = 0
+            for controllerIP in controllers:
+                self.addController( 'c%d' % ctrl_count, RemoteController, ip=controllerIP )
+                info( '   c%d (%s)\n' % ( ctrl_count, controllerIP ) )
+                ctrl_count = ctrl_count + 1
 
         if self.topo and build:
             self.build()
@@ -153,6 +154,18 @@ def formatBw( bw ):
 class BackgroundException( Exception ):
     pass
 
+
+def get_mn(mn):
+    if isinstance(mn, ONOSMininet):
+        return mn
+    elif isinstance(mn, MininetFacade):
+        # There's more Mininet objects instantiated (e.g. one for the control network in onos.py).
+        for net in mn.nets:
+            if isinstance(net, ONOSMininet):
+                return net
+    return None
+
+
 def do_bgIperf( self, line ):
     args = line.split()
     if not args:
@@ -178,29 +191,70 @@ def do_bgIperf( self, line ):
             error( "node '%s' not in network\n" % arg )
         else:
             hosts.append( self.mn[ arg ] )
-    if "bgIperf" in dir(self.mn) and not err:
-        self.mn.bgIperf( hosts, seconds=seconds )
+    mn = get_mn( self.mn )
+    if "bgIperf" in dir( mn ) and not err:
+        mn.bgIperf( hosts, seconds=seconds )
+    else:
+        output('Background Iperf is not supported.\n')
 
 def do_gratuitousArp( self, line ):
     args = line.split()
-    if "gratuitousArp" in dir( self.mn ):
-        self.mn.gratuitousArp( args )
+    mn = get_mn(self.mn)
+    if "gratuitousArp" in dir( mn ):
+        mn.gratuitousArp( args )
     else:
         output( 'Gratuitous ARP is not supported.\n' )
 
 CLI.do_bgIperf = do_bgIperf
 CLI.do_gratuitousArp = do_gratuitousArp
 
-def run( topo, controllers=None, link=TCLink, autoSetMacs=True ):
-    if not controllers and len( sys.argv ) > 1:
-        controllers = sys.argv[ 1: ]
-    else:
-        print 'Need to provide a topology and list of controllers'
+def run( topo, controllers=None, link=TCLink, autoSetMacs=True):
+    if not topo:
+        print 'Need to provide a topology'
+        exit(1)
+
+    parser = ArgumentParser(description='ONOS Mininet ' + type(topo).__name__)
+    parser.add_argument('--cluster-size', help='Starts an ONOS cluster with the given number of instances',
+                        type=int, action='store', dest='clusterSize', required=False, default=0)
+    parser.add_argument('--netcfg', help='Relative path of the JSON file to be used with netcfg',
+                        type=str, action='store', dest='netcfgJson', required=False, default='')
+    parser.add_argument('ipAddrs', metavar='IP', type=str, nargs='*',
+                        help='List of controller IP addresses', default=[])
+    args = parser.parse_args()
+
+    if not controllers and len(args.ipAddrs) > 0:
+        controllers = args.ipAddrs
+
+    if not controllers and args.clusterSize < 1:
+        print 'Need to provide a list of controller IPs, or define a cluster size.'
         exit( 1 )
 
     setLogLevel( 'info' )
 
-    net = ONOSMininet( topo=topo, controllers=controllers, link=link, autoSetMacs=autoSetMacs )
+    if args.clusterSize > 0:
+        if 'ONOS_ROOT' not in os.environ:
+            print "Environment var $ONOS_ROOT not set (needed to import onos.py)"
+            exit( 1 )
+        sys.path.append(os.environ["ONOS_ROOT"] + "/tools/dev/mininet")
+        from onos import ONOSCluster, ONOSOVSSwitch, ONOSCLI
+        controller = ONOSCluster('c0', args.clusterSize)
+        onosAddr = controller.nodes()[0].IP()
+        net = ONOSMininet( topo=topo, controller=controller, switch=ONOSOVSSwitch, link=link,
+                           autoSetMacs=autoSetMacs )
+        cli = ONOSCLI
+    else:
+        onosAddr = controllers[0]
+        net = ONOSMininet(topo=topo, controllers=controllers, link=link, autoSetMacs=autoSetMacs)
+        cli = CLI
+
     net.start()
-    CLI( net )
+
+    if len(args.netcfgJson) > 0:
+        if not os.path.isfile(args.netcfgJson):
+            error('*** WARNING no such netcfg file: %s\n' % args.netcfgJson)
+        else:
+            info('*** Setting netcfg: %s\n' % args.netcfgJson)
+            call(("onos-netcfg", onosAddr, args.netcfgJson))
+
+    cli( net )
     net.stop()
