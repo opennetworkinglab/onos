@@ -119,7 +119,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String SPRITE_LIST_REQ = "spriteListRequest";
     private static final String SPRITE_DATA_REQ = "spriteDataRequest";
     private static final String TOPO_START = "topoStart";
-    private static final String TOPO_HEARTBEAT = "topoHeartbeat";
     private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
     private static final String TOPO_STOP = "topoStop";
 
@@ -210,7 +209,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new TopoStart(),
-                new TopoHeartbeat(),
                 new TopoSelectOverlay(),
                 new TopoStop(),
                 new ReqSummary(),
@@ -264,17 +262,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             sendAllLinks();
             sendAllHosts();
             sendTopoStartDone();
-        }
-    }
-
-    private final class TopoHeartbeat extends RequestHandler {
-        private TopoHeartbeat() {
-            super(TOPO_HEARTBEAT);
-        }
-
-        @Override
-        public void process(long sid, ObjectNode payload) {
-            // place holder for now
         }
     }
 
