@@ -11,13 +11,15 @@ set -e
 user=${1:-${WIKI_USER:-$USER}}
 remote=$user@wiki.onosproject.org
 
-scp $ONOS_ROOT/docs/target/onos-apidocs-$ONOS_VERSION.tar.gz $remote:/tmp
+docs=$(onos-buck build //docs:external --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
+
+scp $docs $remote:/tmp/onos-apidocs-$ONOS_VERSION.tar.gz
 ssh $remote "
     mkdir -p /var/www/api/$ONOS_VERSION
     cd /var/www/api/$ONOS_VERSION
-    tar zxf /tmp/onos-apidocs-$ONOS_VERSION.tar.gz
-    mv onos-apidocs-$ONOS_VERSION/* .
-    rm -rf onos-apidocs-$ONOS_VERSION
+    unzip /tmp/onos-apidocs-$ONOS_VERSION.tar.gz
+    #mv onos-apidocs-$ONOS_VERSION/* .
+    #rm -rf onos-apidocs-$ONOS_VERSION
 
     # bump /var/www/api/index.html
     sed -i -E 's#/[^/]+/#/$ONOS_VERSION/#g' /var/www/api/index.html
