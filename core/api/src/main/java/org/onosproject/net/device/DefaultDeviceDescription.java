@@ -206,7 +206,7 @@ public class DefaultDeviceDescription extends AbstractDescription
     }
 
     // default constructor for serialization
-    private DefaultDeviceDescription() {
+    DefaultDeviceDescription() {
         this.uri = null;
         this.type = null;
         this.manufacturer = null;
