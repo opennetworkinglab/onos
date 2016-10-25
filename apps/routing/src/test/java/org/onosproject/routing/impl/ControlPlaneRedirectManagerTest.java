@@ -18,6 +18,7 @@ package org.onosproject.routing.impl;
 import com.google.common.collect.Sets;
 import org.easymock.EasyMock;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
@@ -78,11 +79,16 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
-import static org.onosproject.routing.impl.ControlPlaneRedirectManager.*;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.ACL_PRIORITY;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.buildArpSelector;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.buildIPDstSelector;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.buildIPSrcSelector;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.buildNdpSelector;
 
 /**
  * UnitTests for ControlPlaneRedirectManager.
  */
+@Ignore("Too many dependencies on internal implementation, too hard to maintain")
 public class ControlPlaneRedirectManagerTest {
 
     private DeviceService deviceService;

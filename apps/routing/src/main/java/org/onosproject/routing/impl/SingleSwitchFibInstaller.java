@@ -19,6 +19,7 @@ package org.onosproject.routing.impl;
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,8 +39,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceEvent;
-import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.RouteEvent;
@@ -53,8 +52,6 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -77,10 +74,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Programs routes to a single OpenFlow switch.
@@ -134,7 +129,8 @@ public class SingleSwitchFibInstaller {
 
     private ConnectPoint controlPlaneConnectPoint;
 
-    private List<String> interfaces;
+    private RouterInterfaceManager interfaceManager;
+    private AsyncDeviceFetcher asyncDeviceFetcher;
 
     private ApplicationId coreAppId;
     private ApplicationId routerAppId;
@@ -149,8 +145,6 @@ public class SingleSwitchFibInstaller {
     // Mapping from next hop IP to next hop object containing group info
     private final Map<IpAddress, Integer> nextHops = Maps.newHashMap();
 
-    private final InternalDeviceListener deviceListener = new InternalDeviceListener();
-    private final InternalInterfaceListener internalInterfaceList = new InternalInterfaceListener();
     private final InternalRouteListener routeListener = new InternalRouteListener();
     private final InternalNetworkConfigListener configListener = new InternalNetworkConfigListener();
 
@@ -175,8 +169,8 @@ public class SingleSwitchFibInstaller {
         networkConfigRegistry.registerConfigFactory(mcastConfigFactory);
 
         networkConfigService.addListener(configListener);
-        deviceService.addListener(deviceListener);
-        interfaceService.addListener(internalInterfaceList);
+
+        asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
 
         updateConfig();
 
@@ -187,14 +181,22 @@ public class SingleSwitchFibInstaller {
         log.info("Started");
     }
 
+    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
+        return new RouterInterfaceManager(deviceId,
+                configuredInterfaces,
+                interfaceService,
+                intf -> processIntfFilter(true, intf),
+                intf -> processIntfFilter(false, intf)
+        );
+    }
+
     @Deactivate
     protected void deactivate() {
          // FIXME: This will also remove flows when an instance goes down.
          //        This is a temporary solution and should be addressed in CORD-710.
         cleanUp();
 
-        deviceService.removeListener(deviceListener);
-        interfaceService.removeListener(internalInterfaceList);
+        asyncDeviceFetcher.shutdown();
         networkConfigService.removeListener(configListener);
 
         componentConfigService.unregisterProperties(getClass(), false);
@@ -225,10 +227,8 @@ public class SingleSwitchFibInstaller {
             deleteRoute(new ResolvedRoute(routes.getKey(), null, null, null));
         }
 
-        //clean up the filtering objective for interfaces.
-        Set<Interface> intfs = getInterfaces();
-        if (!intfs.isEmpty()) {
-            processIntfFilters(false, intfs);
+        if (interfaceManager != null) {
+            interfaceManager.cleanup();
         }
     }
 
@@ -240,69 +240,22 @@ public class SingleSwitchFibInstaller {
             log.info("Router config not available");
             return;
         }
-        controlPlaneConnectPoint = routerConfig.getControlPlaneConnectPoint();
-        log.info("Control Plane Connect Point: {}", controlPlaneConnectPoint);
 
-        deviceId = routerConfig.getControlPlaneConnectPoint().deviceId();
-        log.info("Router device ID is {}", deviceId);
+        Set<String> interfaces = Sets.newHashSet(routerConfig.getInterfaces());
 
-        interfaces = routerConfig.getInterfaces();
-        log.info("Using interfaces: {}", interfaces.isEmpty() ? "all" : interfaces);
+        if (deviceId == null) {
+            controlPlaneConnectPoint = routerConfig.getControlPlaneConnectPoint();
+            log.info("Control Plane Connect Point: {}", controlPlaneConnectPoint);
 
-        routeService.addListener(routeListener);
-        updateDevice();
-    }
+            deviceId = routerConfig.getControlPlaneConnectPoint().deviceId();
+            log.info("Router device ID is {}", deviceId);
 
-    //remove the filtering objective for interfaces which are no longer part of vRouter config.
-    private void removeFilteringObjectives(NetworkConfigEvent event) {
-        RouterConfig prevRouterConfig = (RouterConfig) event.prevConfig().get();
-        List<String> prevInterfaces = prevRouterConfig.getInterfaces();
-
-        Set<Interface> previntfs = filterInterfaces(prevInterfaces);
-        //if previous interface list is empty it means filtering objectives are
-        //installed for all the interfaces.
-        if (previntfs.isEmpty() && !interfaces.isEmpty()) {
-            Set<Interface> allIntfs = interfaceService.getInterfaces();
-            for (Interface allIntf : allIntfs) {
-                if (!interfaces.contains(allIntf.name())) {
-                    processIntfFilter(false, allIntf);
-                }
-            }
-            return;
-        }
-
-        //remove the filtering objective for the interfaces which are not
-        //part of updated interfaces list.
-        for (Interface prevIntf : previntfs) {
-            if (!interfaces.contains(prevIntf.name())) {
-                processIntfFilter(false, prevIntf);
-            }
-        }
-    }
-
-    private void updateDevice() {
-        if (deviceId != null && deviceService.isAvailable(deviceId)) {
-            Set<Interface> intfs = getInterfaces();
-            processIntfFilters(true, intfs);
-        }
-    }
-
-    private Set<Interface> getInterfaces() {
-        Set<Interface> intfs;
-        if (interfaces == null || interfaces.isEmpty()) {
-            intfs = interfaceService.getInterfaces();
+            routeService.addListener(routeListener);
+            asyncDeviceFetcher.getDevice(deviceId).whenComplete((deviceId, e) ->
+                    interfaceManager = createRouter(deviceId, interfaces));
         } else {
-            // TODO need to fix by making interface names globally unique
-            intfs = filterInterfaces(interfaces);
+            interfaceManager.changeConfiguredInterfaces(interfaces);
         }
-        return intfs;
-    }
-
-    private Set<Interface> filterInterfaces(List<String> interfaces) {
-        return interfaceService.getInterfaces().stream()
-                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
-                .filter(intf -> interfaces.contains(intf.name()))
-                .collect(Collectors.toSet());
     }
 
     private void updateRoute(ResolvedRoute route) {
@@ -458,30 +411,8 @@ public class SingleSwitchFibInstaller {
         return group;
     }*/
 
-    private void processIntfFilters(boolean install, Set<Interface> intfs) {
-        log.info("Processing {} router interfaces", intfs.size());
-        for (Interface intf : intfs) {
-            if (!intf.connectPoint().deviceId().equals(deviceId)) {
-                // Ignore interfaces if they are not on the router switch
-                continue;
-            }
-
-            createFilteringObjective(install, intf);
-            createMcastFilteringObjective(install, intf);
-        }
-    }
-
     //process filtering objective for interface add/remove.
     private void processIntfFilter(boolean install, Interface intf) {
-
-        if (!intf.connectPoint().deviceId().equals(deviceId)) {
-            // Ignore interfaces if they are not on the router switch
-            return;
-        }
-        if (!interfaces.contains(intf.name()) && install) {
-            return;
-        }
-
         createFilteringObjective(install, intf);
         createMcastFilteringObjective(install, intf);
     }
@@ -578,36 +509,6 @@ public class SingleSwitchFibInstaller {
     }
 
     /**
-     * Listener for device events used to trigger driver setup when a device is
-     * (re)detected.
-     */
-    private class InternalDeviceListener implements DeviceListener {
-        @Override
-        public void event(DeviceEvent event) {
-            switch (event.type()) {
-            case DEVICE_ADDED:
-            case DEVICE_AVAILABILITY_CHANGED:
-                if (deviceService.isAvailable(event.subject().id())) {
-                    log.info("Device connected {}", event.subject().id());
-                    if (event.subject().id().equals(deviceId)) {
-                        updateDevice();
-                    }
-                }
-                break;
-            // TODO other cases
-            case DEVICE_UPDATED:
-            case DEVICE_REMOVED:
-            case DEVICE_SUSPENDED:
-            case PORT_ADDED:
-            case PORT_UPDATED:
-            case PORT_REMOVED:
-            default:
-                break;
-            }
-        }
-    }
-
-    /**
      * Listener for network config events.
      */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
@@ -618,9 +519,6 @@ public class SingleSwitchFibInstaller {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
                     updateConfig();
-                    if (event.prevConfig().isPresent()) {
-                        removeFilteringObjectives(event);
-                    }
                     break;
                 case CONFIG_REGISTERED:
                     break;
@@ -632,29 +530,6 @@ public class SingleSwitchFibInstaller {
                 default:
                     break;
                 }
-            }
-        }
-    }
-
-    private class InternalInterfaceListener implements InterfaceListener {
-        @Override
-        public void event(InterfaceEvent event) {
-            Interface intf = event.subject();
-            switch (event.type()) {
-            case INTERFACE_ADDED:
-                if (intf != null) {
-                    processIntfFilter(true, intf);
-                }
-                break;
-            case INTERFACE_UPDATED:
-                break;
-            case INTERFACE_REMOVED:
-                if (intf != null) {
-                    processIntfFilter(false, intf);
-                }
-                break;
-            default:
-                break;
             }
         }
     }
