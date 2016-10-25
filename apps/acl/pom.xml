@@ -26,11 +26,11 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
     </parent>
 
     <artifactId>onos-app-acl</artifactId>
-    <version>1.7.1-SNAPSHOT</version>
+    <version>1.7.1</version>
     <packaging>bundle</packaging>
 
     <description>ONOS ACL application</description>

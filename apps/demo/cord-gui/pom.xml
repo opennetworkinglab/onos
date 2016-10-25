@@ -27,7 +27,7 @@
     </parent>
 
     <artifactId>cord-gui</artifactId>
-    <version>1.7.1-SNAPSHOT</version>
+    <version>1.7.1</version>
     <packaging>war</packaging>
 
     <description>Demo CORD Subscriber Web GUI</description>

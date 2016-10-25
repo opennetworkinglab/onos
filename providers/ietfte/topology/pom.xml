@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-ietfte-providers</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>

@@ -21,12 +21,12 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
     </parent>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-app-vrouter</artifactId>
-    <version>1.7.1-SNAPSHOT</version>
+    <version>1.7.1</version>
     <packaging>bundle</packaging>
 
     <description>Virtual router (vRouter) application</description>

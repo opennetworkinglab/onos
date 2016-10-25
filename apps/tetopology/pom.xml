@@ -21,12 +21,12 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-app-tetopology</artifactId>
-    <version>1.7.1-SNAPSHOT</version>
+    <version>1.7.1</version>
     <packaging>bundle</packaging>
 
     <description>IETF TE Management</description>

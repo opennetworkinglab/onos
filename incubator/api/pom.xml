@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-incubator</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
     </parent>
 
     <artifactId>onos-incubator-api</artifactId>

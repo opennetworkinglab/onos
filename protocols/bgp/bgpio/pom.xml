@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-bgp</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
     </parent>
 
     <artifactId>onos-bgpio</artifactId>

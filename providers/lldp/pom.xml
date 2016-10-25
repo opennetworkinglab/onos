@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-providers</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
     </parent>
 
     <artifactId>onos-lldp-provider</artifactId>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-lldp-provider-common</artifactId>
-            <version>1.7.1-SNAPSHOT</version>
+            <version>1.7.1</version>
         </dependency>
 
         <dependency>

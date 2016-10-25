@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.7.1-SNAPSHOT</version>
+        <version>1.7.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -53,7 +53,7 @@
                     </sourceFileExcludes>
                     <excludePackageNames>@external-excludes</excludePackageNames>
                     <docfilessubdirs>true</docfilessubdirs>
-                    <doctitle>ONOS Java API (1.7.1-SNAPSHOT)</doctitle>
+                    <doctitle>ONOS Java API (1.7.1)</doctitle>
                     <groups>
                         <group>
                             <title>Network Model &amp; Services</title>
