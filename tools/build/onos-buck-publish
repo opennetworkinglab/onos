@@ -1,0 +1,26 @@
+#!/bin/bash
+
+rm /tmp/publish.sh
+
+set -e
+set -x
+
+onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> /tmp/publish.sh
+onos-buck query "filter('.*-oar', deps('//tools/package:onos-package', 1))" >> /tmp/publish.sh
+echo "//tools/package:onos-features" >> /tmp/publish.sh
+
+sed -i '' 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' /tmp/publish.sh
+
+cat /tmp/publish.sh
+
+bash /tmp/publish.sh
+
+rm /tmp/publish.sh
+
+onos-buck query "testsof(kind('onos_jar', deps('//tools/package:onos-package')))" >> /tmp/publish.sh
+sed -i '' 's#^#onos-buck publish --to-maven-central --sign #g' /tmp/publish.sh
+
+cat /tmp/publish.sh
+
+bash /tmp/publish.sh
+
