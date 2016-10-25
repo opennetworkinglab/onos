@@ -59,7 +59,7 @@ public class LayoutAddCommand extends AbstractShellCommand {
         Region region = regionId == null ? null : regionService.getRegion(regionId(regionId));
         UiTopoLayoutId pid = parentId == null ? UiTopoLayoutId.DEFAULT_ID : layoutId(parentId);
 
-        UiTopoLayout layout = new UiTopoLayout(layoutId(id), region, pid);
+        UiTopoLayout layout = new UiTopoLayout(layoutId(id)).region(region).parent(pid);
         service.addLayout(layout);
     }
 }

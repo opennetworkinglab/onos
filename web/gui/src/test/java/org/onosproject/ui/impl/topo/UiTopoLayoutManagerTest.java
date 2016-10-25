@@ -19,45 +19,62 @@ package org.onosproject.ui.impl.topo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
-import org.onosproject.net.region.RegionId;
-import org.onosproject.store.service.TestStorageService;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.onosproject.net.region.Region.Type.CAMPUS;
+import static org.onosproject.net.region.RegionId.regionId;
+import static org.onosproject.ui.model.topo.UiTopoLayoutId.layoutId;
 
 /**
  * Suite of unit tests for the UI topology layout manager.
  */
 public class UiTopoLayoutManagerTest {
 
+    private static class MockConfigService extends NetworkConfigRegistryAdapter {
+    }
+
+    private static Region region(String id, String name, Region.Type type) {
+        return new DefaultRegion(regionId(id), name, type, null);
+    }
+
+    private static UiTopoLayout layout(String id, Region region, String parentId) {
+        UiTopoLayoutId parent = parentId == null ? null : layoutId(parentId);
+        UiTopoLayout layout = new UiTopoLayout(layoutId(id));
+        // TODO: set region and parent
+        return layout;
+    }
+
+    private static final Region R1 = region("r1", "R1", CAMPUS);
+    private static final Region R2 = region("r2", "R2", CAMPUS);
+
+    private static final UiTopoLayout L1 = layout("l1", R1, null);
+    private static final UiTopoLayout L2 = layout("l2", R2, null);
+
+
     private UiTopoLayoutService svc;
     private UiTopoLayoutManager mgr;
 
-    private static final UiTopoLayout L1 =
-            new UiTopoLayout(UiTopoLayoutId.layoutId("l1"),
-                             new DefaultRegion(RegionId.regionId("r1"), "R1",
-                                               Region.Type.CAMPUS, null), null);
-    private static final UiTopoLayout L2 =
-            new UiTopoLayout(UiTopoLayoutId.layoutId("l2"),
-                             new DefaultRegion(RegionId.regionId("r2"), "R2",
-                                               Region.Type.CAMPUS, null), null);
 
     @Before
     public void setUp() {
         mgr = new UiTopoLayoutManager();
         svc = mgr;
-        mgr.storageService = new TestStorageService();
+
+        mgr.cfgService = new MockConfigService();
         mgr.activate();
     }
 
     @After
     public void tearDown() {
         mgr.deactivate();
-        mgr.storageService = null;
+        mgr.cfgService = null;
     }
 
     @Test

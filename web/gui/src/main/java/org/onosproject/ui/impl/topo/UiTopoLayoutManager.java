@@ -23,12 +23,11 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicUiTopoLayoutConfig;
 import org.onosproject.net.region.RegionId;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
@@ -37,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -54,38 +54,34 @@ import static org.onosproject.ui.model.topo.UiTopoLayoutId.DEFAULT_ID;
 @Service
 public class UiTopoLayoutManager implements UiTopoLayoutService {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     private static final String ID_NULL = "Layout ID cannot be null";
     private static final String LAYOUT_NULL = "Layout cannot be null";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ConsistentMap<UiTopoLayoutId, UiTopoLayout> layouts;
-    private Map<UiTopoLayoutId, UiTopoLayout> layoutMap;
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
+    private final Map<UiTopoLayoutId, UiTopoLayout> layoutMap = new HashMap<>();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry cfgService;
+
 
     @Activate
     public void activate() {
-        KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
-                .register(KryoNamespaces.API)
-                .register(UiTopoLayout.class);
-
-        layouts = storageService.<UiTopoLayoutId, UiTopoLayout>consistentMapBuilder()
-                .withSerializer(Serializer.using(kryoBuilder.build()))
-                .withName("onos-topo-layouts")
-                .withRelaxedReadConsistency()
-                .build();
-        layoutMap = layouts.asJavaMap();
 
         // Create and add the default layout, if needed.
-        layoutMap.computeIfAbsent(DEFAULT_ID, k -> new UiTopoLayout(k, null, null));
+        layoutMap.computeIfAbsent(DEFAULT_ID, UiTopoLayout::new);
+
+        cfgService.addListener(cfgListener);
+        cfgListener.initAllConfigs();
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        cfgService.removeListener(cfgListener);
+
         log.info("Stopped");
     }
 
@@ -103,7 +99,7 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     @Override
     public boolean addLayout(UiTopoLayout layout) {
         checkNotNull(layout, LAYOUT_NULL);
-        return layouts.put(layout.id(), layout) == null;
+        return layoutMap.put(layout.id(), layout) == null;
     }
 
     @Override
@@ -153,7 +149,51 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     @Override
     public boolean removeLayout(UiTopoLayout layout) {
         checkNotNull(layout, LAYOUT_NULL);
-        return layouts.remove(layout.id()) != null;
+        return layoutMap.remove(layout.id()) != null;
     }
 
+    /*
+     * Listens for changes to layout configs, updating instances as necessary
+     */
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        // look up the current config by layout ID and apply it
+        private void updateLayoutConfig(UiTopoLayoutId id) {
+            BasicUiTopoLayoutConfig cfg =
+                    cfgService.getConfig(id, BasicUiTopoLayoutConfig.class);
+
+            log.info("Updating Layout via config... {}: {}", id, cfg);
+
+            UiTopoLayout layout = layoutMap.get(id);
+
+            // NOTE: if a value is null, then that null-ness should be set
+            // TODO: add setters on UiTopoLayout and implement...
+//            layout
+//              .region(cfg.region())
+//              .parent(cfg.parent())
+//              .geomap(cfg.geomap())
+//              .sprites(cfg.sprites())
+//              .scale(cfg.scale())
+//              .offsetX(cfg.offsetX())
+//              .offsetY(cfg.offsetY());
+        }
+
+        private void initAllConfigs() {
+            log.info("Initializing layout configurations...");
+            layoutMap.keySet().forEach(this::updateLayoutConfig);
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            UiTopoLayoutId id = (UiTopoLayoutId) event.subject();
+            updateLayoutConfig(id);
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(BasicUiTopoLayoutConfig.class);
+        }
+    }
 }

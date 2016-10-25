@@ -132,12 +132,12 @@ public class BasicUiTopoLayoutConfig extends Config<UiTopoLayoutId> {
     /**
      * Sets the name of the geomap (topojson file) to use for this layout.
      *
-     * @param geomap geomap name
+     * @param geomap geomap name; null to clear
      * @return config for UI topology layout
      * @throws InvalidFieldException if the sprites field is already set
      */
     public BasicUiTopoLayoutConfig geomap(String geomap) {
-        if (hasField(SPRITES)) {
+        if (geomap != null && hasField(SPRITES)) {
             throw new InvalidFieldException(GEOMAP, E_SPRITES_ALREADY_SET);
         }
         setOrClear(GEOMAP, geomap);
@@ -156,12 +156,12 @@ public class BasicUiTopoLayoutConfig extends Config<UiTopoLayoutId> {
     /**
      * Sets the name of the sprites definition to use for this layout.
      *
-     * @param sprites sprites definition name
+     * @param sprites sprites definition name; null to clear
      * @return config for UI topology layout
      * @throws InvalidFieldException if the geomap field is already set
      */
     public BasicUiTopoLayoutConfig sprites(String sprites) {
-        if (hasField(GEOMAP)) {
+        if (sprites != null && hasField(GEOMAP)) {
             throw new InvalidFieldException(GEOMAP, E_GEOMAP_ALREADY_SET);
         }
         setOrClear(SPRITES, sprites);
