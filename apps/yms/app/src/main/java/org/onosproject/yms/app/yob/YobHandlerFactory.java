@@ -17,6 +17,7 @@
 package org.onosproject.yms.app.yob;
 
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
+import org.onosproject.yms.app.yob.exception.YobException;
 import org.onosproject.yms.ydt.YdtType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.onosproject.yms.app.yob.YobConstants.YDT_TYPE_IS_NOT_SUPPORT;
+import static org.onosproject.yms.app.yob.YobConstants.E_YDT_TYPE_IS_NOT_SUPPORT;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_LEAF_VALUE_NODE;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
 import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE;
@@ -37,65 +38,56 @@ import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_NODE;
 final class YobHandlerFactory {
 
     private static final Logger log =
-            LoggerFactory.getLogger(YobSingleInstanceLeafHandler.class);
-
-    /**
-     * Creates single instance node handler.
-     */
-    private static YobSingleInstanceHandler singleInstanceNode =
-            new YobSingleInstanceHandler();
-
-    /**
-     * Creates multi instance node handler.
-     */
-    private static YobMultiInstanceHandler multiInstanceNode =
-            new YobMultiInstanceHandler();
-
-    /**
-     * Creates single instance leaf node handler.
-     */
-    private static YobSingleInstanceLeafHandler singleInstanceLeaf =
-            new YobSingleInstanceLeafHandler();
-
-    /**
-     * Creates multi instance leaf node handler.
-     */
-    private static YobMultiInstanceLeafHandler multiInstanceLeaf =
-            new YobMultiInstanceLeafHandler();
+            LoggerFactory.getLogger(YobHandlerFactory.class);
 
     /**
      * Map of YANG object builder handler.
      */
-    private static Map<YdtType, YobHandler> yobHandlerHashMap =
-            new HashMap<>();
+    private static final Map<YdtType, YobHandler> HANDLER_MAP = new HashMap<>();
 
     /**
      * Create instance of YobHandlerFactory.
      */
-    YobHandlerFactory() {
-        yobHandlerHashMap.put(SINGLE_INSTANCE_NODE, singleInstanceNode);
-        yobHandlerHashMap.put(MULTI_INSTANCE_NODE, multiInstanceNode);
-        yobHandlerHashMap.put(SINGLE_INSTANCE_LEAF_VALUE_NODE,
-                              singleInstanceLeaf);
-        yobHandlerHashMap.put(MULTI_INSTANCE_LEAF_VALUE_NODE,
-                              multiInstanceLeaf);
+    private YobHandlerFactory() {
+        HANDLER_MAP.put(SINGLE_INSTANCE_NODE, new YobSingleInstanceHandler());
+        HANDLER_MAP.put(MULTI_INSTANCE_NODE, new YobMultiInstanceHandler());
+        HANDLER_MAP.put(SINGLE_INSTANCE_LEAF_VALUE_NODE,
+                        new YobSingleInstanceLeafHandler());
+        HANDLER_MAP.put(MULTI_INSTANCE_LEAF_VALUE_NODE,
+                        new YobMultiInstanceLeafHandler());
     }
 
     /**
      * Returns the corresponding YOB handler for current context.
      *
-     * @param ydtExtendedContext ydtExtendedContext is used to get application
-     *                           related information maintained in YDT
-     * @return YANG object builder node
+     * @param currentNode current YDT node for which object needs to be created
+     * @return handler to create the object
+     * @throws YobException if the YDT node type is not supported in YOB
      */
-    YobHandler getYobHandlerForContext(
-            YdtExtendedContext ydtExtendedContext) {
-        YobHandler yobHandler =
-                yobHandlerHashMap.get(ydtExtendedContext.getYdtType());
+    YobHandler getYobHandlerForContext(YdtExtendedContext currentNode) {
+        YobHandler yobHandler = HANDLER_MAP.get(currentNode.getYdtType());
         if (yobHandler == null) {
-            log.error(YDT_TYPE_IS_NOT_SUPPORT);
-            return null;
+            log.error(E_YDT_TYPE_IS_NOT_SUPPORT);
+            throw new YobException(E_YDT_TYPE_IS_NOT_SUPPORT);
         }
         return yobHandler;
+    }
+
+    /**
+     * Returns the YANG object builder factory instance.
+     *
+     * @return YANG object builder factory instance
+     */
+    public static YobHandlerFactory instance() {
+        return LazyHolder.INSTANCE;
+    }
+
+    /*
+     * Bill Pugh Singleton pattern. INSTANCE won't be instantiated until the
+     * LazyHolder class is loaded via a call to the instance() method below.
+     */
+    private static class LazyHolder {
+        private static final YobHandlerFactory INSTANCE =
+                new YobHandlerFactory();
     }
 }

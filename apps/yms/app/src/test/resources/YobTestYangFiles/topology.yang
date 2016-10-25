@@ -1,0 +1,74 @@
+
+module yms-topology {
+    yang-version 1;
+    namespace urn:topo;
+    prefix topo;
+    revision 2014-01-01 {
+        description "desc";
+        reference "ref";
+    }
+    list node {
+        key "node-id";
+        leaf node-id{
+           type string;
+        }
+        leaf-list node-prop{
+           type string;
+        }
+        container termination-points{
+            leaf number-of-tp {
+                type int16;
+            }
+            list termination-point {
+                key "tp-id";
+                leaf tp-id {
+                    type string;
+                }
+            }
+        }
+        choice choice1{
+           case case1a{
+               leaf leaf1a1{
+                   type string;
+               }
+               leaf leaf1a2{
+                   type string;
+               }
+           }
+           case case1b{
+               choice choice1b{
+                   case case1bi{
+                       leaf leaf1bia{
+                           type string;
+                       }
+                       leaf leaf1bib{
+                           type string;
+                       }
+                   }
+                   case case1bii{
+                       leaf leaf1biia{
+                           type string;
+                       }
+                       leaf leaf1biib{
+                           type string;
+                       }
+                   }
+               }
+           }
+        }
+    }
+
+    rpc set-node-limit {
+        input {
+            leaf node-limit {
+                type int16;
+            }
+        }
+    }
+
+    notification node-limit-reached {
+        leaf node-limit {
+            type int16;
+        }
+    }
+}

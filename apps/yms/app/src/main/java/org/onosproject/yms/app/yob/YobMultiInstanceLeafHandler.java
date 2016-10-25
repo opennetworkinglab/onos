@@ -22,6 +22,7 @@ import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.javadatamodel.JavaQualifiedTypeInfoContainer;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
+import org.onosproject.yms.app.yob.exception.YobException;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,8 @@ import java.util.Set;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yms.app.ydt.AppType.YOB;
 import static org.onosproject.yms.app.yob.YobConstants.ADD_TO;
-import static org.onosproject.yms.app.yob.YobConstants.FAIL_TO_INVOKE_METHOD;
+import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_INVOKE_METHOD;
+import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_INVOKE_METHOD;
 
 /**
  * Represents a multi instance leaf node handler in YANG object builder.
@@ -47,43 +49,50 @@ class YobMultiInstanceLeafHandler
             LoggerFactory.getLogger(YobMultiInstanceLeafHandler.class);
 
     @Override
-    public void createYangBuilderObject(YdtExtendedContext curYdtNode,
-                                        YdtExtendedContext rootYdtNode,
-                                        YangSchemaRegistry registry) {
+    public void createBuilder(YdtExtendedContext curNode,
+                              YdtExtendedContext rootNode,
+                              YangSchemaRegistry registry) {
         // For multi instance leaf no need to create an object.
     }
 
     @Override
-    public void buildObjectFromBuilder(YdtExtendedContext ydtNode,
-                                       YdtExtendedContext ydtRootNode,
-                                       YangSchemaRegistry schemaRegistry) {
+    public void buildObject(YdtExtendedContext ydtNode,
+                            YdtExtendedContext ydtRootNode,
+                            YangSchemaRegistry schemaRegistry) {
         // For multi instance leaf no need to build object.
     }
 
+    /**
+     * Set the leaf list values in the YANG object.
+     *
+     * @param leafListNode   leaf list YDT node
+     * @param schemaRegistry YANG schema registry
+     * @throws YobException if failed to invoke the leaf list's setter
+     */
     @Override
-    public void setObjectInParent(YdtExtendedContext leafListYdtNode,
-                                  YangSchemaRegistry schemaRegistry) {
+    public void setInParent(YdtExtendedContext leafListNode,
+                            YangSchemaRegistry schemaRegistry) {
         Class<?> parentBuilderClass = null;
-        YangSchemaNode yangSchemaNode = leafListYdtNode.getYangSchemaNode();
+        YangSchemaNode yangSchemaNode = leafListNode.getYangSchemaNode();
         YdtExtendedContext parentYdtNode =
-                (YdtExtendedContext) leafListYdtNode.getParent();
+                (YdtExtendedContext) leafListNode.getParent();
         YobWorkBench parentYobWorkBench =
                 (YobWorkBench) parentYdtNode.getAppInfo(YOB);
-        Set<String> valueSet = leafListYdtNode.getValueSet();
+        Set<String> valueSet = leafListNode.getValueSet();
 
         for (String value : valueSet) {
             try {
                 String setterInParent = yangSchemaNode.getJavaAttributeName();
-                Object parentBuilderObject = parentYobWorkBench
-                        .getParentBuilder(leafListYdtNode, schemaRegistry);
-                parentBuilderClass = parentBuilderObject.getClass();
+                Object builderObject = parentYobWorkBench
+                        .getParentBuilder(leafListNode, schemaRegistry);
+                parentBuilderClass = builderObject.getClass();
                 Field leafName = parentBuilderClass
                         .getDeclaredField(setterInParent);
                 ParameterizedType genericListType =
                         (ParameterizedType) leafName.getGenericType();
                 Class<?> genericListClass =
                         (Class<?>) genericListType.getActualTypeArguments()[0];
-                Method parentSetterMethod =
+                Method setterMethod =
                         parentBuilderClass.getDeclaredMethod(
                                 ADD_TO + getCapitalCase(setterInParent),
                                 genericListClass);
@@ -91,11 +100,14 @@ class YobMultiInstanceLeafHandler
                         (JavaQualifiedTypeInfoContainer) yangSchemaNode;
                 YangType<?> yangType =
                         ((YangLeafList) javaQualifiedType).getDataType();
-                setDataFromStringValue(yangType, value, parentSetterMethod,
-                                       parentBuilderObject, leafListYdtNode);
+                YobUtils.setDataFromStringValue(yangType, value, setterMethod,
+                                                builderObject, leafListNode);
             } catch (NoSuchMethodException | InvocationTargetException
                     | IllegalAccessException | NoSuchFieldException e) {
-                log.error(FAIL_TO_INVOKE_METHOD + parentBuilderClass.getName());
+                log.error(L_FAIL_TO_INVOKE_METHOD,
+                          parentBuilderClass.getName());
+                throw new YobException(E_FAIL_TO_INVOKE_METHOD +
+                                               parentBuilderClass.getName());
             }
         }
     }

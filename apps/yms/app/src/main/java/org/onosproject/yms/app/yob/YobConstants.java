@@ -20,6 +20,7 @@ package org.onosproject.yms.app.yob;
  * Represents common constant utility for YANG object builder.
  */
 final class YobConstants {
+
     private YobConstants() {
     }
 
@@ -33,35 +34,57 @@ final class YobConstants {
     static final String OP_TYPE = "OnosYangNodeOperationType";
     static final String OF = "of";
     static final String PERIOD = ".";
-    static final String NO_HANDLE_FOR_YDT = "No handler for YDT node";
-    static final String HAS_NO_CHILD = " does not have child ";
-    static final String SET_OP_TYPE_FAIL = "Failed to set Operation Type";
-    static final String FAIL_TO_BUILD = "Failed to build the object ";
-    static final String FAIL_TO_GET_FIELD = "Failed to get field for class ";
-    static final String FAIL_TO_GET_METHOD = "Failed to get method for class ";
-    static final String FAIL_TO_LOAD_CLASS = "Failed to load class for class ";
-    static final String YDT_TYPE_IS_NOT_SUPPORT =
+    static final String ADD_AUGMENT_METHOD = "addYangAugmentedInfo";
+
+    //Error strings
+    static final String E_NO_HANDLE_FOR_YDT = "No handler for YDT node";
+    static final String E_HAS_NO_CHILD = " does not have child ";
+    static final String E_SET_OP_TYPE_FAIL = "Failed to set Operation Type";
+    static final String E_FAIL_TO_BUILD = "Failed to build the object: ";
+    static final String L_FAIL_TO_BUILD = "Failed to build the object: {}";
+    static final String E_FAIL_TO_GET_FIELD = "Failed to get field for class: ";
+    static final String L_FAIL_TO_GET_FIELD =
+            "Failed to get field for class: {}";
+    static final String E_FAIL_TO_GET_METHOD =
+            "Failed to get method for class: ";
+    static final String L_FAIL_TO_GET_METHOD =
+            "Failed to get method for class: {}";
+    static final String E_FAIL_TO_LOAD_CLASS =
+            "Failed to load class for class: ";
+    static final String L_FAIL_TO_LOAD_CLASS =
+            "Failed to load class for class: {}";
+    static final String E_YDT_TYPE_IS_NOT_SUPPORT =
             "Given YDT type is not supported.";
-    static final String FAIL_TO_CREATE_OBJ =
-            "Failed to create an object for class ";
-    static final String REFLECTION_FAIL_TO_CREATE_OBJ =
-            "Reflection failed to create an object for class ";
-    static final String FAIL_TO_LOAD_CONSTRUCTOR =
-            "Failed to load constructor for class ";
-    static final String FAIL_TO_INVOKE_METHOD =
-            "Failed to invoke method for class ";
-    static final String DATA_TYPE_NOT_SUPPORT =
+    static final String E_FAIL_TO_CREATE_OBJ =
+            "Failed to create an object for class: ";
+    static final String L_FAIL_TO_CREATE_OBJ =
+            "Failed to create an object for class: {}";
+    static final String E_REFLECTION_FAIL_TO_CREATE_OBJ =
+            "Reflection failed to create an object for class: ";
+    static final String L_REFLECTION_FAIL_TO_CREATE_OBJ =
+            "Reflection failed to create an object for class: {}";
+    static final String E_FAIL_TO_LOAD_CONSTRUCTOR =
+            "Failed to load constructor for class: {}";
+    static final String E_FAIL_TO_INVOKE_METHOD =
+            "Failed to invoke method for class: ";
+    static final String L_FAIL_TO_INVOKE_METHOD =
+            "Failed to invoke method for class: {}";
+    static final String E_DATA_TYPE_NOT_SUPPORT =
             "Given data type is not supported.";
-    static final String OBJ_IS_ALREADY_BUILT_NOT_FETCH =
+    static final String E_OBJ_IS_ALREADY_BUILT_NOT_FETCH =
             "Object is already built, cannot fetch builder";
-    static final String BUILDER_IS_NOT_SET =
+    static final String E_BUILDER_IS_NOT_SET =
             "Builder is not yet set, cannot fetch it";
-    static final String BUILT_OBJ_IS_NOT_SET =
+    static final String E_BUILT_OBJ_IS_NOT_SET =
             "Built object is not set";
-    static final String OBJ_IS_NOT_SET_NOT_FETCH =
+    static final String E_OBJ_IS_NOT_SET_NOT_FETCH =
             "Builder is not yet set, cannot fetch it";
-    static final String OBJ_IS_ALREADY_BUILT_NOT_BUILD =
+    static final String E_OBJ_IS_ALREADY_BUILT_NOT_BUILD =
             "Object is already built, cannot build again";
-    static final String OBJ_BUILDING_WITHOUT_BUILDER =
+    static final String E_OBJ_BUILDING_WITHOUT_BUILDER =
             "Object building without builder";
+    static final String E_MISSING_DATA_IN_NODE =
+            "YANG data tree is missing the data required for YOB";
+    static final String E_INVALID_DATA_TREE =
+            "YANG tree does not have a application root";
 }

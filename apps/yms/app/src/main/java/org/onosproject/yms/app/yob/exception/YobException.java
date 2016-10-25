@@ -19,7 +19,7 @@ package org.onosproject.yms.app.yob.exception;
 /**
  * Represents base class for exceptions in YOB operations.
  */
-public class YobExceptions
+public class YobException
         extends RuntimeException {
 
     private static final long serialVersionUID = 20160211L;
@@ -29,7 +29,7 @@ public class YobExceptions
      *
      * @param message the detail of exception in string
      */
-    public YobExceptions(String message) {
+    public YobException(String message) {
         super(message);
     }
 }

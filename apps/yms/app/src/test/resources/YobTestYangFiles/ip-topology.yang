@@ -1,0 +1,29 @@
+
+module yms-ip-topology {
+    yang-version 1;
+    namespace urn:ip:topo;
+    prefix ip-topo;
+    import yms-topology {
+       prefix topo;
+       revision-date "2014-01-01";
+    }
+    revision 2014-01-01 {
+        description "desc";
+        reference "ref";
+    }
+
+    augment /topo:node{
+        leaf router-id {
+            type string;
+        }
+        leaf router-ip {
+            type string;
+        }
+    }
+
+    augment /topo:node/topo:termination-points/topo:termination-point {
+        leaf ip-address {
+            type string;
+        }
+    }
+}
