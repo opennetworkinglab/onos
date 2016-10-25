@@ -14,11 +14,11 @@ from uploadToS3 import uploadFile
 nightlyTag = 'NIGHTLY'
 bitsPath = '/tmp'
 
-prefix = 'onos-(\d+\.\d+\.\d+)'
+prefix = 'onos-(?:test-)?(\d+\.\d+\.\d+)'
 buildNum = '\.?([\w-]*)'
 ext = '\.(?:tar\.gz|zip|deb|noarch\.rpm)'
 
-def findBits( path ):
+def findBits( path, target_version=None ):
     for file in listdir( path ):
         filePath = join( path, file )
         if not isfile( filePath ):
@@ -28,6 +28,9 @@ def findBits( path ):
         match = re.match( regex, file )
         if match:
             version = match.group(1)
+            if target_version is not None and version != target_version:
+                print 'Skipping %s...' % filePath
+                continue
             build = match.group(2)
             if build:
                 if 'NIGHTLY' in build or 'rc' in build:
@@ -37,4 +40,7 @@ def findBits( path ):
                 uploadFile(filePath, dest='release/')
 
 if __name__ == '__main__':
-    findBits( '/tmp' )
+    import sys
+
+    version = sys.argv[1] if len(sys.argv) >= 2 else None
+    findBits( '/tmp', version )

@@ -47,3 +47,13 @@ java_library(
     visibility = ['PUBLIC'],
     deps = INSTALL
 )
+
+tar_file(
+    name = 'onos-test',
+    root = 'onos-test-%s' % ONOS_VERSION,
+    srcs = glob(['tools/test/**/*']) + [
+               'tools/dev/bash_profile',
+               'tools/dev/bin/onos-app',
+               'tools/build/envDefaults'
+           ],
+)

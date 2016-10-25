@@ -3,6 +3,9 @@
 # Packages ONOS test facilities into onos-test.tar.gz
 # -----------------------------------------------------------------------------
 
+echo "Use 'onos-buck build //:onos-test' instead"
+exit 1
+
 set -e
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
