@@ -9,6 +9,20 @@ set -e
 . $ONOS_ROOT/tools/build/envDefaults
 
 #FIXME need to export s3Creds
-#TODO we could verify that ONOS_VERSION is set, and only upload that version
 
-onosUploadBits.py
+# Stage the onos tar in /tmp
+rm -f $ONOS_TAR
+cp $(onos-buck build onos --show-output | tail -1 | cut -d\  -f2) $ONOS_TAR
+
+# Repackage the onos tar
+pushd /tmp/
+tar xf onos-$ONOS_VERSION.tar.gz
+rm -f onos-$ONOS_VERSION.zip
+zip -r onos-$ONOS_VERSION.zip onos-$ONOS_VERSION/
+popd
+
+# Stage the test bits tar in /tmp
+rm -f $ONOS_TEST_TAR
+cp $(onos-buck build //:onos-test --show-output | tail -1 | cut -d\  -f2) $ONOS_TEST_TAR
+
+onosUploadBits.py $ONOS_VERSION

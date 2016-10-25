@@ -26,10 +26,14 @@ export ONOS_VERSION=$NEW_VERSION
 onos-validate-change-version
 
 # Build ONOS & deploy to staging repo using the release profile.
-onos-build && onos-package --tar --zip && mvn -Prelease clean deploy -DskipTests
+onos-buck build onos
+time onos-buck-publish
 
 # Build ONOS docs
-onos-build-docs
+onos-buck build //docs:internal //docs:external
+
+# Package test tar.gz
+onos-buck build //:onos-test
 
 # Build ONOS archetypes & deploy to staging repo using the release profile.
 # Note that release of the staging repository is a separate manual step.

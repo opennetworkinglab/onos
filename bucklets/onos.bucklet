@@ -266,3 +266,25 @@ def osgi_jar_with_tests(
       srcs = test_srcs,
       jar_target = ':' + name + '-tests',
   )
+
+def tar_file(
+   name,
+   srcs,
+   root = None,
+   out = None,
+   visibility = [ 'PUBLIC' ],
+   ):
+
+   cmd = ( 'mkdir -p $TMP/%(root_dir)s && '
+           'cp -r $SRCDIR/ $TMP/%(root_dir)s && '
+           'tar -C $TMP -zcf $OUT %(root_dir)s' ) % {
+           'root_dir': root if root is not None else name
+         }
+
+   genrule(
+       name = name,
+       srcs = srcs,
+       bash = cmd,
+       out = out if out is not None else ( root if root is not None else name ) + '.tar.gz',
+       visibility = visibility,
+   )
