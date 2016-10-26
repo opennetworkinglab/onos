@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
   echo "ONOS archive is not a valid tar file" && exit 1
 fi
 
-tar tzf ${ONOS_TAR} | grep -q onos-${ONOS_VERSION}.*/VERSION
+tar tzf ${ONOS_TAR} | grep -q onos-${ONOS_POM_VERSION}.*/VERSION
 if [ $? -ne 0 ]; then
   echo "ONOS archive does not contain the proper version file" && exit 1
 fi

@@ -3,6 +3,16 @@
 # Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
 # -----------------------------------------------------------------------------
 
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+cd $ONOS_ROOT && onos-buck build onos --show-output && onos-check-bits
+exit $?
+
+#=============================================================================
+
+# FIXME: This needs to be refactored using Buck; for now it is disabled
+# FIXME: .deb, .rpm, .zip need to be re-implemented
+# FIXME: SM-ONOS packaging flavour needs to be re-implemented
+
 set -e
 
 # Build the staging directory used to produce the packages

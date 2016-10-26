@@ -45,25 +45,27 @@ function o {
         egrep "${1:-$ONOS_ROOT}" | head -n 1)
 }
 
-# Short-hand for 'mvn clean install' for us lazy folk
-alias mci='mvn clean install'
-alias mcis='mvn clean install -DskipTests -Dcheckstyle.skip'
-alias mis='mvn install -DskipTests -Dcheckstyle.skip'
+# Buck (if "buck" is not on the PATH)
+[ -z "$(which buck)" ] && alias buck="onos-buck"
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
-alias obf='ob -DskipTests -Dcheckstyle.skip'
-alias obi='onos-build -Dmaven.test.failure.ignore=true'
-alias obs='onos-build-selective'
+alias obf='(cd $ONOS_ROOT && buck build onos)'
 alias obd='onos-build-docs'
 alias op='onos-package'
-alias ok='onos-karaf'
 alias ot='onos-test'
+
+alias deprecatedAlias='echo "This alias has been deprecated."'
+alias obi=deprecatedAlias
+alias obs=deprecatedAlias
+
+alias ok='buck run onos-local'
+alias oh='onos localhost halt'
+
 alias ol='onos-log'
 alias ow='onos-watch'
 alias ocl='onos-check-logs'
 alias oi='setPrimaryInstance'
-alias pub='onos-push-update-bundle'
 
 # Short-hand for tailing and searching the ONOS (karaf) log
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
@@ -89,13 +91,19 @@ alias docs='open $ONOS_ROOT/docs/target/site/apidocs/index.html'
 alias rsdocs='onos-rsdocs'
 alias gui='onos-gui'
 
+# Short-hand for 'mvn clean install' for us lazy folk
+alias mci='mvn clean install'
+alias mcis='mvn clean install -DskipTests -Dcheckstyle.skip'
+alias mis='mvn install -DskipTests -Dcheckstyle.skip'
+
+# Git annotated one-line log
+alias gil='git log --oneline --decorate=short'
 
 # Test related conveniences
 
 # SSH to a specified ONOS instance
 alias sshctl='onos-ssh'
 alias sshnet='onos-ssh $OCN'
-
 
 
 # Applies the settings in the specified topology recipe file or lists current
@@ -276,9 +284,3 @@ alias atttopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/attmpls-cfg.json'
 
 # Load UK topo GEO data
 alias uktopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/uk-cfg.json'
-
-# Git annotated one-line log
-alias gil='git log --oneline --decorate=short'
-
-# Buck (if "buck" is not on the PATH)
-[ -z "$(which buck)" ] && alias buck="onos-buck"

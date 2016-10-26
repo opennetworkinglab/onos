@@ -3,9 +3,5 @@
 # Builds the ONOS from source.
 # -----------------------------------------------------------------------------
 
-set -e
-
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-. $ONOS_ROOT/tools/build/envDefaults
-
-cd $ONOS_ROOT && mvn clean install "$@"
+cd $ONOS_ROOT && onos-buck build onos && onos-buck test

@@ -8,37 +8,4 @@ set -e
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-apidocs=onos-apidocs-${ONOS_VERSION%~*}
-
-function expandList {
-    list="";
-    while read line; do
-        [ -n "$line" ] && list="$list:$line"
-    done < $1
-    echo "${list#:*}"
-}
-
-function processPom {
-    cp $1 aux-$1
-    egrep '@[a-zA-Z0-9.-]+' $1 | sed 's:^[^@]*@::g' | sed 's:</.*$::g' | while read line; do
-        packages="$(expandList $line)"
-        sed "s/@$line/$packages/" aux-$1 > aux-$1.aux
-        mv aux-$1.aux aux-$1
-    done
-}
-
-set -e
-
-trap "rm aux-internal.xml aux-external.xml 2>/dev/null" EXIT
-rm -fr $ONOS_ROOT/docs/target
-
-cd $ONOS_ROOT/docs
-processPom external.xml
-mvn -f aux-external.xml javadoc:aggregate "$@"
-
-cd target && mv site/apidocs $apidocs
-tar zcf $apidocs.tar.gz $apidocs && cp $apidocs.tar.gz $ONOS_STAGE_ROOT
-
-cd $ONOS_ROOT/docs
-processPom internal.xml
-mvn -f aux-internal.xml javadoc:aggregate "$@"
+onos-buck build //docs:external //docs:internal --show-output
