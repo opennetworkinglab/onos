@@ -15,6 +15,6 @@
  */
 
 /**
- * Configuration implementation  to create L2 broadcast network using VLAN.
+ * Configuration service implementation for VPLS.
  */
 package org.onosproject.vpls.config.impl;

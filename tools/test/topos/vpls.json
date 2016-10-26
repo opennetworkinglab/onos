@@ -47,8 +47,8 @@
   },
   "apps" : {
     "org.onosproject.vpls" : {
-      "vpls" : {
-        "vplsNetworks" : [
+      "vpls": {
+        "vplsList" : [
           {
             "name" : "net1",
             "interfaces" : ["vlan100H1", "vlan200H1"]

@@ -21,17 +21,18 @@ import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.vpls.config.VplsConfigurationService;
 
 import java.util.List;
+
 import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
- * Completer for "vpls-add-inf" command.
+ * Completer for "vpls-set-encap" command.
  */
-public class VplsAddIfaceCmdCompleter extends AbstractChoicesCompleter {
+public class VplsSetEncapCommandCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
         VplsConfigurationService vplsConfigService =
                 get(VplsConfigurationService.class);
 
-        return Lists.newArrayList(vplsConfigService.getAllVpls());
+        return Lists.newArrayList(vplsConfigService.vplsNames());
     }
 }

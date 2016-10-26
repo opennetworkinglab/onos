@@ -35,7 +35,7 @@ public class VplsDelIfaceCommandCompleter extends AbstractChoicesCompleter {
     protected List<String> choices() {
         VplsConfigurationService vplsConfigService =
                 get(VplsConfigurationService.class);
-        Set<Interface> ifaces = vplsConfigService.getAllInterfaces();
+        Set<Interface> ifaces = vplsConfigService.allIfaces();
         return ifaces.stream().map(Interface::name).collect(Collectors.toList());
     }
 }

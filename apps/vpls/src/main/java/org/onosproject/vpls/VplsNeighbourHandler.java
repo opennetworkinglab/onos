@@ -45,14 +45,14 @@ import java.util.Set;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Handles neighbour messages for VPLS use case.
- * Handlers will be changed automatically by interface or network configuration events.
+ * Handles neighbour messages for on behalf of the VPLS application. Handlers
+ * will be changed automatically by interface or network configuration events.
  */
 @Component(immediate = true)
 public class VplsNeighbourHandler {
     private static final String UNKNOWN_CONTEXT = "Unknown context type: {}";
 
-    private static final String CAN_NOT_FIND_NETWORK =
+    private static final String CAN_NOT_FIND_VPLS =
             "Cannot find VPLS for port {} with VLAN Id {}.";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -70,8 +70,8 @@ public class VplsNeighbourHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService configService;
 
-    private VplsInterfaceListener interfaceListener
-            = new VplsInterfaceListener();
+    private VplsInterfaceListener interfaceListener =
+            new VplsInterfaceListener();
 
     protected VplsNeighbourMessageHandler neighbourHandler =
             new VplsNeighbourMessageHandler();
@@ -101,7 +101,7 @@ public class VplsNeighbourHandler {
 
     private void configNeighbourHandler() {
         neighbourService.unregisterNeighbourHandlers(appId);
-        Set<Interface> interfaces = vplsConfigService.getAllInterfaces();
+        Set<Interface> interfaces = vplsConfigService.allIfaces();
 
         interfaceService.getInterfaces()
                 .stream()
@@ -145,17 +145,18 @@ public class VplsNeighbourHandler {
      */
     protected void handleRequest(NeighbourMessageContext context) {
 
-        SetMultimap<String, Interface> vplsNetwork =
-                vplsConfigService.getVplsNetwork(context.vlan(), context.inPort());
+        SetMultimap<String, Interface> vpls =
+                vplsConfigService.ifacesByVplsName(context.vlan(),
+                                                             context.inPort());
 
-        if (vplsNetwork != null) {
-            Collection<Interface> vplsInterfaces = vplsNetwork.values();
+        if (vpls != null) {
+            Collection<Interface> vplsInterfaces = vpls.values();
             vplsInterfaces.stream()
                     .filter(intf -> !context.inPort().equals(intf.connectPoint()))
                     .forEach(context::forward);
 
         } else {
-            log.debug(CAN_NOT_FIND_NETWORK, context.inPort(), context.vlan());
+            log.debug(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
         }
     }
 
@@ -168,18 +169,19 @@ public class VplsNeighbourHandler {
     protected void handleReply(NeighbourMessageContext context,
                                HostService hostService) {
 
-        SetMultimap<String, Interface> vplsNetwork =
-                vplsConfigService.getVplsNetwork(context.vlan(), context.inPort());
+        SetMultimap<String, Interface> vpls =
+                vplsConfigService.ifacesByVplsName(context.vlan(),
+                                                             context.inPort());
 
         Set<Host> hosts = hostService.getHostsByMac(context.dstMac());
-        if (vplsNetwork != null) {
-            Collection<Interface> vplsInterfaces = vplsNetwork.values();
+        if (vpls != null) {
+            Collection<Interface> vplsInterfaces = vpls.values();
             hosts.forEach(host -> vplsInterfaces.stream()
                     .filter(intf -> intf.connectPoint().equals(host.location()))
                     .filter(intf -> intf.vlan().equals(host.vlan()))
                     .forEach(context::forward));
         } else {
-            log.debug(CAN_NOT_FIND_NETWORK, context.inPort(), context.vlan());
+            log.debug(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
         }
     }
 

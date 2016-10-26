@@ -19,102 +19,129 @@ import com.google.common.collect.SetMultimap;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.EncapsulationType;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Provides information about the VPLS configuration.
  */
 public interface VplsConfigurationService {
-    Class<VplsConfig> CONFIG_CLASS = VplsConfig.class;
+    Class<VplsAppConfig> CONFIG_CLASS = VplsAppConfig.class;
 
     /**
      * Adds a VPLS to the configuration.
      *
-     * @param name the name of the VPLS
+     * @param vplsName the name of the VPLS
      * @param ifaces the interfaces associated with the VPLS
+     * @param encap the encapsulation type
      */
-    void addVpls(String name, Set<String> ifaces);
+    void addVpls(String vplsName, Set<String> ifaces, String encap);
 
     /**
      * Removes a VPLS from the configuration.
      *
-     * @param name the name of the VPLS to be removed
+     * @param vplsName the name of the VPLS to be removed
      */
-    void removeVpls(String name);
+    void removeVpls(String vplsName);
 
     /**
      * Adds a network interface to a VPLS.
      *
-     * @param name the name of the VPLS
+     * @param vplsName the name of the VPLS
      * @param iface the network interface to be added to the VPLS
      */
-    void addInterfaceToVpls(String name, String iface);
+    void addIface(String vplsName, String iface);
+
+    /**
+     * Sets an encapsulation parameter for a VPLS.
+     *
+     * @param vplsName the name of the VPLS
+     * @param encap the encapsulation used (i.e. MPLS or VLAN) or
+     */
+    void setEncap(String vplsName, String encap);
+
+    /**
+     * Returns the encapsulation type in use for a given VPLS.
+     *
+     * @param vplsName the name of the VPLS
+     * @return the encapsulation type in use, if any
+     */
+    EncapsulationType encap(String vplsName);
 
     /**
      * Removes a network interface from a VPLS.
      *
      * @param iface the network interface to be removed from the VPLS
      */
-    void removeInterfaceFromVpls(String iface);
+    void removeIface(String iface);
 
     /**
      * Cleans up the VPLS configuration. Removes all VPLSs.
      */
-    void cleanVpls();
+    void cleanVplsConfig();
 
     /**
      * Retrieves the VPLS names modified from CLI.
      *
-     * @return a set of VPLS names modified from CLI
+     * @return the VPLS names modified from CLI
      */
-    Set<String> getVplsAffectedByApi();
-    // TODO Removes this function after intent framework fix race condition
+    Set<String> vplsAffectedByApi();
+    // TODO Remove this function after the intent framework race condition has been fixed
 
     /**
      * Retrieves the interfaces from the VPLS configuration.
      *
      * @return a set of interfaces contained in the VPLS configuration
      */
-    Set<Interface> getAllInterfaces();
+    Set<Interface> allIfaces();
 
     /**
      * Retrieves the interfaces belonging to the VPLS.
      *
-     * @param name the name of the VPLS
+     * @param vplsName the name of the VPLS
      * @return a set of interfaces belonging to the VPLS
      */
-    Set<Interface> getVplsInterfaces(String name);
+    Set<Interface> ifaces(String vplsName);
 
     /**
      * Retrieves all VPLS names.
      *
      * @return a set of VPLS names
      */
-    Set<String> getAllVpls();
+    Set<String> vplsNames();
 
     /**
      * Retrieves all VPLS names from the old config.
      *
      * @return a set of VPLS names
      */
-    Set<String> getOldVpls();
+    Set<String> vplsNamesOld();
     // TODO Removes this function after intent framework fix race condition
 
     /**
-     * Retrieves the VPLS names and associated interfaces from the configuration.
+     * Returns the VPLS names and associated interfaces from the configuration.
      *
-     * @return a map VPLS names and associated interfaces
+     * @return a map of VPLS names and associated interfaces
      */
-    SetMultimap<String, Interface> getVplsNetworks();
+    SetMultimap<String, Interface> ifacesByVplsName();
 
     /**
-     * Retrieves a VPLS network given a VLAN Id and a connect point.
+     * Returns the list of interfaces grouped by VPLS name, given a VLAN Id and
+     * a connect point.
      *
      * @param vlan the VLAN Id
      * @param connectPoint the connect point
-     * @return a map VPLS names and associated interfaces; null otherwise
+     * @return a map of VPLS names and associated interfaces; null otherwise
      */
-    SetMultimap<String, Interface> getVplsNetwork(VlanId vlan,
-                                                 ConnectPoint connectPoint);
+    SetMultimap<String, Interface> ifacesByVplsName(VlanId vlan,
+                                                    ConnectPoint connectPoint);
+
+    /**
+     * Returns the VPLS names and associated encapsulation type.
+     *
+     * @return a map of VPLS names and associated encapsulation type
+     */
+    Map<String, EncapsulationType> encapByVplsName();
 }

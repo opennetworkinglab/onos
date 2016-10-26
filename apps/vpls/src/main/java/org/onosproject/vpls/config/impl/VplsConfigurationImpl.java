@@ -16,8 +16,10 @@
 package org.onosproject.vpls.config.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -31,19 +33,22 @@ import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.vpls.config.VplsAppConfig;
 import org.onosproject.vpls.config.VplsConfig;
-import org.onosproject.vpls.config.VplsNetworkConfig;
 import org.onosproject.vpls.config.VplsConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -80,21 +85,22 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
 
     private final Set<String> vplsAffectedByApi = new HashSet<>();
 
-    private VplsConfig vplsConfig = new VplsConfig();
+    private VplsAppConfig vplsAppConfig = new VplsAppConfig();
 
     private SetMultimap<String, String> ifacesOfVpls = HashMultimap.create();
     private SetMultimap<String, String> oldIfacesOfVpls = HashMultimap.create();
-    private SetMultimap<String, Interface> vplsNetworks = HashMultimap.create();
+    private SetMultimap<String, Interface> vplsIfaces = HashMultimap.create();
+    private Map<String, EncapsulationType> vplsEncaps = Maps.newHashMap();
 
     private final InternalNetworkConfigListener configListener =
             new InternalNetworkConfigListener();
 
-    private ConfigFactory<ApplicationId, VplsConfig> vplsConfigFactory =
-            new ConfigFactory<ApplicationId, VplsConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY, VplsConfig.class, VPLS) {
+    private ConfigFactory<ApplicationId, VplsAppConfig> vplsConfigFactory =
+            new ConfigFactory<ApplicationId, VplsAppConfig>(
+                    SubjectFactories.APP_SUBJECT_FACTORY, VplsAppConfig.class, VPLS) {
                 @Override
-                public VplsConfig createConfig() {
-                    return new VplsConfig();
+                public VplsAppConfig createConfig() {
+                    return new VplsAppConfig();
                 }
             };
 
@@ -115,23 +121,164 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
         log.info("Stopped");
     }
 
+    @Override
+    public void addVpls(String vplsName, Set<String> ifaces, String encap) {
+        EncapsulationType encapType = EncapsulationType.enumFromString(encap);
+
+        if (ifacesOfVpls.containsKey(vplsName)) {
+            if (ifaces.isEmpty()) {
+                return;
+            }
+            ifaces.forEach(iface -> vplsAppConfig.addIface(vplsName, iface));
+            vplsAppConfig.setEncap(vplsName, encapType);
+        } else {
+            vplsAppConfig.addVpls(new VplsConfig(vplsName, ifaces, encapType));
+        }
+
+        vplsAffectedByApi.add(vplsName);
+        applyConfig(vplsAppConfig);
+    }
+
+    @Override
+    public void removeVpls(String vplsName) {
+        if (ifacesOfVpls.containsKey(vplsName)) {
+            vplsAppConfig.removeVpls(vplsName);
+            vplsAffectedByApi.add(vplsName);
+            applyConfig(vplsAppConfig);
+        }
+    }
+
+    @Override
+    public void addIface(String vplsName, String iface) {
+        if (ifacesOfVpls.containsKey(vplsName)) {
+            vplsAppConfig.addIface(vplsName, iface);
+            vplsAffectedByApi.add(vplsName);
+            applyConfig(vplsAppConfig);
+        }
+    }
+
+    @Override
+    public void setEncap(String vplsName, String encap) {
+        EncapsulationType encapType = EncapsulationType.enumFromString(encap);
+
+        if (ifacesOfVpls.containsKey(vplsName)) {
+            vplsAppConfig.setEncap(vplsName, encapType);
+            vplsAffectedByApi.add(vplsName);
+            applyConfig(vplsAppConfig);
+        }
+    }
+
+    @Override
+    public void removeIface(String iface) {
+        if (ifacesOfVpls.containsValue(iface)) {
+            VplsConfig vpls = vplsAppConfig.vplsFromIface(iface);
+            vplsAppConfig.removeIface(vpls, iface);
+            vplsAffectedByApi.add(vpls.name());
+            applyConfig(vplsAppConfig);
+        }
+    }
+
+    @Override
+    public void cleanVplsConfig() {
+        ifacesOfVpls.entries().forEach(e -> {
+            vplsAppConfig.removeVpls(e.getKey());
+            vplsAffectedByApi.add(e.getKey());
+        });
+        applyConfig(vplsAppConfig);
+    }
+
+    @Override
+    public EncapsulationType encap(String vplsName) {
+        EncapsulationType encap = null;
+        if (vplsEncaps.containsKey(vplsName)) {
+            encap = vplsEncaps.get(vplsName);
+        }
+
+        return encap;
+    }
+
+    @Override
+    public Set<String> vplsAffectedByApi() {
+        Set<String> vplsNames = ImmutableSet.copyOf(vplsAffectedByApi);
+        vplsAffectedByApi.clear();
+
+        return vplsNames;
+    }
+
+    @Override
+    public Set<Interface> allIfaces() {
+        Set<Interface> allVplsInterfaces = new HashSet<>();
+        vplsIfaces.values().forEach(allVplsInterfaces::add);
+
+        return allVplsInterfaces;
+    }
+
+    @Override
+    public Set<Interface> ifaces(String vplsName) {
+        Set<Interface> vplsInterfaces = new HashSet<>();
+        vplsIfaces.get(vplsName).forEach(vplsInterfaces::add);
+
+        return vplsInterfaces;
+    }
+
+    @Override
+    public Set<String> vplsNames() {
+        return ifacesOfVpls.keySet();
+    }
+
+    @Override
+    public Set<String> vplsNamesOld() {
+        return oldIfacesOfVpls.keySet();
+    }
+
+    @Override
+    public SetMultimap<String, Interface> ifacesByVplsName() {
+        return ImmutableSetMultimap.copyOf(vplsIfaces);
+    }
+
+    @Override
+    public SetMultimap<String, Interface> ifacesByVplsName(VlanId vlan,
+                                                           ConnectPoint connectPoint) {
+        String vplsName =
+                vplsIfaces.entries().stream()
+                        .filter(e -> e.getValue().connectPoint().equals(connectPoint))
+                        .filter(e -> e.getValue().vlan().equals(vlan))
+                        .map(e -> e.getKey())
+                        .findFirst()
+                        .orElse(null);
+        SetMultimap<String, Interface> result = HashMultimap.create();
+        if (vplsName != null && vplsIfaces.containsKey(vplsName)) {
+            vplsIfaces.get(vplsName)
+                    .forEach(intf -> result.put(vplsName, intf));
+            return result;
+        }
+        return null;
+    }
+
+    @Override
+    public Map<String, EncapsulationType> encapByVplsName() {
+        return ImmutableMap.copyOf(vplsEncaps);
+    }
+
     /**
      * Retrieves the VPLS configuration from network configuration.
      */
     private void loadConfiguration() {
         loadAppId();
 
-        vplsConfig = configService.getConfig(vplsAppId, VplsConfig.class);
+        vplsAppConfig = configService.getConfig(vplsAppId, VplsAppConfig.class);
 
-        if (vplsConfig == null) {
+        if (vplsAppConfig == null) {
             log.warn(CONFIG_NULL);
-            configService.addConfig(vplsAppId, VplsConfig.class);
+            configService.addConfig(vplsAppId, VplsAppConfig.class);
             return;
         }
 
         oldIfacesOfVpls = ifacesOfVpls;
         ifacesOfVpls = getConfigInterfaces();
-        vplsNetworks = getConfigCPoints();
+        vplsIfaces = getConfigCPoints();
+        vplsEncaps = getConfigEncap();
+
         log.debug(CONFIG_CHANGED, ifacesOfVpls);
     }
 
@@ -148,21 +295,37 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     /**
      * Applies a given configuration to the VPLS application.
      */
-    private void applyConfig(VplsConfig vplsConfig) {
+    private void applyConfig(VplsAppConfig vplsAppConfig) {
         loadAppId();
-        configService.applyConfig(vplsAppId, VplsConfig.class, vplsConfig.node());
+        configService.applyConfig(vplsAppId, VplsAppConfig.class, vplsAppConfig.node());
     }
 
     /**
-     * Retrieves the VPLS names and associated interfaces names from the configuration.
+     * Retrieves the VPLS names and related encapsulation types from the
+     * configuration.
      *
-     * @return a map VPLS names and associated interface names
+     * @return a map of VPLS names and associated encapsulation types
+     */
+    private Map<String, EncapsulationType> getConfigEncap() {
+        Map<String, EncapsulationType> configEncap = new HashMap<>();
+
+        vplsAppConfig.vplss().forEach(vpls -> {
+                configEncap.put(vpls.name(), vpls.encap());
+        });
+
+        return configEncap;
+    }
+
+    /**
+     * Retrieves the VPLS names and related interfaces names from the configuration.
+     *
+     * @return a map of VPLS names and related interface names
      */
     private SetMultimap<String, String> getConfigInterfaces() {
         SetMultimap<String, String> confIntfByVpls =
                 HashMultimap.create();
 
-        vplsConfig.vplsNetworks().forEach(vpls -> {
+        vplsAppConfig.vplss().forEach(vpls -> {
             if (vpls.ifaces().isEmpty()) {
                 confIntfByVpls.put(vpls.name(), EMPTY);
             } else {
@@ -174,9 +337,9 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     }
 
     /**
-     * Retrieves the VPLS names and associated interfaces from the configuration.
+     * Retrieves the VPLS names and related interfaces from the configuration.
      *
-     * @return a map VPLS names and associated interfaces
+     * @return a map of VPLS names and related interfaces
      */
     private SetMultimap<String, Interface> getConfigCPoints() {
         log.debug(CHECK_CONFIG);
@@ -209,127 +372,10 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
                     case CONFIG_REMOVED:
                         loadConfiguration();
                         break;
-
                     default:
                         break;
                 }
             }
         }
-    }
-
-    @Override
-    public void addVpls(String name, Set<String> ifaces) {
-        VplsNetworkConfig vpls;
-
-        if (ifacesOfVpls.containsKey(name)) {
-            if (ifaces.isEmpty()) {
-                return;
-            }
-
-            ifaces.forEach(iface ->
-                    vplsConfig.addInterfaceToVpls(name, iface));
-        } else {
-            vpls = new VplsNetworkConfig(name, ifaces);
-            vplsConfig.addVpls(vpls);
-        }
-
-        vplsAffectedByApi.add(name);
-        applyConfig(vplsConfig);
-    }
-
-    @Override
-    public void removeVpls(String name) {
-        if (ifacesOfVpls.containsKey(name)) {
-            vplsConfig.removeVpls(name);
-            vplsAffectedByApi.add(name);
-            applyConfig(vplsConfig);
-        }
-    }
-
-    @Override
-    public void addInterfaceToVpls(String name, String iface) {
-        if (ifacesOfVpls.containsKey(name)) {
-            vplsConfig.addInterfaceToVpls(name, iface);
-            vplsAffectedByApi.add(name);
-            applyConfig(vplsConfig);
-        }
-    }
-
-    @Override
-    public void removeInterfaceFromVpls(String iface) {
-        if (ifacesOfVpls.containsValue(iface)) {
-            VplsNetworkConfig vpls = vplsConfig.getVplsFromInterface(iface);
-            vplsConfig.removeInterfaceFromVpls(vpls, iface);
-            vplsAffectedByApi.add(vpls.name());
-            applyConfig(vplsConfig);
-        }
-    }
-
-    @Override
-    public void cleanVpls() {
-        ifacesOfVpls.entries().forEach(e -> {
-            vplsConfig.removeVpls(e.getKey());
-            vplsAffectedByApi.add(e.getKey());
-        });
-        applyConfig(vplsConfig);
-    }
-
-    @Override
-    public Set<String> getVplsAffectedByApi() {
-        Set<String> vplsNames = ImmutableSet.copyOf(vplsAffectedByApi);
-
-        vplsAffectedByApi.clear();
-
-        return vplsNames;
-    }
-
-    @Override
-    public Set<Interface> getAllInterfaces() {
-        Set<Interface> allInterfaces = new HashSet<>();
-        vplsNetworks.values().forEach(allInterfaces::add);
-
-        return allInterfaces;
-    }
-
-    @Override
-    public Set<Interface> getVplsInterfaces(String name) {
-        Set<Interface> vplsInterfaces = new HashSet<>();
-        vplsNetworks.get(name).forEach(vplsInterfaces::add);
-
-        return vplsInterfaces;
-    }
-
-    @Override
-    public Set<String> getAllVpls() {
-        return ifacesOfVpls.keySet();
-    }
-
-    @Override
-    public Set<String> getOldVpls() {
-        return oldIfacesOfVpls.keySet();
-    }
-
-    @Override
-    public SetMultimap<String, Interface> getVplsNetworks() {
-        return ImmutableSetMultimap.copyOf(vplsNetworks);
-    }
-
-    @Override
-    public SetMultimap<String, Interface> getVplsNetwork(VlanId vlan,
-                                                        ConnectPoint connectPoint) {
-        String vplsNetworkName =
-                vplsNetworks.entries().stream()
-                        .filter(e -> e.getValue().connectPoint().equals(connectPoint))
-                        .filter(e -> e.getValue().vlan().equals(vlan))
-                        .map(e -> e.getKey())
-                        .findFirst()
-                        .orElse(null);
-        SetMultimap<String, Interface> result = HashMultimap.create();
-        if (vplsNetworkName != null && vplsNetworks.containsKey(vplsNetworkName)) {
-            vplsNetworks.get(vplsNetworkName)
-                    .forEach(intf -> result.put(vplsNetworkName, intf));
-            return result;
-        }
-        return null;
     }
 }

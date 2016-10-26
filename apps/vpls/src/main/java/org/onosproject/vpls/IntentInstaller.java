@@ -15,21 +15,25 @@
  */
 package org.onosproject.vpls;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.onosproject.net.EncapsulationType.*;
 
 /**
  * Synchronizes intents between the in-memory intent store and the
@@ -64,7 +70,7 @@ public class IntentInstaller {
 
     static final String PREFIX_BROADCAST = "brc";
     static final String PREFIX_UNICAST = "uni";
-    static final String DASH = "-";
+    static final String SEPARATOR = "-";
 
     private final ApplicationId appId;
     private final IntentSynchronizationService intentSynchronizer;
@@ -107,8 +113,8 @@ public class IntentInstaller {
     /**
      * Returns list of intents belongs to a VPLS.
      *
-     * @param name required VPLS network name
-     * @return list of intents belongs to a VPLS
+     * @param name the name of the VPLS
+     * @return the list of intents belonging to a VPLS
      */
     protected List<Intent> getIntentsFromVpls(String name) {
         List<Intent> intents = Lists.newArrayList();
@@ -128,28 +134,32 @@ public class IntentInstaller {
      * @param key key to identify the intent
      * @param src the source connect point
      * @param dsts the destination connect points
+     * @param encap the encapsulation type
      * @return the generated single-point to multi-point intent
      */
     protected SinglePointToMultiPointIntent buildBrcIntent(Key key,
                                                            FilteredConnectPoint src,
-                                                           Set<FilteredConnectPoint> dsts) {
-        log.debug(SP2MP, src);
+                                                           Set<FilteredConnectPoint> dsts,
+                                                           EncapsulationType encap) {
+        log.debug("Building broadcast intent {} for source {}", SP2MP, src);
 
-        SinglePointToMultiPointIntent intent;
+        SinglePointToMultiPointIntent.Builder intentBuilder;
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthDst(MacAddress.BROADCAST)
                 .build();
 
-        intent = SinglePointToMultiPointIntent.builder()
+        intentBuilder = SinglePointToMultiPointIntent.builder()
                 .appId(appId)
                 .key(key)
                 .selector(selector)
                 .filteredIngressPoint(src)
                 .filteredEgressPoints(dsts)
-                .priority(PRIORITY_OFFSET)
-                .build();
-        return intent;
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        return intentBuilder.build();
     }
 
     /**
@@ -159,54 +169,60 @@ public class IntentInstaller {
      * @param srcs the source Connect Points
      * @param dst the destination Connect Point
      * @param host destination Host
+     * @param encap the encapsulation type
      * @return the generated multi-point to single-point intent
      */
     protected MultiPointToSinglePointIntent buildUniIntent(Key key,
                                                            Set<FilteredConnectPoint> srcs,
                                                            FilteredConnectPoint dst,
-                                                           Host host) {
-        log.debug(MP2SP, dst);
+                                                           Host host,
+                                                           EncapsulationType encap) {
+        log.debug("Building unicast intent {} for destination {}", MP2SP, dst);
+
+        MultiPointToSinglePointIntent.Builder intentBuilder;
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthDst(host.mac())
                 .build();
 
-
-        return MultiPointToSinglePointIntent.builder()
+        intentBuilder = MultiPointToSinglePointIntent.builder()
                 .appId(appId)
                 .key(key)
                 .selector(selector)
                 .filteredIngressPoints(srcs)
                 .filteredEgressPoint(dst)
-                .priority(PRIORITY_OFFSET)
-                .build();
+                .priority(PRIORITY_OFFSET);
 
+        encap(intentBuilder, encap);
+
+        return intentBuilder.build();
     }
 
     /**
-     * Builds an intent Key for either for a single-point to multi-point or
-     * multi-point to single-point intent, based on a prefix that defines
-     * the type of intent, the single connection point representing the source
-     * or the destination and the VLAN identifier representing the network.
+     * Builds an intent key either for single-point to multi-point or
+     * multi-point to single-point intents, based on a prefix that defines
+     * the type of intent, the single connect point representing the single
+     * source or destination for that intent, the name of the VPLS the intent
+     * belongs to, and the destination host MAC address the intent reaches.
      *
-     * @param prefix key prefix
-     * @param cPoint connect point for single source/destination
-     * @param networkName VPLS network name
-     * @param hostMac source/destination mac address
-     * @return key to identify the intent
+     * @param prefix the key prefix
+     * @param cPoint the connect point identifying the source/destination
+     * @param vplsName the name of the VPLS
+     * @param hostMac the source/destination MAC address
+     * @return the key to identify the intent
      */
     protected Key buildKey(String prefix,
                            ConnectPoint cPoint,
-                           String networkName,
+                           String vplsName,
                            MacAddress hostMac) {
-        String keyString = networkName +
-                DASH +
+        String keyString = vplsName +
+                SEPARATOR +
                 prefix +
-                DASH +
+                SEPARATOR +
                 cPoint.deviceId() +
-                DASH +
+                SEPARATOR +
                 cPoint.port() +
-                DASH +
+                SEPARATOR +
                 hostMac;
 
         return Key.of(keyString, appId);
@@ -215,8 +231,8 @@ public class IntentInstaller {
     /**
      * Returns true if the specified intent exists; false otherwise.
      *
-     * @param intentKey intent key
-     * @return true if the intent exists, false otherwise
+     * @param intentKey the intent key
+     * @return true if the intent exists; false otherwise
      */
     protected boolean intentExists(Key intentKey) {
         if (intentService.getIntent(intentKey) == null) {
@@ -225,10 +241,22 @@ public class IntentInstaller {
 
         // Intent does not exist if intent withdrawn
         IntentState currentIntentState = intentService.getIntentState(intentKey);
-        if (WITHDRAWN_INTENT_STATES.contains(currentIntentState)) {
-            return false;
-        }
+        return !WITHDRAWN_INTENT_STATES.contains(currentIntentState);
 
-        return true;
+    }
+
+    /**
+     * Adds an encapsulation constraint to the builder given, if encap is not
+     * equal to NONE.
+     *
+     * @param builder the intent builder
+     * @param encap the encapsulation type
+     */
+    private static void encap(ConnectivityIntent.Builder builder,
+                              EncapsulationType encap) {
+        if (!encap.equals(NONE)) {
+            builder.constraints(ImmutableList.of(
+                    new EncapsulationConstraint(encap)));
+        }
     }
 }

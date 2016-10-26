@@ -22,18 +22,25 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vpls.config.VplsConfigurationService;
 
 /**
- * CLI to remove VPLSs.
+ * CLI to set encapsulation for a VPLS.
  */
-@Command(scope = "onos", name = "vpls-del",
-        description = "Deletes an existing VPLS")
-public class VplsDelCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "vpls-set-encap",
+        description = "Sets the encapsulation type for a given VPLS. None means" +
+                "no encapsulation has been set")
+public class VplsSetEncapCommand extends AbstractShellCommand {
 
+    private static final String VPLS_NOT_FOUND = "VPLS %s not found.";
     private VplsConfigurationService vplsConfigService =
             get(VplsConfigurationService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)
     private String vplsName = null;
+
+    @Argument(index = 1, name = "encapsulation", description = "The encapsulation" +
+            "type. For example, VLAN or MPLS. None for no encapsulation",
+            required = true, multiValued = false)
+    String encap = null;
 
     @Override
     protected void execute() {
@@ -42,6 +49,6 @@ public class VplsDelCommand extends AbstractShellCommand {
             return;
         }
 
-        vplsConfigService.removeVpls(vplsName);
+        vplsConfigService.setEncap(vplsName, encap);
     }
 }

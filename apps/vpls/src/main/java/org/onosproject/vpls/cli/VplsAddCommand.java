@@ -26,9 +26,9 @@ import java.util.HashSet;
 /**
  * CLI to create VPLSs.
  */
-@Command(scope = "onos", name = "vpls-add", description = "Create a new VPLS")
+@Command(scope = "onos", name = "vpls-add", description = "Creates a new VPLS")
 public class VplsAddCommand extends AbstractShellCommand {
-    private static final String VPLS_EXIST = "VPLS already exists: %s";
+
     private VplsConfigurationService vplsConfigService =
             get(VplsConfigurationService.class);
 
@@ -38,11 +38,12 @@ public class VplsAddCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-
-        if (vplsConfigService.getAllVpls().contains(vplsName)) {
-            print(VPLS_EXIST, vplsName);
+        // Check if the VPLS name is already configured
+        if (VplsCommandUtils.vplsExists(vplsName)) {
+            print(VplsCommandUtils.VPLS_ALREADY_EXISTS, vplsName);
             return;
         }
-        vplsConfigService.addVpls(vplsName, new HashSet<>());
+
+        vplsConfigService.addVpls(vplsName, new HashSet<>(), null);
     }
 }

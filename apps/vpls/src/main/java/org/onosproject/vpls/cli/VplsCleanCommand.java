@@ -31,6 +31,6 @@ public class VplsCleanCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        vplsConfigService.cleanVpls();
+        vplsConfigService.cleanVplsConfig();
     }
 }

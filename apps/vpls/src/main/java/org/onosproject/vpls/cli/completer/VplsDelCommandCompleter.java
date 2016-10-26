@@ -33,6 +33,6 @@ public class VplsDelCommandCompleter extends AbstractChoicesCompleter {
     protected List<String> choices() {
         VplsConfigurationService vplsConfigService =
                 get(VplsConfigurationService.class);
-        return Lists.newArrayList(vplsConfigService.getAllVpls());
+        return Lists.newArrayList(vplsConfigService.vplsNames());
     }
 }
