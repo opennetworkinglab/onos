@@ -15,21 +15,25 @@ mkdir -p $ONOS_ROOT/bin
 pushd $ONOS_ROOT/bin > /dev/null
 
 if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat .buck_version)" ]; then
-    echo "Downloading Buck..."
-    rm -fr .buck_version buck buck.zip plugins
-    curl -o ./buck.zip -L $BUCK_URL
+    echo "Updating Buck..."
+    rm -fr .buck_version buck plugins
+    mkdir -p cache
+    BUCK_FILE=$(basename $BUCK_URL)
+    # Check the local cache; download to cache if required
+    [ -f "cache/$BUCK_FILE" ] || curl -o cache/$BUCK_FILE -L $BUCK_URL
     if [ -n "$(which shasum)" ]; then
-        SHA=$(shasum ./buck.zip | cut -d' ' -f1)
+        SHA=$(shasum cache/$BUCK_FILE | cut -d' ' -f1)
         [ "$SHA" != "$BUCK_SHA" ] &&
            echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
            exit 1
     else
         echo "SHA cannot be verified"
     fi
-    unzip buck.zip
-    rm buck.zip
+    unzip cache/$BUCK_FILE
+    # Kill buckd
+    ps -ef | egrep buckd | grep -v egrep | cut -c7-11 | xargs kill 2>/dev/null || :
     rm -rf $ONOS_ROOT/buck-out
-    printf "Successfully downloaded Buck to $ONOS_ROOT/bin/buck\n\n"
+    printf "Successfully updated Buck in $ONOS_ROOT/bin/buck to $BUCK_FILE\n\n"
 fi
 popd > /dev/null
 
