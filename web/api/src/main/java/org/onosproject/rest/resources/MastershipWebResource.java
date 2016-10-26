@@ -24,6 +24,7 @@ import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -53,10 +54,12 @@ public final class MastershipWebResource extends AbstractWebResource {
     private static final String DEVICE_ID_INVALID = "Invalid deviceId for setting role";
     private static final String NODE_ID_INVALID = "Invalid nodeId for setting role";
 
+    private static final String DEVICE_ID_NOT_FOUND = "Device Id is not found";
     private static final String NODE_ID_NOT_FOUND = "Node id is not found";
     private static final String ROLE_INFO_NOT_FOUND = "Role info is not found";
     private static final String MASTERSHIP_ROLE_NOT_FOUND = "Mastership role is not found";
 
+    private final DeviceService deviceService = get(DeviceService.class);
     private final MastershipService mastershipService = get(MastershipService.class);
     private final MastershipAdminService mastershipAdminService =
                                          get(MastershipAdminService.class);
@@ -148,8 +151,11 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/request")
     public Response requestRoleFor(@PathParam("deviceId") String deviceId) {
-        MastershipRole role = nullIsNotFound(mastershipService.requestRoleForSync(
-                                DeviceId.deviceId(deviceId)), MASTERSHIP_ROLE_NOT_FOUND);
+        DeviceId id = DeviceId.deviceId(deviceId);
+        nullIsNotFound(deviceService.getDevice(id), DEVICE_ID_NOT_FOUND);
+
+        MastershipRole role = nullIsNotFound(mastershipService.requestRoleForSync(id),
+                        MASTERSHIP_ROLE_NOT_FOUND);
         ObjectNode root = codec(MastershipRole.class).encode(role, this);
         return ok(root).build();
     }
