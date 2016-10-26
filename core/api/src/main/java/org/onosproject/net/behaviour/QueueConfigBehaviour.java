@@ -15,44 +15,41 @@
  */
 package org.onosproject.net.behaviour;
 
-import com.google.common.primitives.UnsignedInteger;
+import com.google.common.annotations.Beta;
+import org.onosproject.net.driver.HandlerBehaviour;
 
-import java.util.Set;
+import java.util.Collection;
 
 /**
- * Means to alter a device's dataplane queues.
- * @deprecated in Junco (1.9.1), use QueueConfigBehaviour instead
+ * Behaviour for handling various operations for queue configurations.
  */
-@Deprecated
-public interface QueueConfig {
+@Beta
+public interface QueueConfigBehaviour extends HandlerBehaviour {
 
     /**
      * Obtain all queues configured on a device.
      *
      * @return a list of queue descriptions
      */
-    Set<QueueInfo> getQueues();
+    Collection<QueueDescription> getQueues();
 
     /**
-     * Obtain a specific queue given a queue id.
-     *
-     * @param queueId an unsigned integer representing a queue id
+     * Obtain a queue configured on a device.
+     * @param queueDesc queue description
      * @return a queue description
      */
-    QueueInfo getQueue(UnsignedInteger queueId);
+    QueueDescription getQueue(QueueDescription queueDesc);
 
     /**
-     * Add a queue to a device.
-     *
-     * @param queue a queue description
+     * Create a queue to a device.
+     * @param queueDesc a queue description
+     * @return true if succeeds, or false
      */
-    void addQueue(QueueInfo queue);
+    boolean addQueue(QueueDescription queueDesc);
 
     /**
-     * Remove a queue from a device.
-     *
-     * @param queueId an unsigned integer
+     * Delete a queue from a device.
+     * @param queueId queue identifier
      */
-    void removeQueue(UnsignedInteger queueId);
-
+    void deleteQueue(QueueId queueId);
 }

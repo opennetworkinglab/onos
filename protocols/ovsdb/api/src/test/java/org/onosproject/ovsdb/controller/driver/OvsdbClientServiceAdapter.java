@@ -21,15 +21,20 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.MirroringName;
+import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbInterface;
 import org.onosproject.ovsdb.controller.OvsdbMirror;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
+import org.onosproject.ovsdb.controller.OvsdbQos;
+import org.onosproject.ovsdb.controller.OvsdbQueue;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.operations.Operation;
@@ -86,7 +91,52 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
         return null;
     }
 
+    @Override
+    public void applyQos(PortNumber portNumber, String qosId) {
 
+    }
+
+    @Override
+    public void removeQos(PortNumber portNumber) {
+    }
+
+    @Override
+    public boolean createQos(OvsdbQos ovsdbQos) {
+        return false;
+    }
+
+    @Override
+    public void dropQos(QosId qosId) {
+    }
+
+    @Override
+    public OvsdbQos getQos(QosId qosId) {
+        return null;
+    };
+
+    @Override
+    public Set<OvsdbQos> getQoses() {
+      return null;
+    }
+
+    @Override
+    public boolean createQueue(OvsdbQueue queue) {
+        return false;
+    }
+
+    @Override
+    public void dropQueue(QueueId queueId) {
+    }
+
+    @Override
+    public OvsdbQueue getQueue(QueueId queueId) {
+        return null;
+    };
+
+    @Override
+    public Set<OvsdbQueue> getQueues() {
+        return null;
+    }
     /**
      * Drops the configuration for mirror.
      *

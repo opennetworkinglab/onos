@@ -18,9 +18,12 @@ package org.onosproject.ovsdb.controller;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.MirroringName;
+import org.onosproject.net.behaviour.QosId;
+import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
@@ -75,6 +78,82 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @param mirroringName name of mirror to drop
      */
     void dropMirror(MirroringName mirroringName);
+
+    /**
+     * apply qos to port.
+     *
+     * @param  portNumber port identifier
+     * @param  qosName the qos name
+     */
+    void applyQos(PortNumber portNumber, String qosName);
+
+    /**
+     * Creates a qos port.
+     *
+     * @param  portNumber port identifier
+     */
+    void removeQos(PortNumber portNumber);
+
+    /**
+     * Creates a qos. associates with queue to
+     * provide the ability of limit the rate of different flows
+     * depend on itself priority.
+     *
+     * @param  ovsdbQos the OVSDB Qos
+     * @return true if qos creation is successful, false otherwise
+     */
+    boolean createQos(OvsdbQos ovsdbQos);
+
+    /**
+     * Drops the configuration for qos.
+     *
+     * @param qosId qos identifier
+     */
+    void dropQos(QosId qosId);
+
+    /**
+     * Gets a qos of node.
+     * @param qosId qos identifier
+     * @return null if no qos is find
+     */
+    OvsdbQos getQos(QosId qosId);
+
+    /**
+     * Gets qoses of node.
+     *
+     * @return set of qoses; empty if no qos is find
+     */
+    Set<OvsdbQos> getQoses();
+
+    /**
+     * Creates queues. limits the rate of each flow
+     * depend on itself priority.
+     *
+     * @param  queue the OVSDB queue description
+     * @return true if queue creation is successful, false otherwise
+     */
+    boolean createQueue(OvsdbQueue queue);
+
+    /**
+     * Drops the configuration for queue.
+     *
+     * @param queueId  queue identifier
+     */
+    void dropQueue(QueueId queueId);
+
+    /**
+     * Gets a queue of node.
+     * @param queueId the queue identifier
+     * @return null if no queue is find
+     */
+    OvsdbQueue getQueue(QueueId queueId);
+
+    /**
+     * Gets queues of node.
+     *
+     * @return set of queues; empty if no queue is find
+     */
+    Set<OvsdbQueue> getQueues();
 
     /**
      * Creates a tunnel port with given options.

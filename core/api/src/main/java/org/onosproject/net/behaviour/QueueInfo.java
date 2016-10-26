@@ -18,8 +18,10 @@ package org.onosproject.net.behaviour;
 import com.google.common.primitives.UnsignedInteger;
 
 /**
- * Represents a dataplane queue.
+ * @deprecated in Junco Release (1.9.1), Use QueueDescription instead
+ * {@link org.onosproject.net.behaviour.QueueDescription}
  */
+@Deprecated
 public class QueueInfo {
 
     public enum Type {

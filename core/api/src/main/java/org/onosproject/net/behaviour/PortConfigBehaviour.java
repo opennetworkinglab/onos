@@ -15,28 +15,28 @@
  */
 package org.onosproject.net.behaviour;
 
-import com.google.common.primitives.UnsignedInteger;
+import com.google.common.annotations.Beta;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
  * Means to configure a logical port at the device.
- * @deprecated in Junco (1.9.1), use PortConfigBehaviour instead
  */
-@Deprecated
-public interface PortConfig extends HandlerBehaviour {
+@Beta
+public interface PortConfigBehaviour extends HandlerBehaviour {
 
     /**
      * Apply QoS configuration on a device.
      * @param port a port description
-     * @param queueId an unsigned integer
+     * @param qosDesc qos description
      */
-    void applyQoS(PortDescription port, UnsignedInteger queueId);
+    void applyQoS(PortDescription port, QosDescription qosDesc);
 
     /**
      * Remove a QoS configuration.
-     * @param port a port description
+     * @param portNumber port identifier
      */
-    void removeQoS(PortDescription port);
+    void removeQoS(PortNumber portNumber);
 
 }
