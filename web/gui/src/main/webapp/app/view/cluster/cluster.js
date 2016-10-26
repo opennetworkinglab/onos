@@ -44,9 +44,9 @@
             htPdg = 479,
             wtPdg = 532,
 
-            pName = 'node-details-panel',
-            detailsReq = 'nodeDetailsRequest',
-            detailsResp = 'nodeDetailsResponse';
+            pName = 'cluster-details-panel',
+            detailsReq = 'clusterDetailsRequest',
+            detailsResp = 'clusterDetailsResponse';
 
         function closePanel() {
             if (detailsPanel.isVisible()) {
@@ -110,14 +110,14 @@
             detailsPanel.width(wtPdg);
 
             //Todo : remove this when server implementation is done
-            detailsPanel.show();
+            // detailsPanel.show();
         }
 
         function respDetailsCb(data) {
             $scope.panelData = data.details;
             $scope.$apply();
             //TODO Use populateDetails() when merging server code
-            $log.debug('Get the details:', $scope.panelData.id);
+            $log.debug('Get the details:', $scope.panelData);
         }
 
 
@@ -158,7 +158,7 @@
                     wss.sendEvent(detailsReq, {id: row.id});
 
                     //ToDo : Remove this line when server implmentation is complete
-                    populateDetails($scope.selId);
+                    // populateDetails($scope.selId);
                 } else {
                     $scope.hidePanel();
                 }
@@ -173,7 +173,7 @@
             }])
 
 
-    .directive('nodeDetailsPanel',
+    .directive('clusterDetailsPanel',
     ['$rootScope', '$window', '$timeout', 'KeyService',
     function ($rootScope, $window, $timeout, ks) {
         return function (scope) {
@@ -198,6 +198,14 @@
             } else {
                 initPanel();
             }
+
+            // if the panelData changes
+            scope.$watch('panelData', function () {
+                if (!fs.isEmptyObject(scope.panelData)) {
+                    populateDetails(scope.panelData);
+                    detailsPanel.show();
+                }
+            });
 
             // if the window size changes
             unbindWatch = $rootScope.$watchCollection(

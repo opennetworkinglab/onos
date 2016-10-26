@@ -40,8 +40,8 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String CLUSTER_DATA_RESP = "clusterDataResponse";
     private static final String CLUSTERS = "clusters";
 
-    private static final String CLUSTER_DETAILS_REQ = "clusterNodeDetailsRequest";
-    private static final String CLUSTER_DETAILS_RESP = "clusterNodeDetailsResponse";
+    private static final String CLUSTER_DETAILS_REQ = "clusterDetailsRequest";
+    private static final String CLUSTER_DETAILS_RESP = "clusterDetailsResponse";
     private static final String DETAILS = "details";
 
     private static final String ID = "id";
