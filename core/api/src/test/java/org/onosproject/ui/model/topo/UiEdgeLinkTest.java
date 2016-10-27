@@ -32,7 +32,8 @@ import static org.junit.Assert.assertEquals;
 public class UiEdgeLinkTest extends AbstractUiModelTest {
 
     private static final String PHANTOM_HOST_ID = "00:00:00:00:00:00/None";
-    private static final String D1_P8 = "dev-1/8";
+    private static final String S_D1 = "dev-1";
+    private static final String S_P8 = "8";
 
     private static final DeviceId DEV = DeviceId.deviceId("dev-1");
     private static final PortNumber P8 = PortNumber.portNumber(8);
@@ -46,12 +47,16 @@ public class UiEdgeLinkTest extends AbstractUiModelTest {
         title("basic");
         UiLinkId id = UiLinkId.uiLinkId(EDGE_LINK);
         UiEdgeLink link = new UiEdgeLink(null, id);
-        link.attachEdgeLink(EDGE_LINK);
         print(link);
         print(link.endPointA());
+        print(link.endPortA());
         print(link.endPointB());
+        print(link.endPortB());
 
         assertEquals("bad end point A", PHANTOM_HOST_ID, link.endPointA());
-        assertEquals("bad end point B", D1_P8, link.endPointB());
+        assertEquals("bad end port A", null, link.endPortA());
+
+        assertEquals("bad end point B", S_D1, link.endPointB());
+        assertEquals("bad end port B", S_P8, link.endPortB());
     }
 }

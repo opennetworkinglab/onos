@@ -490,12 +490,24 @@ public class UiTopology extends UiElement {
             log.debug("Synthetic link: {}", synthetic);
         });
 
+        slinks.addAll(wrapHostLinks(nullRegion()));
+        for (UiRegion r: allRegions()) {
+            slinks.addAll(wrapHostLinks(r));
+        }
 
         synthLinks.clear();
         synthLinks.addAll(slinks);
+    }
 
-        // TODO : compute and add host-device links to synthLinks...
+    private Set<UiSynthLink> wrapHostLinks(UiRegion region) {
+        RegionId regionId = region.id();
+        return region.hosts().stream().map(h -> wrapHostLink(regionId, h))
+                .collect(Collectors.toSet());
+    }
 
+    private UiSynthLink wrapHostLink(RegionId regionId, UiHost host) {
+        UiEdgeLink elink = new UiEdgeLink(this, host.edgeLinkId());
+        return new UiSynthLink(regionId, elink);
     }
 
     private UiSynthLink inferSyntheticLink(UiDeviceLink link) {

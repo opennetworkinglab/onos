@@ -431,27 +431,26 @@ class ModelCache {
         host.setEdgeLinkId(elinkId);
 
         // add synthesized edge link to the topology
-        UiEdgeLink edgeLink = addNewEdgeLink(elinkId);
-        edgeLink.attachEdgeLink(elink);
+        addNewEdgeLink(elinkId);
 
         return host;
     }
 
-    private void insertNewUiEdgeLink(UiLinkId id, EdgeLink e) {
-        UiEdgeLink newEdgeLink = addNewEdgeLink(id);
-        newEdgeLink.attachEdgeLink(e);
+    private void insertNewUiEdgeLink(UiLinkId id) {
+        addNewEdgeLink(id);
     }
 
     private void updateHost(UiHost uiHost, Host h) {
         UiEdgeLink existing = uiTopology.findEdgeLink(uiHost.edgeLinkId());
 
+        // TODO: review - do we need EdgeLink now that we are creating from id only?
         EdgeLink currentElink = synthesizeLink(h);
         UiLinkId currentElinkId = uiLinkId(currentElink);
 
         if (existing != null) {
             if (!currentElinkId.equals(existing.id())) {
                 // edge link has changed
-                insertNewUiEdgeLink(currentElinkId, currentElink);
+                insertNewUiEdgeLink(currentElinkId);
                 uiHost.setEdgeLinkId(currentElinkId);
 
                 uiTopology.remove(existing);
@@ -459,7 +458,7 @@ class ModelCache {
 
         } else {
             // no previously existing edge link
-            insertNewUiEdgeLink(currentElinkId, currentElink);
+            insertNewUiEdgeLink(currentElinkId);
             uiHost.setEdgeLinkId(currentElinkId);
 
         }

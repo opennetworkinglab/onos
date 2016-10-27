@@ -16,22 +16,14 @@
 
 package org.onosproject.ui.model.topo;
 
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.EdgeLink;
-import org.onosproject.net.PortNumber;
-
 /**
  * Designates a link between a device and a host; that is, an edge link.
  */
 public class UiEdgeLink extends UiLink {
 
-    private static final String E_UNASSOC =
-            "backing link not associated with this UI edge link: ";
-
-    // private (synthetic) host link
-    private DeviceId edgeDevice;
-    private PortNumber edgePort;
-    private EdgeLink edgeLink;
+    private final String hostId;
+    private final String edgeDevice;
+    private final String edgePort;
 
     /**
      * Creates a UI link.
@@ -41,51 +33,25 @@ public class UiEdgeLink extends UiLink {
      */
     public UiEdgeLink(UiTopology topology, UiLinkId id) {
         super(topology, id);
+        hostId = id.idA();
+        edgeDevice = id.elementB().toString();
+        edgePort = id.portB().toString();
     }
 
     @Override
     public String endPointA() {
-        return edgeLink.hostId().toString();
+        return hostId;
     }
 
     @Override
     public String endPointB() {
-        return edgeDevice + UiLinkId.ID_PORT_DELIMITER + edgePort;
+        return edgeDevice;
     }
 
     // no port for end-point A
 
     @Override
     public String endPortB() {
-        return edgePort.toString();
+        return edgePort;
     }
-
-    @Override
-    protected void destroy() {
-        edgeDevice = null;
-        edgePort = null;
-        edgeLink = null;
-    }
-
-    /**
-     * Attaches the given edge link to this UI link. This method will
-     * throw an exception if this UI link is not representative of the
-     * supplied link.
-     *
-     * @param elink edge link to attach
-     * @throws IllegalArgumentException if the link is not appropriate
-     */
-    public void attachEdgeLink(EdgeLink elink) {
-        UiLinkId.Direction d = id.directionOf(elink);
-        // Expected direction of edge links is A-to-B (Host to device)
-        // but checking not null is a sufficient test
-        if (d == null) {
-            throw new IllegalArgumentException(E_UNASSOC + elink);
-        }
-
-        edgeLink = elink;
-        edgeDevice = elink.hostLocation().deviceId();
-        edgePort = elink.hostLocation().port();
-    }
-
 }

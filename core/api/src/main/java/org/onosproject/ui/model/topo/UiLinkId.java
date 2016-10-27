@@ -19,6 +19,7 @@ package org.onosproject.ui.model.topo;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.region.RegionId;
@@ -49,7 +50,7 @@ public final class UiLinkId {
         B_TO_A
     }
 
-    private static final String CP_DELIMITER = "~";
+    static final String CP_DELIMITER = "~";
     static final String ID_PORT_DELIMITER = "/";
 
     private final RegionId regionA;
@@ -61,6 +62,8 @@ public final class UiLinkId {
     private final PortNumber portB;
 
     private final String idStr;
+    private final String idA;
+    private final String idB;
 
     /**
      * Creates a UI link identifier. It is expected that A comes before B when
@@ -82,8 +85,10 @@ public final class UiLinkId {
         regionA = null;
         regionB = null;
 
-        idStr = a + ID_PORT_DELIMITER + pa + CP_DELIMITER +
-                b + ID_PORT_DELIMITER + pb;
+        // NOTE: for edgelinks, hosts are always element A
+        idA = (a instanceof HostId) ? a.toString() : a + ID_PORT_DELIMITER + pa;
+        idB = b + ID_PORT_DELIMITER + pb;
+        idStr = idA + CP_DELIMITER + idB;
     }
 
     /**
@@ -102,7 +107,9 @@ public final class UiLinkId {
         portA = null;
         portB = null;
 
-        idStr = a + CP_DELIMITER + b;
+        idA = a.toString();
+        idB = b.toString();
+        idStr = idA + CP_DELIMITER + idB;
     }
 
     /**
@@ -122,12 +129,32 @@ public final class UiLinkId {
         elementA = null;
         portA = null;
 
-        idStr = r + CP_DELIMITER + elementB + ID_PORT_DELIMITER + portB;
+        idA = r.toString();
+        idB = elementB + ID_PORT_DELIMITER + portB;
+        idStr = idA + CP_DELIMITER + idB;
     }
 
     @Override
     public String toString() {
         return idStr;
+    }
+
+    /**
+     * String representation of endpoint A.
+     *
+     * @return string rep of endpoint A
+     */
+    public String idA() {
+        return idA;
+    }
+
+    /**
+     * String representation of endpoint B.
+     *
+     * @return string rep of endpoint B
+     */
+    public String idB() {
+        return idB;
     }
 
     /**
