@@ -55,3 +55,13 @@
     display: inline-block;
     margin: 8px 0;
 }
+
+#cluster-details-panel .top-content table {
+    font-size: 12pt;
+}
+
+#cluster-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}

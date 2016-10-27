@@ -21,104 +21,120 @@
 (function () {
     'use strict';
 
-        // injected references
-        var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is, ks;
+    // injected references
+    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is, ks;
 
-        // internal state
-        var detailsPanel,
-            pStartY,
-            pHeight,
-            top,
-            topContent,
-            bottom,
-            iconDiv,
-            nameDiv,
-            wSize;
+    // internal state
+    var detailsPanel,
+        pStartY,
+        pHeight,
+        top,
+        topTable,
+        bottom,
+        iconDiv,
+        nameDiv,
+        wSize;
 
 
-        // constants
-        var topPdg = 28,
-            ctnrPdg = 24,
-            scrollSize = 17,
-            portsTblPdg = 50,
-            htPdg = 479,
-            wtPdg = 532,
+    // constants
+    var topPdg = 28,
+        ctnrPdg = 24,
+        scrollSize = 17,
+        portsTblPdg = 50,
+        htPdg = 479,
+        wtPdg = 532,
 
-            pName = 'cluster-details-panel',
-            detailsReq = 'clusterDetailsRequest',
-            detailsResp = 'clusterDetailsResponse';
+        pName = 'cluster-details-panel',
+        detailsReq = 'clusterDetailsRequest',
+        detailsResp = 'clusterDetailsResponse',
 
-        function closePanel() {
-            if (detailsPanel.isVisible()) {
-                $scope.selId = null;
-                detailsPanel.hide();
-                return true;
-            }
-            return false;
-        }
+        propOrder = [
+            'id', 'ip'
+        ],
+        friendlyProps = [
+            'Node ID', 'IP Address'
+        ];
 
-        function addCloseBtn(div) {
-            is.loadEmbeddedIcon(div, 'close', 20);
-            div.on('click', closePanel);
-        }
-
-        function setUpPanel() {
-            var container, closeBtn, tblDiv;
-            detailsPanel.empty();
-
-            container = detailsPanel.append('div').classed('container', true);
-
-            top = container.append('div').classed('top', true);
-            closeBtn = top.append('div').classed('close-btn', true);
-            addCloseBtn(closeBtn);
-            iconDiv = top.append('div').classed('dev-icon', true);
-            top.append('h2');
-            topContent = top.append('div').classed('top-content', true);
-            top.append('hr');
-
-            //ToDo add more details
-        }
-
-        function populateTop(details) {
-            is.loadEmbeddedIcon(iconDiv, 'm_node', 40);
-            top.select('h2').html(details.id);
-
-            //ToDo : Add more details
-        }
-
-        function createDetailsPane() {
-            detailsPanel = ps.createPanel(pName, {
-                width: wSize.width,
-                margin: 0,
-                hideMargin: 0
-            });
-            detailsPanel.el().style({
-                position: 'absolute',
-                top: pStartY + 'px'
-            });
-            $scope.hidePanel = function () { detailsPanel.hide(); };
+    function closePanel() {
+        if (detailsPanel.isVisible()) {
+            $scope.selId = null;
             detailsPanel.hide();
+            return true;
         }
+        return false;
+    }
 
-        function populateDetails(details) {
+    function addCloseBtn(div) {
+        is.loadEmbeddedIcon(div, 'close', 20);
+        div.on('click', closePanel);
+    }
 
-            setUpPanel();
-            populateTop(details);
+    function setUpPanel() {
+        var container, closeBtn, tblDiv;
+        detailsPanel.empty();
 
-            //ToDo add more details
-            detailsPanel.height(pHeight);
-            detailsPanel.width(wtPdg);
+        container = detailsPanel.append('div').classed('container', true);
 
-            //Todo : remove this when server implementation is done
-            // detailsPanel.show();
+        top = container.append('div').classed('top', true);
+        closeBtn = top.append('div').classed('close-btn', true);
+        addCloseBtn(closeBtn);
+        iconDiv = top.append('div').classed('dev-icon', true);
+        top.append('h2');
+        topTable = top.append('div').classed('top-content', true)
+            .append('table');
+        top.append('hr');
+
+        //ToDo add more details
+    }
+
+    function addProp(tbody, index, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
         }
+        addCell('label', friendlyProps[index] + ' :');
+        addCell('value', value);
+    }
 
-        function respDetailsCb(data) {
-            $scope.panelData = data.details;
-            $scope.$apply();
-            //TODO Use populateDetails() when merging server code
-            $log.debug('Get the details:', $scope.panelData);
-        }
+    function populateTop(details) {
+        is.loadEmbeddedIcon(iconDiv, 'node', 40);
+        top.select('h2').html(details.id);
+
+        var tbody = topTable.append('tbody');
+
+        propOrder.forEach(function (prop, i) {
+            addProp(tbody, i, details[prop]);
+        });
+    }
+
+    function createDetailsPane() {
+        detailsPanel = ps.createPanel(pName, {
+            width: wSize.width,
+            margin: 0,
+            hideMargin: 0
+        });
+        detailsPanel.el().style({
+            position: 'absolute',
+            top: pStartY + 'px'
+        });
+        $scope.hidePanel = function () { detailsPanel.hide(); };
+        detailsPanel.hide();
+    }
+
+    function populateDetails(details) {
+        setUpPanel();
+        populateTop(details);
+
+        //ToDo add more details
+        detailsPanel.height(pHeight);
+        detailsPanel.width(wtPdg);
+    }
+
+    function respDetailsCb(data) {
+        $scope.panelData = data.details;
+        $scope.$apply();
+    }
 
 
     angular.module('ovCluster', [])
@@ -127,51 +143,46 @@
         'PanelService', 'KeyService', 'IconService','WebSocketService',
         'FnService',
 
-            function (_$log_, _$scope_, tbs, _ns_, _mast_, _ps_, _ks_, _is_,
-                    _wss_, _fs_) {
-                var params,
-                    handlers = {};
+        function (_$log_, _$scope_, tbs, _ns_, _mast_, _ps_, _ks_, _is_,
+                _wss_, _fs_) {
+            var handlers = {};
 
-                $log = _$log_;
-                $scope = _$scope_;
-                fs = _fs_;
-                ns = _ns_;
-                is = _is_;
-                wss = _wss_;
-                mast = _mast_;
-                ps = _ps_;
+            $log = _$log_;
+            $scope = _$scope_;
+            fs = _fs_;
+            ns = _ns_;
+            is = _is_;
+            wss = _wss_;
+            mast = _mast_;
+            ps = _ps_;
 
-                $scope.panelData = {};
+            $scope.panelData = {};
 
-                tbs.buildTable({
-                    scope: $scope,
-                    selCb: selCb,
-                    tag: 'cluster'
-                });
-
-            // details panel handlers
-            handlers[detailsResp] = respDetailsCb;
-            wss.bindHandlers(handlers);
-
-            function selCb($event, row) {
-                if ($scope.selId) {
-                    wss.sendEvent(detailsReq, {id: row.id});
-
-                    //ToDo : Remove this line when server implmentation is complete
-                    // populateDetails($scope.selId);
-                } else {
-                    $scope.hidePanel();
-                }
-                $log.debug('Got a click on:', row);
-            }
-
-            $scope.$on('$destroy', function () {
-                wss.unbindHandlers(handlers);
+            tbs.buildTable({
+                scope: $scope,
+                selCb: selCb,
+                tag: 'cluster'
             });
 
-                $log.log('OvClusterCtrl has been created');
-            }])
+        // details panel handlers
+        handlers[detailsResp] = respDetailsCb;
+        wss.bindHandlers(handlers);
 
+        function selCb($event, row) {
+            if ($scope.selId) {
+                wss.sendEvent(detailsReq, {id: row.id});
+            } else {
+                $scope.hidePanel();
+            }
+            $log.debug('Got a click on:', row);
+        }
+
+        $scope.$on('$destroy', function () {
+            wss.unbindHandlers(handlers);
+        });
+
+        $log.log('OvClusterCtrl has been created');
+    }])
 
     .directive('clusterDetailsPanel',
     ['$rootScope', '$window', '$timeout', 'KeyService',
