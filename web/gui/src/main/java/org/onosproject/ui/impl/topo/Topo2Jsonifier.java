@@ -216,13 +216,8 @@ class Topo2Jsonifier {
             return payload;
         }
         payload.put("id", region.idAsString());
-        if (subRegions != null) {
-            payload.set("subregions", jsonSubRegions(subRegions));
-        }
-
-        if (links != null) {
-            payload.set("links", jsonLinks(links));
-        }
+        payload.set("subregions", jsonSubRegions(subRegions));
+        payload.set("links", jsonLinks(links));
 
         List<String> layerTags = region.layerOrder();
         List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
