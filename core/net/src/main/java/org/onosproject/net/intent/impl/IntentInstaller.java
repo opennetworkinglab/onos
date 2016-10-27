@@ -187,13 +187,41 @@ class IntentInstaller {
     private abstract class OperationContext {
         protected Optional<IntentData> toUninstall;
         protected Optional<IntentData> toInstall;
+        /**
+         * Implementation of {@link OperationContext} should call this on success.
+         */
         protected Consumer<OperationContext> successConsumer;
+        /**
+         * Implementation of {@link OperationContext} should call this on error.
+         */
         protected Consumer<OperationContext> errorConsumer;
 
+        /**
+         * Applies the Intents specified by
+         * {@link #prepareIntents(List, Direction)} call(s) prior to this call.
+         */
         abstract void apply();
 
+        /**
+         * Returns error state of the context.
+         * <p>
+         * Used for error logging purpose.
+         * Returned Object should have reasonable toString() implementation.
+         * @return context state, describing current error state
+         */
         abstract Object error();
 
+        /**
+         * Prepares Intent(s) to {@link #apply() apply} in this operation.
+         * <p>
+         * Intents specified by {@code intentsToApply} in a single call
+         * can be applied to the Devices in arbitrary order.
+         * But group of Intents specified in consecutive {@link #prepareIntents(List, Direction)}
+         * calls must be applied in order. (e.g., guarded by barrier)
+         *
+         * @param intentsToApply {@link Intent}s to apply
+         * @param direction of operation
+         */
         abstract void prepareIntents(List<Intent> intentsToApply, Direction direction);
 
         void prepare(Optional<IntentData> toUninstall, Optional<IntentData> toInstall,
@@ -311,6 +339,7 @@ class IntentInstaller {
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         FlowRuleOperationsContext flowRuleOperationsContext;
 
+        @Override
         void apply() {
             flowRuleOperationsContext = new FlowRuleOperationsContext() {
                 @Override
