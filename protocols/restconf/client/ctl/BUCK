@@ -11,6 +11,8 @@ COMPILE_DEPS = [
     '//lib:javax.inject',
     '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
     '//protocols/rest/api:onos-protocols-rest-api',
+    '//apps/yms/api:onos-apps-yms-api',
+    '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
 ]
 
 osgi_jar_with_tests (
