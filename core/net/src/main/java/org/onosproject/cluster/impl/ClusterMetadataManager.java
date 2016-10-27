@@ -120,7 +120,6 @@ public class ClusterMetadataManager
         if (primaryProvider != null && primaryProvider.isAvailable()) {
             return primaryProvider;
         }
-        log.warn("Primary cluster metadata provider not available. Using default fallback.");
         return getProvider("default");
     }
 
