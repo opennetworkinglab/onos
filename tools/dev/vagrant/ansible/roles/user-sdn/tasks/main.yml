@@ -1,0 +1,19 @@
+---
+#
+# Creates the user sdn with password rocks and makes it sudoer with no password required.
+#
+- name: Creating user sdn
+  user:
+    name: sdn
+    password: $6$rounds=656000$$tQyVAYDTqrDRTe2q6ZHKVmlBcd2rt0BYipETg85L2BHq.Hc8xJkj.qOyApnIqVt/mr2JGwbhx1nnL1d3mubYw0
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+    shell: /bin/bash
+
+- name: Adding user sdn to sudoers with no password required
+  lineinfile:
+    dest: "/etc/sudoers.d/sdn"
+    line: "sdn ALL=(ALL) NOPASSWD:ALL"
+    state: present
+    create: yes

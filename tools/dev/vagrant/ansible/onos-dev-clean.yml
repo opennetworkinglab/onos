@@ -1,6 +1,6 @@
 ---
 #
-# Installs Java, configures ONOS bridges and LXC
+# Creates the user sdn, installs Java, configures ONOS bridges and LXC
 #
 - name: Include vars
   hosts: localhost
@@ -11,6 +11,7 @@
   remote_user: vagrant
   serial: 1
   roles:
+    - user-sdn
     - brctl
     - java8-oracle
     - lxc
