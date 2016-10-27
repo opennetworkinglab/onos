@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking;
 
+import org.onosproject.net.Host;
+
 import org.onosproject.openstackinterface.OpenstackRouter;
 import org.onosproject.openstackinterface.OpenstackRouterInterface;
 
@@ -60,4 +62,18 @@ public interface OpenstackRoutingService {
      * @param osInterface router interface information
      */
     void removeRouterInterface(OpenstackRouterInterface osInterface);
+
+    /**
+     * Handles to purge data plane flow of existing VM.
+     *
+     * @param host VM Host information
+     */
+    void purgeVmFlow(Host host);
+
+    /**
+     * Handles to reinstall data plane flow of existing VM.
+     *
+     * @param host VM Host information
+     */
+    void reinstallVmFlow(Host host);
 }

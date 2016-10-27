@@ -175,9 +175,6 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
         registerDhcpInfo(osPort, openstackSubnet);
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
-
-        // Added CREATE_TIME intentionally to trigger HOST_UPDATED event for the
-        // existing instances.
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(NETWORK_ID, osPort.networkId())
                 .set(SUBNET_ID, fixedIp.getKey())
@@ -185,8 +182,7 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
                 .set(VXLAN_ID, osNet.segmentId())
                 .set(TENANT_ID, osNet.tenantId())
                 // TODO remove gateway IP from host annotation
-                .set(GATEWAY_IP, openstackSubnet.gatewayIp())
-                .set(CREATE_TIME, String.valueOf(System.currentTimeMillis()));
+                .set(GATEWAY_IP, openstackSubnet.gatewayIp());
 
         HostDescription hostDesc = new DefaultHostDescription(
                 osPort.macAddress(),

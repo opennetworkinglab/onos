@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
@@ -36,6 +37,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.openstacknetworking.AbstractVmHandler;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
@@ -47,11 +49,14 @@ import java.util.Optional;
 import static org.onosproject.openstacknetworking.Constants.*;
 import static org.onosproject.openstacknetworking.RulePopulatorUtil.buildExtension;
 
+
 /**
  * Populates switching flow rules.
  */
+@Service
 @Component(immediate = true)
-public final class OpenstackSwitchingManager extends AbstractVmHandler {
+public final class OpenstackSwitchingManager extends AbstractVmHandler
+        implements OpenstackSwitchingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -269,5 +274,31 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler {
     protected void hostRemoved(Host host) {
         removeSwitchingRules(host);
         log.info("Removed virtual machine from switching service {}", host);
+    }
+
+    @Override
+    public void reinstallVmFlow(Host host) {
+        if (host == null) {
+            hostService.getHosts().forEach(h -> {
+                populateSwitchingRules(h);
+                log.info("Re-Install data plane flow of virtual machine {}", h);
+            });
+        } else {
+            populateSwitchingRules(host);
+            log.info("Re-Install data plane flow of virtual machine {}", host);
+        }
+    }
+
+    @Override
+    public void purgeVmFlow(Host host) {
+        if (host == null) {
+            hostService.getHosts().forEach(h -> {
+                removeSwitchingRules(h);
+                log.info("Purge data plane flow of virtual machine {}", h);
+            });
+        } else {
+            removeSwitchingRules(host);
+            log.info("Purge data plane flow of virtual machine {}", host);
+        }
     }
 }

@@ -10,6 +10,7 @@ COMPILE_DEPS = [
 BUNDLES = [
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacknetworking/web:onos-apps-openstacknetworking-web',
+    '//apps/openstacknetworking/cli:onos-apps-openstacknetworking-cli',
     '//apps/openstacknetworking/routing:onos-apps-openstacknetworking-routing',
 ]
 

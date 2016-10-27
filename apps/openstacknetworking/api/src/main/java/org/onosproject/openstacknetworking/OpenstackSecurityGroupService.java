@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking;
 
+import org.onosproject.net.Host;
+
 import org.onosproject.openstackinterface.OpenstackPort;
 
 /**
@@ -28,4 +30,18 @@ public interface OpenstackSecurityGroupService {
      * @param osPort OpenstackPort information for the VM
      */
     void updateSecurityGroup(OpenstackPort osPort);
+
+    /**
+     * Handles to purge data plane flow of existing VM.
+     *
+     * @param host VM Host information
+     */
+    void purgeVmFlow(Host host);
+
+    /**
+     * Handles to reinstall data plane flow of existing VM.
+     *
+     * @param host VM Host information
+     */
+    void reinstallVmFlow(Host host);
 }

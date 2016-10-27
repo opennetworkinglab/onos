@@ -17,39 +17,10 @@ package org.onosproject.openstacknetworking;
 
 import org.onosproject.net.Host;
 
-import org.onosproject.openstackinterface.OpenstackFloatingIP;
-
 /**
- * Handles floating IP update requests from OpenStack.
+ * Handles switch update requests from OpenStack and  CLI.
  */
-public interface OpenstackFloatingIpService {
-
-    enum Action {
-        ASSOCIATE,
-        DISSASSOCIATE
-    }
-
-    /**
-     * Handles floating IP create request from OpenStack.
-     *
-     * @param floatingIp floating IP information
-     */
-    void createFloatingIp(OpenstackFloatingIP floatingIp);
-
-    /**
-     * Handles floating IP update request from OpenStack.
-     *
-     * @param floatingIp floating IP information
-     */
-    void updateFloatingIp(OpenstackFloatingIP floatingIp);
-
-    /**
-     * Handles floating IP remove request from OpenStack.
-     *
-     * @param floatingIpId floating ip identifier
-     */
-    void deleteFloatingIp(String floatingIpId);
-
+public interface OpenstackSwitchingService {
     /**
      * Handles to purge data plane flow of existing VM.
      *

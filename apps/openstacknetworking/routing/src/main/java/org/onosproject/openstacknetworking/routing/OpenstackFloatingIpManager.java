@@ -156,6 +156,32 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
     }
 
     @Override
+    public void reinstallVmFlow(Host host) {
+        if (host == null) {
+            hostService.getHosts().forEach(h -> {
+                hostDetected(h);
+                log.info("Re-Install data plane flow of virtual machine {}", h);
+            });
+        } else {
+            hostDetected(host);
+            log.info("Re-Install data plane flow of virtual machine {}", host);
+        }
+    }
+
+    @Override
+    public void purgeVmFlow(Host host) {
+        if (host == null) {
+            hostService.getHosts().forEach(h -> {
+                hostRemoved(h);
+                log.info("Purge data plane flow of virtual machine {}", h);
+            });
+        } else {
+            hostRemoved(host);
+            log.info("Purge data plane flow of virtual machine {}", host);
+        }
+    }
+
+    @Override
     public void createFloatingIp(OpenstackFloatingIP floatingIp) {
     }
 

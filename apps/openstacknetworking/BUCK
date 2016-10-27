@@ -1,6 +1,7 @@
 BUNDLES = [
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacknetworking/web:onos-apps-openstacknetworking-web',
+    '//apps/openstacknetworking/cli:onos-apps-openstacknetworking-cli',
 ]
 
 onos_app (
