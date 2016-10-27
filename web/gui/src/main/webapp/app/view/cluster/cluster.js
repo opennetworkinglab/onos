@@ -69,6 +69,10 @@
         div.on('click', closePanel);
     }
 
+    function handleEscape() {
+        return closePanel();
+    }
+
     function setUpPanel() {
         var container, closeBtn, tblDiv;
         detailsPanel.empty();
@@ -209,7 +213,15 @@
             } else {
                 initPanel();
             }
-
+            // create key bindings to handle panel
+            ks.keyBindings({
+                esc: [handleEscape, 'Close the details panel'],
+                _helpFormat: ['esc']
+            });
+            ks.gestureNotes([
+                ['click', 'Select a row to show cluster node details'],
+                ['scroll down', 'See available cluster nodes']
+            ]);
             // if the panelData changes
             scope.$watch('panelData', function () {
                 if (!fs.isEmptyObject(scope.panelData)) {
