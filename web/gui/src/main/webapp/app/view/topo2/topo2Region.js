@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var $log, t2sr, t2ds, t2hs, t2ls;
+    var $log, t2sr, t2ds, t2hs, t2ls, t2zs;
     var Model;
 
     // Internal
@@ -53,6 +53,33 @@
         angular.forEach(region.get('links').models, function (link) {
             link.createLink();
         });
+
+        console.log(region.get('id'));
+
+        // TEMP Map Zoom
+        var regionPanZooms = {
+            "(root)": {
+                scale: 0.8,
+                translate: [-384.5881010374517, -512.2527728775849]
+            },
+            rBrg: {
+                scale: 2.75,
+                translate: [-2929.288248714413, -3498.849169115524]
+            },
+            rLon: {
+                scale: 2.75,
+                translate: [-2873.682762707102, -3320.483337006704]
+            },
+            rTha: {
+                scale: 7.5,
+                translate: [-8751.376289753565, -9950.962850877779]
+            }
+        };
+
+        setTimeout(function () {
+            var reigionPZ = regionPanZooms[region.get('id')];
+            t2zs.panAndZoom(reigionPZ.translate, reigionPZ.scale);
+        }, 10);
 
         $log.debug('Region: ', region);
     }
@@ -94,9 +121,9 @@
     .factory('Topo2RegionService',
         ['$log', 'Topo2Model',
         'Topo2SubRegionService', 'Topo2DeviceService',
-        'Topo2HostService', 'Topo2LinkService',
+        'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService',
 
-        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_) {
+        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_) {
 
             $log = _$log_;
             Model = _Model_;
@@ -104,6 +131,7 @@
             t2ds = _t2ds_;
             t2hs = _t2hs_;
             t2ls = _t2ls_;
+            t2zs = _t2zs_;
 
             return {
                 init: init,

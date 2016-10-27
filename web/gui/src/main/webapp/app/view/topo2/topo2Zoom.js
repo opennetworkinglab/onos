@@ -24,8 +24,9 @@
     'use strict';
 
     var zs, ps;
-    var zoomer;
-    var zoomEventListeners = [];
+
+    var zoomer,
+        zoomEventListeners = [];
 
     function createZoomer(options) {
         var settings = angular.extend({}, options, {
@@ -72,6 +73,10 @@
         return zoomer.scale();
     }
 
+    function panAndZoom(translate, scale) {
+        zoomer.panZoom(translate, scale, 1000);
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2ZoomService',
         ['ZoomService', 'PrefsService',
@@ -85,7 +90,8 @@
                 addZoomEventListener: addZoomEventListener,
                 removeZoomEventListener: removeZoomEventListener,
 
-                scale: scale
+                scale: scale,
+                panAndZoom: panAndZoom
             };
         }]);
 })();

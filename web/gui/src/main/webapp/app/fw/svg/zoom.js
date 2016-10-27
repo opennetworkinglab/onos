@@ -91,16 +91,21 @@
                     }
                 }
 
-                function adjustZoomLayer(translate, scale) {
-                    settings.zoomLayer.attr('transform',
-                        'translate(' + translate + ')scale(' + scale + ')');
+                function adjustZoomLayer(translate, scale, transition) {
+
+                    settings.zoomLayer.transition()
+                        .duration(transition || 0)
+                        .attr("transform",
+                            'translate(' + translate + ')scale(' + scale + ')');
+
                     settings.zoomCallback(translate, scale);
                 }
 
                 zoomer = {
-                    panZoom: function (translate, scale) {
+                    panZoom: function (translate, scale, transition) {
+
                         zoom.translate(translate).scale(scale);
-                        adjustZoomLayer(translate, scale);
+                        adjustZoomLayer(translate, scale, transition);
                     },
 
                     reset: function () {
