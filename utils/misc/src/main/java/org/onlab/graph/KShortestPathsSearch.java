@@ -69,7 +69,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
                 List<E> rootPathEdgeList = resultPaths.get(k - 1).edges().subList(0, i);
 
                 for (Path<V, E> path : resultPaths) {
-                    if (edgeListsAreEqual(rootPathEdgeList, path.edges().subList(0, i))) {
+                    if (path.edges().size() >= i && edgeListsAreEqual(rootPathEdgeList, path.edges().subList(0, i))) {
                         modifiedWeighter.removedEdges.add(path.edges().get(i));
                     }
                 }
