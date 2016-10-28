@@ -29,7 +29,7 @@
         pStartY,
         pHeight,
         top,
-        topContent,
+        topTable,
         bottom,
         iconDiv,
         nameDiv,
@@ -46,7 +46,14 @@
 
         pName = 'flow-details-panel',
         detailsReq = 'flowDetailsRequest',
-        detailsResp = 'flowDetailsResponse';
+        detailsResp = 'flowDetailsResponse',
+
+        propOrder = [
+            'flowId', 'priority'
+        ],
+        friendlyProps = [
+            'Flow ID', 'Flow Priority'
+        ];
 
     function closePanel() {
         if (detailsPanel.isVisible()) {
@@ -62,6 +69,10 @@
         div.on('click', closePanel);
     }
 
+    function handleEscape() {
+        return closePanel();
+    }
+
     function setUpPanel() {
         var container, closeBtn, tblDiv;
         detailsPanel.empty();
@@ -73,17 +84,32 @@
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
-        topContent = top.append('div').classed('top-content', true);
+        topTable = top.append('div').classed('top-content', true)
+            .append('table');
         top.append('hr');
 
         //ToDo add more details
     }
 
-    function populateTop(details) {
-        is.loadEmbeddedIcon(iconDiv, 'm_flows', 40);
-        top.select('h2').html(details.id);
+    function addProp(tbody, index, value) {
+        var tr = tbody.append('tr');
 
-        //ToDo : Add more details
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
+        }
+        addCell('label', friendlyProps[index] + ' :');
+        addCell('value', value);
+    }
+
+    function populateTop(details) {
+        is.loadEmbeddedIcon(iconDiv, 'flowTable', 40);
+        top.select('h2').html(details.flowId);
+
+        var tbody = topTable.append('tbody');
+
+        propOrder.forEach(function (prop, i) {
+            addProp(tbody, i, details[prop]);
+        });
     }
 
     function createDetailsPane() {
@@ -101,22 +127,18 @@
     }
 
     function populateDetails(details) {
-
         setUpPanel();
         populateTop(details);
 
         //ToDo add more details
         detailsPanel.height(pHeight);
         detailsPanel.width(wtPdg);
-
-        //Todo : remove this when server implementation is done
-        detailsPanel.show();
     }
 
     function respDetailsCb(data) {
-        var details = data.details;
-        //TODO Use populateDetails() when merging server code
-        $log.debug('Get the details:', details.id);
+        $log.debug("Got response from server :", data);
+        $scope.panelData = data.details;
+        $scope.$apply();
     }
 
     angular.module('ovFlow', [])
@@ -173,14 +195,15 @@
             function selCb($event, row) {
                 if ($scope.selId) {
                     wss.sendEvent(detailsReq, {flowId: row.id, appId: row.appId});
-
-                    //ToDo : Remove this line when server implmentation is complete
-                    populateDetails($scope.selId);
                 } else {
                     $scope.hidePanel();
                 }
                 $log.debug('Got a click on:', row);
             }
+
+             $scope.$on('$destroy', function () {
+                 wss.unbindHandlers(handlers);
+             });
 
             $scope.briefToggle = function () {
                 $scope.brief = !$scope.brief;
@@ -222,7 +245,22 @@
             } else {
                 initPanel();
             }
-
+            // create key bindings to handle panel
+            ks.keyBindings({
+                esc: [handleEscape, 'Close the details panel'],
+                _helpFormat: ['esc']
+            });
+            ks.gestureNotes([
+                ['click', 'Select a row to show cluster node details'],
+                ['scroll down', 'See available cluster nodes']
+            ]);
+            // if the panelData changes
+            scope.$watch('panelData', function () {
+                if (!fs.isEmptyObject(scope.panelData)) {
+                    populateDetails(scope.panelData);
+                    detailsPanel.show();
+                }
+            });
             // if the window size changes
             unbindWatch = $rootScope.$watchCollection(
                 function () {

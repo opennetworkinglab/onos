@@ -70,6 +70,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     private static final String BYTES = "bytes";
 
     private static final String COMMA = ", ";
+    private static final String OX = "0x";
+    private static final String EMPTY = "";
 
     private static final String[] COL_IDS = {
             ID, APP_ID, GROUP_ID, TABLE_ID, PRIORITY, SELECTOR,
@@ -202,18 +204,23 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         }
 
         private FlowRule findFlowById(String appIdText, String flowId) {
+            String strippedFlowId = flowId.replaceAll(OX, EMPTY);
             FlowRuleService fs = get(FlowRuleService.class);
             int appIdInt = Integer.parseInt(appIdText);
-            ApplicationId appId = new DefaultApplicationId(appIdInt, "details");
+            ApplicationId appId = new DefaultApplicationId(appIdInt, DETAILS);
             Iterable<FlowRule> flows = fs.getFlowRulesById(appId);
 
             for (FlowRule flow : flows) {
-                if (flow.id().toString().equals(flowId)) {
+                if (flow.id().toString().equals(strippedFlowId)) {
                     return flow;
                 }
             }
 
             return null;
+        }
+
+        private String decorateFlowId(FlowRule flow) {
+            return OX + flow.id();
         }
 
         @Override
@@ -222,16 +229,18 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             String flowId = string(payload, FLOW_ID);
             String appId = string(payload, APP_ID);
             FlowRule flow = findFlowById(appId, flowId);
-            ObjectNode data = objectNode();
+            if (flow != null) {
+                ObjectNode data = objectNode();
 
-            data.put(FLOW_ID, flow.id().toString());
-            data.put(FLOW_PRIORITY, flow.priority());
+                data.put(FLOW_ID, decorateFlowId(flow));
+                data.put(FLOW_PRIORITY, flow.priority());
 
-            //TODO put more detail info to data
+                //TODO put more detail info to data
 
-            ObjectNode rootNode = objectNode();
-            rootNode.set(DETAILS, data);
-            sendMessage(FLOW_DETAILS_RESP, rootNode);
+                ObjectNode rootNode = objectNode();
+                rootNode.set(DETAILS, data);
+                sendMessage(FLOW_DETAILS_RESP, rootNode);
+            }
         }
     }
 }

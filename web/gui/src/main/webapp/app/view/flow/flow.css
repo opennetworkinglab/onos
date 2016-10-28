@@ -65,3 +65,13 @@
     display: inline-block;
     margin: 8px 0;
 }
+
+#flow-details-panel .top-content table {
+    font-size: 12pt;
+}
+
+#flow-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
