@@ -545,9 +545,7 @@ class ModelCache {
             RegionId rid = r.id();
             UiRegion region = uiTopology.findRegion(rid);
             if (region != null) {
-                reconcileDevicesWithRegion(allDevices, r, rid, region);
-                reconcileHostsWithRegion(allHosts, r, rid, region);
-
+                reconcileDevicesAndHostsWithRegion(allDevices, allHosts, rid, region);
             } else {
                 log.warn("No UiRegion in topology for ID {}", rid);
             }
@@ -567,37 +565,41 @@ class ModelCache {
         uiTopology.computeSynthLinks();
     }
 
-    private void reconcileHostsWithRegion(Set<UiHost> allHosts, Region r,
-                                          RegionId rid, UiRegion region) {
-        Set<HostId> hostIds = services.region().getRegionHosts(rid);
-        region.reconcileHosts(hostIds);
-
-        hostIds.forEach(hid -> {
-            UiHost h = uiTopology.findHost(hid);
-            if (h != null) {
-                h.setRegionId(r.id());
-                allHosts.remove(h);
-            } else {
-                log.warn("Region host ID {} but no UiHost in topology", hid);
-            }
-        });
-    }
-
-    private void reconcileDevicesWithRegion(Set<UiDevice> allDevices, Region r,
-                                            RegionId rid, UiRegion region) {
+    private void reconcileDevicesAndHostsWithRegion(Set<UiDevice> allDevices,
+                                                    Set<UiHost> allHosts,
+                                                    RegionId rid,
+                                                    UiRegion region) {
         Set<DeviceId> deviceIds = services.region().getRegionDevices(rid);
+        Set<HostId> hostIds = new HashSet<>();
         region.reconcileDevices(deviceIds);
 
         deviceIds.forEach(devId -> {
             UiDevice dev = uiTopology.findDevice(devId);
             if (dev != null) {
-                dev.setRegionId(r.id());
+                dev.setRegionId(rid);
                 allDevices.remove(dev);
             } else {
                 log.warn("Region device ID {} but no UiDevice in topology",
                         devId);
             }
+
+            Set<Host> hosts = services.host().getConnectedHosts(devId);
+            for (Host h : hosts) {
+                HostId hid = h.id();
+                hostIds.add(hid);
+                UiHost host = uiTopology.findHost(hid);
+
+                if (host != null) {
+                    host.setRegionId(rid);
+                    allHosts.remove(host);
+                } else {
+                    log.warn("Region host ID {} but no UiHost in topology",
+                            hid);
+                }
+            }
         });
+
+        region.reconcileHosts(hostIds);
     }
 
 

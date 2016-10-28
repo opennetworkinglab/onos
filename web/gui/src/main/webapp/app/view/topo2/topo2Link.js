@@ -95,11 +95,11 @@
     function linkEndPoints(srcId, dstId) {
 
         var allNodes = this.region.nodes();
-        var sourceNode = this.region.findNodeById(srcId);
-        var targetNode = this.region.findNodeById(dstId);
+        var sourceNode = this.region.findNodeById(this, srcId);
+        var targetNode = this.region.findNodeById(this, dstId);
 
         if (!sourceNode || !targetNode) {
-            $log.error('Node(s) not on map for link:' + srcId + ':' + dstId);
+            $log.error('Node(s) not on map for link:' + srcId + '~' + dstId);
             // logicError('Node(s) not on map for link:\n' + sMiss + dMiss);
             return null;
         }

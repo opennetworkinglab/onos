@@ -84,11 +84,14 @@
         $log.debug('Region: ', region);
     }
 
-    function findNodeById(id) {
+    function findNodeById(link, id) {
 
-        // Remove /{port} from id if needed
-        var regex = new RegExp('^[^/]*');
-        id = regex.exec(id)[0];
+
+        if (link.get('type') !== 'UiEdgeLink') {
+            // Remove /{port} from id if needed
+            var regex = new RegExp('^[^/]*');
+            id = regex.exec(id)[0];
+        }
 
         return region.get('devices').get(id) ||
             region.get('hosts').get(id) ||
