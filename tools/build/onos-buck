@@ -11,8 +11,10 @@ REQUIRED_VERSION="buck version 274d79c597589aeac30b39ece59fb78afda78530"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
-mkdir -p $ONOS_ROOT/bin
-pushd $ONOS_ROOT/bin > /dev/null
+ROOT_DIR=${ONOS_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"}
+
+mkdir -p $ROOT_DIR/bin
+pushd $ROOT_DIR/bin > /dev/null
 
 if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat .buck_version)" ]; then
     echo "Updating Buck..."
@@ -32,12 +34,12 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat 
     unzip cache/$BUCK_FILE
     # Kill buckd
     ps -ef | egrep buckd | grep -v egrep | cut -c7-11 | xargs kill 2>/dev/null || :
-    rm -rf $ONOS_ROOT/buck-out
-    printf "Successfully updated Buck in $ONOS_ROOT/bin/buck to $BUCK_FILE\n\n"
+    rm -rf $ROOT_DIR/buck-out
+    printf "Successfully updated Buck in $ROOT_DIR/bin/buck to $BUCK_FILE\n\n"
 fi
 popd > /dev/null
 
-BUCK=$ONOS_ROOT/bin/buck
+BUCK=$ROOT_DIR/bin/buck
 
 # Finally, run the Buck command...
 $BUCK "$@"
