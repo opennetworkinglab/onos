@@ -39,6 +39,7 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.Timestamp;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -264,5 +265,10 @@ public class SimpleHostStore
         public HostLocation location() {
             return location;
         }
+    }
+
+    @Override
+    public Timestamp getHostLastseenTime(HostId hostId) {
+        return null;
     }
 }

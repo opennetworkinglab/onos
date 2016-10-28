@@ -52,6 +52,7 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.store.Timestamp;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -305,6 +306,12 @@ public class HostManager
         store.removeHost(hostId);
     }
 
+     @Override
+     public Timestamp getHostLastseenTime(HostId hostId) {
+         checkNotNull(hostId, HOST_ID_NULL);
+         return store.getHostLastseenTime(hostId);
+    }
+
     // Personalized host provider service issued to the supplied provider.
     private class InternalHostProviderService
             extends AbstractProviderService<HostProvider>
@@ -345,9 +352,6 @@ public class HostManager
                 });
             });
         }
-
-
-
 
         // returns a HostDescription made from the union of the BasicHostConfig
         // annotations if it exists
