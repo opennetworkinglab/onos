@@ -98,10 +98,11 @@ public final class BasicDeviceOperator implements ConfigOperator {
         if (bdc.name() != null) {
             newBuilder.set(AnnotationKeys.NAME, bdc.name());
         }
-        if (bdc.latitude() != DEFAULT_COORD) {
-            newBuilder.set(AnnotationKeys.LATITUDE, Double.toString(bdc.latitude()));
+        if (bdc.uiType() != null) {
+            newBuilder.set(AnnotationKeys.UI_TYPE, bdc.uiType());
         }
-        if (bdc.longitude() != DEFAULT_COORD) {
+        if (bdc.geoCoordsSet()) {
+            newBuilder.set(AnnotationKeys.LATITUDE, Double.toString(bdc.latitude()));
             newBuilder.set(AnnotationKeys.LONGITUDE, Double.toString(bdc.longitude()));
         }
         if (bdc.rackAddress() != null) {

@@ -95,4 +95,13 @@ public class BasicElementConfigTest {
         assertEquals("lat", 3.1415, cfg.latitude(), ZERO_THRESHOLD);
         assertEquals("lon", 2.71828, cfg.longitude(), ZERO_THRESHOLD);
     }
+
+    @Test
+    public void uiType() {
+        print(cfg);
+        assertEquals("not default type", null, cfg.uiType());
+        cfg.uiType("someOtherType");
+        print(cfg);
+        assertEquals("not other type", "someOtherType", cfg.uiType());
+    }
 }

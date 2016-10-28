@@ -23,8 +23,6 @@ import org.onosproject.net.HostId;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.onosproject.net.config.basics.AllowedEntityConfig.ALLOWED;
-
 /**
  * Basic configuration for network end-station hosts.
  */
@@ -38,12 +36,12 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
         // Location and IP addresses can be absent, but if present must be valid.
         this.location();
         this.ipAddresses();
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, RACK_ADDRESS, OWNER,
-                             IPS, LOCATION);
+        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
+                RACK_ADDRESS, OWNER, IPS, LOCATION);
     }
 
     /**
-     * Returns location of the host.
+     * Returns the location of the host.
      *
      * @return location of the host or null if not set
      * @throws IllegalArgumentException if not specified with correct format

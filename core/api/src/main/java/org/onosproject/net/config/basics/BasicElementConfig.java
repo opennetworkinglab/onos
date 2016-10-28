@@ -23,6 +23,7 @@ package org.onosproject.net.config.basics;
 public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
     protected static final String NAME = "name";
+    protected static final String UI_TYPE = "uiType";
 
     protected static final String LATITUDE = "latitude";
     protected static final String LONGITUDE = "longitude";
@@ -52,15 +53,36 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
         return (BasicElementConfig) setOrClear(NAME, name);
     }
 
-    private static boolean doubleIsZero(double value) {
+    /**
+     * Returns the UI type (glyph image to be used) for the element in
+     * the Topology View.
+     *
+     * @return the UI type
+     */
+    public String uiType() {
+        return get(UI_TYPE, null);
+    }
+
+    /**
+     * Sets the UI type (glyph image to be used) for the element in
+     * the Topology View.
+     *
+     * @param uiType the UI type; null for default
+     * @return self
+     */
+    public BasicElementConfig uiType(String uiType) {
+        return (BasicElementConfig) setOrClear(UI_TYPE, uiType);
+    }
+
+    private boolean doubleIsZero(double value) {
         return value >= -ZERO_THRESHOLD && value <= ZERO_THRESHOLD;
     }
 
     /**
      * Returns true if the geographical coordinates (latitude and longitude)
-     * are set on this element.
+     * are set on this element; false otherwise.
      *
-     * @return true if geo-coordinates are set
+     * @return true if geo-coordinates are set; false otherwise
      */
     public boolean geoCoordsSet() {
         return !doubleIsZero(latitude()) || !doubleIsZero(longitude());

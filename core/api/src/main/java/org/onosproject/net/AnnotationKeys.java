@@ -21,7 +21,6 @@ package org.onosproject.net;
  * Number of the annotation keys have been deprecated as the use of annotations
  * is being phased out and instead network configuration subsystem is being
  * phased-in for majority of model meta-data.
- * </p>
  */
 public final class AnnotationKeys {
 
@@ -41,6 +40,11 @@ public final class AnnotationKeys {
      */
     @Deprecated
     public static final String TYPE = "type";
+
+    /**
+     * Annotation key for UI type (the glyph ID for rendering).
+     */
+    public static final String UI_TYPE = "uiType";
 
     /**
      * Annotation key for latitude (e.g. latitude of device).
