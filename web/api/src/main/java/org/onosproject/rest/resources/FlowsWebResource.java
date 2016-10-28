@@ -116,12 +116,14 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlows(@QueryParam("appId") String appId, InputStream stream) {
         try {
+            final ApplicationService appService = get(ApplicationService.class);
+            final ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             ArrayNode flowsArray = nullIsIllegal((ArrayNode) jsonTree.get(FLOWS),
                                                  FLOW_ARRAY_REQUIRED);
 
             if (appId != null) {
-                flowsArray.forEach(flowJson -> ((ObjectNode) flowJson).put("appId", appId));
+                flowsArray.forEach(flowJson -> ((ObjectNode) flowJson).put("appId", idInstant.name()));
             }
 
             List<FlowRule> rules = codec(FlowRule.class).decode(flowsArray, this);
@@ -253,6 +255,8 @@ public class FlowsWebResource extends AbstractWebResource {
                                @QueryParam("appId") String appId,
                                InputStream stream) {
         try {
+            final ApplicationService appService = get(ApplicationService.class);
+            final ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
             if (specifiedDeviceId != null &&
@@ -263,7 +267,7 @@ public class FlowsWebResource extends AbstractWebResource {
             jsonTree.put("deviceId", deviceId);
 
             if (appId != null) {
-                jsonTree.put("appId", appId);
+                jsonTree.put("appId", idInstant.name());
             }
 
             FlowRule rule = codec(FlowRule.class).decode(jsonTree, this);
