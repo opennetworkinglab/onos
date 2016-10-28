@@ -24,6 +24,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
+import org.onosproject.store.Timestamp;
 
 import java.util.Set;
 
@@ -125,4 +126,11 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      */
     Set<Host> getConnectedHosts(DeviceId deviceId);
 
+    /**
+     * Returns the recent host updated time.
+     *
+     * @param hostId host identifier
+     * @return recent host updated time
+     */
+    Timestamp getHostLastseenTime(HostId hostId);
 }

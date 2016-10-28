@@ -28,6 +28,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.Timestamp;
 
 import com.google.common.collect.Sets;
 
@@ -99,6 +100,11 @@ public class HostServiceAdapter implements HostService {
 
     @Override
     public void removeListener(HostListener listener) {
+    }
+
+    @Override
+    public Timestamp getHostLastseenTime(HostId hostId) {
+        return null;
     }
 
 }

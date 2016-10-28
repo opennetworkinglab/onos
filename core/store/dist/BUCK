@@ -16,6 +16,7 @@ TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
     '//core/common:onos-core-common-tests',
+    '//utils/osgi:onlab-osgi-tests',
 ]
 
 osgi_jar_with_tests (

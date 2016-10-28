@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -28,6 +30,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -42,15 +45,20 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +66,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.DefaultAnnotations.merge;
@@ -75,6 +85,15 @@ public class DistributedHostStore
 
     private final Logger log = getLogger(getClass());
 
+    private static final boolean DEFAULT_RECORD_TIMESTAMP_ENABLED = false;
+
+    @Property(name = "recordHostTimestamp", boolValue = DEFAULT_RECORD_TIMESTAMP_ENABLED,
+            label = "Indicates whether recoding of host timestamp is enabled or not")
+    private volatile boolean recordHostTimestamp = DEFAULT_RECORD_TIMESTAMP_ENABLED;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
@@ -84,8 +103,11 @@ public class DistributedHostStore
     private MapEventListener<HostId, DefaultHost> hostLocationTracker =
             new HostLocationTracker();
 
+    private EventuallyConsistentMap<HostId, Timestamp> hostsTimestamp;
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        configService.registerProperties(getClass());
         KryoNamespace.Builder hostSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API);
 
@@ -97,18 +119,44 @@ public class DistributedHostStore
 
         hosts = hostsConsistentMap.asJavaMap();
 
+        hostsTimestamp = storageService.<HostId, Timestamp>eventuallyConsistentMapBuilder()
+                .withName("onos-hosts-timestamp")
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .withSerializer(hostSerializer)
+                .build();
 
         hostsConsistentMap.addListener(hostLocationTracker);
-
+        modified(context);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        configService.unregisterProperties(getClass(), false);
         hostsConsistentMap.removeListener(hostLocationTracker);
 
         log.info("Stopped");
     }
+
+    @SuppressWarnings("rawtypes")
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context == null) {
+            recordHostTimestamp = DEFAULT_RECORD_TIMESTAMP_ENABLED;
+            log.info("Default config");
+            return;
+        }
+
+        Dictionary properties = context.getProperties();
+        String s = get(properties, "recordHostTimestamp");
+        boolean newRecordTimestamp = isNullOrEmpty(s) ? recordHostTimestamp : Boolean.parseBoolean(s.trim());
+
+        if (newRecordTimestamp != recordHostTimestamp) {
+            recordHostTimestamp = newRecordTimestamp;
+        }
+    }
+
+
 
     private boolean shouldUpdate(DefaultHost existingHost,
                                  ProviderId providerId,
@@ -152,6 +200,10 @@ public class DistributedHostStore
                                         HostId hostId,
                                         HostDescription hostDescription,
                                         boolean replaceIPs) {
+        if (recordHostTimestamp && !hostDescription.ipAddress().isEmpty()) {
+            hostsTimestamp.put(hostId, new WallClockTimestamp());
+        }
+
         hostsConsistentMap.computeIf(hostId,
                        existingHost -> shouldUpdate(existingHost, providerId, hostId,
                                                     hostDescription, replaceIPs),
@@ -272,6 +324,11 @@ public class DistributedHostStore
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(filtered);
+    }
+
+    @Override
+    public Timestamp getHostLastseenTime(HostId hostId) {
+        return hostsTimestamp.get(hostId);
     }
 
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {

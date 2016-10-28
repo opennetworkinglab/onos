@@ -18,17 +18,22 @@ package org.onosproject.store.host.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.service.TestStorageService;
 
+import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertTrue;
@@ -48,12 +53,22 @@ public class DistributedHostStoreTest {
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
+    public static final ComponentContextAdapter RECORD_HOST_TIMESTAMP = new ComponentContextAdapter() {
+        @Override
+        public Dictionary getProperties() {
+            Hashtable<String, String> props = new Hashtable<String, String>();
+            props.put("recordHostTimestamp", "true");
+            return props;
+        }
+    };
+
     @Before
     public void setUp() {
         ecXHostStore = new DistributedHostStore();
 
         ecXHostStore.storageService = new TestStorageService();
-        ecXHostStore.activate();
+        ecXHostStore.configService = new ComponentConfigAdapter();
+        ecXHostStore.activate(RECORD_HOST_TIMESTAMP);
     }
 
     @After
@@ -80,6 +95,23 @@ public class DistributedHostStoreTest {
 
         assertFalse(host.ipAddresses().contains(IP1));
         assertTrue(host.ipAddresses().contains(IP2));
+    }
+
+    @Test
+    public void testRecordTimestamp() {
+        Set<IpAddress> ips = new HashSet<>();
+        ips.add(IP1);
+        ips.add(IP2);
+
+        HostDescription description = new DefaultHostDescription(HOSTID.mac(),
+                HOSTID.vlanId(),
+                HostLocation.NONE,
+                ips);
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, description, false);
+        Timestamp timestamp = ecXHostStore.getHostLastseenTime(HOSTID);
+
+        assertFalse(timestamp == null);
+        assertTrue(timestamp != null);
     }
 
 }
