@@ -49,6 +49,9 @@ CORE = UTILS + API + [
     '//protocols/isis/api:onos-protocols-isis-api',
     '//protocols/isis/ctl:onos-protocols-isis-ctl',
     '//protocols/isis/isisio:onos-protocols-isis-isisio',
+    '//protocols/lisp/api:onos-protocols-lisp-api',
+    '//protocols/lisp/ctl:onos-protocols-lisp-ctl',
+    '//protocols/lisp/msg:onos-protocols-lisp-msg',
 
     '//drivers/utilities:onos-drivers-utilities',
 
@@ -64,6 +67,7 @@ CORE = UTILS + API + [
     '//providers/snmp/device:onos-providers-snmp-device',
     '//providers/isis/cfg:onos-providers-isis-cfg',
     '//providers/isis/topology:onos-providers-isis-topology',
+    '//providers/lisp/device:onos-providers-lisp-device',
 
     '//web/api:onos-rest',
     '//web/gui:onos-gui',
@@ -106,6 +110,7 @@ ONOS_PROVIDERS = [
     '//providers/isis:onos-providers-isis-oar',
     '//providers/snmp:onos-providers-snmp-oar',
     '//providers/link:onos-providers-link-oar',
+    '//providers/lisp:onos-providers-lisp-oar',
 ]
 
 ONOS_APPS = [
