@@ -2,6 +2,7 @@ BUNDLES = [
     '//providers/lisp/device:onos-providers-lisp-device',
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/ctl:onos-protocols-lisp-ctl',
+    '//protocols/lisp/msg:onos-protocols-lisp-msg',
 ]
 
 onos_app (
