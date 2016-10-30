@@ -292,6 +292,7 @@ public final class DefaultLispMapRegister implements LispMapRegister {
                     .withNonce(nonce)
                     .withKeyId(keyId)
                     .withAuthenticationData(authData)
+                    .withAuthDataLength(authLength)
                     .withMapRecords(mapRecords)
                     .build();
         }
