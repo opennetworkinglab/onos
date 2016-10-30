@@ -16,9 +16,9 @@
 package org.onosproject.lisp;
 
 /**
- * Remove me.
+ * Abstraction of a LISP controller. Serves as a one stop shop for obtaining
+ * LISP devices and (un)register listeners on LISP events.
  */
-@Deprecated
-public abstract class PlaceHolder {
+public interface LispController {
 
 }

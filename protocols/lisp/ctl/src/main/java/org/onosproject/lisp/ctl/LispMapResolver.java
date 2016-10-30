@@ -21,9 +21,9 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
  * LISP map resolver class.
  * Handles map-request message and acknowledges with map-reply message.
  */
-public class LispMapResolver implements LispMapSystem {
-    @Override
-    public LispMessage process(LispMessage message) {
+public class LispMapResolver {
+
+    public LispMessage processMapRequest(LispMessage message) {
         // TODO: need to implement map-register message processing logic
         return null;
     }

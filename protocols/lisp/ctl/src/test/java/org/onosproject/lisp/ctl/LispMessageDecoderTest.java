@@ -18,12 +18,14 @@ package org.onosproject.lisp.ctl;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.socket.DatagramPacket;
 import org.junit.Test;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -114,21 +116,27 @@ public class LispMessageDecoderTest {
         return buffer;
     }
 
+    private DatagramPacket convToDatagram(ByteBuf byteBuf) {
+        InetSocketAddress source = new InetSocketAddress(0);
+        return new DatagramPacket(byteBuf, source);
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testDecodeNoChannel() throws Exception {
         LispMessageDecoder decoder = new LispMessageDecoder();
 
         List<Object> list = Lists.newArrayList();
-        decoder.decode(new ChannelHandlerContextAdapter(), Unpooled.buffer(), list);
+        decoder.decode(new ChannelHandlerContextAdapter(),
+                convToDatagram(Unpooled.buffer()), list);
     }
 
     @Test
     public void testDecode() throws Exception {
         LispMessageDecoder decoder = new LispMessageDecoder();
-        ByteBuf requestBuff = getLispMapRequestBuffer();
-        ByteBuf replyBuff = getLispMapReplyBuffer();
-        ByteBuf registerBuff = getLispMapRegisterBuffer();
-        ByteBuf notifyBuff = getLispMapNotifyBuffer();
+        DatagramPacket requestBuff = convToDatagram(getLispMapRequestBuffer());
+        DatagramPacket replyBuff = convToDatagram(getLispMapReplyBuffer());
+        DatagramPacket registerBuff = convToDatagram(getLispMapRegisterBuffer());
+        DatagramPacket notifyBuff = convToDatagram(getLispMapNotifyBuffer());
 
         List<Object> list = Lists.newArrayList();
         decoder.decode(new ChannelHandlerContextAdapter(), requestBuff, list);

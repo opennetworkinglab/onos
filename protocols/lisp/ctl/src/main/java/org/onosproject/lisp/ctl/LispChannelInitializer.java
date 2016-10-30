@@ -15,43 +15,30 @@
  */
 package org.onosproject.lisp.ctl;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Creates a ChannelInitializer for a server-side LISP channel.
  */
-public final class LispChannelInitializer extends ChannelInitializer<Channel> {
+public final class LispChannelInitializer extends ChannelInitializer<NioDatagramChannel> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private IdleStateHandler idleHandler;
-    private ReadTimeoutHandler readTimeoutHandler;
-
-    private static final int READER_IDLE_TIME_SECOND = 20;
-    private static final int WRITER_IDLE_TIME_SECOND = 25;
-    private static final int ALL_IDLE_TIME_SECOND = 0;
-    private static final int READ_TIMEOUT_SECOND = 30;
+    private static final String LISP_MESSAGE_DECODER = "lispmessagedecoder";
+    private static final String LISP_MESSAGE_ENCODER = "lispmessageencoder";
+    private static final String LISP_CHANNEL_HANDLER = "handler";
 
     @Override
-    protected void initChannel(Channel channel) throws Exception {
+    protected void initChannel(NioDatagramChannel channel) throws Exception {
         ChannelPipeline pipeline = channel.pipeline();
 
         LispChannelHandler handler = new LispChannelHandler();
 
-        idleHandler = new IdleStateHandler(READER_IDLE_TIME_SECOND,
-                WRITER_IDLE_TIME_SECOND, ALL_IDLE_TIME_SECOND);
-        readTimeoutHandler = new ReadTimeoutHandler(READ_TIMEOUT_SECOND);
-
-        pipeline.addLast("lispmessagedecoder", new LispMessageDecoder());
-        pipeline.addLast("lispmessageencoder", new LispMessageEncoder());
-        pipeline.addLast("idle", idleHandler);
-        pipeline.addLast("readTimeout", readTimeoutHandler);
-        pipeline.addLast("handler", handler);
+        pipeline.addLast(LISP_MESSAGE_DECODER, new LispMessageDecoder());
+        pipeline.addLast(LISP_MESSAGE_ENCODER, new LispMessageEncoder());
+        pipeline.addLast(LISP_CHANNEL_HANDLER, handler);
     }
 }

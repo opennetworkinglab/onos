@@ -17,7 +17,8 @@ package org.onosproject.lisp.ctl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.handler.codec.MessageToMessageDecoder;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.lisp.msg.protocols.LispMessageReader;
 import org.onosproject.lisp.msg.protocols.LispMessageReaderFactory;
@@ -27,12 +28,12 @@ import java.util.List;
 /**
  * Decode a LISP message from a ByteBuffer, for use in a netty pipeline.
  */
-public class LispMessageDecoder extends ByteToMessageDecoder {
+public class LispMessageDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf,
+    protected void decode(ChannelHandlerContext ctx, DatagramPacket msg,
                           List<Object> list) throws Exception {
-
+        ByteBuf byteBuf = msg.content();
         LispMessageReader reader = LispMessageReaderFactory.getReader(byteBuf);
         LispMessage message = (LispMessage) reader.readFrom(byteBuf);
         list.add(message);

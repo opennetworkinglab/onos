@@ -39,14 +39,16 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
         if (msg instanceof LispMapRegister) {
             LispMapServer mapServer = new LispMapServer();
-            LispMapNotify mapNotify = (LispMapNotify) mapServer.process((LispMapRegister) msg);
+            LispMapNotify mapNotify =
+                    (LispMapNotify) mapServer.processMapRegister((LispMapRegister) msg);
 
             // TODO: deserialize mapNotify message and write to channel
         }
 
         if (msg instanceof LispMapRequest) {
             LispMapResolver mapResolver = new LispMapResolver();
-            LispMapReply mapReply = (LispMapReply) mapResolver.process((LispMapRequest) msg);
+            LispMapReply mapReply =
+                    (LispMapReply) mapResolver.processMapRequest((LispMapRequest) msg);
 
             // TODO: deserialize mapReply message and write to channel
         }
