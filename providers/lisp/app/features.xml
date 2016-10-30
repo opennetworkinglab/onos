@@ -20,6 +20,7 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-lisp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-lisp-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-lisp-msg/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-lisp-provider-device/${project.version}</bundle>
     </feature>
