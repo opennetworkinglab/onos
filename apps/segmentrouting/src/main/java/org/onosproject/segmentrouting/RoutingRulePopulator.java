@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
@@ -54,6 +55,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -293,10 +296,10 @@ public class RoutingRulePopulator {
         // is not set.
         if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
             tbuilder.immediate().decNwTtl();
-            ns = new NeighborSet(nextHops);
+            ns = new NeighborSet(nextHops, false);
             treatment = tbuilder.build();
         } else {
-            ns = new NeighborSet(nextHops, segmentId);
+            ns = new NeighborSet(nextHops, false, segmentId);
             treatment = null;
         }
 
@@ -373,17 +376,117 @@ public class RoutingRulePopulator {
     }
 
     /**
+     * Deals with !MPLS Bos use case.
+     *
+     * @param targetSwId the target sw
+     * @param destSwId the destination sw
+     * @param nextHops the set of next hops
+     * @param segmentId the segmentId to match
+     * @param routerIp the router ip
+     * @return a collection of fwdobjective
+     */
+    private Collection<ForwardingObjective> handleMpls(DeviceId targetSwId,
+                                                       DeviceId destSwId,
+                                                       Set<DeviceId> nextHops,
+                                                       int segmentId,
+                                                       IpAddress routerIp,
+                                                       boolean isMplsBos) {
+
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        List<ForwardingObjective.Builder> fwdObjBuilders = Lists.newArrayList();
+        // For the transport of VPWS we can use two or three MPLS label
+        sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
+        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(segmentId));
+        sbuilder.matchMplsBos(isMplsBos);
+        TrafficSelector selector = sbuilder.build();
+
+        // setup metadata to pass to nextObjective - indicate the vlan on egress
+        // if needed by the switch pipeline. Since mpls next-hops are always to
+        // other neighboring routers, there is no subnet assigned on those ports.
+        TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
+        metabuilder.matchVlanId(
+                VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
+
+        if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
+            // If the next hop is the destination router for the segment, do pop
+            log.debug("populateMplsRule: Installing MPLS forwarding objective for "
+                              + "label {} in switch {} with pop", segmentId, targetSwId);
+            // Not-bos pop case (php for the current label). If MPLS-ECMP
+            // has been configured, the application we will request the
+            // installation for an MPLS-ECMP group.
+            ForwardingObjective.Builder fwdObjNoBosBuilder = getMplsForwardingObjective(targetSwId,
+                                                                                        nextHops,
+                                                                                        true,
+                                                                                        isMplsBos,
+                                                                                        metabuilder.build(),
+                                                                                        routerIp);
+            // Error case, we cannot handle, exit.
+            if (fwdObjNoBosBuilder == null) {
+                return Collections.emptyList();
+            }
+            fwdObjBuilders.add(fwdObjNoBosBuilder);
+
+        } else {
+            // next hop is not destination, SR CONTINUE case (swap with self)
+            log.debug("Installing MPLS forwarding objective for "
+                              + "label {} in switch {} without pop", segmentId, targetSwId);
+            // Not-bos pop case. If MPLS-ECMP has been configured, the
+            // application we will request the installation for an MPLS-ECMP
+            // group.
+            ForwardingObjective.Builder fwdObjNoBosBuilder = getMplsForwardingObjective(targetSwId,
+                                                                                        nextHops,
+                                                                                        false,
+                                                                                        isMplsBos,
+                                                                                        metabuilder.build(),
+                                                                                        routerIp);
+            // Error case, we cannot handle, exit.
+            if (fwdObjNoBosBuilder == null) {
+                return Collections.emptyList();
+            }
+            fwdObjBuilders.add(fwdObjNoBosBuilder);
+
+        }
+
+        List<ForwardingObjective> fwdObjs = Lists.newArrayList();
+        // We add the final property to the fwdObjs.
+        for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
+
+            ((Builder) ((Builder) fwdObjBuilder
+                    .fromApp(srManager.appId)
+                    .makePermanent())
+                    .withSelector(selector)
+                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY))
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC);
+
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) ->
+                            log.debug("MPLS rule {} for SID {} populated in dev:{} ",
+                                      objective.id(), segmentId, targetSwId),
+                    (objective, error) ->
+                            log.warn("Failed to populate MPLS rule {} for SID {}: {} in dev:{}",
+                                     objective.id(), segmentId, error, targetSwId));
+
+            ForwardingObjective fob = fwdObjBuilder.add(context);
+            fwdObjs.add(fob);
+
+        }
+
+        return fwdObjs;
+    }
+
+    /**
      * Populates MPLS flow rules in the target device to point towards the
      * destination device.
      *
      * @param targetSwId target device ID of the switch to set the rules
      * @param destSwId destination switch device ID
      * @param nextHops next hops switch ID list
-     * @param routerIp the router Ip
+     * @param routerIp the router ip
      * @return true if all rules are set successfully, false otherwise
      */
     public boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
                                     Set<DeviceId> nextHops, IpAddress routerIp) {
+
         int segmentId;
         try {
             if (routerIp.isIp4()) {
@@ -396,93 +499,26 @@ public class RoutingRulePopulator {
             return false;
         }
 
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        List<ForwardingObjective.Builder> fwdObjBuilders = new ArrayList<>();
-
-        // TODO Handle the case of Bos == false
-        sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
-        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(segmentId));
-        sbuilder.matchMplsBos(true);
-        TrafficSelector selector = sbuilder.build();
-
-        // setup metadata to pass to nextObjective - indicate the vlan on egress
-        // if needed by the switch pipeline. Since mpls next-hops are always to
-        // other neighboring routers, there is no subnet assigned on those ports.
-        TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(
-            VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
-
-        // If the next hop is the destination router for the segment, do pop
-        if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
-            log.debug("populateMplsRule: Installing MPLS forwarding objective for "
-                    + "label {} in switch {} with pop", segmentId, targetSwId);
-
-            // bos pop case (php)
-            ForwardingObjective.Builder fwdObjBosBuilder =
-                    getMplsForwardingObjective(targetSwId,
-                                               nextHops,
-                                               true,
-                                               true,
-                                               metabuilder.build(),
-                                               routerIp);
-            if (fwdObjBosBuilder == null) {
-                return false;
-            }
-            fwdObjBuilders.add(fwdObjBosBuilder);
-
-            // XXX not-bos pop case,  SR app multi-label not implemented yet
-            /*ForwardingObjective.Builder fwdObjNoBosBuilder =
-                    getMplsForwardingObjective(deviceId,
-                                               nextHops,
-                                               true,
-                                               false);*/
-
-        } else {
-            // next hop is not destination, SR CONTINUE case (swap with self)
-            log.debug("Installing MPLS forwarding objective for "
-                    + "label {} in switch {} without pop", segmentId, targetSwId);
-
-            // continue case with bos - this does get triggered in edge routers
-            // and in core routers - driver can handle depending on availability
-            // of MPLS ECMP or not
-            ForwardingObjective.Builder fwdObjBosBuilder =
-                    getMplsForwardingObjective(targetSwId,
-                                               nextHops,
-                                               false,
-                                               true,
-                                               metabuilder.build(),
-                                               routerIp);
-            if (fwdObjBosBuilder == null) {
-                return false;
-            }
-            fwdObjBuilders.add(fwdObjBosBuilder);
-
-            // XXX continue case with not-bos - SR app multi label not implemented yet
-            // also requires MPLS ECMP
-            /*ForwardingObjective.Builder fwdObjNoBosBuilder =
-                    getMplsForwardingObjective(deviceId,
-                                               nextHops,
-                                               false,
-                                               false); */
-
+        List<ForwardingObjective> fwdObjs = new ArrayList<>();
+        Collection<ForwardingObjective> fwdObjsMpls = Collections.emptyList();
+        // Generates the transit rules used by the standard "routing".
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, true);
+        if (fwdObjsMpls.isEmpty()) {
+            return false;
         }
-        // XXX when other cases above are implemented check for validity of
-        // debug messages below
-        for (ForwardingObjective.Builder fwdObjBuilder : fwdObjBuilders) {
-            ((Builder) ((Builder) fwdObjBuilder.fromApp(srManager.appId)
-                    .makePermanent()).withSelector(selector)
-                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY))
-                    .withFlag(ForwardingObjective.Flag.SPECIFIC);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("MPLS rule {} for SID {} populated in dev:{} ",
-                                             objective.id(), segmentId, targetSwId),
-                    (objective, error) ->
-                            log.warn("Failed to populate MPLS rule {} for SID {}: {} in dev:{}",
-                                     objective.id(), segmentId, error, targetSwId));
-            ForwardingObjective fob = fwdObjBuilder.add(context);
+        fwdObjs.addAll(fwdObjsMpls);
+        // Generates the transit rules used by the MPLS VPWS. For now it is
+        // the only case !BoS supported.
+        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
+        if (fwdObjsMpls.isEmpty()) {
+            return false;
+        }
+        fwdObjs.addAll(fwdObjsMpls);
+
+        for (ForwardingObjective fwdObj : fwdObjs) {
             log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
-                      fob.id(), segmentId, fob.nextId(), targetSwId);
-            srManager.flowObjectiveService.forward(targetSwId, fob);
+                      fwdObj.id(), segmentId, fwdObj.nextId(), targetSwId);
+            srManager.flowObjectiveService.forward(targetSwId, fwdObj);
             rulePopulationCounter.incrementAndGet();
         }
 
@@ -523,16 +559,24 @@ public class RoutingRulePopulator {
             tbuilder.deferred().decMplsTtl();
         }
 
-        // All forwarding is via ECMP group, the metadata informs the driver
-        // that the next-Objective will be used by MPLS flows. In other words,
-        // MPLS ECMP is requested. It is up to the driver to decide if these
-        // packets will be hashed or not.
         fwdBuilder.withTreatment(tbuilder.build());
-        NeighborSet ns = new NeighborSet(nextHops);
-        log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
-                 deviceId, ns);
-
-        int nextId = srManager.getNextObjectiveId(deviceId, ns, meta);
+        // if MPLS-ECMP == True we will build a standard NeighborSet.
+        // Otherwise a RandomNeighborSet.
+        NeighborSet ns = NeighborSet.neighborSet(false, nextHops, false);
+        if (!isBos && this.srManager.getMplsEcmp()) {
+            ns = NeighborSet.neighborSet(false, nextHops, true);
+        } else if (!isBos && !this.srManager.getMplsEcmp()) {
+            ns = NeighborSet.neighborSet(true, nextHops, true);
+        }
+        log.info("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
+                  deviceId, ns);
+        // If BoS == True, all forwarding is via L3 ECMP group.
+        // If Bos == False, the forwarding can be via MPLS-ECMP group or through
+        // MPLS-Interface group. This depends on the configuration of the option
+        // MPLS-ECMP.
+        // The metadata informs the driver that the next-Objective will be used
+        // by MPLS flows and if Bos == False the driver will use MPLS groups.
+        int nextId = srManager.getNextObjectiveId(deviceId, ns, meta, isBos);
         if (nextId <= 0) {
             log.warn("No next objective in {} for ns: {}", deviceId, ns);
             return null;
@@ -591,6 +635,7 @@ public class RoutingRulePopulator {
             if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
                 isSuppressed = true;
                 suppressedPorts++;
+                continue;
             }
 
             Ip4Prefix portSubnet = config.getPortIPv4Subnet(deviceId, port.number());
@@ -684,17 +729,13 @@ public class RoutingRulePopulator {
      */
     private TrafficSelector.Builder buildIpSelectorFromIpPrefix(IpPrefix prefixToMatch) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        /*
-         * If the prefix is IPv4
-         */
+        // If the prefix is IPv4
         if (prefixToMatch.isIp4()) {
             selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
             selectorBuilder.matchIPDst(prefixToMatch.getIp4Prefix());
             return selectorBuilder;
         }
-        /*
-         * If the prefix is IPv6
-         */
+        // If the prefix is IPv6
         selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
         selectorBuilder.matchIPv6Dst(prefixToMatch.getIp6Prefix());
         return selectorBuilder;
@@ -708,9 +749,7 @@ public class RoutingRulePopulator {
      * @param deviceId the switch dpid for the router
      */
     public void populateArpNdpPunts(DeviceId deviceId) {
-        /*
-         * We are not the master just skip.
-         */
+        // We are not the master just skip.
         if (!srManager.mastershipService.isLocalMaster(deviceId)) {
             log.debug("Not installing ARP/NDP punts - not the master for dev:{} ",
                       deviceId);
@@ -804,9 +843,8 @@ public class RoutingRulePopulator {
                 return;
             }
 
-            /* Driver should treat objective with MacAddress.NONE as the
-             * subnet broadcast rule
-             */
+            // Driver should treat objective with MacAddress.NONE as the
+            // subnet broadcast rule
             TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
             sbuilder.matchVlanId(vlanId);
             sbuilder.matchEthDst(MacAddress.NONE);

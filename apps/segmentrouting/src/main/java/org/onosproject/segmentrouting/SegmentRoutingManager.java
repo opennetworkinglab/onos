@@ -585,20 +585,38 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param deviceId Device ID
      * @param ns NegighborSet
      * @param meta metadata passed into the creation of a Next Objective
+     * @param isBos indicates if it is BoS or not
      * @return next objective ID or -1 if an error was encountered during the
      *         creation of the nextObjective
      */
     public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns,
-                                  TrafficSelector meta) {
+                                  TrafficSelector meta, boolean isBos) {
         if (groupHandlerMap.get(deviceId) != null) {
             log.trace("getNextObjectiveId query in device {}", deviceId);
             return groupHandlerMap
-                    .get(deviceId).getNextObjectiveId(ns, meta);
+                    .get(deviceId).getNextObjectiveId(ns, meta, isBos);
         } else {
             log.warn("getNextObjectiveId query - groupHandler for device {} "
                     + "not found", deviceId);
             return -1;
         }
+    }
+
+    /**
+     * Returns the next objective ID for the given NeighborSet.
+     * If the nextObjective does not exist, a new one is created and
+     * its id is returned.
+     *
+     * @param deviceId Device ID
+     * @param ns NegighborSet
+     * @param meta metadata passed into the creation of a Next Objective
+     * @return next objective ID or -1 if an error was encountered during the
+     *         creation of the nextObjective
+     */
+    public int getNextObjectiveId(DeviceId deviceId,
+                                  NeighborSet ns,
+                                  TrafficSelector meta) {
+        return this.getNextObjectiveId(deviceId, ns, meta, true);
     }
 
     /**
