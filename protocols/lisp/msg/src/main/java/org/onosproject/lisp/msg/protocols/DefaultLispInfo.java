@@ -29,7 +29,7 @@ import java.util.Arrays;
 /**
  * A class that contains a set of helper methods for LISP info request and reply.
  */
-public class DefaultLispInfo implements LispInfo {
+public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
 
     protected final boolean infoReply;
     protected final long nonce;

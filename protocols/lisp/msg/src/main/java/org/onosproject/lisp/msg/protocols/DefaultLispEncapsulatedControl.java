@@ -34,7 +34,7 @@ import static org.onosproject.lisp.msg.protocols.LispType.LISP_ENCAPSULATED_CONT
 /**
  * Default LISP Encapsulated Control message class.
  */
-public final class DefaultLispEncapsulatedControl
+public final class DefaultLispEncapsulatedControl extends AbstractLispMessage
         implements LispEncapsulatedControl {
 
     private final boolean isSecurity;

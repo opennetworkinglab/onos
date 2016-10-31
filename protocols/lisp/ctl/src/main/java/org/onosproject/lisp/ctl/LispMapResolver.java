@@ -15,6 +15,7 @@
  */
 package org.onosproject.lisp.ctl;
 
+import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 
 /**
@@ -23,8 +24,8 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
  */
 public class LispMapResolver {
 
-    public LispMessage processMapRequest(LispMessage message) {
-        // TODO: need to implement map-register message processing logic
+    public LispMapReply processMapRequest(LispMessage message) {
+        // TODO: need to implement map-request message processing logic
         return null;
     }
 }

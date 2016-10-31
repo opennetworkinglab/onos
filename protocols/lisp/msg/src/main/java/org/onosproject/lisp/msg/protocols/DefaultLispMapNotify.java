@@ -33,7 +33,8 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordW
 /**
  * Default LISP map notify message class.
  */
-public final class DefaultLispMapNotify implements LispMapNotify {
+public final class DefaultLispMapNotify extends AbstractLispMessage
+        implements LispMapNotify {
 
     private final long nonce;
     private final short keyId;

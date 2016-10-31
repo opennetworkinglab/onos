@@ -36,6 +36,7 @@ public class LispMessageDecoder extends MessageToMessageDecoder<DatagramPacket> 
         ByteBuf byteBuf = msg.content();
         LispMessageReader reader = LispMessageReaderFactory.getReader(byteBuf);
         LispMessage message = (LispMessage) reader.readFrom(byteBuf);
+        message.configSender(msg.sender());
         list.add(message);
     }
 }

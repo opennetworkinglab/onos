@@ -19,6 +19,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
@@ -46,10 +47,12 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
         if (msg instanceof LispMapRegister) {
             LispMapServer mapServer = new LispMapServer();
-            LispMapNotify mapNotify =
-                    (LispMapNotify) mapServer.processMapRegister((LispMapRegister) msg);
+            LispMapNotify mapNotify = mapServer.processMapRegister((LispMapRegister) msg);
 
-            // TODO: deserialize mapNotify message and write to channel
+            // try to remove the received map-register message from buffer
+            ReferenceCountUtil.release(msg);
+
+            ctx.writeAndFlush(mapNotify);
         }
 
         if (msg instanceof LispMapRequest) {
@@ -57,7 +60,7 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             LispMapReply mapReply =
                     (LispMapReply) mapResolver.processMapRequest((LispMapRequest) msg);
 
-            // TODO: deserialize mapReply message and write to channel
+            // TODO: serialize mapReply message and write to channel
         }
     }
 

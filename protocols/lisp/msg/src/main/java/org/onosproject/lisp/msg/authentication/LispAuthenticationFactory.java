@@ -35,18 +35,17 @@ public final class LispAuthenticationFactory {
      *
      * @param authType authentication key type
      * @param authKey  authentication key string
+     * @param data     authentication data
      * @return authentication data
      */
     public byte[] createAuthenticationData(LispAuthenticationKeyEnum authType,
-                                           String authKey) {
+                                           String authKey, byte[] data) {
         LispMacAuthentication macAuth = new LispMacAuthentication(authType);
-        int authLength;
         byte[] authData;
         switch (authType) {
             case SHA1:
             case SHA256:
-                authLength = macAuth.getAuthenticationLength();
-                authData = macAuth.getAuthenticationData(authKey, new byte[authLength]);
+                authData = macAuth.getAuthenticationData(authKey, data);
                 break;
             case NONE:
             case UNKNOWN:

@@ -38,10 +38,10 @@ public class LispAuthenticationTest {
     public void testAuthData() {
 
         String authKey = "testKey";
-        byte[] noneAuthData = factory.createAuthenticationData(NONE, authKey);
-        byte[] unknownAuthData = factory.createAuthenticationData(UNKNOWN, authKey);
-        byte[] sha1AuthData = factory.createAuthenticationData(SHA1, authKey);
-        byte[] sha256AuthData = factory.createAuthenticationData(SHA256, authKey);
+        byte[] noneAuthData = factory.createAuthenticationData(NONE, authKey, new byte[0]);
+        byte[] unknownAuthData = factory.createAuthenticationData(UNKNOWN, authKey, new byte[0]);
+        byte[] sha1AuthData = factory.createAuthenticationData(SHA1, authKey, new byte[0]);
+        byte[] sha256AuthData = factory.createAuthenticationData(SHA256, authKey, new byte[0]);
 
         assertThat(noneAuthData, is(new byte[0]));
         assertThat(unknownAuthData, is(new byte[0]));

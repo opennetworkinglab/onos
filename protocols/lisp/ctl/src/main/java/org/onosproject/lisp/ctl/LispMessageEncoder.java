@@ -17,8 +17,10 @@ package org.onosproject.lisp.ctl;
 
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.handler.codec.MessageToMessageEncoder;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 
 import java.util.List;
@@ -27,13 +29,14 @@ import java.util.List;
  * Encode a LISP message for output into a ByteBuffer,
  * for use in a netty pipeline.
  */
-public class LispMessageEncoder extends MessageToByteEncoder {
+public class LispMessageEncoder extends MessageToMessageEncoder {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Object msg,
-                          ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, Object msg, List out) throws Exception {
         if (!(msg instanceof List)) {
-            ((LispMessage) msg).writeTo(out);
+            ByteBuf byteBuf = Unpooled.buffer();
+            ((LispMessage) msg).writeTo(byteBuf);
+            out.add(new DatagramPacket(byteBuf, ((LispMessage) msg).getSender()));
             return;
         }
 
@@ -41,7 +44,9 @@ public class LispMessageEncoder extends MessageToByteEncoder {
 
         for (LispMessage message : msgList) {
             if (message != null) {
-                message.writeTo(out);
+                ByteBuf byteBuf = Unpooled.buffer();
+                message.writeTo(byteBuf);
+                out.add(new DatagramPacket(byteBuf, ((LispMessage) msg).getSender()));
             }
         }
     }

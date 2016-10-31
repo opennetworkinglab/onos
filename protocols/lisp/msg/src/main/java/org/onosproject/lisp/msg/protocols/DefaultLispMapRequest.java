@@ -35,7 +35,8 @@ import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 /**
  * Default LISP map request message class.
  */
-public final class DefaultLispMapRequest implements LispMapRequest {
+public final class DefaultLispMapRequest extends AbstractLispMessage
+        implements LispMapRequest {
 
     private final long nonce;
     private final LispAfiAddress sourceEid;

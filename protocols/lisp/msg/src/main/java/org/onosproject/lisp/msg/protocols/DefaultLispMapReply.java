@@ -32,7 +32,8 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordW
 /**
  * Default LISP map reply message class.
  */
-public final class DefaultLispMapReply implements LispMapReply {
+public final class DefaultLispMapReply extends AbstractLispMessage
+        implements LispMapReply {
 
     private final long nonce;
     private final boolean probe;

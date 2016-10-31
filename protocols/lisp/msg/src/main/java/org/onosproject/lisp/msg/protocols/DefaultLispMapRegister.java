@@ -36,7 +36,8 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordW
 /**
  * Default LISP map register message class.
  */
-public final class DefaultLispMapRegister implements LispMapRegister {
+public final class DefaultLispMapRegister extends AbstractLispMessage
+        implements LispMapRegister {
 
     private final long nonce;
     private final short keyId;

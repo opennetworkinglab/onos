@@ -13,44 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
-import org.onosproject.lisp.msg.protocols.LispMessage;
-import org.onosproject.lisp.msg.protocols.LispType;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 import java.net.InetSocketAddress;
 
 /**
- * Adapter for testing against a LISP message.
+ * Abstract LISP message.
  */
-public class LispMessageAdapter implements LispMessage {
-    LispType type;
+public abstract class AbstractLispMessage implements LispMessage {
 
-    private LispMessageAdapter() {}
-
-    public LispMessageAdapter(LispType type) {
-        this.type = type;
-    }
+    protected InetSocketAddress sender;
 
     @Override
     public LispType getType() {
-        return type;
-    }
-
-    @Override
-    public void configSender(InetSocketAddress sender) {
-
-    }
-
-    @Override
-    public InetSocketAddress getSender() {
         return null;
     }
 
     @Override
-    public void writeTo(ByteBuf byteBuf) {
+    public void configSender(InetSocketAddress sender) {
+        this.sender = sender;
+    }
 
+    @Override
+    public InetSocketAddress getSender() {
+        return sender;
+    }
+
+    @Override
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
     }
 
     @Override
