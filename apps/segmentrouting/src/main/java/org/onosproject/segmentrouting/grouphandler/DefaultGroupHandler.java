@@ -15,19 +15,8 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Iterables;
+import org.apache.commons.lang3.RandomUtils;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -56,6 +45,19 @@ import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Default ECMP group handler creation module. This component creates a set of
@@ -425,10 +427,11 @@ public class DefaultGroupHandler {
      *
      * @param ns neighborset
      * @param meta metadata passed into the creation of a Next Objective
+     * @param isBos true if BoS is set
      * @return int if found or -1 if there are errors in the creation of the
      *          neighbor set.
      */
-    public int getNextObjectiveId(NeighborSet ns, TrafficSelector meta) {
+    public int getNextObjectiveId(NeighborSet ns, TrafficSelector meta, boolean isBos) {
         Integer nextId = nsNextObjStore.
                 get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
         if (nextId == null) {
@@ -441,7 +444,7 @@ public class DefaultGroupHandler {
                       .filter((nsStoreEntry) ->
                       (nsStoreEntry.getKey().deviceId().equals(deviceId)))
                       .collect(Collectors.toList()));
-            createGroupsFromNeighborsets(Collections.singleton(ns), meta);
+            createGroupsFromNeighborsets(Collections.singleton(ns), meta, isBos);
             nextId = nsNextObjStore.
                     get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
             if (nextId == null) {
@@ -642,15 +645,28 @@ public class DefaultGroupHandler {
      *
      * @param nsSet a set of NeighborSet
      * @param meta metadata passed into the creation of a Next Objective
+     * @param isBos if BoS is set
      */
     public void createGroupsFromNeighborsets(Set<NeighborSet> nsSet,
-                                             TrafficSelector meta) {
+                                             TrafficSelector meta,
+                                             boolean isBos) {
         for (NeighborSet ns : nsSet) {
             int nextId = flowObjectiveService.allocateNextId();
+            NextObjective.Type type = NextObjective.Type.HASHED;
+            Set<DeviceId> neighbors = ns.getDeviceIds();
+            // If Bos == False and MPLS-ECMP == false, we have
+            // to use simple group and we will pick a single neighbor.
+            if (!isBos && !srManager.getMplsEcmp()) {
+                type = NextObjective.Type.SIMPLE;
+                neighbors = Collections.singleton(ns.getFirstNeighbor());
+            }
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
-                    .builder().withId(nextId)
-                    .withType(NextObjective.Type.HASHED).fromApp(appId);
-            for (DeviceId neighborId : ns.getDeviceIds()) {
+                    .builder()
+                    .withId(nextId)
+                    .withType(type)
+                    .fromApp(appId);
+            // For each neighbor, we have to update the sent actions
+            for (DeviceId neighborId : neighbors) {
                 if (devicePortMap.get(neighborId) == null) {
                     log.warn("Neighbor {} is not in the port map yet for dev:{}",
                              neighborId, deviceId);
@@ -668,8 +684,17 @@ public class DefaultGroupHandler {
                     log.warn(e.getMessage() + " Aborting createGroupsFromNeighborsets.");
                     return;
                 }
-
-                for (PortNumber sp : devicePortMap.get(neighborId)) {
+                // For each port, we have to create a new treatment
+                Set<PortNumber> neighborPorts = devicePortMap.get(neighborId);
+                // In this case we are using a SIMPLE group. We randomly pick a port
+                if (!isBos && !srManager.getMplsEcmp()) {
+                    int size = devicePortMap.get(neighborId).size();
+                    int index = RandomUtils.nextInt(0, size);
+                    neighborPorts = Collections.singleton(
+                            Iterables.get(devicePortMap.get(neighborId), index)
+                    );
+                }
+                for (PortNumber sp : neighborPorts) {
                     TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                             .builder();
                     tBuilder.setEthDst(neighborMac)
@@ -688,11 +713,13 @@ public class DefaultGroupHandler {
             }
 
             ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("createGroupsFromNeighborsets installed NextObj {} on {}",
+                    (objective) ->
+                            log.debug("createGroupsFromNeighborsets installed NextObj {} on {}",
                             nextId, deviceId),
                     (objective, error) ->
                             log.warn("createGroupsFromNeighborsets failed to install NextObj {} on {}: {}",
-                                    nextId, deviceId, error));
+                                    nextId, deviceId, error)
+            );
             NextObjective nextObj = nextObjBuilder.add(context);
             log.debug("**createGroupsFromNeighborsets: Submited "
                     + "next objective {} in device {}",

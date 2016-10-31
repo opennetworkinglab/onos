@@ -15,9 +15,6 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -26,6 +23,9 @@ import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Default ECMP group handler creation module for a transit device.
@@ -67,7 +67,8 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
             if (combo.isEmpty()) {
                 continue;
             }
-            NeighborSet ns = new NeighborSet(combo);
+            // For these NeighborSet isMpls is meaningless.
+            NeighborSet ns = new NeighborSet(combo, false);
             log.debug("createGroupsAtTransitRouter: sw {} combo {} ns {}",
                       deviceId, combo, ns);
             nsSet.add(ns);
@@ -150,7 +151,8 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
             if (combo.isEmpty()) {
                 continue;
             }
-            NeighborSet ns = new NeighborSet(combo);
+            // For these NeighborSet isMpls is meaningless.
+            NeighborSet ns = new NeighborSet(combo, false);
             log.debug("createGroupsAtTransitRouter: sw {} combo {} ns {}",
                       deviceId, combo, ns);
             nsSet.add(ns);

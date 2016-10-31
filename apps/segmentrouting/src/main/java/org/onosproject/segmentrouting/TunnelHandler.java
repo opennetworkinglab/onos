@@ -222,7 +222,8 @@ public class TunnelHandler {
             deviceIds.add(config.getDeviceId(sid));
         }
 
-        NeighborSet ns = new NeighborSet(deviceIds, tunnel.labelIds().get(2));
+        // For these NeighborSet isMpls is meaningless.
+        NeighborSet ns = new NeighborSet(deviceIds, false, tunnel.labelIds().get(2));
 
         // If the tunnel reuses any existing groups, then tunnel handler
         // should not remove the group.
@@ -232,7 +233,7 @@ public class TunnelHandler {
             tunnel.allowToRemoveGroup(true);
         }
 
-        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null);
+        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null, true);
     }
 
 }
