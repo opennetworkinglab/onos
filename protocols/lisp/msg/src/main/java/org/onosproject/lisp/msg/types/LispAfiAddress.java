@@ -89,6 +89,11 @@ public abstract class LispAfiAddress {
             // AFI code -> 16 bits
             short afiCode = (short) byteBuf.getUnsignedShort(index);
 
+            // handle no address
+            if (afiCode == NO_ADDRESS.getIanaCode()) {
+                byteBuf.readUnsignedShort();
+            }
+
             // handle IPv4 and IPv6 address
             if (afiCode == IP4.getIanaCode() ||
                 afiCode == IP6.getIanaCode()) {

@@ -41,7 +41,7 @@ public final class LispMessageReaderFactory {
         LispMessageReader reader;
 
         LispType type = LispType.valueOf(
-                (short) (buffer.getByte(0) >> TYPE_SHIFT_BIT));
+                (short) (buffer.getUnsignedByte(0) >> TYPE_SHIFT_BIT));
 
         switch (type) {
             case LISP_MAP_REQUEST:

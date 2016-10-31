@@ -19,10 +19,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
-import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
+import org.onosproject.lisp.msg.protocols.LispMapReply;
+import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,11 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+        // first we need to check whether this is an ECM
+        if (msg instanceof LispEncapsulatedControl) {
+            msg = extractMapRequest((LispEncapsulatedControl) msg);
+        }
 
         if (msg instanceof LispMapRegister) {
             LispMapServer mapServer = new LispMapServer();
@@ -78,5 +85,15 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             throws Exception {
         log.warn(cause.getMessage());
         ctx.close();
+    }
+
+    /**
+     * Extracts LISP message from encapsulated control message.
+     *
+     * @param ecm Encapsulated Control Message
+     * @return extracted LISP message
+     */
+    private LispMessage extractMapRequest(LispEncapsulatedControl ecm) {
+        return ecm.getControlMessage();
     }
 }
