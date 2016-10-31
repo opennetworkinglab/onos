@@ -256,6 +256,7 @@ public class PointToPointIntentCompiler
             createFailoverTreatmentGroup(path.links(), path.backup().links(), intent);
 
             FlowRuleIntent frIntent = new FlowRuleIntent(intent.appId(),
+                                                         intent.key(),
                                                          createFailoverFlowRules(intent),
                                                          asList(ingressPoint.deviceId()),
                                                          PathIntent.ProtectionType.FAILOVER);
@@ -312,6 +313,7 @@ public class PointToPointIntentCompiler
                                     PathIntent.ProtectionType type) {
         return PathIntent.builder()
                 .appId(intent.appId())
+                .key(intent.key())
                 .selector(intent.selector())
                 .treatment(intent.treatment())
                 .path(path)

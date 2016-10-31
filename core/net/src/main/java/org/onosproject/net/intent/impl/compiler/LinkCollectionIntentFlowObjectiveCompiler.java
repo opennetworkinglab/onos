@@ -119,7 +119,7 @@ public class LinkCollectionIntentFlowObjectiveCompiler
             });
         }
         return Collections.singletonList(
-                new FlowObjectiveIntent(appId, devices, objectives, intent.resources()));
+                new FlowObjectiveIntent(appId, intent.key(), devices, objectives, intent.resources()));
     }
 
     @Override

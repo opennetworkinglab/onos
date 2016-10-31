@@ -39,10 +39,12 @@ import org.onosproject.net.resource.ResourceService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
@@ -159,6 +161,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
             assertThat(forwardIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
             assertThat(forwardIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
         }
+        assertThat("key is inherited", forwardResultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -193,6 +196,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
             assertThat(reverseLinkCollectionIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
             assertThat(reverseLinkCollectionIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
         }
+        assertThat("key is inherited", reverseResultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -214,6 +218,10 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         PointToPointIntentCompiler sut = makeCompiler(hops);
 
         List<Intent> compiled = sut.compile(intent, null);
+
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
 
         assertThat(compiled, hasSize(1));
         assertThat(compiled.get(0), is(instanceOf(LinkCollectionIntent.class)));
@@ -245,6 +253,11 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         assertThat(compiledIntents, Matchers.notNullValue());
         assertThat(compiledIntents, hasSize(1));
+
+        assertThat("key is inherited",
+                   compiledIntents.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
     }
 
     /**

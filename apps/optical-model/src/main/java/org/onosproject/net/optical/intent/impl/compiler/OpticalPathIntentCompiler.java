@@ -79,7 +79,10 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
             rules.addAll(createReverseRules(intent));
         }
 
-        return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
+        return Collections.singletonList(new FlowRuleIntent(appId,
+                                                            intent.key(),
+                                                            rules,
+                                                            intent.resources()));
     }
 
     /**

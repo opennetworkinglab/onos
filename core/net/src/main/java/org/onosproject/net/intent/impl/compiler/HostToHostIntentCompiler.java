@@ -122,6 +122,7 @@ public class HostToHostIntentCompiler
                 .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
         return PathIntent.builder()
                 .appId(intent.appId())
+                .key(intent.key())
                 .selector(selector)
                 .treatment(intent.treatment())
                 .path(path)

@@ -39,10 +39,12 @@ import org.onosproject.net.resource.MockResourceService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onosproject.net.NetTestTools.connectPoint;
@@ -80,6 +82,7 @@ public class HostToHostIntentCompilerTest extends AbstractIntentTest {
     private HostId hostTwoId = HostId.hostId(HOST_TWO);
     private HostService mockHostService;
 
+    @Override
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -188,5 +191,9 @@ public class HostToHostIntentCompilerTest extends AbstractIntentTest {
         egressPoints = ImmutableSet.of(new FilteredConnectPoint(connectPoint(HOP_1, PORT_1)));
         assertThat(reverseLCIntent.filteredEgressPoints(), is(egressPoints));
 
+
+        assertThat("key is inherited",
+                   result.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
     }
 }

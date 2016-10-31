@@ -155,7 +155,7 @@ public abstract class Intent {
     }
 
     /**
-     * Returns the intent identifier.
+     * Returns the intent object identifier.
      *
      * @return intent fingerprint
      */
@@ -241,6 +241,16 @@ public abstract class Intent {
         }
     }
 
+    /**
+     * Returns the key to identify an "Intent".
+     * <p>
+     * When an Intent is updated,
+     * (e.g., flow is re-routed in reaction to network topology change)
+     * related Intent object's {@link IntentId} may change,
+     * but the key will remain unchanged.
+     *
+     * @return key
+     */
     public Key key() {
         return key;
     }
