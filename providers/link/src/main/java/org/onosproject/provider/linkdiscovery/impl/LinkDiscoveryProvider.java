@@ -202,6 +202,10 @@ public class LinkDiscoveryProvider extends AbstractProvider
     }
 
     private void evaluateLinks(DeviceId deviceId, Set<LinkDescription> discoveredLinksDesc) {
+        if (discoveredLinksDesc == null) {
+            return;
+        }
+
         //The provider will get only existing links related to LinkDiscovery
         Set<Link> storedLinks = linkService.getDeviceEgressLinks(deviceId)
                 .stream()
