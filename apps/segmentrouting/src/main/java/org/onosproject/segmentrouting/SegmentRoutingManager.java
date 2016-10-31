@@ -468,6 +468,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Returns the MPLS-ECMP configuration.
+     *
+     * @return MPLS-ECMP value
+     */
+    public boolean getMplsEcmp() {
+        SegmentRoutingAppConfig segmentRoutingAppConfig = cfgService
+                .getConfig(this.appId, SegmentRoutingAppConfig.class);
+        return segmentRoutingAppConfig != null && segmentRoutingAppConfig.mplsEcmp();
+    }
+
+    /**
      * Returns the tunnel object with the tunnel ID.
      *
      * @param tunnelId Tunnel ID
