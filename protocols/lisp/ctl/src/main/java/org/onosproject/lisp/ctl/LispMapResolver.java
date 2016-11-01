@@ -15,8 +15,19 @@
  */
 package org.onosproject.lisp.ctl;
 
+import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
+import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
+import org.onosproject.lisp.msg.protocols.LispMapRequest;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
+
 import org.onosproject.lisp.msg.protocols.LispMessage;
+import org.onosproject.lisp.msg.types.LispIpAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * LISP map resolver class.
@@ -24,8 +35,54 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
  */
 public class LispMapResolver {
 
-    public LispMapReply processMapRequest(LispMessage message) {
-        // TODO: need to implement map-request message processing logic
-        return null;
+    private static final Logger log = LoggerFactory.getLogger(LispMapResolver.class);
+
+    private LispEidRlocMap eidRlocMap;
+
+    LispMapResolver() {
+        eidRlocMap = LispEidRlocMap.getInstance();
+    }
+
+    /**
+     * Handles encapsulated control message and replies with map-reply message.
+     *
+     * @param message encapsulated control message
+     * @return map-reply message
+     */
+    public LispMessage processMapRequest(LispMessage message) {
+
+        LispEncapsulatedControl ecm = (LispEncapsulatedControl) message;
+        LispMapRequest request = (LispMapRequest) ecm.getControlMessage();
+
+        // TODO: for now we always generate map-notify message and send to ITR
+        // no matter proxy bit is set or not
+
+        // build map-reply message
+        LispMapReply.ReplyBuilder replyBuilder = new DefaultReplyBuilder();
+        replyBuilder.withNonce(request.getNonce());
+        replyBuilder.withIsEtr(false);
+        replyBuilder.withIsSecurity(false);
+        replyBuilder.withIsProbe(request.isProbe());
+
+        List<LispMapRecord> mapRecords = eidRlocMap.getMapRecordByEidRecords(request.getEids());
+
+        if (mapRecords.size() == 0) {
+            log.warn("Map information is not found.");
+        } else {
+            replyBuilder.withMapRecords(mapRecords);
+        }
+
+        LispMapReply reply = replyBuilder.build();
+
+        if (request.getItrRlocs() != null && request.getItrRlocs().size() > 0) {
+            LispIpAddress itr = (LispIpAddress) request.getItrRlocs().get(0);
+            InetSocketAddress address = new InetSocketAddress(itr.getAddress().toInetAddress(),
+                    ecm.innerUdp().getSourcePort());
+            reply.configSender(address);
+        } else {
+            log.warn("No ITR RLOC is found, cannot respond back to ITR.");
+        }
+
+        return reply;
     }
 }

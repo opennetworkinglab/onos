@@ -15,11 +15,14 @@
  */
 package org.onosproject.lisp.ctl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 
@@ -66,6 +69,23 @@ public final class LispEidRlocMap {
      */
     public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid) {
         return map.get(eid);
+    }
+
+    /**
+     * Obtains a collection of EID-RLOC mapping records with given EID records.
+     *
+     * @param eids endpoint identifier records
+     * @return a collection of EID-RLOC mapping records
+     */
+    public List<LispMapRecord> getMapRecordByEidRecords(List<LispEidRecord> eids) {
+        List<LispMapRecord> mapRecords = Lists.newArrayList();
+        eids.forEach(eidRecord -> {
+            LispMapRecord mapRecord = getMapRecordByEidRecord(eidRecord);
+            if (mapRecord != null) {
+                mapRecords.add(mapRecord);
+            }
+        });
+        return ImmutableList.copyOf(mapRecords);
     }
 
     /**
