@@ -335,4 +335,62 @@ public final class ParserUtils {
         String name = getLatterSegment(field, COLON);
         return new NormalizedYangNode(namespace, name);
     }
+
+
+    /**
+     * Extracts the node name from a YDT node and encodes it in JSON format.
+     * A JSON encoded node name has the following format:
+     * <p>
+     * module_name ":" node_name
+     * <p>
+     * where module_name is name of the YANG module in which the data
+     * resource is defined, and node_name is the name of the data resource.
+     * <p>
+     * If the YDT node is null or its node name field is null, then the function
+     * returns null. If the node name field is not null but module name field is,
+     * then the function returns only the node name.
+     *
+     * @param ydtContext YDT node of the target data resource
+     * @return JSON encoded name of the target data resource
+     */
+    public static String getJsonNameFromYdtNode(YdtContext ydtContext) {
+        if (ydtContext == null) {
+            return null;
+        }
+
+        String nodeName = ydtContext.getName();
+        if (nodeName == null) {
+            return null;
+        }
+
+        /*
+         * The namespace field in YDT node is a string which contains a list
+         * of identifiers separated by colon (:). e.g.,
+         *
+         * {identifier ":" identifier}+
+         *
+         * The last identifier in the string is the YANG module name.
+         */
+        String moduleName = getModuleNameFromNamespace(ydtContext.getNamespace());
+        if (moduleName == null) {
+            return nodeName;
+        } else {
+            return moduleName + COLON + nodeName;
+        }
+    }
+
+    private static String getModuleNameFromNamespace(String namespace) {
+        if (namespace == null) {
+            return null;
+        }
+
+        String moduleName = null;
+
+        if (namespace.contains(COLON)) {
+            String[] tokens = namespace.split(COLON);
+            moduleName = tokens[tokens.length - 1];
+        }
+
+        return moduleName;
+    }
 }

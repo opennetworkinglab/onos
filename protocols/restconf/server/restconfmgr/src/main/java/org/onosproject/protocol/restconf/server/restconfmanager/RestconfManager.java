@@ -36,10 +36,14 @@ import org.onosproject.yms.ydt.YdtResponse;
 import org.onosproject.yms.ydt.YmsOperationExecutionStatus;
 import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ymsm.YmsService;
+import org.onosproject.yms.ynh.YangNotificationEvent;
+import org.onosproject.yms.ynh.YangNotificationListener;
+import org.onosproject.yms.ynh.YangNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -48,21 +52,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
-
-import static org.onosproject.yms.ydt.YmsOperationType.QUERY_REQUEST;
-import static org.onosproject.yms.ydt.YmsOperationType.EDIT_CONFIG_REQUEST;
-import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertJsonToYdt;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertUriToYdt;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertYdtToJson;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.getJsonNameFromYdtNode;
 import static org.onosproject.yms.ydt.YdtContextOperationType.CREATE;
 import static org.onosproject.yms.ydt.YdtContextOperationType.DELETE;
-import static org.onosproject.yms.ydt.YdtContextOperationType.REPLACE;
 import static org.onosproject.yms.ydt.YdtContextOperationType.MERGE;
+import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
+import static org.onosproject.yms.ydt.YdtContextOperationType.REPLACE;
 import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE;
+import static org.onosproject.yms.ydt.YmsOperationExecutionStatus.EXECUTION_EXCEPTION;
 import static org.onosproject.yms.ydt.YmsOperationExecutionStatus.EXECUTION_SUCCESS;
-import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertYdtToJson;
-import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertUriToYdt;
-import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertJsonToYdt;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onosproject.yms.ydt.YmsOperationType.EDIT_CONFIG_REQUEST;
+import static org.onosproject.yms.ydt.YmsOperationType.QUERY_REQUEST;
+
 /*
  * Skeletal ONOS RESTCONF Server application. The RESTCONF Manager
  * implements the main logic of the RESTCONF Server.
@@ -102,6 +108,8 @@ public class RestconfManager implements RestconfService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected YmsService ymsService;
 
+    protected YangNotificationService ymsNotificationService;
+
     private ListenerTracker listeners;
 
     private ConcurrentMap<String, BlockingQueue<ObjectNode>> eventQueueList =
@@ -116,8 +124,9 @@ public class RestconfManager implements RestconfService {
                                     new ThreadFactoryBuilder()
                                             .setNameFormat("restconf-worker")
                                             .build());
+        ymsNotificationService = ymsService.getYangNotificationService();
         listeners = new ListenerTracker();
-        //TODO: YMS notification
+        listeners.addListener(ymsNotificationService, new InternalYangNotificationListener());
         log.info("Started");
     }
 
@@ -145,7 +154,8 @@ public class RestconfManager implements RestconfService {
         YdtContext rootNode = ydtResponse.getRootNode();
         YdtContext curNode = ydtBuilder.getCurNode();
 
-        ObjectNode result = convertYdtToJson(curNode.getName(), rootNode,
+        ObjectNode result = convertYdtToJson(getJsonNameFromYdtNode(curNode),
+                                             rootNode,
                                              ymsService.getYdtWalker());
         //if the query URI contain a key, something like list=key
         //here should only get get child with the specific key
@@ -153,17 +163,17 @@ public class RestconfManager implements RestconfService {
         if (child != null &&
                 child.getYdtType() == SINGLE_INSTANCE_LEAF_VALUE_NODE) {
 
-            ArrayNode jsonNode = (ArrayNode) result.get(curNode.getName());
+            ArrayNode jsonNode = (ArrayNode) result.get(getJsonNameFromYdtNode(curNode));
             for (JsonNode next : jsonNode) {
-                if (next.findValue(child.getName())
+                if (next.findValue(getJsonNameFromYdtNode(child))
                         .asText().equals(child.getValue())) {
                     return (ObjectNode) next;
                 }
             }
             throw new RestconfException(String.format("No content for %s = %s",
-                                                      child.getName(),
+                                                      getJsonNameFromYdtNode(child),
                                                       child.getValue()),
-                                        INTERNAL_SERVER_ERROR);
+                                                      INTERNAL_SERVER_ERROR);
         }
         return result;
     }
@@ -180,9 +190,16 @@ public class RestconfManager implements RestconfService {
         //convert the payload json body to ydt
         convertJsonToYdt(rootNode, ydtBuilder);
 
-        return ymsService
-                .executeOperation(ydtBuilder)
-                .getYmsOperationResult();
+        YmsOperationExecutionStatus status = EXECUTION_EXCEPTION;
+
+        try {
+            status = ymsService.executeOperation(ydtBuilder).getYmsOperationResult();
+        } catch (Exception e) {
+            log.error("YMS operation failed: {}", e.getMessage());
+            log.debug("Exception in invokeYmsOp: ", e);
+        }
+
+        return status;
     }
 
     @Override
@@ -339,7 +356,6 @@ public class RestconfManager implements RestconfService {
                 }
             }
         }
-
     }
 
     private YdtBuilder getYdtBuilder(YmsOperationType ymsOperationType) {
@@ -351,8 +367,7 @@ public class RestconfManager implements RestconfService {
      * queues are created by the event consumer threads and are removed when the
      * threads terminate.
      */
-    //TODO: YMS notification
-    /*private class InternalYangNotificationListener implements YangNotificationListener {
+    private class InternalYangNotificationListener implements YangNotificationListener {
 
         @Override
         public void event(YangNotificationEvent event) {
@@ -362,28 +377,33 @@ public class RestconfManager implements RestconfService {
             }
 
             if (eventQueueList.isEmpty()) {
-                *//*
+                /*
                  * There is no consumer waiting to consume, so don't have to
                  * produce this event.
-                 *//*
+                 */
                 return;
             }
 
             try {
-                *//*
+                /*
                  * Put the event to every queue out there. Each queue is
                  * corresponding to an event stream session. The queue is
                  * removed when the session terminates.
-                 *//*
+                 */
                 for (Entry<String, BlockingQueue<ObjectNode>> entry : eventQueueList
                         .entrySet()) {
-                    entry.getValue().put(event.subject().getData());
+                    YdtContext ydtNode = event.subject().getNotificationRootContext();
+                    ObjectNode jsonNode = convertYdtToJson(getJsonNameFromYdtNode(ydtNode),
+                                                           ydtNode,
+                                                           ymsService.getYdtWalker());
+                    entry.getValue().put(jsonNode);
                 }
             } catch (InterruptedException e) {
-                Log.error("ERROR", e);
-                throw new RestconfException("queue", Status.INTERNAL_SERVER_ERROR);
+                log.error("Failed to put event in queue: {}", e.getMessage());
+                log.debug("Exception trace in InternalYangNotificationListener: ", e);
+                throw new RestconfException("Failed to put event in queue",
+                                            INTERNAL_SERVER_ERROR);
             }
         }
-
-    }*/
+    }
 }
