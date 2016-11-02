@@ -436,9 +436,9 @@ public class NetconfSessionImpl implements NetconfSession {
     public boolean copyConfig(String targetConfiguration, String newConfiguration)
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
-        if (!newConfiguration.startsWith("<configuration>")) {
-            newConfiguration = "<configuration>" + newConfiguration
-                    + "</configuration>";
+        if (!newConfiguration.startsWith("<config>")) {
+            newConfiguration = "<config>" + newConfiguration
+                    + "</config>";
         }
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc>");
