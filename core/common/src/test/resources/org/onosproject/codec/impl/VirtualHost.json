@@ -1,0 +1,13 @@
+{
+  "networkId": "44",
+  "mac": "11:11:22:22:33:33",
+  "vlan": "12",
+  "ipAddresses": [
+    "1.1.1.1",
+    "2.2.2.2"
+  ],
+  "location": {
+    "elementId": "of:d1",
+    "port": "1"
+  }
+}

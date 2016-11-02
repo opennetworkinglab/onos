@@ -348,7 +348,6 @@ public final class FlowObjectiveCompositionUtil {
 
         return selectorBuilder.build();
     }
-   //CHECKSTYLE:ON
 
     public static Set<Criterion.Type> getTypeSet(TrafficSelector trafficSelector) {
         Set<Criterion.Type> typeSet = new HashSet<>();
