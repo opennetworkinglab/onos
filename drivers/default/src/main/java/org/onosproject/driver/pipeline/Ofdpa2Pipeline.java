@@ -94,6 +94,8 @@ import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
+import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
 
 /**
  * Driver for Broadcom's OF-DPA v2.0 TTP.
@@ -107,7 +109,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MULTICAST_ROUTING_TABLE = 40;
     protected static final int MPLS_TABLE_0 = 23;
     protected static final int MPLS_TABLE_1 = 24;
-    protected static final int MPLS_L3_TYPE = 27;
+    protected static final int MPLS_L3_TYPE_TABLE = 27;
+    protected static final int MPLS_TYPE_TABLE = 29;
     protected static final int BRIDGING_TABLE = 50;
     protected static final int ACL_TABLE = 60;
     protected static final int MAC_LEARNING_TABLE = 254;
@@ -750,8 +753,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return Collections.emptySet();
     }
 
-
-
     /**
      * In the OF-DPA 2.0 pipeline, versatile forwarding objectives go to the
      * ACL table.
@@ -1018,7 +1019,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .matchMplsLabel(((MplsCriterion)
                         selector.getCriterion(Criterion.Type.MPLS_LABEL)).label());
             MplsBosCriterion bos = (MplsBosCriterion) selector
-                                        .getCriterion(Criterion.Type.MPLS_BOS);
+                                        .getCriterion(MPLS_BOS);
             if (bos != null) {
                 filteredSelector.matchMplsBos(bos.mplsBos());
             }
@@ -1064,6 +1065,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
                 // we only need the top level group's key to point the flow to it
                 Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+                if (isNotMplsBos(selector) && group.type().equals(HASHED)) {
+                    log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
+                                     + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
+                                     + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
+                    fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
+                    return Collections.emptySet();
+                }
                 if (group == null) {
                     log.warn("Group with key:{} for next-id:{} not found in dev:{}",
                              gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
@@ -1086,7 +1094,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (forTableId == MPLS_TABLE_1) {
-            if (mplsNextTable == MPLS_L3_TYPE) {
+            if (mplsNextTable == MPLS_L3_TYPE_TABLE) {
                 Ofdpa3SetMplsType setMplsType = new Ofdpa3SetMplsType(Ofdpa3MplsType.L3_PHP);
                 // set mpls type as apply_action
                 tb.immediate().extension(setMplsType, deviceId);
@@ -1308,6 +1316,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             mappings.add(gchain.toString());
         }
         return mappings;
+    }
+
+    static boolean isMplsBos(TrafficSelector selector) {
+        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
+        return bosCriterion != null && bosCriterion.mplsBos();
+    }
+
+    static boolean isNotMplsBos(TrafficSelector selector) {
+        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
+        return bosCriterion != null && !bosCriterion.mplsBos();
     }
 
     protected static VlanId readVlanFromSelector(TrafficSelector selector) {

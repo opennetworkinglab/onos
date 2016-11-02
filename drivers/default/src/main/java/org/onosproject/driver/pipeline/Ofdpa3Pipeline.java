@@ -54,6 +54,9 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
 
     @Override
     protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
-        return processEthTypeSpecificInternal(fwd, true, MPLS_L3_TYPE);
+        if (isNotMplsBos(fwd.selector())) {
+            return processEthTypeSpecificInternal(fwd, true, MPLS_TYPE_TABLE);
+        }
+        return processEthTypeSpecificInternal(fwd, true, MPLS_L3_TYPE_TABLE);
     }
 }

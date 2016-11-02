@@ -77,6 +77,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.OFDPA_GROUP_TYPE_SHIFT;
+import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.OFDPA_MPLS_SUBTYPE_SHIFT;
+import static org.onosproject.driver.pipeline.Ofdpa2Pipeline.isNotMplsBos;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -185,6 +190,30 @@ public class Ofdpa2GroupHandler {
         groupService.addListener(new InnerGroupListener());
     }
 
+    /**
+     * The purpose of this function is to verify if the hashed next
+     * objective is supported by the current pipeline.
+     *
+     * @param nextObjective the hashed objective to verify
+     * @return true if the hashed objective is supported. Otherwise false.
+     */
+    public boolean verifyHashedNextObjective(NextObjective nextObjective) {
+        // if it is not hashed, there is something wrong;
+        if (nextObjective.type() != HASHED) {
+            return false;
+        }
+        // The case non supported is the MPLS-ECMP. For now, we try
+        // to create a MPLS-ECMP for the transport of a VPWS. The
+        // necessary info are contained in the meta selector. In particular
+        // we are looking for the case of BoS==False;
+        TrafficSelector metaSelector = nextObjective.meta();
+        if (metaSelector != null && isNotMplsBos(metaSelector)) {
+            return false;
+        }
+
+        return true;
+    }
+
     //////////////////////////////////////
     //  Group Creation
     //////////////////////////////////////
@@ -206,6 +235,12 @@ public class Ofdpa2GroupHandler {
                 processBroadcastNextObjective(nextObjective);
                 break;
             case HASHED:
+                if (!verifyHashedNextObjective(nextObjective)) {
+                    log.error("Next Objectives of type hashed not supported. Next Objective Id:{}",
+                              nextObjective.id());
+                    Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
+                    return;
+                }
                 processHashedNextObjective(nextObjective);
                 break;
             case FAILOVER:
@@ -248,9 +283,14 @@ public class Ofdpa2GroupHandler {
             return;
         }
 
+        boolean isMpls = false;
+        if (nextObj.meta() != null) {
+            isMpls = isNotMplsBos(nextObj.meta());
+        }
+
         // break up simple next objective to GroupChain objects
         GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
-                                              nextObj.appId(), false,
+                                              nextObj.appId(), isMpls,
                                               nextObj.meta());
         if (groupInfo == null) {
             log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
@@ -404,7 +444,7 @@ public class Ofdpa2GroupHandler {
 
         if (vlanid == null && meta != null) {
             // use metadata if available
-            Criterion vidCriterion = meta.getCriterion(Criterion.Type.VLAN_VID);
+            Criterion vidCriterion = meta.getCriterion(VLAN_VID);
             if (vidCriterion != null) {
                 vlanid = ((VlanIdCriterion) vidCriterion).vlanId();
             }
@@ -746,7 +786,7 @@ public class Ofdpa2GroupHandler {
      *
      * @param nextObj  the nextObjective of type HASHED
      */
-    private void processHashedNextObjective(NextObjective nextObj) {
+    protected void processHashedNextObjective(NextObjective nextObj) {
         // storage for all group keys in the chain of groups created
         List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
         List<GroupInfo> unsentGroups = new ArrayList<>();
@@ -812,7 +852,7 @@ public class Ofdpa2GroupHandler {
      * @param allGroupKeys  a list to store groupKey for each bucket-group-chain
      * @param unsentGroups  a list to store GroupInfo for each bucket-group-chain
      */
-    private void createHashBucketChains(NextObjective nextObj,
+    protected void createHashBucketChains(NextObjective nextObj,
                                         List<Deque<GroupKey>> allGroupKeys,
                                         List<GroupInfo> unsentGroups) {
         // break up hashed next objective to multiple groups
@@ -839,9 +879,23 @@ public class Ofdpa2GroupHandler {
             Deque<GroupKey> gkeyChain = new ArrayDeque<>();
             // XXX we only deal with 0 and 1 label push right now
             if (labelsPushed == 0) {
-                GroupInfo nolabelGroupInfo = createL2L3Chain(bucket, nextObj.id(),
-                        nextObj.appId(), false,
-                        nextObj.meta());
+                GroupInfo nolabelGroupInfo;
+                TrafficSelector metaSelector = nextObj.meta();
+                if (metaSelector != null) {
+                    if (isNotMplsBos(metaSelector)) {
+                        nolabelGroupInfo = createL2L3Chain(bucket, nextObj.id(),
+                                        nextObj.appId(), true,
+                                        nextObj.meta());
+                    } else {
+                        nolabelGroupInfo = createL2L3Chain(bucket, nextObj.id(),
+                                        nextObj.appId(), false,
+                                        nextObj.meta());
+                    }
+                } else {
+                    nolabelGroupInfo = createL2L3Chain(bucket, nextObj.id(),
+                                    nextObj.appId(), false,
+                                    nextObj.meta());
+                }
                 if (nolabelGroupInfo == null) {
                     log.error("Could not process nextObj={} in dev:{}",
                             nextObj.id(), deviceId);
@@ -1326,7 +1380,7 @@ public class Ofdpa2GroupHandler {
     //  Helper Methods and Classes
     //////////////////////////////////////
 
-    private void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
+    protected void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
         List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
         nextList.add(value);
         List<OfdpaNextGroup> ret = pendingAddNextObjectives.asMap()
@@ -1489,8 +1543,7 @@ public class Ofdpa2GroupHandler {
      * @param portNumber Port number
      * @return L2 interface group key
      */
-    protected int l2InterfaceGroupKey(
-            DeviceId deviceId, VlanId vlanId, long portNumber) {
+    protected int l2InterfaceGroupKey(DeviceId deviceId, VlanId vlanId, long portNumber) {
         int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
         long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
         int hash = Objects.hash(deviceId, vlanId, portHigherBits);
@@ -1543,6 +1596,24 @@ public class Ofdpa2GroupHandler {
         GroupInfo(GroupDescription innerMostGroupDesc, GroupDescription nextGroupDesc) {
             this.innerMostGroupDesc = innerMostGroupDesc;
             this.nextGroupDesc = nextGroupDesc;
+        }
+
+        /**
+         * Getter for innerMostGroupDesc.
+         *
+         * @return the inner most group description
+         */
+        public GroupDescription getInnerMostGroupDesc() {
+            return innerMostGroupDesc;
+        }
+
+        /**
+         * Getter for the next group description.
+         *
+         * @return the next group description
+         */
+        public GroupDescription getNextGroupDesc() {
+            return nextGroupDesc;
         }
     }
 
@@ -1627,5 +1698,71 @@ public class Ofdpa2GroupHandler {
                     " addBucketToGroup: " + addBucketToGroup +
                     " device: " + deviceId);
         }
+    }
+
+    /**
+     * Helper enum to handle the different MPLS group
+     * types.
+     */
+    protected enum OfdpaMplsGroupSubType {
+
+        MPLS_INTF((short) 0),
+
+        L2_VPN((short) 1),
+
+        L3_VPN((short) 2),
+
+        MPLS_TUNNEL_LABEL_1((short) 3),
+
+        MPLS_TUNNEL_LABEL_2((short) 4),
+
+        MPLS_SWAP_LABEL((short) 5),
+
+        MPLS_ECMP((short) 8);
+
+        private short value;
+
+        public static final int OFDPA_GROUP_TYPE_SHIFT = 28;
+        public static final int OFDPA_MPLS_SUBTYPE_SHIFT = 24;
+
+        OfdpaMplsGroupSubType(short value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets the value as an short.
+         *
+         * @return the value as an short
+         */
+        public short getValue() {
+            return this.value;
+        }
+
+    }
+
+    /**
+     * Creates MPLS Label group id given a sub type and
+     * the index.
+     *
+     * @param subType the MPLS Label group sub type
+     * @param index the index of the group
+     * @return the OFDPA group id
+     */
+    public Integer makeMplsLabelGroupId(OfdpaMplsGroupSubType subType, int index) {
+        index = index & 0x00FFFFFF;
+        return index | (9 << OFDPA_GROUP_TYPE_SHIFT) | (subType.value << OFDPA_MPLS_SUBTYPE_SHIFT);
+    }
+
+    /**
+     * Creates MPLS Forwarding group id given a sub type and
+     * the index.
+     *
+     * @param subType the MPLS forwarding group sub type
+     * @param index the index of the group
+     * @return the OFDPA group id
+     */
+    public Integer makeMplsForwardingGroupId(OfdpaMplsGroupSubType subType, int index) {
+        index = index & 0x00FFFFFF;
+        return index | (10 << OFDPA_GROUP_TYPE_SHIFT) | (subType.value << OFDPA_MPLS_SUBTYPE_SHIFT);
     }
 }
