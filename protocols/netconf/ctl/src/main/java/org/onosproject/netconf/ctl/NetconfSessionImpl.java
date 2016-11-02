@@ -447,7 +447,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("<").append(targetConfiguration).append("/>");
         rpc.append("</target>");
         rpc.append("<source>");
-        rpc.append("<").append(newConfiguration).append("/>");
+        rpc.append(newConfiguration);
         rpc.append("</source>");
         rpc.append("</copy-config>");
         rpc.append("</rpc>");
