@@ -28,6 +28,7 @@ import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -37,8 +38,13 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
 
+import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.MPLS_ECMP;
+import static org.onosproject.driver.pipeline.Ofdpa2Pipeline.isNotMplsBos;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -95,7 +101,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
                 innerTtb.add(ins);
             } else {
                 log.warn("Driver does not handle this type of TrafficTreatment"
-                        + " instruction in nextObjectives:  {}", ins.type());
+                                 + " instruction in nextObjectives:  {}", ins.type());
             }
         }
 
@@ -113,8 +119,8 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
 
         if (vlanid == null) {
             log.error("Driver cannot process an L2/L3 group chain without "
-                            + "egress vlan information for dev: {} port:{}",
-                    deviceId, portNum);
+                              + "egress vlan information for dev: {} port:{}",
+                      deviceId, portNum);
             return null;
         }
 
@@ -141,7 +147,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             int mplsInterfaceIndex = getNextAvailableIndex();
             int mplsgroupId = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & mplsInterfaceIndex);
             final GroupKey mplsgroupkey = new DefaultGroupKey(
-                               Ofdpa2Pipeline.appKryo.serialize(mplsInterfaceIndex));
+                    Ofdpa2Pipeline.appKryo.serialize(mplsInterfaceIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the mpls-interface group description to wait for the
             // l2 interface group to be processed
@@ -156,14 +162,14 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
                     mplsgroupId,
                     appId);
             log.debug("Trying MPLS-Interface: device:{} gid:{} gkey:{} nextid:{}",
-                    deviceId, Integer.toHexString(mplsgroupId),
-                    mplsgroupkey, nextId);
+                      deviceId, Integer.toHexString(mplsgroupId),
+                      mplsgroupkey, nextId);
         } else {
             // outer group is L3Unicast
             int l3unicastIndex = getNextAvailableIndex();
             int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
             final GroupKey l3groupkey = new DefaultGroupKey(
-                               Ofdpa2Pipeline.appKryo.serialize(l3unicastIndex));
+                    Ofdpa2Pipeline.appKryo.serialize(l3unicastIndex));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
             // l2 interface group to be processed
@@ -178,8 +184,8 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
                     l3groupId,
                     appId);
             log.debug("Trying L3Unicast: device:{} gid:{} gkey:{} nextid:{}",
-                    deviceId, Integer.toHexString(l3groupId),
-                    l3groupkey, nextId);
+                      deviceId, Integer.toHexString(l3groupId),
+                      l3groupkey, nextId);
         }
 
         // store l2groupkey with the groupChainElem for the outer-group that depends on it
@@ -199,8 +205,80 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
                         l2groupId,
                         appId);
         log.debug("Trying L2Interface: device:{} gid:{} gkey:{} nextId:{}",
-                deviceId, Integer.toHexString(l2groupId),
-                l2groupkey, nextId);
+                  deviceId, Integer.toHexString(l2groupId),
+                  l2groupkey, nextId);
         return new GroupInfo(l2groupDescription, outerGrpDesc);
+    }
+
+    @Override
+    public boolean verifyHashedNextObjective(NextObjective nextObjective) {
+        return true;
+    }
+
+    /**
+     * In OFDPA2 we do not support the MPLS-ECMP, while we do in
+     * CPQD implementation.
+     *
+     * @param nextObjective the hashed next objective to support.
+     */
+    @Override
+    protected void processHashedNextObjective(NextObjective nextObjective) {
+        // The case for MPLS-ECMP. For now, we try to create a MPLS-ECMP for
+        // the transport of a VPWS. The necessary info are contained in the
+        // meta selector. In particular we are looking for the case of BoS==False;
+        TrafficSelector metaSelector = nextObjective.meta();
+        if (metaSelector != null && isNotMplsBos(metaSelector)) {
+            // storage for all group keys in the chain of groups created
+            List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
+            List<GroupInfo> unsentGroups = new ArrayList<>();
+            createHashBucketChains(nextObjective, allGroupKeys, unsentGroups);
+            // now we can create the outermost MPLS ECMP group
+            List<GroupBucket> mplsEcmpGroupBuckets = new ArrayList<>();
+            for (GroupInfo gi : unsentGroups) {
+                // create ECMP bucket to point to the outer group
+                TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
+                ttb.group(new DefaultGroupId(gi.getNextGroupDesc().givenGroupId()));
+                GroupBucket sbucket = DefaultGroupBucket
+                        .createSelectGroupBucket(ttb.build());
+                mplsEcmpGroupBuckets.add(sbucket);
+            }
+            int mplsEcmpIndex = getNextAvailableIndex();
+            int mplsEcmpGroupId = makeMplsForwardingGroupId(MPLS_ECMP, mplsEcmpIndex);
+            GroupKey mplsEmpGroupKey = new DefaultGroupKey(
+                    Ofdpa2Pipeline.appKryo.serialize(mplsEcmpIndex)
+            );
+            GroupDescription mplsEcmpGroupDesc = new DefaultGroupDescription(
+                    deviceId,
+                    GroupDescription.Type.SELECT,
+                    new GroupBuckets(mplsEcmpGroupBuckets),
+                    mplsEmpGroupKey,
+                    mplsEcmpGroupId,
+                    nextObjective.appId()
+            );
+            GroupChainElem mplsEcmpGce = new GroupChainElem(mplsEcmpGroupDesc,
+                                                            mplsEcmpGroupBuckets.size(),
+                                                            false);
+            // create objects for local and distributed storage
+            allGroupKeys.forEach(gkeyChain -> gkeyChain.addFirst(mplsEmpGroupKey));
+            OfdpaNextGroup ofdpaGrp = new OfdpaNextGroup(allGroupKeys, nextObjective);
+
+            // store mplsEcmpGroupKey with the ofdpaGroupChain for the nextObjective
+            // that depends on it
+            updatePendingNextObjective(mplsEmpGroupKey, ofdpaGrp);
+
+            log.debug("Trying MPLS-ECMP: device:{} gid:{} gkey:{} nextId:{}",
+                      deviceId, Integer.toHexString(mplsEcmpGroupId),
+                      mplsEmpGroupKey, nextObjective.id());
+
+            // finally we are ready to send the innermost groups
+            for (GroupInfo gi : unsentGroups) {
+                log.debug("Sending innermost group {} in group chain on device {} ",
+                          Integer.toHexString(gi.getInnerMostGroupDesc().givenGroupId()), deviceId);
+                updatePendingGroups(gi.getNextGroupDesc().appCookie(), mplsEcmpGce);
+                groupService.addGroup(gi.getInnerMostGroupDesc());
+            }
+            return;
+        }
+        super.processHashedNextObjective(nextObjective);
     }
 }

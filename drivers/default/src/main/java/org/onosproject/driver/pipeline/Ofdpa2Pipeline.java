@@ -15,22 +15,6 @@
  */
 package org.onosproject.driver.pipeline;
 
-import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
@@ -92,6 +76,24 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
+import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Driver for Broadcom's OF-DPA v2.0 TTP.
  *
@@ -104,7 +106,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MULTICAST_ROUTING_TABLE = 40;
     protected static final int MPLS_TABLE_0 = 23;
     protected static final int MPLS_TABLE_1 = 24;
-    protected static final int MPLS_L3_TYPE = 27;
+    protected static final int MPLS_L3_TYPE_TABLE = 27;
+    protected static final int MPLS_TYPE_TABLE = 29;
     protected static final int BRIDGING_TABLE = 50;
     protected static final int ACL_TABLE = 60;
     protected static final int MAC_LEARNING_TABLE = 254;
@@ -918,7 +921,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .matchMplsLabel(((MplsCriterion)
                         selector.getCriterion(Criterion.Type.MPLS_LABEL)).label());
             MplsBosCriterion bos = (MplsBosCriterion) selector
-                                        .getCriterion(Criterion.Type.MPLS_BOS);
+                                        .getCriterion(MPLS_BOS);
             if (bos != null) {
                 filteredSelector.matchMplsBos(bos.mplsBos());
             }
@@ -965,6 +968,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
                 // we only need the top level group's key to point the flow to it
                 Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+                if (isNotMplsBos(selector) && group.type().equals(HASHED)) {
+                    log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
+                                     + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
+                                     + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
+                    fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
+                    return Collections.emptySet();
+                }
                 if (group == null) {
                     log.warn("Group with key:{} for next-id:{} not found in dev:{}",
                              gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
@@ -987,7 +997,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (forTableId == MPLS_TABLE_1) {
-            if (mplsNextTable == MPLS_L3_TYPE) {
+            if (mplsNextTable == MPLS_L3_TYPE_TABLE) {
                 Ofdpa3SetMplsType setMplsType = new Ofdpa3SetMplsType(Ofdpa3MplsType.L3_PHP);
                 // set mpls type as apply_action
                 tb.immediate().extension(setMplsType, deviceId);
@@ -1226,6 +1236,17 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
         return null;
+    }
+
+
+    static boolean isMplsBos(TrafficSelector selector) {
+        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
+        return bosCriterion != null && bosCriterion.mplsBos();
+    }
+
+    static boolean isNotMplsBos(TrafficSelector selector) {
+        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
+        return bosCriterion != null && !bosCriterion.mplsBos();
     }
 
     /**
