@@ -373,6 +373,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 return new LispSourceDestLcafAddress.SourceDestLcafAddressReader().readFrom(byteBuf);
             }
 
+            if (lcafType == TRAFFIC_ENGINEERING.getLispCode()) {
+                return new LispTeLcafAddress.TeAddressBuilder.TeLcafAddressReader().readFrom(byteBuf);
+            }
+
             log.warn("Unsupported LCAF type, please specify a correct LCAF type");
 
             return null;
@@ -402,6 +406,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 case SOURCE_DEST:
                     new LispSourceDestLcafAddress.SourceDestLcafAddressWriter().writeTo(byteBuf,
                             (LispSourceDestLcafAddress) address);
+                    break;
+                case TRAFFIC_ENGINEERING:
+                    new LispTeLcafAddress.TeAddressBuilder.TeLcafAddressWriter().writeTo(byteBuf,
+                            (LispTeLcafAddress) address);
                     break;
                 default:
                     log.warn("Unsupported LCAF type, please specify a correct LCAF type");
