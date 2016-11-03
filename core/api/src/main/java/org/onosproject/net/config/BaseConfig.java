@@ -37,8 +37,7 @@ public abstract class BaseConfig<S>
     extends Config<S>
     implements CodecContext {
 
-    // might need to make it non-final for unit testing
-    private static final ServiceDirectory SERVICES = new DefaultServiceDirectory();
+    private static ServiceDirectory services = new DefaultServiceDirectory();
     private static final Logger log = getLogger(BaseConfig.class);
 
     @Override
@@ -48,7 +47,7 @@ public abstract class BaseConfig<S>
 
     @Override
     public <T> T getService(Class<T> serviceClass) {
-        return SERVICES.get(serviceClass);
+        return services.get(serviceClass);
     }
 
     @Override

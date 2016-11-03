@@ -56,6 +56,7 @@ import org.onosproject.net.Path;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Port;
+import org.onosproject.net.behaviour.protection.TransportEndpointDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowEntry;
@@ -167,6 +168,7 @@ public class CodecManager implements CodecService {
         registerCodec(ProtocolStatInfo.class, new ProtocolStatInfoCodec());
         registerCodec(FlowStatInfo.class, new FlowStatInfoCodec());
         registerCodec(FilteredConnectPoint.class, new FilteredConnectPointCodec());
+        registerCodec(TransportEndpointDescription.class, new TransportEndpointDescriptionCodec());
         log.info("Started");
     }
 

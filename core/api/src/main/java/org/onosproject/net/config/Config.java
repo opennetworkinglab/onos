@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -358,8 +359,25 @@ public abstract class Config<S> {
     protected <T> List<T> getList(String name, Function<String, T> function) {
         List<T> list = Lists.newArrayList();
         ArrayNode arrayNode = (ArrayNode) object.path(name);
-        arrayNode.forEach(i -> list.add(function.apply(i.asText())));
+        arrayNode.forEach(i -> list.add(function.apply(asString(i))));
         return list;
+    }
+
+    /**
+     * Converts JSON node to a String.
+     * <p>
+     * If the {@code node} was a text node, text is returned as-is,
+     * all other node type will be converted to String by toString().
+     *
+     * @param node JSON node to convert
+     * @return String representation
+     */
+    private static String asString(JsonNode node) {
+        if (node.isTextual()) {
+            return node.asText();
+        } else {
+            return node.toString();
+        }
     }
 
     /**
@@ -378,8 +396,27 @@ public abstract class Config<S> {
             return defaultValue;
         }
         ArrayNode arrayNode = (ArrayNode) jsonNode;
-        arrayNode.forEach(i -> list.add(function.apply(i.asText())));
+        arrayNode.forEach(i -> list.add(function.apply(asString(i))));
         return list;
+    }
+
+    /**
+     * Sets the specified property as an array of items in a given collection
+     * transformed into a String with supplied {@code function}.
+     *
+     * @param name       propertyName
+     * @param function   to transform item to a String
+     * @param value list of items
+     * @param <T>        type of items
+     * @return self
+     */
+    protected <T> Config<S> setList(String name,
+                                    Function<? super T, String> function,
+                                    List<T> value) {
+        Collection<String> mapped = value.stream()
+                            .map(function)
+                            .collect(Collectors.toList());
+        return setOrClear(name, mapped);
     }
 
     /**

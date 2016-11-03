@@ -1,0 +1,26 @@
+{
+  "devices" : {
+    "of:0000000000000001" : {
+      "protection" : {
+        "paths" : [
+          {
+            "output" : {
+              "connectPoint" : { "device" : "of:0000000000000001", "port" : "1" },
+              "trafficSelector" : { "criteria" : [ {"type" : "VLAN_VID", "vlanId" : 100 }]}
+            },
+            "enabled" : true
+          },
+          {
+            "output" : {
+              "connectPoint" : { "device" : "of:0000000000000001", "port" : "2" },
+              "trafficSelector" : { "criteria" : [ {"type" : "VLAN_VID", "vlanId" : 100 }]}
+            },
+            "enabled" : true
+          }
+        ],
+        "fingerprint" : "(IntentKey_XYZW)",
+        "peer" : "of:0000000000000002"
+      }
+    }
+  }
+}
