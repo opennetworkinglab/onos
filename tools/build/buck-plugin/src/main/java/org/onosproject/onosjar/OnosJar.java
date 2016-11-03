@@ -17,20 +17,21 @@ package org.onosproject.onosjar;
 
 import com.facebook.buck.jvm.java.CompileToJarStepFactory;
 import com.facebook.buck.jvm.java.DefaultJavaLibrary;
-import com.facebook.buck.jvm.java.HasClasspathEntries;
 import com.facebook.buck.jvm.java.HasMavenCoordinates;
 import com.facebook.buck.jvm.java.JavaLibrary;
 import com.facebook.buck.jvm.java.MavenPublishable;
 import com.facebook.buck.model.BuildTarget;
+import com.facebook.buck.model.Pair;
 import com.facebook.buck.rules.AddToRuleKey;
 import com.facebook.buck.rules.BuildRule;
 import com.facebook.buck.rules.BuildRuleParams;
 import com.facebook.buck.rules.SourcePath;
 import com.facebook.buck.rules.SourcePathResolver;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.nio.file.Path;
@@ -59,6 +60,9 @@ public class OnosJar extends DefaultJavaLibrary
     @AddToRuleKey
     final Optional<String> apiDescription;
 
+    @AddToRuleKey
+    final Optional<ImmutableSortedMap<String, SourcePath>> includedResources;
+
     private final ImmutableSortedSet<HasMavenCoordinates> mavenDeps;
 
     public OnosJar(BuildRuleParams params,
@@ -82,7 +86,8 @@ public class OnosJar extends DefaultJavaLibrary
                    Optional<String> apiTitle,
                    Optional<String> apiVersion,
                    Optional<String> apiPackage,
-                   Optional<String> apiDescription) {
+                   Optional<String> apiDescription,
+                   Optional<ImmutableSortedMap<String, SourcePath>> includedResources) {
         super(params, resolver, srcs, resources, generatedSourceFolder,
               proguardConfig, postprocessClassesCommands, exportedDeps,
               providedDeps, abiJar, trackClassUsage, additionalClasspathEntries,
@@ -93,6 +98,7 @@ public class OnosJar extends DefaultJavaLibrary
         this.apiVersion = apiVersion;
         this.apiPackage = apiPackage;
         this.apiDescription = apiDescription;
+        this.includedResources = includedResources;
         this.mavenDeps = computeMavenDeps();
     }
 

@@ -34,6 +34,7 @@ import com.facebook.buck.model.BuildTarget;
 import com.facebook.buck.model.Flavor;
 import com.facebook.buck.model.Flavored;
 import com.facebook.buck.model.ImmutableFlavor;
+import com.facebook.buck.model.Pair;
 import com.facebook.buck.parser.NoSuchBuildTargetException;
 import com.facebook.buck.rules.BuildRule;
 import com.facebook.buck.rules.BuildRuleParams;
@@ -53,8 +54,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 import static com.facebook.buck.jvm.common.ResourceValidator.validateResources;
 
@@ -198,6 +203,19 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
 
         ImmutableSortedSet<BuildRule> exportedDeps = resolver.getAllRules(args.exportedDeps.get());
 
+        // Build the resources string
+        List<String> resourceMappings = Lists.newArrayList();
+
+        if (args.includeResources.isPresent()) {
+            args.includeResources.get().entrySet().forEach(p ->
+                resourceMappings.add(String.format("%s=%s", p.getKey(), p.getValue())));
+        }
+
+        if (args.apiTitle.isPresent()) {
+            resourceMappings.add("WEB-INF/classes/apidoc/swagger.json=swagger.json");
+        }
+
+        Optional<String> includedResourcesString = Optional.of(String.join(",", resourceMappings));
         final DefaultJavaLibrary defaultJavaLibrary;
         if (!flavors.contains(NON_OSGI_JAR)) {
             defaultJavaLibrary =
@@ -232,7 +250,7 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                                                            args.apiPackage, args.apiDescription, args.resources,
                                                            args.groupId, args.bundleName, args.bundleVersion,
                                                            args.bundleLicense, args.bundleDescription, args.importPackages,
-                                                           args.exportPackages, args.includeResources, args.dynamicimportPackages),
+                                                           args.exportPackages, includedResourcesString, args.dynamicimportPackages),
                                     args.resourcesRoot,
                                     args.manifestFile,
                                     args.mavenCoords,
@@ -242,7 +260,8 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                                     args.apiTitle,
                                     args.apiVersion,
                                     args.apiPackage,
-                                    args.apiDescription));
+                                    args.apiDescription,
+                                    args.includeResources));
         } else {
             defaultJavaLibrary =
                     resolver.addToIndex(
@@ -309,7 +328,7 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
 
         public Optional<String> importPackages;
         public Optional<String> exportPackages;
-        public Optional<String> includeResources;
+        public Optional<ImmutableSortedMap<String, SourcePath>> includeResources;
         public Optional<String> dynamicimportPackages;
     }
 }
