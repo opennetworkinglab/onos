@@ -24,10 +24,8 @@
 
     var $log, wss, sus, t2rs, t2d3, t2vs, t2ss;
 
-    var uplink, linkG, linkLabelG, nodeG;
+    var linkG, linkLabelG, nodeG;
     var link, node;
-
-    var highlightedLink;
 
     // default settings for force layout
     var defaultSettings = {
@@ -36,14 +34,15 @@
         charge: {
             // note: key is node.class
             device: -8000,
-            host: -5000,
+            host: -20000,
+            region: -5000,
             _def_: -12000
         },
         linkDistance: {
             // note: key is link.type
             direct: 100,
             optical: 120,
-            hostLink: 3,
+            UiEdgeLink: 30,
             _def_: 50
         },
         linkStrength: {
@@ -51,7 +50,7 @@
             // range: {0.0 ... 1.0}
             direct: 1.0,
             optical: 1.0,
-            hostLink: 1.0,
+            UiEdgeLink: 15.0,
             _def_: 1.0
         }
     };
@@ -79,26 +78,9 @@
         drag,       // drag behavior handler
         nodeLock = false;       // whether nodes can be dragged or not (locked)
 
-    var tickStuff = {
-        nodeAttr: {
-            transform: function (d) {
-                var dx = isNaN(d.x) ? 0 : d.x,
-                    dy = isNaN(d.y) ? 0 : d.y;
-                return sus.translate(dx, dy);
-            }
-        },
-        linkAttr: {
-            x1: function (d) { return d.get('position').x1; },
-            y1: function (d) { return d.get('position').y1; },
-            x2: function (d) { return d.get('position').x2; },
-            y2: function (d) { return d.get('position').y2; }
-        }
-    };
-
     function init(_svg_, forceG, _uplink_, _dim_, opts) {
 
         $log.debug("Initialising Topology Layout");
-        uplink = _uplink_;
         settings = angular.extend({}, defaultSettings, opts);
 
         linkG = forceG.append('g').attr('id', 'topo-links');
@@ -112,6 +94,28 @@
         node = nodeG.selectAll('.node');
     }
 
+    function getDeviceChargeForType(node) {
+
+        var nodeType = node.get('nodeType');
+
+        return settings.charge[nodeType] ||
+            settings.charge._def_;
+    }
+
+    function getLinkDistanceForLinkType(node) {
+        var nodeType = node.get('type');
+
+        return settings.linkDistance[nodeType] ||
+            settings.linkDistance._def_;
+    }
+
+    function getLinkStrenghForLinkType(node) {
+        var nodeType = node.get('type');
+
+        return settings.linkStrength[nodeType] ||
+            settings.linkStrength._def_;
+    }
+
     function createForceLayout() {
 
         var regionLinks = t2rs.regionLinks(),
@@ -119,8 +123,11 @@
 
         force = d3.layout.force()
             .size(t2vs.getDimensions())
-            .charge(settings.charge._def_)
-            .linkDistance(settings.linkDistance._def_)
+            .gravity(settings.gravity)
+            .friction(settings.friction)
+            .charge(getDeviceChargeForType)
+            .linkDistance(getLinkDistanceForLinkType)
+            .linkStrength(getLinkStrenghForLinkType)
             .on("tick", tick);
 
         force
@@ -154,6 +161,7 @@
         d.fixed = true;
         d3.select(this).classed('fixed', true);
         sendUpdateMeta(d);
+        $log.debug(d);
         t2ss.clickConsumed(true);
     }
 
@@ -231,8 +239,6 @@
                 opacity: 0
             })
             .call(drag)
-            // .on('mouseover', tss.nodeMouseOver)
-            // .on('mouseout', tss.nodeMouseOut)
             .transition()
             .attr('opacity', 1);
 
@@ -245,7 +251,7 @@
         // Sub element animations should be shorter than 2 seconds.
         var exiting = node.exit()
             .transition()
-            .duration(2000)
+            .duration(300)
             .style('opacity', 0)
             .remove();
 
@@ -277,26 +283,11 @@
 
         entering.each(t2d3.linkEntering);
 
-        // operate on both existing and new links:
-        // link.each(...)
-
-        // add labels for how many links are in a thick line
-        // t2d3.applyNumLinkLabels(linkNums, numLinkLabelsG);
-
-        // apply or remove labels
-        // t2d3.applyLinkLabels();
-
         // operate on exiting links:
         link.exit()
-            .attr('stroke-dasharray', '3 3')
-            .attr('stroke', linkConfig.light.outColor)
-            .style('opacity', 0.5)
+            .style('opacity', 1)
             .transition()
-            .duration(1500)
-            .attr({
-                'stroke-dasharray': '3 12',
-                'stroke-width': linkConfig.outWidth
-            })
+            .duration(300)
             .style('opacity', 0.0)
             .remove();
     }

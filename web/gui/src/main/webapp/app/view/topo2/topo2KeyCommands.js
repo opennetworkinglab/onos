@@ -60,10 +60,22 @@
         ps.setPrefs('topo_prefs', prefsState);
     }
 
+    function deviceLabelFlashMessage(index) {
+
+        switch (index) {
+            case 0: return 'Hide device labels';
+            case 1: return 'Show friendly device labels';
+            case 2: return 'Show device ID labels';
+        }
+    }
+
     function cycleDeviceLabels() {
-        var deviceLabelIndex = t2ps.get('dlbls') + 1;
-        t2ps.set('dlbls', deviceLabelIndex % 3);
+        var deviceLabelIndex = t2ps.get('dlbls') + 1,
+            newDeviceLabelIndex =  deviceLabelIndex % 3;
+
+        t2ps.set('dlbls', newDeviceLabelIndex);
         t2fs.updateNodes();
+        flash.flash(deviceLabelFlashMessage(newDeviceLabelIndex));
     }
 
     function openMapSelection() {

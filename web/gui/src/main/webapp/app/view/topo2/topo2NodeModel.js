@@ -97,12 +97,15 @@
                 icon: function () {
                     return 'unknown';
                 },
+                labelIndex: function () {
+                    return ps.get('dlbls');
+                },
                 label: function () {
                     var props = this.get('props'),
                         id = this.get('id'),
                         friendlyName = props && props.name ? props.name : id,
                         labels = ['', friendlyName || id, id],
-                        nli = ps.get('dlbls'),
+                        nli = this.labelIndex(),
                         idx = (nli < labels.length) ? nli : 0;
 
                     return labels[idx];
@@ -225,7 +228,8 @@
                     glyph.attr(this.iconBox(devIconDim, 0));
                     glyph.style('fill', 'white');
 
-                    node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
+                    node.attr('transform',
+                        sus.translate(-halfDevIcon, -halfDevIcon));
 
                     if (this.events) {
                         this.setUpEvents();
