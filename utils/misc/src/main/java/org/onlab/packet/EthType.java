@@ -33,6 +33,7 @@ public class EthType {
         IPV6(0x86dd, "ipv6", org.onlab.packet.IPv6.deserializer()),
         LLDP(0x88cc, "lldp", org.onlab.packet.LLDP.deserializer()),
         VLAN(0x8100, "vlan", null),
+        QINQ(0x88a8, "qinq", null),
         BDDP(0x8942, "bddp", org.onlab.packet.LLDP.deserializer()),
         MPLS_UNICAST(0x8847, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
         MPLS_MULTICAST(0x8848, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),

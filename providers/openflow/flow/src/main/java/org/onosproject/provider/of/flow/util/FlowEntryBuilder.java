@@ -60,6 +60,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
+import org.projectfloodlight.openflow.protocol.action.OFActionPushVlan;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
@@ -400,7 +401,8 @@ public class FlowEntryBuilder {
                     builder.popVlan();
                     break;
                 case PUSH_VLAN:
-                    builder.pushVlan();
+                    OFActionPushVlan pushVlan = (OFActionPushVlan) act;
+                    builder.pushVlan(new EthType((short) pushVlan.getEthertype().getValue()));
                     break;
                 case SET_TP_DST:
                 case SET_TP_SRC:
@@ -438,7 +440,6 @@ public class FlowEntryBuilder {
         } else {
             treatmentInterpreter = null;
         }
-
         OFOxm<?> oxm = action.getField();
         switch (oxm.getMatchField().id) {
         case VLAN_PCP:
