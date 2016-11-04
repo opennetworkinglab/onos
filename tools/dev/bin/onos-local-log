@@ -2,7 +2,9 @@
 # ----------------------------------------------------------------------------
 # Continuously watches the Apache Karaf log; survives 'karaf clean'
 # ----------------------------------------------------------------------------
-KARAF_LOG=${KARAF_LOG:-~/apache-karaf-$KARAF_VERSION/data/log/karaf.log}
+. $ONOS_ROOT/tools/build/envDefaults
+
+KARAF_LOG=/tmp/onos-$ONOS_POM_VERSION/apache-karaf-$KARAF_VERSION/data/log/karaf.log
 
 while true; do
     [ ! -f $KARAF_LOG ] && sleep 2 && continue
