@@ -82,6 +82,9 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
         sut.registrator = registrator;
         sut.resourceService = new MockResourceService();
 
+        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.copyTtl = false;
+
         replay(coreService, intentExtensionService);
     }
 
@@ -290,7 +293,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                 DefaultTrafficTreatment
                         .builder()
                         .pushMpls()
-                        .setMpls(MplsLabel.mplsLabel((LABEL)))
+                        .setMpls(MplsLabel.mplsLabel(LABEL))
                         .setOutput(d3p0.port())
                         .build()
         ));

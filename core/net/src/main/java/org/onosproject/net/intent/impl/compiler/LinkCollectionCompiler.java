@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
@@ -29,9 +30,9 @@ import org.onlab.util.Identifier;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -47,17 +48,17 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
-import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 import org.onosproject.net.intent.IntentCompilationException;
@@ -69,10 +70,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
-import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
-import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.*;
 
 /**
  * Shared APIs and implementations for Link Collection compilers.
@@ -83,6 +83,18 @@ public class LinkCollectionCompiler<T> {
      * Reference to the label allocator.
      */
     static LabelAllocator labelAllocator;
+
+    /**
+     * Influence compiler behavior. If true the compiler
+     * try to optimize the chain of the actions.
+     */
+    static boolean optimize;
+
+    /**
+     * Influence compiler behavior. If true the compiler
+     * try to optimize the copy ttl actions.
+     */
+    static boolean copyTtl;
 
     /**
      * The allowed tag criterions.
@@ -248,6 +260,151 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
+     * Helper method to generate the egress actions.
+     *
+     * @param treatmentBuilder the treatment builder to update
+     * @param egressPoints the egress points
+     * @param initialState the initial state of the transition
+     */
+    private void generateEgressActions(TrafficTreatment.Builder treatmentBuilder,
+                                       List<FilteredConnectPoint> egressPoints,
+                                       TrafficSelector initialState,
+                                       LinkCollectionIntent intent) {
+
+        TrafficSelector prevState = initialState;
+        for (FilteredConnectPoint egressPoint : egressPoints) {
+            /*
+             * If we are at the egress, we have to transit to the final
+             * state. First we add the Intent treatment.
+             */
+            intent.treatment().allInstructions().stream()
+                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                    .forEach(treatmentBuilder::add);
+            /*
+             * We generate the transition FIP->FEP.
+             */
+            TrafficTreatment forwardingTreatment =
+                    forwardingTreatment(prevState,
+                                        egressPoint.trafficSelector(),
+                                        getEthType(intent.selector()));
+            /*
+             * We add the instruction necessary to the transition.
+             * Potentially we override the intent treatment.
+             */
+            forwardingTreatment.allInstructions().stream()
+                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                    .forEach(treatmentBuilder::add);
+            /*
+             * Finally we set the output action.
+             */
+            treatmentBuilder.setOutput(egressPoint.connectPoint().port());
+            if (optimize) {
+                /*
+                 * We update the previous state. In this way instead of
+                 * transiting from FIP->FEP we do FEP->FEP and so on.
+                 */
+                prevState = egressPoint.trafficSelector();
+            }
+        }
+
+    }
+
+    /**
+     * Helper method to order the egress ports according to a
+     * specified criteria. The idea is to generate first the actions
+     * for the egress ports which are similar to the specified criteria
+     * then the others. In this way we can mitigate the problems related
+     * to the chain of actions and we can optimize also the number of
+     * actions.
+     *
+     * @param orderCriteria the ordering criteria
+     * @param pointsToOrder the egress points to order
+     * @return a list of port ordered
+     */
+    private List<FilteredConnectPoint> orderedEgressPoints(TrafficSelector orderCriteria,
+                                        List<FilteredConnectPoint> pointsToOrder) {
+        /*
+         * We are interested only to the labels. The idea is to order
+         * by the tags.
+         *
+         */
+        Criterion vlanIdCriterion = orderCriteria.getCriterion(VLAN_VID);
+        Criterion mplsLabelCriterion = orderCriteria.getCriterion(MPLS_LABEL);
+        /*
+         * We collect all the untagged points.
+         *
+         */
+        List<FilteredConnectPoint> untaggedEgressPoints = pointsToOrder
+                .stream()
+                .filter(pointToOrder -> {
+                    TrafficSelector selector = pointToOrder.trafficSelector();
+                    return selector.getCriterion(VLAN_VID) == null &&
+                            selector.getCriterion(MPLS_LABEL) == null;
+                }).collect(Collectors.toList());
+        /*
+         * We collect all the vlan points.
+         */
+        List<FilteredConnectPoint> vlanEgressPoints = pointsToOrder
+                .stream()
+                .filter(pointToOrder -> {
+                    TrafficSelector selector = pointToOrder.trafficSelector();
+                    return selector.getCriterion(VLAN_VID) != null &&
+                            selector.getCriterion(MPLS_LABEL) == null;
+                }).collect(Collectors.toList());
+        /*
+         * We collect all the mpls points.
+         */
+        List<FilteredConnectPoint> mplsEgressPoints = pointsToOrder
+                .stream()
+                .filter(pointToOrder -> {
+                    TrafficSelector selector = pointToOrder.trafficSelector();
+                    return selector.getCriterion(VLAN_VID) == null &&
+                            selector.getCriterion(MPLS_LABEL) != null;
+                }).collect(Collectors.toList());
+        /*
+         * We create the final list of ports.
+         */
+        List<FilteredConnectPoint> orderedList = Lists.newArrayList();
+        /*
+         * The ordering criteria is vlan id. First we add the vlan
+         * ports. Then the others.
+         */
+        if (vlanIdCriterion != null && mplsLabelCriterion == null) {
+            orderedList.addAll(vlanEgressPoints);
+            orderedList.addAll(untaggedEgressPoints);
+            orderedList.addAll(mplsEgressPoints);
+            return orderedList;
+        }
+        /*
+         * The ordering criteria is mpls label. First we add the mpls
+         * ports. Then the others.
+         */
+        if (vlanIdCriterion == null && mplsLabelCriterion != null) {
+            orderedList.addAll(mplsEgressPoints);
+            orderedList.addAll(untaggedEgressPoints);
+            orderedList.addAll(vlanEgressPoints);
+            return orderedList;
+        }
+        /*
+         * The ordering criteria is untagged. First we add the untagged
+         * ports. Then the others.
+         */
+        if (vlanIdCriterion == null && mplsLabelCriterion == null) {
+            orderedList.addAll(untaggedEgressPoints);
+            orderedList.addAll(vlanEgressPoints);
+            orderedList.addAll(mplsEgressPoints);
+            return orderedList;
+        }
+        /*
+         * Unhandled scenario.
+         */
+        orderedList.addAll(vlanEgressPoints);
+        orderedList.addAll(mplsEgressPoints);
+        orderedList.addAll(untaggedEgressPoints);
+        return orderedList;
+    }
+
+    /**
      * Manages the Intents with a single ingress point (p2p, sp2mp)
      * creating properly the selector builder and the treatment builder.
      *
@@ -285,42 +442,32 @@ public class LinkCollectionCompiler<T> {
                 .forEach(selectorBuilder::add);
         /*
          * In this scenario, potentially we can have several output
-         * ports.
+         * ports. First we have to insert in the treatment the actions
+         * for the core.
          */
+        List<FilteredConnectPoint> egressPoints = Lists.newArrayList();
         for (PortNumber outPort : outPorts) {
             Optional<FilteredConnectPoint> filteredEgressPoint =
                     getFilteredConnectPointFromIntent(deviceId, outPort, intent);
-            /*
-             * If we are at the egress, we have to transit to the final
-             * state.
-             */
-            if (filteredEgressPoint.isPresent()) {
-                /*
-                 * We add the Intent treatment.
-                 */
-                intent.treatment().allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
-                /*
-                 * We generate the transition FIP->FEP.
-                 */
-                TrafficTreatment forwardingTreatment =
-                        forwardingTreatment(filteredIngressPoint.get().trafficSelector(),
-                                            filteredEgressPoint.get().trafficSelector(),
-                                            getEthType(intent.selector()));
-                /*
-                 * We add the instruction necessary to the transition.
-                 * Potentially we override the intent treatment.
-                 */
-                forwardingTreatment.allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
+            if (!filteredEgressPoint.isPresent()) {
+                treatmentBuilder.setOutput(outPort);
+            } else {
+                egressPoints.add(filteredEgressPoint.get());
             }
-            /*
-             * Finally we set the output action.
-             */
-            treatmentBuilder.setOutput(outPort);
         }
+        /*
+         * The idea is to order the egress points. Before we deal
+         * with the egress points which looks like similar to the ingress
+         * point then the others.
+         */
+        TrafficSelector prevState = filteredIngressPoint.get().trafficSelector();
+        if (optimize) {
+            egressPoints = orderedEgressPoints(prevState, egressPoints);
+        }
+        /*
+         * Then we deal with the egress points.
+         */
+        generateEgressActions(treatmentBuilder, egressPoints, prevState, intent);
     }
 
     /**
@@ -605,9 +752,11 @@ public class LinkCollectionCompiler<T> {
         );
         /*
          * We need to order the actions. First the actions
-         * related to the not-egress points.
+         * related to the not-egress points. At the same time we collect
+         * also the egress points.
          */
-        outPorts.forEach(outPort -> {
+        List<FilteredConnectPoint> egressPoints = Lists.newArrayList();
+        for (PortNumber outPort : outPorts) {
             Optional<FilteredConnectPoint> filteredEgressPoint =
                     getFilteredConnectPointFromIntent(deviceId, outPort, intent);
             if (!filteredEgressPoint.isPresent()) {
@@ -651,45 +800,25 @@ public class LinkCollectionCompiler<T> {
                  * Finally we set the output action.
                  */
                 treatmentBuilder.setOutput(outPort);
+            } else {
+                egressPoints.add(filteredEgressPoint.get());
             }
-
-        });
+        }
+        /*
+         * The idea is to order the egress points. Before we deal
+         * with the egress points which looks like similar to the
+         * selector derived from the encpsulation constraint then
+         * the others.
+         */
+        TrafficSelector prevState = selectorBuilder.build();
+        if (optimize) {
+            egressPoints = orderedEgressPoints(prevState, egressPoints);
+        }
         /*
          * In this case, we have to transit to the final
          * state.
          */
-        outPorts.forEach(outPort -> {
-            Optional<FilteredConnectPoint> filteredEgressPoint =
-                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
-            if (filteredEgressPoint.isPresent()) {
-                /*
-                 * We add the Intent treatment to the final
-                 * treatment.
-                 */
-                intent.treatment().allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
-                /*
-                 * We generate the transition FIP->FEP.
-                 */
-                TrafficTreatment forwardingTreatment =
-                        forwardingTreatment(selectorBuilder.build(),
-                                            filteredEgressPoint.get().trafficSelector(),
-                                            getEthType(intent.selector()));
-                /*
-                 * We add the instruction necessary to the transition.
-                 * Potentially we override the intent treatment.
-                 */
-                forwardingTreatment.allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
-                /*
-                 * Finally we set the output action.
-                 */
-                treatmentBuilder.setOutput(outPort);
-            }
-        });
-
+        generateEgressActions(treatmentBuilder, egressPoints, prevState, intent);
     }
 
     /**
@@ -891,6 +1020,9 @@ public class LinkCollectionCompiler<T> {
                     break;
 
                 case MPLS_LABEL:
+                    if (copyTtl) {
+                        builder.copyTtlIn();
+                    }
                     builder.popMpls(ethType);
                     break;
 
@@ -909,6 +1041,9 @@ public class LinkCollectionCompiler<T> {
 
                 case MPLS_LABEL:
                     builder.pushMpls();
+                    if (copyTtl) {
+                        builder.copyTtlOut();
+                    }
                     break;
 
                 default:

@@ -53,7 +53,7 @@ class AbstractLinkCollectionTest {
 
     final ConnectPoint d2p0 = connectPoint("s2", 0);
     final ConnectPoint d2p1 = connectPoint("s2", 1);
-    ConnectPoint d2p10 = connectPoint("s2", 10);
+    final ConnectPoint d2p10 = connectPoint("s2", 10);
 
     final ConnectPoint d3p0 = connectPoint("s3", 0);
     final ConnectPoint d3p1 = connectPoint("s3", 1);
@@ -78,6 +78,7 @@ class AbstractLinkCollectionTest {
     final ConnectPoint d1p1 = connectPoint("s1", 1);
     final ConnectPoint d1p10 = connectPoint("s1", 10);
     final ConnectPoint d1p11 = connectPoint("s1", 11);
+    final ConnectPoint d1p12 = connectPoint("s1", 12);
 
     final Set<Link> links = ImmutableSet.of(
             link(d1p1, d2p0),
@@ -98,6 +99,8 @@ class AbstractLinkCollectionTest {
     );
 
     final TrafficTreatment treatment = emptyTreatment();
+    final TrafficTreatment ethDstTreatment = macDstTreatment("C0:FF:EE:C0:FF:EE");
+    final TrafficTreatment decTllTreatment = decTtlTreatment();
 
     final TrafficSelector selector = emptySelector();
     final TrafficSelector vlan69Selector = vlanSelector("69");
@@ -109,7 +112,6 @@ class AbstractLinkCollectionTest {
     final TrafficSelector mpls100Selector = mplsSelector("100");
     final TrafficSelector mpls200Selector = mplsSelector("200");
     final TrafficSelector ipPrefixSelector = ipPrefixDstSelector("192.168.100.0/24");
-    final TrafficTreatment ethDstTreatment = macDstTreatment("C0:FF:EE:C0:FF:EE");
 
     final List<Constraint> constraintsForVlan = vlanConstraint();
     final List<Constraint> constraintsForMPLS = mplsConstraint();

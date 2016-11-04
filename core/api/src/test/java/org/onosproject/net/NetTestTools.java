@@ -258,4 +258,17 @@ public final class NetTestTools {
         );
     }
 
+    /**
+     * Builds a treatment which contains the dec ttl
+     * actions.
+     *
+     * @return the treatment
+     */
+    public static TrafficTreatment decTtlTreatment() {
+        return DefaultTrafficTreatment.builder()
+                .decMplsTtl()
+                .decNwTtl()
+                .build();
+    }
+
 }
