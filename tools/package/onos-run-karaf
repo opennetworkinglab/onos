@@ -14,8 +14,14 @@ ONOS_DIR=$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 ONOS_MD5=$ONOS_DIR/CHECKSUM
 
 # Extract MD5 of the ONOS tar file and of the previous installation, if one exists
+md5cmd=''
+case "$OSTYPE" in
+  darwin*)  md5cmd='md5' ;;
+  *)        md5cmd='md5sum' ;;
+esac
+
 oldMD5=$(cat $ONOS_MD5 2>/dev/null)
-newMD5=$(md5 -q $ONOS_TAR)
+newMD5=$(${md5cmd} -q $ONOS_TAR)
 
 # Search for the "clean" argument anywhere on the command-line
 echo "$@" | egrep -q "\bclean\b" && clean=true || unset clean
