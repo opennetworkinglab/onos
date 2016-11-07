@@ -29,7 +29,7 @@ import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.*;
 
 /**
  * LISP Canonical Address Formatted address class.
- *
+ * <p>
  * <pre>
  * {@literal
  *  0                   1                   2                   3
@@ -51,14 +51,16 @@ public class LispLcafAddress extends LispAfiAddress {
     private final byte flag;
     private final short length;
 
+    private static final int LCAF_AFI_CODE_BYTE_LENGTH = 2;
+
     /**
      * Initializes LCAF address.
      *
-     * @param lcafType LCAF type
+     * @param lcafType  LCAF type
      * @param reserved1 reserved1 field
      * @param reserved2 reserved2 field
-     * @param flag flag field
-     * @param length length field
+     * @param flag      flag field
+     * @param length    length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
                               byte reserved1, byte reserved2, byte flag, short length) {
@@ -73,10 +75,10 @@ public class LispLcafAddress extends LispAfiAddress {
     /**
      * Initializes LCAF address.
      *
-     * @param lcafType LCAF type
+     * @param lcafType  LCAF type
      * @param reserved2 reserved2 field
-     * @param flag flag field
-     * @param length length field
+     * @param flag      flag field
+     * @param length    length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
                               byte reserved2, byte flag, short length) {
@@ -91,9 +93,9 @@ public class LispLcafAddress extends LispAfiAddress {
     /**
      * Initializes LCAF address.
      *
-     * @param lcafType LCAF type
+     * @param lcafType  LCAF type
      * @param reserved2 reserved2 field
-     * @param length length field
+     * @param length    length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType,
                               byte reserved2, short length) {
@@ -108,7 +110,7 @@ public class LispLcafAddress extends LispAfiAddress {
     /**
      * Initializes LCAF address.
      *
-     * @param lcafType LCAF type
+     * @param lcafType  LCAF type
      * @param reserved2 reserved2 field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType, byte reserved2) {
@@ -124,7 +126,7 @@ public class LispLcafAddress extends LispAfiAddress {
      * Initializes LCAF address.
      *
      * @param lcafType LCAF type
-     * @param length length field
+     * @param length   length field
      */
     protected LispLcafAddress(LispCanonicalAddressFormatEnum lcafType, short length) {
         super(AddressFamilyIdentifierEnum.LCAF);
@@ -202,6 +204,10 @@ public class LispLcafAddress extends LispAfiAddress {
      */
     public static LispLcafAddress deserializeCommon(ByteBuf byteBuf) {
 
+        // let's skip first and second two bytes ,
+        // because it represents LCAF AFI code
+        byteBuf.skipBytes(LCAF_AFI_CODE_BYTE_LENGTH);
+
         // reserved1 -> 8 bits
         byte reserved1 = (byte) byteBuf.readUnsignedByte();
 
@@ -218,7 +224,7 @@ public class LispLcafAddress extends LispAfiAddress {
         short length = (short) byteBuf.readUnsignedShort();
 
         return new LispLcafAddress(LispCanonicalAddressFormatEnum.valueOf(lcafType),
-                                    reserved1, reserved2, flag, length);
+                reserved1, reserved2, flag, length);
     }
 
     /**
@@ -228,6 +234,7 @@ public class LispLcafAddress extends LispAfiAddress {
      * @param address LISP LCAF address instance
      */
     public static void serializeCommon(ByteBuf byteBuf, LispLcafAddress address) {
+        byteBuf.writeShort(AddressFamilyIdentifierEnum.LCAF.getIanaCode());
         byteBuf.writeByte(address.getReserved1());
         byteBuf.writeByte(address.getFlag());
         byteBuf.writeByte(address.getType().getLispCode());
@@ -249,10 +256,10 @@ public class LispLcafAddress extends LispAfiAddress {
         if (obj instanceof LispLcafAddress) {
             final LispLcafAddress other = (LispLcafAddress) obj;
             return Objects.equals(this.lcafType, other.lcafType) &&
-                   Objects.equals(this.reserved1, other.reserved1) &&
-                   Objects.equals(this.reserved2, other.reserved2) &&
-                   Objects.equals(this.flag, other.flag) &&
-                   Objects.equals(this.length, other.length);
+                    Objects.equals(this.reserved1, other.reserved1) &&
+                    Objects.equals(this.reserved2, other.reserved2) &&
+                    Objects.equals(this.flag, other.flag) &&
+                    Objects.equals(this.length, other.length);
         }
         return false;
     }
@@ -338,7 +345,7 @@ public class LispLcafAddress extends LispAfiAddress {
          */
         public LispLcafAddress build() {
             return new LispLcafAddress(LispCanonicalAddressFormatEnum.valueOf(lcafType),
-                                        reserved1, reserved2, flag, length);
+                    reserved1, reserved2, flag, length);
         }
     }
 
