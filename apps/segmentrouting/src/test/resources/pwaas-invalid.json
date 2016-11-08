@@ -1,0 +1,26 @@
+{
+  "1": {
+    "cP1": "of:0000000000000001/1",
+    "cP2": "of:0000000000000011/1",
+    "cP1InnerTag": "10",
+    "cP1OuterTag": "20",
+    "cP2InnerTag": "11",
+    "cP2OuterTag": "",
+    "mode": "1",
+    "allVlan": true,
+    "sdTag": "40",
+    "pwLabel": "255"
+  },
+  "20": {
+    "cP1": "of:0000000000000002/1",
+    "cP2": "of:0000000000000012/1",
+    "cP1InnerTag": "100",
+    "cP1OuterTag": "200",
+    "cP2InnerTag": "110",
+    "cP2OuterTag": "210",
+    "mode": "TAGGED",
+    "allVlan": false,
+    "sdTag": "-1",
+    "pwLabel": "4095"
+  }
+}
