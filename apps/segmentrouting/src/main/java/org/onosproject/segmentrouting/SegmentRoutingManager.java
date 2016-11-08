@@ -78,8 +78,9 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
+import org.onosproject.segmentrouting.config.PwaasConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
@@ -88,6 +89,7 @@ import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
+import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -193,6 +195,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private CordConfigHandler cordConfigHandler = null;
     private RouteHandler routeHandler = null;
     private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
+    private L2TunnelHandler l2TunnelHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
@@ -240,6 +243,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     return new SegmentRoutingDeviceConfig();
                 }
             };
+
     private final ConfigFactory<ApplicationId, SegmentRoutingAppConfig> appConfigFactory =
             new ConfigFactory<ApplicationId, SegmentRoutingAppConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY,
@@ -249,6 +253,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     return new SegmentRoutingAppConfig();
                 }
             };
+
     private final ConfigFactory<ApplicationId, XConnectConfig> xConnectConfigFactory =
             new ConfigFactory<ApplicationId, XConnectConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY,
@@ -258,6 +263,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     return new XConnectConfig();
                 }
             };
+
     private ConfigFactory<ApplicationId, McastConfig> mcastConfigFactory =
             new ConfigFactory<ApplicationId, McastConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY,
@@ -265,6 +271,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 @Override
                 public McastConfig createConfig() {
                     return new McastConfig();
+                }
+            };
+
+    private final ConfigFactory<ApplicationId, PwaasConfig> pwaasConfigFactory =
+            new ConfigFactory<ApplicationId, PwaasConfig>(
+                    SubjectFactories.APP_SUBJECT_FACTORY,
+                    PwaasConfig.class, "pwaas") {
+                @Override
+                public PwaasConfig createConfig() {
+                    return new PwaasConfig();
                 }
             };
 
@@ -367,12 +383,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cordConfigHandler = new CordConfigHandler(this);
         routeHandler = new RouteHandler(this);
         neighbourHandler = new SegmentRoutingNeighbourDispatcher(this);
+        l2TunnelHandler = new L2TunnelHandler(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
         cfgService.registerConfigFactory(appConfigFactory);
         cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
+        cfgService.registerConfigFactory(pwaasConfigFactory);
         hostService.addListener(hostListener);
         packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(linkListener);
@@ -411,6 +429,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(appConfigFactory);
         cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
+        cfgService.unregisterConfigFactory(pwaasConfigFactory);
 
         packetService.removeProcessor(processor);
         linkService.removeListener(linkListener);
@@ -1149,6 +1168,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     case CONFIG_REGISTERED:
                     case CONFIG_UNREGISTERED:
                     case CONFIG_REMOVED:
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event.configClass().equals(PwaasConfig.class)) {
+                checkState(l2TunnelHandler != null, "L2TunnelHandler is not initialized");
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                        l2TunnelHandler.processPwaasConfigAdded(event);
+                        break;
+                    case CONFIG_UPDATED:
+                        l2TunnelHandler.processPwaasConfigUpdated(event);
+                        break;
+                    case CONFIG_REMOVED:
+                        l2TunnelHandler.processPwaasConfigRemoved(event);
                         break;
                     default:
                         break;
