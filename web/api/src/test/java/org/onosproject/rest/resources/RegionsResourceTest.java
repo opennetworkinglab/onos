@@ -422,6 +422,26 @@ public class RegionsResourceTest extends ResourceTest {
     }
 
     /**
+     * Tests creating a flow with POST.
+     */
+    @Test
+    public void testAddDevicesPostWithoutRegion() {
+        expect(mockRegionService.getRegion(anyObject())).andReturn(null).anyTimes();
+        replay(mockRegionService);
+
+        WebTarget wt = target();
+        InputStream jsonStream = RegionsResourceTest.class
+                .getResourceAsStream("region-deviceIds.json");
+
+        Response response = wt.path("regions/" + region1.id() + "/devices")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NOT_FOUND));
+
+        verify(mockRegionService);
+    }
+
+    /**
      * Tests adding a set of devices in region with POST.
      */
     @Test
@@ -430,12 +450,14 @@ public class RegionsResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockRegionAdminService);
 
+        expect(mockRegionService.getRegion(anyObject())).andReturn(region1).anyTimes();
+        replay(mockRegionService);
+
         WebTarget wt = target();
         InputStream jsonStream = RegionsResourceTest.class
                 .getResourceAsStream("region-deviceIds.json");
 
-        Response response = wt.path("regions/" +
-                region1.id().toString() + "/devices")
+        Response response = wt.path("regions/" + region1.id().toString() + "/devices")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
@@ -452,6 +474,8 @@ public class RegionsResourceTest extends ResourceTest {
         expectLastCall();
         replay(mockRegionAdminService);
 
+        expect(mockRegionService.getRegion(anyObject())).andReturn(region1).anyTimes();
+        replay(mockRegionService);
 
         WebTarget wt = target()
                 .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
@@ -459,8 +483,7 @@ public class RegionsResourceTest extends ResourceTest {
                 .getResourceAsStream("region-deviceIds.json");
 
         // FIXME: need to consider whether to use jsonStream for entry deletion
-        Response response = wt.path("regions/" +
-                region1.id().toString() + "/devices")
+        Response response = wt.path("regions/" + region1.id().toString() + "/devices")
                 .request().method("DELETE", Entity.json(jsonStream));
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
         verify(mockRegionAdminService);
