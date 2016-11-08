@@ -35,7 +35,8 @@ public class NullControlCommand extends AbstractShellCommand {
     String cmd = null;
 
     @Argument(index = 1, name = "topoShape",
-            description = "Topology shape: e.g. configured, linear, reroute, centipede, tree, spineleaf, mesh",
+            description = "Topology shape: e.g. configured, linear, reroute, centipede, tree, spineleaf, " +
+                    ", mesh, fattree",
             required = false, multiValued = false)
     String topoShape = null;
 
