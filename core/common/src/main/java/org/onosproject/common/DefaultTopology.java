@@ -325,8 +325,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     public Set<Path> getPaths(DeviceId src, DeviceId dst) {
-        return getPaths(src, dst, linkWeight());
+        return getPaths(src, dst, linkWeight(), ALL_PATHS);
     }
+
 
     /**
      * Computes on-demand the set of shortest paths between source and
@@ -338,6 +339,28 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
+        return getPaths(src, dst, weight, ALL_PATHS);
+    }
+
+    /**
+     * Computes on-demand the set of shortest paths between source and
+     * destination devices, the set of returned paths will be no more than,
+     * maxPaths in size.  The first {@code maxPaths} paths will be returned
+     * maintaining any ordering guarantees provided by the underlying
+     * (default or if no default is specified {@link DijkstraGraphSearch})
+     * search. If returning all paths of a given length would exceed
+     * {@code maxPaths} a subset of paths of that length will be returned,
+     * which paths will be returned depends on the currently specified
+     * {@code GraphPathSearch}. See {@link #setDefaultGraphPathSearch}.
+     *
+     * @param src    source device
+     * @param dst    destination device
+     * @param weight link weight function
+     * @param maxPaths maximum number of paths
+     * @return set of shortest paths
+     */
+    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+                              int maxPaths) {
         DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
         Set<TopologyVertex> vertices = graph.getVertexes();
@@ -347,7 +370,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                graphPathSearch().search(graph, srcV, dstV, weight, ALL_PATHS);
+                graphPathSearch().search(graph, srcV, dstV, weight, maxPaths);
         ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             builder.add(networkPath(path));
