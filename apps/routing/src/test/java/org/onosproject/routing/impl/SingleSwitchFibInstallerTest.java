@@ -335,6 +335,7 @@ public class SingleSwitchFibInstallerTest {
         testRouteAdd();
         reset(flowObjectiveService);
 
+        ResolvedRoute oldRoute = new ResolvedRoute(PREFIX1, NEXT_HOP1, MAC1, SW1_ETH1);
         ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP2, MAC2, SW1_ETH2);
 
         // Create the next objective
@@ -348,7 +349,7 @@ public class SingleSwitchFibInstallerTest {
         setUpFlowObjectiveService();
 
         // Send in the update event
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route));
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route, oldRoute));
 
         verify(flowObjectiveService);
     }
@@ -365,7 +366,7 @@ public class SingleSwitchFibInstallerTest {
         testRouteAdd();
 
         // Construct the existing route
-        ResolvedRoute route = new ResolvedRoute(PREFIX1, null, null, null);
+        ResolvedRoute route = new ResolvedRoute(PREFIX1, NEXT_HOP1, MAC1, SW1_ETH1);
 
         // Create the flow objective
         reset(flowObjectiveService);

@@ -74,7 +74,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     Collection<Route> getRoutesForNextHop(IpAddress ip);
 
     /**
-     * Updates a next hop IP and MAC in the store.
+     * Updates a next hop information in the store.
      *
      * @param ip IP address
      * @param nextHopData Information of the next hop
@@ -82,7 +82,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     void updateNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
-     * Removes a next hop IP and MAC from the store.
+     * Removes a next hop information from the store.
      *
      * @param ip IP address
      * @param nextHopData Information of the next hop
@@ -90,7 +90,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     void removeNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
-     * Returns the MAC address of the given next hop.
+     * Returns the information of the given next hop.
      *
      * @param ip next hop IP
      * @return Information of the next hop

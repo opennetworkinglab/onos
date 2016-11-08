@@ -120,7 +120,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
                 if (routes != null) {
                     routes.forEach(route -> {
                         NextHopData nextHopData = routeStore.getNextHop(route.nextHop());
-                            l.post(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
+                            l.post(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
                                     new ResolvedRoute(route, nextHopData.mac(),
                                             nextHopData.location())));
                     });

@@ -215,23 +215,26 @@ public class RouteManagerTest {
     public void testRouteUpdate() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
         Route updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP2);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(updatedRoute, MAC1, CP1);
         ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
 
-        verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
+        verifyRouteRemoveThenAdd(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
 
         // Different prefix pointing to the same next hop.
         // In this case we expect to receive a ROUTE_UPDATED event.
         route = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP2);
+        resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
         updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
 
-        verifyRouteUpdated(route, updatedRoute, updatedResolvedRoute);
+        verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP2);
+        resolvedRoute = new ResolvedRoute(route, MAC3, CP1);
         updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4, CP1);
 
-        verifyRouteRemoveThenAdd(route, updatedRoute, updatedResolvedRoute);
+        verifyRouteRemoveThenAdd(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
     }
 
     /**
@@ -240,16 +243,18 @@ public class RouteManagerTest {
      *
      * @param original original route
      * @param updated updated route
+     * @param resolvedRoute resolved route before update
      * @param updatedResolvedRoute resolved route that is expected to be sent to
      *                             the route listener
      */
     private void verifyRouteRemoveThenAdd(Route original, Route updated,
+                                          ResolvedRoute resolvedRoute,
                                           ResolvedRoute updatedResolvedRoute) {
         // First add the original route
         addRoute(original);
 
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                new ResolvedRoute(original, null, null)));
+                new ResolvedRoute(original, resolvedRoute.nextHopMac(), resolvedRoute.location())));
         expectLastCall().once();
         routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, updatedResolvedRoute));
         expectLastCall().once();
@@ -267,15 +272,18 @@ public class RouteManagerTest {
      *
      * @param original original route
      * @param updated updated route
+     * @param resolvedRoute resolved route before update
      * @param updatedResolvedRoute resolved route that is expected to be sent to
      *                             the route listener
      */
     private void verifyRouteUpdated(Route original, Route updated,
+                                    ResolvedRoute resolvedRoute,
                                     ResolvedRoute updatedResolvedRoute) {
         // First add the original route
         addRoute(original);
 
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, updatedResolvedRoute));
+        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
+                updatedResolvedRoute, resolvedRoute));
         expectLastCall().once();
 
         replay(routeListener);
@@ -291,12 +299,14 @@ public class RouteManagerTest {
     @Test
     public void testRouteDelete() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
+        ResolvedRoute removedResolvedRoute = new ResolvedRoute(route, MAC1, CP1);
 
-        verifyDelete(route);
+        verifyDelete(route, removedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
+        removedResolvedRoute = new ResolvedRoute(route, MAC3, CP1);
 
-        verifyDelete(route);
+        verifyDelete(route, removedResolvedRoute);
     }
 
     /**
@@ -304,12 +314,13 @@ public class RouteManagerTest {
      * the route listener.
      *
      * @param route route to delete
+     * @param removedResolvedRoute the resolved route being removed
      */
-    private void verifyDelete(Route route) {
+    private void verifyDelete(Route route, ResolvedRoute removedResolvedRoute) {
         addRoute(route);
 
         RouteEvent withdrawRouteEvent = new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                new ResolvedRoute(route, null, null));
+                removedResolvedRoute);
 
         reset(routeListener);
         routeListener.event(withdrawRouteEvent);
