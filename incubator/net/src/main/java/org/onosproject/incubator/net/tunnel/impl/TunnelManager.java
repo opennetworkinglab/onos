@@ -130,6 +130,12 @@ public class TunnelManager
     }
 
     @Override
+    public void updateTunnelState(Tunnel tunnel, State state) {
+        Tunnel storedTunnel = store.queryTunnel(tunnel.tunnelId());
+        store.createOrUpdateTunnel(storedTunnel, state);
+    }
+
+    @Override
     public void removeTunnels(TunnelEndPoint src, TunnelEndPoint dst,
                               ProviderId producerName) {
         Collection<Tunnel> setTunnels = store.queryTunnel(src, dst);
