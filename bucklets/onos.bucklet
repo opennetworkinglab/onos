@@ -91,6 +91,31 @@ def java_doc(
       visibility = visibility,
 )
 
+def sonar(
+    name,
+    test = False
+    ):
+
+  cmd = '; '.join([ 'rm -f $OUT',
+          'printf "%(src_base)s = " >> $OUT',
+          '%(srcs)s >> $OUT',
+          'echo "%(binary_base)s = %(classes)s" >> $OUT',
+          'printf "%(lib_base)s = " >> $OUT',
+          '%(libraries)s >> $OUT'
+        ]) % {
+          'srcs' : "echo $(srcs :%s) | sed 's/ /,/g'" % name,
+          'classes' : ("$(bin_dir :%s#non-osgi)" if not test else "$(bin_dir :%s)") % name,
+          'libraries' : "echo $(classpath :%s) | sed 's/:/,/g'" % name,
+          'src_base' : 'sonar.sources' if not test else 'sonar.tests',
+          'binary_base' : 'sonar.java.binaries' if not test else 'sonar.java.test.binaries',
+          'lib_base' : 'sonar.java.libraries' if not test else 'sonar.java.test.libraries'
+        }
+  # FIXME do we need to specify dep here or with the expander cover it?
+  genrule(
+      name = name + "-sonar",
+      cmd = cmd,
+      out = 'sonar-project.properties'
+  )
 
 def osgi_jar(
     name = None,
@@ -206,6 +231,9 @@ def osgi_jar(
     out = 'install.log',
     visibility = visibility,
   )
+  sonar(
+    name = name,
+  )
 
 def osgi_jar_with_tests(
         name = None,
@@ -223,14 +251,6 @@ def osgi_jar_with_tests(
   if name is None:
       name = _get_name()
 
-  osgi_jar(name = name,
-           deps = deps,
-           group_id = group_id,
-           version = version,
-           visibility = visibility,
-           tests = [':' + name + '-tests'],
-           **kwargs)
-
   if test_resources and not test_resources_root:
       test_resources_root = TEST_RESOURCES_ROOT
   if test_resources_root and not test_resources:
@@ -245,23 +265,44 @@ def osgi_jar_with_tests(
 
   mvn_coords = group_id + ':' + name + ':jar:tests:' + version
 
-  java_test(
-    name = name + '-tests',
-    srcs = test_srcs,
-    deps = deps +
-           test_deps +
-           [':' + name + '#non-osgi'],
-    resources = test_resources,
-    resources_root = test_resources_root,
-    maven_coords = mvn_coords,
-    visibility = visibility,
-  )
+  if test_srcs:
+      java_test(
+        name = name + '-tests',
+        srcs = test_srcs,
+        deps = deps +
+               test_deps +
+               [':' + name + '#non-osgi'],
+        resources = test_resources,
+        resources_root = test_resources_root,
+        maven_coords = mvn_coords,
+        visibility = visibility,
+      )
 
-  checkstyle(
-      name = name + '-tests',
-      srcs = test_srcs,
-      jar_target = ':' + name + '-tests',
-  )
+      checkstyle(
+          name = name + '-tests',
+          srcs = test_srcs,
+          jar_target = ':' + name + '-tests',
+      )
+
+      sonar(
+          name = name + '-tests',
+          test = True
+      )
+
+      osgi_jar(name = name,
+               deps = deps,
+               group_id = group_id,
+               version = version,
+               visibility = visibility,
+               tests = [':' + name + '-tests'],
+               **kwargs)
+  else:
+      osgi_jar(name = name,
+               deps = deps,
+               group_id = group_id,
+               version = version,
+               visibility = visibility,
+               **kwargs)
 
 def tar_file(
    name,
