@@ -37,6 +37,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -80,6 +81,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.OFDPA_GROUP_TYPE_SHIFT;
 import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.OFDPA_MPLS_SUBTYPE_SHIFT;
 import static org.onosproject.driver.pipeline.Ofdpa2Pipeline.isNotMplsBos;
+import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -261,32 +263,48 @@ public class Ofdpa2GroupHandler {
         }
 
         boolean isMpls = false;
+        // In order to understand if it is a pseudo wire related
+        // next objective we look for the tunnel id in the meta.
+        boolean isPw = false;
         if (nextObj.meta() != null) {
             isMpls = isNotMplsBos(nextObj.meta());
+            TunnelIdCriterion tunnelIdCriterion = (TunnelIdCriterion) nextObj
+                    .meta()
+                    .getCriterion(TUNNEL_ID);
+            if (tunnelIdCriterion != null) {
+                isPw = true;
+            }
         }
 
-        // break up simple next objective to GroupChain objects
-        GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
-                                              nextObj.appId(), isMpls,
-                                              nextObj.meta());
-        if (groupInfo == null) {
-            log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
-            return;
+        if (!isPw) {
+            // break up simple next objective to GroupChain objects
+            GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
+                                                  nextObj.appId(), isMpls,
+                                                  nextObj.meta());
+            if (groupInfo == null) {
+                log.error("Could not process nextObj={} in dev:{}", nextObj.id(), deviceId);
+                return;
+            }
+            // create object for local and distributed storage
+            Deque<GroupKey> gkeyChain = new ArrayDeque<>();
+            gkeyChain.addFirst(groupInfo.innerMostGroupDesc.appCookie());
+            gkeyChain.addFirst(groupInfo.nextGroupDesc.appCookie());
+            OfdpaNextGroup ofdpaGrp =
+                    new OfdpaNextGroup(Collections.singletonList(gkeyChain), nextObj);
+
+            // store l3groupkey with the ofdpaNextGroup for the nextObjective that depends on it
+            updatePendingNextObjective(groupInfo.nextGroupDesc.appCookie(), ofdpaGrp);
+
+            // now we are ready to send the l2 groupDescription (inner), as all the stores
+            // that will get async replies have been updated. By waiting to update
+            // the stores, we prevent nasty race conditions.
+            groupService.addGroup(groupInfo.innerMostGroupDesc);
+        } else {
+            // We handle the pseudo wire with a different a procedure.
+            // This procedure is meant to handle both initiation and
+            // termination of the pseudo wire.
+            processPwNextObjective(nextObj);
         }
-        // create object for local and distributed storage
-        Deque<GroupKey> gkeyChain = new ArrayDeque<>();
-        gkeyChain.addFirst(groupInfo.innerMostGroupDesc.appCookie());
-        gkeyChain.addFirst(groupInfo.nextGroupDesc.appCookie());
-        OfdpaNextGroup ofdpaGrp =
-                new OfdpaNextGroup(Collections.singletonList(gkeyChain), nextObj);
-
-        // store l3groupkey with the ofdpaNextGroup for the nextObjective that depends on it
-        updatePendingNextObjective(groupInfo.nextGroupDesc.appCookie(), ofdpaGrp);
-
-        // now we are ready to send the l2 groupDescription (inner), as all the stores
-        // that will get async replies have been updated. By waiting to update
-        // the stores, we prevent nasty race conditions.
-        groupService.addGroup(groupInfo.innerMostGroupDesc);
     }
 
     /**
@@ -364,8 +382,8 @@ public class Ofdpa2GroupHandler {
      *         error in processing the chain
      */
     protected GroupInfo createL2L3ChainInternal(TrafficTreatment treatment, int nextId,
-                                      ApplicationId appId, boolean mpls,
-                                      TrafficSelector meta, boolean useSetVlanExtension) {
+                                                ApplicationId appId, boolean mpls,
+                                                TrafficSelector meta, boolean useSetVlanExtension) {
         // for the l2interface group, get vlan and port info
         // for the outer group, get the src/dst mac, and vlan info
         TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
@@ -943,6 +961,18 @@ public class Ofdpa2GroupHandler {
             // all groups in this chain
             allGroupKeys.add(gkeyChain);
         }
+    }
+
+    /**
+     * Processes the pseudo wire related next objective.
+     * This procedure try to reuse the mpls label groups,
+     * the mpls interface group and the l2 interface group.
+     *
+     * @param nextObjective the objective to process.
+     */
+    protected void processPwNextObjective(NextObjective nextObjective) {
+        log.warn("Pseudo wire extensions are not support for the OFDPA 2.0 {}", nextObjective.id());
+        return;
     }
 
     //////////////////////////////////////

@@ -54,29 +54,30 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.MulticastRouteService;
+import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.PwaasConfig;
 import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
-import org.onosproject.net.link.LinkService;
-import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
 import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
@@ -116,7 +117,8 @@ import static org.onlab.util.Tools.groupedThreads;
 @Component(immediate = true)
 public class SegmentRoutingManager implements SegmentRoutingService {
 
-    private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
+    private static Logger log = LoggerFactory
+            .getLogger(SegmentRoutingManager.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -131,16 +133,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
+    public FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    public MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
+    public StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public NetworkConfigRegistry cfgService;
@@ -160,12 +162,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public InterfaceService interfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public PathService pathService;
+
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
     protected RoutingRulePopulator routingRulePopulator = null;
     public ApplicationId appId;
-    protected DeviceConfiguration deviceConfiguration = null;
+    public DeviceConfiguration deviceConfiguration = null;
 
     protected DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
@@ -1077,13 +1082,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 checkState(l2TunnelHandler != null, "L2TunnelHandler is not initialized");
                 switch (event.type()) {
                     case CONFIG_ADDED:
-                        l2TunnelHandler.processPWaasConfigAdded(event);
+                        l2TunnelHandler.processPwaasConfigAdded(event);
                         break;
                     case CONFIG_UPDATED:
-                        l2TunnelHandler.processPWaasConfigUpdated(event);
+                        l2TunnelHandler.processPwaasConfigUpdated(event);
                         break;
                     case CONFIG_REMOVED:
-                        l2TunnelHandler.processPWaasConfigRemoved(event);
+                        l2TunnelHandler.processPwaasConfigRemoved(event);
                         break;
                     default:
                         break;
