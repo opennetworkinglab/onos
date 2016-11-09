@@ -24,6 +24,9 @@ import java.util.Objects;
  */
 public class UiView {
 
+    private static final  String DEFAULT_HELP_PAGE_URL =
+            "https://wiki.onosproject.org/display/ONOS/The+ONOS+Web+GUI";
+
     /**
      * Designates the navigation menu category.
      */
@@ -70,6 +73,7 @@ public class UiView {
     private final String id;
     private final String label;
     private final String iconId;
+    private final String helpPageUrl;
 
     /**
      * Creates a new user interface view descriptor. The navigation item
@@ -80,7 +84,7 @@ public class UiView {
      * @param label    view label
      */
     public UiView(Category category, String id, String label) {
-        this(category, id, label, null);
+        this(category, id, label, null, null);
     }
 
     /**
@@ -97,10 +101,31 @@ public class UiView {
      * @param iconId   icon id
      */
     public UiView(Category category, String id, String label, String iconId) {
+        this(category, id, label, iconId, null);
+    }
+
+    /**
+     * Creates a new user interface view descriptor. The navigation item
+     * will appear in the navigation menu under the specified category,
+     * with the specified icon adornment and specified help page.
+     * <p>
+     * Note: see the {@code glyphMapping} structure in {@code icon.js} for
+     * valid icon identifiers.
+     *
+     * @param category view category
+     * @param id       view identifier
+     * @param label    view label
+     * @param iconId   icon id
+     * @param helpPageUrl help page URL
+     */
+    public UiView(Category category, String id, String label, String iconId,
+                  String helpPageUrl) {
         this.category = category;
         this.id = id;
         this.label = label;
         this.iconId = iconId;
+        this.helpPageUrl = (helpPageUrl == null) ?
+                DEFAULT_HELP_PAGE_URL : helpPageUrl;
     }
 
     /**
@@ -137,6 +162,15 @@ public class UiView {
      */
     public String iconId() {
         return iconId;
+    }
+
+    /**
+     * Returns the help page URL for a specific view.
+     *
+     * @return help page URL
+     */
+    public String helpPageUrl() {
+        return helpPageUrl;
     }
 
     @Override
