@@ -89,7 +89,7 @@ public class ArpHandler {
         DeviceId deviceId = connectPoint.deviceId();
 
         if (!validateArpSpa(connectPoint, arp)) {
-            log.warn("Ignore ARP packet discovered on {} with unexpected src protocol address {}.",
+            log.debug("Ignore ARP packet discovered on {} with unexpected src protocol address {}.",
                     connectPoint, Ip4Address.valueOf(arp.getSenderProtocolAddress()));
             return;
         }
@@ -163,7 +163,7 @@ public class ArpHandler {
     private boolean validateArpSpa(ConnectPoint connectPoint, ARP arpPacket) {
         Ip4Address spa = Ip4Address.valueOf(arpPacket.getSenderProtocolAddress());
         Ip4Prefix subnet = config.getPortSubnet(connectPoint.deviceId(), connectPoint.port());
-        return subnet.contains(spa);
+        return subnet != null && subnet.contains(spa);
     }
 
 
