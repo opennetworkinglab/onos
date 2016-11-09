@@ -1,0 +1,20 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks whether the specified ONOS cluster node has the desired state.
+# -----------------------------------------------------------------------------
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+for attempt in {1..10}; do
+    onos ${1:-$OCI} "onos:nodes" | grep -v /bin/client > $aux
+    cat $aux
+
+    # Normalize the node status
+    state=$(grep ${2:-$OC2} $aux | cut -d, -f3 | cut -d= -f2)
+
+    [ "$state" = "${3:-READY}" ] && exit 0
+    sleep 1
+done
+
+exit 1

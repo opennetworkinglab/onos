@@ -65,6 +65,8 @@ stop)
     $mininet -X "stuff \"^C\\n\"" 2>/dev/null && \
         $mininet -X "stuff \"^C\\n\"" 2>/dev/null && \
         $mininet -X "stuff \"exit\\n\"" 2>/dev/null
+    ssh -t -t $remote sudo mn -c
+
     ;;
 cleanup)
     ssh -t -t $remote sudo mn -c

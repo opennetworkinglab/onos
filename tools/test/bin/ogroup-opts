@@ -22,6 +22,7 @@ function _stc-opts () {
 
 complete -F _stc-opts stc
 complete -F _stc-opts stw
+complete -F _stc-opts stcs
 
 
 # Tab completion settings for stl

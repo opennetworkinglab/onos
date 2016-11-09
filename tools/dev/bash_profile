@@ -105,6 +105,10 @@ alias gil='git log --oneline --decorate=short'
 alias sshctl='onos-ssh'
 alias sshnet='onos-ssh $OCN'
 
+# Runs a sequence of STC scenarios until the first failure.
+function stcs {
+    for s in "$@"; do stc $s || return 1; done
+}
 
 # Applies the settings in the specified topology recipe file or lists current
 # topo recipe definition if no topo recipe file is given.
