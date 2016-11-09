@@ -105,6 +105,7 @@ ONOS_PROVIDERS = [
     '//providers/rest:onos-providers-rest-oar',
     '//providers/isis:onos-providers-isis-oar',
     '//providers/snmp:onos-providers-snmp-oar',
+    '//providers/link:onos-providers-link-oar',
 ]
 
 ONOS_APPS = [
