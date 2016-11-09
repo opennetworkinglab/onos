@@ -102,8 +102,12 @@ import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
  *
  */
 public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeliner {
+
     protected static final int PORT_TABLE = 0;
     protected static final int VLAN_TABLE = 10;
+    protected static final int VLAN_1_TABLE = 11;
+    protected static final int MPLS_L2_PORT_FLOW_TABLE = 13;
+    protected static final int MPLS_L2_PORT_PCP_TRUST_FLOW_TABLE = 16;
     protected static final int TMAC_TABLE = 20;
     protected static final int UNICAST_ROUTING_TABLE = 30;
     protected static final int MULTICAST_ROUTING_TABLE = 40;
@@ -119,6 +123,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int HIGHEST_PRIORITY = 0xffff;
     protected static final int DEFAULT_PRIORITY = 0x8000;
     protected static final int LOWEST_PRIORITY = 0x0;
+
+    protected static final int MPLS_L2_PORT_PRIORITY = 2;
+
+    protected static final int MPLS_TUNNEL_ID_BASE = 0x10000;
+    protected static final int MPLS_TUNNEL_ID_MAX = 0x1FFFF;
 
     private final Logger log = getLogger(getClass());
     protected ServiceDirectory serviceDirectory;
@@ -225,6 +234,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             rules.stream()
             .filter(Objects::nonNull)
             .forEach(flowOpsBuilder::remove);
+            log.debug("Deleting a flow rule to sw:{}", deviceId);
             break;
         default:
             fail(fwd, ObjectiveError.UNKNOWN);

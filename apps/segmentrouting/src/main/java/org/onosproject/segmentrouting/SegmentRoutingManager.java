@@ -74,6 +74,7 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -134,6 +135,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private NeighbourResolutionService neighbourResolutionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public PathService pathService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -146,16 +150,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    FlowObjectiveService flowObjectiveService;
+    public FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MastershipService mastershipService;
+    public MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    StorageService storageService;
+    public StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     MulticastRouteService multicastRouteService;
@@ -180,7 +184,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     IpHandler ipHandler = null;
     RoutingRulePopulator routingRulePopulator = null;
     public ApplicationId appId;
-    protected DeviceConfiguration deviceConfiguration = null;
+    public DeviceConfiguration deviceConfiguration = null;
 
     DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
