@@ -33,6 +33,7 @@ import org.onlab.rest.BaseResource;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.codec.impl.FlowRuleCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -45,6 +46,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
+import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
@@ -402,7 +404,7 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(NetTestTools.APP_ID).anyTimes();
         expect(mockCoreService.getAppId(anyString()))
                 .andReturn(NetTestTools.APP_ID).anyTimes();
-        expect(mockCoreService.registerApplication(anyString()))
+        expect(mockCoreService.registerApplication(FlowRuleCodec.REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
 
@@ -878,6 +880,8 @@ public class FlowsResourceTest extends ResourceTest {
      */
     @Test
     public void testPostWithoutAppId() {
+        mockFlowService.applyFlowRules(anyObject());
+        expectLastCall();
         replay(mockFlowService);
 
         WebTarget wt = target();
@@ -887,7 +891,9 @@ public class FlowsResourceTest extends ResourceTest {
         Response response = wt.path("flows/of:0000000000000001")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
-        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NOT_FOUND));
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/flows/of:0000000000000001/"));
     }
 
     /**
@@ -898,9 +904,6 @@ public class FlowsResourceTest extends ResourceTest {
         mockFlowService.applyFlowRules(anyObject());
         expectLastCall();
         replay(mockFlowService);
-
-        expect(mockApplicationService.getId(anyObject())).andReturn(APP_ID).anyTimes();
-        replay(mockApplicationService);
 
         WebTarget wt = target();
         InputStream jsonStream = FlowsResourceTest.class
