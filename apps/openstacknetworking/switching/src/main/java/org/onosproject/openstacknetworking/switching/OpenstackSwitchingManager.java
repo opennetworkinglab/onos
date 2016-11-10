@@ -119,7 +119,11 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
                 .matchIPDst(getIp(host).toIpPrefix())
                 .matchTunnelId(Long.valueOf(getVni(host)));
 
-        tBuilder.setOutput(host.location().port());
+        // Destination setting is required for routing cases.
+        // We do not believe the rule would not degrade the forwarding performance.
+        // But, if it does, we need to move the rule in a separate routing table.
+        tBuilder.setEthDst(host.mac())
+                .setOutput(host.location().port());
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())

@@ -21,8 +21,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -74,29 +74,36 @@ public final class RulePopulatorUtil {
     }
 
     /**
-     * Removes flow rules with the supplied information.
+     * Adds flow rules with the supplied information.
      *
      * @param flowObjectiveService flow objective service
      * @param appId application id
      * @param deviceId device id to remove this flow rule
      * @param selector traffic selector
+     * @param treatment traffic treatment
      * @param flag flag
      * @param priority priority
+     * @param install populate flows if true, remove them otherwise
      */
-    public static void removeRule(FlowObjectiveService flowObjectiveService,
-                           ApplicationId appId,
-                           DeviceId deviceId,
-                           TrafficSelector selector,
-                           ForwardingObjective.Flag flag,
-                           int priority) {
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
+    public static void setRule(FlowObjectiveService flowObjectiveService,
+                               ApplicationId appId,
+                               DeviceId deviceId,
+                               TrafficSelector selector,
+                               TrafficTreatment treatment,
+                               ForwardingObjective.Flag flag,
+                               int priority,
+                               boolean install) {
+        ForwardingObjective.Builder foBuilder = DefaultForwardingObjective.builder()
                 .withSelector(selector)
-                .withTreatment(DefaultTrafficTreatment.builder().build())
+                .withTreatment(treatment)
                 .withFlag(flag)
                 .withPriority(priority)
-                .fromApp(appId)
-                .remove();
+                .fromApp(appId);
 
-        flowObjectiveService.forward(deviceId, fo);
+        if (install) {
+            flowObjectiveService.forward(deviceId, foBuilder.add());
+        } else {
+            flowObjectiveService.forward(deviceId, foBuilder.remove());
+        }
     }
 }

@@ -263,29 +263,32 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
                     .matchIPDst(floatingIp.toIpPrefix())
                     .matchInPort(nodeService.tunnelPort(deviceId).get());
 
-            RulePopulatorUtil.removeRule(
+            RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     deviceId,
                     sOutgoingBuilder.build(),
+                    DefaultTrafficTreatment.builder().build(),
                     ForwardingObjective.Flag.VERSATILE,
-                    FLOATING_RULE_PRIORITY);
+                    FLOATING_RULE_PRIORITY, false);
 
-            RulePopulatorUtil.removeRule(
+            RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     deviceId,
                     sIncomingBuilder.build(),
+                    DefaultTrafficTreatment.builder().build(),
                     ForwardingObjective.Flag.VERSATILE,
-                    FLOATING_RULE_PRIORITY);
+                    FLOATING_RULE_PRIORITY, false);
 
-            RulePopulatorUtil.removeRule(
+            RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     deviceId,
                     sForTrafficFromVmBuilder.build(),
+                    DefaultTrafficTreatment.builder().build(),
                     ForwardingObjective.Flag.VERSATILE,
-                    FLOATING_RULE_FOR_TRAFFIC_FROM_VM_PRIORITY);
+                    FLOATING_RULE_FOR_TRAFFIC_FROM_VM_PRIORITY, false);
         });
     }
 

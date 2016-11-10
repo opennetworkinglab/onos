@@ -25,6 +25,9 @@ import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.openstackinterface.OpenstackInterfaceService;
+import org.onosproject.openstackinterface.OpenstackRouter;
+import org.onosproject.openstackinterface.OpenstackSubnet;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -50,6 +53,7 @@ public abstract class AbstractVmHandler {
     protected CoreService coreService;
     protected MastershipService mastershipService;
     protected HostService hostService;
+    protected OpenstackInterfaceService openstackService;
 
     protected HostListener hostListener = new InternalHostListener();
 
@@ -57,6 +61,7 @@ public abstract class AbstractVmHandler {
         ServiceDirectory services = new DefaultServiceDirectory();
         coreService = services.get(CoreService.class);
         mastershipService = services.get(MastershipService.class);
+        openstackService = services.get(OpenstackInterfaceService.class);
         hostService = services.get(HostService.class);
         hostService.addListener(hostListener);
 
@@ -105,6 +110,28 @@ public abstract class AbstractVmHandler {
                 .filter(this::isValidHost)
                 .filter(host -> host.annotations().value(PORT_ID).equals(portId))
                 .findFirst();
+    }
+
+    protected Set<Host> getHosts(OpenstackSubnet osSubnet) {
+        return Tools.stream(hostService.getHosts())
+                .filter(host -> host.annotations().value(SUBNET_ID).equals(osSubnet.id()))
+                .collect(Collectors.toSet());
+    }
+
+    protected Optional<OpenstackRouter> getRouter(Host host) {
+        return openstackService.routers().stream()
+                .filter(router -> routableSubNets(router.id()).stream()
+                        .filter(subnet -> subnet.id().equals(host.annotations().value(SUBNET_ID)))
+                        .findAny().isPresent())
+                .findAny();
+    }
+
+    protected Set<OpenstackSubnet> routableSubNets(String osRouterId) {
+        return openstackService.ports().stream()
+                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_INTERFACE) &&
+                        p.deviceId().equals(osRouterId))
+                .map(p -> openstackService.subnet(p.fixedIps().keySet().stream().findFirst().get()))
+                .collect(Collectors.toSet());
     }
 
     protected Ip4Address getIp(Host host) {
