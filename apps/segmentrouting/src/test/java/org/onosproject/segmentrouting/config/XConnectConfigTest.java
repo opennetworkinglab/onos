@@ -62,7 +62,7 @@ public class XConnectConfigTest {
         InputStream invalidJsonStream = SegmentRoutingAppConfigTest.class
                 .getResourceAsStream("/xconnect-invalid.json");
 
-        String key = SegmentRoutingManager.SR_APP_ID;
+        String key = SegmentRoutingManager.APP_NAME;
         ApplicationId subject = new TestApplicationId(key);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);

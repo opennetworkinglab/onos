@@ -33,6 +33,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.incubator.net.config.basics.McastConfig;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -113,8 +114,7 @@ import static org.onlab.util.Tools.groupedThreads;
 @Component(immediate = true)
 public class SegmentRoutingManager implements SegmentRoutingService {
 
-    private static Logger log = LoggerFactory
-            .getLogger(SegmentRoutingManager.class);
+    private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -141,7 +141,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry cfgService;
+    public NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService compCfgService;
@@ -155,11 +155,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CordConfigService cordConfigService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public InterfaceService interfaceService;
+
     protected ArpHandler arpHandler = null;
     protected IcmpHandler icmpHandler = null;
     protected IpHandler ipHandler = null;
     protected RoutingRulePopulator routingRulePopulator = null;
-    protected ApplicationId appId;
+    public ApplicationId appId;
     protected DeviceConfiguration deviceConfiguration = null;
 
     protected DefaultRoutingHandler defaultRoutingHandler = null;
@@ -256,7 +259,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     /**
      * Segment Routing App ID.
      */
-    public static final String SR_APP_ID = "org.onosproject.segmentrouting";
+    public static final String APP_NAME = "org.onosproject.segmentrouting";
     /**
      * The starting value of per-subnet VLAN ID assignment.
      */
@@ -268,7 +271,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication(SR_APP_ID);
+        appId = coreService.registerApplication(APP_NAME);
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<NeighborSetNextObjectiveStoreKey, Integer>
@@ -894,29 +897,28 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
-        SegmentRoutingManager segmentRoutingManager;
+        SegmentRoutingManager srManager;
 
         /**
          * Constructs the internal network config listener.
          *
-         * @param srMgr segment routing manager
+         * @param srManager segment routing manager
          */
-        public InternalConfigListener(SegmentRoutingManager srMgr) {
-            this.segmentRoutingManager = srMgr;
+        public InternalConfigListener(SegmentRoutingManager srManager) {
+            this.srManager = srManager;
         }
 
         /**
          * Reads network config and initializes related data structure accordingly.
          */
         public void configureNetwork() {
-            deviceConfiguration = new DeviceConfiguration(appId,
-                    segmentRoutingManager.cfgService);
+            deviceConfiguration = new DeviceConfiguration(srManager);
 
-            arpHandler = new ArpHandler(segmentRoutingManager);
-            icmpHandler = new IcmpHandler(segmentRoutingManager);
-            ipHandler = new IpHandler(segmentRoutingManager);
-            routingRulePopulator = new RoutingRulePopulator(segmentRoutingManager);
-            defaultRoutingHandler = new DefaultRoutingHandler(segmentRoutingManager);
+            arpHandler = new ArpHandler(srManager);
+            icmpHandler = new IcmpHandler(srManager);
+            ipHandler = new IpHandler(srManager);
+            routingRulePopulator = new RoutingRulePopulator(srManager);
+            defaultRoutingHandler = new DefaultRoutingHandler(srManager);
 
             tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
                                               groupHandlerMap, tunnelStore);
