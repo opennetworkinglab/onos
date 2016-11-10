@@ -69,7 +69,6 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     public void activate() {
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
-                .register(UiTopoLayoutId.class)
                 .register(UiTopoLayout.class);
 
         layouts = storageService.<UiTopoLayoutId, UiTopoLayout>consistentMapBuilder()
