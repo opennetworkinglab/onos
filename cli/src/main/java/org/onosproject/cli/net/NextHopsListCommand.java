@@ -40,7 +40,7 @@ public class NextHopsListCommand extends AbstractShellCommand {
     private static final String FORMAT_TABLE = "Table: %s";
     private static final String FORMAT_TOTAL = "   Total: %d";
 
-    private static final String FORMAT = "ip=%s, mac=%s, numRoutes=%s";
+    private static final String FORMAT = "ip=%s, mac=%s, loc=%s, numRoutes=%s";
 
     @Override
     protected void execute() {
@@ -50,9 +50,8 @@ public class NextHopsListCommand extends AbstractShellCommand {
 
         nextHops.forEach(nextHop -> {
             Collection<Route> routes = service.getRoutesForNextHop(nextHop.ip());
-            print(FORMAT, nextHop.ip(), nextHop.mac(), routes.size());
+            print(FORMAT, nextHop.ip(), nextHop.mac(), nextHop.location(), routes.size());
         });
-
     }
 
 }

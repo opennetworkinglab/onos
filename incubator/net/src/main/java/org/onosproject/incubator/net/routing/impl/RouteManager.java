@@ -177,7 +177,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     @Override
     public Set<NextHop> getNextHops() {
         return routeStore.getNextHops().entrySet().stream()
-                .map(entry -> new NextHop(entry.getKey(), entry.getValue().mac()))
+                .map(entry -> new NextHop(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toSet());
     }
 
