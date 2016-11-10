@@ -46,8 +46,6 @@ public class LispMapServer {
     // TODO: need to be configurable
     private static final String AUTH_KEY = "onos";
 
-    private static final short AUTH_DATA_LENGTH = 20;
-
     // TODO: need to be configurable
     private static final short AUTH_METHOD = 1;
 
@@ -79,11 +77,11 @@ public class LispMapServer {
         // build temp notify message
         NotifyBuilder authNotifyBuilder = new DefaultNotifyBuilder();
         authNotifyBuilder.withKeyId(AUTH_METHOD);
-        authNotifyBuilder.withAuthDataLength(AUTH_DATA_LENGTH);
+        authNotifyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
         authNotifyBuilder.withNonce(register.getNonce());
         authNotifyBuilder.withMapRecords(register.getMapRecords());
 
-        byte[] authData = new byte[AUTH_DATA_LENGTH];
+        byte[] authData = new byte[valueOf(AUTH_METHOD).getHashLength()];
         Arrays.fill(authData, (byte) 0);
         authNotifyBuilder.withAuthenticationData(authData);
 
@@ -97,13 +95,13 @@ public class LispMapServer {
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(bytes);
 
-        byte[] sha1AuthData =
-                factory.createAuthenticationData(valueOf(register.getKeyId()), AUTH_KEY, bytes);
+        byte[] calcAuthData = factory.createAuthenticationData(
+                                valueOf(register.getKeyId()), AUTH_KEY, bytes);
 
         NotifyBuilder notifyBuilder = new DefaultNotifyBuilder();
         notifyBuilder.withKeyId(AUTH_METHOD);
-        notifyBuilder.withAuthDataLength((short) sha1AuthData.length);
-        notifyBuilder.withAuthenticationData(sha1AuthData);
+        notifyBuilder.withAuthDataLength((short) calcAuthData.length);
+        notifyBuilder.withAuthenticationData(calcAuthData);
         notifyBuilder.withNonce(register.getNonce());
         notifyBuilder.withMapRecords(register.getMapRecords());
 
@@ -123,10 +121,10 @@ public class LispMapServer {
     }
 
     /**
-     * Checks the integrity of the received Map-Register message by calculating
-     * authentication data from received Map-Register message.
+     * Checks the integrity of the received map-register message by calculating
+     * authentication data from received map-register message.
      *
-     * @param register Map-Register message
+     * @param register map-register message
      * @return evaluation result
      */
     private boolean checkAuthData(LispMapRegister register) {
@@ -154,8 +152,8 @@ public class LispMapServer {
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(bytes);
 
-        byte[] calculatedAuthData =
-                factory.createAuthenticationData(valueOf(register.getKeyId()), AUTH_KEY, bytes);
+        byte[] calculatedAuthData = factory.createAuthenticationData(
+                                    valueOf(register.getKeyId()), AUTH_KEY, bytes);
         return Arrays.equals(calculatedAuthData, register.getAuthenticationData());
     }
 }
