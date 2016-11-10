@@ -933,7 +933,7 @@ public class Ofdpa2GroupHandler {
         TrafficTreatment tt = nextObjective.next().iterator().next();
         PortNumber newport = readOutPortFromTreatment(tt);
         if (existingOutPorts.contains(newport)) {
-            log.warn("Attempt to add bucket for existing outport:{} in dev:{} for next:{}",
+            log.info("Attempt to add bucket for existing outport:{} in dev:{} for next:{}",
                      newport, deviceId, nextObjective.id());
             return;
         }
