@@ -28,6 +28,7 @@ public interface VoltFwdlConfig extends HandlerBehaviour {
      * Upgrade firmware manually in an ONU in the device.
      *
      * @param target input data in string
+     * @return string representing the reply
      */
     String upgradeFirmwareOndemand(String target);
 

@@ -230,7 +230,6 @@ public class LspEventConsumer implements Runnable {
      *
      * @param localSystemId  local system ID
      * @param remoteSystemId remote system ID
-     * @return link information
      * @param interfaceIp interface address
      * @param neighborIp neighbor address
      * @param lsPdu link state PDU instance

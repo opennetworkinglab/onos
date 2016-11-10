@@ -524,6 +524,7 @@ public class OspfAreaImpl implements OspfArea {
      *
      * @param ospfLsa       OSPF LSA instance
      * @param ospfInterface OSPF interface instance
+     * @throws Exception on error
      */
     public void addLsa(OspfLsa ospfLsa, OspfInterface ospfInterface) throws Exception {
         //second param is false as lsa from network
@@ -536,6 +537,7 @@ public class OspfAreaImpl implements OspfArea {
      * @param ospfLsa          OSPF LSA instance
      * @param isSelfOriginated true if the LSA is self originated. Else false
      * @param ospfInterface    OSPF interface instance
+     * @throws Exception on error
      */
     public void addLsa(OspfLsa ospfLsa, boolean isSelfOriginated, OspfInterface ospfInterface)
             throws Exception {

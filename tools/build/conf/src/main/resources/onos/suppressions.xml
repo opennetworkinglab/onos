@@ -17,7 +17,6 @@
 <!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN" "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-
     <suppress files="org.apache.karaf.branding.*" checks="[a-zA-Z0-9]*"/>
 
     <suppress files=".*" checks="FinalParametersCheck"/>
@@ -34,13 +33,13 @@
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
     <!-- Suppressions for unit testing code -->
-    <suppress checks="JavadocPackage"
+    <suppress checks="Javadoc.*"
               files=".*/src/test/.*.java"
             />
 
-    <suppress checks="JavadocPackage"
+    <suppress checks="Javadoc.*"
               files=".*/thirdparty/.*.java"/>
 
     <!-- Suppressions for yangutils generated code -->
-    <suppress files="org.onosproject.yang.gen.v1.*" checks="JavadocStyle" />
+    <suppress files="org.onosproject.yang.gen.v1.*" checks="Javadoc.*" />
 </suppressions>

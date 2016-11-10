@@ -121,6 +121,7 @@ public class IGMPQuery extends IGMPGroup {
      *
      * @param bb ByteBuffer pointing at the IGMP Query group address
      * @return the IGMP Group object
+     * @throws DeserializationException on serializer error
      */
     public IGMPGroup deserialize(ByteBuffer bb) throws DeserializationException {
 

@@ -191,9 +191,9 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         }
 
         /**
-         * @param request
-         * @param mediaType
-         * @param device
+         * @param request request
+         * @param mediaType media type
+         * @param device device identifier
          */
         public GetChunksRunnable(String request, String mediaType,
                                  DeviceId device) {

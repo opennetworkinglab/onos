@@ -834,6 +834,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *
      * @param fwd the forwarding objective
      * @param allowDefaultRoute allow wildcarded IPv4_DST or not
+     * @param mplsNextTable next MPLS table
      * @return A collection of flow rules, or an empty set
      */
     protected Collection<FlowRule> processEthTypeSpecificInternal(ForwardingObjective fwd,
