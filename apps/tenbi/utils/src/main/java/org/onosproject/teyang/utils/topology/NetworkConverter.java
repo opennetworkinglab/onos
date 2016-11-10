@@ -57,6 +57,9 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
         .networks.network.augmentedndnetwork.Link;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
         .IetfTeTopologyEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.IetfTeTopologyEventSubject;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks
         .network.AugmentedNwNetwork;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks
@@ -75,6 +78,7 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
         .tetopologytype.TeTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeGlobalId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTopologyId;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,10 +232,10 @@ public final class NetworkConverter {
             org.onosproject.tetopology.management.api.Network teNetwork;
             if (stateNetwork == null) {
                 log.info("networkId {} can't be found in yangNetworkStates",
-                         network.networkId());
-                teNetwork = yang2TeSubsystemNetwork(network);
+                          network.networkId());
+                teNetwork = yang2TeSubsystemNetwork(network, yangNetworks);
             } else {
-                teNetwork = yang2TeSubsystemNetwork(network, stateNetwork);
+                teNetwork = yang2TeSubsystemNetwork(network, stateNetwork, yangNetworks);
             }
             networks.add(teNetwork);
         }
@@ -388,15 +392,17 @@ public final class NetworkConverter {
     /**
      * Network conversion from YANG to TE Topology subsystem.
      *
-     * @param yangNetwork      Network YANG object
+     * @param yangNetwork Network YANG object
      * @param yangNetworkState NetworkState YANG object
+     * @param yangNetworks Networks YANG object
      * @return TE Topology subsystem defaultNetwork object
      */
     private static org.onosproject.tetopology.management.api.DefaultNetwork yang2TeDefaultNetwork(
-            Network yangNetwork,
-            org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.
-                    yang.ietf.network.rev20151208.ietfnetwork.networksstate.
-                    Network yangNetworkState) {
+                                                Network yangNetwork,
+                                                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.
+                                                yang.ietf.network.rev20151208.ietfnetwork.networksstate.
+                                                Network yangNetworkState,
+                                                Networks yangNetworks) {
         checkNotNull(yangNetwork, E_NULL_YANG_NETWORK);
         checkNotNull(yangNetwork.networkId(), E_NULL_YANG_NETWORKID);
         String networkId = yangNetwork.networkId().uri().string();
@@ -424,7 +430,7 @@ public final class NetworkConverter {
             for (Node node : yangNetwork.node()) {
                 // Convert the Yang Node to a TE node.
                 teNodes.put(KeyId.keyId(node.nodeId().uri().string()),
-                            NodeConverter.yang2TeSubsystemNode(node, yangNetwork.networkId()));
+                            NodeConverter.yang2TeSubsystemNode(node, yangNetwork));
             }
         }
 
@@ -436,7 +442,7 @@ public final class NetworkConverter {
             for (Link link : augmentLink.link()) {
                 // Convert the Yang Link to a TE link.
                 teLinks.put(KeyId.keyId(link.linkId().uri().string()),
-                            LinkConverter.yang2TeSubsystemLink(link, yangNetwork.networkId()));
+                            LinkConverter.yang2TeSubsystemLink(link, yangNetwork, yangNetworks));
             }
         }
 
@@ -466,35 +472,30 @@ public final class NetworkConverter {
      * Network object conversion from YANG to TE Topology subsystem.
      *
      * @param yangNetwork Network YANG object
+     * @param yangNetworks Networks YANG object
      * @return network TE Topology subsystem networks object
      */
-    public static org.onosproject.tetopology.management.api.Network yang2TeSubsystemNetwork(Network yangNetwork) {
-        return yang2TeDefaultNetwork(yangNetwork, null);
+    public static org.onosproject.tetopology.management.api.Network yang2TeSubsystemNetwork(Network yangNetwork,
+                                                                                            Networks yangNetworks) {
+        return yang2TeDefaultNetwork(yangNetwork, null, yangNetworks);
     }
 
     /**
      * Network and State object conversion from YANG to TE Topology subsystem.
      *
-     * @param yangNetwork      Network YANG object
+     * @param yangNetwork Network YANG object
      * @param yangNetworkState NetworkState YANG object
+     * @param yangNetworks Networks YANG object
      * @return teSubsystem TE Topology subsystem networks object
      */
-    public static org.onosproject.tetopology.management.api.Network
-    yang2TeSubsystemNetwork(Network yangNetwork,
-                            org.onosproject.yang.gen
-                                    .v1.urn.ietf
-                                    .params.xml.ns
-                                    .yang.ietf
-                                    .network
-                                    .rev20151208.ietfnetwork
-                                    .networksstate
-                                    .Network
-                                    yangNetworkState) {
+    public static org.onosproject.tetopology.management.api.Network yang2TeSubsystemNetwork(Network yangNetwork,
+            org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork
+                    .networksstate.Network yangNetworkState, Networks yangNetworks) {
         checkNotNull(yangNetworkState, E_NULL_YANG_NETWORKSSTATE_NETWORK);
         checkNotNull(yangNetworkState.networkRef(), E_NULL_YANG_NETWORKSSTATE_NETWORKREF);
 
         org.onosproject.tetopology.management.api.DefaultNetwork teNetwork =
-                yang2TeDefaultNetwork(yangNetwork, yangNetworkState);
+                yang2TeDefaultNetwork(yangNetwork, yangNetworkState, yangNetworks);
 
         String networkref = yangNetworkState.networkRef().toString();
         checkState(teNetwork.networkId().toString().equals(networkref),
@@ -511,8 +512,69 @@ public final class NetworkConverter {
      * @return YANG Object converted from event
      */
     public static IetfTeTopologyEvent teTopoEvent2YangIetfTeTopoEvent(TeTopologyEvent event) {
-        // TODO: implementation will be submitted as a seperate review.
-        return null;
+        IetfTeTopologyEvent yangEvent = null;
+        IetfTeTopologyEventSubject eventSubject = new IetfTeTopologyEventSubject();
+
+        IetfTeTopologyEvent.Type yangEventType = teTopoEventType2YangIetfTopoEventType(event.type());
+        if (yangEventType == IetfTeTopologyEvent.Type.TE_LINK_EVENT) {
+            NetworkLink eventData = (NetworkLink) event.subject();
+            TeTopologyEventTypeEnum linkEventType = teTopoEventType2YangTeTopoEventType(event.type());
+            TeLinkEvent yangLinkEvent = LinkConverter.teNetworkLink2yangTeLinkEvent(linkEventType, eventData);
+            eventSubject.teLinkEvent(yangLinkEvent);
+            yangEvent = new IetfTeTopologyEvent(IetfTeTopologyEvent.Type.TE_LINK_EVENT, eventSubject);
+        } else if (yangEventType == IetfTeTopologyEvent.Type.TE_NODE_EVENT) {
+            NetworkNode eventData = (NetworkNode) event.subject();
+            TeTopologyEventTypeEnum nodeEventType = teTopoEventType2YangTeTopoEventType(event.type());
+            TeNodeEvent yangNodeEvent = NodeConverter.teNetworkNode2yangTeNodeEvent(nodeEventType, eventData);
+            eventSubject.teNodeEvent(yangNodeEvent);
+            yangEvent = new IetfTeTopologyEvent(IetfTeTopologyEvent.Type.TE_NODE_EVENT, eventSubject);
+        }
+
+        return yangEvent;
+    }
+
+    private static IetfTeTopologyEvent.Type teTopoEventType2YangIetfTopoEventType(TeTopologyEvent.Type type) {
+        IetfTeTopologyEvent.Type returnType = null;
+
+        switch (type) {
+            case LINK_ADDED:
+            case LINK_REMOVED:
+            case LINK_UPDATED:
+                returnType = IetfTeTopologyEvent.Type.TE_LINK_EVENT;
+                break;
+            case NODE_ADDED:
+            case NODE_REMOVED:
+            case NODE_UPDATED:
+                returnType = IetfTeTopologyEvent.Type.TE_NODE_EVENT;
+                break;
+            default:
+                log.error("teTopoEventType2YangIetfTopoEventType: unknown type: {}", type);
+        }
+
+        return returnType;
+    }
+
+    private static TeTopologyEventTypeEnum teTopoEventType2YangTeTopoEventType(TeTopologyEvent.Type type) {
+        TeTopologyEventTypeEnum returnType = null;
+
+        switch (type) {
+            case LINK_ADDED:
+            case NODE_ADDED:
+                returnType = TeTopologyEventTypeEnum.ADD;
+                break;
+            case LINK_REMOVED:
+            case NODE_REMOVED:
+                returnType = TeTopologyEventTypeEnum.REMOVE;
+                break;
+            case LINK_UPDATED:
+            case NODE_UPDATED:
+                returnType = TeTopologyEventTypeEnum.UPDATE;
+                break;
+            default:
+                log.error("teTopoEventType2YangTeTopoEventType: unknown type: {}", type);
+        }
+
+        return returnType;
     }
 }
 
