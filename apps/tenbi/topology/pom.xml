@@ -52,7 +52,7 @@
         </dependency>
          <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tetopology</artifactId>
+            <artifactId>onos-app-tetopology-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

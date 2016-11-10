@@ -20,15 +20,13 @@ import org.onosproject.net.DeviceId;
 /**
  * Notifies providers about incoming RESTCONF notification events.
  */
-public interface RestConfNotificationEventListener {
+public interface RestConfNotificationEventListener<T> {
 
     /**
      * Handles the notification event.
      *
-     * @param <T> entity type
-     * @param deviceId of the restconf device
+     * @param deviceId        restconf device identifier
      * @param eventJsonString the json string representation of the event
      */
-    <T> void handleNotificationEvent(DeviceId deviceId, T eventJsonString);
-
+    void handleNotificationEvent(DeviceId deviceId, T eventJsonString);
 }
