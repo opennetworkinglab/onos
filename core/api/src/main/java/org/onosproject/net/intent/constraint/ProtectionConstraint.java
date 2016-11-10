@@ -61,7 +61,7 @@ public class ProtectionConstraint implements Constraint {
     /**
      * Returns protection constraint.
      *
-     * @return
+     * @return protection constraint
      */
     public static ProtectionConstraint protection() {
         return PROTECTION_CONSTRAINT;

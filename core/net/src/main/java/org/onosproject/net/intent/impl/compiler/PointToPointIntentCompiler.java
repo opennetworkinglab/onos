@@ -336,6 +336,9 @@ public class PointToPointIntentCompiler
 
     /**
      * Creates group key unique to each intent.
+     *
+     * @param intentId identifier of intent to get a key for
+     * @return unique group key for the intent identifier
      */
     public static GroupKey makeGroupKey(IntentId intentId) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);

@@ -56,6 +56,7 @@ public interface CodecContext {
      *
      * @param json    JSON to decode
      * @param entityClass entity class
+     * @param <T> entity type
      * @return decoded entity
      */
     default <T> T decode(JsonNode json, Class<T> entityClass) {
@@ -69,6 +70,7 @@ public interface CodecContext {
      *
      * @param entity  entity to encode
      * @param entityClass entity class
+     * @param <T> entity type
      * @return JSON node
      */
     default <T> ObjectNode encode(T entity, Class<T> entityClass) {

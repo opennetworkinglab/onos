@@ -32,7 +32,7 @@ public class FilteredConnectPoint {
     /**
      * Creates filtered connect point with default traffic selector.
      *
-     * @param connectPoint
+     * @param connectPoint connect point
      */
     public FilteredConnectPoint(ConnectPoint connectPoint) {
         this.connectPoint = connectPoint;
@@ -61,7 +61,8 @@ public class FilteredConnectPoint {
 
     /**
      * Returns the connection point.
-     * @return
+     *
+     * @return connect point
      */
     public ConnectPoint connectPoint() {
         return connectPoint;

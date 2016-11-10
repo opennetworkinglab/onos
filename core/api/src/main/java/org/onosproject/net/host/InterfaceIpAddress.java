@@ -164,6 +164,8 @@ public class InterfaceIpAddress {
     /**
      * Compute the IP broadcast address.
      *
+     * @param ipAddress base IP address
+     * @param subnetAddress subnet specification
      * @return the IP broadcast address
      */
     public static IpAddress computeBroadcastAddress(IpAddress ipAddress, IpPrefix subnetAddress) {

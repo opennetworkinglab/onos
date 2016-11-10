@@ -68,6 +68,7 @@ public final class DecodeInstructionCodecHelper {
      * Creates a decode instruction codec object.
      *
      * @param json JSON object to decode
+     * @param context codec context
      */
     public DecodeInstructionCodecHelper(ObjectNode json, CodecContext context) {
         this.json = json;

@@ -124,7 +124,9 @@ public final class BasicPceccHandler {
      * Initialization of label manager and pce store.
      *
      * @param labelRsrcService label resource service
+     * @param deviceService device service
      * @param pceStore pce label store
+     * @param clientController client controller
      */
     public void initialize(LabelResourceService labelRsrcService,
                            DeviceService deviceService,

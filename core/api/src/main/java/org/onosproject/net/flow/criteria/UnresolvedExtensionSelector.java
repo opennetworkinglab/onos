@@ -32,6 +32,7 @@ public class UnresolvedExtensionSelector extends AbstractExtension implements Ex
     /**
      * Creates a new unresolved extension selector with given data in byte form.
      *
+     * @param arraybyte byte data for the extension selector
      * @param type unresolved extension data type
      */
     public UnresolvedExtensionSelector(byte[] arraybyte, ExtensionSelectorType type) {

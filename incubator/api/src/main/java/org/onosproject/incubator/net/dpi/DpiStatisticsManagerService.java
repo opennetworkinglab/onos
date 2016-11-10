@@ -42,6 +42,7 @@ public interface DpiStatisticsManagerService {
     /**
      * Gets the last N(Max = 100) DpiStatistics in the Store list.
      *
+     * @param lastN maximum number to fetch
      * @return the List of DpiStatistics object class
      */
     List<DpiStatistics> getDpiStatistics(int lastN);
@@ -77,6 +78,7 @@ public interface DpiStatisticsManagerService {
     /**
      * Adds DpiStatistics at the end of the Store list.
      *
+     * @param ds statistics to add
      * @return the added DpiStatistics object class
      */
     DpiStatistics addDpiStatistics(DpiStatistics ds);

@@ -76,6 +76,7 @@ public class DpisWebResource extends AbstractWebResource {
     /**
      * Gets the latest dpi statistics.
      *
+     * @param topn max size
      * @return 200 OK with a dpi statistics
      * @onos.rsModel DpiStatistics
      */
@@ -156,6 +157,7 @@ public class DpisWebResource extends AbstractWebResource {
     /**
      * Gets the latest detected protocol statistics only.
      *
+     * @param topn max size
      * @return 200 OK with a protocol statistics
      * @onos.rsModel ProtocolStatistics
      */
@@ -196,6 +198,7 @@ public class DpisWebResource extends AbstractWebResource {
     /**
      * Gets the latest known flows statistics only.
      *
+     * @param topn max size
      * @return 200 OK with a known flow statistics
      * @onos.rsModel KnownFlowStatistics
      */
@@ -236,6 +239,7 @@ public class DpisWebResource extends AbstractWebResource {
     /**
      * Gets the latest unknown flows statistics only.
      *
+     * @param topn max size
      * @return 200 OK with an unknown flow statistics
      * @onos.rsModel UnknownFlowStatistics
      */

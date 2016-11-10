@@ -187,6 +187,8 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
 
     /**
      * Indicates failover within a failover group.
+     *
+     * @param failoverGroups groups to notify
      */
     void notifyOfFailovers(Collection<Group> failoverGroups);
 }

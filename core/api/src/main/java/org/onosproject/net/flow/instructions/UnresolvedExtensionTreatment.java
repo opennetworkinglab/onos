@@ -32,6 +32,7 @@ public class UnresolvedExtensionTreatment extends AbstractExtension implements E
     /**
      * Creates a new unresolved extension treatment with given data in byte form.
      *
+     * @param arraybyte byte data for treatment
      * @param type unresolved extension data type
      */
     public UnresolvedExtensionTreatment(byte[] arraybyte, ExtensionTreatmentType type) {

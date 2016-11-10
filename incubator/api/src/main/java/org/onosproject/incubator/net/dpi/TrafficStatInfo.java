@@ -66,6 +66,22 @@ public class TrafficStatInfo {
 
     /**
      * Constructor for TrafficStatInfo class specified with traffic statistic parameters.
+     *
+     * @param ethernetBytes ethernet byte count
+     * @param discardedBytes discarded byte count
+     * @param ipPackets IP packet count
+     * @param totalPackets total packet count
+     * @param ipBytes total IP byte count
+     * @param avgPktSize average packet size
+     * @param uniqueFlows unique flows count
+     * @param tcpPackets TCP packet count
+     * @param udpPackets UDP packet count
+     * @param trafficThroughputPps traffic throughput PPS
+     * @param trafficThroughputBps traffic throughput BPS
+     * @param dpiThroughputPps DPI throughput PPS
+     * @param dpiThroughputBps DPI throughput BPS
+     * @param trafficDurationSec traffic duration in seconds
+     * @param guessedFlowProtos guess flow protocols
      */
     public TrafficStatInfo(long ethernetBytes, long discardedBytes, long ipPackets, long totalPackets,
                            long ipBytes, int avgPktSize, int uniqueFlows, long tcpPackets, long udpPackets,

@@ -79,10 +79,11 @@ public interface GroupBucket {
     long bytes();
 
     /**
-     * Returns whether the given GroupBucket has the same parameters (weight,
+     * Returns whether the given group bucket has the same parameters (weight,
      * watchPort and watchGroup) as this.
      *
-     * @param other GroupBucket to compare
+     * @param other group bucket to compare
+     * @return true if this bucket has the same parameters as other, false otherwise
      */
     boolean hasSameParameters(GroupBucket other);
 }

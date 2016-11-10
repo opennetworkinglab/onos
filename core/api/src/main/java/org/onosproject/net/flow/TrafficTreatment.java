@@ -293,6 +293,7 @@ public interface TrafficTreatment {
         /**
          * Pushes a new VLAN tag using the supplied Ethernet type.
          *
+         * @param ethType ethernet type
          * @return a treatment builder
          */
         Builder pushVlan(EthType ethType);

@@ -734,7 +734,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     /**
      * Drops the configuration for mirror.
      *
-     * @param mirroringName
+     * @param mirroringName name of mirror to drop
      */
     @Override
     public void dropMirror(MirroringName mirroringName) {

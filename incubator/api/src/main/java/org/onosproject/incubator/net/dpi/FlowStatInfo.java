@@ -52,6 +52,16 @@ public class FlowStatInfo {
 
     /**
      * Constructor for FlowStatInfo class specified with flow statistic parameters.
+     *
+     * @param protocol protocol
+     * @param hostAName host A name
+     * @param hostAPort host A port
+     * @param hostBName host B name
+     * @param hostBPort host B port
+     * @param detectedProtocol detected protocol
+     * @param detectedProtocolName detected protocol name
+     * @param packets packet count
+     * @param bytes byte count
      */
     public FlowStatInfo(String protocol, String hostAName, int hostAPort, String hostBName, int hostBPort,
                         int detectedProtocol, String detectedProtocolName, long packets, long bytes) {
@@ -70,6 +80,17 @@ public class FlowStatInfo {
 
     /**
      * Constructor for FlowStatInfo class specified with flow statistic parameters and hostServerName.
+     *
+     * @param protocol protocol
+     * @param hostAName host A name
+     * @param hostAPort host A port
+     * @param hostBName host B name
+     * @param hostBPort host B port
+     * @param detectedProtocol detected protocol
+     * @param detectedProtocolName detected protocol name
+     * @param packets packet count
+     * @param bytes byte count
+     * @param hostServerName host server name
      */
     public FlowStatInfo(String protocol, String hostAName, int hostAPort, String hostBName, int hostBPort,
                         int detectedProtocol, String detectedProtocolName, long packets, long bytes,
