@@ -44,7 +44,8 @@ public class LispTeRecord {
      * @param strict     strict bit
      * @param rtrAddress RTR address
      */
-    public LispTeRecord(boolean lookup, boolean rlocProbe, boolean strict, LispAfiAddress rtrAddress) {
+    public LispTeRecord(boolean lookup, boolean rlocProbe,
+                        boolean strict, LispAfiAddress rtrAddress) {
         this.lookup = lookup;
         this.rlocProbe = rlocProbe;
         this.strict = strict;

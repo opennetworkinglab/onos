@@ -30,9 +30,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Network Address Translation (NAT) address class.
  * <p>
- * Instance ID type is defined in draft-ietf-lisp-lcaf-13
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-13#page-12
- * <p>
+ * Instance ID type is defined in draft-ietf-lisp-lcaf-20
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-12
+ *
  * <pre>
  * {@literal
  *      0                   1                   2                   3
@@ -40,7 +40,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |           AFI = 16387         |     Rsvd1     |     Flags     |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |   Type = 7    |     Rsvd2     |             4 + n             |
+ * |   Type = 7    |     Rsvd2     |             Length            |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |       MS UDP Port Number      |      ETR UDP Port Number      |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

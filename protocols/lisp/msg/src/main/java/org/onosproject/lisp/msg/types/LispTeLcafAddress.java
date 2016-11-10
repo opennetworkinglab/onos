@@ -31,9 +31,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Traffic Engineering (TE) type LCAF address class.
  * <p>
- * Traffic Engineering type is defined in draft-ietf-lisp-lcaf-13
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-13#page-15
- * <p>
+ * Traffic Engineering type is defined in draft-ietf-lisp-lcaf-20
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-16
+ *
  * <pre>
  * {@literal
  *  0                   1                   2                   3
@@ -41,7 +41,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |           AFI = 16387         |     Rsvd1     |     Flags     |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |   Type = 10   |     Rsvd2     |               n               |
+ * |   Type = 10   |     Rsvd2     |            Length             |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |           Rsvd3         |L|P|S|           AFI = x             |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
