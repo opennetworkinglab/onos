@@ -53,7 +53,7 @@
                       exec="onos-check-components ${OC#}"/>
 
                 <step name="Check-Logs-${#}" requires="~Check-Nodes-${#}"
-                      exec="onos-check-logs ${OC#}"/>
+                      exec="onos-check-logs --ignore-store-exceptions ${OC#}"/>
                 <step name="Check-Apps-${#}" requires="~Check-Nodes-${#}"
                       exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"/>
 
