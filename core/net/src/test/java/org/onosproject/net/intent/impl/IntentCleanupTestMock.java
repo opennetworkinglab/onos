@@ -116,7 +116,9 @@ public class IntentCleanupTestMock {
         expectLastCall().once();
         replay(service);
 
-        cleanup.run(); //FIXME broken?
+        synchronized (service) {
+            cleanup.run(); //FIXME broken?
+        }
         verify(service);
         reset(service);
     }
