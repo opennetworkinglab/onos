@@ -3,6 +3,7 @@ BUNDLES = [
 ]
 
 onos_app (
+    app_name = 'org.onosproject.tetopology',
     title = 'TE Topology Core App',
     category = 'ACTN',
     url = 'http://onosproject.org',
