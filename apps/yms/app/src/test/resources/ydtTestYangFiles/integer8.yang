@@ -1,0 +1,99 @@
+module integer8 {
+
+    yang-version 1;
+
+    namespace "ydt.integer8";
+
+    prefix "integer8";
+
+    organization "ON-LAB";
+
+    description "This module defines for integer8 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list multiRangeValidation {
+        config false;
+        leaf integer {
+              type int8 {
+                 range "10..40 | 50..100";
+              }
+        }
+        leaf UnInteger {
+              type uint8 {
+                 range "10..40 | 50..100";
+              }
+        }
+
+        leaf revInteger {
+              type int8 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+
+        leaf revUnInteger {
+              type uint8 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+    }
+
+
+    leaf negInt {
+          type int8 {
+         }
+    }
+
+    leaf posInt {
+          type int8 {
+         }
+    }
+
+    leaf minIntWithRange {
+          type int8 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midIntWithRange {
+          type int8 {
+             range "10 .. 100";
+          }
+    }
+
+    leaf maxIntWithRange {
+         type int8 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf minUInt {
+         type uint8 {
+         }
+    }
+
+    leaf maxUInt {
+         type uint8 {
+         }
+    }
+
+    leaf minUIntWithRange {
+          type uint8 {
+             range "10 .. 100";
+          }
+    }
+
+    leaf midUIntWithRange {
+          type uint8 {
+             range "10 .. 100";
+          }
+    }
+
+    leaf maxUIntWithRange {
+          type uint8 {
+             range "10 .. 100";
+          }
+    }
+}

@@ -1,0 +1,27 @@
+module purchasingsupervisor {
+
+    yang-version 1;
+
+    namespace "ydt.purchasing-supervisor";
+
+    prefix "purchasing";
+
+    organization "ON-LAB";
+
+    description "This module defines for purchasing-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    container supervisor {
+        leaf purchasing-specialist {
+            type string;
+            description "name of the purchasing-specialist person";
+        }
+        leaf support {
+            type string;
+            description "name of the support person";
+        }
+    }
+}

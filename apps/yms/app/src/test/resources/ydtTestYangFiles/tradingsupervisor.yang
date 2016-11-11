@@ -1,0 +1,21 @@
+module tradingsupervisor {
+
+    yang-version 1;
+
+    namespace "ydt.trading-supervisor";
+
+    prefix "trading";
+
+    organization "ON-LAB";
+
+    description "This module defines for trading-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf supervisor {
+        type string;
+        description "name of the trading-supervisor";
+    }
+}

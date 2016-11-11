@@ -1,0 +1,98 @@
+module integer64 {
+
+    yang-version 1;
+
+    namespace "ydt.integer64";
+
+    prefix "integer64";
+
+    organization "ON-LAB";
+
+    description "This module defines for integer64 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list multiRangeValidation {
+        config false;
+        leaf integer {
+              type int64 {
+                 range "10..40 | 50..100";
+              }
+        }
+        leaf UnInteger {
+              type uint64 {
+                 range "10..40 | 50..100";
+              }
+        }
+
+        leaf revInteger {
+              type int64 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+
+        leaf revUnInteger {
+              type uint64 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+    }
+
+    leaf negInt {
+          type int64 {
+         }
+    }
+
+    leaf posInt {
+          type int64 {
+         }
+    }
+
+    leaf minIntWithRange {
+          type int64 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midIntWithRange {
+          type int64 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxIntWithRange {
+          type int64 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf minUInt {
+          type uint64 {
+         }
+    }
+
+    leaf maxUInt {
+          type uint64 {
+         }
+    }
+
+    leaf minUIntWithRange {
+          type uint64 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midUIntWithRange {
+          type uint64 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxUIntWithRange {
+          type uint64 {
+             range "10 .. 100";
+         }
+    }
+}

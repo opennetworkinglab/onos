@@ -1,0 +1,51 @@
+module bit {
+
+    yang-version 1;
+
+    namespace "ydt.bit";
+
+    prefix "bit";
+
+    organization "ON-LAB";
+
+    description "This module defines for bit classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+/*
+     leaf mybits {
+         type bits {
+             bit disable-nagle {
+                 position 0;
+             }
+             bit auto-sense-speed {
+                 position 1;
+             }
+             bit 10-Mb-only {
+                 position 2;
+             }
+         }
+         default "auto-sense-speed";
+     }
+     */
+
+    list bitList {
+        config false;
+        leaf bit {
+            type bits {
+                bit disable-nagle {
+                position 0;
+                }
+                bit auto-sense-speed {
+                position 1;
+                }
+                bit ten-Mb-only {
+                position 2;
+                }
+            }
+            default "auto-sense-speed";
+
+        }
+    }
+}

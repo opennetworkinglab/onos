@@ -1,0 +1,21 @@
+module merchandisersupervisor {
+
+    yang-version 1;
+
+    namespace "ydt.Merchandiser-supervisor";
+
+    prefix "merchandiser";
+
+    organization "ON-LAB";
+
+    description "This module defines for Merchandiser-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf supervisor {
+        type string;
+        description "name of the Merchandiser-supervisor.";
+    }
+}

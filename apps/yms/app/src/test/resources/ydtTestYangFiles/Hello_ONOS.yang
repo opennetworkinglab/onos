@@ -1,0 +1,57 @@
+module Hello_ONOS {
+    yang-version 1;
+    namespace "ydt:hello_onos";
+    prefix "hello";
+
+    revision "2016-09-03" {
+        description "Initial revision of hello model";
+    }
+
+    grouping greeting {
+        leaf name {
+            type string;
+        }
+
+        leaf surName {
+            type string;
+        }
+    }
+
+    rpc hello-world {
+        input {
+
+            // uses greeting;
+
+            leaf name {
+                type string;
+            }
+
+            leaf surName {
+                type string;
+            }
+
+            leaf inputDefault {
+                type string;
+            }
+
+            list stringList {
+                key "string1 string2";
+                unique "string3";
+                leaf string1 {
+                      type string;
+                }
+                leaf string2 {
+                      type string;
+                }
+                leaf string3 {
+                      type string;
+                }
+            }
+        }
+        output {
+            leaf greetingOut {
+                type string;
+            }
+        }
+    }
+}

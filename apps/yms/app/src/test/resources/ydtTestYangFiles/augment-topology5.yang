@@ -1,0 +1,66 @@
+module augment-topology5 {
+
+    yang-version 1;
+
+    namespace "ydt.augment-topology5";
+
+    prefix "aug5";
+
+    import yms-ietf-network {
+        prefix nd;
+    }
+
+    import augment-topology1 {
+        prefix aug1;
+    }
+
+    import augment-topology2 {
+        prefix aug2;
+    }
+
+    import augment-topology3 {
+        prefix aug3;
+    }
+
+    import augment-topology4 {
+        prefix aug4;
+    }
+
+    import yms-network-topology {
+        prefix topo;
+    }
+
+    organization "ON-LAB";
+
+    description "This module defines for augment-topology5 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    augment "/nd:networks/nd:network/topo:link/aug2:augment2" {
+        description
+        "Add container to the augment2 model.";
+        container augment5 {
+            config false;
+            leaf value5 {
+                  type int8;
+            }
+        }
+
+        leaf-list augment5leafList {
+            type string;
+        }
+    }
+
+    augment "/nd:networks/nd:network/topo:link/aug2:augment2/aug3:augment3" {
+        description
+        "Add augment5 to the augment3 model.";
+        container augment5 {
+            config false;
+            leaf value5 {
+                  type int8;
+            }
+        }
+    }
+}

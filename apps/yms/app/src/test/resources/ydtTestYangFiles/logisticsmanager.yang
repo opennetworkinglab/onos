@@ -1,0 +1,16 @@
+module logisticsmanager {
+
+    yang-version 1;
+
+    namespace "ydt.logistics-manager";
+
+    prefix "root";
+
+    organization "ON-LAB";
+
+    description "This module defines for logistics-manager.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+}

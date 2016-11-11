@@ -1,0 +1,98 @@
+module integer16 {
+
+    yang-version 1;
+
+    namespace "ydt.integer16";
+
+    prefix "integer16";
+
+    organization "ON-LAB";
+
+    description "This module defines for integer16 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list multiRangeValidation {
+        config false;
+        leaf integer {
+              type int16 {
+                 range "10..40 | 50..100";
+              }
+        }
+        leaf UnInteger {
+              type uint16 {
+                 range "10..40 | 50..100";
+              }
+        }
+
+        leaf revInteger {
+              type int16 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+
+        leaf revUnInteger {
+              type uint16 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+    }
+
+    leaf negInt {
+          type int16 {
+         }
+    }
+
+    leaf posInt {
+          type int16 {
+         }
+    }
+
+    leaf minIntWithRange {
+          type int16 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midIntWithRange {
+          type int16 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxIntWithRange {
+          type int16 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf minUInt {
+          type uint16 {
+         }
+    }
+
+    leaf maxUInt {
+          type uint16 {
+         }
+    }
+
+    leaf minUIntWithRange {
+          type uint16 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midUIntWithRange {
+          type uint16 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxUIntWithRange {
+          type uint16 {
+             range "10 .. 100";
+         }
+    }
+}

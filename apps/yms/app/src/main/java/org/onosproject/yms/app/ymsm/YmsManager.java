@@ -25,6 +25,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.yms.app.ydt.DefaultYdtWalker;
+import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
 import org.onosproject.yms.app.ysr.DefaultYangSchemaRegistry;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
@@ -97,7 +99,8 @@ public class YmsManager
     public YdtBuilder getYdtBuilder(String logicalRootName,
                                     String rootNamespace,
                                     YmsOperationType operationType) {
-        return null;
+        return new YangRequestWorkBench(logicalRootName, rootNamespace,
+                                        operationType, schemaRegistry, true);
     }
 
     @Override
@@ -105,12 +108,20 @@ public class YmsManager
                                     String rootNamespace,
                                     YmsOperationType operationType,
                                     Object schemaRegistryForYdt) {
-        return null;
+        if (schemaRegistryForYdt != null) {
+            return new YangRequestWorkBench(logicalRootName, rootNamespace,
+                                            operationType,
+                                            (YangSchemaRegistry)
+                                                    schemaRegistryForYdt,
+                                            false);
+        }
+        return new YangRequestWorkBench(logicalRootName, rootNamespace,
+                                        operationType, schemaRegistry, true);
     }
 
     @Override
     public YdtWalker getYdtWalker() {
-        return null;
+        return new DefaultYdtWalker();
     }
 
     @Override
@@ -177,5 +188,4 @@ public class YmsManager
     public YangSchemaRegistry getSchemaRegistry() {
         return schemaRegistry;
     }
-
 }
