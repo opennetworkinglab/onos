@@ -42,6 +42,4 @@ public interface OFSwitch extends OFSwitchService, OFControllerRoleService {
      * @return true if the switch is connected, false otherwise
      */
     boolean isConnected();
-
-    // TODO add builder interface
 }

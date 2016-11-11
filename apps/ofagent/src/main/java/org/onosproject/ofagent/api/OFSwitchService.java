@@ -121,4 +121,19 @@ public interface OFSwitchService {
      * @param msg     packet out message with lldp
      */
     void processLldp(Channel channel, OFMessage msg);
+
+    /**
+     * Sends hello to the controller.
+     *
+     * @param channel received channel
+     */
+    void sendOfHello(Channel channel);
+
+    /**
+     * Processes echo request from the controllers.
+     *
+     * @param channel received channel
+     * @param msg     echo request message
+     */
+    void processEchoRequest(Channel channel, OFMessage msg);
 }

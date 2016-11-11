@@ -15,14 +15,19 @@
  */
 package org.onosproject.ofagent.impl;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.onosproject.ofagent.api.OFController;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -33,12 +38,11 @@ public final class OFConnectionHandler implements ChannelFutureListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int MAX_RETRY = 10;
-
-    private final AtomicInteger retryCount = new AtomicInteger();
+    private final AtomicInteger retryCount;
     private final OFSwitch ofSwitch;
     private final OFController controller;
-    private final NioEventLoopGroup workGroup;
+    private final EventLoopGroup workGroup;
+    private static final int MAX_RETRY = 3;
 
     /**
      * Default constructor.
@@ -48,28 +52,43 @@ public final class OFConnectionHandler implements ChannelFutureListener {
      * @param workGroup  work group for connection
      */
     public OFConnectionHandler(OFSwitch ofSwitch, OFController controller,
-                               NioEventLoopGroup workGroup) {
+                               EventLoopGroup workGroup) {
         this.ofSwitch = ofSwitch;
         this.controller = controller;
         this.workGroup = workGroup;
+        this.retryCount = new AtomicInteger();
     }
 
     /**
      * Creates a connection to the supplied controller.
+     *
      */
     public void connect() {
-        // TODO initiates a connection to the controller
+
+        SocketAddress remoteAddr = new InetSocketAddress(controller.ip().toInetAddress(), controller.port().toInt());
+
+        log.debug("Connecting to controller {}:{}", controller.ip(), controller.port());
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(workGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .handler(new OFChannelInitializer(ofSwitch));
+
+        bootstrap.connect(remoteAddr).addListener(this);
     }
 
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
 
         if (future.isSuccess()) {
-            log.debug("{} is connected to controller {}", ofSwitch.device().id(), controller);
-            // TODO do something for a new connection if there's any
+            ofSwitch.addControllerChannel(future.channel());
+            log.debug("Connected to controller {}:{} for device {}",
+                    controller.ip(), controller.port(), ofSwitch.device().id());
         } else {
-            log.debug("{} failed to connect {}, retry..", ofSwitch.device().id(), controller);
-            // TODO retry connect if retry count is less than MAX
+            log.info("Failed to connect controller {}:{}. Retry...", controller.ip(), controller.port());
+            if (retryCount.getAndIncrement() < MAX_RETRY) {
+                this.connect();
+            }
         }
     }
 }

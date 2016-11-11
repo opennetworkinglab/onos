@@ -18,6 +18,9 @@ package org.onosproject.ofagent.impl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import org.projectfloodlight.openflow.protocol.OFFactories;
+import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMessageReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +36,18 @@ public final class OFMessageDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
             throws Exception {
-        log.trace("Received message from {}: {}", ctx.channel().remoteAddress(),
-                  in.readByte());
 
-        // TODO decode byte message to OFMessage
+        if (!ctx.channel().isActive()) {
+            return;
+        }
+
+        try {
+            OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
+            OFMessage message = reader.readFrom(in);
+            out.add(message);
+        } catch (Throwable cause) {
+            log.error("Exception occured while processing decoding because of {}", cause.getMessage());
+        }
+
     }
 }
