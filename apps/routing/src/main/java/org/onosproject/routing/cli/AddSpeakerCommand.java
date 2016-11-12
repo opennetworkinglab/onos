@@ -34,7 +34,7 @@ import java.util.Optional;
 /**
  * Command to add a new internal BGP speaker.
  */
-@Command(scope = "onos", name = "add-bgp-speaker",
+@Command(scope = "onos", name = "bgp-speaker-add",
         description = "Adds an internal BGP speaker")
 public class AddSpeakerCommand extends AbstractShellCommand {
 

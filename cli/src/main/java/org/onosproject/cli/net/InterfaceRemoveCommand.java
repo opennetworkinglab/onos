@@ -25,7 +25,7 @@ import org.onosproject.net.ConnectPoint;
 /**
  * Removes an interface configuration.
  */
-@Command(scope = "onos", name = "remove-interface",
+@Command(scope = "onos", name = "interface-remove",
         description = "Removes a configured interface")
 public class InterfaceRemoveCommand extends AbstractShellCommand {
 
