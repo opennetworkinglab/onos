@@ -18,8 +18,8 @@ package org.onosproject.lisp.msg.protocols;
 /**
  * LISP info request message interface.
  * <p>
- * LISP info request message format is defined in draft-ermagan-lisp-nat-traversal-01.
- * https://tools.ietf.org/html/draft-ermagan-lisp-nat-traversal-01#page-7
+ * LISP info request message format is defined in draft-ermagan-lisp-nat-traversal-11.
+ * https://tools.ietf.org/html/draft-ermagan-lisp-nat-traversal-11#page-7
  *
  * <pre>
  * {@literal

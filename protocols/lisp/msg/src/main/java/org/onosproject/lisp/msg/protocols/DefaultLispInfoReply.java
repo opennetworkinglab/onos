@@ -128,7 +128,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
 
         @Override
-        public InfoReplyBuilder withInfoReply(boolean infoReply) {
+        public InfoReplyBuilder withIsInfoReply(boolean infoReply) {
             this.infoReply = infoReply;
             return this;
         }
@@ -236,7 +236,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
             LispNatLcafAddress natLcafAddress = new LispNatLcafAddress.NatLcafAddressReader().readFrom(byteBuf);
 
             return new DefaultInfoReplyBuilder()
-                    .withInfoReply(lispInfo.isInfoReply())
+                    .withIsInfoReply(lispInfo.isInfoReply())
                     .withNonce(lispInfo.getNonce())
                     .withKeyId(lispInfo.getKeyId())
                     .withAuthDataLength(lispInfo.getAuthDataLength())

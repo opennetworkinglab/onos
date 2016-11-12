@@ -21,6 +21,8 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
+import org.onosproject.lisp.msg.protocols.LispInfoReply;
+import org.onosproject.lisp.msg.protocols.LispInfoRequest;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
@@ -63,6 +65,16 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             }
         } finally {
             ReferenceCountUtil.release(msg);
+        }
+
+        if (msg instanceof LispInfoRequest) {
+            LispMapServer mapServer = new LispMapServer();
+            LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
+
+            // try to remove the received info-request message from buffer
+            ReferenceCountUtil.release(msg);
+
+            ctx.writeAndFlush(infoReply);
         }
     }
 

@@ -114,7 +114,7 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
 
 
         @Override
-        public InfoRequestBuilder withInfoReply(boolean infoReply) {
+        public InfoRequestBuilder withIsInfoReply(boolean infoReply) {
             this.infoReply = infoReply;
             return this;
         }
@@ -215,7 +215,7 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
             LispInfo lispInfo = DefaultLispInfo.deserialize(byteBuf);
 
             return new DefaultInfoRequestBuilder()
-                    .withInfoReply(lispInfo.isInfoReply())
+                    .withIsInfoReply(lispInfo.isInfoReply())
                     .withNonce(lispInfo.getNonce())
                     .withKeyId(lispInfo.getKeyId())
                     .withAuthDataLength(lispInfo.getAuthDataLength())

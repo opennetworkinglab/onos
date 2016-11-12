@@ -15,21 +15,35 @@
  */
 package org.onosproject.lisp.ctl;
 
+import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
+import org.onosproject.lisp.msg.protocols.LispInfoReply;
+import org.onosproject.lisp.msg.protocols.LispInfoReply.InfoReplyBuilder;
+import org.onosproject.lisp.msg.protocols.LispInfoRequest;
+import org.onosproject.lisp.msg.protocols.LispInfoRequest.InfoRequestBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapNotify.NotifyBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapRegister.RegisterBuilder;
 import org.onosproject.lisp.msg.protocols.LispMessage;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
+import org.onosproject.lisp.msg.types.LispIpv6Address;
+import org.onosproject.lisp.msg.types.LispNoAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
+import static org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.DefaultInfoRequestBuilder;
+import static org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
 
 /**
  * LISP map server class.
@@ -38,6 +52,7 @@ import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.
 public class LispMapServer {
 
     private static final int MAP_NOTIFY_PORT = 4342;
+    private static final int INFO_REPLY_PORT = 4342;
 
     // TODO: need to be configurable
     private static final String AUTH_KEY = "onos";
@@ -91,6 +106,62 @@ public class LispMapServer {
     }
 
     /**
+     * Handles info-request message and replies with info-reply message.
+     *
+     * @param message info-request message
+     * @return info-reply message
+     */
+    public LispInfoReply processInfoRequest(LispMessage message) {
+        LispInfoRequest request = (LispInfoRequest) message;
+
+        if (!checkInfoRequestAuthData(request)) {
+            log.warn("Unmatched authentication data of Info-Request");
+            return null;
+        }
+
+        NatAddressBuilder natBuilder = new NatAddressBuilder();
+        try {
+            LispAfiAddress msAddress =
+                    new LispIpv4Address(IpAddress.valueOf(InetAddress.getLocalHost()));
+            natBuilder.withMsRlocAddress(msAddress);
+            natBuilder.withMsUdpPortNumber((short) INFO_REPLY_PORT);
+
+            // try to extract global ETR RLOC address from info-request
+            IpAddress globalRlocIp = IpAddress.valueOf(request.getSender().getAddress());
+            LispAfiAddress globalRlocAddress;
+            if (globalRlocIp.isIp4()) {
+                globalRlocAddress = new LispIpv4Address(globalRlocIp);
+            } else {
+                globalRlocAddress = new LispIpv6Address(globalRlocIp);
+            }
+            natBuilder.withGlobalEtrRlocAddress(globalRlocAddress);
+            natBuilder.withEtrUdpPortNumber((short) request.getSender().getPort());
+            natBuilder.withPrivateEtrRlocAddress(new LispNoAddress());
+
+            // TODO: need to specify RTR addresses
+
+        } catch (UnknownHostException e) {
+            log.warn("Fails during formulate NAT address", e);
+        }
+
+        InfoReplyBuilder replyBuilder = new DefaultLispInfoReply.DefaultInfoReplyBuilder();
+        replyBuilder.withKeyId(request.getKeyId());
+        replyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
+        replyBuilder.withAuthKey(AUTH_KEY);
+        replyBuilder.withNonce(request.getNonce());
+        replyBuilder.withEidPrefix(request.getPrefix());
+        replyBuilder.withMaskLength(request.getMaskLength());
+        replyBuilder.withTtl(request.getTtl());
+        replyBuilder.withNatLcafAddress(natBuilder.build());
+        replyBuilder.withIsInfoReply(true);
+
+        LispInfoReply reply = replyBuilder.build();
+        reply.configSender(request.getSender());
+
+        return reply;
+    }
+
+    /**
      * Checks the integrity of the received map-register message by calculating
      * authentication data from received map-register message.
      *
@@ -105,8 +176,31 @@ public class LispMapServer {
         registerBuilder.withIsProxyMapReply(register.isProxyMapReply());
         registerBuilder.withIsWantMapNotify(register.isWantMapNotify());
         registerBuilder.withMapRecords(register.getMapRecords());
+
         LispMapRegister authRegister = registerBuilder.build();
 
         return Arrays.equals(authRegister.getAuthData(), register.getAuthData());
+    }
+
+    /**
+     * Checks the integrity of the received info-request message by calculating
+     * authentication data from received info-request message.
+     *
+     * @param request info-request message
+     * @return evaluation result
+     */
+    private boolean checkInfoRequestAuthData(LispInfoRequest request) {
+        InfoRequestBuilder requestBuilder = new DefaultInfoRequestBuilder();
+        requestBuilder.withKeyId(request.getKeyId());
+        requestBuilder.withAuthKey(AUTH_KEY);
+        requestBuilder.withNonce(request.getNonce());
+        requestBuilder.withTtl(request.getTtl());
+        requestBuilder.withEidPrefix(request.getPrefix());
+        requestBuilder.withIsInfoReply(request.isInfoReply());
+        requestBuilder.withMaskLength(request.getMaskLength());
+
+        LispInfoRequest authRequest =  requestBuilder.build();
+
+        return Arrays.equals(authRequest.getAuthData(), request.getAuthData());
     }
 }

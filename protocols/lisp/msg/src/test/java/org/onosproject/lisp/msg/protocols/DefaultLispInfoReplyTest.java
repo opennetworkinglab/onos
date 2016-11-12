@@ -72,7 +72,7 @@ public final class DefaultLispInfoReplyTest {
                     .withNonce(1L)
                     .withKeyId((short) 1)
                     .withAuthKey(AUTH_KEY)
-                    .withInfoReply(false)
+                    .withIsInfoReply(false)
                     .withMaskLength((byte) 1)
                     .withEidPrefix(address1)
                     .withNatLcafAddress(natLcafAddress1).build();
@@ -83,7 +83,7 @@ public final class DefaultLispInfoReplyTest {
                             .withNonce(1L)
                             .withKeyId((short) 1)
                             .withAuthKey(AUTH_KEY)
-                            .withInfoReply(false)
+                            .withIsInfoReply(false)
                             .withMaskLength((byte) 1)
                             .withEidPrefix(address1)
                             .withNatLcafAddress(natLcafAddress1).build();
@@ -111,7 +111,7 @@ public final class DefaultLispInfoReplyTest {
                         .withNonce(2L)
                         .withKeyId((short) 2)
                         .withAuthKey(AUTH_KEY)
-                        .withInfoReply(true)
+                        .withIsInfoReply(true)
                         .withMaskLength((byte) 1)
                         .withEidPrefix(address2)
                         .withNatLcafAddress(natLcafAddress2).build();

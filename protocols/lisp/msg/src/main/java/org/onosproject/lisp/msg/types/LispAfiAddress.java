@@ -92,6 +92,7 @@ public abstract class LispAfiAddress {
             // handle no address
             if (afiCode == NO_ADDRESS.getIanaCode()) {
                 byteBuf.readUnsignedShort();
+                return new LispNoAddress.NoAddressReader().readFrom(byteBuf);
             }
 
             // handle IPv4 and IPv6 address
@@ -136,6 +137,9 @@ public abstract class LispAfiAddress {
             byteBuf.writeShort(address.getAfi().getIanaCode());
 
             switch (address.getAfi()) {
+                case NO_ADDRESS:
+                    new LispNoAddress.NoAddressWriter().writeTo(byteBuf, (LispNoAddress) address);
+                    break;
                 case IP4:
                     new LispIpAddress.IpAddressWriter().writeTo(byteBuf, (LispIpv4Address) address);
                     break;

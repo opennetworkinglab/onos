@@ -49,7 +49,7 @@ public class LispNoAddress extends LispAfiAddress {
 
         @Override
         public void writeTo(ByteBuf byteBuf, LispNoAddress address) throws LispWriterException {
-
+            // since there is nothing to write to channel, we just leave it empty
         }
     }
 }
