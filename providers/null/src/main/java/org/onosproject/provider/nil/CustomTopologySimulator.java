@@ -78,7 +78,7 @@ public class CustomTopologySimulator extends TopologySimulator {
      * @param portCount number of device ports
      */
     public void createDevice(DeviceId id, String name, Device.Type type, int portCount) {
-        int chassisId = Integer.parseInt(id.uri().getSchemeSpecificPart());
+        int chassisId = Integer.parseInt(id.uri().getSchemeSpecificPart(), 16);
         createDevice(id, chassisId, type, portCount);
         nameToId.put(name, id);
     }
