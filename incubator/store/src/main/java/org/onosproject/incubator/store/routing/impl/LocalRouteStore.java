@@ -49,6 +49,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Route store based on in-memory storage.
  */
@@ -115,6 +117,8 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
 
     @Override
     public void updateNextHop(IpAddress ip, NextHopData nextHopData) {
+        checkNotNull(ip);
+        checkNotNull(nextHopData);
         Collection<Route> routes = getDefaultRouteTable(ip).getRoutesForNextHop(ip);
 
         if (!routes.isEmpty() && !nextHopData.equals(nextHops.get(ip))) {
@@ -135,6 +139,8 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
 
     @Override
     public void removeNextHop(IpAddress ip, NextHopData nextHopData) {
+        checkNotNull(ip);
+        checkNotNull(nextHopData);
         if (nextHops.remove(ip, nextHopData)) {
             Collection<Route> routes = getDefaultRouteTable(ip).getRoutesForNextHop(ip);
             for (Route route : routes) {
@@ -203,10 +209,24 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
          * @param route route to update
          */
         public void update(Route route) {
-            NextHopData oldNextHopData = null;
-
             synchronized (this) {
                 Route oldRoute = routes.put(route.prefix(), route);
+
+                // No need to proceed if the new route is the same
+                if (route.equals(oldRoute)) {
+                    return;
+                }
+
+                NextHopData oldNextHopData = null;
+                ResolvedRoute oldResolvedRoute = null;
+                if (oldRoute != null) {
+                    oldNextHopData = nextHops.get(oldRoute.nextHop());
+                    if (oldNextHopData != null) {
+                        oldResolvedRoute = new ResolvedRoute(oldRoute,
+                                oldNextHopData.mac(), oldNextHopData.location());
+                    }
+                }
+
                 routeTable.put(createBinaryString(route.prefix()), route);
 
                 // TODO manage routes from multiple providers
@@ -217,36 +237,26 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
                     reverseIndex.remove(oldRoute.nextHop(), oldRoute);
 
                     if (reverseIndex.get(oldRoute.nextHop()).isEmpty()) {
-                        oldNextHopData = nextHops.remove(oldRoute.nextHop());
+                        nextHops.remove(oldRoute.nextHop());
                     }
-                }
-
-                if (route.equals(oldRoute)) {
-                    // No need to send events if the new route is the same
-                    return;
                 }
 
                 NextHopData nextHopData = nextHops.get(route.nextHop());
 
                 if (oldRoute != null && !oldRoute.nextHop().equals(route.nextHop())) {
-                    ResolvedRoute oldResolvedRoute =
-                            new ResolvedRoute(oldRoute,
-                                    (oldNextHopData == null) ? null : oldNextHopData.mac(),
-                                    (oldNextHopData == null) ? null : oldNextHopData.location());
-
-                    if (nextHopData == null) {
-                        // We don't know the new MAC address yet so delete the route
+                    // We don't know the new MAC address yet so delete the route
+                    // Don't send ROUTE_REMOVED if the route was unresolved
+                    if (nextHopData == null && oldNextHopData != null) {
                         notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
                                 oldResolvedRoute));
-                    } else {
-                        // We know the new MAC address so update the route
+                    // We know the new MAC address so update the route
+                    } else if (nextHopData != null && oldNextHopData != null) {
                         notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
                                 new ResolvedRoute(route, nextHopData.mac(), nextHopData.location()),
                                 oldResolvedRoute));
                     }
                     return;
                 }
-
 
                 if (nextHopData != null) {
                     notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
@@ -268,9 +278,12 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
                 if (removed != null) {
                     reverseIndex.remove(removed.nextHop(), removed);
                     NextHopData oldNextHopData = getNextHop(removed.nextHop());
-                    notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                            new ResolvedRoute(route, oldNextHopData.mac(),
-                                    oldNextHopData.location())));
+                    // Don't send ROUTE_REMOVED if the route was unresolved
+                    if (oldNextHopData != null) {
+                        notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
+                                new ResolvedRoute(route, oldNextHopData.mac(),
+                                        oldNextHopData.location())));
+                    }
                 }
             }
         }

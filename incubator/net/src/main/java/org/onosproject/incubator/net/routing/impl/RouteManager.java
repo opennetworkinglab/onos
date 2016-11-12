@@ -196,7 +196,7 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     public void withdraw(Collection<Route> routes) {
         synchronized (this) {
             routes.forEach(route -> {
-                log.debug("Received withdraw {}", routes);
+                log.debug("Received withdraw {}", route);
                 routeStore.removeRoute(route);
             });
         }
