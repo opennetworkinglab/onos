@@ -47,7 +47,7 @@ public interface DistributedPrimitive {
         CONSISTENT_MULTIMAP,
 
         /**
-         * distributed set.
+         * Distributed set.
          */
         SET,
 
@@ -57,9 +57,14 @@ public interface DistributedPrimitive {
         CONSISTENT_TREEMAP,
 
         /**
-         * atomic counter.
+         * Atomic counter.
          */
         COUNTER,
+
+        /**
+         * Atomic counter map.
+         */
+        COUNTER_MAP,
 
         /**
          * Atomic value.
