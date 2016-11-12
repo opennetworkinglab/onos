@@ -39,6 +39,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -93,6 +94,7 @@ public class RouteManagerTest {
 
         routeManager = new TestRouteManager();
         routeManager.hostService = hostService;
+        routeManager.netcfgRegistry = createMock(NetworkConfigRegistry.class);
 
         LocalRouteStore routeStore = new LocalRouteStore();
         routeStore.activate();
