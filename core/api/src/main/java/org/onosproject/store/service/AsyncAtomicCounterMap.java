@@ -20,7 +20,12 @@ import java.util.concurrent.CompletableFuture;
 /**
  * An async atomic counter map dispenses monotonically increasing values associated with key.
  */
-public interface AsyncAtomicCounterMap<K> {
+public interface AsyncAtomicCounterMap<K> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.COUNTER_MAP;
+    }
 
     /**
      * Increments by one the value currently associated with key, and returns the new value.

@@ -18,7 +18,12 @@ package org.onosproject.store.service;
 /**
  * Distributed version of com.google.common.util.concurrent.AtomicLongMap.
  */
-public interface AtomicCounterMap<K> {
+public interface AtomicCounterMap<K> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type primitiveType() {
+        return DistributedPrimitive.Type.COUNTER_MAP;
+    }
 
     /**
      * Increments by one the value currently associated with key, and returns the new value.
