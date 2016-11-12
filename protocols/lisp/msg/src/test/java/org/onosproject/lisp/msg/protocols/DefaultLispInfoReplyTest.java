@@ -43,6 +43,8 @@ public final class DefaultLispInfoReplyTest {
     private LispInfoReply sameAsReply1;
     private LispInfoReply reply2;
 
+    private static final String AUTH_KEY = "onos";
+
     @Before
     public void setup() {
 
@@ -68,6 +70,7 @@ public final class DefaultLispInfoReplyTest {
         reply1 = builder1
                     .withNonce(1L)
                     .withKeyId((short) 1)
+                    .withAuthKey(AUTH_KEY)
                     .withInfoReply(false)
                     .withMaskLength((byte) 1)
                     .withEidPrefix(address1)
@@ -78,6 +81,7 @@ public final class DefaultLispInfoReplyTest {
         sameAsReply1 = builder2
                             .withNonce(1L)
                             .withKeyId((short) 1)
+                            .withAuthKey(AUTH_KEY)
                             .withInfoReply(false)
                             .withMaskLength((byte) 1)
                             .withEidPrefix(address1)
@@ -105,6 +109,7 @@ public final class DefaultLispInfoReplyTest {
         reply2 = builder3
                         .withNonce(2L)
                         .withKeyId((short) 2)
+                        .withAuthKey(AUTH_KEY)
                         .withInfoReply(true)
                         .withMaskLength((byte) 1)
                         .withEidPrefix(address2)
@@ -139,7 +144,7 @@ public final class DefaultLispInfoReplyTest {
                 .withPrivateEtrRlocAddress(privateEtrRlocAddress1)
                 .build();
 
-        assertThat(reply.hasInfoReply(), is(false));
+        assertThat(reply.isInfoReply(), is(false));
         assertThat(reply.getNonce(), is(1L));
         assertThat(reply.getKeyId(), is((short) 1));
         assertThat(reply.getMaskLength(), is((byte) 1));

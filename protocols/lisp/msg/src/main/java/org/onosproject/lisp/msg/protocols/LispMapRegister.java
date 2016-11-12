@@ -103,7 +103,7 @@ public interface LispMapRegister extends LispMessage {
      *
      * @return authentication data
      */
-    byte[] getAuthenticationData();
+    byte[] getAuthData();
 
     /**
      * Obtains a collection of records.
@@ -142,6 +142,14 @@ public interface LispMapRegister extends LispMessage {
         RegisterBuilder withNonce(long nonce);
 
         /**
+         * Sets authentication key.
+         *
+         * @param key authentication key
+         * @return RegisterBuilder object
+         */
+        RegisterBuilder withAuthKey(String key);
+
+        /**
          * Sets authentication data length.
          *
          * @param authDataLength authentication data length
@@ -160,10 +168,10 @@ public interface LispMapRegister extends LispMessage {
         /**
          * Sets authentication data.
          *
-         * @param authenticationData authentication data
+         * @param authData authentication data
          * @return RegisterBuilder object
          */
-        RegisterBuilder withAuthenticationData(byte[] authenticationData);
+        RegisterBuilder withAuthData(byte[] authData);
 
         /**
          * Sets a collection of map records.

@@ -15,10 +15,6 @@
  */
 package org.onosproject.lisp.ctl;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
-import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
@@ -41,7 +37,7 @@ import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.
  */
 public class LispMapServer {
 
-    private static final int NOTIFY_PORT = 4342;
+    private static final int MAP_NOTIFY_PORT = 4342;
 
     // TODO: need to be configurable
     private static final String AUTH_KEY = "onos";
@@ -51,11 +47,9 @@ public class LispMapServer {
 
     private static final Logger log = LoggerFactory.getLogger(LispMapServer.class);
 
-    private LispAuthenticationFactory factory;
     private LispEidRlocMap mapInfo;
 
     public LispMapServer() {
-        factory = LispAuthenticationFactory.getInstance();
         mapInfo = LispEidRlocMap.getInstance();
     }
 
@@ -69,46 +63,22 @@ public class LispMapServer {
 
         LispMapRegister register = (LispMapRegister) message;
 
-        if (!checkAuthData(register)) {
+        if (!checkMapRegisterAuthData(register)) {
             log.warn("Unmatched authentication data of Map-Register");
             return null;
         }
 
-        // build temp notify message
-        NotifyBuilder authNotifyBuilder = new DefaultNotifyBuilder();
-        authNotifyBuilder.withKeyId(AUTH_METHOD);
-        authNotifyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
-        authNotifyBuilder.withNonce(register.getNonce());
-        authNotifyBuilder.withMapRecords(register.getMapRecords());
-
-        byte[] authData = new byte[valueOf(AUTH_METHOD).getHashLength()];
-        Arrays.fill(authData, (byte) 0);
-        authNotifyBuilder.withAuthenticationData(authData);
-
-        ByteBuf byteBuf = Unpooled.buffer();
-        try {
-            authNotifyBuilder.build().writeTo(byteBuf);
-        } catch (LispWriterException e) {
-            e.printStackTrace();
-        }
-
-        byte[] bytes = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(bytes);
-
-        byte[] calcAuthData = factory.createAuthenticationData(
-                                valueOf(register.getKeyId()), AUTH_KEY, bytes);
-
         NotifyBuilder notifyBuilder = new DefaultNotifyBuilder();
         notifyBuilder.withKeyId(AUTH_METHOD);
-        notifyBuilder.withAuthDataLength((short) calcAuthData.length);
-        notifyBuilder.withAuthenticationData(calcAuthData);
+        notifyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
+        notifyBuilder.withAuthKey(AUTH_KEY);
         notifyBuilder.withNonce(register.getNonce());
         notifyBuilder.withMapRecords(register.getMapRecords());
 
         LispMapNotify notify = notifyBuilder.build();
 
         InetSocketAddress address =
-                new InetSocketAddress(register.getSender().getAddress(), NOTIFY_PORT);
+                new InetSocketAddress(register.getSender().getAddress(), MAP_NOTIFY_PORT);
         notify.configSender(address);
 
         register.getMapRecords().forEach(record -> {
@@ -127,33 +97,16 @@ public class LispMapServer {
      * @param register map-register message
      * @return evaluation result
      */
-    private boolean checkAuthData(LispMapRegister register) {
-        ByteBuf byteBuf = Unpooled.buffer();
+    private boolean checkMapRegisterAuthData(LispMapRegister register) {
         RegisterBuilder registerBuilder = new DefaultRegisterBuilder();
         registerBuilder.withKeyId(register.getKeyId());
-        registerBuilder.withAuthDataLength(register.getAuthDataLength());
+        registerBuilder.withAuthKey(AUTH_KEY);
         registerBuilder.withNonce(register.getNonce());
         registerBuilder.withIsProxyMapReply(register.isProxyMapReply());
         registerBuilder.withIsWantMapNotify(register.isWantMapNotify());
         registerBuilder.withMapRecords(register.getMapRecords());
+        LispMapRegister authRegister = registerBuilder.build();
 
-        byte[] authData = register.getAuthenticationData();
-        if (authData != null) {
-            authData = authData.clone();
-            Arrays.fill(authData, (byte) 0);
-        }
-        registerBuilder.withAuthenticationData(authData);
-        try {
-            registerBuilder.build().writeTo(byteBuf);
-        } catch (LispWriterException e) {
-            e.printStackTrace();
-        }
-
-        byte[] bytes = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(bytes);
-
-        byte[] calculatedAuthData = factory.createAuthenticationData(
-                                    valueOf(register.getKeyId()), AUTH_KEY, bytes);
-        return Arrays.equals(calculatedAuthData, register.getAuthenticationData());
+        return Arrays.equals(authRegister.getAuthData(), register.getAuthData());
     }
 }

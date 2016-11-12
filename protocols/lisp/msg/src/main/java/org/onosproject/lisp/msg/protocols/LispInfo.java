@@ -27,7 +27,7 @@ public interface LispInfo extends LispMessage {
      *
      * @return has info reply flag value
      */
-    boolean hasInfoReply();
+    boolean isInfoReply();
 
     /**
      * Obtains nonce value.
@@ -55,7 +55,7 @@ public interface LispInfo extends LispMessage {
      *
      * @return authentication data
      */
-    byte[] getAuthenticationData();
+    byte[] getAuthData();
 
     /**
      * Obtains TTL value.

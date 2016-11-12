@@ -58,10 +58,18 @@ public interface InfoBuilder<T> extends Builder {
     /**
      * Sets authentication data.
      *
-     * @param authenticationData authentication data
+     * @param authData authentication data
      * @return T object
      */
-    T withAuthenticationData(byte[] authenticationData);
+    T withAuthData(byte[] authData);
+
+    /**
+     * Sets authentication key.
+     *
+     * @param key authentication key
+     * @return RegisterBuilder object
+     */
+    T withAuthKey(String key);
 
     /**
      * Sets Time-To-Live value.

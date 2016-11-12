@@ -35,7 +35,7 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
     protected final long nonce;
     protected final short keyId;
     protected final short authDataLength;
-    protected final byte[] authenticationData;
+    protected final byte[] authData;
     protected final int ttl;
     protected final byte maskLength;
     protected final LispAfiAddress eidPrefix;
@@ -54,23 +54,23 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
     /**
      * A private constructor that protects object instantiation from external.
      *
-     * @param infoReply          info reply flag
-     * @param nonce              nonce
-     * @param keyId              key identifier
-     * @param authDataLength     authentication data length
-     * @param authenticationData authentication data
-     * @param ttl                Time-To-Live value
-     * @param maskLength         EID prefix mask length
-     * @param eidPrefix          EID prefix
+     * @param infoReply      info reply flag
+     * @param nonce          nonce
+     * @param keyId          key identifier
+     * @param authDataLength authentication data length
+     * @param authData       authentication data
+     * @param ttl            Time-To-Live value
+     * @param maskLength     EID prefix mask length
+     * @param eidPrefix      EID prefix
      */
     protected DefaultLispInfo(boolean infoReply, long nonce, short keyId, short authDataLength,
-                              byte[] authenticationData, int ttl, byte maskLength,
+                              byte[] authData, int ttl, byte maskLength,
                               LispAfiAddress eidPrefix) {
         this.infoReply = infoReply;
         this.nonce = nonce;
         this.keyId = keyId;
         this.authDataLength = authDataLength;
-        this.authenticationData = authenticationData;
+        this.authData = authData;
         this.ttl = ttl;
         this.maskLength = maskLength;
         this.eidPrefix = eidPrefix;
@@ -92,7 +92,7 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
     }
 
     @Override
-    public boolean hasInfoReply() {
+    public boolean isInfoReply() {
         return infoReply;
     }
 
@@ -112,9 +112,9 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
     }
 
     @Override
-    public byte[] getAuthenticationData() {
-        if (authenticationData != null && authenticationData.length != 0) {
-            return ImmutableByteSequence.copyFrom(authenticationData).asArray();
+    public byte[] getAuthData() {
+        if (authData != null && authData.length != 0) {
+            return ImmutableByteSequence.copyFrom(authData).asArray();
         } else {
             return new byte[0];
         }
@@ -156,7 +156,7 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
         // authenticationDataLength -> 16 bits
         short authLength = byteBuf.readShort();
 
-        // authenticationData -> depends on the authenticationDataLength
+        // authData -> depends on the authenticationDataLength
         byte[] authData = new byte[authLength];
         byteBuf.readBytes(authData);
 
@@ -182,7 +182,7 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
 
         // info reply flag
         byte infoReply = DISABLE_BIT;
-        if (message.hasInfoReply()) {
+        if (message.isInfoReply()) {
             infoReply = (byte) (ENABLE_BIT << INFO_REPLY_INDEX);
         }
 
@@ -203,7 +203,7 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
         byteBuf.writeShort(message.getAuthDataLength());
 
         // authentication data
-        byte[] data = message.getAuthenticationData();
+        byte[] data = message.getAuthData();
         byte[] clone;
         if (data != null) {
             clone = data.clone();
@@ -211,8 +211,6 @@ public class DefaultLispInfo extends AbstractLispMessage implements LispInfo {
         }
 
         byteBuf.writeBytes(data);
-
-        // TODO: need to implement MAC authentication mechanism
 
         /// TTL
         byteBuf.writeInt(message.getTtl());
