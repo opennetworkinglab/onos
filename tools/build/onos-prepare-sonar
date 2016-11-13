@@ -97,8 +97,7 @@ def write_module(target, out):
   if tests:
     rmtree(path + '/surefire-reports', ignore_errors=True)
     rmtree('surefire-reports', ignore_errors=True)
-    runCmd(['buck',
-            'test',
+    runCmd([BUCK, 'test',
             '--no-cache', '--no-results-cache',
             '--code-coverage',
             '--no-results-cache',
