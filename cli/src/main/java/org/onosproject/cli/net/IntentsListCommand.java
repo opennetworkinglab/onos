@@ -15,10 +15,13 @@
  */
 package org.onosproject.cli.net;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.util.StringFilter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -57,13 +60,23 @@ public class IntentsListCommand extends AbstractShellCommand {
     private boolean intentsSummary = false;
 
     @Option(name = "-p", aliases = "--pending",
-            description = "Show inforamtion about pending intents",
+            description = "Show information about pending intents",
             required = false, multiValued = false)
     private boolean pending = false;
+
+    @Option(name = "-f", aliases = "--filter",
+            description = "Filter intents by specific key",
+            required = false, multiValued = true)
+    private List<String> filter = new ArrayList<>();
+
+    private StringFilter contentFilter;
+
+    private String sep = System.lineSeparator();
 
     @Override
     protected void execute() {
         IntentService service = get(IntentService.class);
+        contentFilter = new StringFilter(filter, StringFilter.Strategy.AND);
 
         if (intentsSummary) {
             IntentSummaries intentSummaries = new IntentSummaries();
@@ -79,12 +92,9 @@ public class IntentsListCommand extends AbstractShellCommand {
             if (outputJson()) {
                 print("%s", json(service, service.getPending()));
             } else {
-                service.getPending().forEach(intent ->
-                                print("id=%s, key=%s, type=%s, appId=%s",
-                                        intent.id(), intent.key(),
-                                        intent.getClass().getSimpleName(),
-                                        intent.appId().name())
-                );
+                StreamSupport.stream(service.getPending().spliterator(), false)
+                        .filter(intent -> contentFilter.filter(intent))
+                        .forEach(intent -> print(fullFormat(intent)));
             }
             return;
         }
@@ -92,16 +102,7 @@ public class IntentsListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(service, service.getIntents()));
         } else {
-            for (Intent intent : service.getIntents()) {
-                IntentState state = service.getIntentState(intent.key());
-                if (state != null) {
-                    print("id=%s, state=%s, key=%s, type=%s, appId=%s",
-                          intent.id(), state, intent.key(),
-                          intent.getClass().getSimpleName(),
-                          intent.appId().name());
-                    printDetails(service, intent);
-                }
-            }
+            printIntents(service);
         }
     }
 
@@ -157,6 +158,9 @@ public class IntentsListCommand extends AbstractShellCommand {
                 IntentState intentState = service.getIntentState(intent.key());
                 if (intentState == null) {
                     continue;
+                }
+                if (!contentFilter.filter(intent)) {
+                    break;
                 }
 
                 // Update the summary for all Intents
@@ -368,56 +372,89 @@ public class IntentsListCommand extends AbstractShellCommand {
         }
     }
 
-    private void printDetails(IntentService service, Intent intent) {
+    private String detailsFormat(IntentService service, Intent intent) {
+        StringBuilder builder = new StringBuilder();
         if (!intent.resources().isEmpty()) {
-            print("    resources=%s", intent.resources());
+            builder.append(String.format("    resources=%s%s", intent.resources(), sep));
         }
         if (intent instanceof ConnectivityIntent) {
             ConnectivityIntent ci = (ConnectivityIntent) intent;
             if (!ci.selector().criteria().isEmpty()) {
-                print("    selector=%s", ci.selector().criteria());
+                builder.append(String.format("    selector=%s%s", ci.selector().criteria(), sep));
             }
             if (!ci.treatment().allInstructions().isEmpty()) {
-                print("    treatment=%s", ci.treatment().allInstructions());
+                builder.append(String.format("    treatment=%s%s", ci.treatment().allInstructions(), sep));
             }
             if (ci.constraints() != null && !ci.constraints().isEmpty()) {
-                print("    constraints=%s", ci.constraints());
+                builder.append(String.format("    constraints=%s%s", ci.constraints(), sep));
             }
         }
 
         if (intent instanceof HostToHostIntent) {
             HostToHostIntent pi = (HostToHostIntent) intent;
-            print("    host1=%s, host2=%s", pi.one(), pi.two());
+            builder.append(String.format("    host1=%s, host2=%s", pi.one(), pi.two()));
         } else if (intent instanceof PointToPointIntent) {
             PointToPointIntent pi = (PointToPointIntent) intent;
-            print("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoint());
+            builder.append(String.format("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoint()));
         } else if (intent instanceof MultiPointToSinglePointIntent) {
             MultiPointToSinglePointIntent pi = (MultiPointToSinglePointIntent) intent;
-            print("    ingress=%s, egress=%s", pi.ingressPoints(), pi.egressPoint());
+            builder.append(String.format("    ingress=%s, egress=%s", pi.ingressPoints(), pi.egressPoint()));
         } else if (intent instanceof SinglePointToMultiPointIntent) {
             SinglePointToMultiPointIntent pi = (SinglePointToMultiPointIntent) intent;
-            print("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoints());
+            builder.append(String.format("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoints()));
         } else if (intent instanceof PathIntent) {
             PathIntent pi = (PathIntent) intent;
-            print("    path=%s, cost=%d", pi.path().links(), pi.path().cost());
+            builder.append(String.format("    path=%s, cost=%d", pi.path().links(), pi.path().cost()));
         } else if (intent instanceof LinkCollectionIntent) {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
-            print("    links=%s", li.links());
-            print("    egress=%s", li.egressPoints());
+            builder.append(String.format("    links=%s", li.links()));
+            builder.append(String.format("    egress=%s", li.egressPoints()));
         } else if (intent instanceof OpticalCircuitIntent) {
             OpticalCircuitIntent ci = (OpticalCircuitIntent) intent;
-            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
+            builder.append(String.format("    src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         } else if (intent instanceof OpticalConnectivityIntent) {
             OpticalConnectivityIntent ci = (OpticalConnectivityIntent) intent;
-            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
+            builder.append(String.format("    src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         } else if (intent instanceof OpticalOduIntent) {
             OpticalOduIntent ci = (OpticalOduIntent) intent;
-            print("    src=%s, dst=%s", ci.getSrc(), ci.getDst());
+            builder.append(String.format("    src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.key());
+        installable.stream().filter(i -> contentFilter.filter(i));
         if (showInstallable && installable != null && !installable.isEmpty()) {
-            print("    installable=%s", installable);
+            builder.append(String.format("%s    installable=%s", sep, installable));
+        }
+        return builder.toString();
+    }
+
+    private String fullFormat(Intent intent) {
+        return fullFormat(intent, null);
+    }
+
+    private String fullFormat(Intent intent, String state) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("id=%s, ", intent.id()));
+        if (state != null) {
+            builder.append(String.format("state=%s, ", state));
+        }
+        builder.append(String.format("key=%s, type=%s, appId=%s",
+                                     intent.key(),
+                                     intent.getClass().getSimpleName(),
+                                     intent.appId().name()));
+        return builder.toString();
+    }
+
+    private void printIntents(IntentService service) {
+        for (Intent intent : service.getIntents()) {
+            IntentState state = service.getIntentState(intent.key());
+            String intentFormat = fullFormat(intent, state.toString());
+            String detailsIntentFormat = detailsFormat(service, intent);
+            if (state != null && (contentFilter.filter(
+                    intentFormat + detailsIntentFormat))) {
+                print(intentFormat);
+                print(detailsIntentFormat);
+            }
         }
     }
 
@@ -425,8 +462,9 @@ public class IntentsListCommand extends AbstractShellCommand {
     private JsonNode json(IntentService service, Iterable<Intent> intents) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-
-        intents.forEach(intent -> result.add(jsonForEntity(intent, Intent.class)));
+        StreamSupport.stream(intents.spliterator(), false)
+                .filter(intent -> contentFilter.filter(jsonForEntity(intent, Intent.class).toString()))
+                .forEach(intent -> result.add(jsonForEntity(intent, Intent.class)));
         return result;
     }
 
