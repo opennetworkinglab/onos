@@ -87,6 +87,7 @@ ONOS_DRIVERS = [
     '//drivers/netconf:onos-drivers-netconf-oar',
     '//drivers/optical:onos-drivers-optical-oar',
     '//drivers/ovsdb:onos-drivers-ovsdb-oar',
+    '//drivers/juniper:onos-drivers-juniper-oar',
 ]
 
 ONOS_PROVIDERS = [

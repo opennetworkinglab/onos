@@ -45,6 +45,7 @@
         <module>corsa</module>
         <module>optical</module>
         <module>arista</module>
+        <module>juniper</module>
     </modules>
 
     <!--<properties>
