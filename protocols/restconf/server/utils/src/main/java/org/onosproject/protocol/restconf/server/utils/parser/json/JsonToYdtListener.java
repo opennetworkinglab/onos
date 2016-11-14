@@ -26,8 +26,8 @@ import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtContext;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Stack;
 
@@ -149,7 +149,7 @@ public class JsonToYdtListener implements JsonListener {
         if (arrayNode.size() == 0) {
             return;
         }
-        Set<String> sets = new HashSet<>();
+        Set<String> sets = new LinkedHashSet<>();
         Iterator<JsonNode> elements = arrayNode.elements();
         boolean isLeafList = true;
         while (elements.hasNext()) {
