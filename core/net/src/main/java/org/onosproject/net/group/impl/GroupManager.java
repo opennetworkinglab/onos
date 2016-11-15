@@ -224,6 +224,34 @@ public class GroupManager
                                      newCookie);
     }
 
+    /**
+     * Set buckets for an existing group. The caller can optionally
+     * associate a new cookie during this updation. GROUP_UPDATED or
+     * GROUP_UPDATE_FAILED notifications would be provided along with
+     * cookie depending on the result of the operation on the device.
+     *
+     * This operation overwrites the previous group buckets entirely.
+     *
+     * @param deviceId  device identifier
+     * @param oldCookie cookie to be used to retrieve the existing group
+     * @param buckets   immutable list of group buckets to be set
+     * @param newCookie immutable cookie to be used post update operation
+     * @param appId     Application Id
+     */
+    @Override
+    public void setBucketsForGroup(DeviceId deviceId,
+                                   GroupKey oldCookie,
+                                   GroupBuckets buckets,
+                                   GroupKey newCookie,
+                                   ApplicationId appId) {
+        checkPermission(GROUP_WRITE);
+        store.updateGroupDescription(deviceId,
+                oldCookie,
+                UpdateType.SET,
+                buckets,
+                newCookie);
+    }
+
     @Override
     public void purgeGroupEntries(DeviceId deviceId) {
         checkPermission(GROUP_WRITE);

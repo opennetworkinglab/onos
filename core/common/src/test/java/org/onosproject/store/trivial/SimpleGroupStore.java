@@ -321,6 +321,10 @@ public class SimpleGroupStore
     private List<GroupBucket> getUpdatedBucketList(Group oldGroup,
                                                    UpdateType type,
                                                    GroupBuckets buckets) {
+        if (type == UpdateType.SET) {
+            return buckets.buckets();
+        }
+
         List<GroupBucket> oldBuckets = oldGroup.buckets().buckets();
         List<GroupBucket> updatedBucketList = new ArrayList<>();
         boolean groupDescUpdated = false;

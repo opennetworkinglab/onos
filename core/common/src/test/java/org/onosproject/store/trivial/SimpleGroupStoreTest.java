@@ -204,6 +204,11 @@ public class SimpleGroupStoreTest {
         newKey = new DefaultGroupKey("group1RemoveBuckets".getBytes());
         testRemoveBuckets(currKey, newKey);
 
+        // Testing updateGroupDescription for SET operation from northbound
+        currKey = newKey;
+        newKey = new DefaultGroupKey("group1SetBuckets".getBytes());
+        testSetBuckets(currKey, newKey);
+
         // Testing addOrUpdateGroupEntry operation from southbound
         currKey = newKey;
         testUpdateGroupEntryFromSB(currKey);
@@ -416,6 +421,35 @@ public class SimpleGroupStoreTest {
                                                 toRemoveGroupBuckets,
                                                 removeKey);
         simpleGroupStore.unsetDelegate(removeGroupDescDelegate);
+    }
+
+    // Testing updateGroupDescription for SET operation from northbound
+    private void testSetBuckets(GroupKey currKey, GroupKey setKey) {
+        List<GroupBucket> toSetBuckets = new ArrayList<>();
+
+        short weight = 5;
+        PortNumber portNumber = PortNumber.portNumber(42);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.setOutput(portNumber)
+                .setEthDst(MacAddress.valueOf("00:00:00:00:00:03"))
+                .setEthSrc(MacAddress.valueOf("00:00:00:00:00:01"))
+                .pushMpls()
+                .setMpls(MplsLabel.mplsLabel(106));
+        toSetBuckets.add(DefaultGroupBucket.createSelectGroupBucket(
+                tBuilder.build(), weight));
+
+        GroupBuckets toSetGroupBuckets = new GroupBuckets(toSetBuckets);
+        InternalGroupStoreDelegate updateGroupDescDelegate =
+                new InternalGroupStoreDelegate(setKey,
+                        toSetGroupBuckets,
+                        GroupEvent.Type.GROUP_UPDATE_REQUESTED);
+        simpleGroupStore.setDelegate(updateGroupDescDelegate);
+        simpleGroupStore.updateGroupDescription(D1,
+                currKey,
+                UpdateType.SET,
+                toSetGroupBuckets,
+                setKey);
+        simpleGroupStore.unsetDelegate(updateGroupDescDelegate);
     }
 
     // Testing deleteGroupDescription operation from northbound

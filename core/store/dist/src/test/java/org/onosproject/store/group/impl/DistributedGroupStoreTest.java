@@ -430,6 +430,20 @@ public class DistributedGroupStoreTest {
                 assertEquals(weight, bucket.weight());
             }
         }
+
+        buckets = new GroupBuckets(ImmutableList.of(selectGroupBucketWithWeight));
+
+        groupStore.updateGroupDescription(deviceId1,
+                newKey,
+                SET,
+                buckets,
+                newKey);
+
+        group1 = groupStore.getGroup(deviceId1, groupId1);
+        assertThat(group1.appCookie(), is(newKey));
+        assertThat(group1.buckets().buckets(), hasSize(1));
+        GroupBucket onlyBucket = group1.buckets().buckets().iterator().next();
+        assertEquals(weight, onlyBucket.weight());
     }
 
     @Test

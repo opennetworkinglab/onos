@@ -34,7 +34,12 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
         /**
          * Modify existing group by removing provided information from it.
          */
-        REMOVE
+        REMOVE,
+        /**
+         * Modify existing group entry by setting the provided information,
+         * overwriting the previous group entry entirely.
+         */
+        SET
     }
 
     /**
