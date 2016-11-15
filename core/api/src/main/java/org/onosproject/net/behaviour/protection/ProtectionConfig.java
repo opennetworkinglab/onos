@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.BaseConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 // FIXME Move this to Protection handling Intent related package?
 /**
@@ -132,5 +133,28 @@ public class ProtectionConfig
     @Override
     public String toString() {
         return object.toString();
+    }
+
+    /**
+     * Create a {@link ProtectionConfig}.
+     * <p>
+     * Note: created instance needs to be initialized by #init(..) before using.
+     */
+    public ProtectionConfig() {
+        super();
+    }
+
+    /**
+     * Create a {@link ProtectionConfig} for specified Device.
+     * <p>
+     * Note: created instance is not bound to NetworkConfigService,
+     * cannot use {@link #apply()}. Must be passed to the service
+     * using NetworkConfigService#applyConfig
+     *
+     * @param did DeviceId
+     */
+    public ProtectionConfig(DeviceId did) {
+        ObjectMapper mapper = new ObjectMapper();
+        init(did, CONFIG_KEY, mapper.createObjectNode(), mapper, null);
     }
 }
