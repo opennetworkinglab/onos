@@ -108,7 +108,7 @@ public class RestDeviceProvider extends AbstractProvider
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  RestProviderConfig.class,
-                                                                 "restDevices",
+                                                                 "devices",
                                                                  true) {
                 @Override
                 public RestProviderConfig createConfig() {

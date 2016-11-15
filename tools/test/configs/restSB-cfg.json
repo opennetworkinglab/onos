@@ -8,8 +8,8 @@
   },
   "apps": {
     "org.onosproject.restsb": {
-      "restDevices": [{
-        "name": "dev",
+      "devices": [{
+        "username": "dev",
         "password": "",
         "ip": "127.0.0.1",
         "port": 8080,
