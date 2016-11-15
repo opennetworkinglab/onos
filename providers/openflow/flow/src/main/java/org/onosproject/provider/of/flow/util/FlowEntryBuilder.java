@@ -83,6 +83,7 @@ import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TransportPort;
@@ -489,8 +490,8 @@ public class FlowEntryBuilder {
             break;
         case MPLS_BOS:
             @SuppressWarnings("unchecked")
-            OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
-            builder.setMplsBos(mplsBos.getValue() != U8.ZERO);
+            OFOxm<OFBooleanValue> mplsBos = (OFOxm<OFBooleanValue>) oxm;
+            builder.setMplsBos(mplsBos.getValue().getValue());
             break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")
