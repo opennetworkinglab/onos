@@ -29,7 +29,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceEvent.Type;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DefaultDriverProviderService;
@@ -87,6 +86,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.Device.Type.CONTROLLER;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.openflow.controller.Dpid.dpid;
 
 @Component(immediate = true)
@@ -538,7 +539,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            return event.type() == Type.DEVICE_REMOVED;
+            return event.subject().type() != CONTROLLER && event.type() == DEVICE_REMOVED;
         }
 
         @Override
