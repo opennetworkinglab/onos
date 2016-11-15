@@ -227,6 +227,7 @@ public class EdgeManager
         // Logical ports are not counted as edge ports nor are infrastructure
         // ports. Ports that have only edge links are considered edge ports.
         return !point.port().isLogical() &&
+                deviceService.getPort(point) != null &&
                 linkService.getLinks(point).stream()
                         .allMatch(link -> link.type() == Type.EDGE);
     }
