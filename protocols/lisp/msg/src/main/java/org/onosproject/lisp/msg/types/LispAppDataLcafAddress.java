@@ -381,6 +381,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
         public void writeTo(ByteBuf byteBuf, LispAppDataLcafAddress address)
                 throws LispWriterException {
 
+            int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             byte[] tos = getPartialByteArray(address.getIpTos());
@@ -393,6 +394,8 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
 
             AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
             writer.writeTo(byteBuf, address.getAddress());
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
 
         /**

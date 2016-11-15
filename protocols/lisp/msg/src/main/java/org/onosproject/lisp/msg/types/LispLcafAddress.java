@@ -53,6 +53,9 @@ public class LispLcafAddress extends LispAfiAddress {
 
     private static final int LCAF_AFI_CODE_BYTE_LENGTH = 2;
 
+    private static final int LENGTH_FIELD_INDEX = 7;
+    public static final int COMMON_HEADER_SIZE = 8;
+
     /**
      * Initializes LCAF address.
      *
@@ -228,12 +231,26 @@ public class LispLcafAddress extends LispAfiAddress {
     }
 
     /**
+     * Updates the header length field value based on the size of LISP header.
+     *
+     * @param lcafIndex the index of LCAF address, because LCAF address is
+     *                  contained inside LISP control message, so to correctly
+     *                  find the right LCAF length index, we need to know the
+     *                  absolute lcaf index inside LISP control message byte buf
+     * @param byteBuf   netty byte buffer
+     */
+    public static void updateLength(int lcafIndex, ByteBuf byteBuf) {
+        byteBuf.setByte(lcafIndex + LENGTH_FIELD_INDEX, byteBuf.writerIndex() - COMMON_HEADER_SIZE);
+    }
+
+    /**
      * Serializes common fields to byte buffer.
      *
      * @param byteBuf byte buffer
      * @param address LISP LCAF address instance
      */
     public static void serializeCommon(ByteBuf byteBuf, LispLcafAddress address) {
+
         byteBuf.writeShort(AddressFamilyIdentifierEnum.LCAF.getIanaCode());
         byteBuf.writeByte(address.getReserved1());
         byteBuf.writeByte(address.getFlag());
@@ -381,7 +398,7 @@ public class LispLcafAddress extends LispAfiAddress {
             }
 
             if (lcafType == TRAFFIC_ENGINEERING.getLispCode()) {
-                return new LispTeLcafAddress.TeAddressBuilder.TeLcafAddressReader().readFrom(byteBuf);
+                return new LispTeLcafAddress.TeLcafAddressReader().readFrom(byteBuf);
             }
 
             log.warn("Unsupported LCAF type, please specify a correct LCAF type");
@@ -415,7 +432,7 @@ public class LispLcafAddress extends LispAfiAddress {
                             (LispSourceDestLcafAddress) address);
                     break;
                 case TRAFFIC_ENGINEERING:
-                    new LispTeLcafAddress.TeAddressBuilder.TeLcafAddressWriter().writeTo(byteBuf,
+                    new LispTeLcafAddress.TeLcafAddressWriter().writeTo(byteBuf,
                             (LispTeLcafAddress) address);
                     break;
                 default:

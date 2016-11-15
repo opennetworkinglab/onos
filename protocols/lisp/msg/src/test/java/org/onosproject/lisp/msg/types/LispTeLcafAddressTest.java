@@ -26,8 +26,8 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeAddressBuilder;
-import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeAddressBuilder.TeLcafAddressReader;
-import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeAddressBuilder.TeLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeLcafAddressWriter;
 import org.onosproject.lisp.msg.types.LispTeRecord.TeRecordBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;

@@ -186,6 +186,7 @@ public final class LispListLcafAddress extends LispLcafAddress {
         @Override
         public void writeTo(ByteBuf byteBuf, LispListLcafAddress address) throws LispWriterException {
 
+            int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             LispIpv4Address.Ipv4AddressWriter v4Writer = new LispIpv4Address.Ipv4AddressWriter();
@@ -201,6 +202,8 @@ public final class LispListLcafAddress extends LispLcafAddress {
             // IPv6 address
             byteBuf.writeShort(ipv6.getAfi().getIanaCode());
             v6Writer.writeTo(byteBuf, (LispIpv6Address) ipv6);
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
     }
 }

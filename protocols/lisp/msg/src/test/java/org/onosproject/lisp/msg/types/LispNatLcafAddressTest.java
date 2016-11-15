@@ -15,6 +15,7 @@
  */
 package org.onosproject.lisp.msg.types;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -27,6 +28,8 @@ import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressReader;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressWriter;
+
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -51,6 +54,10 @@ public class LispNatLcafAddressTest {
         LispIpv4Address msRlocAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
         LispIpv4Address privateEtrRlocAddress1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.3"));
 
+        LispIpv4Address rtrRloc11 = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
+        LispIpv4Address rtrRloc12 = new LispIpv4Address(IpAddress.valueOf("10.1.1.2"));
+        List<LispAfiAddress> rtrRlocs1 = ImmutableList.of(rtrRloc11, rtrRloc12);
+
         address1 = builder1
                         .withLength((short) 0)
                         .withMsUdpPortNumber(msUdpPortNumber1)
@@ -58,6 +65,7 @@ public class LispNatLcafAddressTest {
                         .withGlobalEtrRlocAddress(globalEtrRlocAddress1)
                         .withMsRlocAddress(msRlocAddress1)
                         .withPrivateEtrRlocAddress(privateEtrRlocAddress1)
+                        .withRtrRlocAddresses(rtrRlocs1)
                         .build();
 
         NatAddressBuilder builder2 = new NatAddressBuilder();
@@ -69,6 +77,7 @@ public class LispNatLcafAddressTest {
                         .withGlobalEtrRlocAddress(globalEtrRlocAddress1)
                         .withMsRlocAddress(msRlocAddress1)
                         .withPrivateEtrRlocAddress(privateEtrRlocAddress1)
+                        .withRtrRlocAddresses(rtrRlocs1)
                         .build();
 
         NatAddressBuilder builder3 = new NatAddressBuilder();
@@ -79,6 +88,10 @@ public class LispNatLcafAddressTest {
         LispIpv4Address msRlocAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.2"));
         LispIpv4Address privateEtrRlocAddress2 = new LispIpv4Address(IpAddress.valueOf("192.168.2.3"));
 
+        LispIpv4Address rtrRloc21 = new LispIpv4Address(IpAddress.valueOf("10.1.2.1"));
+        LispIpv4Address rtrRloc22 = new LispIpv4Address(IpAddress.valueOf("10.1.2.2"));
+        List<LispAfiAddress> rtrRlocs2 = ImmutableList.of(rtrRloc21, rtrRloc22);
+
         address2 = builder3
                         .withLength((short) 0)
                         .withMsUdpPortNumber(msUdpPortNumber2)
@@ -86,6 +99,7 @@ public class LispNatLcafAddressTest {
                         .withGlobalEtrRlocAddress(globalEtrRlocAddress2)
                         .withMsRlocAddress(msRlocAddress2)
                         .withPrivateEtrRlocAddress(privateEtrRlocAddress2)
+                        .withRtrRlocAddresses(rtrRlocs2)
                         .build();
     }
 
