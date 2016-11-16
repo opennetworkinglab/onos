@@ -285,7 +285,8 @@
                 initInst: initInst,
                 allInstances: allInstances,
                 destroy: destroy,
-                toggle: toggle
+                toggle: toggle,
+                isVisible: function () { return oiBox.isVisible(); }
             };
         }]);
 

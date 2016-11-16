@@ -63,6 +63,9 @@
         },
         destroy: function () {
             ps.destroyPanel(this.id);
+        },
+        isVisible: function () {
+            return this.p.isVisible();
         }
     };
 

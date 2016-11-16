@@ -198,7 +198,7 @@
     function toggle() {
         var on = detailsPanel.p.toggle(),
             verb = on ? 'Show' : 'Hide';
-        flash.flash(verb + ' Summary Panel');
+        flash.flash(verb + ' Details Panel');
     }
 
     function show() {
@@ -236,7 +236,8 @@
                 toggle: toggle,
                 show: show,
                 hide: hide,
-                destroy: destroy
+                destroy: destroy,
+                isVisible: function () { return detailsPanel.isVisible(); }
             };
         }
     ]);
