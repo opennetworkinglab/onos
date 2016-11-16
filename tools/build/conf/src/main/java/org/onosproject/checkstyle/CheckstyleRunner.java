@@ -91,6 +91,7 @@ public class CheckstyleRunner implements BuckTask {
 
             listener.await();
         } catch (CheckstyleException | InterruptedException e) {
+            e.printStackTrace(); //dump exeception to stderr
             throw new RuntimeException(e);
         } finally {
             checker.destroy();
