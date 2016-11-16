@@ -48,6 +48,7 @@ public class JsonToYdtListener implements JsonListener {
     private static final int INPUT_FIELD_LENGTH = 2;
     private static final String E_UNSUP_TYPE = "Unsupported node type %s " +
             "field name is %s fieldName";
+    private static final String EMPTY_STRING = "null";
 
     private Logger log = getLogger(getClass());
 
@@ -140,7 +141,8 @@ public class JsonToYdtListener implements JsonListener {
     }
 
     private void processLeafNode(NormalizedYangNode node, String value) {
-        ydtBuilder.addLeaf(node.getName(), node.getNamespace(), value);
+        String leafValue = value.equalsIgnoreCase(EMPTY_STRING) ? null : value;
+        ydtBuilder.addLeaf(node.getName(), node.getNamespace(), leafValue);
     }
 
     private void processArrayNode(NormalizedYangNode normalizedNode,
