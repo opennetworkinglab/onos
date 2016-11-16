@@ -76,15 +76,15 @@ fi
 echo "$!" > /tmp/onos.pid
 
 # Hang-on a bit and then start tailing the ONOS log output
-RETRY_COUNT=5
+MAX_RETRY=30
 echo "Waiting for karaf.log"
-until [ $RETRY_COUNT -le 0 ]; do
+until [ $MAX_RETRY -le 0 ]; do
     KARAF_LOG=$(find $ONOS_HOME -type f -name karaf.log)
     if [ $KARAF_LOG ]; then
         tail -f $KARAF_LOG
         return
     fi
-    RETRY_COUNT=$[$RETRY_COUNT-1]
+    MAX_RETRY=$[$MAX_RETRY-1]
     sleep 1
 done
 echo "Fail to open karaf.log"
