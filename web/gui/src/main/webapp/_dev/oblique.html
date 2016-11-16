@@ -25,7 +25,7 @@
     <title>Layer Transformations</title>
 
     <script src="../tp/d3.js"></script>
-    <script src="../tp/jquery-2.1.1.min.js"></script>
+    <script src="../tp/angular.js"></script>
 
     <style>
         html,
@@ -134,7 +134,7 @@
 
             // General functions ...
             function isF(f) {
-                return $.isFunction(f) ? f : null;
+                return angular.isFunction(f) ? f : null;
             }
 
             function translate(x,y) {
@@ -151,7 +151,7 @@
 
             // Key Bindings...
             var keyHandler = {
-                T: transform
+                Z: transform
             };
 
             function whatKey(code) {
@@ -435,7 +435,7 @@
 
             function init() {
                 svg.append('text')
-                        .text('Press the "T" key....')
+                        .text('Press the "Z" key....')
                         .attr({ dy: '1.2em', fill: '#999'})
                         .style('font-size', '2.4pt')
                         .style('font-style', 'italic');
