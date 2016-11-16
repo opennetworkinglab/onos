@@ -32,6 +32,12 @@
     <suppress files="org.onosproject.driver.pipeline.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
+    <!-- These files carry AT&T copyrights -->
+    <suppress files="org.onlab.packet.EAP" checks="RegexpHeader" />
+    <suppress files="org.onlab.packet.EAPOL" checks="RegexpHeader" />
+    <suppress files="org.onlab.packet.RADIUS" checks="RegexpHeader" />
+    <suppress files="org.onlab.packet.RADIUSAttribute" checks="RegexpHeader" />
+
     <!-- Suppressions for unit testing code -->
     <suppress checks="Javadoc.*"
               files=".*/src/test/.*.java"

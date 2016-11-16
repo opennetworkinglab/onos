@@ -1,9 +1,5 @@
 /*
  * Copyright 2015-present Open Networking Laboratory
- * Originally created by Pengfei Lu, Network and Cloud Computing Laboratory, Dalian University of Technology, China
- * Advisers: Keqiu Li, Heng Qi and Haisheng Yu
- * This work is supported by the State Key Program of National Natural Science of China(Grant No. 61432002)
- * and Prospective Research Project on Future Networks in Jiangsu Future Networks Innovation Institute.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Originally created by Pengfei Lu, Network and Cloud Computing Laboratory, Dalian University of Technology, China
+ * Advisers: Keqiu Li, Heng Qi and Haisheng Yu
+ * This work is supported by the State Key Program of National Natural Science of China(Grant No. 61432002)
+ * and Prospective Research Project on Future Networks in Jiangsu Future Networks Innovation Institute.
  */
 package org.onosproject.acl;
 

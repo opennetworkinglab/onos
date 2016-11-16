@@ -1,5 +1,6 @@
 checkstyle_source = 'src/main/resources/onos/checkstyle.xml'
 suppression_source = 'src/main/resources/onos/suppressions.xml'
+header_source = 'src/main/resources/onos/onos-java.header'
 
 export_file (
   name = 'checkstyle-xml',
@@ -10,6 +11,12 @@ export_file (
 export_file (
   name = 'suppressions-xml',
   src = suppression_source,
+  visibility = [ 'PUBLIC' ],
+)
+
+export_file (
+  name = 'onos-java-header',
+  src = header_source,
   visibility = [ 'PUBLIC' ],
 )
 

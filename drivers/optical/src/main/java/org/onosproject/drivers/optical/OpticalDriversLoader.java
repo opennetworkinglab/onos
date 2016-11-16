@@ -1,4 +1,3 @@
-package org.onosproject.drivers.optical;
 /*
  * Copyright 2016-present Open Networking Laboratory
  *
@@ -15,7 +14,7 @@ package org.onosproject.drivers.optical;
  * limitations under the License.
  */
 
-
+package org.onosproject.drivers.optical;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;

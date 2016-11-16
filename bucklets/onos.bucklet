@@ -35,7 +35,7 @@ def checkstyle(
         sh_test(
                 name = name + '-checkstyle',
                 test = '//tools/build/conf:start-buck-daemon',
-                deps = [ jar_target ],
+                deps = [ jar_target, '//tools/build/conf:onos-java-header' ],
                 args = [
                     '$(location //tools/build/conf:buck-daemon-jar)',
                     'checkstyle',
