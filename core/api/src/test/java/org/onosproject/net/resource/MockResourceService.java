@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 public class MockResourceService implements ResourceService {
 
     private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
+    public Set<Short> availableVlanLabels = new HashSet<>();
+    public Set<Integer> availableMplsLabels = new HashSet<>();
 
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
@@ -98,15 +100,45 @@ public class MockResourceService implements ResourceService {
 
 
     /**
-     * It adds a number of VLAN ids in order to test the random behavior.
+     * Binds VLAN Ids to a parent resource, given a parent resource.
      *
      * @param parent the parent resource
-     * @return a set of VLAN ids
+     * @return the VLAN Ids allocated
      */
     private Collection<Resource> addVlanIds(DiscreteResourceId parent) {
         Collection<Resource> resources = new HashSet<>();
-        for (int i = VlanId.NO_VID + 1; i < VlanId.MAX_VLAN; i++) {
-            resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) i)));
+        if (!this.availableVlanLabels.isEmpty()) {
+            this.availableVlanLabels.forEach(label -> {
+                if (label > VlanId.NO_VID && label < VlanId.MAX_VLAN) {
+                    resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId(label)));
+                }
+            });
+        } else {
+            for (int i = VlanId.NO_VID + 1; i < 1000; i++) {
+                resources.add(Resources.discrete(parent).resource().child(VlanId.vlanId((short) i)));
+            }
+        }
+        return resources;
+    }
+
+    /**
+     * Binds MPLS labels to a parent resource, given a parent resource.
+     *
+     * @param parent the parent resource
+     * @return the MPLS labels allocated
+     */
+    private Collection<Resource> addMplsLabels(DiscreteResourceId parent) {
+        Collection<Resource> resources = new HashSet<>();
+        if (!this.availableMplsLabels.isEmpty()) {
+            this.availableMplsLabels.forEach(label -> {
+                if (label < MplsLabel.MAX_MPLS) {
+                    resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(label)));
+                }
+            });
+        } else {
+            for (int i = 1; i < 1000; i++) {
+                resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(i)));
+            }
         }
         return resources;
     }
@@ -115,7 +147,7 @@ public class MockResourceService implements ResourceService {
     public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
         Collection<Resource> resources = new HashSet<>();
         resources.addAll(addVlanIds(parent));
-        resources.add(Resources.discrete(parent).resource().child(MplsLabel.mplsLabel(10)));
+        resources.addAll(addMplsLabels(parent));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(1)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(2)));
         resources.add(Resources.discrete(parent).resource().child(TributarySlot.of(3)));

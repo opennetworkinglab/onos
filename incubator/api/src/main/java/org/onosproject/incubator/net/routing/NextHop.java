@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.routing;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
 
 import java.util.Objects;
 
@@ -29,17 +30,17 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class NextHop {
 
     private final IpAddress ip;
-    private final MacAddress mac;
+    private final NextHopData nextHopData;
 
     /**
      * Creates a new next hop.
      *
      * @param ip IP address
-     * @param mac MAC address
+     * @param nextHopData Next hop data
      */
-    public NextHop(IpAddress ip, MacAddress mac) {
+    public NextHop(IpAddress ip, NextHopData nextHopData) {
         this.ip = ip;
-        this.mac = mac;
+        this.nextHopData = nextHopData;
     }
 
     /**
@@ -57,12 +58,21 @@ public class NextHop {
      * @return MAC address
      */
     public MacAddress mac() {
-        return mac;
+        return nextHopData.mac();
+    }
+
+    /**
+     * Returns the location of the next hop.
+     *
+     * @return Connect point
+     */
+    public ConnectPoint location() {
+        return nextHopData.location();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, mac);
+        return Objects.hash(ip, nextHopData);
     }
 
     @Override
@@ -78,14 +88,14 @@ public class NextHop {
         NextHop that = (NextHop) other;
 
         return Objects.equals(this.ip, that.ip) &&
-                Objects.equals(this.mac, that.mac);
+                Objects.equals(this.nextHopData, that.nextHopData);
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("ip", ip)
-                .add("mac", mac)
+                .add("nextHopData", nextHopData)
                 .toString();
     }
 }

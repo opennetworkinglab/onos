@@ -44,6 +44,8 @@ public class OspfRouterImpl implements OspfRouter {
 
     /**
      * Sets IP address of the Router.
+     *
+     * @param routerIp IP address of the router
      */
     public void setRouterIp(Ip4Address routerIp) {
         this.routerIp = routerIp;
@@ -60,6 +62,8 @@ public class OspfRouterImpl implements OspfRouter {
 
     /**
      * Sets the area id for this device.
+     *
+     * @param areaIdOfInterface area identifier for the device
      */
     public void setAreaIdOfInterface(Ip4Address areaIdOfInterface) {
         this.areaIdOfInterface = areaIdOfInterface;

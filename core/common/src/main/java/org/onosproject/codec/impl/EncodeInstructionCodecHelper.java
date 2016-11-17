@@ -136,6 +136,11 @@ public final class EncodeInstructionCodecHelper {
                         (L2ModificationInstruction.ModVlanPcpInstruction) l2Instruction;
                 result.put(InstructionCodec.VLAN_PCP, modVlanPcpInstruction.vlanPcp());
                 break;
+            case VLAN_PUSH:
+                final L2ModificationInstruction.ModVlanHeaderInstruction pushVlanInstruction =
+                        (L2ModificationInstruction.ModVlanHeaderInstruction) l2Instruction;
+                result.put(InstructionCodec.ETHERNET_TYPE, pushVlanInstruction.ethernetType().toString());
+                break;
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2Instruction;

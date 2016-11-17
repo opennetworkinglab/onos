@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Adds a new interface configuration.
  */
-@Command(scope = "onos", name = "add-interface",
+@Command(scope = "onos", name = "interface-add",
         description = "Adds a new configured interface")
 public class InterfaceAddCommand extends AbstractShellCommand {
 

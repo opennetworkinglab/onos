@@ -3,14 +3,18 @@
      ng-click="mastCtrl.toggleNav()"></div>
 <img class="logo" src="data/img/masthead-logo-mojo.png">
 <div id="mast-right">
-
     <nav>
         <div class="dropdown-parent">
             <a class="clickable user-menu__name">{{user}} <i class="dropdown-icon"></i></a>
-
             <div class="dropdown">
                 <a href="rs/logout">logout</a>
             </div>
+        </div>
+        <div class="ctrl-btns">
+            <div class="active clickable"
+                 icon icon-size="42" icon-id="query"
+                 tooltip tt-msg="helpTip"
+                 ng-click="directTo()"></div>
         </div>
     </nav>
 

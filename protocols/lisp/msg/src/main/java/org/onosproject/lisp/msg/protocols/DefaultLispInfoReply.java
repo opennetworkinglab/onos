@@ -17,41 +17,49 @@ package org.onosproject.lisp.msg.protocols;
 
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
 
 /**
  * Default LISP info reply message class.
  */
 public final class DefaultLispInfoReply extends DefaultLispInfo implements LispInfoReply {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultLispInfoReply.class);
+
     private final LispNatLcafAddress natLcafAddress;
 
     /**
      * A private constructor that protects object instantiation from external.
      *
-     * @param infoReply          info reply flag
-     * @param nonce              nonce
-     * @param keyId              key identifier
-     * @param authDataLength     authentication data length
-     * @param authenticationData authentication data
-     * @param ttl                Time-To-Live value
-     * @param maskLength         EID prefix mask length
-     * @param eidPrefix          EID prefix
-     * @param natLcafAddress     NAT LCAF address
+     * @param infoReply      info reply flag
+     * @param nonce          nonce
+     * @param keyId          key identifier
+     * @param authDataLength authentication data length
+     * @param authData       authentication data
+     * @param ttl            Time-To-Live value
+     * @param maskLength     EID prefix mask length
+     * @param eidPrefix      EID prefix
+     * @param natLcafAddress NAT LCAF address
      */
     protected DefaultLispInfoReply(boolean infoReply, long nonce, short keyId, short authDataLength,
-                                 byte[] authenticationData, int ttl, byte maskLength,
-                                 LispAfiAddress eidPrefix, LispNatLcafAddress natLcafAddress) {
-        super(infoReply, nonce, keyId, authDataLength, authenticationData, ttl, maskLength, eidPrefix);
+                                   byte[] authData, int ttl, byte maskLength,
+                                   LispAfiAddress eidPrefix, LispNatLcafAddress natLcafAddress) {
+        super(infoReply, nonce, keyId, authDataLength, authData, ttl, maskLength, eidPrefix);
         this.natLcafAddress = natLcafAddress;
     }
 
@@ -67,7 +75,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
                 .add("nonce", nonce)
                 .add("keyId", keyId)
                 .add("authentication data length", authDataLength)
-                .add("authentication data", authenticationData)
+                .add("authentication data", authData)
                 .add("TTL", ttl)
                 .add("EID mask length", maskLength)
                 .add("EID prefix", eidPrefix)
@@ -87,7 +95,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
         return Objects.equal(nonce, that.nonce) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
-                Arrays.equals(authenticationData, that.authenticationData) &&
+                Arrays.equals(authData, that.authData) &&
                 Objects.equal(ttl, that.ttl) &&
                 Objects.equal(maskLength, that.maskLength) &&
                 Objects.equal(eidPrefix, that.eidPrefix) &&
@@ -97,7 +105,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
     @Override
     public int hashCode() {
         return Objects.hashCode(nonce, keyId, authDataLength, ttl, maskLength,
-                eidPrefix, natLcafAddress) + Arrays.hashCode(authenticationData);
+                eidPrefix, natLcafAddress) + Arrays.hashCode(authData);
     }
 
     public static final class DefaultInfoReplyBuilder implements InfoReplyBuilder {
@@ -106,7 +114,8 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
         private long nonce;
         private short keyId;
         private short authDataLength;
-        private byte[] authenticationData = new byte[0];
+        private byte[] authData;
+        private String authKey;
         private int ttl;
         private byte maskLength;
         private LispAfiAddress eidPrefix;
@@ -143,10 +152,16 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
         }
 
         @Override
-        public InfoReplyBuilder withAuthenticationData(byte[] authenticationData) {
+        public InfoReplyBuilder withAuthData(byte[] authenticationData) {
             if (authenticationData != null) {
-                this.authenticationData = authenticationData;
+                this.authData = authenticationData;
             }
+            return this;
+        }
+
+        @Override
+        public InfoReplyBuilder withAuthKey(String key) {
+            this.authKey = key;
             return this;
         }
 
@@ -177,8 +192,36 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
         @Override
         public LispInfoReply build() {
+
+            // if authentication data is not specified, we will calculate it
+            if (authData == null) {
+                LispAuthenticationFactory factory = LispAuthenticationFactory.getInstance();
+
+                authDataLength = LispAuthenticationKeyEnum.valueOf(keyId).getHashLength();
+                byte[] tmpAuthData = new byte[authDataLength];
+                Arrays.fill(tmpAuthData, (byte) 0);
+                authData = tmpAuthData;
+
+                ByteBuf byteBuf = Unpooled.buffer();
+                try {
+                    new DefaultLispInfoReply(infoReply, nonce, keyId, authDataLength,
+                            authData, ttl, maskLength, eidPrefix, natLcafAddress).writeTo(byteBuf);
+                } catch (LispWriterException e) {
+                    log.warn("Failed to serialize info reply", e);
+                }
+
+                byte[] bytes = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(bytes);
+
+                if (authKey == null) {
+                    log.warn("Must specify authentication key");
+                }
+
+                authData = factory.createAuthenticationData(valueOf(keyId), authKey, bytes);
+            }
+
             return new DefaultLispInfoReply(infoReply, nonce, keyId, authDataLength,
-                    authenticationData, ttl, maskLength, eidPrefix, natLcafAddress);
+                    authData, ttl, maskLength, eidPrefix, natLcafAddress);
         }
     }
 
@@ -193,11 +236,11 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
             LispNatLcafAddress natLcafAddress = new LispNatLcafAddress.NatLcafAddressReader().readFrom(byteBuf);
 
             return new DefaultInfoReplyBuilder()
-                    .withInfoReply(lispInfo.hasInfoReply())
+                    .withInfoReply(lispInfo.isInfoReply())
                     .withNonce(lispInfo.getNonce())
                     .withKeyId(lispInfo.getKeyId())
                     .withAuthDataLength(lispInfo.getAuthDataLength())
-                    .withAuthenticationData(lispInfo.getAuthenticationData())
+                    .withAuthData(lispInfo.getAuthData())
                     .withTtl(lispInfo.getTtl())
                     .withMaskLength(lispInfo.getMaskLength())
                     .withEidPrefix(lispInfo.getPrefix())

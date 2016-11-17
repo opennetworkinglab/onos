@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.incubator.net.PortStatisticsService;
@@ -29,6 +30,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
+import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
@@ -327,6 +329,17 @@ class Topo2Jsonifier {
         }
     }
 
+    private void addIps(ObjectNode node, Host h) {
+        Set<IpAddress> ips = h.ipAddresses();
+
+        ArrayNode a = arrayNode();
+        for (IpAddress ip : ips) {
+            a.add(ip.toString());
+        }
+
+        node.set("ips", a);
+    }
+
     // return list of string values from annotated instance, for given keys
     // return null if any keys are not present
     List<String> getAnnotValues(Annotated a, String... annotKeys) {
@@ -351,11 +364,18 @@ class Topo2Jsonifier {
     }
 
     private ObjectNode json(UiHost host) {
-        return objectNode()
+        ObjectNode node = objectNode()
                 .put("id", host.idAsString())
                 .put("nodeType", HOST)
                 .put("layer", host.layer());
         // TODO: complete host details
+        Host h = host.backingHost();
+
+        addIps(node, h);
+        addGeoLocation(node, h);
+        addMetaUi(node, host.idAsString());
+
+        return node;
     }
 
     private ObjectNode json(UiSynthLink sLink) {

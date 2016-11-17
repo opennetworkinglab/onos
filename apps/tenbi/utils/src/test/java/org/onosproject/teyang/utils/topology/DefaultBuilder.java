@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.teyang.utils.topology;
 
-import java.math.BigInteger;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.onosproject.tetopology.management.api.DefaultNetwork;
 import org.onosproject.tetopology.management.api.DefaultNetworks;
 import org.onosproject.tetopology.management.api.KeyId;
@@ -39,7 +38,8 @@ import org.onosproject.tetopology.management.api.node.TeStatus;
 import org.onosproject.tetopology.management.api.node.TerminationPoint;
 import org.onosproject.tetopology.management.api.node.TerminationPointKey;
 
-import com.google.common.collect.Lists;
+import java.math.BigInteger;
+import java.util.List;
 
 /**
  * Builds a sample Topology, which consists of two Nodes, one link,
@@ -123,8 +123,8 @@ public final class DefaultBuilder {
         node2.setTerminationPoints(tps2);
 
         TeNode teNode2 = new TeNode(NODE2_IP);
-        teNode1.setAdminStatus(TeStatus.UP);
-        teNode1.setAbstract(false);
+        teNode2.setAdminStatus(TeStatus.UP);
+        teNode2.setAbstract(false);
         ConnectivityMatrix cMatrix2 =
                 new ConnectivityMatrix(1,
                                        new TerminationPointKey(huaweiNetworkNew.networkId(),
@@ -133,8 +133,8 @@ public final class DefaultBuilder {
                                                                node2.nodeId(), tp22.id()),
                                        true);
         List<ConnectivityMatrix> connMatrices2 = Lists.newArrayList();
-        connMatrices.add(cMatrix2);
-        teNode1.setConnectivityMatrices(connMatrices2);
+        connMatrices2.add(cMatrix2);
+        teNode2.setConnectivityMatrices(connMatrices2);
         node2.setTe(teNode2);
 
         nodes.add(node1);
@@ -146,10 +146,10 @@ public final class DefaultBuilder {
         DefaultNetworkLink link1 = new DefaultNetworkLink(KeyId.keyId(LINK1FORNETWORK1));
         link1.setSource(new TerminationPointKey(huaweiNetworkNew.networkId(),
                                                 node1.nodeId(),
-                                                tp11.id()));
+                                                tp12.id()));
         link1.setDestination(new TerminationPointKey(huaweiNetworkNew.networkId(),
                                                      node2.nodeId(),
-                                                     tp21.id()));
+                                                     tp22.id()));
         TeLink teLink1 = new TeLink(BigInteger.valueOf(1));
         teLink1.setIsAbstract(false);
         teLink1.setAdminStatus(TeStatus.UP);

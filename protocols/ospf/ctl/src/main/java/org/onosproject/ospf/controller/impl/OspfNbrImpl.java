@@ -556,6 +556,7 @@ public class OspfNbrImpl implements OspfNbr {
      * In addition, stop the possibly activated re transmission timer.
      *
      * @param ch netty channel instance
+     * @throws Exception on error
      */
     public void badLSReq(Channel ch) throws Exception {
         log.debug("OSPFNbr::badLSReq...!!!");

@@ -36,6 +36,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.impl.LabelAllocator;
 import org.slf4j.Logger;
 
 import java.util.LinkedList;
@@ -67,6 +68,7 @@ public class PathIntentCompiler
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
         registrator.registerCompiler(PathIntent.class, this, false);
+        labelAllocator = new LabelAllocator(resourceService);
     }
 
     @Deactivate

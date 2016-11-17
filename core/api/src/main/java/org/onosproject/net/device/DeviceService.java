@@ -16,6 +16,7 @@
 package org.onosproject.net.device;
 
 import org.onosproject.event.ListenerService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -142,6 +143,16 @@ public interface DeviceService
      * @return device port
      */
     Port getPort(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Returns the port with the specified connect point.
+     *
+     * @param cp connect point
+     * @return device port
+     */
+    default Port getPort(ConnectPoint cp) {
+        return getPort(cp.deviceId(), cp.port());
+    }
 
     /**
      * Indicates whether or not the device is presently online and available.

@@ -3,6 +3,7 @@ BUNDLES = [
   '//protocols/snmp/api:onos-protocols-snmp-api',
   '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
   '//lib:org.apache.servicemix.bundles.snmp4j',
+  '//lib:mibs-rfc',
   '//lib:snmp-core',
   '//lib:bti7000',
   '//lib:mibs-net-snmp',

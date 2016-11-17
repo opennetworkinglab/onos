@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -48,6 +49,9 @@ import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.meter.MeterId;
 import org.slf4j.Logger;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,11 +62,13 @@ public final class DecodeInstructionCodecHelper {
     protected static final Logger log = getLogger(DecodeInstructionCodecHelper.class);
     private final ObjectNode json;
     private final CodecContext context;
+    private static final Pattern ETHTYPE_PATTERN = Pattern.compile("0x([0-9a-fA-F]{4})");
 
     /**
      * Creates a decode instruction codec object.
      *
      * @param json JSON object to decode
+     * @param context codec context
      */
     public DecodeInstructionCodecHelper(ObjectNode json, CodecContext context) {
         this.json = json;
@@ -108,6 +114,9 @@ public final class DecodeInstructionCodecHelper {
         } else if (subType.equals(L2ModificationInstruction.L2SubType.VLAN_POP.name())) {
             return Instructions.popVlan();
         } else if (subType.equals(L2ModificationInstruction.L2SubType.VLAN_PUSH.name())) {
+            if (json.has(InstructionCodec.ETHERNET_TYPE)) {
+                return Instructions.pushVlan(getEthType());
+            }
             return Instructions.pushVlan();
         } else if (subType.equals(L2ModificationInstruction.L2SubType.TUNNEL_ID.name())) {
             long tunnelId = nullIsIllegal(json.get(InstructionCodec.TUNNEL_ID),
@@ -309,6 +318,23 @@ public final class DecodeInstructionCodecHelper {
                     + " is not supported");
         }
         return portNumber;
+    }
+
+    /**
+     * Returns Ethernet type.
+     *
+     * @return ethernet type
+     * @throws IllegalArgumentException if the JSON is invalid
+     */
+    private EthType getEthType() {
+        String ethTypeStr = nullIsIllegal(json.get(InstructionCodec.ETHERNET_TYPE),
+                  InstructionCodec.ETHERNET_TYPE + InstructionCodec.MISSING_MEMBER_MESSAGE).asText();
+        Matcher matcher = ETHTYPE_PATTERN.matcher(ethTypeStr);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("ETHERNET_TYPE must be a four digit hex string starting with 0x");
+        }
+        short ethernetType = (short) Integer.parseInt(matcher.group(1), 16);
+        return new EthType(ethernetType);
     }
 
     /**

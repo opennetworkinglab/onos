@@ -441,7 +441,8 @@ public class NetconfSessionImpl implements NetconfSession {
                     + "</config>";
         }
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc>");
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append("<copy-config>");
         rpc.append("<target>");
         rpc.append("<").append(targetConfiguration).append("/>");

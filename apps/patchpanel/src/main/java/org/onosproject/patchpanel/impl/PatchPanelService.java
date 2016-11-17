@@ -27,6 +27,7 @@ public interface PatchPanelService {
      *
      * @param cp    the first connect point
      * @param cp2   the second connect point
+     * @return      true if the patch was created, false otherwise
      */
     boolean addPatch(ConnectPoint cp, ConnectPoint cp2);
 }

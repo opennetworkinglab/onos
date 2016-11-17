@@ -29,7 +29,7 @@
     <packaging>bundle</packaging>
 
     <properties>
-        <web.context>/onos/openstackswitching</web.context>
+        <web.context>/onos/openstacknetworking</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS Openstack Networking REST API</api.title>
         <api.description>

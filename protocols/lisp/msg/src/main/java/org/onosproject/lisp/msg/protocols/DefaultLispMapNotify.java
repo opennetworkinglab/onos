@@ -19,15 +19,21 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 
 /**
@@ -36,13 +42,16 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordW
 public final class DefaultLispMapNotify extends AbstractLispMessage
         implements LispMapNotify {
 
+    private static final Logger log = LoggerFactory.getLogger(DefaultLispMapNotify.class);
+
     private final long nonce;
     private final short keyId;
     private final short authDataLength;
-    private final byte[] authenticationData;
+    private final byte[] authData;
     private final List<LispMapRecord> mapRecords;
 
     static final NotifyWriter WRITER;
+
     static {
         WRITER = new NotifyWriter();
     }
@@ -50,17 +59,17 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
     /**
      * A private constructor that protects object instantiation from external.
      *
-     * @param nonce              nonce
-     * @param keyId              key identifier
-     * @param authenticationData authentication data
-     * @param mapRecords         a collection of map records
+     * @param nonce      nonce
+     * @param keyId      key identifier
+     * @param authData   authentication data
+     * @param mapRecords a collection of map records
      */
     private DefaultLispMapNotify(long nonce, short keyId, short authDataLength,
-                                 byte[] authenticationData, List<LispMapRecord> mapRecords) {
+                                 byte[] authData, List<LispMapRecord> mapRecords) {
         this.nonce = nonce;
         this.keyId = keyId;
         this.authDataLength = authDataLength;
-        this.authenticationData = authenticationData;
+        this.authData = authData;
         this.mapRecords = mapRecords;
     }
 
@@ -100,9 +109,9 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
     }
 
     @Override
-    public byte[] getAuthenticationData() {
-        if (authenticationData != null && authenticationData.length != 0) {
-            return ImmutableByteSequence.copyFrom(authenticationData).asArray();
+    public byte[] getAuthData() {
+        if (authData != null && authData.length != 0) {
+            return ImmutableByteSequence.copyFrom(authData).asArray();
         } else {
             return new byte[0];
         }
@@ -120,7 +129,7 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
                 .add("nonce", nonce)
                 .add("keyId", keyId)
                 .add("authentication data length", authDataLength)
-                .add("authentication data", authenticationData)
+                .add("authentication data", authData)
                 .add("mapRecords", mapRecords).toString();
     }
 
@@ -136,13 +145,13 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
         return Objects.equal(nonce, that.nonce) &&
                 Objects.equal(keyId, that.keyId) &&
                 Objects.equal(authDataLength, that.authDataLength) &&
-                Arrays.equals(authenticationData, that.authenticationData);
+                Arrays.equals(authData, that.authData);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(nonce, keyId, authDataLength) +
-                Arrays.hashCode(authenticationData);
+                Arrays.hashCode(authData);
     }
 
     public static final class DefaultNotifyBuilder implements NotifyBuilder {
@@ -150,7 +159,8 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
         private long nonce;
         private short keyId;
         private short authDataLength;
-        private byte[] authenticationData;
+        private byte[] authData;
+        private String authKey;
         private List<LispMapRecord> mapRecords = Lists.newArrayList();
 
         @Override
@@ -171,17 +181,23 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
         }
 
         @Override
+        public NotifyBuilder withAuthKey(String key) {
+            this.authKey = key;
+            return this;
+        }
+
+        @Override
         public NotifyBuilder withAuthDataLength(short authDataLength) {
             this.authDataLength = authDataLength;
             return this;
         }
 
         @Override
-        public NotifyBuilder withAuthenticationData(byte[] authenticationData) {
-            if (authenticationData != null) {
-                this.authenticationData = authenticationData;
+        public NotifyBuilder withAuthData(byte[] authData) {
+            if (authData != null) {
+                this.authData = authData;
             } else {
-                this.authenticationData = new byte[0];
+                this.authData = new byte[0];
             }
             return this;
         }
@@ -197,12 +213,34 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
         @Override
         public LispMapNotify build() {
 
-            if (authenticationData == null) {
-                authenticationData = new byte[0];
+            // if authentication data is not specified, we will calculate it
+            if (authData == null) {
+                LispAuthenticationFactory factory = LispAuthenticationFactory.getInstance();
+
+                authDataLength = LispAuthenticationKeyEnum.valueOf(keyId).getHashLength();
+                byte[] tmpAuthData = new byte[authDataLength];
+                Arrays.fill(tmpAuthData, (byte) 0);
+                authData = tmpAuthData;
+
+                ByteBuf byteBuf = Unpooled.buffer();
+                try {
+                    new DefaultLispMapNotify(nonce, keyId, authDataLength,
+                            authData, mapRecords).writeTo(byteBuf);
+                } catch (LispWriterException e) {
+                    log.warn("Failed to serialize map notify message", e);
+                }
+
+                byte[] bytes = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(bytes);
+
+                if (authKey == null) {
+                    log.warn("Must specify authentication key");
+                }
+
+                authData = factory.createAuthenticationData(valueOf(keyId), authKey, bytes);
             }
 
-            return new DefaultLispMapNotify(nonce, keyId, authDataLength,
-                    authenticationData, mapRecords);
+            return new DefaultLispMapNotify(nonce, keyId, authDataLength, authData, mapRecords);
         }
     }
 
@@ -235,7 +273,7 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
             // authenticationDataLength -> 16 bits
             short authLength = byteBuf.readShort();
 
-            // authenticationData -> depends on the authenticationDataLength
+            // authData -> depends on the authenticationDataLength
             byte[] authData = new byte[authLength];
             byteBuf.readBytes(authData);
 
@@ -245,12 +283,12 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
             }
 
             return new DefaultNotifyBuilder()
-                        .withNonce(nonce)
-                        .withKeyId(keyId)
-                        .withAuthDataLength(authLength)
-                        .withAuthenticationData(authData)
-                        .withMapRecords(mapRecords)
-                        .build();
+                    .withNonce(nonce)
+                    .withKeyId(keyId)
+                    .withAuthDataLength(authLength)
+                    .withAuthData(authData)
+                    .withMapRecords(mapRecords)
+                    .build();
         }
     }
 
@@ -283,11 +321,11 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
             byteBuf.writeShort(message.getKeyId());
 
             // authentication data and its length
-            if (message.getAuthenticationData() == null) {
+            if (message.getAuthData() == null) {
                 byteBuf.writeShort((short) 0);
             } else {
-                byteBuf.writeShort(message.getAuthenticationData().length);
-                byteBuf.writeBytes(message.getAuthenticationData());
+                byteBuf.writeShort(message.getAuthData().length);
+                byteBuf.writeBytes(message.getAuthData());
             }
 
             // serialize map records

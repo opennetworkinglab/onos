@@ -131,9 +131,12 @@ public class EdgeManagerTest {
         ConnectPoint testPoint, referencePoint;
 
         //Testing link removal
+        devices.put(NetTestTools.did("a"), NetTestTools.device("a"));
+        devices.put(NetTestTools.did("b"), NetTestTools.device("b"));
         postTopologyEvent(new LinkEvent(LINK_REMOVED, NetTestTools.link("a", 1, "b", 2)));
 
-        assertTrue("The list contained an unexpected number of events", events.size() == 2);
+        assertEquals("The list contained an unexpected number of events",
+                     2, events.size());
         assertTrue("The first element is of the wrong type.",
                    events.get(0).type() == EDGE_PORT_ADDED);
 

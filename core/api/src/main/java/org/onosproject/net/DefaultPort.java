@@ -121,6 +121,7 @@ public class DefaultPort extends AbstractAnnotated implements Port {
                 .add("isEnabled", isEnabled)
                 .add("type", type)
                 .add("portSpeed", portSpeed)
+                .add("annotations", annotations())
                 .toString();
     }
 

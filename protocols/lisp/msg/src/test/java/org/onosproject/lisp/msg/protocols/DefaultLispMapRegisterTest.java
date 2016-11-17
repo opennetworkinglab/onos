@@ -46,6 +46,7 @@ public final class DefaultLispMapRegisterTest {
     private LispMapRegister register1;
     private LispMapRegister sameAsRegister1;
     private LispMapRegister register2;
+    private static final String AUTH_KEY = "onos";
 
     @Before
     public void setup() {
@@ -58,6 +59,7 @@ public final class DefaultLispMapRegisterTest {
                         .withIsProxyMapReply(true)
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
+                        .withAuthKey(AUTH_KEY)
                         .withNonce(1L)
                         .withMapRecords(records1)
                         .build();
@@ -70,6 +72,7 @@ public final class DefaultLispMapRegisterTest {
                         .withIsProxyMapReply(true)
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 1)
+                        .withAuthKey(AUTH_KEY)
                         .withNonce(1L)
                         .withMapRecords(records2)
                         .build();
@@ -80,6 +83,7 @@ public final class DefaultLispMapRegisterTest {
                         .withIsProxyMapReply(true)
                         .withIsWantMapNotify(false)
                         .withKeyId((short) 2)
+                        .withAuthKey(AUTH_KEY)
                         .withNonce(2L)
                         .build();
     }

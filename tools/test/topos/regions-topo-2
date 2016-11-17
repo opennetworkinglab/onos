@@ -21,17 +21,17 @@ onos ${host} <<-EOF
 null-create-device switch DOVER 10 51.1295 1.3089
 
 # region 1
-null-create-device switch BRGHTN-A 10 50.9000 -0.1313
-null-create-device switch BRGHTN-B 10 50.8429 -0.1413
-null-create-device switch BRGHTN-C 10 50.8429 -0.1213
+null-create-device switch BRGHTN-A 10 50.95 -0.1313
+null-create-device switch BRGHTN-B 10 50.8429 -0.3013
+null-create-device switch BRGHTN-C 10 50.8429 0.2
 
 # region 2
-null-create-device switch LONDON-A 10 51.5091 -0.2704
-null-create-device switch LONDON-B 10 51.5091 0.0432
+null-create-device switch LONDON-A 10 51.5091 -0.3704
+null-create-device switch LONDON-B 10 51.5091 0.132
 # region 3 (subregion of 2)
 null-create-device switch LONDON-C 10 51.4513 -0.1058
-null-create-device switch LONDON-D 10 51.5418 -0.1931
-null-create-device switch LONDON-E 10 51.5072 -0.1175
+null-create-device switch LONDON-D 10 51.5518 -0.1031
+null-create-device switch LONDON-E 10 51.5072 -0.3075
 
 ## NOTE: create more than 9 devices seems to be broken
 

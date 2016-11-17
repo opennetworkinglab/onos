@@ -103,7 +103,10 @@ public class DeviceServiceAdapter implements DeviceService {
 
     @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-        return null;
+        return getPorts(deviceId).stream()
+                   .filter(port -> deviceId.equals(port.element().id()))
+                   .filter(port -> portNumber.equals(port.number()))
+                   .findFirst().orElse(null);
     }
 
     @Override

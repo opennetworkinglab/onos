@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.List;
 
 import org.onosproject.tetopology.management.api.KeyId;
+import org.onosproject.tetopology.management.api.TeTopologyEvent;
 import org.onosproject.tetopology.management.api.link.NetworkLink;
 import org.onosproject.tetopology.management.api.node.NetworkNode;
 import org.onosproject.teyang.api.OperationType;
@@ -71,6 +72,7 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologyaugment.Te;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologytype.DefaultTeTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tetopologytype.TeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.IetfTeTopologyEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705
         .ietftetypes.TeGlobalId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705
@@ -478,6 +480,18 @@ public final class NetworkConverter {
         teNetwork.setServerProvided(yangNetworkState.serverProvided());
 
         return teNetwork;
+    }
+
+    /**
+     * Converts a TE Topology event from the data format used in core to its
+     * corresponding YANG Object (YO) format.
+     *
+     * @param event TE Topology event from the core
+     * @return YANG Object converted from event
+     */
+    public static IetfTeTopologyEvent teTopoEvent2YangIetfTeTopoEvent(TeTopologyEvent event) {
+      // TODO: implementation will be submitted as a seperate review.
+      return null;
     }
 }
 

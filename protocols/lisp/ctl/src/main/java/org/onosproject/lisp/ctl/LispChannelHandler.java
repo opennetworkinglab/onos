@@ -24,7 +24,6 @@ import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
-import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,16 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
         // first we need to check whether this is an ECM
         if (msg instanceof LispEncapsulatedControl) {
-            msg = extractMapRequest((LispEncapsulatedControl) msg);
+            LispMessage innerMsg = extractLispMessage((LispEncapsulatedControl) msg);
+            if (innerMsg instanceof LispMapRequest) {
+                LispMapResolver mapResolver = new LispMapResolver();
+                LispMessage lispMessage = mapResolver.processMapRequest((LispEncapsulatedControl) msg);
+
+                // try to remove the received map-request message from buffer
+                ReferenceCountUtil.release(msg);
+
+                ctx.writeAndFlush(lispMessage);
+            }
         }
 
         if (msg instanceof LispMapRegister) {
@@ -53,14 +61,6 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             ReferenceCountUtil.release(msg);
 
             ctx.writeAndFlush(mapNotify);
-        }
-
-        if (msg instanceof LispMapRequest) {
-            LispMapResolver mapResolver = new LispMapResolver();
-            LispMapReply mapReply =
-                    (LispMapReply) mapResolver.processMapRequest((LispMapRequest) msg);
-
-            // TODO: serialize mapReply message and write to channel
         }
     }
 
@@ -96,7 +96,9 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
      * @param ecm Encapsulated Control Message
      * @return extracted LISP message
      */
-    private LispMessage extractMapRequest(LispEncapsulatedControl ecm) {
-        return ecm.getControlMessage();
+    private LispMessage extractLispMessage(LispEncapsulatedControl ecm) {
+        LispMessage message = ecm.getControlMessage();
+        message.configSender(ecm.getSender());
+        return message;
     }
 }

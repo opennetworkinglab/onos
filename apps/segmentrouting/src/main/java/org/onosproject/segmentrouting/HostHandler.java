@@ -108,8 +108,8 @@ public class HostHandler {
                 // Populate IP table entry
                 if (ip.isIp4()) {
                     addPerHostRoute(location, ip.getIp4Address());
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
+                    srManager.routingRulePopulator.populateRoute(
+                            deviceId, ip.toIpPrefix(), mac, port);
                 }
             });
         }
@@ -146,8 +146,8 @@ public class HostHandler {
             ips.forEach(ip -> {
                 if (ip.isIp4()) {
                     removePerHostRoute(location, ip.getIp4Address());
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            deviceId, ip.getIp4Address(), mac, port);
+                    srManager.routingRulePopulator.revokeRoute(
+                            deviceId, ip.toIpPrefix(), mac, port);
                 }
             });
         }
@@ -185,8 +185,8 @@ public class HostHandler {
             prevIps.forEach(ip -> {
                 if (ip.isIp4()) {
                     removePerHostRoute(prevLocation, ip.getIp4Address());
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                    srManager.routingRulePopulator.revokeRoute(
+                            prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
             });
         }
@@ -209,8 +209,8 @@ public class HostHandler {
             newIps.forEach(ip -> {
                 if (ip.isIp4()) {
                     addPerHostRoute(newLocation, ip.getIp4Address());
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                    srManager.routingRulePopulator.populateRoute(
+                            newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
             });
         }
@@ -234,8 +234,8 @@ public class HostHandler {
             prevIps.forEach(ip -> {
                 if (ip.isIp4()) {
                     removePerHostRoute(prevLocation, ip.getIp4Address());
-                    srManager.routingRulePopulator.revokeIpRuleForHost(
-                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                    srManager.routingRulePopulator.revokeRoute(
+                            prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
             });
         }
@@ -245,8 +245,8 @@ public class HostHandler {
             newIps.forEach(ip -> {
                 if (ip.isIp4()) {
                     addPerHostRoute(newLocation, ip.getIp4Address());
-                    srManager.routingRulePopulator.populateIpRuleForHost(
-                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                    srManager.routingRulePopulator.populateRoute(
+                            newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
             });
         }

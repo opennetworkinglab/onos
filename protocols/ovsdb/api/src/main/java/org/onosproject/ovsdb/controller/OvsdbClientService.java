@@ -72,7 +72,7 @@ public interface OvsdbClientService extends OvsdbRpc {
     /**
      * Drops the configuration for mirror.
      *
-     * @param mirroringName
+     * @param mirroringName name of mirror to drop
      */
     void dropMirror(MirroringName mirroringName);
 

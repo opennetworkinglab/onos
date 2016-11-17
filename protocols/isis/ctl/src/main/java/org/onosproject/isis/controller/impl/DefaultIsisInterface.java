@@ -512,6 +512,7 @@ public class DefaultIsisInterface implements IsisInterface {
      *
      * @param isisMessage received ISIS message
      * @param isisLsdb    ISIS LSDB instance
+     * @param channel     channel
      */
     public void processIsisMessage(IsisMessage isisMessage, IsisLsdb isisLsdb, Channel channel) {
         log.debug("IsisInterfaceImpl::processIsisMessage...!!!");

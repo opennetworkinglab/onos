@@ -41,9 +41,10 @@ public class MainModuleResource extends AbstractInjectionResource {
 
     private static final String MAIN_JS = "onos.js";
 
-    private static final String INJECT_VIEW_IDS_START = "// {INJECTED-VIEW-IDS-START}";
-    private static final String INJECT_VIEW_IDS_END = "// {INJECTED-VIEW-IDS-END}";
+    private static final String INJECT_VIEW_IDS_START = "// {INJECTED-VIEW-DATA-START}";
+    private static final String INJECT_VIEW_IDS_END = "// {INJECTED-VIEW-DATA-END}";
     private static final String PREFIX = "        '";
+    private static final String MIDFIX = "' : '";
     private static final String SUFFIX = String.format("',%n");
 
     @GET
@@ -70,10 +71,19 @@ public class MainModuleResource extends AbstractInjectionResource {
         StringBuilder sb = new StringBuilder("\n");
         for (UiExtension extension : service.getExtensions()) {
             for (UiView view : extension.views()) {
-                sb.append(PREFIX).append(view.id()).append(SUFFIX);
+                sb.append(PREFIX)
+                        .append(view.id())
+                        .append(MIDFIX)
+                        .append(sanitizeUrl(view.helpPageUrl()))
+                        .append(SUFFIX);
             }
         }
         return new ByteArrayInputStream(sb.toString().getBytes());
+    }
+
+    private String sanitizeUrl(String url) {
+        // TODO: add logic for validating URL
+        return url;
     }
 
 }

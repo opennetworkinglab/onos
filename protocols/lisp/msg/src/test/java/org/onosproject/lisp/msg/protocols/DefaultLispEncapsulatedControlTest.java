@@ -48,6 +48,8 @@ public final class DefaultLispEncapsulatedControlTest {
     private static final String ECM2_DST_IP = "192.168.2.2";
     private static final String RECORD_EID = "1.1.1.1";
 
+    private static final String AUTH_KEY = "onos";
+
     private LispEncapsulatedControl ecm1;
     private LispEncapsulatedControl sameAsEcm1;
     private LispEncapsulatedControl ecm2;
@@ -74,6 +76,7 @@ public final class DefaultLispEncapsulatedControlTest {
         LispMapRegister innerMsg1 = msgBuilder.withIsProxyMapReply(true)
                                     .withIsWantMapNotify(false)
                                     .withKeyId((short) 1)
+                                    .withAuthKey(AUTH_KEY)
                                     .withNonce(1L)
                                     .withMapRecords(records1)
                                     .build();
@@ -103,6 +106,7 @@ public final class DefaultLispEncapsulatedControlTest {
         LispMapRegister innerMsg2 = msgBuilder2.withIsProxyMapReply(true)
                 .withIsWantMapNotify(false)
                 .withKeyId((short) 1)
+                .withAuthKey(AUTH_KEY)
                 .withNonce(1L)
                 .withMapRecords(records2)
                 .build();
@@ -132,6 +136,7 @@ public final class DefaultLispEncapsulatedControlTest {
         LispMapRegister innerMsg3 = msgBuilder3.withIsProxyMapReply(true)
                 .withIsWantMapNotify(false)
                 .withKeyId((short) 2)
+                .withAuthKey(AUTH_KEY)
                 .withNonce(1L)
                 .withMapRecords(records3)
                 .build();

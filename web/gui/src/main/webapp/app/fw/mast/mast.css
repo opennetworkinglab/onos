@@ -52,13 +52,18 @@ html[data-platform='iPad'] #mast {
     line-height: 44px;
 }
 
-
 /*
     MAST HEAD DROPDOWN MENU
 */
 
+#mast-right div.ctrl-btns {
+    position: relative;
+    float: right;
+}
+
 #mast .dropdown-parent {
     position: relative;
+    float: right;
 }
 
 #mast .dropdown-parent i.dropdown-icon {

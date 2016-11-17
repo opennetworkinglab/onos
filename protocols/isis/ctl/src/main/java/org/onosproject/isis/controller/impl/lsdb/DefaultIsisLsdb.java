@@ -236,6 +236,9 @@ public class DefaultIsisLsdb implements IsisLsdb {
     /**
      * Installs a new self-originated LSP.
      *
+     * @param isisMessage ISIS message
+     * @param isSelfOriginated is the message self originated?
+     * @param isisInterface ISIS interface
      * @return true if successfully added
      */
     public boolean addLsp(IsisMessage isisMessage, boolean isSelfOriginated, IsisInterface isisInterface) {

@@ -42,6 +42,8 @@ public class DefaultIsisRouter implements IsisRouter {
 
     /**
      * Sets IP address of the Router.
+     *
+     * @param systemId system identifier of the router
      */
     public void setSystemId(String systemId) {
         this.systemId = systemId;

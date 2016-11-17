@@ -94,89 +94,90 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates IP flow rules for specific hosts directly connected to the
+     * Populates IP rules for a route that has direct connection to the
      * switch.
      *
-     * @param deviceId switch ID to set the rules
-     * @param hostIp host IP address
-     * @param hostMac host MAC address
-     * @param outPort port where the host is connected
+     * @param deviceId device ID of the device that next hop attaches to
+     * @param prefix IP prefix of the route
+     * @param hostMac MAC address of the next hop
+     * @param outPort port where the next hop attaches to
      */
-    public void populateIpRuleForHost(DeviceId deviceId, Ip4Address hostIp,
+    public void populateRoute(DeviceId deviceId, IpPrefix prefix,
                                       MacAddress hostMac, PortNumber outPort) {
-        log.debug("Populate IP table entry for host {} at {}:{}",
-                hostIp, deviceId, outPort);
+        log.debug("Populate IP table entry for route {} at {}:{}",
+                prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = getForwardingObjectiveBuilder(
-                    deviceId, hostIp, hostMac, outPort);
+                    deviceId, prefix, hostMac, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
         }
         if (fwdBuilder == null) {
             log.warn("Aborting host routing table entries due "
-                    + "to error for dev:{} host:{}", deviceId, hostIp);
+                    + "to error for dev:{} route:{}", deviceId, prefix);
             return;
         }
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for host {} populated", hostIp),
+                (objective) -> log.debug("IP rule for route {} populated", prefix),
                 (objective, error) ->
-                        log.warn("Failed to populate IP rule for host {}: {}", hostIp, error));
+                        log.warn("Failed to populate IP rule for route {}: {}", prefix, error));
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
     }
 
     /**
-     * Removes IP rules for host when the host is gone.
+     * Removes IP rules for a route when the next hop is gone.
      *
-     * @param deviceId device ID of the device that host attaches to
-     * @param hostIp IP address of the host
-     * @param hostMac MAC address of the host
-     * @param outPort port that host attaches to
+     * @param deviceId device ID of the device that next hop attaches to
+     * @param prefix IP prefix of the route
+     * @param hostMac MAC address of the next hop
+     * @param outPort port that next hop attaches to
      */
-    public void revokeIpRuleForHost(DeviceId deviceId, Ip4Address hostIp,
+    public void revokeRoute(DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, PortNumber outPort) {
-        log.debug("Revoke IP table entry for host {} at {}:{}",
-                hostIp, deviceId, outPort);
+        log.debug("Revoke IP table entry for route {} at {}:{}",
+                prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = getForwardingObjectiveBuilder(
-                    deviceId, hostIp, hostMac, outPort);
+                    deviceId, prefix, hostMac, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
         }
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for host {} revoked", hostIp),
+                (objective) -> log.debug("IP rule for route {} revoked", prefix),
                 (objective, error) ->
-                        log.warn("Failed to revoke IP rule for host {}: {}", hostIp, error));
+                        log.warn("Failed to revoke IP rule for route {}: {}", prefix, error));
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.remove(context));
     }
 
+    /**
+     * Returns a forwarding objective that points packets destined to a
+     * given prefix to given port on given device with given destination MAC.
+     *
+     * @param deviceId device ID
+     * @param prefix prefix that need to be routed
+     * @param hostMac MAC address of the nexthop
+     * @param outPort port where the nexthop attaches to
+     * @return forwarding objective builder
+     * @throws DeviceConfigNotFoundException if given device is not configured
+     */
     private ForwardingObjective.Builder getForwardingObjectiveBuilder(
-            DeviceId deviceId, Ip4Address hostIp,
+            DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, PortNumber outPort)
             throws DeviceConfigNotFoundException {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
-        int priority;
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
-        // Special case for default route
-        if (hostIp.isZero()) {
-            sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, 0));
-            priority = SegmentRoutingService.MIN_IP_PRIORITY;
-        } else {
-            Ip4Prefix hostIpPrefix = Ip4Prefix.valueOf(hostIp, IpPrefix.MAX_INET_MASK_LENGTH);
-            sbuilder.matchIPDst(hostIpPrefix);
-            priority = getPriorityFromPrefix(hostIpPrefix);
-        }
+        sbuilder.matchIPDst(prefix);
         TrafficSelector selector = sbuilder.build();
 
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         tbuilder.deferred()
                 .setEthDst(hostMac)
                 .setEthSrc(deviceMac)
@@ -204,7 +205,7 @@ public class RoutingRulePopulator {
                 .withSelector(selector)
                 .nextStep(portNextObjId)
                 .fromApp(srManager.appId).makePermanent()
-                .withPriority(priority)
+                .withPriority(getPriorityFromPrefix(prefix))
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
     }
 

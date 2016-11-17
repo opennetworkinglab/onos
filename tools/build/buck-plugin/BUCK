@@ -2,8 +2,8 @@
 remote_jar (
   name = 'buck-api',
   out = 'buck.jar',
-  url = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/buck-api/0.1-SNAPSHOT/buck-api-0.1-20161012.212306-4.jar',
-  sha1 = 'c9cca7ae74ad77dbcbd8e58fc2c6f8ed2b435305',
+  url = 'https://oss.sonatype.org/content/repositories/snapshots/org/onosproject/buck-api/0.1-SNAPSHOT/buck-api-0.1-20161113.012708-6.jar',
+  sha1 = 'da823563b03964eafc9ff76cd721b9253ae473a1',
   visibility = [],
 )
 

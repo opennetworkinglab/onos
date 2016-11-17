@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.util.StringFilter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.core.ApplicationId;
@@ -34,6 +35,7 @@ import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficTreatment;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -90,13 +92,21 @@ public class FlowsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean countOnly = false;
 
+    @Option(name = "-f", aliases = "--filter",
+            description = "Filter flows by specific key",
+            required = false, multiValued = true)
+    private List<String> filter = new ArrayList<>();
+
     private Predicate<FlowEntry> predicate = TRUE_PREDICATE;
+
+    private StringFilter contentFilter;
 
     @Override
     protected void execute() {
         CoreService coreService = get(CoreService.class);
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
+        contentFilter = new StringFilter(filter, StringFilter.Strategy.AND);
 
         compilePredicate();
 
@@ -211,13 +221,15 @@ public class FlowsListCommand extends AbstractShellCommand {
      */
     protected void printFlows(Device d, List<FlowEntry> flows,
                               CoreService coreService) {
-        boolean empty = flows == null || flows.isEmpty();
-        print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : flows.size());
+        List<FlowEntry> filteredFlows = flows.stream().
+                filter(f -> contentFilter.filter(f)).collect(Collectors.toList());
+        boolean empty = filteredFlows == null || filteredFlows.isEmpty();
+        print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : filteredFlows.size());
         if (empty || countOnly) {
             return;
         }
 
-        for (FlowEntry f : flows) {
+        for (FlowEntry f : filteredFlows) {
             if (shortOutput) {
                 print(SHORT_FORMAT, f.state(), f.bytes(), f.packets(),
                         f.tableId(), f.priority(), f.selector().criteria(),

@@ -258,7 +258,7 @@
 
 #ov-topo2 svg .link.inactive {
     opacity: .5;
-    stroke-dasharray: 8 4;
+    stroke-dasharray: 4 2;
 }
 /* TODO: Review for not-permitted links */
 #ov-topo2 svg .link.not-permitted {

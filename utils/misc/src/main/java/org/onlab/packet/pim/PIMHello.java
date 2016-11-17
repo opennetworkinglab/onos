@@ -91,6 +91,11 @@ public class PIMHello extends BasePacket {
 
     /**
      * XXX: This is deprecated, DO NOT USE, use the deserializer() function instead.
+     *
+     * @param data bytes to deserialize
+     * @param offset offset to start deserializing from
+     * @param length length of the data to deserialize
+     * @return nothing
      */
     public IPacket deserialize(final byte[] data, final int offset,
                                final int length) {

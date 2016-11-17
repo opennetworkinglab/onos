@@ -246,6 +246,7 @@ public class PredictableExecutor
      *
      * @param callable {@link Callable}
      * @param hint hint value
+     * @param <T> entity type
      * @return {@link PickyCallable}
      */
     public static <T> PickyCallable<T> picky(Callable<T> callable, int hint) {
@@ -257,6 +258,7 @@ public class PredictableExecutor
      *
      * @param callable {@link Callable}
      * @param hint hint function
+     * @param <T> entity type
      * @return {@link PickyCallable}
      */
     public static <T> PickyCallable<T> picky(Callable<T> callable, Function<Callable<T>, Integer> hint) {
@@ -307,6 +309,9 @@ public class PredictableExecutor
 
         /**
          * Same as {@link FutureTask#FutureTask(Runnable, Object)}.
+         *
+         * @param runnable work to do
+         * @param value result
          */
         public PickyFutureTask(Runnable runnable, T value) {
             super(runnable, value);
@@ -315,6 +320,8 @@ public class PredictableExecutor
 
         /**
          * Same as {@link FutureTask#FutureTask(Callable)}.
+         *
+         * @param callable work to be done
          */
         public PickyFutureTask(Callable<T> callable) {
             super(callable);

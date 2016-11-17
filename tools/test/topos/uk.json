@@ -1,17 +1,17 @@
 {
   "devices": {
-    "of:0000000000000001": { "basic": { "name": "LONDON", "latitude": 51.5072, "longitude": -0.1275   }},
-    "of:0000000000000002": { "basic": { "name": "BRISTL", "latitude": 51.4500, "longitude": -2.5833  }},
-    "of:0000000000000003": { "basic": { "name": "BIRMHM", "latitude": 52.4831, "longitude": -1.8936  }},
-    "of:0000000000000004": { "basic": { "name": "PLYMTH", "latitude": 50.3714, "longitude": -4.1422  }},
-    "of:0000000000000005": { "basic": { "name": "DOVER",  "latitude": 51.1295, "longitude":  1.3089  }},
-    "of:0000000000000006": { "basic": { "name": "BRGHTN", "latitude": 50.8429, "longitude": -0.1313  }},
-    "of:0000000000000007": { "basic": { "name": "LIVRPL", "latitude": 53.4000, "longitude": -3.0000  }},
-    "of:0000000000000008": { "basic": { "name": "YORK",   "latitude": 53.9583, "longitude": -1.0803  }},
-    "of:0000000000000009": { "basic": { "name": "NWCSTL", "latitude": 54.9667, "longitude": -1.6000  }},
-    "of:000000000000000a": { "basic": { "name": "NRWICH", "latitude": 52.6283, "longitude":  1.2967  }},
-    "of:000000000000000b": { "basic": { "name": "EDBUGH", "latitude": 55.9531, "longitude": -3.1889  }},
-    "of:000000000000000c": { "basic": { "name": "ABYSTW", "latitude": 52.4140, "longitude": -4.0810  }}
+    "of:0000000000000001": { "basic": { "name": "LONDON", "latitude": 51.5072, "longitude": -0.1275 }},
+    "of:0000000000000002": { "basic": { "name": "BRISTL", "latitude": 51.4500, "longitude": -2.5833 }},
+    "of:0000000000000003": { "basic": { "name": "BIRMHM", "latitude": 52.4831, "longitude": -1.8936 }},
+    "of:0000000000000004": { "basic": { "name": "PLYMTH", "latitude": 50.3714, "longitude": -4.1422 }},
+    "of:0000000000000005": { "basic": { "name": "DOVER",  "latitude": 51.1295, "longitude":  1.3089 }},
+    "of:0000000000000006": { "basic": { "name": "BRGHTN", "latitude": 50.8429, "longitude": -0.1313 }},
+    "of:0000000000000007": { "basic": { "name": "LIVRPL", "latitude": 53.4000, "longitude": -3.0000 }},
+    "of:0000000000000008": { "basic": { "name": "YORK",   "latitude": 53.9583, "longitude": -1.0803 }},
+    "of:0000000000000009": { "basic": { "name": "NWCSTL", "latitude": 54.9667, "longitude": -1.6000 }},
+    "of:000000000000000a": { "basic": { "name": "NRWICH", "latitude": 52.6283, "longitude":  1.2967 }},
+    "of:000000000000000b": { "basic": { "name": "EDBUGH", "latitude": 55.9531, "longitude": -3.1889 }},
+    "of:000000000000000c": { "basic": { "name": "ABYSTW", "latitude": 52.4140, "longitude": -4.0810 }}
   },
 
   "hosts": {

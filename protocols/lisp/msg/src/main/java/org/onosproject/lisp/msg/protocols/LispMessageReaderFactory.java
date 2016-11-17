@@ -16,18 +16,22 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
+import org.onlab.util.ByteOperator;
 
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestReader;
 import static org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmReader;
+import static org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.InfoRequestReader;
+import static org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyReader;
 
 /**
  * A factory class which helps to instantiate LISP reader class.
  */
 public final class LispMessageReaderFactory {
     private static final int TYPE_SHIFT_BIT = 4;
+    private static final int INFO_REPLY_INDEX = 3;
 
     private LispMessageReaderFactory() {}
 
@@ -55,6 +59,15 @@ public final class LispMessageReaderFactory {
                 break;
             case LISP_MAP_NOTIFY:
                 reader = new NotifyReader();
+                break;
+            case LISP_INFO:
+                boolean isInfoReply = ByteOperator.getBit(
+                        (byte) buffer.getUnsignedByte(0), INFO_REPLY_INDEX);
+                if (isInfoReply) {
+                    reader = new InfoReplyReader();
+                } else {
+                    reader = new InfoRequestReader();
+                }
                 break;
             case LISP_ENCAPSULATED_CONTROL:
                 reader = new EcmReader();

@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright 2016-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<scenario name="ha-single-node"
+          description="ONOS cluster single node failure and recovery">
+    <group name="Single-Node-Failure" if="${OC2}">
+        <step name="Node-Death" exec="onos-die ${OC1}"/>
+
+        <step name="Validate-Death" requires="Node-Death"
+              exec="onos-check-node-status ${OC2} ${OC1} INACTIVE"/>
+
+        <group name="Validate-Normal-Operation">
+            <step name="Check-Summary" requires="~Validate-Death"
+                  exec="onos-check-summary ${OC2} [0-9]* ${OTD} ${OTL} ${OTH}"/>
+
+            <step name="Balance-Masters" requires="~Check-Summary"
+                  exec="onos ${OC2} balance-masters"/>
+
+            <step name="Check-Summary-Again" requires="~Balance-Masters" delay="5"
+                  exec="onos-check-summary ${OC2} [0-9]* ${OTD} ${OTL} ${OTH}"/>
+
+            <step name="Check-Flows" requires="~Balance-Masters" delay="5"
+                  exec="onos-check-flows ${OC2}"/>
+        </group>
+
+        <group name="Recover" requires="~Validate-Normal-Operation">
+            <step name="Node-Start"
+                  exec="onos-service ${OC1} start"/>
+
+            <step name="Wait-for-Start" requires="~Node-Start"
+                  exec="onos-wait-for-start ${OC1}"/>
+        </group>
+
+        <group name="Validate-Recovery" requires="~Recover">
+            <parallel var="${OC#}">
+                <step name="Check-Nodes-${#}"
+                      exec="onos-check-nodes ${OC#}"/>
+
+                <step name="Check-Components-${#}" requires="~Check-Nodes-${#}"
+                      exec="onos-check-components ${OC#}"/>
+
+                <step name="Check-Logs-${#}" requires="~Check-Nodes-${#}"
+                      exec="onos-check-logs --ignore-store-exceptions ${OC#}"/>
+                <step name="Check-Apps-${#}" requires="~Check-Nodes-${#}"
+                      exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"/>
+
+                <step name="Check-Summary-${#}" requires="~Check-Nodes-${#},~Check-Apps-${#}"
+                      exec="onos-check-summary ${OC#} [0-9]* ${OTD} ${OTL} ${OTH}"/>
+            </parallel>
+        </group>
+
+        <step name="Balance-Masters-Again" requires="~Validate-Recovery"
+              exec="onos ${OC1} balance-masters"/>
+    </group>
+
+    <group name="Single-Node-NA" unless="${OC2}">
+        <step name="No-Op" exec="echo Scenario not supported for this cell size"/>
+    </group>
+
+
+</scenario>

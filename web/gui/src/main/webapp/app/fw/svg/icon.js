@@ -42,6 +42,7 @@
         topo: 'topo',
 
         refresh: 'refresh',
+        query: 'query',
         garbage: 'garbage',
 
         upArrow: 'triangleUp',

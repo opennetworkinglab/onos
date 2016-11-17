@@ -31,8 +31,8 @@
             .domain([1, 12])
             .range([widthRatio, 12 * widthRatio])
             .clamp(true),
-        allLinkTypes = 'direct indirect optical tunnel UiDeviceLink',
-        allLinkSubTypes = 'inactive not-permitted',
+        allLinkTypes = 'direct optical tunnel UiDeviceLink',
+        allLinkSubTypes = 'not-permitted',
         labelDim = 30;
 
     // configuration
@@ -225,7 +225,7 @@
                     el = this.el,
                     type = this.get('type'),
                     online = this.online(),
-                    modeCls = this.expected() ? 'inactive' : 'not-permitted',
+                    modeCls = this.expected() ? '-inactive' : 'not-permitted',
                     delay = immediate ? 0 : 1000;
 
                 // NOTE: understand why el is sometimes undefined on addLink events...

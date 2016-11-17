@@ -34,6 +34,8 @@ import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
 import org.onosproject.incubator.net.neighbour.NeighbourProtocol;
 import org.onosproject.net.ConnectPoint;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -150,6 +152,27 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
         actions.drop(this);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(protocol, type, target, sender, eth, inPort);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DefaultNeighbourMessageContext)) {
+            return false;
+        }
+
+        DefaultNeighbourMessageContext that = (DefaultNeighbourMessageContext) obj;
+
+        return Objects.equals(protocol, that.protocol) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(target, that.target) &&
+                Objects.equals(sender, that.sender) &&
+                Objects.equals(eth, that.eth) &&
+                Objects.equals(inPort, that.inPort);
+    }
+
     /**
      * Attempts to create a MessageContext for the given Ethernet frame. If the
      * frame is a valid ARP or NDP request or response, a context will be
@@ -157,6 +180,7 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
      *
      * @param eth input Ethernet frame
      * @param inPort in port
+     * @param actions actions to take
      * @return MessageContext if the packet was ARP or NDP, otherwise null
      */
     public static NeighbourMessageContext createContext(Ethernet eth,
@@ -176,6 +200,7 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
      *
      * @param eth input Ethernet frame that is thought to be ARP
      * @param inPort in port
+     * @param actions actions to take
      * @return MessageContext object if the packet was a valid ARP packet,
      * otherwise null
      */
@@ -209,6 +234,7 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
      *
      * @param eth input Ethernet frame that is thought to be NDP
      * @param inPort in port
+     * @param actions actions to take
      * @return MessageContext object if the packet was a valid NDP packet,
      * otherwise null
      */

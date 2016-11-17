@@ -130,7 +130,7 @@ public interface PcepClientController {
     /**
      * Creates label stack for ERO object from network resource.
      *
-     * @param labelStack
+     * @param labelStack label stack
      * @param path (hop list)
      * @return list of ERO sub-objects
      */

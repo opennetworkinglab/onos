@@ -35,7 +35,7 @@ SNAPSHOT_VERSION=$(cat api-publish.txt | grep "^org.onosproject:buck-api:jar" \
 BUCK_API_URL="$MVN_REPO/org/onosproject/buck-api/0.1-SNAPSHOT/buck-api-$SNAPSHOT_VERSION.jar"
 echo $BUCK_API_URL
 
-BUCK_API_SHA=$(shasum buck-out/gen/src/com/facebook/buck/cli/main-fixed/main-fixed.jar | cut -d' ' -f1)
+BUCK_API_SHA=$(shasum buck/buck-out/gen/src/com/facebook/buck/cli/main-fixed/main-fixed.jar | cut -d' ' -f1)
 echo $BUCK_API_SHA
 
 pushd onos
@@ -51,6 +51,6 @@ set +x
 
 echo
 echo "Please build and verify the ONOS Buck plugin and the Yang tools plugin:"
-echo "  cd onos; buck build //tools/build/buck-plugin:onosjar"
+echo "  cd onos; buck build //tools/build/buck-plugin:onos"
 echo "  cd onos-yang-tools; mvn clean package"
 echo "You should commit and push any required changes."

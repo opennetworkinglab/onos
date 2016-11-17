@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -34,6 +35,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketEvent;
 import org.onosproject.net.packet.PacketEvent.Type;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
@@ -50,6 +52,7 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -203,12 +206,15 @@ public class DistributedPacketStore
 
     private final class PacketRequestTracker {
 
-        private ConsistentMap<TrafficSelector, Set<PacketRequest>> requests;
+        private ConsistentMap<RequestKey, Set<PacketRequest>> requests;
 
         private PacketRequestTracker() {
-            requests = storageService.<TrafficSelector, Set<PacketRequest>>consistentMapBuilder()
+            requests = storageService.<RequestKey, Set<PacketRequest>>consistentMapBuilder()
                     .withName("onos-packet-requests")
-                    .withSerializer(Serializer.using(KryoNamespaces.API))
+                    .withSerializer(Serializer.using(KryoNamespace.newBuilder()
+                            .register(KryoNamespaces.API)
+                            .register(RequestKey.class)
+                            .build()))
                     .build();
         }
 
@@ -222,7 +228,7 @@ public class DistributedPacketStore
 
         private AtomicBoolean addInternal(PacketRequest request) {
             AtomicBoolean firstRequest = new AtomicBoolean(false);
-            requests.compute(request.selector(), (s, existingRequests) -> {
+            requests.compute(key(request), (s, existingRequests) -> {
                 // Reset to false just in case this is a retry due to
                 // ConcurrentModificationException
                 firstRequest.set(false);
@@ -252,7 +258,7 @@ public class DistributedPacketStore
 
         private AtomicBoolean removeInternal(PacketRequest request) {
             AtomicBoolean removedLast = new AtomicBoolean(false);
-            requests.computeIfPresent(request.selector(), (s, existingRequests) -> {
+            requests.computeIfPresent(key(request), (s, existingRequests) -> {
                 // Reset to false just in case this is a retry due to
                 // ConcurrentModificationException
                 removedLast.set(false);
@@ -277,6 +283,50 @@ public class DistributedPacketStore
             requests.values().forEach(v -> list.addAll(v.value()));
             list.sort((o1, o2) -> o1.priority().priorityValue() - o2.priority().priorityValue());
             return list;
+        }
+    }
+
+    /**
+     * Creates a new request key from a packet request.
+     *
+     * @param request packet request
+     * @return request key
+     */
+    private static RequestKey key(PacketRequest request) {
+        return new RequestKey(request.selector(), request.priority());
+    }
+
+    /**
+     * Key of a packet request.
+     */
+    private static final class RequestKey {
+        private final TrafficSelector selector;
+        private final PacketPriority priority;
+
+        private RequestKey(TrafficSelector selector, PacketPriority priority) {
+            this.selector = selector;
+            this.priority = priority;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(selector, priority);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == this) {
+                return true;
+            }
+
+            if (!(other instanceof RequestKey)) {
+                return false;
+            }
+
+            RequestKey that = (RequestKey) other;
+
+            return Objects.equals(selector, that.selector) &&
+                    Objects.equals(priority, that.priority);
         }
     }
 

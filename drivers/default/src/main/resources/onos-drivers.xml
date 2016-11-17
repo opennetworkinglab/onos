@@ -92,6 +92,19 @@
         <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
+    </driver>
+    <driver name="znyx-ofdpa" extends="default"
+            manufacturer="ZNYX Networks" hwVersion=".*" swVersion=".*OF-DPA.*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.Ofdpa3Pipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
+                   impl="org.onosproject.driver.extensions.Ofdpa3ExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />

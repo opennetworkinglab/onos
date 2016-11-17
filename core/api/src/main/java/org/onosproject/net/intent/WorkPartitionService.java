@@ -30,20 +30,23 @@ public interface WorkPartitionService
     extends ListenerService<WorkPartitionEvent, WorkPartitionEventListener> {
 
     /**
-     * Returns whether a given id maps to a partition owned by this
+     * Returns whether a given identifier maps to a partition owned by this
      * instance.
      *
-     * @param id id
-     * @param hasher function that maps id to a long value
-     * @return {@code true} if the id maps to a partition owned by this instance, otherwise {@code false}
+     * @param id identifier
+     * @param hasher function that maps identifier to a long value
+     * @param <K> entity type
+     * @return true if the identifier maps to a partition owned
+     *         by this instance, otherwise false
      */
     <K> boolean isMine(K id, Function<K, Long> hasher);
 
     /**
-     * Returns the owner for a given id.
+     * Returns the owner for a given identifier.
      *
-     * @param id id to query
+     * @param id identifier to query
      * @param hasher function that maps id to a long value
+     * @param <K> entity type
      * @return the leader node identifier
      */
     <K> NodeId getLeader(K id, Function<K, Long> hasher);

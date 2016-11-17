@@ -173,6 +173,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                         netconfDeviceEventListeners.forEach(
                                 listener -> listener.event(event));
                         socketClosed = true;
+                        log.debug("Netconf device {} ERROR cInt == -1 socketClosed = true", netconfDeviceInfo);
                     }
                     char c = (char) cInt;
                     state = state.evaluateChar(c);
@@ -181,6 +182,8 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                         String deviceReply = deviceReplyBuilder.toString();
                         if (deviceReply.equals(END_PATTERN)) {
                             socketClosed = true;
+                            log.debug("Netconf device {} socketClosed = true DEVICE_UNREGISTERED {}",
+                                     netconfDeviceInfo, deviceReply);
                             NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                                     NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
                                     null, null, Optional.of(-1), netconfDeviceInfo);
@@ -192,6 +195,8 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                             if (deviceReply.contains(RPC_REPLY) ||
                                     deviceReply.contains(RPC_ERROR) ||
                                     deviceReply.contains(HELLO)) {
+                                log.debug("Netconf device {} sessionDelegate.notify() DEVICE_REPLY {} {}",
+                                    netconfDeviceInfo, getMsgId(deviceReply), deviceReply);
                                 NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                                         NetconfDeviceOutputEvent.Type.DEVICE_REPLY,
                                         null, deviceReply, getMsgId(deviceReply), netconfDeviceInfo);
@@ -199,6 +204,9 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                 netconfDeviceEventListeners.forEach(
                                         listener -> listener.event(event));
                             } else if (deviceReply.contains(NOTIFICATION_LABEL)) {
+                                log.debug("Netconf device {} DEVICE_NOTIFICATION {} {} {}",
+                                         netconfDeviceInfo, enableNotifications,
+                                         getMsgId(deviceReply), deviceReply);
                                 if (enableNotifications) {
                                     final String finalDeviceReply = deviceReply;
                                     netconfDeviceEventListeners.forEach(
@@ -208,7 +216,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                                     netconfDeviceInfo)));
                                 }
                             } else {
-                                log.info("Error on replay from device {} ", deviceReply);
+                                log.debug("Error on reply from device {} {}", netconfDeviceInfo, deviceReply);
                             }
                             deviceReplyBuilder.setLength(0);
                         }

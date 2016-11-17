@@ -33,10 +33,10 @@
 
     angular.module('onosMast', ['onosNav'])
         .controller('MastCtrl',
-        ['$log', '$scope', '$window', 'WebSocketService', 'NavService',
+        ['$log', '$scope', '$location', '$window', 'WebSocketService', 'NavService',
             'DialogService',
 
-        function ($log, $scope, $window, wss, ns, ds) {
+        function ($log, $scope, $location, $window, wss, ns, ds) {
             var self = this;
 
             function triggerRefresh(action) {
@@ -86,6 +86,14 @@
 
             // onosAuth is a global set via the index.html generated source
             $scope.user = onosAuth || '(no one)';
+            $scope.helpTip = 'Show help page for current view';
+
+            $scope.directTo = function () {
+                var curId = $location.path().replace('/', ''),
+                    viewMap = $scope.onos['viewMap'],
+                    helpUrl = viewMap[curId];
+                $window.open(helpUrl);
+            };
 
             $log.log('MastCtrl has been created');
         }])

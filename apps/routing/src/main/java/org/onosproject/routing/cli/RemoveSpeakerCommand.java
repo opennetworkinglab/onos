@@ -28,7 +28,7 @@ import org.onosproject.routing.config.BgpConfig;
 /**
  * Command to remove a internal BGP speaker.
  */
-@Command(scope = "onos", name = "remove-bgp-speaker",
+@Command(scope = "onos", name = "bgp-speaker-remove",
         description = "Removes an internal BGP speaker")
 public class RemoveSpeakerCommand extends AbstractShellCommand {
 

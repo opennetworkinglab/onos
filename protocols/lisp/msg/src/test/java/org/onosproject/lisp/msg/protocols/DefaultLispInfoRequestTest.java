@@ -42,6 +42,8 @@ public final class DefaultLispInfoRequestTest {
     private LispInfoRequest sameAsRequest1;
     private LispInfoRequest request2;
 
+    private static final String AUTH_KEY = "onos";
+
     @Before
     public void setup() {
 
@@ -52,6 +54,7 @@ public final class DefaultLispInfoRequestTest {
         request1 = builder1
                         .withNonce(1L)
                         .withKeyId((short) 1)
+                        .withAuthKey(AUTH_KEY)
                         .withInfoReply(false)
                         .withMaskLength((byte) 1)
                         .withEidPrefix(address1).build();
@@ -61,6 +64,7 @@ public final class DefaultLispInfoRequestTest {
         sameAsRequest1 = builder2
                             .withNonce(1L)
                             .withKeyId((short) 1)
+                            .withAuthKey(AUTH_KEY)
                             .withInfoReply(false)
                             .withMaskLength((byte) 1)
                             .withEidPrefix(address1).build();
@@ -72,6 +76,7 @@ public final class DefaultLispInfoRequestTest {
         request2 = builder3
                         .withNonce(2L)
                         .withKeyId((short) 2)
+                        .withAuthKey(AUTH_KEY)
                         .withInfoReply(true)
                         .withMaskLength((byte) 1)
                         .withEidPrefix(address2).build();
@@ -90,7 +95,7 @@ public final class DefaultLispInfoRequestTest {
 
         LispIpv4Address address = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
 
-        assertThat(request.hasInfoReply(), is(false));
+        assertThat(request.isInfoReply(), is(false));
         assertThat(request.getNonce(), is(1L));
         assertThat(request.getKeyId(), is((short) 1));
         assertThat(request.getMaskLength(), is((byte) 1));

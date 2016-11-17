@@ -17,7 +17,6 @@
 package org.onosproject.incubator.net.routing;
 
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
@@ -75,33 +74,33 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     Collection<Route> getRoutesForNextHop(IpAddress ip);
 
     /**
-     * Updates a next hop IP and MAC in the store.
+     * Updates a next hop information in the store.
      *
      * @param ip IP address
-     * @param mac MAC address
+     * @param nextHopData Information of the next hop
      */
-    void updateNextHop(IpAddress ip, MacAddress mac);
+    void updateNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
-     * Removes a next hop IP and MAC from the store.
+     * Removes a next hop information from the store.
      *
      * @param ip IP address
-     * @param mac MAC address
+     * @param nextHopData Information of the next hop
      */
-    void removeNextHop(IpAddress ip, MacAddress mac);
+    void removeNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
-     * Returns the MAC address of the given next hop.
+     * Returns the information of the given next hop.
      *
      * @param ip next hop IP
-     * @return MAC address
+     * @return Information of the next hop
      */
-    MacAddress getNextHop(IpAddress ip);
+    NextHopData getNextHop(IpAddress ip);
 
     /**
      * Returns all next hops in the route store.
      *
      * @return next hops
      */
-    Map<IpAddress, MacAddress> getNextHops();
+    Map<IpAddress, NextHopData> getNextHops();
 }

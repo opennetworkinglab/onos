@@ -20,28 +20,27 @@ ENV PATH $PATH:$KARAF_ROOT/bin
 
 #Download and Build ONOS
 WORKDIR /src
-RUN     apt-get update && apt-get install -y python maven git curl oracle-java8-installer oracle-java8-set-default && \
-        git clone https://github.com/opennetworkinglab/onos.git && cd onos && \
-        mkdir -p /root/Downloads && \
-        mvn clean install && \
-        tools/build/onos-package && \
-        rm -rf /root/.m2 && cd .. && \
+RUN     apt-get update && apt-get install -y python git less zip curl oracle-java8-installer oracle-java8-set-default && \
+        git clone https://github.com/opennetworkinglab/onos.git && \
+        cd onos && \
+        tools/build/onos-buck build onos && \
+        cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
+        cd .. && \
         rm -rf onos && \
         apt-get remove --purge -y `apt-mark showauto` && \
         apt-get install oracle-java8-set-default -y && \
         apt-get clean && apt-get purge -y && apt-get autoremove -y && \
         rm -rf /var/lib/apt/lists/* && \
-        rm -rf /var/cache/oracle-jdk8-installer && \
-        rm -rf /root/Downloads
+        rm -rf /var/cache/oracle-jdk8-installer
 
 # Change to /root directory
 WORKDIR /root
 
 #Install ONOS
 RUN mkdir onos && \
-   mv /tmp/onos-*.docker.tar.gz . && \
-   tar -xf onos-*.docker.tar.gz -C onos --strip-components=1 && \
-   rm -rf onos-*.docker.tar.gz
+   mv /tmp/onos.tar.gz . && \
+   tar -xf onos.tar.gz -C onos --strip-components=1 && \
+   rm -rf onos.tar.gz
 
 
 # Ports

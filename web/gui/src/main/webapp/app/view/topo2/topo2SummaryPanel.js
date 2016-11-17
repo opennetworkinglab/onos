@@ -49,7 +49,6 @@
         });
 
         summaryPanel = new Panel(id, options);
-
         summaryPanel.p.classed(className, true);
     }
 
@@ -132,7 +131,8 @@
                 init: init,
 
                 toggle: toggle,
-                destroy: destroy
+                destroy: destroy,
+                isVisible: function () { return summaryPanel.isVisible(); }
             };
         }
     ]);

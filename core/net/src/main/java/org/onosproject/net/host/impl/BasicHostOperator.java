@@ -45,7 +45,8 @@ public final class BasicHostOperator implements ConfigOperator {
      * @param descr a HostDescription
      * @return HostDescription based on both sources
      */
-    public static HostDescription combine(BasicHostConfig cfg, HostDescription descr) {
+    public static HostDescription combine(BasicHostConfig cfg,
+                                          HostDescription descr) {
         if (cfg == null) {
             return descr;
         }
@@ -64,7 +65,8 @@ public final class BasicHostOperator implements ConfigOperator {
 
         SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultHostDescription(descr.hwAddress(), descr.vlan(),
-                                          location, ipAddresses, descr.configured(), sa);
+                                          location, ipAddresses,
+                                          descr.configured(), sa);
     }
 
     /**
@@ -74,10 +76,14 @@ public final class BasicHostOperator implements ConfigOperator {
      * @param an  the annotation
      * @return annotation combining both sources
      */
-    public static SparseAnnotations combine(BasicHostConfig cfg, SparseAnnotations an) {
+    public static SparseAnnotations combine(BasicHostConfig cfg,
+                                            SparseAnnotations an) {
         DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
         if (cfg.name() != null) {
             newBuilder.set(AnnotationKeys.NAME, cfg.name());
+        }
+        if (cfg.uiType() != null) {
+            newBuilder.set(AnnotationKeys.UI_TYPE, cfg.uiType());
         }
         if (cfg.geoCoordsSet()) {
             newBuilder.set(AnnotationKeys.LATITUDE, Double.toString(cfg.latitude()));

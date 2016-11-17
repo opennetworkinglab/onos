@@ -22,6 +22,8 @@ package org.onosproject.persistence.impl;
 public class PersistenceException extends RuntimeException {
     /**
      * Throws an exception with the specified message.
+     *
+     * @param s message for exception
      */
     public PersistenceException(String s) {
         super(s);

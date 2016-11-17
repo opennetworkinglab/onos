@@ -15,18 +15,18 @@
  */
 package org.onlab.packet;
 
+import org.onlab.util.Identifier;
+
 /**
  * Representation of a MPLS label.
  */
-public class MplsLabel {
-
-    private final int mplsLabel;
+public final class MplsLabel extends Identifier<Integer> {
 
     // An MPLS Label maximum 20 bits.
     public static final int MAX_MPLS = 0xFFFFF;
 
     protected MplsLabel(int value) {
-        this.mplsLabel = value;
+        super(value);
     }
 
     public static MplsLabel mplsLabel(int value) {
@@ -39,35 +39,27 @@ public class MplsLabel {
         return new MplsLabel(value);
     }
 
+    /**
+     * Creates a MplsLabel object using the supplied decimal string.
+     *
+     * @param value the MPLS identifier expressed as string
+     * @return Mplslabel object created from the string
+     */
+    public static MplsLabel mplsLabel(String value) {
+        try {
+            return MplsLabel.mplsLabel(Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     public int toInt() {
-        return this.mplsLabel;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj instanceof MplsLabel) {
-
-            MplsLabel other = (MplsLabel) obj;
-
-            if (this.mplsLabel == other.mplsLabel) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return this.mplsLabel;
+        return this.id();
     }
 
     @Override
     public String toString() {
-        return String.valueOf(this.mplsLabel);
+        return String.valueOf(this.identifier);
     }
+
 }

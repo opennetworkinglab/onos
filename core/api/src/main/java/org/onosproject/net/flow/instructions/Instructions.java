@@ -383,6 +383,18 @@ public final class Instructions {
     }
 
     /**
+     * Creates a push VLAN header instruction using the supplied Ethernet type.
+     *
+     * @param ethType the Ethernet type to use
+     * @return a L2 modification
+     */
+    public static Instruction pushVlan(EthType ethType) {
+        return new L2ModificationInstruction.ModVlanHeaderInstruction(
+                L2ModificationInstruction.L2SubType.VLAN_PUSH,
+                ethType);
+    }
+
+    /**
      * Sends the packet to the table id.
      *
      * @param tableId flow rule table id

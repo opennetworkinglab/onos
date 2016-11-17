@@ -33,8 +33,13 @@ while [ $count -le 0 -o $run -le $count ]; do
 
     # Iterate over all listed scenarios
     for scenario in "${@:-smoke}"; do
-        printf "Running scenario %s...\n" $scenario
-        stc $scenario
+        if [[ $scenario =~ ^[0-9]*$ ]]; then
+            printf "Waiting %d seconds...\n" $scenario
+            sleep $scenario
+        else
+            printf "Running scenario %s...\n" $scenario
+            stc $scenario
+        fi
     done
     status=$?
 

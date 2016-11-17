@@ -35,13 +35,12 @@
         'onosWidget'
     ];
 
-    // view IDs.. injected via the servlet
-    var viewIds = [
-        // {INJECTED-VIEW-IDS-START}
-        // {INJECTED-VIEW-IDS-END}
-        // dummy entry
-        ''
-    ];
+    // view ID to help page url map.. injected via the servlet
+    var viewMap = {
+        // {INJECTED-VIEW-DATA-START}
+        // {INJECTED-VIEW-DATA-END}
+    },
+    viewIds = [];
 
     // secret sauce
     var sauce = [
@@ -62,6 +61,8 @@
 
     var defaultView = 'topo',
         viewDependencies = [];
+
+    viewIds = d3.map(viewMap).keys();
 
     viewIds.forEach(function (id) {
         if (id) {
@@ -102,6 +103,7 @@
 
                 // shared object inherited by all views:
                 $scope.onos = {};
+                $scope.onos['viewMap'] = viewMap;
 
                 // initialize services...
                 ts.init();

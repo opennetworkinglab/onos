@@ -1,8 +1,3 @@
-SRC = 'src/main/java/org/onosproject/security/**/'
-TEST = 'src/test/java/org/onosproject/security/**/'
-CURRENT_NAME = 'onos-security'
-CURRENT_TARGET = ':' + CURRENT_NAME
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//core/store/serializers:onos-core-serializers',
@@ -12,17 +7,9 @@ TEST_DEPS = [
     '//lib:TEST',
 ]
 
-osgi_jar(
-    name = CURRENT_NAME,
-    srcs = glob([SRC + '/*.java']),
+osgi_jar_with_tests (
+    name = 'onos-security',
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
     visibility = ['PUBLIC'],
-)
-
-java_test(
-    name = 'tests',
-    srcs = glob([TEST + '/*.java']),
-    deps = COMPILE_DEPS +
-           TEST_DEPS +
-           [CURRENT_TARGET],
 )

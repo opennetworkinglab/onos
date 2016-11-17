@@ -84,6 +84,7 @@ public interface LispLocatorRecord {
      * Writes LISP message object into communication channel.
      *
      * @param byteBuf byte buffer
+     * @throws LispWriterException on error
      */
     void writeTo(ByteBuf byteBuf) throws LispWriterException;
 

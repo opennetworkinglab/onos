@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//apps/optical-model:onos-apps-optical-model',
+    '//incubator/api:onos-incubator-api',
 ]
 
 TEST_DEPS = [

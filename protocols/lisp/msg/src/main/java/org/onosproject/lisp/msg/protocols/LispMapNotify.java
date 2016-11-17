@@ -89,7 +89,7 @@ public interface LispMapNotify extends LispMessage {
      *
      * @return authentication data
      */
-    byte[] getAuthenticationData();
+    byte[] getAuthData();
 
     /**
      * Obtains a collection of records.
@@ -112,12 +112,20 @@ public interface LispMapNotify extends LispMessage {
         NotifyBuilder withNonce(long nonce);
 
         /**
-         * Sets key identitifer.
+         * Sets key identifier.
          *
          * @param keyId key identifier
          * @return NotifyBuilder object
          */
         NotifyBuilder withKeyId(short keyId);
+
+        /**
+         * Sets authentication key.
+         *
+         * @param key authentication key
+         * @return NotifyBuilder object
+         */
+        NotifyBuilder withAuthKey(String key);
 
         /**
          * Sets authentication data length.
@@ -130,10 +138,10 @@ public interface LispMapNotify extends LispMessage {
         /**
          * Sets authentication data.
          *
-         * @param authenticationData authentication data
+         * @param authData authentication data
          * @return NotifyBuilder object
          */
-        NotifyBuilder withAuthenticationData(byte[] authenticationData);
+        NotifyBuilder withAuthData(byte[] authData);
 
         /**
          * Sets a collection of map records.

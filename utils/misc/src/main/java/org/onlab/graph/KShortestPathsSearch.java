@@ -45,7 +45,10 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
         checkNotNull(dst);
         //The modified edge weight removes any need to modify the original graph
         InnerEdgeWeighter modifiedWeighter = new InnerEdgeWeighter(checkNotNull(weight));
-        checkArgument(maxPaths > 0);
+        checkArgument(maxPaths != ALL_PATHS, "KShortestPath search cannot" +
+                "be used with ALL_PATHS.");
+        checkArgument(maxPaths > 0, "The max number of paths must be greater" +
+                " than 0");
         Graph<V, E> originalGraph = checkNotNull(graph);
         //the result contains the set of eventual results
         InnerOrderedResult result = new InnerOrderedResult(src, dst, maxPaths);
@@ -69,7 +72,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
                 List<E> rootPathEdgeList = resultPaths.get(k - 1).edges().subList(0, i);
 
                 for (Path<V, E> path : resultPaths) {
-                    if (edgeListsAreEqual(rootPathEdgeList, path.edges().subList(0, i))) {
+                    if (path.edges().size() >= i && edgeListsAreEqual(rootPathEdgeList, path.edges().subList(0, i))) {
                         modifiedWeighter.removedEdges.add(path.edges().get(i));
                     }
                 }

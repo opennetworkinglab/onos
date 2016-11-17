@@ -30,7 +30,7 @@ import org.onosproject.routing.config.BgpConfig;
 /**
  * Command to add new BGP peer to existing internal speaker.
  */
-@Command(scope = "onos", name = "add-bgp-peer",
+@Command(scope = "onos", name = "bgp-peer-add",
         description = "Adds an external BGP router as peer to an existing BGP speaker")
 public class AddPeerCommand extends AbstractShellCommand {
 

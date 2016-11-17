@@ -136,6 +136,8 @@ public class DpiStatInfo {
 
     /**
      * Sets the traffic statistic information.
+     *
+     * @param trafficStatistics traffic statistics
      */
     public void setTrafficStatistics(TrafficStatInfo trafficStatistics) {
         this.trafficStatistics = trafficStatistics;
@@ -143,6 +145,8 @@ public class DpiStatInfo {
 
     /**
      * Sets the detected protocols statistic information.
+     *
+     * @param detectedProtos detected protocols statistics
      */
     public void setDetectedProtos(List<ProtocolStatInfo> detectedProtos) {
         this.detectedProtos = detectedProtos;
@@ -150,6 +154,8 @@ public class DpiStatInfo {
 
     /**
      * Sets the known flows information.
+     *
+     * @param knownFlows known flows
      */
     public void setKnownFlows(List<FlowStatInfo> knownFlows) {
         this.knownFlows = knownFlows;
@@ -157,6 +163,8 @@ public class DpiStatInfo {
 
     /**
      * Sets the unknown flows information.
+     *
+     * @param unknownFlows unknown flows
      */
     public void setUnknownFlows(List<FlowStatInfo> unknownFlows) {
         this.unknownFlows = unknownFlows;

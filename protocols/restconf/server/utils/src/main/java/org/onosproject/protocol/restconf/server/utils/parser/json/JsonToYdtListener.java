@@ -110,20 +110,25 @@ public class JsonToYdtListener implements JsonListener {
 
     @Override
     public void exitJsonNode(JsonNode jsonNode) {
-        if (jsonNode.getNodeType() == ARRAY && nameStack.empty()) {
+
+        if (isListArray) {
+            isListArray = false;
+            ydtBuilder.traverseToParent();
             return;
         }
 
-        if (jsonNode.getNodeType() == ARRAY && !isListArray) {
+        if (jsonNode.getNodeType() == ARRAY) {
+            //check empty before pop
+            if (nameStack.empty()) {
+                return;
+            }
             nameStack.pop();
+            //check empty after pop
             if (nameStack.empty()) {
                 return;
             }
             defaultMultiInsNode = nameStack.get(nameStack.size() - 1);
             return;
-        }
-        if (isListArray) {
-            isListArray = false;
         }
 
         ydtBuilder.traverseToParent();

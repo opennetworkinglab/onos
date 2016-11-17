@@ -253,9 +253,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces a device event message to the client.
     protected ObjectNode deviceMessage(DeviceEvent event) {
         Device device = event.subject();
+        String uiType = device.annotations().value(AnnotationKeys.UI_TYPE);
+        String devType = uiType != null ? uiType :
+                device.type().toString().toLowerCase();
+
         ObjectNode payload = objectNode()
                 .put("id", device.id().toString())
-                .put("type", device.type().toString().toLowerCase())
+                .put("type", devType)
                 .put("online", deviceService.isAvailable(device.id()))
                 .put("master", master(device.id()));
 
@@ -297,7 +301,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
         Host prevHost = event.prevSubject();
-        String hostType = host.annotations().value(AnnotationKeys.TYPE);
+        String hostType = host.annotations().value(AnnotationKeys.UI_TYPE);
 
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())

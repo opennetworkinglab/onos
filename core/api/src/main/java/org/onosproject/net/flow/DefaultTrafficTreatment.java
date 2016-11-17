@@ -401,6 +401,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder pushVlan(EthType ethType) {
+            return add(Instructions.pushVlan(ethType));
+        }
+
+        @Override
         public Builder transition(Integer tableId) {
             return add(Instructions.transition(tableId));
         }

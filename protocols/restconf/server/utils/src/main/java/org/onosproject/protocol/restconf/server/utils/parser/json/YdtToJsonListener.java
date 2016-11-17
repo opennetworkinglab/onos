@@ -23,6 +23,7 @@ import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YdtListener;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.getJsonNameFromYdtNode;
 
 /**
  * Represents implementation of codec YDT listener.
@@ -53,9 +54,9 @@ public class YdtToJsonListener implements YdtListener {
 
     @Override
     public void enterYdtNode(YdtContext ydtContext) {
-        String name = ydtContext.getName();
+        String name = getJsonNameFromYdtNode(ydtContext);
 
-        if (!isBegin && name.equals(rootName)) {
+        if (!isBegin && name != null && name.equals(rootName)) {
             isBegin = true;
         }
         if (!isBegin) {
@@ -69,7 +70,7 @@ public class YdtToJsonListener implements YdtListener {
                 break;
             case MULTI_INSTANCE_NODE:
                 YdtContext preNode = ydtContext.getPreviousSibling();
-                if (preNode == null || !preNode.getName().equals(name)) {
+                if (preNode == null || !getJsonNameFromYdtNode(preNode).equals(name)) {
                     jsonBuilder.addNodeTopHalf(name, JsonNodeType.ARRAY);
                 }
                 jsonBuilder.addNodeTopHalf(EMPTY, JsonNodeType.OBJECT);
@@ -94,7 +95,7 @@ public class YdtToJsonListener implements YdtListener {
             return;
         }
 
-        String curName = ydtContext.getName();
+        String curName = getJsonNameFromYdtNode(ydtContext);
         YdtContext nextNode = ydtContext.getNextSibling();
         switch (ydtContext.getYdtType()) {
 
@@ -102,7 +103,7 @@ public class YdtToJsonListener implements YdtListener {
                 jsonBuilder.addNodeBottomHalf(JsonNodeType.OBJECT);
                 break;
             case MULTI_INSTANCE_NODE:
-                if (nextNode == null || !nextNode.getName().equals(curName)) {
+                if (nextNode == null || !getJsonNameFromYdtNode(nextNode).equals(curName)) {
                     jsonBuilder.addNodeBottomHalf(JsonNodeType.OBJECT);
                     jsonBuilder.addNodeBottomHalf(JsonNodeType.ARRAY);
                 } else {
@@ -120,7 +121,7 @@ public class YdtToJsonListener implements YdtListener {
                                                     ydtContext.getYdtType());
         }
         if (curName.equals(rootName) &&
-                (nextNode == null || !nextNode.getName().equals(rootName))) {
+                (nextNode == null || !getJsonNameFromYdtNode(nextNode).equals(rootName))) {
             isBegin = false;
         }
     }

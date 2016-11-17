@@ -89,6 +89,7 @@ public abstract class Intent {
         protected ApplicationId appId;
         protected Key key;
         protected int priority = Intent.DEFAULT_INTENT_PRIORITY;
+        protected Collection<NetworkResource> resources;
 
         /**
          * Creates a new empty builder.
@@ -141,6 +142,16 @@ public abstract class Intent {
             return this;
         }
 
+        /**
+         * Sets the collection of resources required for this intent.
+         *
+         * @param resources collection of resources
+         * @return this builder
+         */
+        public Builder resources(Collection<NetworkResource> resources) {
+            this.resources = resources;
+            return this;
+        }
     }
 
     /**

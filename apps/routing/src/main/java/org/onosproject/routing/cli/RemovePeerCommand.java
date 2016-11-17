@@ -29,7 +29,7 @@ import org.onosproject.routing.config.BgpConfig;
 /**
  * Command to remove existing BGP peer.
  */
-@Command(scope = "onos", name = "remove-bgp-peer",
+@Command(scope = "onos", name = "bgp-peer-remove",
         description = "Removes a BGP peer")
 public class RemovePeerCommand extends AbstractShellCommand {
 

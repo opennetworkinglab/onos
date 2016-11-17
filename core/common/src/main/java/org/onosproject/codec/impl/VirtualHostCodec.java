@@ -44,12 +44,12 @@ import static org.onlab.util.Tools.nullIsIllegal;
 public class VirtualHostCodec extends JsonCodec<VirtualHost> {
 
     // JSON field names
-    private static final String NETWORK_ID = "networkId";
-    private static final String HOST_ID = "id";
-    private static final String MAC_ADDRESS = "mac";
-    private static final String VLAN = "vlan";
-    private static final String IP_ADDRESSES = "ipAddresses";
-    private static final String HOST_LOCATION = "location";
+    static final String NETWORK_ID = "networkId";
+    static final String HOST_ID = "id";
+    static final String MAC_ADDRESS = "mac";
+    static final String VLAN = "vlan";
+    static final String IP_ADDRESSES = "ipAddresses";
+    static final String HOST_LOCATION = "location";
 
     private static final String NULL_OBJECT_MSG = "VirtualHost cannot be null";
     private static final String MISSING_MEMBER_MSG = " member is required in VirtualHost";

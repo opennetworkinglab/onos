@@ -54,6 +54,7 @@ public class FlowRuleIntent extends Intent {
      * @param appId application id
      * @param flowRules flow rules to be set
      * @param resources network resource to be set
+     * @param type protection type
      */
     public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules, Collection<NetworkResource> resources,
                           PathIntent.ProtectionType type) {
@@ -82,6 +83,7 @@ public class FlowRuleIntent extends Intent {
      * @param key       key
      * @param flowRules flow rules
      * @param resources network resources
+     * @param primary   primary protection type
      */
     public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
                           Collection<NetworkResource> resources, PathIntent.ProtectionType primary) {
@@ -93,6 +95,9 @@ public class FlowRuleIntent extends Intent {
     /**
      * Creates a flow rule intent with all the same characteristics as the given
      * one except for the flow rule type.
+     *
+     * @param intent original flow rule intent
+     * @param type   new protection type
      */
     public FlowRuleIntent(FlowRuleIntent intent, PathIntent.ProtectionType type) {
         this(intent.appId(), intent.key(), intent.flowRules(),

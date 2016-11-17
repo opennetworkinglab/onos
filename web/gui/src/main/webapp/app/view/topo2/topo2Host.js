@@ -59,6 +59,20 @@
                     var type = this.get('type');
                     return remappedDeviceTypes[type] || type || 'endstation';
                 },
+                label: function () {
+                    var labelText = this.get('id'),
+                        ips = this.get('ips');
+
+                    if (this.labelIndex() === 0) {
+                        return '';
+                    }
+
+                    if (ips && ips.length > 0) {
+                        labelText = ips[0];
+                    }
+
+                    return labelText;
+                },
                 setScale: function () {
 
                     var dim = hostIconDim,
@@ -76,8 +90,9 @@
                 onEnter: function (el) {
                     var node = d3.select(el),
                         icon = this.icon(),
-                        textDy = hostIconDim + 15,
-                        iconDim = hostIconDim;
+                        iconDim = hostIconDim,
+                        textDy = 5,
+                        textDx = (hostIconDim * 2) + 20;
 
                     this.el = node;
 
@@ -93,9 +108,12 @@
                         y: -iconDim / 2
                     });
 
+                    var labelText = this.label();
+
                     g.append('text')
-                        .text(this.get('id'))
+                        .text(labelText)
                         .attr('dy', textDy)
+                        .attr('dx', textDx)
                         .attr('text-anchor', 'middle');
 
                     this.setScale();

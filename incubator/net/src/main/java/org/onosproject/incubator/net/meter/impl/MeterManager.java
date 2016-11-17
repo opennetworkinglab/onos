@@ -83,9 +83,9 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     public void activate() {
 
         store.setDelegate(delegate);
+        eventDispatcher.addSink(MeterEvent.class, listenerRegistry);
 
-        onComplete = (request, result, error) ->
-            {
+        onComplete = (request, result, error) -> {
                 request.context().ifPresent(c -> {
                     if (error != null) {
                         c.onError(request, MeterFailReason.UNKNOWN);

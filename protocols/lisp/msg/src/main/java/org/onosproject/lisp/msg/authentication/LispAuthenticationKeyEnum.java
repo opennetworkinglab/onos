@@ -26,23 +26,25 @@ package org.onosproject.lisp.msg.authentication;
 public enum LispAuthenticationKeyEnum {
 
     /** No authentication. */
-    NONE(0, null),
+    NONE(0, null, 0),
 
     /** HMAC SHA1 encryption. */
-    SHA1(1, "HmacSHA1"),
+    SHA1(1, "HmacSHA1", 20),
 
     /** HMAC SHA256 encryption. */
-    SHA256(2, "HmacSHA256"),
+    SHA256(2, "HmacSHA256", 32),
 
     /** Unsupported authentication type. */
-    UNKNOWN(-1, "UNKNOWN");
+    UNKNOWN(-1, "UNKNOWN", 0);
 
     private short keyId;
     private String name;
+    private short length;
 
-    LispAuthenticationKeyEnum(int keyId, String name) {
+    LispAuthenticationKeyEnum(int keyId, String name, int length) {
         this.keyId = (short) keyId;
         this.name = name;
+        this.length = (short) length;
     }
 
     /**
@@ -61,6 +63,15 @@ public enum LispAuthenticationKeyEnum {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Obtains hash length.
+     *
+     * @return hash length
+     */
+    public short getHashLength() {
+        return length;
     }
 
     /**

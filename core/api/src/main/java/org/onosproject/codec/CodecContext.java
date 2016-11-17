@@ -15,7 +15,10 @@
  */
 package org.onosproject.codec;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Context for codecs to use while encoding/decoding.
@@ -46,5 +49,32 @@ public interface CodecContext {
      * @return JSON codec; null if no codec available for the class
      */
     <T> T getService(Class<T> serviceClass);
+
+    /**
+     * Decodes the specified entity from JSON using codec
+     * registered to this context.
+     *
+     * @param json    JSON to decode
+     * @param entityClass entity class
+     * @param <T> entity type
+     * @return decoded entity
+     */
+    default <T> T decode(JsonNode json, Class<T> entityClass) {
+        checkArgument(json.isObject());
+        return codec(entityClass).decode((ObjectNode) json, this);
+    }
+
+    /**
+     * Encodes the specified entity into JSON using codec
+     * registered to this context.
+     *
+     * @param entity  entity to encode
+     * @param entityClass entity class
+     * @param <T> entity type
+     * @return JSON node
+     */
+    default <T> ObjectNode encode(T entity, Class<T> entityClass) {
+        return codec(entityClass).encode(entity, this);
+    }
 
 }

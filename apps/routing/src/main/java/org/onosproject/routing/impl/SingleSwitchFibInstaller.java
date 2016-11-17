@@ -215,7 +215,7 @@ public class SingleSwitchFibInstaller {
 
         //clean up the routes.
         for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
-            deleteRoute(new ResolvedRoute(routes.getKey(), null, null));
+            deleteRoute(new ResolvedRoute(routes.getKey(), null, null, null));
         }
 
         //clean up the filtering objective for interfaces.

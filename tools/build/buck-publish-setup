@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUCK_REF="10-11-2016"
+BUCK_REF="11-11-2016"
 ONOS_REF="master"
 YANG_REF="master"
 

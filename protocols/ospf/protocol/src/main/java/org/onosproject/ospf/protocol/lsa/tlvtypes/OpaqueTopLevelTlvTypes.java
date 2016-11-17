@@ -28,7 +28,7 @@ public enum OpaqueTopLevelTlvTypes {
     /**
      * Creates an instance of Opaque top level tlv types.
      *
-     * @param value
+     * @param value opaque TLV value
      */
     OpaqueTopLevelTlvTypes(int value) {
         this.value = value;
