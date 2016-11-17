@@ -26,70 +26,71 @@
     var Panel, gs, wss, flash, listProps;
 
     // Internal State
-    var summaryPanel, summaryData;
-
-    // configuration
-    var id = 'topo2-p-summary',
-        className = 'topo-p',
-        panelOpts = {
-            show: true,
-            width: 260 // summary and detail panel width
-        },
-        handlerMap = {
-            showSummary: handleSummaryData
-        };
+    var hostPanel, hostData;
 
     function init() {
-
-        bindHandlers();
-        wss.sendEvent('requestSummary');
-
-        var options = angular.extend({}, panelOpts, {
-            class: className
-        });
-
-        summaryPanel = new Panel(id, options);
-        summaryPanel.el.classed(className, true);
+        hostPanel = Panel();
     }
 
-    function render() {
-        summaryPanel.emptyRegions();
+    function formatHostData(data) {
+        return {
+            title: data.get('id'),
+            propOrder: ['MAC', 'IP', 'VLAN', '-', 'Latitude', 'Longitude'],
+            props: {
+                '-': '',
+                'MAC': data.get('id'),
+                'IP': data.get('ips')[0],
+                'VLAN': 'None', // TODO
+                'Latitude': data.get('location').lat,
+                'Longitude': data.get('location').lng,
+            }
+        }
+    };
 
-        var svg = summaryPanel.appendToHeader('div')
-                .classed('icon', true)
-                .append('svg'),
-            title = summaryPanel.appendToHeader('h2'),
-            table = summaryPanel.appendToBody('table'),
-            tbody = table.append('tbody');
+    function displayPanel(data) {
+        init();
 
-        title.text(summaryData.title);
-        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, summaryData);
-    }
-
-    function handleSummaryData(data) {
-        summaryData = data;
+        hostData = formatHostData(data);
         render();
     }
 
-    function bindHandlers() {
-        wss.bindHandlers(handlerMap);
+    function render() {
+        hostPanel.el.show();
+        hostPanel.emptyRegions();
+
+        var svg = hostPanel.appendToHeader('div')
+                .classed('icon', true)
+                .append('svg'),
+            title = hostPanel.appendToHeader('h2'),
+            table = hostPanel.appendToBody('table'),
+            tbody = table.append('tbody');
+
+        title.text(hostData.title);
+        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        listProps(tbody, hostData);
+    }
+
+    function show() {
+        hostPanel.el.show();
+    }
+
+    function hide() {
+        hostPanel.el.hide();
     }
 
     function toggle() {
-        var on = summaryPanel.el.toggle(),
+        var on = hostPanel.el.toggle(),
             verb = on ? 'Show' : 'Hide';
-        flash.flash(verb + ' Summary Panel');
+        flash.flash(verb + ' host Panel');
     }
 
     function destroy() {
-        wss.unbindHandlers(handlerMap);
-        summaryPanel.destroy();
+        hostPanel.destroy();
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2SummaryPanelService',
-    ['Topo2PanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
+    .factory('Topo2HostsPanelService',
+    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
         function (_ps_, _gs_, _wss_, _flash_, _listService_) {
 
             Panel = _ps_;
@@ -99,10 +100,13 @@
             listProps = _listService_;
 
             return {
+                displayPanel: displayPanel,
                 init: init,
+                show: show,
+                hide: hide,
                 toggle: toggle,
                 destroy: destroy,
-                isVisible: function () { return summaryPanel.isVisible(); }
+                isVisible: function () { return hostPanel.isVisible(); }
             };
         }
     ]);

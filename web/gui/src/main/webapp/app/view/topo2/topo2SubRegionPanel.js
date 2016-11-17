@@ -26,70 +26,69 @@
     var Panel, gs, wss, flash, listProps;
 
     // Internal State
-    var summaryPanel, summaryData;
-
-    // configuration
-    var id = 'topo2-p-summary',
-        className = 'topo-p',
-        panelOpts = {
-            show: true,
-            width: 260 // summary and detail panel width
-        },
-        handlerMap = {
-            showSummary: handleSummaryData
-        };
+    var subRegionPanel, subRegionData;
 
     function init() {
-
-        bindHandlers();
-        wss.sendEvent('requestSummary');
-
-        var options = angular.extend({}, panelOpts, {
-            class: className
-        });
-
-        summaryPanel = new Panel(id, options);
-        summaryPanel.el.classed(className, true);
+        subRegionPanel = Panel();
     }
 
-    function render() {
-        summaryPanel.emptyRegions();
+    function formatSubRegionData(data) {
+        return {
+            title: data.get('name'),
+            propOrder: ['Id', 'Type', '-', 'Number of Devices', 'Number of Hosts'],
+            props: {
+                '-': '',
+                'Id': data.get('id'),
+                'Type': data.get('nodeType'),
+                'Number of Devices': data.get('nDevs'),
+                'Number of Hosts': data.get('nHosts')
+            }
+        }
+    };
 
-        var svg = summaryPanel.appendToHeader('div')
-                .classed('icon', true)
-                .append('svg'),
-            title = summaryPanel.appendToHeader('h2'),
-            table = summaryPanel.appendToBody('table'),
-            tbody = table.append('tbody');
-
-        title.text(summaryData.title);
-        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, summaryData);
-    }
-
-    function handleSummaryData(data) {
-        summaryData = data;
+    function displayPanel(data) {
+        init();
+        subRegionData = formatSubRegionData(data);
         render();
     }
 
-    function bindHandlers() {
-        wss.bindHandlers(handlerMap);
+    function render() {
+        subRegionPanel.el.show();
+        subRegionPanel.emptyRegions();
+
+        var svg = subRegionPanel.appendToHeader('div')
+                .classed('icon', true)
+                .append('svg'),
+            title = subRegionPanel.appendToHeader('h2'),
+            table = subRegionPanel.appendToBody('table'),
+            tbody = table.append('tbody');
+
+        title.text(subRegionData.title);
+        gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        listProps(tbody, subRegionData);
+    }
+
+    function show() {
+        subRegionPanel.el.show();
+    }
+
+    function hide() {
+        subRegionPanel.el.hide();
     }
 
     function toggle() {
-        var on = summaryPanel.el.toggle(),
+        var on = subRegionPanel.el.toggle(),
             verb = on ? 'Show' : 'Hide';
-        flash.flash(verb + ' Summary Panel');
+        flash.flash(verb + ' subRegion Panel');
     }
 
     function destroy() {
-        wss.unbindHandlers(handlerMap);
-        summaryPanel.destroy();
+        subRegionPanel.destroy();
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2SummaryPanelService',
-    ['Topo2PanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
+    .factory('Topo2SubRegionPanelService',
+    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
         function (_ps_, _gs_, _wss_, _flash_, _listService_) {
 
             Panel = _ps_;
@@ -99,10 +98,13 @@
             listProps = _listService_;
 
             return {
+                displayPanel: displayPanel,
                 init: init,
+                show: show,
+                hide: hide,
                 toggle: toggle,
                 destroy: destroy,
-                isVisible: function () { return summaryPanel.isVisible(); }
+                isVisible: function () { return subRegionPanel.isVisible(); }
             };
         }
     ]);

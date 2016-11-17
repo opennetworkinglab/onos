@@ -413,6 +413,29 @@
         return classes.join(' ');
     }
 
+    function extend(protoProps, staticProps) {
+
+        var parent = this,
+            child;
+
+        child = function () {
+        return parent.apply(this, arguments);
+        };
+
+        angular.extend(child, parent, staticProps);
+
+        // Set the prototype chain to inherit from `parent`, without calling
+        // `parent`'s constructor function and add the prototype properties.
+        child.prototype = angular.extend({}, parent.prototype, protoProps);
+        child.prototype.constructor = child;
+
+        // Set a convenience property in case the parent's prototype is needed
+        // later.
+        child.__super__ = parent.prototype;
+
+        return child;
+    }
+
 
     angular.module('onosUtil')
         .factory('FnService',
@@ -452,7 +475,8 @@
                 addToTrie: addToTrie,
                 removeFromTrie: removeFromTrie,
                 trieLookup: trieLookup,
-                classNames: classNames
+                classNames: classNames,
+                extend: extend
             };
     }]);
 
