@@ -78,12 +78,18 @@ fi
 ./bin/onos-service server "$@" &>onos.log &
 echo "$!" > /tmp/onos.pid
 
+function killServer() {
+    echo "Killing ONOS server..."
+    kill -9 $(cat /tmp/onos.pid) 2>/dev/null
+}
+
 # Hang-on a bit and then start tailing the ONOS log output
 MAX_RETRY=30
 echo "Waiting for karaf.log"
 until [ $MAX_RETRY -le 0 ]; do
     KARAF_LOG=$(find $ONOS_HOME -type f -name karaf.log)
     if [ $KARAF_LOG ]; then
+        trap killServer INT
         tail -f $KARAF_LOG
         return
     fi
@@ -91,4 +97,4 @@ until [ $MAX_RETRY -le 0 ]; do
     sleep 1
 done
 echo "Fail to open karaf.log"
-
+killServer
