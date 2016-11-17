@@ -19,9 +19,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.AbstractChannel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.slf4j.Logger;
@@ -44,11 +47,12 @@ public class LispControllerBootstrap {
     protected List<Integer> lispPorts = ImmutableList.of(LISP_DATA_PORT, LISP_CONTROL_PORT);
 
     private EventLoopGroup eventLoopGroup;
+    private Class<? extends AbstractChannel> channelClass;
 
     /**
      * Stitches all channel handlers into server bootstrap.
      */
-    public void run() {
+    private void run() {
 
         try {
             final Bootstrap bootstrap = createServerBootstrap();
@@ -79,9 +83,10 @@ public class LispControllerBootstrap {
      */
     private Bootstrap createServerBootstrap() {
         Bootstrap bootstrap = new Bootstrap();
-        eventLoopGroup = new NioEventLoopGroup();
+
+        initEventLoopGroup();
         bootstrap.group(eventLoopGroup)
-                .channel(NioDatagramChannel.class)
+                .channel(channelClass)
                 .handler(new LispChannelInitializer());
 
         return bootstrap;
@@ -107,8 +112,26 @@ public class LispControllerBootstrap {
                 f.channel().closeFuture().sync();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.warn("Failed to close channels. Reasons: {}.", e.getMessage());
         }
+    }
+
+    /**
+     * Initializes event loop group.
+     */
+    private void initEventLoopGroup() {
+
+        // try to use EpollEventLoopGroup if possible,
+        // if OS does not support native Epoll, fallback to use netty NIO
+        try {
+            eventLoopGroup = new EpollEventLoopGroup();
+            channelClass = EpollDatagramChannel.class;
+        } catch (Throwable e) {
+            log.debug("Failed to initialize native (epoll) transport. "
+                        + "Reason: {}. Proceeding with NIO event group.", e.getMessage());
+        }
+        eventLoopGroup = new NioEventLoopGroup();
+        channelClass = NioDatagramChannel.class;
     }
 
     /**
@@ -130,7 +153,7 @@ public class LispControllerBootstrap {
             // try to shutdown all open event groups
             eventLoopGroup.shutdownGracefully().sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.warn("Failed to stop LISP controller. Reasons: {}.", e.getMessage());
         }
     }
 }
