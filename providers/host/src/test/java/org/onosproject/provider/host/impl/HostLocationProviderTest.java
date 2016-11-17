@@ -16,6 +16,8 @@
 package org.onosproject.provider.host.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import org.junit.After;
@@ -73,6 +75,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
 import static org.easymock.EasyMock.*;
@@ -187,33 +190,39 @@ public class HostLocationProviderTest {
 
     @Test
     public void events() {
-        // new host
+        // New host. Expect one additional host description.
         testProcessor.process(new TestArpPacketContext(DEV1));
-        assertNotNull("new host expected", providerService.added);
-        assertNull("host motion unexpected", providerService.moved);
+        assertThat("New host expected", providerService.descriptions.size(), is(1));
 
-        // the host moved to new switch
+        // The host moved to new switch. Expect one additional host description.
+        // The second host description should have a different location.
         testProcessor.process(new TestArpPacketContext(DEV2));
-        assertNotNull("host motion expected", providerService.moved);
+        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
+        HostLocation loc1 = providerService.descriptions.get(0).location();
+        HostLocation loc2 = providerService.descriptions.get(1).location();
+        assertNotEquals("Host location should be different", loc1, loc2);
 
-        // the host was misheard on a spine
+        // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestArpPacketContext(DEV3));
-        assertNull("host misheard on spine switch", providerService.spine);
+        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
 
         providerService.clear();
 
-        // new host
+        // New host. Expect one additional host description.
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertNotNull("new host expected", providerService.added);
-        assertNull("host motion unexpected", providerService.moved);
+        assertThat("New host expected", providerService.descriptions.size(), is(1));
 
-        // the host moved to new switch
+        // The host moved to new switch. Expect one additional host description.
+        // The second host description should have a different location.
         testProcessor.process(new TestNaPacketContext(DEV5));
-        assertNotNull("host motion expected", providerService.moved);
+        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
+        loc1 = providerService.descriptions.get(0).location();
+        loc2 = providerService.descriptions.get(1).location();
+        assertNotEquals("Host location should be different", loc1, loc2);
 
-        // the host was misheard on a spine
+        // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestNaPacketContext(DEV6));
-        assertNull("host misheard on spine switch", providerService.spine);
+        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
     }
 
     @Test
@@ -275,7 +284,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveArp() {
         testProcessor.process(new TestArpPacketContext(DEV1));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveArp. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
         assertThat(descr.hwAddress(), is(MAC));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS));
@@ -288,7 +299,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv4() {
         testProcessor.process(new TestIpv4PacketContext(DEV1));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveIpv4. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
         assertThat(descr.hwAddress(), is(MAC));
         assertThat(descr.ipAddress().size(), is(0));
@@ -301,8 +314,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveNa() {
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertNotNull(providerService.added);
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveNa. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
@@ -315,7 +329,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveNs() {
         testProcessor.process(new TestNsPacketContext(DEV4));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveNs. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
@@ -328,7 +344,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceivesRa() {
         testProcessor.process(new TestRAPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveRa. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -337,7 +354,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveRs() {
         testProcessor.process(new TestRSPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveRs. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -346,7 +364,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveDad() {
         testProcessor.process(new TestDadPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveDad. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -355,7 +374,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv6Multicast() {
         testProcessor.process(new TestIpv6McastPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveIpv6Multicast. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -364,8 +384,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv6Unicast() {
         testProcessor.process(new TestIpv6PacketContext(DEV4));
-        assertNotNull(providerService.added);
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveIpv6Unicast. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().size(), is(0));
@@ -402,15 +423,11 @@ public class HostLocationProviderTest {
             extends AbstractProviderService<HostProvider>
             implements HostProviderService {
 
-        HostDescription added = null;
-        HostDescription moved = null;
-        HostDescription spine = null;
-        public int removeCount;
+        List<HostDescription> descriptions = Lists.newArrayList();
+        int removeCount;
 
         public void clear() {
-            added = null;
-            moved = null;
-            spine = null;
+            descriptions.clear();
             removeCount = 0;
         }
 
@@ -420,13 +437,7 @@ public class HostLocationProviderTest {
 
         @Override
         public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
-            if (added == null) {
-                added = hostDescription;
-            } else if ((moved == null) && hostDescription != added) {
-                moved = hostDescription;
-            } else {
-                spine = hostDescription;
-            }
+            descriptions.add(hostDescription);
         }
 
         @Override
