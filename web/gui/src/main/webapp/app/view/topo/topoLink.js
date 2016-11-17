@@ -121,10 +121,13 @@
                     return; // skip hidden host links
                 }
 
-                var line = d.position,
+                if(d.position != null)
+                {
+                    var line = d.position,
                     point = pdrop(line, mouse),
                     hit = lineHit(line, point, mouse),
                     dist;
+                }
 
                 if (hit) {
                     dist = mdist(point, mouse);
@@ -222,13 +225,18 @@
 
          tss.deselectAll();
 
-         if (!ldata.el.classed('selected')) {
-            selLink(ldata);
-            return;
-         }
+         if(ldata != null)
+         {
 
-         if (ldata.el.classed('selected')) {
-            unselLink(ldata);
+            if (!ldata.el.classed('selected')) {
+                selLink(ldata);
+                return;
+            }
+
+            if (ldata.el.classed('selected')) {
+                unselLink(ldata);
+                return;
+            }
          }
     }
 
