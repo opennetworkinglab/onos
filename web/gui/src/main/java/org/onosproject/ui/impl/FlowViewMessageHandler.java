@@ -203,16 +203,16 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             super(FLOW_DETAILS_REQ);
         }
 
-        private FlowRule findFlowById(String appIdText, String flowId) {
+        private FlowEntry findFlowById(String appIdText, String flowId) {
             String strippedFlowId = flowId.replaceAll(OX, EMPTY);
             FlowRuleService fs = get(FlowRuleService.class);
             int appIdInt = Integer.parseInt(appIdText);
             ApplicationId appId = new DefaultApplicationId(appIdInt, DETAILS);
-            Iterable<FlowRule> flows = fs.getFlowRulesById(appId);
+            Iterable<FlowEntry> entries = fs.getFlowEntriesById(appId);
 
-            for (FlowRule flow : flows) {
-                if (flow.id().toString().equals(strippedFlowId)) {
-                    return flow;
+            for (FlowEntry entry : entries) {
+                if (entry.id().toString().equals(strippedFlowId)) {
+                    return entry;
                 }
             }
 

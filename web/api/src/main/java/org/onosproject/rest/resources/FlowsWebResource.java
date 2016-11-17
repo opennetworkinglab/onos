@@ -206,11 +206,12 @@ public class FlowsWebResource extends AbstractWebResource {
     public Response getFlowByAppId(@PathParam("appId") String appId) {
         final ApplicationService appService = get(ApplicationService.class);
         final ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
-        final Iterable<FlowRule> flowRules = service.getFlowRulesById(idInstant);
+        final Iterable<FlowEntry> flowEntries = service.getFlowEntriesById(idInstant);
 
-        flowRules.forEach(flow -> flowsNode.add(codec(FlowRule.class).encode(flow, this)));
+        flowEntries.forEach(flow -> flowsNode.add(codec(FlowEntry.class).encode(flow, this)));
         return ok(root).build();
     }
+
 
     /**
      * Removes flow rules by application ID.

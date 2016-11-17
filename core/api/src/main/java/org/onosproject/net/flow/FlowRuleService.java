@@ -88,7 +88,16 @@ public interface FlowRuleService
      * @param id the application ID to look up
      * @return collection of flow rules
      */
+    @Deprecated
     Iterable<FlowRule> getFlowRulesById(ApplicationId id);
+
+    /**
+     * Returns a list of rules with this application ID.
+     *
+     * @param id the application ID to look up
+     * @return collection of flow rules
+     */
+    Iterable<FlowEntry> getFlowEntriesById(ApplicationId id);
 
     /**
      * Returns a list of rules filtered by application and group id.
