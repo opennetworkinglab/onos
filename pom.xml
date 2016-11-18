@@ -73,34 +73,29 @@
         <module>tools/package/branding</module>
     </modules>
 
-    <!-- FIXME remove before release; needed for the following
-     - openflowj
-     - snmp
-    -->
-    <repositories>
-        <repository>
-            <id>snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
-            </snapshots>
-        </repository>
-    </repositories>
+    <!--<repositories>-->
+        <!--<repository>-->
+            <!--<id>snapshots</id>-->
+            <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+            <!--<snapshots>-->
+                <!--<enabled>true</enabled>-->
+                <!--<updatePolicy>daily</updatePolicy>-->
+                <!--<checksumPolicy>fail</checksumPolicy>-->
+            <!--</snapshots>-->
+        <!--</repository>-->
+    <!--</repositories>-->
 
-    <!-- FIXME required for onos-maven-plugin:1.10-SNAPSHOT -->
-    <pluginRepositories>
-        <pluginRepository>
-            <id>snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>fail</checksumPolicy>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+    <!--<pluginRepositories>-->
+        <!--<pluginRepository>-->
+            <!--<id>snapshots</id>-->
+            <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+            <!--<snapshots>-->
+                <!--<enabled>true</enabled>-->
+                <!--<updatePolicy>daily</updatePolicy>-->
+                <!--<checksumPolicy>fail</checksumPolicy>-->
+            <!--</snapshots>-->
+        <!--</pluginRepository>-->
+    <!--</pluginRepositories>-->
 
     <distributionManagement>
         <snapshotRepository>

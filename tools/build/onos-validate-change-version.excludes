@@ -29,3 +29,6 @@
 \./providers/bmv2/
 \./drivers/bmv2/
 \./apps/kafka-integration/
+\./pom.xml.versionsBackup
+\./tools/build/buck-publish-api
+\./tools/build/buck-plugin/BUCK
