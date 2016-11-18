@@ -667,7 +667,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         public void event(DeviceEvent event) {
             switch (event.type()) {
             case DEVICE_ADDED:
-            case PORT_REMOVED:
+            case PORT_UPDATED:
+            case PORT_ADDED:
             case DEVICE_UPDATED:
             case DEVICE_AVAILABILITY_CHANGED:
                 log.debug("Event {} received from Device Service", event.type());
@@ -740,20 +741,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                     event.type(), ((Device) event.subject()).id());
                             processDeviceRemoved((Device) event.subject());
                         }
-                    } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
-                        processPortRemoved((Device) event.subject(),
-                                           ((DeviceEvent) event).port());
-                    } else if (event.type() == DeviceEvent.Type.PORT_ADDED ||
-                            event.type() == DeviceEvent.Type.PORT_UPDATED) {
-                        log.info("** PORT ADDED OR UPDATED {}/{} -> {}",
+                    } else if (event.type() == DeviceEvent.Type.PORT_ADDED) {
+                        // XXX typically these calls come when device is added
+                        // so port filtering rules are handled there, and it
+                        // represents all ports on the device, enabled or not.
+                        log.debug("** PORT ADDED {}/{} -> {}",
                                  event.subject(),
                                  ((DeviceEvent) event).port(),
                                  event.type());
-                        /* XXX create method for single port filtering rules
-                        if (defaultRoutingHandler != null) {
-                            defaultRoutingHandler.populatePortAddressingRules(
-                                ((Device) event.subject()).id());
-                        }*/
+                    } else if (event.type() == DeviceEvent.Type.PORT_UPDATED) {
+                        log.info("** PORT UPDATED {}/{} -> {}",
+                                 event.subject(),
+                                 ((DeviceEvent) event).port(),
+                                 event.type());
+                        processPortUpdated(((Device) event.subject()),
+                                           ((DeviceEvent) event).port());
                     } else {
                         log.warn("Unhandled event type: {}", event.type());
                     }
@@ -898,12 +900,51 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         xConnectHandler.removeDevice(device.id());
     }
 
-    private void processPortRemoved(Device device, Port port) {
-        log.info("Port {} was removed", port.toString());
+    private void processPortUpdated(Device device, Port port) {
+        if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
+            log.warn("Device configuration uploading. Not handling port event for"
+                    + "dev: {} port: {}", device.id(), port.number());
+            return;
+        }
+        /* XXX create method for single port filtering rules which are needed
+           for both switch-to-switch ports and edge ports
+        if (defaultRoutingHandler != null) {
+            defaultRoutingHandler.populatePortAddressingRules(
+                ((Device) event.subject()).id());
+        }*/
+
+        // portUpdated calls are for ports that have gone down or up. For switch
+        // to switch ports, link-events should take care of any re-routing or
+        // group editing necessary for port up/down. Here we only process edge ports
+        // that are already configured.
+         Ip4Prefix configuredSubnet = deviceConfiguration.getPortSubnet(device.id(),
+                                                                        port.number());
+        if (configuredSubnet == null) {
+            log.debug("Not handling port updated event for unconfigured port "
+                    + "dev/port: {}/{}", device.id(), port.number());
+            return;
+        }
+        processEdgePort(device, port, configuredSubnet);
+    }
+
+    private void processEdgePort(Device device, Port port, Ip4Prefix subnet) {
+        boolean portUp = port.isEnabled();
+        if (portUp) {
+            log.info("Device:EdgePort {}:{} is enabled in subnet: {}", device.id(),
+                     port.number(), subnet);
+        } else {
+            log.info("Device:EdgePort {}:{} is disabled in subnet: {}", device.id(),
+                     port.number(), subnet);
+        }
+
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
-            groupHandler.portDown(port.number(),
+            groupHandler.processEdgePort(port.number(), subnet, portUp,
                                   mastershipService.isLocalMaster(device.id()));
+        } else {
+            log.warn("Group handler not found for dev:{}. Not handling edge port"
+                    + " {} event for port:{}", device.id(),
+                    (portUp) ? "UP" : "DOWN", port.number());
         }
     }
 
