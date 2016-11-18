@@ -21,6 +21,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.driver.extensions.Ofdpa3MatchMplsL2Port;
 import org.onosproject.driver.extensions.Ofdpa3MatchOvid;
+import org.onosproject.driver.extensions.Ofdpa3PopCw;
+import org.onosproject.driver.extensions.Ofdpa3PopL2Header;
 import org.onosproject.driver.extensions.Ofdpa3SetMplsL2Port;
 import org.onosproject.driver.extensions.Ofdpa3SetMplsType;
 import org.onosproject.driver.extensions.Ofdpa3SetOvid;
@@ -40,8 +42,11 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
@@ -146,7 +151,7 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                 return;
             }
             // 0x0000XXXX is UNI interface.
-            if (portCriterion.port().toLong() > 0x0000FFFF) {
+            if (portCriterion.port().toLong() > MPLS_UNI_PORT_MAX) {
                 log.error("Filering Objective invalid logical port {}",
                           portCriterion.port().toLong());
                 fail(filteringObjective, ObjectiveError.BADPARAMS);
@@ -273,14 +278,95 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     @Override
     protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         // We use the tunnel id to identify pw related flows.
+        // Looking for the fwd objective of the initiation.
         TunnelIdCriterion tunnelIdCriterion = (TunnelIdCriterion) fwd.selector()
                 .getCriterion(TUNNEL_ID);
         if (tunnelIdCriterion != null) {
-            return processPwVersatile(fwd);
+            return processInitPwVersatile(fwd);
+        }
+        // Looking for the fwd objective of the termination.
+        ModTunnelIdInstruction modTunnelIdInstruction = getModTunnelIdInstruction(fwd.treatment());
+        OutputInstruction outputInstruction = getOutputInstruction(fwd.treatment());
+        if (modTunnelIdInstruction != null && outputInstruction != null) {
+            return processTermPwVersatile(fwd, modTunnelIdInstruction, outputInstruction);
         }
         // If it is not a pseudo wire flow we fall back
         // to the OFDPA 2.0 pipeline.
         return super.processVersatile(fwd);
+    }
+
+    private Collection<FlowRule> processTermPwVersatile(ForwardingObjective forwardingObjective,
+                                                        ModTunnelIdInstruction modTunnelIdInstruction,
+                                                        OutputInstruction outputInstruction) {
+        TrafficTreatment.Builder flowTreatment;
+        TrafficSelector.Builder flowSelector;
+        // We divide the mpls actions from the tunnel actions. We need
+        // this to order the actions in the final treatment.
+        TrafficTreatment.Builder mplsTreatment = DefaultTrafficTreatment.builder();
+        createMplsTreatment(forwardingObjective.treatment(), mplsTreatment);
+        // The match of the forwarding objective is ready to go.
+        flowSelector = DefaultTrafficSelector.builder(forwardingObjective.selector());
+        // We verify the tunnel id and mpls port are correct.
+        long tunnelId = MPLS_TUNNEL_ID_BASE | modTunnelIdInstruction.tunnelId();
+        if (tunnelId > MPLS_TUNNEL_ID_MAX) {
+            log.error("Pw Versatile Forwarding Objective must include tunnel id < {}",
+                      MPLS_TUNNEL_ID_MAX);
+            fail(forwardingObjective, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+        // 0x0002XXXX is NNI interface.
+        int mplsLogicalPort = ((int) outputInstruction.port().toLong()) | MPLS_NNI_PORT_BASE;
+        if (mplsLogicalPort > MPLS_NNI_PORT_MAX) {
+            log.error("Pw Versatile Forwarding Objective invalid logical port {}",
+                      mplsLogicalPort);
+            fail(forwardingObjective, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+        // Next id cannot be null.
+        if (forwardingObjective.nextId() == null) {
+            log.error("Pw Versatile Forwarding Objective must contain nextId ",
+                      forwardingObjective.nextId());
+            fail(forwardingObjective, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+        // We retrieve the l2 interface group and point the mpls
+        // flow to this.
+        NextGroup next = getGroupForNextObjective(forwardingObjective.nextId());
+        if (next == null) {
+            log.warn("next-id:{} not found in dev:{}", forwardingObjective.nextId(), deviceId);
+            fail(forwardingObjective, ObjectiveError.GROUPMISSING);
+            return Collections.emptySet();
+        }
+        List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+        Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+        if (group == null) {
+            log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                     gkeys.get(0).peekFirst(), forwardingObjective.nextId(), deviceId);
+            fail(forwardingObjective, ObjectiveError.GROUPMISSING);
+            return Collections.emptySet();
+        }
+        // We prepare the treatment for the mpls flow table.
+        // The order of the actions has to be strictly this
+        // according to the OFDPA 2.0 specification.
+        flowTreatment = DefaultTrafficTreatment.builder(mplsTreatment.build());
+        flowTreatment.extension(new Ofdpa3PopCw(), deviceId);
+        flowTreatment.popVlan();
+        flowTreatment.extension(new Ofdpa3PopL2Header(), deviceId);
+        flowTreatment.setTunnelId(tunnelId);
+        flowTreatment.extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId);
+        flowTreatment.extension(new Ofdpa3SetMplsType(VPWS), deviceId);
+        flowTreatment.transition(MPLS_TYPE_TABLE);
+        flowTreatment.deferred().group(group.id());
+        // We prepare the flow rule for the mpls table.
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(forwardingObjective.appId())
+                .withPriority(forwardingObjective.priority())
+                .forDevice(deviceId)
+                .withSelector(flowSelector.build())
+                .withTreatment(flowTreatment.build())
+                .makePermanent()
+                .forTable(MPLS_TABLE_1);
+        return Collections.singletonList(ruleBuilder.build());
     }
 
     /**
@@ -289,7 +375,7 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
      * @param forwardingObjective the fw objective to process
      * @return a singleton list of flow rule
      */
-    private Collection<FlowRule> processPwVersatile(ForwardingObjective forwardingObjective) {
+    private Collection<FlowRule> processInitPwVersatile(ForwardingObjective forwardingObjective) {
         // We retrieve the matching criteria for mpls l2 port.
         TunnelIdCriterion tunnelIdCriterion = (TunnelIdCriterion) forwardingObjective.selector()
                 .getCriterion(TUNNEL_ID);
@@ -315,7 +401,7 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
             return Collections.emptySet();
         }
         // 0x0000XXXX is UNI interface.
-        if (portCriterion.port().toLong() > 0x0000FFFF) {
+        if (portCriterion.port().toLong() > MPLS_UNI_PORT_MAX) {
             log.error("Pw Versatile Forwarding Objective invalid logical port {}",
                       portCriterion.port().toLong());
             fail(forwardingObjective, ObjectiveError.BADPARAMS);
@@ -368,5 +454,95 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                 .makePermanent()
                 .forTable(MPLS_L2_PORT_FLOW_TABLE);
         return Collections.singletonList(ruleBuilder.build());
+    }
+
+    /**
+     * Utility function to get the mod tunnel id instruction
+     * if present.
+     *
+     * @param treatment the treatment to analyze
+     * @return the mod tunnel id instruction if present,
+     * otherwise null
+     */
+    private ModTunnelIdInstruction getModTunnelIdInstruction(TrafficTreatment treatment) {
+        L2ModificationInstruction l2ModificationInstruction;
+        for (Instruction instruction : treatment.allInstructions()) {
+            if (instruction.type() == L2MODIFICATION) {
+                l2ModificationInstruction = (L2ModificationInstruction) instruction;
+                if (l2ModificationInstruction.subtype() == L2SubType.TUNNEL_ID) {
+                    return (ModTunnelIdInstruction) l2ModificationInstruction;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Utility function to get the output instruction
+     * if present.
+     *
+     * @param treatment the treatment to analyze
+     * @return the output instruction if present,
+     * otherwise null
+     */
+    private OutputInstruction getOutputInstruction(TrafficTreatment treatment) {
+        for (Instruction instruction : treatment.allInstructions()) {
+            if (instruction.type() == Instruction.Type.OUTPUT) {
+                return (OutputInstruction) instruction;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Helper method for dividing the tunnel instructions from the mpls
+     * instructions.
+     *
+     * @param treatment the treatment to analyze
+     * @param mplsTreatment the mpls treatment builder
+     */
+    private void createMplsTreatment(TrafficTreatment treatment,
+                                     TrafficTreatment.Builder mplsTreatment) {
+
+        for (Instruction ins : treatment.allInstructions()) {
+
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                switch (l2ins.subtype()) {
+                    // These instructions have to go in the mpls
+                    // treatment.
+                    case TUNNEL_ID:
+                        break;
+                    case DEC_MPLS_TTL:
+                    case MPLS_POP:
+                        mplsTreatment.add(ins);
+                        break;
+                    default:
+                        log.warn("Driver does not handle this type of TrafficTreatment"
+                                         + " instruction in nextObjectives: {} - {}",
+                                 ins.type(), ins);
+                        break;
+                }
+            } else if (ins.type() == Instruction.Type.OUTPUT) {
+                break;
+            } else if (ins.type() == Instruction.Type.L3MODIFICATION) {
+                // We support partially the l3 instructions.
+                L3ModificationInstruction l3ins = (L3ModificationInstruction) ins;
+                switch (l3ins.subtype()) {
+                    case TTL_IN:
+                        mplsTreatment.add(ins);
+                        break;
+                    default:
+                        log.warn("Driver does not handle this type of TrafficTreatment"
+                                         + " instruction in nextObjectives: {} - {}",
+                                 ins.type(), ins);
+                }
+
+            } else {
+                log.warn("Driver does not handle this type of TrafficTreatment"
+                                 + " instruction in nextObjectives: {} - {}",
+                         ins.type(), ins);
+            }
+        }
     }
 }

@@ -129,6 +129,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MPLS_TUNNEL_ID_BASE = 0x10000;
     protected static final int MPLS_TUNNEL_ID_MAX = 0x1FFFF;
 
+    protected static final int MPLS_UNI_PORT_MAX = 0x0000FFFF;
+
+    protected static final int MPLS_NNI_PORT_BASE = 0x00020000;
+    protected static final int MPLS_NNI_PORT_MAX = 0x0002FFFF;
+
     private final Logger log = getLogger(getClass());
     protected ServiceDirectory serviceDirectory;
     protected FlowRuleService flowRuleService;
