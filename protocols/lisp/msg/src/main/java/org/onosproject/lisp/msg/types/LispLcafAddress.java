@@ -240,7 +240,8 @@ public class LispLcafAddress extends LispAfiAddress {
      * @param byteBuf   netty byte buffer
      */
     public static void updateLength(int lcafIndex, ByteBuf byteBuf) {
-        byteBuf.setByte(lcafIndex + LENGTH_FIELD_INDEX, byteBuf.writerIndex() - COMMON_HEADER_SIZE);
+        byteBuf.setByte(lcafIndex + LENGTH_FIELD_INDEX,
+                        byteBuf.writerIndex() - COMMON_HEADER_SIZE - lcafIndex);
     }
 
     /**
@@ -361,40 +362,48 @@ public class LispLcafAddress extends LispAfiAddress {
          * @return LispLcafAddress instance
          */
         public LispLcafAddress build() {
-            return new LispLcafAddress(LispCanonicalAddressFormatEnum.valueOf(lcafType),
-                    reserved1, reserved2, flag, length);
+            return new LispLcafAddress(LispCanonicalAddressFormatEnum
+                                               .valueOf(lcafType),
+                                       reserved1, reserved2, flag, length);
         }
     }
 
     /**
      * LISP LCAF reader class.
      */
-    public static class LcafAddressReader implements LispAddressReader<LispLcafAddress> {
+    public static class LcafAddressReader
+            implements LispAddressReader<LispLcafAddress> {
 
         private static final int LCAF_TYPE_FIELD_INDEX = 4;
 
         @Override
-        public LispLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispLcafAddress readFrom(ByteBuf byteBuf)
+                throws LispParseError, LispReaderException {
 
             int index = byteBuf.readerIndex();
 
             // LCAF type -> 8 bits
-            byte lcafType = (byte) byteBuf.getUnsignedByte(index + LCAF_TYPE_FIELD_INDEX);
+            byte lcafType = (byte) byteBuf
+                    .getUnsignedByte(index + LCAF_TYPE_FIELD_INDEX);
 
             if (lcafType == APPLICATION_DATA.getLispCode()) {
-                return new LispAppDataLcafAddress.AppDataLcafAddressReader().readFrom(byteBuf);
+                return new LispAppDataLcafAddress
+                        .AppDataLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == LIST.getLispCode()) {
-                return new LispListLcafAddress.ListLcafAddressReader().readFrom(byteBuf);
+                return new LispListLcafAddress
+                        .ListLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == SEGMENT.getLispCode()) {
-                return new LispSegmentLcafAddress.SegmentLcafAddressReader().readFrom(byteBuf);
+                return new LispSegmentLcafAddress
+                        .SegmentLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == SOURCE_DEST.getLispCode()) {
-                return new LispSourceDestLcafAddress.SourceDestLcafAddressReader().readFrom(byteBuf);
+                return new LispSourceDestLcafAddress
+                        .SourceDestLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == TRAFFIC_ENGINEERING.getLispCode()) {
@@ -410,26 +419,28 @@ public class LispLcafAddress extends LispAfiAddress {
     /**
      * LISP LCAF address writer class.
      */
-    public static class LcafAddressWriter implements LispAddressWriter<LispLcafAddress> {
+    public static class LcafAddressWriter
+            implements LispAddressWriter<LispLcafAddress> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispLcafAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispLcafAddress address)
+                throws LispWriterException {
             switch (address.getType()) {
                 case APPLICATION_DATA:
-                    new LispAppDataLcafAddress.AppDataLcafAddressWriter().writeTo(byteBuf,
-                            (LispAppDataLcafAddress) address);
+                    new LispAppDataLcafAddress.AppDataLcafAddressWriter()
+                            .writeTo(byteBuf, (LispAppDataLcafAddress) address);
                     break;
                 case LIST:
                     new LispListLcafAddress.ListLcafAddressWriter().writeTo(byteBuf,
                             (LispListLcafAddress) address);
                     break;
                 case SEGMENT:
-                    new LispSegmentLcafAddress.SegmentLcafAddressWriter().writeTo(byteBuf,
-                            (LispSegmentLcafAddress) address);
+                    new LispSegmentLcafAddress.SegmentLcafAddressWriter()
+                            .writeTo(byteBuf, (LispSegmentLcafAddress) address);
                     break;
                 case SOURCE_DEST:
-                    new LispSourceDestLcafAddress.SourceDestLcafAddressWriter().writeTo(byteBuf,
-                            (LispSourceDestLcafAddress) address);
+                    new LispSourceDestLcafAddress.SourceDestLcafAddressWriter()
+                            .writeTo(byteBuf, (LispSourceDestLcafAddress) address);
                     break;
                 case TRAFFIC_ENGINEERING:
                     new LispTeLcafAddress.TeLcafAddressWriter().writeTo(byteBuf,

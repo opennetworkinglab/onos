@@ -162,7 +162,8 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                     Objects.equals(this.etrUdpPortNumber, other.etrUdpPortNumber) &&
                     Objects.equals(this.globalEtrRlocAddress, other.globalEtrRlocAddress) &&
                     Objects.equals(this.msRlocAddress, other.msRlocAddress) &&
-                    Objects.equals(this.privateEtrRlocAddress, other.privateEtrRlocAddress);
+                    Objects.equals(this.privateEtrRlocAddress, other.privateEtrRlocAddress) &&
+                    Objects.equals(this.rtrRlocAddresses, other.rtrRlocAddresses);
         }
         return false;
     }
@@ -175,6 +176,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                 .add("global ETR RLOC address", globalEtrRlocAddress)
                 .add("Map Server RLOC address", msRlocAddress)
                 .add("private ETR RLOC address", privateEtrRlocAddress)
+                .add("RTR RLOC addresses", rtrRlocAddresses)
                 .toString();
     }
 

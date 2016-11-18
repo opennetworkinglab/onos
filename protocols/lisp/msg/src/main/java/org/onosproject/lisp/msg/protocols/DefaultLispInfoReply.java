@@ -43,6 +43,12 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
     private final LispNatLcafAddress natLcafAddress;
 
+    static final InfoReplyWriter WRITER;
+
+    static {
+        WRITER = new InfoReplyWriter();
+    }
+
     /**
      * A private constructor that protects object instantiation from external.
      *
@@ -66,6 +72,11 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
     @Override
     public LispNatLcafAddress getNatLcafAddress() {
         return natLcafAddress;
+    }
+
+    @Override
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override

@@ -63,18 +63,16 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
                 ctx.writeAndFlush(mapNotify);
             }
+
+            if (msg instanceof LispInfoRequest) {
+                LispMapServer mapServer = new LispMapServer();
+                LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
+
+                ctx.writeAndFlush(infoReply);
+            }
         } finally {
+            // try to remove the received message form the buffer
             ReferenceCountUtil.release(msg);
-        }
-
-        if (msg instanceof LispInfoRequest) {
-            LispMapServer mapServer = new LispMapServer();
-            LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
-
-            // try to remove the received info-request message from buffer
-            ReferenceCountUtil.release(msg);
-
-            ctx.writeAndFlush(infoReply);
         }
     }
 

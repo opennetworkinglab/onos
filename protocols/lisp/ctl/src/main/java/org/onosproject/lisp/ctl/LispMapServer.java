@@ -199,7 +199,7 @@ public class LispMapServer {
         requestBuilder.withIsInfoReply(request.isInfoReply());
         requestBuilder.withMaskLength(request.getMaskLength());
 
-        LispInfoRequest authRequest =  requestBuilder.build();
+        LispInfoRequest authRequest = requestBuilder.build();
 
         return Arrays.equals(authRequest.getAuthData(), request.getAuthData());
     }

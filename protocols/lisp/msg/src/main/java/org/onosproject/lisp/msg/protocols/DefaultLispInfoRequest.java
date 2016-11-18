@@ -24,6 +24,7 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispNoAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +36,17 @@ import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.
 /**
  * Default LISP info request message class.
  */
-public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoRequest {
+public class DefaultLispInfoRequest extends DefaultLispInfo
+        implements LispInfoRequest {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultLispInfoRequest.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(DefaultLispInfoRequest.class);
+
+    static final InfoRequestWriter WRITER;
+
+    static {
+        WRITER = new InfoRequestWriter();
+    }
 
     /**
      * A private constructor that protects object instantiation from external.
@@ -51,10 +60,13 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
      * @param maskLength     EID prefix mask length
      * @param eidPrefix      EID prefix
      */
-    protected DefaultLispInfoRequest(boolean infoReply, long nonce, short keyId, short authDataLength,
-                                     byte[] authData, int ttl, byte maskLength,
+    protected DefaultLispInfoRequest(boolean infoReply, long nonce, short keyId,
+                                     short authDataLength, byte[] authData,
+                                     int ttl, byte maskLength,
                                      LispAfiAddress eidPrefix) {
-        super(infoReply, nonce, keyId, authDataLength, authData, ttl, maskLength, eidPrefix);
+
+        super(infoReply, nonce, keyId, authDataLength, authData, ttl,
+              maskLength, eidPrefix);
     }
 
     @Override
@@ -95,7 +107,13 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
                 eidPrefix) + Arrays.hashCode(authData);
     }
 
-    public static final class DefaultInfoRequestBuilder implements InfoRequestBuilder {
+    @Override
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
+    }
+
+    public static final class DefaultInfoRequestBuilder
+            implements InfoRequestBuilder {
 
         private boolean infoReply;
         private long nonce;
@@ -174,17 +192,21 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
 
             // if authentication data is not specified, we will calculate it
             if (authData == null) {
-                LispAuthenticationFactory factory = LispAuthenticationFactory.getInstance();
+                LispAuthenticationFactory factory =
+                        LispAuthenticationFactory.getInstance();
 
-                authDataLength = LispAuthenticationKeyEnum.valueOf(keyId).getHashLength();
+                authDataLength =
+                        LispAuthenticationKeyEnum.valueOf(keyId).getHashLength();
                 byte[] tmpAuthData = new byte[authDataLength];
                 Arrays.fill(tmpAuthData, (byte) 0);
                 authData = tmpAuthData;
 
                 ByteBuf byteBuf = Unpooled.buffer();
                 try {
-                    new DefaultLispInfoRequest(infoReply, nonce, keyId, authDataLength,
-                            authData, ttl, maskLength, eidPrefix).writeTo(byteBuf);
+                    new DefaultLispInfoRequest(infoReply, nonce, keyId,
+                                               authDataLength, authData, ttl,
+                                               maskLength, eidPrefix)
+                            .writeTo(byteBuf);
                 } catch (LispWriterException e) {
                     log.warn("Failed to serialize info request", e);
                 }
@@ -196,7 +218,8 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
                     log.warn("Must specify authentication key");
                 }
 
-                authData = factory.createAuthenticationData(valueOf(keyId), authKey, bytes);
+                authData = factory
+                        .createAuthenticationData(valueOf(keyId), authKey, bytes);
             }
 
             return new DefaultLispInfoRequest(infoReply, nonce, keyId,
@@ -207,10 +230,12 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
     /**
      * A LISP message reader for InfoRequest message.
      */
-    public static class InfoRequestReader implements LispMessageReader<LispInfoRequest> {
+    public static class InfoRequestReader
+            implements LispMessageReader<LispInfoRequest> {
 
         @Override
-        public LispInfoRequest readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispInfoRequest readFrom(ByteBuf byteBuf)
+                throws LispParseError, LispReaderException {
 
             LispInfo lispInfo = DefaultLispInfo.deserialize(byteBuf);
 
@@ -229,11 +254,19 @@ public class DefaultLispInfoRequest extends DefaultLispInfo implements LispInfoR
     /**
      * A LISP message writer for InfoRequest message.
      */
-    public static final class InfoRequestWriter implements LispMessageWriter<LispInfoRequest> {
+    public static final class InfoRequestWriter
+            implements LispMessageWriter<LispInfoRequest> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispInfoRequest message) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispInfoRequest message)
+                throws LispWriterException {
+
             DefaultLispInfo.serialize(byteBuf, message);
+
+            //Fill AFI=0, no address
+            new LispAfiAddress.AfiAddressWriter()
+                    .writeTo(byteBuf, new LispNoAddress());
+
         }
     }
 }
