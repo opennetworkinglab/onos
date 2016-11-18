@@ -53,6 +53,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
@@ -392,6 +393,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkHostManager(this, network);
         } else if (serviceKey.serviceClass.equals(PathService.class)) {
             service = new VirtualNetworkPathManager(this, network);
+        } else if (serviceKey.serviceClass.equals(FlowRuleService.class)) {
+            service = new VirtualNetworkFlowRuleManager(this, network);
         } else {
             return null;
         }
