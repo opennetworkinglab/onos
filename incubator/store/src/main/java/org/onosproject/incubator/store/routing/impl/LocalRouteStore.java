@@ -24,9 +24,6 @@ import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.incubator.net.routing.NextHopData;
@@ -54,8 +51,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Route store based on in-memory storage.
  */
-@Service
-@Component
 public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegate>
         implements RouteStore {
 
@@ -67,12 +62,23 @@ public class LocalRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegat
 
     private Map<IpAddress, NextHopData> nextHops = new ConcurrentHashMap<>();
 
-    @Activate
+    /**
+     * Sets up local route store.
+     */
     public void activate() {
         routeTables = new ConcurrentHashMap<>();
 
         routeTables.put(IPV4, new RouteTable());
         routeTables.put(IPV6, new RouteTable());
+
+        log.info("Started");
+    }
+
+    /**
+     * Cleans up local route store. Currently nothing is done here.
+     */
+    public void deactivate() {
+        log.info("Stopped");
     }
 
     @Override
