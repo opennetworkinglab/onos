@@ -107,18 +107,15 @@
             });
         }
 
-        if (obj !=null)
-        {
-            if (obj.class === 'link') {
-                if (selections[obj.key]) {
-                    deselectObject(obj.key);
-                } else {
-                    selections[obj.key] = { obj: obj, el: el };
-                    selectOrder.push(obj.key);
-                }
-                updateDetail();
-                return;
+        if (obj && obj.class === 'link') {
+            if (selections[obj.key]) {
+                deselectObject(obj.key);
+            } else {
+                selections[obj.key] = { obj: obj, el: el };
+                selectOrder.push(obj.key);
             }
+            updateDetail();
+            return;
         }
 
         if (!n) {

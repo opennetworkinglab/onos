@@ -117,23 +117,24 @@
             minDist = proximity * 2;
 
             network.links.forEach(function (d) {
+                var line = d.position,
+                    point,
+                    hit,
+                    dist;
+
                 if (!api.showHosts() && d.type() === 'hostLink') {
                     return; // skip hidden host links
                 }
 
-                if(d.position != null)
-                {
-                    var line = d.position,
-                    point = pdrop(line, mouse),
-                    hit = lineHit(line, point, mouse),
-                    dist;
-                }
-
-                if (hit) {
-                    dist = mdist(point, mouse);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        nearest = d;
+                if (line) {
+                    point = pdrop(line, mouse);
+                    hit = lineHit(line, point, mouse);
+                    if (hit) {
+                        dist = mdist(point, mouse);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearest = d;
+                        }
                     }
                 }
             });
@@ -225,17 +226,11 @@
 
          tss.deselectAll();
 
-         if(ldata != null)
-         {
-
-            if (!ldata.el.classed('selected')) {
-                selLink(ldata);
-                return;
-            }
-
+         if (ldata) {
             if (ldata.el.classed('selected')) {
                 unselLink(ldata);
-                return;
+            } else {
+                selLink(ldata);
             }
          }
     }
