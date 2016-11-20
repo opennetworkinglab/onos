@@ -64,7 +64,7 @@ public class Ofdpa3MatchOvid extends OfdpaMatchVlanVid {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Ofdpa3MatchOvid) {
+        if (obj != null && obj.getClass() == Ofdpa3MatchOvid.class) {
             Ofdpa3MatchOvid that = (Ofdpa3MatchOvid) obj;
             return Objects.equals(this.vlanId(), that.vlanId());
 
