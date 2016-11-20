@@ -62,7 +62,7 @@ alias deprecatedAlias='echo "This alias has been deprecated."'
 alias obi=deprecatedAlias
 alias obs=deprecatedAlias
 
-alias ok='buck run onos-local --'
+alias ok='NO_BUCKD=1 buck run onos-local --'
 alias oh='onos localhost halt'
 
 alias ol='onos-log'
