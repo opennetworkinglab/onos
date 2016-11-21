@@ -209,11 +209,11 @@ function cell {
         ;;
 
     "")
-        env | egrep "ONOS_CELL"
-        env | egrep "OCI"
-        env | egrep "OC[0-9]+" | sort
-        env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
+        env | egrep "^ONOS_CELL"
+        env | egrep "^OCI"
+        env | egrep "^OC[0-9]+" | sort
+        env | egrep "^OC[NT]"
+        env | egrep "^ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
         ;;
 
     *)
