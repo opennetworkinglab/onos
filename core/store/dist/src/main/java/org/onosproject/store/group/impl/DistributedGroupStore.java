@@ -1109,7 +1109,7 @@ public class DistributedGroupStore
                 group = getGroupIdTable(key.deviceId()).values()
                         .stream()
                         .filter((storedGroup) -> (storedGroup.appCookie().equals(key.appCookie)))
-                        .findFirst().get();
+                        .findFirst().orElse(null);
                 if (group == null) {
                     log.error("GroupStoreKeyMapListener: Received "
                                       + "event {} with null entry... can not process", mapEvent.type());
