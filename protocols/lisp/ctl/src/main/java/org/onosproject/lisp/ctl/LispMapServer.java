@@ -16,6 +16,7 @@
 package org.onosproject.lisp.ctl;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationConfig;
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
@@ -49,23 +50,22 @@ import static org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilde
  * LISP map server class.
  * Handles map-register message and acknowledges with map-notify message.
  */
-public class LispMapServer {
+public final class LispMapServer {
 
     private static final int MAP_NOTIFY_PORT = 4342;
     private static final int INFO_REPLY_PORT = 4342;
 
-    // TODO: need to be configurable
-    private static final String AUTH_KEY = "onos";
-
-    // TODO: need to be configurable
-    private static final short AUTH_METHOD = 1;
-
     private static final Logger log = LoggerFactory.getLogger(LispMapServer.class);
 
-    private LispEidRlocMap mapInfo;
+    private LispEidRlocMap eidRlocMap = LispEidRlocMap.getInstance();
+    private LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
 
-    public LispMapServer() {
-        mapInfo = LispEidRlocMap.getInstance();
+    public static LispMapServer getInstance() {
+        return SingletonHelper.INSTANCE;
+    }
+
+    // non-instantiable (except for our Singleton)
+    private LispMapServer() {
     }
 
     /**
@@ -84,9 +84,9 @@ public class LispMapServer {
         }
 
         NotifyBuilder notifyBuilder = new DefaultNotifyBuilder();
-        notifyBuilder.withKeyId(AUTH_METHOD);
-        notifyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
-        notifyBuilder.withAuthKey(AUTH_KEY);
+        notifyBuilder.withKeyId(authConfig.lispAuthKeyId());
+        notifyBuilder.withAuthDataLength(valueOf(authConfig.lispAuthKeyId()).getHashLength());
+        notifyBuilder.withAuthKey(authConfig.lispAuthKey());
         notifyBuilder.withNonce(register.getNonce());
         notifyBuilder.withMapRecords(register.getMapRecords());
 
@@ -99,7 +99,7 @@ public class LispMapServer {
         register.getMapRecords().forEach(record -> {
             LispEidRecord eidRecord =
                     new LispEidRecord(record.getMaskLength(), record.getEidPrefixAfi());
-            mapInfo.insertMapRecord(eidRecord, record);
+            eidRlocMap.insertMapRecord(eidRecord, record);
         });
 
         return notify;
@@ -146,8 +146,8 @@ public class LispMapServer {
 
         InfoReplyBuilder replyBuilder = new DefaultLispInfoReply.DefaultInfoReplyBuilder();
         replyBuilder.withKeyId(request.getKeyId());
-        replyBuilder.withAuthDataLength(valueOf(AUTH_METHOD).getHashLength());
-        replyBuilder.withAuthKey(AUTH_KEY);
+        replyBuilder.withAuthDataLength(valueOf(authConfig.lispAuthKeyId()).getHashLength());
+        replyBuilder.withAuthKey(authConfig.lispAuthKey());
         replyBuilder.withNonce(request.getNonce());
         replyBuilder.withEidPrefix(request.getPrefix());
         replyBuilder.withMaskLength(request.getMaskLength());
@@ -171,7 +171,7 @@ public class LispMapServer {
     private boolean checkMapRegisterAuthData(LispMapRegister register) {
         RegisterBuilder registerBuilder = new DefaultRegisterBuilder();
         registerBuilder.withKeyId(register.getKeyId());
-        registerBuilder.withAuthKey(AUTH_KEY);
+        registerBuilder.withAuthKey(authConfig.lispAuthKey());
         registerBuilder.withNonce(register.getNonce());
         registerBuilder.withIsProxyMapReply(register.isProxyMapReply());
         registerBuilder.withIsWantMapNotify(register.isWantMapNotify());
@@ -192,7 +192,7 @@ public class LispMapServer {
     private boolean checkInfoRequestAuthData(LispInfoRequest request) {
         InfoRequestBuilder requestBuilder = new DefaultInfoRequestBuilder();
         requestBuilder.withKeyId(request.getKeyId());
-        requestBuilder.withAuthKey(AUTH_KEY);
+        requestBuilder.withAuthKey(authConfig.lispAuthKey());
         requestBuilder.withNonce(request.getNonce());
         requestBuilder.withTtl(request.getTtl());
         requestBuilder.withEidPrefix(request.getPrefix());
@@ -202,5 +202,12 @@ public class LispMapServer {
         LispInfoRequest authRequest = requestBuilder.build();
 
         return Arrays.equals(authRequest.getAuthData(), request.getAuthData());
+    }
+
+    /**
+     * Prevents object instantiation from external.
+     */
+    private static class SingletonHelper {
+        private static final LispMapServer INSTANCE = new LispMapServer();
     }
 }

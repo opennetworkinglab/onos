@@ -57,7 +57,7 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (msg instanceof LispMapRegister) {
-                LispMapServer mapServer = new LispMapServer();
+                LispMapServer mapServer = LispMapServer.getInstance();
                 LispMapNotify mapNotify =
                         mapServer.processMapRegister((LispMapRegister) msg);
 
@@ -65,7 +65,7 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (msg instanceof LispInfoRequest) {
-                LispMapServer mapServer = new LispMapServer();
+                LispMapServer mapServer = LispMapServer.getInstance();
                 LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
 
                 ctx.writeAndFlush(infoReply);
