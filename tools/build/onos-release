@@ -27,6 +27,7 @@ onos-validate-change-version
 
 # Build ONOS & deploy to staging repo using the release profile.
 onos-buck build onos
+onos-buck test
 time onos-buck-publish
 
 # Build ONOS docs
