@@ -19,13 +19,31 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispTeLcafAddress.TeLcafAddressWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.*;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.APPLICATION_DATA;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.LIST;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.NAT;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.SEGMENT;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.SOURCE_DEST;
+import static org.onosproject.lisp.msg.types.LispCanonicalAddressFormatEnum.TRAFFIC_ENGINEERING;
+
 
 /**
  * LISP Canonical Address Formatted address class.
@@ -383,31 +401,30 @@ public class LispLcafAddress extends LispAfiAddress {
             int index = byteBuf.readerIndex();
 
             // LCAF type -> 8 bits
-            byte lcafType = (byte) byteBuf
-                    .getUnsignedByte(index + LCAF_TYPE_FIELD_INDEX);
+            byte lcafType = (byte) byteBuf.getUnsignedByte(index + LCAF_TYPE_FIELD_INDEX);
 
             if (lcafType == APPLICATION_DATA.getLispCode()) {
-                return new LispAppDataLcafAddress
-                        .AppDataLcafAddressReader().readFrom(byteBuf);
+                return new AppDataLcafAddressReader().readFrom(byteBuf);
+            }
+
+            if (lcafType == NAT.getLispCode()) {
+                return new NatLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == LIST.getLispCode()) {
-                return new LispListLcafAddress
-                        .ListLcafAddressReader().readFrom(byteBuf);
+                return new ListLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == SEGMENT.getLispCode()) {
-                return new LispSegmentLcafAddress
-                        .SegmentLcafAddressReader().readFrom(byteBuf);
+                return new SegmentLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == SOURCE_DEST.getLispCode()) {
-                return new LispSourceDestLcafAddress
-                        .SourceDestLcafAddressReader().readFrom(byteBuf);
+                return new SourceDestLcafAddressReader().readFrom(byteBuf);
             }
 
             if (lcafType == TRAFFIC_ENGINEERING.getLispCode()) {
-                return new LispTeLcafAddress.TeLcafAddressReader().readFrom(byteBuf);
+                return new TeLcafAddressReader().readFrom(byteBuf);
             }
 
             log.warn("Unsupported LCAF type, please specify a correct LCAF type");
@@ -427,23 +444,27 @@ public class LispLcafAddress extends LispAfiAddress {
                 throws LispWriterException {
             switch (address.getType()) {
                 case APPLICATION_DATA:
-                    new LispAppDataLcafAddress.AppDataLcafAddressWriter()
-                            .writeTo(byteBuf, (LispAppDataLcafAddress) address);
+                    new AppDataLcafAddressWriter().writeTo(byteBuf,
+                            (LispAppDataLcafAddress) address);
+                    break;
+                case NAT:
+                    new NatLcafAddressWriter().writeTo(byteBuf,
+                            (LispNatLcafAddress) address);
                     break;
                 case LIST:
-                    new LispListLcafAddress.ListLcafAddressWriter().writeTo(byteBuf,
+                    new ListLcafAddressWriter().writeTo(byteBuf,
                             (LispListLcafAddress) address);
                     break;
                 case SEGMENT:
-                    new LispSegmentLcafAddress.SegmentLcafAddressWriter()
-                            .writeTo(byteBuf, (LispSegmentLcafAddress) address);
+                    new SegmentLcafAddressWriter().writeTo(byteBuf,
+                            (LispSegmentLcafAddress) address);
                     break;
                 case SOURCE_DEST:
-                    new LispSourceDestLcafAddress.SourceDestLcafAddressWriter()
-                            .writeTo(byteBuf, (LispSourceDestLcafAddress) address);
+                    new SourceDestLcafAddressWriter().writeTo(byteBuf,
+                            (LispSourceDestLcafAddress) address);
                     break;
                 case TRAFFIC_ENGINEERING:
-                    new LispTeLcafAddress.TeLcafAddressWriter().writeTo(byteBuf,
+                    new TeLcafAddressWriter().writeTo(byteBuf,
                             (LispTeLcafAddress) address);
                     break;
                 default:
