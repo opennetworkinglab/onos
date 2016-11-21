@@ -22,6 +22,7 @@ import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -41,7 +42,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Device service implementation built on the virtual network service.
  */
-public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceEvent, DeviceListener>
+public class VirtualNetworkDeviceManager
+        extends AbstractListenerManager<DeviceEvent, DeviceListener>
         implements DeviceService, VnetService {
 
     private static final String NETWORK_NULL = "Network ID cannot be null";
@@ -58,7 +60,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
      * @param virtualNetworkManager virtual network manager service
      * @param network               virtual network
      */
-    public VirtualNetworkDeviceService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network) {
+    public VirtualNetworkDeviceManager(VirtualNetworkService virtualNetworkManager,
+                                       VirtualNetwork network) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
         this.manager = virtualNetworkManager;
@@ -71,7 +74,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
 
     @Override
     public Iterable<Device> getDevices() {
-        return manager.getVirtualDevices(this.network.id()).stream().collect(Collectors.toSet());
+        return manager.getVirtualDevices(
+                this.network.id()).stream().collect(Collectors.toSet());
     }
 
     @Override
@@ -96,7 +100,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
     @Override
     public Device getDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
-        Optional<VirtualDevice> foundDevice =  manager.getVirtualDevices(this.network.id())
+        Optional<VirtualDevice> foundDevice =
+                manager.getVirtualDevices(this.network.id())
                 .stream()
                 .filter(device -> deviceId.equals(device.id()))
                 .findFirst();
@@ -136,7 +141,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
     }
 
     @Override
-    public PortStatistics getStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+    public PortStatistics getStatisticsForPort(DeviceId deviceId,
+                                               PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
         checkNotNull(deviceId, PORT_NUMBER_NULL);
         // TODO not supported at the moment.
@@ -144,7 +150,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
     }
 
     @Override
-    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId, PortNumber portNumber) {
+    public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId,
+                                                    PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
         checkNotNull(deviceId, PORT_NUMBER_NULL);
         // TODO not supported at the moment.
@@ -155,7 +162,8 @@ public class VirtualNetworkDeviceService extends AbstractListenerManager<DeviceE
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
 
-        Optional<VirtualPort> foundPort =  manager.getVirtualPorts(this.network.id(), deviceId)
+        Optional<VirtualPort> foundPort =
+                manager.getVirtualPorts(this.network.id(), deviceId)
                 .stream()
                 .filter(port -> port.number().equals(portNumber))
                 .findFirst();

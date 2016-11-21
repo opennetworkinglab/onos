@@ -20,6 +20,7 @@ import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -36,7 +37,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Link service implementation built on the virtual network service.
  */
-public class VirtualNetworkLinkService extends AbstractListenerManager<LinkEvent, LinkListener>
+public class VirtualNetworkLinkManager
+        extends AbstractListenerManager<LinkEvent, LinkListener>
         implements LinkService, VnetService {
 
     private static final String NETWORK_NULL = "Network ID cannot be null";
@@ -52,7 +54,8 @@ public class VirtualNetworkLinkService extends AbstractListenerManager<LinkEvent
      * @param virtualNetworkManager virtual network manager service
      * @param network               virtual network
      */
-    public VirtualNetworkLinkService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network) {
+    public VirtualNetworkLinkManager(VirtualNetworkService virtualNetworkManager,
+                                     VirtualNetwork network) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
         this.manager = virtualNetworkManager;
@@ -70,7 +73,8 @@ public class VirtualNetworkLinkService extends AbstractListenerManager<LinkEvent
 
     @Override
     public Iterable<Link> getLinks() {
-        return manager.getVirtualLinks(this.network.id()).stream().collect(Collectors.toSet());
+        return manager.getVirtualLinks(this.network.id())
+                .stream().collect(Collectors.toSet());
     }
 
     @Override

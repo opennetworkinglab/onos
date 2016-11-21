@@ -45,7 +45,7 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkHostService.
  */
-public class VirtualNetworkHostServiceTest extends TestDeviceParams {
+public class VirtualNetworkHostManagerTest extends TestDeviceParams {
     private final String tenantIdValue1 = "TENANT_ID1";
 
     private VirtualNetworkManager manager;

@@ -20,6 +20,7 @@ import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -47,7 +48,8 @@ import static org.onosproject.incubator.net.virtual.DefaultVirtualLink.PID;
 /**
  * Topology service implementation built on the virtual network service.
  */
-public class VirtualNetworkTopologyService extends AbstractListenerManager<TopologyEvent, TopologyListener>
+public class VirtualNetworkTopologyManager
+        extends AbstractListenerManager<TopologyEvent, TopologyListener>
         implements TopologyService, VnetService {
 
     private static final String NETWORK_NULL = "Network ID cannot be null";
@@ -67,7 +69,8 @@ public class VirtualNetworkTopologyService extends AbstractListenerManager<Topol
      * @param virtualNetworkManager virtual network manager service
      * @param network               virtual network
      */
-    public VirtualNetworkTopologyService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network) {
+    public VirtualNetworkTopologyManager(VirtualNetworkService virtualNetworkManager,
+                                         VirtualNetwork network) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
         this.manager = virtualNetworkManager;
@@ -82,15 +85,18 @@ public class VirtualNetworkTopologyService extends AbstractListenerManager<Topol
                 .stream()
                 .collect(Collectors.toSet());
 
-        DefaultGraphDescription graph = new DefaultGraphDescription(System.nanoTime(), System.currentTimeMillis(),
-                                                                    devices, links);
+        DefaultGraphDescription graph =
+                new DefaultGraphDescription(System.nanoTime(),
+                                            System.currentTimeMillis(),
+                                            devices, links);
         return new DefaultTopology(PID, graph);
     }
 
     @Override
     public boolean isLatest(Topology topology) {
         Topology currentTopology = currentTopology();
-        return defaultTopology(topology).getGraph().equals(defaultTopology(currentTopology).getGraph());
+        return defaultTopology(topology).getGraph()
+                .equals(defaultTopology(currentTopology).getGraph());
     }
 
     @Override
@@ -152,7 +158,8 @@ public class VirtualNetworkTopologyService extends AbstractListenerManager<Topol
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeight weight) {
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, LINK_WEIGHT_NULL);

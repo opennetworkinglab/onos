@@ -23,6 +23,7 @@ import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -43,7 +44,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Host service implementation built on the virtual network service.
  */
-public class VirtualNetworkHostService extends AbstractListenerManager<HostEvent, HostListener>
+public class VirtualNetworkHostManager
+        extends AbstractListenerManager<HostEvent, HostListener>
         implements HostService, VnetService {
 
     private static final String NETWORK_NULL = "Network ID cannot be null";
@@ -58,7 +60,8 @@ public class VirtualNetworkHostService extends AbstractListenerManager<HostEvent
      * @param virtualNetworkManager virtual network manager service
      * @param network               virtual network
      */
-    public VirtualNetworkHostService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network) {
+    public VirtualNetworkHostManager(VirtualNetworkService virtualNetworkManager,
+                                     VirtualNetwork network) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
         this.manager = virtualNetworkManager;
@@ -78,7 +81,8 @@ public class VirtualNetworkHostService extends AbstractListenerManager<HostEvent
     @Override
     public Host getHost(HostId hostId) {
         checkNotNull(hostId, HOST_NULL);
-        Optional<VirtualHost> foundHost =  manager.getVirtualHosts(this.network.id())
+        Optional<VirtualHost> foundHost =
+                manager.getVirtualHosts(this.network.id())
                 .stream()
                 .filter(host -> hostId.equals(host.id()))
                 .findFirst();
@@ -94,7 +98,8 @@ public class VirtualNetworkHostService extends AbstractListenerManager<HostEvent
      * @return collection of virtual hosts.
      */
     private Collection<Host> getHostsColl() {
-        return manager.getVirtualHosts(this.network.id()).stream().collect(Collectors.toSet());
+        return manager.getVirtualHosts(this.network.id())
+                .stream().collect(Collectors.toSet());
     }
 
     /**

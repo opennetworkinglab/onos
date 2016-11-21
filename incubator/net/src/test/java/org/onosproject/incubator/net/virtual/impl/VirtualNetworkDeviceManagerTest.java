@@ -49,7 +49,7 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkDeviceService.
  */
-public class VirtualNetworkDeviceServiceTest extends TestDeviceParams {
+public class VirtualNetworkDeviceManagerTest extends TestDeviceParams {
     private final String tenantIdValue1 = "TENANT_ID1";
 
     private VirtualNetworkManager manager;
@@ -61,9 +61,9 @@ public class VirtualNetworkDeviceServiceTest extends TestDeviceParams {
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
-        coreService = new VirtualNetworkDeviceServiceTest.TestCoreService();
+        coreService = new VirtualNetworkDeviceManagerTest.TestCoreService();
         virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkDeviceServiceTest.TestCoreService());
+        TestUtils.setField(coreService, "coreService", new VirtualNetworkDeviceManagerTest.TestCoreService());
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 

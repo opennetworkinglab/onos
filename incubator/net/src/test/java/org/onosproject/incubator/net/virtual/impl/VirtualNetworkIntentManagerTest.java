@@ -77,7 +77,7 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkIntentService.
  */
-public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
+public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
     private static final ApplicationId APP_ID =
@@ -100,7 +100,7 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
     private static DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
     private TestableIntentService intentService = new FakeIntentManager();
-    private VirtualNetworkIntentService vnetIntentService;
+    private VirtualNetworkIntentManager vnetIntentService;
     private TestIntentCompiler compiler = new TestIntentCompiler();
     private IntentExtensionService intentExtensionService;
     private WorkPartitionService workPartitionService;
@@ -117,13 +117,13 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
-        coreService = new VirtualNetworkIntentServiceTest.TestCoreService();
+        coreService = new VirtualNetworkIntentManagerTest.TestCoreService();
 
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkIntentServiceTest.TestCoreService());
+        TestUtils.setField(coreService, "coreService", new VirtualNetworkIntentManagerTest.TestCoreService());
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
@@ -212,7 +212,7 @@ public class VirtualNetworkIntentServiceTest extends TestDeviceParams {
         link4 = manager.createVirtualLink(virtualNetwork.id(), cp5, cp4);
         virtualNetworkManagerStore.updateLink(link4, link4.tunnelId(), Link.State.ACTIVE);
 
-        vnetIntentService = new VirtualNetworkIntentService(manager, virtualNetwork, testDirectory);
+        vnetIntentService = new VirtualNetworkIntentManager(manager, virtualNetwork, testDirectory);
         vnetIntentService.intentService = intentService;
         vnetIntentService.store = virtualNetworkManagerStore;
         vnetIntentService.partitionService = workPartitionService;

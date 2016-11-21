@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.virtual.impl;
+package org.onosproject.incubator.net.virtual.impl.provider;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -53,9 +53,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class VirtualNetworkTopologyProvider extends AbstractProvider implements VirtualNetworkProvider {
+public class DefaultVirtualNetworkProvider
+        extends AbstractProvider implements VirtualNetworkProvider {
 
-    private final Logger log = getLogger(VirtualNetworkTopologyProvider.class);
+    private final Logger log = getLogger(DefaultVirtualNetworkProvider.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualNetworkProviderRegistry providerRegistry;
@@ -72,7 +73,7 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
     /**
      * Default constructor.
      */
-    public VirtualNetworkTopologyProvider() {
+    public DefaultVirtualNetworkProvider() {
         super(DefaultVirtualLink.PID);
     }
 
@@ -138,12 +139,13 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
      * @param topology the default topology
      * @return set of set of interconnected connect points.
      */
-    protected Set<Set<ConnectPoint>> getConnectPoints(Topology topology) {
+    public Set<Set<ConnectPoint>> getConnectPoints(Topology topology) {
         Set<Set<ConnectPoint>> clusters = new HashSet<>();
         Set<TopologyCluster> topologyClusters = topologyService.getClusters(topology);
         topologyClusters.forEach(topologyCluster -> {
             Set<ConnectPoint> connectPointSet = new HashSet<>();
-            Set<Link> clusterLinks = topologyService.getClusterLinks(topology, topologyCluster);
+            Set<Link> clusterLinks =
+                    topologyService.getClusterLinks(topology, topologyCluster);
             clusterLinks.forEach(link -> {
                 connectPointSet.add(link.src());
                 connectPointSet.add(link.dst());
@@ -162,7 +164,8 @@ public class VirtualNetworkTopologyProvider extends AbstractProvider implements 
         @Override
         public void event(TopologyEvent event) {
             // Perform processing off the listener thread.
-            executor.submit(() -> providerService.topologyChanged(getConnectPoints(event.subject())));
+            executor.submit(() -> providerService
+                    .topologyChanged(getConnectPoints(event.subject())));
         }
 
         @Override

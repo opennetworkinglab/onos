@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.virtual.impl;
+package org.onosproject.incubator.net.virtual.impl.provider;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,6 +34,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProvider;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
+import org.onosproject.incubator.net.virtual.impl.VirtualNetworkManager;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
@@ -84,7 +85,7 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
-    private VirtualNetworkTopologyProvider topologyProvider;
+    private DefaultVirtualNetworkProvider topologyProvider;
     private TopologyService topologyService;
     private TestableIntentService intentService = new FakeIntentManager();
     private final VirtualNetworkRegistryAdapter virtualNetworkRegistry = new VirtualNetworkRegistryAdapter();
@@ -102,14 +103,14 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
 
         coreService = new VirtualNetworkTopologyProviderTest.TestCoreService();
 
-        virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkTopologyProviderTest.TestCoreService());
-        TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
+        TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
+        TestUtils.setField(virtualNetworkManagerStore, "storageService",
+                           new TestStorageService());
         virtualNetworkManagerStore.activate();
 
         manager = new VirtualNetworkManager();
-        manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
+        TestUtils.setField(manager, "store", virtualNetworkManagerStore);
+        TestUtils.setField(manager, "intentService", intentService);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.activate();
 
@@ -117,7 +118,7 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
         virtualNetwork = manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
 
         topologyService = manager.get(virtualNetwork.id(), TopologyService.class);
-        topologyProvider = new VirtualNetworkTopologyProvider();
+        topologyProvider = new DefaultVirtualNetworkProvider();
         topologyProvider.topologyService = topologyService;
         topologyProvider.providerRegistry = virtualNetworkRegistry;
         topologyProvider.activate();
@@ -232,8 +233,9 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
                    topologyProvider.isTraversable(new ConnectPoint(cp1.elementId(), cp1.port()),
                                                   new ConnectPoint(cp5.elementId(), cp5.port())));
         assertFalse("These two connect points should not be traversable.",
-                    topologyProvider.isTraversable(new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1)),
-                                                   new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(6))));
+                    topologyProvider.isTraversable(
+                            new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1)),
+                            new ConnectPoint(virtualDevice4.id(), PortNumber.portNumber(6))));
     }
 
     /**
@@ -242,7 +244,8 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
     @Test
     public void testTopologyChanged() {
         // Initial setup is two clusters of devices/links.
-        assertEquals("The cluster count did not match.", 2, topologyService.currentTopology().clusterCount());
+        assertEquals("The cluster count did not match.", 2,
+                     topologyService.currentTopology().clusterCount());
 
         // Adding this link will join the two clusters together.
         List<Event> reasons = new ArrayList<>();
@@ -272,12 +275,14 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
         // Validate that the topology changed method received a single cluster of connect points.
         // This means that the two previous clusters have now joined into a single cluster.
         assertEquals("The cluster count did not match.", 1, this.clusters.size());
-        assertEquals("The cluster count did not match.", 1, topologyService.currentTopology().clusterCount());
+        assertEquals("The cluster count did not match.", 1,
+                     topologyService.currentTopology().clusterCount());
 
         // Now remove the virtual link to split it back into two clusters.
         manager.removeVirtualLink(virtualNetwork.id(), link.src(), link.dst());
         manager.removeVirtualLink(virtualNetwork.id(), link2.src(), link2.dst());
-        assertEquals("The cluster count did not match.", 2, topologyService.currentTopology().clusterCount());
+        assertEquals("The cluster count did not match.", 2,
+                     topologyService.currentTopology().clusterCount());
 
         reasons = new ArrayList<>();
         reasons.add(new LinkEvent(LinkEvent.Type.LINK_REMOVED, link));
@@ -350,11 +355,13 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
         }
 
         @Override
-        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+        public void tunnelUp(NetworkId networkId, ConnectPoint src,
+                             ConnectPoint dst, TunnelId tunnelId) {
         }
 
         @Override
-        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+        public void tunnelDown(NetworkId networkId, ConnectPoint src,
+                               ConnectPoint dst, TunnelId tunnelId) {
         }
     }
 

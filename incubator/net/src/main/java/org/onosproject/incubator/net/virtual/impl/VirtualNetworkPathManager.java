@@ -17,6 +17,7 @@ package org.onosproject.incubator.net.virtual.impl;
 
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
@@ -35,7 +36,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Path service implementation built on the virtual network service.
  */
-public class VirtualNetworkPathService extends AbstractPathService
+public class VirtualNetworkPathManager
+        extends AbstractPathService
         implements PathService, VnetService {
 
     private static final String NETWORK_NULL = "Network ID cannot be null";
@@ -49,7 +51,8 @@ public class VirtualNetworkPathService extends AbstractPathService
      * @param network               virtual network
      */
 
-    public VirtualNetworkPathService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network) {
+    public VirtualNetworkPathManager(VirtualNetworkService virtualNetworkManager,
+                                     VirtualNetwork network) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
         topologyService = virtualNetworkManager.get(network.id(), TopologyService.class);
@@ -67,7 +70,8 @@ public class VirtualNetworkPathService extends AbstractPathService
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                              Map<Link, Object> riskProfile) {
         return getDisjointPaths(src, dst, null, riskProfile);
     }
 

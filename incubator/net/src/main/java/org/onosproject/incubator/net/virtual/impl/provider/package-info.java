@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.net.virtual.impl;
-
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
-
 /**
- * Virtual network service interface.
+ * Network virtualization provider implementations.
  */
-interface VnetService {
-    VirtualNetwork network();
-
-}
+package org.onosproject.incubator.net.virtual.impl.provider;

@@ -49,7 +49,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Junit tests for VirtualNetworkPathService.
  */
-public class VirtualNetworkPathServiceTest extends TestDeviceParams {
+public class VirtualNetworkPathManagerTest extends TestDeviceParams {
     private final String tenantIdValue1 = "TENANT_ID1";
 
     private VirtualNetworkManager manager;

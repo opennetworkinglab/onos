@@ -57,7 +57,7 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkTopologyService.
  */
-public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
+public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
 
@@ -70,9 +70,9 @@ public class VirtualNetworkTopologyServiceTest extends TestDeviceParams {
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
-        coreService = new VirtualNetworkTopologyServiceTest.TestCoreService();
+        coreService = new VirtualNetworkTopologyManagerTest.TestCoreService();
         virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkTopologyServiceTest.TestCoreService());
+        TestUtils.setField(coreService, "coreService", new VirtualNetworkTopologyManagerTest.TestCoreService());
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 

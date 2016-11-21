@@ -49,7 +49,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Junit tests for VirtualNetworkLinkService.
  */
-public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
+public class VirtualNetworkLinkManagerTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
 
@@ -62,9 +62,9 @@ public class VirtualNetworkLinkServiceTest extends TestDeviceParams {
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
-        coreService = new VirtualNetworkLinkServiceTest.TestCoreService();
+        coreService = new VirtualNetworkLinkManagerTest.TestCoreService();
         virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkLinkServiceTest.TestCoreService());
+        TestUtils.setField(coreService, "coreService", new VirtualNetworkLinkManagerTest.TestCoreService());
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 

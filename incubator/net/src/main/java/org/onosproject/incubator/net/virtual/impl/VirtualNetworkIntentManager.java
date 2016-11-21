@@ -24,6 +24,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -48,7 +49,8 @@ import static com.google.common.base.Preconditions.*;
 /**
  * Intent service implementation built on the virtual network service.
  */
-public class VirtualNetworkIntentService extends AbstractListenerManager<IntentEvent, IntentListener>
+public class VirtualNetworkIntentManager
+        extends AbstractListenerManager<IntentEvent, IntentListener>
         implements IntentService, VnetService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -76,7 +78,8 @@ public class VirtualNetworkIntentService extends AbstractListenerManager<IntentE
      * @param network               virtual network
      * @param serviceDirectory      service directory
      */
-    public VirtualNetworkIntentService(VirtualNetworkService virtualNetworkManager, VirtualNetwork network,
+    public VirtualNetworkIntentManager(VirtualNetworkService virtualNetworkManager,
+                                       VirtualNetwork network,
                                        ServiceDirectory serviceDirectory) {
         checkNotNull(network, NETWORK_NULL);
         this.network = network;
