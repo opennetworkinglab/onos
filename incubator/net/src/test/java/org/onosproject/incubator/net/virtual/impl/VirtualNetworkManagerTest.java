@@ -226,13 +226,20 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
      */
     @Test
     public void testAddRemoveVirtualDevice() {
+        List<VirtualNetworkEvent.Type> expectedEventTypes = new ArrayList<>();
+
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        expectedEventTypes.add(VirtualNetworkEvent.Type.TENANT_REGISTERED);
         VirtualNetwork virtualNetwork1 =
                 manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        expectedEventTypes.add(VirtualNetworkEvent.Type.NETWORK_ADDED);
         VirtualNetwork virtualNetwork2 =
                 manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        expectedEventTypes.add(VirtualNetworkEvent.Type.NETWORK_ADDED);
         manager.createVirtualDevice(virtualNetwork1.id(), DID1);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_ADDED);
         manager.createVirtualDevice(virtualNetwork2.id(), DID2);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_ADDED);
 
         Set<VirtualDevice> virtualDevices1 = manager.getVirtualDevices(virtualNetwork1.id());
         assertNotNull("The virtual device set should not be null", virtualDevices1);
@@ -244,7 +251,8 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
 
         for (VirtualDevice virtualDevice : virtualDevices1) {
             manager.removeVirtualDevice(virtualNetwork1.id(), virtualDevice.id());
-            // attempt to remove the same virtual device again.
+            expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_REMOVED);
+            // attempt to remove the same virtual device again - no event expected.
             manager.removeVirtualDevice(virtualNetwork1.id(), virtualDevice.id());
         }
         virtualDevices1 = manager.getVirtualDevices(virtualNetwork1.id());
@@ -252,14 +260,15 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
 
         // Add/remove the virtual device again.
         VirtualDevice virtualDevice = manager.createVirtualDevice(virtualNetwork1.id(), DID1);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_ADDED);
         manager.removeVirtualDevice(virtualDevice.networkId(), virtualDevice.id());
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_REMOVED);
         virtualDevices1 = manager.getVirtualDevices(virtualNetwork1.id());
         assertTrue("The virtual device set should be empty.", virtualDevices1.isEmpty());
 
         // Validate that the events were all received in the correct order.
-        validateEvents(VirtualNetworkEvent.Type.TENANT_REGISTERED,
-                       VirtualNetworkEvent.Type.NETWORK_ADDED,
-                       VirtualNetworkEvent.Type.NETWORK_ADDED);
+        validateEvents((Enum[]) expectedEventTypes.toArray(
+                new VirtualNetworkEvent.Type[expectedEventTypes.size()]));
     }
 
     /**
