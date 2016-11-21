@@ -260,6 +260,103 @@ public class LinkCollectionCompiler<T> {
     }
 
     /**
+     * Helper method which handles the proper generation of the ouput actions.
+     *
+     * @param outPorts the output ports
+     * @param deviceId the current device
+     * @param intent the intent to compile
+     * @param outLabels the output labels
+     * @param type the encapsulation type
+     * @param preCondition the previous state
+     * @param treatmentBuilder the builder to update with the ouput actions
+     */
+    private void manageOutputPorts(Set<PortNumber> outPorts,
+                                   DeviceId deviceId,
+                                   LinkCollectionIntent intent,
+                                   Map<ConnectPoint, Identifier<?>> outLabels,
+                                   EncapsulationType type,
+                                   TrafficSelector.Builder preCondition,
+                                   TrafficTreatment.Builder treatmentBuilder) {
+        /*
+         * We need to order the actions. First the actions
+         * related to the not-egress points. At the same time we collect
+         * also the egress points.
+         */
+        List<FilteredConnectPoint> egressPoints = Lists.newArrayList();
+        for (PortNumber outPort : outPorts) {
+            Optional<FilteredConnectPoint> filteredEgressPoint =
+                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
+            if (!filteredEgressPoint.isPresent()) {
+                /*
+                 * We build a temporary selector for the encapsulation.
+                 */
+                TrafficSelector.Builder encapBuilder = DefaultTrafficSelector.builder();
+                /*
+                 * We retrieve the associated label to the output port.
+                 */
+                ConnectPoint cp = new ConnectPoint(deviceId, outPort);
+                Identifier<?> outLabel = outLabels.get(cp);
+                /*
+                 * If there are not labels, we cannot handle.
+                 */
+                if (outLabel == null) {
+                    throw new IntentCompilationException(String.format(NO_LABELS, cp));
+                }
+                /*
+                 * In the core we match using encapsulation.
+                 */
+                updateSelectorFromEncapsulation(
+                        encapBuilder,
+                        type,
+                        outLabel
+                );
+                /*
+                 * We generate the transition.
+                 */
+                TrafficTreatment forwardingTreatment =
+                        forwardingTreatment(preCondition.build(),
+                                            encapBuilder.build(),
+                                            getEthType(intent.selector()));
+                /*
+                 * We add the instruction necessary to the transition.
+                 */
+                forwardingTreatment.allInstructions().stream()
+                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
+                        .forEach(treatmentBuilder::add);
+                /*
+                 * Finally we set the output action.
+                 */
+                treatmentBuilder.setOutput(outPort);
+                /*
+                 * The encapsulation modifies the packet. If we are optimizing
+                 * we have to update the state.
+                 */
+                if (optimize) {
+                    preCondition = encapBuilder;
+                }
+            } else {
+                egressPoints.add(filteredEgressPoint.get());
+            }
+        }
+        /*
+         * The idea is to order the egress points. Before we deal
+         * with the egress points which looks like similar to the
+         * selector derived from the previous state then the
+         * the others.
+         */
+        TrafficSelector prevState = preCondition.build();
+        if (optimize) {
+            egressPoints = orderedEgressPoints(prevState, egressPoints);
+        }
+        /*
+         * In this case, we have to transit to the final
+         * state.
+         */
+        generateEgressActions(treatmentBuilder, egressPoints, prevState, intent);
+
+    }
+
+    /**
      * Helper method to generate the egress actions.
      *
      * @param treatmentBuilder the treatment builder to update
@@ -654,60 +751,23 @@ public class LinkCollectionCompiler<T> {
                 .criteria()
                 .forEach(selectorBuilder::add);
         /*
-         * In this scenario, we can have several output ports.
+         * In this case the precondition is the selector of the filtered
+         * ingress point.
          */
-        outPorts.forEach(outPort -> {
-            Optional<FilteredConnectPoint> filteredEgressPoint =
-                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
-            /*
-             * If we are at the egress, we don't handle
-             * with encapsulation. Error scenario
-             */
-            if (filteredEgressPoint.isPresent()) {
-                throw new IntentCompilationException(WRONG_ENCAPSULATION);
-            }
-            /*
-             * Transit/core, we have to transit to the intermediate
-             * state. We build a temporary selector for the encapsulation.
-             */
-            TrafficSelector.Builder encapBuilder = DefaultTrafficSelector.builder();
-            /*
-             * We retrieve the associated label to the output port.
-             */
-            ConnectPoint cp = new ConnectPoint(deviceId, outPort);
-            Identifier<?> outLabel = outLabels.get(cp);
-            /*
-             * If there aren't labels, we cannot handle.
-             */
-            if (outLabel == null) {
-                throw new IntentCompilationException(String.format(NO_LABELS, cp));
-            }
-            /*
-             * In the core we match using encapsulation.
-             */
-            updateSelectorFromEncapsulation(
-                    encapBuilder,
-                    type,
-                    outLabel
-            );
-            /*
-             * We generate the transition.
-             */
-            TrafficTreatment forwardingTreatment =
-                    forwardingTreatment(filteredIngressPoint.get().trafficSelector(),
-                                        encapBuilder.build(),
-                                        getEthType(intent.selector()));
-            /*
-             * We add the instruction necessary to the transition.
-             */
-            forwardingTreatment.allInstructions().stream()
-                    .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                    .forEach(treatmentBuilder::add);
-            /*
-             * Finally we set the output action.
-             */
-            treatmentBuilder.setOutput(outPort);
-        });
+        TrafficSelector.Builder preCondition = DefaultTrafficSelector
+                .builder(filteredIngressPoint.get().trafficSelector());
+        /*
+         * Generate the output actions.
+         */
+        manageOutputPorts(
+                outPorts,
+                deviceId,
+                intent,
+                outLabels,
+                type,
+                preCondition,
+                treatmentBuilder
+        );
 
     }
 
@@ -751,74 +811,18 @@ public class LinkCollectionCompiler<T> {
                 inLabel
         );
         /*
-         * We need to order the actions. First the actions
-         * related to the not-egress points. At the same time we collect
-         * also the egress points.
+         * Generate the output actions.
          */
-        List<FilteredConnectPoint> egressPoints = Lists.newArrayList();
-        for (PortNumber outPort : outPorts) {
-            Optional<FilteredConnectPoint> filteredEgressPoint =
-                    getFilteredConnectPointFromIntent(deviceId, outPort, intent);
-            if (!filteredEgressPoint.isPresent()) {
-                /*
-                 * We build a temporary selector for the encapsulation.
-                 */
-                TrafficSelector.Builder encapBuilder = DefaultTrafficSelector.builder();
-                /*
-                 * We retrieve the associated label to the output port.
-                 */
-                ConnectPoint cp = new ConnectPoint(deviceId, outPort);
-                Identifier<?> outLabel = outLabels.get(cp);
-                /*
-                 * If there are not labels, we cannot handle.
-                 */
-                if (outLabel == null) {
-                    throw new IntentCompilationException(String.format(NO_LABELS, cp));
-                }
-                /*
-                 * In the core we match using encapsulation.
-                 */
-                updateSelectorFromEncapsulation(
-                        encapBuilder,
-                        type,
-                        outLabel
-                );
-                /*
-                 * We generate the transition.
-                 */
-                TrafficTreatment forwardingTreatment =
-                        forwardingTreatment(selectorBuilder.build(),
-                                            encapBuilder.build(),
-                                            getEthType(intent.selector()));
-                /*
-                 * We add the instruction necessary to the transition.
-                 */
-                forwardingTreatment.allInstructions().stream()
-                        .filter(inst -> inst.type() != Instruction.Type.NOACTION)
-                        .forEach(treatmentBuilder::add);
-                /*
-                 * Finally we set the output action.
-                 */
-                treatmentBuilder.setOutput(outPort);
-            } else {
-                egressPoints.add(filteredEgressPoint.get());
-            }
-        }
-        /*
-         * The idea is to order the egress points. Before we deal
-         * with the egress points which looks like similar to the
-         * selector derived from the encpsulation constraint then
-         * the others.
-         */
-        TrafficSelector prevState = selectorBuilder.build();
-        if (optimize) {
-            egressPoints = orderedEgressPoints(prevState, egressPoints);
-        }
-        /*
-         * In this case, we have to transit to the final
-         * state.
-         */
-        generateEgressActions(treatmentBuilder, egressPoints, prevState, intent);
+        manageOutputPorts(
+                outPorts,
+                deviceId,
+                intent,
+                outLabels,
+                type,
+                selectorBuilder,
+                treatmentBuilder
+        );
+
     }
 
     /**

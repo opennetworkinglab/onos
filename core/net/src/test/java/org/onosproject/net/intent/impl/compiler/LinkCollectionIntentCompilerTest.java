@@ -65,6 +65,10 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
 
+/**
+ * This set of tests are meant to test the LinkCollectionIntent
+ * compiler.
+ */
 public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest {
 
     @Before
@@ -110,6 +114,10 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
         Intent.unbindIdGenerator(idGenerator);
     }
 
+    /**
+     * We test the proper compilation of a simple link collection intent
+     * with connect points, trivial treatment and trivial selector.
+     */
     @Test
     public void testCompile() {
         sut.activate();
@@ -166,10 +174,14 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
     }
 
     /**
-     * Single point to multi point case.
+     * Single point to multi point case. Scenario is the follow:
+     *
      * -1 of1 2-1 of2 2--1 of3 2-
      *             3
      *             `-1 of4 2-
+     *
+     * We test the proper compilation of sp2mp with trivial selector,
+     * trivial treatment and different filtered points
      */
     @Test
     public void testFilteredConnectPointForSp() {
@@ -286,10 +298,14 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
     /**
      * Multi point to single point intent with filtered connect point.
+     * Scenario is the follow:
      *
      * -1 of1 2-1 of2 2-1 of4 2-
      *             3
      * -1 of3 2---/
+     *
+     * We test the proper compilation of mp2sp intents with trivial selector,
+     * trivial treatment and different filtered point.
      */
     @Test
     public void testFilteredConnectPointForMp() {
@@ -408,9 +424,14 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
     /**
      * Single point to multi point without filtered connect point case.
+     * Scenario is the follow:
+     *
      * -1 of1 2-1 of2 2--1 of3 2-
      *             3
      *             `-1 of4 2-
+     *
+     * We test the proper compilation of sp2mp with non trivial selector,
+     * non trivial treatment and simple connect points.
      */
     @Test
     public void nonTrivialTranslationForSp() {
@@ -527,10 +548,14 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
     /**
      * Multi point to single point intent without filtered connect point.
+     * Scenario is the follow:
      *
      * -1 of1 2-1 of2 2-1 of4 2-
      *             3
      * -1 of3 2---/
+     *
+     * We test the proper compilation of mp2sp intent with non trivial selector,
+     * non trivial treatment and simple connect points.
      */
     @Test
     public void nonTrivialTranslationForMp() {
@@ -1078,284 +1103,6 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
                         .pushMpls()
                         .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d1p11.port())
-                        .build()
-        ));
-
-        sut.deactivate();
-
-    }
-
-    /**
-     * We test the proper compilation of p2p with
-     * trivial selector and trivial treatment.
-     */
-    @Test
-    public void p2p() {
-
-        intent = LinkCollectionIntent.builder()
-                .appId(APP_ID)
-                .selector(selector)
-                .treatment(treatment)
-                .applyTreatmentOnEgress(true)
-                .links(p2pLinks)
-                .filteredIngressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d1p10)
-                ))
-                .filteredEgressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d3p0)
-                ))
-                .build();
-
-        sut.activate();
-
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
-        assertThat(compiled, hasSize(1));
-
-        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize(3));
-
-        Collection<FlowRule> rulesS1 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS1, hasSize(1));
-        FlowRule ruleS1 = rulesS1.iterator().next();
-        assertThat(ruleS1.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder()
-                        .matchInPort(d1p10.port())
-                        .build()
-        ));
-        assertThat(ruleS1.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d1p0.port())
-                        .build()
-        ));
-
-        Collection<FlowRule> rulesS2 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS2, hasSize(1));
-        FlowRule ruleS2 = rulesS2.iterator().next();
-        assertThat(ruleS2.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder()
-                        .matchInPort(d2p0.port())
-                        .build()
-        ));
-        assertThat(ruleS2.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d2p1.port())
-                        .build()
-        ));
-
-
-        Collection<FlowRule> rulesS3 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d3p1.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS3, hasSize(1));
-        FlowRule ruleS3 = rulesS3.iterator().next();
-        assertThat(ruleS3.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder()
-                        .matchInPort(d3p1.port())
-                        .build()
-        ));
-        assertThat(ruleS3.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d3p0.port())
-                        .build()
-        ));
-
-        sut.deactivate();
-
-    }
-
-    /**
-     * We test the proper compilation of p2p with
-     * trivial selector, trivial treatment and filtered points.
-     */
-    @Test
-    public void p2pFilteredPoint() {
-
-        intent = LinkCollectionIntent.builder()
-                .appId(APP_ID)
-                .selector(selector)
-                .treatment(treatment)
-                .applyTreatmentOnEgress(true)
-                .links(p2pLinks)
-                .filteredIngressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d1p10, vlan100Selector)
-                ))
-                .filteredEgressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d3p0, mpls200Selector)
-                ))
-                .build();
-
-        sut.activate();
-
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
-        assertThat(compiled, hasSize(1));
-
-        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize(3));
-
-        Collection<FlowRule> rulesS1 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS1, hasSize(1));
-        FlowRule ruleS1 = rulesS1.iterator().next();
-        assertThat(ruleS1.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(vlan100Selector)
-                        .matchInPort(d1p10.port())
-                        .build()
-        ));
-        assertThat(ruleS1.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d1p0.port())
-                        .build()
-        ));
-
-        Collection<FlowRule> rulesS2 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS2, hasSize(1));
-        FlowRule ruleS2 = rulesS2.iterator().next();
-        assertThat(ruleS2.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(vlan100Selector)
-                        .matchInPort(d2p0.port())
-                        .build()
-        ));
-        assertThat(ruleS2.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d2p1.port())
-                        .build()
-        ));
-
-
-        Collection<FlowRule> rulesS3 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d3p1.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS3, hasSize(1));
-        FlowRule ruleS3 = rulesS3.iterator().next();
-        assertThat(ruleS3.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(vlan100Selector)
-                        .matchInPort(d3p1.port())
-                        .build()
-        ));
-        assertThat(ruleS3.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .popVlan()
-                        .pushMpls()
-                        .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
-                        .setOutput(d3p0.port())
-                        .build()
-        ));
-
-        sut.deactivate();
-
-    }
-
-    /**
-     * We test the proper compilation of p2p with
-     * selector, treatment and filtered points.
-     */
-    @Test
-    public void p2pNonTrivial() {
-
-        intent = LinkCollectionIntent.builder()
-                .appId(APP_ID)
-                .selector(ipPrefixSelector)
-                .treatment(ethDstTreatment)
-                .applyTreatmentOnEgress(true)
-                .links(p2pLinks)
-                .filteredIngressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d1p10, vlan100Selector)
-                ))
-                .filteredEgressPoints(ImmutableSet.of(
-                        new FilteredConnectPoint(d3p0, mpls200Selector)
-                ))
-                .build();
-
-        sut.activate();
-
-        List<Intent> compiled = sut.compile(intent, Collections.emptyList());
-        assertThat(compiled, hasSize(1));
-
-        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize(3));
-
-        Collection<FlowRule> rulesS1 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d1p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS1, hasSize(1));
-        FlowRule ruleS1 = rulesS1.iterator().next();
-        assertThat(ruleS1.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(ipPrefixSelector)
-                        .matchInPort(d1p10.port())
-                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
-                        .build()
-        ));
-        assertThat(ruleS1.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d1p0.port())
-                        .build()
-        ));
-
-        Collection<FlowRule> rulesS2 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d2p0.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS2, hasSize(1));
-        FlowRule ruleS2 = rulesS2.iterator().next();
-        assertThat(ruleS2.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(ipPrefixSelector)
-                        .matchInPort(d2p0.port())
-                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
-                        .build()
-        ));
-        assertThat(ruleS2.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setOutput(d2p1.port())
-                        .build()
-        ));
-
-
-        Collection<FlowRule> rulesS3 = rules.stream()
-                .filter(rule -> rule.deviceId().equals(d3p1.deviceId()))
-                .collect(Collectors.toSet());
-        assertThat(rulesS3, hasSize(1));
-        FlowRule ruleS3 = rulesS3.iterator().next();
-        assertThat(ruleS3.selector(), Is.is(
-                DefaultTrafficSelector
-                        .builder(ipPrefixSelector)
-                        .matchInPort(d3p1.port())
-                        .matchVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
-                        .build()
-        ));
-        assertThat(ruleS3.treatment(), Is.is(
-                DefaultTrafficTreatment
-                        .builder()
-                        .setEthDst(((ModEtherInstruction) ethDstTreatment
-                                .allInstructions()
-                                .stream()
-                                .filter(instruction -> instruction instanceof ModEtherInstruction)
-                                .findFirst().get()).mac())
-                        .popVlan()
-                        .pushMpls()
-                        .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
-                        .setOutput(d3p0.port())
                         .build()
         ));
 

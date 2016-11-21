@@ -91,8 +91,6 @@ class AbstractLinkCollectionTest {
             link(d2p1, d3p0)
     );
 
-
-
     final Set<Link> linksForSp2Mp = ImmutableSet.of(
             link(d3p0, d2p1),
             link(d2p0, d1p0)
@@ -101,6 +99,15 @@ class AbstractLinkCollectionTest {
     final Set<Link> p2pLinks = ImmutableSet.of(
             link(d1p0, d2p0),
             link(d2p1, d3p1)
+    );
+
+    final Set<Link> linksForSp2MpCoLoc = ImmutableSet.of(
+            link(d1p0, d2p0),
+            link(d2p1, d3p0)
+    );
+
+    final Set<Link> linksForMp2SpCoLoc = ImmutableSet.of(
+            link(d2p0, d1p0)
     );
 
     final TrafficTreatment treatment = emptyTreatment();
