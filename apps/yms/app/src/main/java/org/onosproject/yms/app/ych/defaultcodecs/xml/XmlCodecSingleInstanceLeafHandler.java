@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ych;
+package org.onosproject.yms.app.ych.defaultcodecs.xml;
+
+import org.dom4j.Element;
+import org.onosproject.yms.ydt.YdtContext;
+
+import java.util.Stack;
 
 /**
- * Represents the protocol data representation.
+ * Represents a single instance leaf node handler in YCH.
  */
-public enum YangProtocolEncodingFormat {
-    /**
-     * XML protocol encoding.
-     */
-    XML,
+public class XmlCodecSingleInstanceLeafHandler extends XmlCodecHandler {
 
-    /**
-     * JSON protocol encoding.
-     */
-    JSON
+    @Override
+    public void setXmlValue(YdtContext ydtContext,
+                            Stack<Element> elementStack) {
+        elementStack.peek().setText(ydtContext.getValue());
+    }
 }

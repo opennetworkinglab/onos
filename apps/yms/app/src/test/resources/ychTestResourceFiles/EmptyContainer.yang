@@ -1,0 +1,19 @@
+module EmptyContainer {
+
+    yang-version 1;
+
+    namespace "ych.Empty.Container";
+
+    prefix "purchasing";
+
+    organization "ON-LAB";
+
+    description "This module defines for purchasing-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    container EmptyContainer {
+    }
+}

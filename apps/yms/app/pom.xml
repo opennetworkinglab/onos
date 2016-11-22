@@ -38,6 +38,12 @@
             <artifactId>org.apache.felix.framework</artifactId>
             <version>4.2.1</version>
         </dependency>
+        <!--https://mvnrepository.com/artifact/org.apache.servicemix.bundles/org.apache.servicemix.bundles.dom4j -->
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.dom4j</artifactId>
+            <version>1.6.1_5</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

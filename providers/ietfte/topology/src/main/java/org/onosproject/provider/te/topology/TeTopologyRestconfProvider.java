@@ -136,7 +136,7 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         codecHandler.addDeviceSchema(IetfTeTopology.class);
         // Register JSON CODEC functions
         codecHandler.registerOverriddenCodec(new JsonYdtCodec(ymsService),
-                                             YangProtocolEncodingFormat.JSON_ENCODING);
+                                             YangProtocolEncodingFormat.JSON);
 
         appId = coreService.registerApplication(APP_NAME);
         topologyProviderService = topologyProviderRegistry.register(this);
@@ -225,7 +225,7 @@ public class TeTopologyRestconfProvider extends AbstractProvider
                                                                       networkLevelJsonString);
 
         Object yo = codecHandler.decode(yce,
-                                        YangProtocolEncodingFormat.JSON_ENCODING,
+                                        YangProtocolEncodingFormat.JSON,
                                         YmsOperationType.QUERY_REPLY);
 
         if ((yo == null)) {

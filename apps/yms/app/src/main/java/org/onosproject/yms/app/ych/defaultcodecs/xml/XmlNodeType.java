@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ych;
+package org.onosproject.yms.app.ych.defaultcodecs.xml;
 
 /**
- * Represents the protocol data representation.
+ * Represents type of node in xml data tree.
  */
-public enum YangProtocolEncodingFormat {
+enum XmlNodeType {
     /**
-     * XML protocol encoding.
+     * An object node has at least one child node.
      */
-    XML,
+    OBJECT_NODE,
 
     /**
-     * JSON protocol encoding.
+     * A text node has no child node, and has a text value.
      */
-    JSON
+    TEXT_NODE
 }

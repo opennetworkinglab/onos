@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ych;
-
 /**
- * Represents the protocol data representation.
+ * Provides implementation of default codec utilities.
  */
-public enum YangProtocolEncodingFormat {
-    /**
-     * XML protocol encoding.
-     */
-    XML,
-
-    /**
-     * JSON protocol encoding.
-     */
-    JSON
-}
+package org.onosproject.yms.app.ych.defaultcodecs.utils;

@@ -77,7 +77,7 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         if (ymsService != null) {
             ymsService
                     .registerDefaultCodec(new JsonYdtCodec(ymsService),
-                                          YangProtocolEncodingFormat.JSON_ENCODING);
+                                          YangProtocolEncodingFormat.JSON);
         }
     }
 

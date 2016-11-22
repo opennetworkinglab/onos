@@ -11,17 +11,17 @@ public class YangCompositeEncodingImpl implements YangCompositeEncoding {
     /**
      * Resource identifier for composite encoding.
      */
-    private final String resourceIdentifier;
+    private String resourceIdentifier;
 
     /**
      * Resource information for composite encoding.
      */
-    private final String resourceInformation;
+    private String resourceInformation;
 
     /**
      * Resource identifier type.
      */
-    public final YangResourceIdentifierType resourceIdentifierType;
+    public YangResourceIdentifierType resourceIdentifierType;
 
     /**
      * Creates an instance of YangCompositeEncodingImpl.
@@ -51,6 +51,21 @@ public class YangCompositeEncodingImpl implements YangCompositeEncoding {
     @Override
     public String getResourceInformation() {
         return resourceInformation;
+    }
+
+    @Override
+    public void setResourceIdentifier(String resourceId) {
+        resourceIdentifier = resourceId;
+    }
+
+    @Override
+    public void setResourceInformation(String resourceInfo) {
+        resourceInformation = resourceInfo;
+    }
+
+    @Override
+    public void setResourceIdentifierType(YangResourceIdentifierType idType) {
+        resourceIdentifierType = idType;
     }
 }
 

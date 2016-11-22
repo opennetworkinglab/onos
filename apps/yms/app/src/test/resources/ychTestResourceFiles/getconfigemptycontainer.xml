@@ -1,0 +1,11 @@
+<rpc message-id="101"
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <get-config>
+        <source>
+            <running/>
+        </source>
+        <filter xmlns="ydt.filter-type" type="subtree">
+            <EmptyContainer xmlns="ych.Empty.Container"/>
+        </filter>
+    </get-config>
+</rpc>

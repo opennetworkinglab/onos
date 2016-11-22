@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ych;
-
 /**
- * Represents the protocol data representation.
+ * Provides interfaces to YANG codec utility.
+ * YANG codec utility provides interfaces which can be used by the driver / provider to
+ * translate protocol specific data representation to YANG modeled objects.
  */
-public enum YangProtocolEncodingFormat {
-    /**
-     * XML protocol encoding.
-     */
-    XML,
-
-    /**
-     * JSON protocol encoding.
-     */
-    JSON
-}
+package org.onosproject.yms.app.ych;

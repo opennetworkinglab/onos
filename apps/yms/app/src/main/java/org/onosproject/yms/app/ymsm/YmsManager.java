@@ -26,6 +26,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.yms.app.yab.YangApplicationBroker;
+import org.onosproject.yms.app.ych.DefaultYangCodecHandler;
+import org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry;
 import org.onosproject.yms.app.ydt.DefaultYdtWalker;
 import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
@@ -84,6 +86,10 @@ public class YmsManager
                 Executors.newSingleThreadExecutor(groupedThreads(
                         "onos/apps/yang-management-system/schema-registry",
                         "schema-registry-handler", log));
+
+        //Initilize the default codecs
+        YangCodecRegistry.initializeDefaultCodec();
+
         log.info("Started");
     }
 
@@ -174,9 +180,8 @@ public class YmsManager
     }
 
     @Override
-    public void registerDefaultCodec(YangDataTreeCodec defaultCodec,
-                                     YangProtocolEncodingFormat dataFormat) {
-
+    public void registerDefaultCodec(YangDataTreeCodec defaultCodec, YangProtocolEncodingFormat dataFormat) {
+        YangCodecRegistry.registerDefaultCodec(defaultCodec, dataFormat);
     }
 
     @Override
@@ -196,7 +201,11 @@ public class YmsManager
 
     @Override
     public YangCodecHandler getYangCodecHandler() {
-        return null;
+
+        YangSchemaRegistry yangSchemaRegistry =
+                new DefaultYangSchemaRegistry(
+                        String.valueOf(moduleIdGenerator.getNewId()));
+        return new DefaultYangCodecHandler(yangSchemaRegistry);
     }
 
     /**

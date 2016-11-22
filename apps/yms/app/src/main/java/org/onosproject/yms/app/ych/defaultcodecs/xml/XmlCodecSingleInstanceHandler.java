@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.ych;
+package org.onosproject.yms.app.ych.defaultcodecs.xml;
 
 /**
- * Represents the protocol data representation.
+ * Represents a single instance node handler in YCH.
  */
-public enum YangProtocolEncodingFormat {
-    /**
-     * XML protocol encoding.
-     */
-    XML,
-
-    /**
-     * JSON protocol encoding.
-     */
-    JSON
+public class XmlCodecSingleInstanceHandler extends XmlCodecHandler {
 }
