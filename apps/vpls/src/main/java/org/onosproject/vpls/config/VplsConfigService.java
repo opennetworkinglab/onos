@@ -91,24 +91,25 @@ public interface VplsConfigService {
     // TODO Remove this function after the intent framework race condition has been fixed
 
     /**
-     * Retrieves the interfaces from the VPLS configuration.
+     * Retrieves the interfaces without IP configured, so compatible with VPLS,
+     * from the interface service.
      *
-     * @return a set of interfaces contained in the VPLS configuration
+     * @return the set of interfaces configured, compatible with VPLS
      */
     Set<Interface> allIfaces();
 
     /**
-     * Retrieves the interfaces from the VPLS configuration.
+     * Retrieves the interfaces associated to a VPLS.
      *
-     * @return a set of interfaces belonging to the VPLS
+     * @return the set of interfaces associated to a VPLS
      */
     Set<Interface> ifaces();
 
     /**
-     * Retrieves the interfaces belonging to the VPLS.
+     * Retrieves the interfaces associated to the VPLS specified.
      *
      * @param vplsName the name of the VPLS
-     * @return a set of interfaces belonging to the VPLS
+     * @return the set of interfaces associated to the VPLS specified
      */
     Set<Interface> ifaces(String vplsName);
 
@@ -125,7 +126,7 @@ public interface VplsConfigService {
      * @return a set of VPLS names
      */
     Set<String> vplsNamesOld();
-    // TODO Removes this function after intent framework fix race condition
+    // TODO Removes this function after the race condition gets fixed in IF
 
     /**
      * Returns the VPLS names and associated interfaces from the configuration.

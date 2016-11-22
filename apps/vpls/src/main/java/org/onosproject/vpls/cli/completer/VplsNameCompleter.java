@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.vpls.cli.completer;
 
 import com.google.common.collect.Lists;
@@ -25,14 +24,13 @@ import java.util.List;
 import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
- * Completer for vpls-show command.
+ * VPLS name completer.
  */
-public class VplsShowCommandCompleter extends AbstractChoicesCompleter {
+public class VplsNameCompleter extends AbstractChoicesCompleter {
 
     @Override
-    protected List<String> choices() {
-        VplsConfigService vplsConfigService =
-                get(VplsConfigService.class);
+    public List<String> choices() {
+        VplsConfigService vplsConfigService = get(VplsConfigService.class);
         return Lists.newArrayList(vplsConfigService.vplsNames());
     }
 }

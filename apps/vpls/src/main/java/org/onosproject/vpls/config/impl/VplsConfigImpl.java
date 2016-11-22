@@ -207,16 +207,19 @@ public class VplsConfigImpl implements VplsConfigService {
 
     @Override
     public Set<Interface> allIfaces() {
-        Set<Interface> allVplsInterfaces = new HashSet<>();
-        interfaceService.getInterfaces().forEach(allVplsInterfaces::add);
-        return allVplsInterfaces;
+        Set<Interface> interfaces = new HashSet<>();
+        interfaceService.getInterfaces().stream()
+                .filter(iface -> iface.ipAddressesList() == null ||
+                        iface.ipAddressesList().isEmpty())
+                .forEach(interfaces::add);
+        return interfaces;
     }
 
     @Override
     public Set<Interface> ifaces() {
-        Set<Interface> allVplsInterfaces = new HashSet<>();
-        vplsIfaces.values().forEach(allVplsInterfaces::add);
-        return allVplsInterfaces;
+        Set<Interface> interfaces = new HashSet<>();
+        vplsIfaces.values().forEach(interfaces::add);
+        return interfaces;
     }
 
     @Override
