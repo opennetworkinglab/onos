@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.vpls;
 
 import com.google.common.collect.SetMultimap;
@@ -20,7 +21,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.EncapsulationType;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +29,7 @@ import java.util.Set;
 /**
  * Test adapter for VPLS configuration service.
  */
-public class VplsConfigurationServiceAdapter implements VplsConfigurationService {
+public class VplsConfigServiceAdapter implements VplsConfigService {
     @Override
     public void addVpls(String vplsName, Set<String> ifaces, String encap) {}
 
@@ -59,6 +60,11 @@ public class VplsConfigurationServiceAdapter implements VplsConfigurationService
 
     @Override
     public Set<Interface> allIfaces() {
+        return null;
+    }
+
+    @Override
+    public Set<Interface> ifaces() {
         return null;
     }
 

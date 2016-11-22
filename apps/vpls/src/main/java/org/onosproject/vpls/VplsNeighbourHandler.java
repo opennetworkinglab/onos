@@ -35,11 +35,11 @@ import org.onosproject.net.Host;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -59,13 +59,16 @@ public class VplsNeighbourHandler {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NeighbourResolutionService neighbourService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VplsConfigurationService vplsConfigService;
+    protected VplsConfigService vplsConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService configService;
@@ -144,14 +147,11 @@ public class VplsNeighbourHandler {
      * @param context the message context
      */
     protected void handleRequest(NeighbourMessageContext context) {
-
-        SetMultimap<String, Interface> vpls =
+        SetMultimap<String, Interface> interfaces =
                 vplsConfigService.ifacesByVplsName(context.vlan(),
-                                                             context.inPort());
-
-        if (vpls != null) {
-            Collection<Interface> vplsInterfaces = vpls.values();
-            vplsInterfaces.stream()
+                                                   context.inPort());
+        if (interfaces != null) {
+            interfaces.values().stream()
                     .filter(intf -> !context.inPort().equals(intf.connectPoint()))
                     .forEach(context::forward);
 
@@ -168,15 +168,12 @@ public class VplsNeighbourHandler {
      */
     protected void handleReply(NeighbourMessageContext context,
                                HostService hostService) {
-
-        SetMultimap<String, Interface> vpls =
-                vplsConfigService.ifacesByVplsName(context.vlan(),
-                                                             context.inPort());
-
         Set<Host> hosts = hostService.getHostsByMac(context.dstMac());
-        if (vpls != null) {
-            Collection<Interface> vplsInterfaces = vpls.values();
-            hosts.forEach(host -> vplsInterfaces.stream()
+        SetMultimap<String, Interface> interfaces =
+                vplsConfigService.ifacesByVplsName(context.vlan(),
+                                                   context.inPort());
+        if (interfaces != null) {
+            hosts.forEach(host -> interfaces.values().stream()
                     .filter(intf -> intf.connectPoint().equals(host.location()))
                     .filter(intf -> intf.vlan().equals(host.vlan()))
                     .forEach(context::forward));
@@ -206,5 +203,4 @@ public class VplsNeighbourHandler {
             configNeighbourHandler();
         }
     }
-
 }

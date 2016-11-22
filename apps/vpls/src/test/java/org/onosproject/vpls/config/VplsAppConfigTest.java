@@ -29,11 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for the {@link VplsAppConfig} class.
@@ -233,6 +229,8 @@ public class VplsAppConfigTest {
 
         assertTrue("Interface not correctly attached to the VPLS",
                    vpls.isAttached(IF4));
+        assertTrue("Interface not correctly attached to the VPLS",
+                   vpls.isAttached(IF4));
         assertFalse("Unexpected interface attached to the VPLS",
                     vpls.isAttached(IF_NON_EXIST));
     }
@@ -254,18 +252,15 @@ public class VplsAppConfigTest {
         public void onApply(@SuppressWarnings("rawtypes") Config config) {
             config.apply();
         }
-
     }
 
     private VplsConfig createInitialVpls() {
         Set<String> ifaces = new HashSet<>(Arrays.asList(IF1, IF2, IF3));
-
         return new VplsConfig(VPLS1, ifaces, EncapsulationType.NONE);
     }
 
     private VplsConfig createNewVpls() {
         Set<String> ifaces = new HashSet<>(Arrays.asList(IF4, IF5));
-
         return new VplsConfig(NEWVPLS, ifaces, EncapsulationType.NONE);
     }
 }

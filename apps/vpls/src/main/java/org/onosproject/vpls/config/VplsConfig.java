@@ -73,11 +73,10 @@ public class VplsConfig {
 
     /**
      * States if a given interface is part of a VPLS.
-     *
      * @param iface the interface attached to a VPLS
      * @return true if the interface is associated to the VPLS; false otherwise
      */
-    public boolean isAttached(String iface) {
+    protected boolean isAttached(String iface) {
         return ifaces.stream().anyMatch(iface::equals);
     }
 
@@ -89,8 +88,8 @@ public class VplsConfig {
         if (obj instanceof VplsConfig) {
             VplsConfig that = (VplsConfig) obj;
             return Objects.equals(name, that.name) &&
-                   Objects.equals(ifaces, that.ifaces) &&
-                   Objects.equals(encap, that.encap);
+                    Objects.equals(ifaces, that.ifaces) &&
+                    Objects.equals(encap, that.encap);
         }
         return false;
     }

@@ -19,7 +19,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.Map;
 import java.util.Optional;
@@ -43,8 +43,8 @@ public final class VplsCommandUtils {
     protected static final String IFACE_NOT_ASSOCIATED =
             "Interface %s is associated to VPLS %s.";
 
-    private static VplsConfigurationService vplsConfigService =
-            getService(VplsConfigurationService.class);
+    private static VplsConfigService vplsConfigService =
+            getService(VplsConfigService.class);
     private static InterfaceService interfaceService =
             getService(InterfaceService.class);
 

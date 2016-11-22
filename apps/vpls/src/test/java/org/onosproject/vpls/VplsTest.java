@@ -15,6 +15,7 @@
  */
 package org.onosproject.vpls;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -76,7 +77,7 @@ import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import static java.lang.String.format;
 import static org.easymock.EasyMock.anyObject;
@@ -101,8 +102,11 @@ public class VplsTest {
     private static final int PRIORITY_OFFSET = 1000;
     private static final String VPLS1 = "vpls1";
     private static final String VPLS2 = "vpls2";
+    private static final String VPLS3 = "vpls3";
+    private static final String VPLS4 = "vpls4";
 
     private static final PortNumber P1 = PortNumber.portNumber(1);
+    private static final PortNumber P2 = PortNumber.portNumber(2);
 
     private static final DeviceId DID1 = getDeviceId(1);
     private static final DeviceId DID2 = getDeviceId(2);
@@ -117,25 +121,28 @@ public class VplsTest {
     private static final ConnectPoint CP4 = new ConnectPoint(DID4, P1);
     private static final ConnectPoint CP5 = new ConnectPoint(DID5, P1);
     private static final ConnectPoint CP6 = new ConnectPoint(DID6, P1);
+    private static final ConnectPoint CP7 = new ConnectPoint(DID4, P2);
+    private static final ConnectPoint CP8 = new ConnectPoint(DID3, P2);
+    private static final ConnectPoint CP9 = new ConnectPoint(DID5, P1);
+    private static final ConnectPoint CP10 = new ConnectPoint(DID5, P2);
 
     private static final VlanId VLAN100 = VlanId.vlanId((short) 100);
     private static final VlanId VLAN200 = VlanId.vlanId((short) 200);
     private static final VlanId VLAN300 = VlanId.vlanId((short) 300);
+    private static final VlanId VLAN400 = VlanId.vlanId((short) 400);
+    private static final VlanId VLAN_NONE = VlanId.NONE;
 
-    private static final MacAddress MAC1 =
-            MacAddress.valueOf("00:00:00:00:00:01");
-    private static final MacAddress MAC2 =
-            MacAddress.valueOf("00:00:00:00:00:02");
-    private static final MacAddress MAC3 =
-            MacAddress.valueOf("00:00:00:00:00:03");
-    private static final MacAddress MAC4 =
-            MacAddress.valueOf("00:00:00:00:00:04");
-    private static final MacAddress MAC5 =
-            MacAddress.valueOf("00:00:00:00:00:05");
-    private static final MacAddress MAC6 =
-            MacAddress.valueOf("00:00:00:00:00:06");
-    private static final MacAddress MAC7 =
-            MacAddress.valueOf("00:00:00:00:00:07");
+    private static final MacAddress MAC1 = getMac(1);
+    private static final MacAddress MAC2 = getMac(2);
+    private static final MacAddress MAC3 = getMac(3);
+    private static final MacAddress MAC4 = getMac(4);
+    private static final MacAddress MAC5 = getMac(5);
+    private static final MacAddress MAC6 = getMac(6);
+    private static final MacAddress MAC7 = getMac(7);
+    private static final MacAddress MAC8 = getMac(8);
+    private static final MacAddress MAC9 = getMac(9);
+    private static final MacAddress MAC10 = getMac(10);
+    private static final MacAddress MAC11 = getMac(11);
 
     private static final Ip4Address IP1 = Ip4Address.valueOf("192.168.1.1");
     private static final Ip4Address IP2 = Ip4Address.valueOf("192.168.1.2");
@@ -147,6 +154,10 @@ public class VplsTest {
     private static final HostId HID5 = HostId.hostId(MAC5, VLAN300);
     private static final HostId HID6 = HostId.hostId(MAC6, VLAN300);
     private static final HostId HID7 = HostId.hostId(MAC7, VLAN300);
+    private static final HostId HID8 = HostId.hostId(MAC8, VLAN400);
+    private static final HostId HID9 = HostId.hostId(MAC9);
+    private static final HostId HID10 = HostId.hostId(MAC10);
+    private static final HostId HID11 = HostId.hostId(MAC11);
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -164,35 +175,62 @@ public class VplsTest {
             new Interface("v300h1", CP5, null, null, VLAN300);
     private static final Interface V300H2 =
             new Interface("v300h2", CP6, null, null, VLAN300);
+    private static final Interface V400H1 =
+            new Interface("v400h1", CP7, null, null, VLAN400);
+
+    private static final Interface VNONEH1 =
+            new Interface("vNoneh1", CP8, null, null, VLAN_NONE);
+    private static final Interface VNONEH2 =
+            new Interface("vNoneh2", CP9, null, null, VLAN_NONE);
+    private static final Interface VNONEH3 =
+            new Interface("vNoneh3", CP10, null, null, VLAN_NONE);
 
     private static final Host V100HOST1 =
             new DefaultHost(PID, HID1, MAC1, VLAN100,
-                    getLocation(1), Collections.singleton(IP1));
+                            getLocation(1), Collections.singleton(IP1));
     private static final Host V100HOST2 =
             new DefaultHost(PID, HID2, MAC2, VLAN100,
-                    getLocation(2), Sets.newHashSet());
+                            getLocation(2), Sets.newHashSet());
     private static final Host V200HOST1 =
             new DefaultHost(PID, HID3, MAC3, VLAN200,
-                    getLocation(3), Collections.singleton(IP2));
+                            getLocation(3), Collections.singleton(IP2));
     private static final Host V200HOST2 =
             new DefaultHost(PID, HID4, MAC4, VLAN200,
-                    getLocation(4), Sets.newHashSet());
+                            getLocation(4), Sets.newHashSet());
     private static final Host V300HOST1 =
             new DefaultHost(PID, HID5, MAC5, VLAN300,
-                    getLocation(5), Sets.newHashSet());
+                            getLocation(5), Sets.newHashSet());
     private static final Host V300HOST2 =
             new DefaultHost(PID, HID6, MAC6, VLAN300,
-                    getLocation(6), Sets.newHashSet());
+                            getLocation(6), Sets.newHashSet());
     private static final Host V300HOST3 =
             new DefaultHost(PID, HID7, MAC7, VLAN300,
-                    getLocation(7), Sets.newHashSet());
+                            getLocation(7), Sets.newHashSet());
+    private static final Host V400HOST1 =
+            new DefaultHost(PID, HID8, MAC8, VLAN400,
+                            getLocation(4, 2), Sets.newHashSet());
 
-    private static final Set<Interface> AVALIABLE_INTERFACES =
-            ImmutableSet.of(V100H1, V100H2, V200H1, V200H2, V300H1, V300H2);
+    private static final Host VNONEHOST1 =
+            new DefaultHost(PID, HID9, MAC9, VlanId.NONE,
+                            getLocation(3, 2), Sets.newHashSet());
+    private static final Host VNONEHOST2 =
+            new DefaultHost(PID, HID10, MAC10, VlanId.NONE,
+                            getLocation(5, 1), Sets.newHashSet());
+    private static final Host VNONEHOST3 =
+            new DefaultHost(PID, HID11, MAC11, VlanId.NONE,
+                            getLocation(5, 2), Sets.newHashSet());
 
-    private static final Set<Host> AVALIABLE_HOSTS =
+    private static final Set<Interface> AVAILABLE_INTERFACES =
+            ImmutableSet.of(V100H1, V100H2, V200H1, V200H2, V300H1, V300H2,
+                            V400H1, VNONEH1, VNONEH2);
+
+    private static final Set<Host> AVAILABLE_HOSTS =
             ImmutableSet.of(V100HOST1, V100HOST2, V200HOST1,
-                            V200HOST2, V300HOST1, V300HOST2, V300HOST3);
+                            V200HOST2, V300HOST1, V300HOST2, V300HOST3,
+                            VNONEHOST1, VNONEHOST2,
+                            V400HOST1, VNONEHOST3);
+
+    private SetMultimap<String, Interface> interfacesByVpls = HashMultimap.create();
 
     private ApplicationService applicationService;
     private CoreService coreService;
@@ -202,7 +240,7 @@ public class VplsTest {
     private HostService hostService;
     private IntentService intentService;
     private InterfaceService interfaceService;
-    private VplsConfigurationService vplsConfigService;
+    private VplsConfigService vplsConfigService;
     private Vpls vpls;
 
     @Before
@@ -232,18 +270,22 @@ public class VplsTest {
         expectLastCall().anyTimes();
         addIfaceConfig();
 
-        SetMultimap<String, Interface> interfacesByVpls =
-                HashMultimap.create();
         interfacesByVpls.put(VPLS1, V100H1);
         interfacesByVpls.put(VPLS1, V200H1);
         interfacesByVpls.put(VPLS1, V300H1);
         interfacesByVpls.put(VPLS2, V100H2);
         interfacesByVpls.put(VPLS2, V200H2);
         interfacesByVpls.put(VPLS2, V300H2);
+        interfacesByVpls.put(VPLS3, VNONEH1);
+        interfacesByVpls.put(VPLS3, VNONEH2);
+        interfacesByVpls.put(VPLS4, V400H1);
+        interfacesByVpls.put(VPLS4, VNONEH3);
 
         Map<String, EncapsulationType> encapByVpls = new HashMap<>();
         encapByVpls.put(VPLS1, VLAN);
         encapByVpls.put(VPLS2, NONE);
+        encapByVpls.put(VPLS3, NONE);
+        encapByVpls.put(VPLS4, NONE);
 
         vplsConfigService = new TestVplsConfigService(interfacesByVpls, encapByVpls);
 
@@ -265,18 +307,22 @@ public class VplsTest {
     }
 
     /**
-     * Creates the interface configuration. On devices 1 and 2 is configured
-     * an interface on port 1 with vlan 100. On devices 3 and 4 is configured
-     * an interface on port 1 with vlan 200. On device 5 and 6 is configured
-     * an interface on port 1 with vlan 300.
+     * Creates the interface configuration:
+     *  On devices 1 and 2 is configured an interface on port 1 with vlan 100.
+     *  On device 3 is configured an interface on port 3 with no vlan.
+     *  On devices 3 and 4 is configured an interface on port 1 with vlan 200.
+     *  On device 4 is an interface configured on port 2 with vlan 400.
+     *  On device 5 are configured two interfaces on port 1 and 2 with no vlan.
+     *  On device 5 and 6 is configured an interface on port 1 with vlan 300.
      */
     private void addIfaceConfig() {
-        Set<Interface> interfaces = ImmutableSet.copyOf(AVALIABLE_INTERFACES);
+        Set<Interface> interfaces = ImmutableSet.copyOf(AVAILABLE_INTERFACES);
         Set<Interface> vlanOneSet = ImmutableSet.of(V100H1, V100H2);
         Set<Interface> vlanTwoSet = ImmutableSet.of(V200H1, V200H2);
-        Set<Interface> vlanThreeSet = ImmutableSet.of(V300H1, V300H2);
+        Set<Interface> vlanThreeSet = ImmutableSet.of(VNONEH1, VNONEH2);
+        Set<Interface> vlanFourSet = ImmutableSet.of(V400H1, VNONEH3);
 
-        AVALIABLE_INTERFACES.forEach(intf -> {
+        AVAILABLE_INTERFACES.forEach(intf -> {
             expect(interfaceService.getInterfacesByPort(intf.connectPoint()))
                     .andReturn(Sets.newHashSet(intf)).anyTimes();
         });
@@ -286,18 +332,27 @@ public class VplsTest {
                 .andReturn(vlanTwoSet).anyTimes();
         expect(interfaceService.getInterfacesByVlan(VLAN300))
                 .andReturn(vlanThreeSet).anyTimes();
+        expect(interfaceService.getInterfacesByVlan(VLAN400))
+                .andReturn(vlanFourSet).anyTimes();
+        expect(interfaceService.getInterfacesByVlan(VlanId.NONE))
+                .andReturn(vlanFourSet).anyTimes();
         expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
 
         replay(interfaceService);
     }
 
     /**
-     * Six ports are configured with VLANs but no hosts are registered by the
-     * HostService. The first three ports have an interface configured on VPLS 1,
-     * the other three on VPLS 2. The number of intents expected is six: three for
-     * VPLS 1, three for VPLS 2. Six MP2SP intents. Checks if the number of intents
-     * submitted to the intent framework is equal to the number of intents
-     * expected and if all intents are equivalent.
+     * Seven ports are configured with VLANs, while three ports are not. No hosts are
+     * registered by the HostService.
+     *
+     * The first three ports have an interface configured on VPLS 1,
+     * the other three on VPLS 2. Two ports are defined for VPLS 3, while
+     * the two remaining ports are configured on VPLS 4.
+     *
+     * The number of intents expected is 10: three for VPLS 1, three for VPLS 2,
+     * two for VPLS 3, two for VPLS 4. Eight MP2SP intents.
+     * Checks if the number of intents submitted to the intent framework is
+     * equal to the number of intents expected and if all intents are equivalent.
      */
     @Test
     public void activateNoHosts() {
@@ -312,22 +367,33 @@ public class VplsTest {
         fcPoints = buildFCPoints(ImmutableSet.of(V100H2, V200H2, V300H2));
         expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS2, NONE));
 
+        fcPoints = buildFCPoints(ImmutableSet.of(VNONEH1, VNONEH2));
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS3, NONE));
+
+        fcPoints = buildFCPoints(ImmutableSet.of(V400H1, VNONEH3));
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS4, NONE));
+
         checkIntents(expectedIntents);
     }
 
     /**
-     * Six ports are configured with VLANs and six hosts are registered by the
-     * HostService. The first three ports have an interface configured on VPLS 1,
-     * the other three on VPLS 2. The number of intents expected is twelve: six
-     * for VLAN 1, six for VPLS 2. six sp2mp intents, six mp2sp intents. For VPLS 1
+     * Ten ports are configured with VLANs and ten hosts are registered by the
+     * HostService.
+     *
+     * The first three ports have an interface configured on VPLS 1,
+     * the other three on VPLS 2, two on VPLS3 and two on VPLS4.
+     *
+     * The number of intents expected is twenty: six
+     * for VPLS 1, six for VPLS 2. four for VPLS 3, four for VPLS 4.
+     * That is ten sp2mp intents, ten mp2sp intents. For VPLS 1
      * IPs are added to demonstrate this doesn't influence the number of intents
      * created. Checks if the number of intents submitted to the intent
      * framework is equal to the number of intents expected and if all intents
      * are equivalent.
      */
     @Test
-    public void sixInterfacesConfiguredHostsPresent() {
-        hostsAvailable.addAll(AVALIABLE_HOSTS);
+    public void tenInterfacesConfiguredHostsPresent() {
+        hostsAvailable.addAll(AVAILABLE_HOSTS);
 
         vpls.activate();
 
@@ -345,19 +411,35 @@ public class VplsTest {
         expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS2, NONE));
         expectedIntents.addAll(generateVplsUni(fcPoints, hosts, VPLS2, NONE));
 
+        fcPoints = buildFCPoints(ImmutableSet.of(VNONEH1, VNONEH2));
+        hosts = ImmutableSet.of(VNONEHOST1, VNONEHOST2);
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS3, NONE));
+        expectedIntents.addAll(generateVplsUni(fcPoints, hosts, VPLS3, NONE));
+
+        fcPoints = buildFCPoints(ImmutableSet.of(V400H1, VNONEH3));
+        hosts = ImmutableSet.of(V400HOST1, VNONEHOST3);
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS4, NONE));
+        expectedIntents.addAll(generateVplsUni(fcPoints, hosts, VPLS4, NONE));
+
         checkIntents(expectedIntents);
     }
 
     /**
-     * Six ports are configured with VLANs and initially no hosts are registered
-     * by the HostService. The first three ports have an interface configured on
-     * VPLS 1, the other three have an interface configured on VPLS 2. When the
+     * Ten ports are configured; seven have VLANs and three do not.
+     * Initially, no hosts are registered by the HostService.
+     *
+     * The first three ports have an interface configured on
+     * VPLS 1, three have an interface configured on VPLS 2, two have an
+     * interface configured on VPLS 3 and two have an interface configured
+     * on VPLS 4, three have an interface configure. When the
      * module starts up, three hosts attached to device one, two and three -
      * port 1, are registered by the HostService and events are sent to the
      * application. sp2mp intents are created for all interfaces configured and
      * mp2sp intents are created only for the hosts attached.
-     * The number of intents expected is nine: six for VPLS 1, three for VPLS 2.
-     * Six sp2mp intents, three mp2sp intents. IPs are added on the first two
+     *
+     * The number of intents expected is seventeen: six for VPLS 1,
+     * three for VPLS 2, four for VPLS3 and four for VPLS4.
+     * Ten sp2mp intents, seven mp2sp intents. IPs are added on the first two
      * hosts only to demonstrate this doesn't influence the number of intents
      * created.
      * An additional host is added on device seven - port 1, to demonstrate that
@@ -367,17 +449,19 @@ public class VplsTest {
      * to the number of intents expected and if all intents are equivalent.
      */
     @Test
-    public void sixInterfacesThreeHostEventsSameVpls() {
+    public void tenInterfacesThreeHostEventsSameVpls() {
         vpls.activate();
 
         List<Intent> expectedIntents = Lists.newArrayList();
         Set<FilteredConnectPoint> fcPoints;
         Set<Host> hosts;
 
-        hostsAvailable.addAll(Sets.newHashSet(V100HOST1, V200HOST1, V300HOST1, V300HOST3));
-
+        hostsAvailable.addAll(Sets.newHashSet(V100HOST1, V200HOST1,
+                                              V300HOST1, V300HOST3,
+                                              VNONEHOST1, VNONEHOST2,
+                                              V400HOST1, VNONEHOST3));
         hostsAvailable.forEach(host ->
-                hostListener.event(new HostEvent(HostEvent.Type.HOST_ADDED, host)));
+                                       hostListener.event(new HostEvent(HostEvent.Type.HOST_ADDED, host)));
 
         fcPoints = buildFCPoints(ImmutableSet.of(V100H1, V200H1, V300H1));
         hosts = ImmutableSet.of(V100HOST1, V200HOST1, V300HOST1);
@@ -386,6 +470,16 @@ public class VplsTest {
 
         fcPoints = buildFCPoints(ImmutableSet.of(V100H2, V200H2, V300H2));
         expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS2, NONE));
+
+        fcPoints = buildFCPoints(ImmutableSet.of(VNONEH1, VNONEH2));
+        hosts = ImmutableSet.of(VNONEHOST1, VNONEHOST2);
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS3, NONE));
+        expectedIntents.addAll(generateVplsUni(fcPoints, hosts, VPLS3, NONE));
+
+        fcPoints = buildFCPoints(ImmutableSet.of(V400H1, VNONEH3));
+        hosts = ImmutableSet.of(V400HOST1, VNONEHOST3);
+        expectedIntents.addAll(generateVplsBrc(fcPoints, VPLS4, NONE));
+        expectedIntents.addAll(generateVplsUni(fcPoints, hosts, VPLS4, NONE));
 
         checkIntents(expectedIntents);
     }
@@ -409,7 +503,7 @@ public class VplsTest {
                             .collect(Collectors.toSet());
 
             Key brckey = buildKey(PREFIX_BROADCAST,
-                    point.connectPoint(), name, MacAddress.BROADCAST);
+                                  point.connectPoint(), name, MacAddress.BROADCAST);
 
             intents.add(buildBrcIntent(brckey, point, otherPoints, encap));
         });
@@ -440,7 +534,7 @@ public class VplsTest {
                             .collect(Collectors.toSet());
 
             Key uniKey = buildKey(PREFIX_UNICAST,
-                    host.location(), name, host.mac());
+                                  host.location(), name, host.mac());
 
             intents.add(buildUniIntent(uniKey, otherPoints, hostPoint, host, encap));
         });
@@ -456,7 +550,7 @@ public class VplsTest {
      */
     private void checkIntents(List<Intent> intents) {
         assertEquals("The number of intents submitted differs from the number" +
-                             "of intents expected",
+                             " of intents expected. ",
                      intents.size(), intentService.getIntentCount());
 
         for (Intent intentOne : intents) {
@@ -465,14 +559,14 @@ public class VplsTest {
                 if (intentOne.key().equals(intentTwo.key())) {
                     found = true;
                     assertTrue(format("The intent submitted is different from" +
-                                              "the intent expected",
+                                              " the intent expected. %s %s",
                                       intentOne, intentTwo),
-                            IntentUtils.intentsAreEqual(intentOne, intentTwo));
+                               IntentUtils.intentsAreEqual(intentOne, intentTwo));
                     break;
                 }
             }
             assertTrue("The intent submitted is not equal to any of the expected" +
-                               "intents", found);
+                               " intents. ", found);
         }
     }
 
@@ -556,8 +650,7 @@ public class VplsTest {
                     VlanIdCriterion vlanCriterion =
                             (VlanIdCriterion) fcp.trafficSelector().
                                     getCriterion(Criterion.Type.VLAN_VID);
-
-                    return vlanCriterion != null &&
+                    return vlanCriterion == null ||
                             vlanCriterion.vlanId().equals(host.vlan());
                 })
                 .findFirst()
@@ -565,25 +658,23 @@ public class VplsTest {
     }
 
     /**
-     * Computes a set of filtered connect points from given interfaces.
+     * Computes a set of filtered connect points from a list of given interfaces.
      *
-     * @param interfaces the interfaces belonging to the VPLS
+     * @param interfaces the interfaces to compute
      * @return the set of filtered connect points
      */
-    private Set<FilteredConnectPoint> buildFCPoints(Set<Interface> interfaces) {
-        // Build all filtered connected point for the VPLS
+    private Set<FilteredConnectPoint> buildFCPoints(Collection<Interface> interfaces) {
+        // Build all filtered connected points in the VPLS
         return interfaces
                 .stream()
                 .map(intf -> {
                     TrafficSelector.Builder selectorBuilder =
                             DefaultTrafficSelector.builder();
-
                     if (!intf.vlan().equals(VlanId.NONE)) {
                         selectorBuilder.matchVlanId(intf.vlan());
                     }
-
                     return new FilteredConnectPoint(intf.connectPoint(),
-                            selectorBuilder.build());
+                                                    selectorBuilder.build());
                 })
                 .collect(Collectors.toSet());
     }
@@ -601,9 +692,9 @@ public class VplsTest {
      * @return the key to identify the intent
      */
     private Key buildKey(String prefix,
-                           ConnectPoint cPoint,
-                           String vplsName,
-                           MacAddress hostMac) {
+                         ConnectPoint cPoint,
+                         String vplsName,
+                         MacAddress hostMac) {
         String keyString = vplsName +
                 DASH +
                 prefix +
@@ -627,8 +718,8 @@ public class VplsTest {
     private static void encap(ConnectivityIntent.Builder builder,
                               EncapsulationType encap) {
         if (!encap.equals(NONE)) {
-                builder.constraints(ImmutableList.of(
-                        new EncapsulationConstraint(encap)));
+            builder.constraints(ImmutableList.of(
+                    new EncapsulationConstraint(encap)));
         }
     }
 
@@ -642,8 +733,17 @@ public class VplsTest {
         return DeviceId.deviceId("" + i);
     }
 
+    private static MacAddress getMac(int n) {
+        return MacAddress.valueOf(String.format("00:00:00:00:00:%s", n));
+    }
+
     private static HostLocation getLocation(int i) {
         return new HostLocation(new ConnectPoint(getDeviceId(i), P1), 123L);
+    }
+
+    private static HostLocation getLocation(int d, int p) {
+        return new HostLocation(new ConnectPoint(getDeviceId(d),
+                                                 PortNumber.portNumber(p)), 123L);
     }
 
     /**
@@ -768,7 +868,7 @@ public class VplsTest {
     /**
      * Represents a fake VplsConfigService class which is needed for testing.
      */
-    private class TestVplsConfigService extends VplsConfigurationServiceAdapter {
+    private class TestVplsConfigService extends VplsConfigServiceAdapter {
 
         private final SetMultimap<String, Interface> ifacesByVplsName;
         private final Map<String, EncapsulationType> encapsByVplsName;
@@ -785,12 +885,14 @@ public class VplsTest {
         public void addVpls(String vplsName, Set<String> ifaceNames, String encap) {
             if (!ifacesByVplsName.containsKey(vplsName)) {
                 ifaceNames.forEach(ifaceName -> {
-                    AVALIABLE_INTERFACES.forEach(iface -> {
+                    AVAILABLE_INTERFACES.forEach(iface -> {
                         if (iface.name().equals(ifaceName)) {
                             ifacesByVplsName.put(vplsName, iface);
                         }
                     });
                 });
+            }
+            if (!ifacesByVplsName.containsKey(vplsName)) {
                 encapsByVplsName.put(vplsName, valueOf(encap));
             }
         }
@@ -805,7 +907,7 @@ public class VplsTest {
         @Override
         public void addIface(String vplsName, String iface) {
             if (!ifacesByVplsName.containsKey(vplsName)) {
-                AVALIABLE_INTERFACES.forEach(intf -> {
+                AVAILABLE_INTERFACES.forEach(intf -> {
                     if (intf.name().equals(iface)) {
                         ifacesByVplsName.put(vplsName, intf);
                     }
@@ -881,12 +983,12 @@ public class VplsTest {
 
         @Override
         public SetMultimap<String, Interface> ifacesByVplsName(VlanId vlan,
-                                                             ConnectPoint connectPoint) {
+                                                               ConnectPoint connectPoint) {
             String vplsName =
                     ifacesByVplsName.entries().stream()
                             .filter(e -> e.getValue().connectPoint().equals(connectPoint))
                             .filter(e -> e.getValue().vlan().equals(vlan))
-                            .map(e -> e.getKey())
+                            .map(Map.Entry::getKey)
                             .findFirst()
                             .orElse(null);
             SetMultimap<String, Interface> result = HashMultimap.create();

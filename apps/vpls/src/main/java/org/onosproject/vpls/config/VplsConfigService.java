@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * Provides information about the VPLS configuration.
  */
-public interface VplsConfigurationService {
+public interface VplsConfigService {
     Class<VplsAppConfig> CONFIG_CLASS = VplsAppConfig.class;
 
     /**
@@ -96,6 +96,13 @@ public interface VplsConfigurationService {
      * @return a set of interfaces contained in the VPLS configuration
      */
     Set<Interface> allIfaces();
+
+    /**
+     * Retrieves the interfaces from the VPLS configuration.
+     *
+     * @return a set of interfaces belonging to the VPLS
+     */
+    Set<Interface> ifaces();
 
     /**
      * Retrieves the interfaces belonging to the VPLS.

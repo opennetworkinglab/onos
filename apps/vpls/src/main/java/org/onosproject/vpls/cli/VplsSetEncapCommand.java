@@ -19,7 +19,7 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to set encapsulation for a VPLS.
@@ -30,8 +30,8 @@ import org.onosproject.vpls.config.VplsConfigurationService;
 public class VplsSetEncapCommand extends AbstractShellCommand {
 
     private static final String VPLS_NOT_FOUND = "VPLS %s not found.";
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)

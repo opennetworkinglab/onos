@@ -19,7 +19,7 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.HashSet;
 
@@ -29,8 +29,8 @@ import java.util.HashSet;
 @Command(scope = "onos", name = "vpls-add", description = "Creates a new VPLS")
 public class VplsAddCommand extends AbstractShellCommand {
 
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)

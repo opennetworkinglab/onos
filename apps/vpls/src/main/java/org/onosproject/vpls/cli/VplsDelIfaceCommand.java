@@ -19,7 +19,7 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to remove an interface from an existing VPLS.
@@ -28,8 +28,8 @@ import org.onosproject.vpls.config.VplsConfigurationService;
         description = "Removes an interface from an existing VPLS")
 public class VplsDelIfaceCommand extends AbstractShellCommand {
 
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)

@@ -23,8 +23,6 @@ import com.google.common.collect.Sets;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.config.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -36,8 +34,6 @@ public class VplsAppConfig extends Config<ApplicationId> {
     private static final String NAME = "name";
     private static final String INTERFACE = "interfaces";
     private static final String ENCAPSULATION = "encapsulation";
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Returns a set of configured VPLSs.
@@ -57,17 +53,19 @@ public class VplsAppConfig extends Config<ApplicationId> {
             String name = jsonNode.get(NAME).asText();
 
             Set<String> ifaces = Sets.newHashSet();
-            jsonNode.path(INTERFACE).forEach(ifacesNode ->
-                    ifaces.add(ifacesNode.asText())
-            );
+            JsonNode vplsIfaces = jsonNode.path(INTERFACE);
+            if (vplsIfaces.toString().isEmpty()) {
+                vplsIfaces = ((ObjectNode) jsonNode).putArray(INTERFACE);
+            }
+            vplsIfaces.forEach(ifacesNode -> ifaces.add(ifacesNode.asText()));
 
             String encap = null;
             if (jsonNode.hasNonNull(ENCAPSULATION)) {
                 encap = jsonNode.get(ENCAPSULATION).asText();
             }
             vplss.add(new VplsConfig(name,
-                                    ifaces,
-                                    EncapsulationType.enumFromString(encap)));
+                                     ifaces,
+                                     EncapsulationType.enumFromString(encap)));
         });
 
         return vplss;

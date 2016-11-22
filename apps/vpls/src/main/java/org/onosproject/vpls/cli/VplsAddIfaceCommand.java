@@ -19,7 +19,7 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to add an interface to a VPLS.
@@ -28,8 +28,8 @@ import org.onosproject.vpls.config.VplsConfigurationService;
         description = "Adds an interface to an existing VPLS")
 public class VplsAddIfaceCommand extends AbstractShellCommand {
 
-    private static VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private static VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)

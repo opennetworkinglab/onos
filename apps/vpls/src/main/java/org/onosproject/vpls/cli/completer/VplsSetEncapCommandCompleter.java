@@ -18,7 +18,7 @@ package org.onosproject.vpls.cli.completer;
 
 import com.google.common.collect.Lists;
 import org.onosproject.cli.AbstractChoicesCompleter;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.List;
 
@@ -30,8 +30,8 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 public class VplsSetEncapCommandCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
-        VplsConfigurationService vplsConfigService =
-                get(VplsConfigurationService.class);
+        VplsConfigService vplsConfigService =
+                get(VplsConfigService.class);
 
         return Lists.newArrayList(vplsConfigService.vplsNames());
     }

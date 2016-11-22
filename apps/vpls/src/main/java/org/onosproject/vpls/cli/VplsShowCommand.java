@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.EncapsulationType;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +34,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
         description = "Shows the details of an existing VPLS")
 public class VplsShowCommand extends AbstractShellCommand {
 
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = false, multiValued = false)

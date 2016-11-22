@@ -42,7 +42,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.vpls.config.VplsAppConfig;
 import org.onosproject.vpls.config.VplsConfig;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,7 @@ import java.util.Set;
  */
 @Component(immediate = true)
 @Service
-public class VplsConfigurationImpl implements VplsConfigurationService {
+public class VplsConfigImpl implements VplsConfigService {
     private static final String VPLS_APP = "org.onosproject.vpls";
     private static final String VPLS = "vpls";
     private static final String EMPTY = "";
@@ -90,6 +90,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     private SetMultimap<String, String> ifacesOfVpls = HashMultimap.create();
     private SetMultimap<String, String> oldIfacesOfVpls = HashMultimap.create();
     private SetMultimap<String, Interface> vplsIfaces = HashMultimap.create();
+
     private Map<String, EncapsulationType> vplsEncaps = Maps.newHashMap();
 
     private final InternalNetworkConfigListener configListener =
@@ -201,15 +202,20 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     public Set<String> vplsAffectedByApi() {
         Set<String> vplsNames = ImmutableSet.copyOf(vplsAffectedByApi);
         vplsAffectedByApi.clear();
-
         return vplsNames;
     }
 
     @Override
     public Set<Interface> allIfaces() {
         Set<Interface> allVplsInterfaces = new HashSet<>();
-        vplsIfaces.values().forEach(allVplsInterfaces::add);
+        interfaceService.getInterfaces().forEach(allVplsInterfaces::add);
+        return allVplsInterfaces;
+    }
 
+    @Override
+    public Set<Interface> ifaces() {
+        Set<Interface> allVplsInterfaces = new HashSet<>();
+        vplsIfaces.values().forEach(allVplsInterfaces::add);
         return allVplsInterfaces;
     }
 
@@ -217,7 +223,6 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     public Set<Interface> ifaces(String vplsName) {
         Set<Interface> vplsInterfaces = new HashSet<>();
         vplsIfaces.get(vplsName).forEach(vplsInterfaces::add);
-
         return vplsInterfaces;
     }
 
@@ -243,7 +248,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
                 vplsIfaces.entries().stream()
                         .filter(e -> e.getValue().connectPoint().equals(connectPoint))
                         .filter(e -> e.getValue().vlan().equals(vlan))
-                        .map(e -> e.getKey())
+                        .map(Map.Entry::getKey)
                         .findFirst()
                         .orElse(null);
         SetMultimap<String, Interface> result = HashMultimap.create();
@@ -276,7 +281,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
 
         oldIfacesOfVpls = ifacesOfVpls;
         ifacesOfVpls = getConfigInterfaces();
-        vplsIfaces = getConfigCPoints();
+        vplsIfaces = getConfigCPointsFromIfaces();
         vplsEncaps = getConfigEncap();
 
         log.debug(CONFIG_CHANGED, ifacesOfVpls);
@@ -310,7 +315,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
         Map<String, EncapsulationType> configEncap = new HashMap<>();
 
         vplsAppConfig.vplss().forEach(vpls -> {
-                configEncap.put(vpls.name(), vpls.encap());
+            configEncap.put(vpls.name(), vpls.encap());
         });
 
         return configEncap;
@@ -341,7 +346,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
      *
      * @return a map of VPLS names and related interfaces
      */
-    private SetMultimap<String, Interface> getConfigCPoints() {
+    private SetMultimap<String, Interface> getConfigCPointsFromIfaces() {
         log.debug(CHECK_CONFIG);
 
         SetMultimap<String, Interface> confCPointsByIntf =
@@ -364,7 +369,7 @@ public class VplsConfigurationImpl implements VplsConfigurationService {
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass() == VplsConfigurationService.CONFIG_CLASS) {
+            if (event.configClass() == VplsConfigService.CONFIG_CLASS) {
                 log.debug(NET_CONF_EVENT, event.configClass());
                 switch (event.type()) {
                     case CONFIG_ADDED:
