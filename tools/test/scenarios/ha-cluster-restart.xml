@@ -25,7 +25,9 @@
             </parallel>
         </group>
 
-        <group name="Recover" requires="~Fail">
+        <step name="Breathe" exec="sleep 5" requires="~Fail"/>
+
+        <group name="Recover" requires="~Breathe,~Fail">
             <parallel var="${OC#}">
                 <step name="Node-Start-${#}" exec="onos-service ${OC#} start"/>
                 <step name="Wait-for-Start-${#}" requires="~Node-Start-${#}"

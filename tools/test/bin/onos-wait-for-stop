@@ -13,7 +13,7 @@ remote=$ONOS_USER@$node
 
 ssh -t $remote "
     # Wait until ONOS Java process terminates
-    for i in \$(seq 1 45); do
+    for i in {1..90}; do
         ps -ef | egrep 'java .*/onos/.* org\.apache\.karaf\.main\.Main' | grep -qv grep || exit 0
         sleep 1
     done
