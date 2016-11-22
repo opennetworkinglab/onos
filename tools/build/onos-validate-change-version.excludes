@@ -3,6 +3,7 @@
 /target/
 \.iml$
 \./buck-out/
+\./\.buckd
 \./lib/BUCK
 \./lib/deps.json
 \./bucklets/maven_jar\.bucklet
