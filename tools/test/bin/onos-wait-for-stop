@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Waits for ONOS java process to terminate.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+node=$(find_node ${1:-$OCI})
+
+remote=$ONOS_USER@$node
+
+ssh -t $remote "
+    # Wait until ONOS Java process terminates
+    for i in \$(seq 1 45); do
+        ps -ef | egrep 'java .*/onos/.* org\.apache\.karaf\.main\.Main' | grep -qv grep || exit 0
+        sleep 1
+    done
+    exit 1
+"
