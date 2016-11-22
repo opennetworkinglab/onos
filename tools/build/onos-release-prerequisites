@@ -121,6 +121,33 @@ function testSonatypeAccess {
     echo "OK"
 }
 
+# .buckconfig.local must exist and the sonatype credentials must be set up
+function testBuckconfigLocal() {
+    printf "Checking local buck config..."
+    if [ ! -f $ONOS_ROOT/.buckconfig.local ]; then
+        echo ".buckconfig.local not found"
+        return 1
+    fi
+
+    trap "echo [publish] must be specified" ERR
+    grep -q "^\[publish\]" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_url must be specified" ERR
+    grep -q "maven_url" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_user must be specified" ERR
+    grep -q "maven_user" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_password must be specified" ERR
+    grep -q "maven_password" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo pgp_keyring must be specified" ERR
+    grep -q "pgp_keyring" $ONOS_ROOT/.buckconfig.local
+
+    echo "OK"
+}
+
+testBuckconfigLocal
 testToolchain
 testSnapshotDependencies
 testGerritAccess
