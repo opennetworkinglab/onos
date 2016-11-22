@@ -36,4 +36,5 @@ sed -i "" -E 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
 cat $TEST_PUB
 bash $TEST_PUB
 
-# FIXME Close the staging area
+# Close the staging area
+onos-close-staging

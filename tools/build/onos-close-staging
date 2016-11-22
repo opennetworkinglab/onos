@@ -1,0 +1,162 @@
+#!/usr/bin/env python
+#
+# This script finds an open staging repository, checks that it contains an
+# expected artifact, attemps to close the repository, and checks that it is closed.
+#
+
+import sys
+import json
+import time
+import os
+import requests
+from requests.auth import HTTPBasicAuth
+
+USER = os.environ['SONATYPE_USER']
+PASSWORD = os.environ['SONATYPE_PASSWORD']
+BASE_URL = 'https://oss.sonatype.org/service/local/'
+GROUP_ID = 'org.onosproject'
+ARTIFACT = 'onos-api'
+VERSION = os.environ['ONOS_VERSION']
+MAX_TRIES = 3
+
+# Performs an HTTP GET up to MAX_TRIES times
+def get(url):
+  headers = { 'Accept': 'application/json' }
+  error = None
+  for i in range(MAX_TRIES):
+    resp = requests.get(url, auth=HTTPBasicAuth(USER, PASSWORD), headers=headers)
+    try:
+      resp.raise_for_status()
+      return resp
+    except requests.exceptions.HTTPError as e:
+      print 'Encountered error:', e
+      error = e
+      time.sleep(1)
+  if error:
+    raise error
+  return resp
+
+# Performs an HTTP POST with the specified data up to MAX_TRIES times
+def post(url, data):
+  headers = { 'Accept': 'application/xml', 'Content-type': 'application/xml' }
+  error = None
+  for i in range(MAX_TRIES):
+    resp = requests.post(url, data=data, auth=HTTPBasicAuth(USER, PASSWORD), headers=headers)
+    try:
+      resp.raise_for_status()
+      return resp
+    except requests.exceptions.HTTPError as e:
+      print 'Encountered error:', e
+      error = e
+      time.sleep(1)
+  if error:
+    raise error
+  return resp
+
+# Get the staging repos and filter the ones related to onos
+def getStagingRepo(groupId):
+  resp = get(BASE_URL + 'staging/profile_repositories')
+  data = resp.json()['data']
+  
+  repos = []
+  for entry in data:
+    if entry['profileName'] == groupId and entry['type'] == 'open':
+      repos.append(( entry['repositoryId'], entry['profileId'] ))
+  
+  if len(repos) > 1:
+    print 'Aborting... too many open staging repos'
+    print repos
+    sys.exit(1)
+  elif len(repos) == 0:
+    print 'Aborting... there are no open staging repos'
+    sys.exit(1)
+
+  return repos[0]  
+
+# Check to make sure the open repo contains the onos-api artifact for the appropriate version
+def checkStagingRepo(respositoryId, artifact, groupId, version):
+  base = BASE_URL + 'repositories/%s/content/' % repositoryId
+  path = '%(groupId)s/%(artifact)s/%(version)s/%(artifact)s-%(version)s.pom' % { 
+    'artifact': artifact,
+    'groupId': groupId.replace('.','/'),
+    'version': version }
+  get(base + path) # will raise exception if not present
+
+# Close the repo (Note: /drop can be used to drop the repo, e.g. if failed)
+def closeRepo(repositoryId, profileId, version):
+  url = BASE_URL + 'staging/profiles/%s/finish' % profileId
+  # Argument info: https://oss.sonatype.org/nexus-staging-plugin/default/docs/index.html
+  xml = '''<?xml version="1.0" encoding="UTF-8"?>
+  <promoteRequest>
+    <data>
+      <stagedRepositoryId>%s</stagedRepositoryId>
+      <description>%s</description>
+      <targetRepositoryId>%s</targetRepositoryId>
+    </data>
+  </promoteRequest>''' % (repositoryId, version, '')
+  post(url, xml)
+  # Wait for the close to be registered
+  time.sleep(3)
+
+# Drop the repo
+def dropRepo(repositoryId, profileId):
+  url = BASE_URL + 'staging/profiles/%s/drop' % profileId
+  # Argument info: https://oss.sonatype.org/nexus-staging-plugin/default/docs/index.html
+  xml = '''<?xml version="1.0" encoding="UTF-8"?>
+  <promoteRequest>
+    <data>
+      <stagedRepositoryId>%s</stagedRepositoryId>
+      <description></description>
+      <targetRepositoryId></targetRepositoryId>
+    </data>
+  </promoteRequest>''' % (repositoryId)
+  post(url, xml)
+  # Wait for the close to be registered
+  time.sleep(3)
+
+# Check closing status
+def checkClose(repositoryId):
+  url = BASE_URL + 'staging/repository/%s/activity' % repositoryId
+  data = get(url).json()
+  closeActivity = None
+  for activity in data:
+    # find the last close activity
+    if activity['name'] == 'close':
+      closeActivity = activity 
+ 
+  if not closeActivity:
+    return False
+ 
+  for event in activity['events']:
+    if event['name'] == 'repositoryClosed':
+      return True
+    elif event['name'] == 'repositoryCloseFailed':
+      print 'Aborting... repository failed to close'
+      print json.dumps(activity, sort_keys=True, indent=2, separators=(',', ': '))
+      sys.exit(1)
+  return False
+
+# Wait until the repository is closed
+def waitClosed(repositoryId):
+  sys.stdout.write('Closing...')
+  sys.stdout.flush()     
+  while not checkClose(repositoryId):
+    sys.stdout.write('.')
+    sys.stdout.flush()     
+    time.sleep(2)
+  print ' Closed.'
+
+if __name__ == '__main__':
+  repositoryId, profileId = getStagingRepo(GROUP_ID)
+  print 'Repository Id:', repositoryId
+  print 'Profile Id:', profileId
+
+  checkStagingRepo(repositoryId, ARTIFACT, GROUP_ID, VERSION)
+
+  closeRepo(repositoryId, profileId, VERSION)
+  
+  waitClosed(repositoryId)
+
+  if '-d' in sys.argv:
+    print 'Dropping repo %s' % repositoryId
+    dropRepo(repositoryId, profileId)
