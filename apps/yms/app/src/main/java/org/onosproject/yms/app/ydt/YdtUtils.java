@@ -167,6 +167,7 @@ final class YdtUtils {
      * @param opType     user requested operation type
      * @param newNode    new requested ydt node
      * @param parentNode parent node under which new node to be added
+     * @param defOpType  YDT context operation type
      * @return operation type
      * @throws YdtException when user requested node operation type is
      *                      not valid as per parent node operation type

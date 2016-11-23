@@ -165,6 +165,7 @@ ONOS_APPS = [
     '//apps/scalablegateway:onos-apps-scalablegateway-oar',
     '//apps/patchpanel:onos-apps-patchpanel-oar',
     '//apps/castor:onos-apps-castor-oar',
+    '//apps/yms:onos-apps-yms-oar',
 ]
 
 APP_JARS = [

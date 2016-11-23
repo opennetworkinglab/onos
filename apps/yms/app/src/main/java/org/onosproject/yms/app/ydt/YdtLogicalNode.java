@@ -31,7 +31,10 @@ class YdtLogicalNode extends YdtNode {
     private final String namespace;
 
     /**
-     * Creates a YANG logical node object.
+     * Creates an instance of YANG logical node object.
+     *
+     * @param name      logical root name
+     * @param namespace YANG namespace
      */
     public YdtLogicalNode(String name, String namespace) {
         super(LOGICAL_ROOT_NODE);

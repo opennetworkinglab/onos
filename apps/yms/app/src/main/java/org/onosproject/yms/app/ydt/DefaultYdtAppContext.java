@@ -71,6 +71,8 @@ public final class DefaultYdtAppContext<T extends AppData>
     /**
      * Creates an instance of YANG application tree which is used by all node
      * needs delete list.
+     *
+     * @param data application data
      */
     DefaultYdtAppContext(T data) {
         appData = data;

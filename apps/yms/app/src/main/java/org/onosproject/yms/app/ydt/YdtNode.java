@@ -269,6 +269,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * to provide the correct behavior for their specific implementation.
      *
      * @param value value in a single instance node
+     * @throws YdtException when fails to add value for non single instance
+     *                      leaf node
      */
     public void addValue(String value) throws YdtException {
         throw new YdtException(errorMsg(FMT_VAL_N, getName()));
@@ -297,6 +299,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param value     value in a single instance leaf node
      * @param isKeyLeaf true, for key leaf; false non key leaf
+     * @throws YdtException when fails to add value for non single instance
+     *                      leaf node
      */
     public void addValueWithoutValidation(String value, boolean isKeyLeaf)
             throws YdtException {
@@ -311,6 +315,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * to provide the correct behavior for their specific implementation.
      *
      * @param valueSet valueSet in a multi instance leaf node
+     * @throws YdtException when fails to add value set for non multi instance
+     *                      leaf node
      */
     public void addValueSet(Set<String> valueSet) throws YdtException {
         throw new YdtException(errorMsg(FMT_VAL_NS, getName()));
@@ -326,6 +332,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * to validate the value.
      *
      * @param valueSet valueSet in a multi instance leaf node
+     * @throws YdtException when fails to add value set for non multi instance
+     *                      leaf node
      */
     public void addValueSetWithoutValidation(Set<String> valueSet)
             throws YdtException {
@@ -338,6 +346,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * This default implementation throws an exception stating that
      * the duplicate entry found. Subclasses may override this method
      * to provide the correct behavior for their specific implementation.
+     *
+     * @throws YdtException when fails to process valid duplicate entry in YDT
      */
     void validDuplicateEntryProcessing() throws YdtException {
     }
@@ -565,6 +575,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
 
     /**
      * Validates all multi Instance nodes inside current context.
+     *
+     * @throws YdtException when fails to validate multi instance node
      */
     public void validateMultiInstanceNode() throws YdtException {
 
@@ -598,6 +610,9 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param keyStringSet set to validate the key element uniqueness
      * @param ydtNodeList  list of instance's of same list
+     * @throws YdtException when user requested multi instance node instance's
+     *                      count doesn't fit into the allowed instance's limit
+     *                      or doesn't have unique key's
      */
     void validateInstances(Set<String> keyStringSet,
                            List<YdtNode<YdtMultiInstanceNode>>
