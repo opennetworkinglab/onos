@@ -28,6 +28,10 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription;
 import org.onosproject.net.behaviour.protection.ProtectionConfig;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.domain.DomainIntent;
+import org.onosproject.net.domain.DomainIntentOperations;
+import org.onosproject.net.domain.DomainIntentOperationsContext;
+import org.onosproject.net.domain.DomainIntentService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -80,6 +84,7 @@ class IntentInstaller {
     private FlowRuleService flowRuleService;
     private FlowObjectiveService flowObjectiveService;
     private NetworkConfigService networkConfigService;
+    private DomainIntentService domainIntentService;
 
     private enum Direction {
         ADD,
@@ -94,16 +99,19 @@ class IntentInstaller {
      * @param flowRuleService      flow rule service
      * @param flowObjectiveService flow objective service
      * @param networkConfigService network configuration service
+     * @param domainIntentService  domain intent service
      */
     void init(IntentStore intentStore, ObjectiveTrackerService trackerService,
               FlowRuleService flowRuleService, FlowObjectiveService flowObjectiveService,
-              NetworkConfigService networkConfigService) {
+              NetworkConfigService networkConfigService, DomainIntentService domainIntentService) {
+
         this.store = intentStore;
         this.trackerService = trackerService;
         //TODO Various services should be plugged to the intent installer instead of being hardcoded
         this.flowRuleService = flowRuleService;
         this.flowObjectiveService = flowObjectiveService;
         this.networkConfigService = networkConfigService;
+        this.domainIntentService = domainIntentService;
     }
 
     // FIXME: Intent Manager should have never become dependent on a specific intent type(s).
@@ -230,7 +238,7 @@ class IntentInstaller {
         }
     }
 
-    // --- Utilities to support various installable Intent ----
+    // --- Utilities to support FlowRule vs. FlowObjective vs. DomainIntent behavior ----
 
     // Creates the set of contexts appropriate for tracking operations of the
     // the specified intents.
@@ -247,6 +255,9 @@ class IntentInstaller {
         }
         if (isInstallable(toUninstall, toInstall, ProtectionEndpointIntent.class)) {
             contexts.add(new ProtectionConfigOperationContext(intentContext));
+        }
+        if (isInstallable(toUninstall, toInstall, DomainIntent.class)) {
+            contexts.add(new DomainIntentOperationContext(intentContext));
         }
 
         if (contexts.isEmpty()) {
@@ -457,7 +468,8 @@ class IntentInstaller {
         private boolean isSupported(Intent intent) {
             return intent instanceof FlowRuleIntent ||
                    intent instanceof FlowObjectiveIntent ||
-                   intent instanceof ProtectionEndpointIntent;
+                   intent instanceof ProtectionEndpointIntent ||
+                   intent instanceof DomainIntent;
         }
 
         protected ToStringHelper toStringHelper() {
@@ -847,6 +859,59 @@ class IntentInstaller {
                     errorContexts.add(ctx);
                     break;
             }
+        }
+    }
+
+    // Context for applying and tracking operations related to domain intents.
+    private class DomainIntentOperationContext extends OperationContext {
+        DomainIntentOperations.Builder builder = DomainIntentOperations.builder();
+        DomainIntentOperationsContext domainOperationsContext;
+
+        DomainIntentOperationContext(IntentInstallationContext context) {
+            super(context);
+        }
+        @Override
+        void apply() {
+            domainOperationsContext = new DomainIntentOperationsContext() {
+                @Override
+                public void onSuccess(DomainIntentOperations ops) {
+                    successConsumer.accept(DomainIntentOperationContext.this);
+                }
+
+                @Override
+                public void onError(DomainIntentOperations ops) {
+                    errorConsumer.accept(DomainIntentOperationContext.this);
+                }
+            };
+            DomainIntentOperations operations = builder.build(domainOperationsContext);
+
+            if (log.isTraceEnabled()) {
+                log.trace("submitting domain intent {} -> {}",
+                          toUninstall.map(x -> x.key().toString()).orElse("<empty>"),
+                          toInstall.map(x -> x.key().toString()).orElse("<empty>"));
+            }
+            domainIntentService.sumbit(operations);
+        }
+
+        @Override
+        public void prepareIntents(List<Intent> intentsToApply, Direction direction) {
+            List<DomainIntent> intents = intentsToApply.stream()
+                    .filter(x -> x instanceof DomainIntent)
+                    .map(x -> (DomainIntent) x)
+                    .collect(Collectors.toList());
+
+            for (DomainIntent intent : intents) {
+                if (direction == Direction.ADD) {
+                    builder.add(intent);
+                } else {
+                    builder.remove(intent);
+                }
+            }
+        }
+
+        @Override
+        public Object error() {
+            return domainOperationsContext;
         }
     }
 

@@ -30,6 +30,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.domain.DomainIntentService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupKey;
@@ -126,6 +127,9 @@ public class IntentManager
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DomainIntentService domainIntentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -157,7 +161,7 @@ public class IntentManager
         configService.registerProperties(getClass());
 
         intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService,
-                             networkConfigService);
+                             networkConfigService, domainIntentService);
         if (skipReleaseResourcesOnWithdrawal) {
             store.setDelegate(testOnlyDelegate);
         } else {
@@ -175,7 +179,7 @@ public class IntentManager
 
     @Deactivate
     public void deactivate() {
-        intentInstaller.init(null, null, null, null, null);
+        intentInstaller.init(null, null, null, null, null, null);
         if (skipReleaseResourcesOnWithdrawal) {
             store.unsetDelegate(testOnlyDelegate);
         } else {
