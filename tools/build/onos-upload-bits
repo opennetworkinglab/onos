@@ -25,4 +25,4 @@ popd
 rm -f $ONOS_TEST_TAR
 cp $(onos-buck build //:onos-test --show-output | tail -1 | cut -d\  -f2) $ONOS_TEST_TAR
 
-onosUploadBits.py $ONOS_VERSION
+onosUploadBits.py ${ONOS_VERSION%-*}
