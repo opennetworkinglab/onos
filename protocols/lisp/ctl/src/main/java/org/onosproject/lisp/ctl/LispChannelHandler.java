@@ -61,7 +61,9 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
                 LispMapNotify mapNotify =
                         mapServer.processMapRegister((LispMapRegister) msg);
 
-                ctx.writeAndFlush(mapNotify);
+                if (mapNotify != null) {
+                    ctx.writeAndFlush(mapNotify);
+                }
             }
 
             if (msg instanceof LispInfoRequest) {

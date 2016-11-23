@@ -54,7 +54,7 @@ public class LispMapResolver {
         LispEncapsulatedControl ecm = (LispEncapsulatedControl) message;
         LispMapRequest request = (LispMapRequest) ecm.getControlMessage();
 
-        // TODO: for now we always generate map-notify message and send to ITR
+        // TODO: for now we always generate map-reply message and send to ITR
         // no matter proxy bit is set or not
 
         // build map-reply message

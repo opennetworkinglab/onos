@@ -83,26 +83,32 @@ public final class LispMapServer {
             return null;
         }
 
-        NotifyBuilder notifyBuilder = new DefaultNotifyBuilder();
-        notifyBuilder.withKeyId(authConfig.lispAuthKeyId());
-        notifyBuilder.withAuthDataLength(valueOf(authConfig.lispAuthKeyId()).getHashLength());
-        notifyBuilder.withAuthKey(authConfig.lispAuthKey());
-        notifyBuilder.withNonce(register.getNonce());
-        notifyBuilder.withMapRecords(register.getMapRecords());
+        // we only acknowledge back to ETR when want-map-notify bit is set to true
+        // otherwise, we do not acknowledge back to ETR
+        if (register.isWantMapNotify()) {
+            NotifyBuilder notifyBuilder = new DefaultNotifyBuilder();
+            notifyBuilder.withKeyId(authConfig.lispAuthKeyId());
+            notifyBuilder.withAuthDataLength(valueOf(authConfig.lispAuthKeyId()).getHashLength());
+            notifyBuilder.withAuthKey(authConfig.lispAuthKey());
+            notifyBuilder.withNonce(register.getNonce());
+            notifyBuilder.withMapRecords(register.getMapRecords());
 
-        LispMapNotify notify = notifyBuilder.build();
+            LispMapNotify notify = notifyBuilder.build();
 
-        InetSocketAddress address =
-                new InetSocketAddress(register.getSender().getAddress(), MAP_NOTIFY_PORT);
-        notify.configSender(address);
+            InetSocketAddress address =
+                    new InetSocketAddress(register.getSender().getAddress(), MAP_NOTIFY_PORT);
+            notify.configSender(address);
 
-        register.getMapRecords().forEach(record -> {
-            LispEidRecord eidRecord =
-                    new LispEidRecord(record.getMaskLength(), record.getEidPrefixAfi());
-            eidRlocMap.insertMapRecord(eidRecord, record);
-        });
+            register.getMapRecords().forEach(record -> {
+                LispEidRecord eidRecord =
+                        new LispEidRecord(record.getMaskLength(), record.getEidPrefixAfi());
+                eidRlocMap.insertMapRecord(eidRecord, record);
+            });
 
-        return notify;
+            return notify;
+        }
+
+        return null;
     }
 
     /**
