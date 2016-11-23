@@ -259,11 +259,6 @@ public class YdtNodeAdapter<T> implements YdtExtendedContext {
         ((YdtNodeAdapter) newChild).setPreviousSibling(currNode);
     }
 
-    @Override
-    public YdtNode getCollindingChild(YangSchemaNodeIdentifier nodeIdentifier) {
-        return null;
-    }
-
     /**
      * Adds a sibling to YANG data tree.
      *
@@ -311,23 +306,6 @@ public class YdtNodeAdapter<T> implements YdtExtendedContext {
     }
 
     @Override
-    public void createKeyList() {}
-
-    @Override
-    public YangSchemaNodeIdentifier getYdtNodeIdentifier() {
-        return null;
-    }
-
-    @Override
-    public void processCollidingChild() {}
-
-    @Override
-    public void validateMultiInstanceNode() {}
-
-    @Override
-    public void addValueSetWithoutValidation(Set<String> valueSet) {}
-
-    @Override
     public YangSchemaNodeContextInfo getSchemaNodeContextInfo(YangSchemaNodeIdentifier nodeIdentifier) {
         return null;
     }
@@ -338,22 +316,11 @@ public class YdtNodeAdapter<T> implements YdtExtendedContext {
     }
 
     @Override
-    public void updateYdtMap(YangSchemaNodeIdentifier nodeIdentifier, YdtContext childNode) {}
-
-    @Override
-    public void addValueWithoutValidation(String value) {}
-
-    @Override
-    public void addValue(String value) {}
-
-    @Override
-    public void setAppInfo(AppType appType, Object object) {}
-
-    @Override
-    public void addValueSet(Set<String> valueSet) {}
-
-    @Override
     public YdtContextOperationType getYdtContextOperationType() {
         return ydtContextOperationType;
+    }
+
+    @Override
+    public void addAppInfo(AppType appType, Object o) {
     }
 }
