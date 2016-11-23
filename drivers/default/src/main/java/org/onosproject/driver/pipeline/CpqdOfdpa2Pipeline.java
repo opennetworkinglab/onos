@@ -43,6 +43,8 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
+import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
@@ -65,6 +67,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
+import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -261,21 +264,8 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
             // Emulating OFDPA behavior by popping off internal assigned VLAN
             // before sending to controller
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_ARP)
-                    .matchVlanId(assignedVlan);
-            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
-                    .popVlan()
-                    .punt();
-            FlowRule internalVlan = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(sbuilder.build())
-                    .withTreatment(tbuilder.build())
-                    .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(ACL_TABLE).build();
-            rules.add(internalVlan);
+            rules.add(buildArpPunt(assignedVlan, applicationId));
+            rules.add(buildIcmpV6Punt(assignedVlan, applicationId));
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
@@ -306,6 +296,57 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         }
 
         return rules;
+    }
+
+    /**
+     * Builds a punt to the controller rule for the arp protocol.
+     *
+     * @param assignedVlan the internal assigned vlan id
+     * @param applicationId the application id
+     * @return the punt flow rule for the arp
+     */
+    private FlowRule buildArpPunt(VlanId assignedVlan, ApplicationId applicationId) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchVlanId(assignedVlan);
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .punt();
+
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(tbuilder.build())
+                .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+    }
+
+    /**
+     * Builds a punt to the controller rule for the icmp v6 messages.
+     *
+     * @param assignedVlan the internal assigned vlan id
+     * @param applicationId the application id
+     * @return the punt flow rule for the icmp v6 messages
+     */
+    private FlowRule buildIcmpV6Punt(VlanId assignedVlan, ApplicationId applicationId) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                .matchVlanId(assignedVlan)
+                .matchEthType(Ethernet.TYPE_IPV6)
+                .matchIPProtocol(PROTOCOL_ICMP6);
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .punt();
+
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(tbuilder.build())
+                .withPriority(PacketPriority.CONTROL.priorityValue() + 1)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
     }
 
     /*
@@ -393,6 +434,31 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
             rules.add(rule);
+            /*
+             * TMAC rules for IPv6 packets
+             */
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
+            selector.matchInPort(pnum);
+            selector.matchVlanId(vidCriterion.vlanId());
+            selector.matchEthType(Ethernet.TYPE_IPV6);
+            selector.matchEthDst(ethCriterion.mac());
+            /*
+             * workaround here again, we are removing
+             * the vlan tag before to go through the
+             * rest of the pipeline
+             */
+            treatment.popVlan();
+            treatment.transition(UNICAST_ROUTING_TABLE);
+            rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(TMAC_TABLE).build();
+            rules.add(rule);
         }
         return rules;
     }
@@ -436,7 +502,8 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if ((ethType == null) ||
                 (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
-                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
+                        (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST) &&
+                        (ethType.ethType().toShort() != Ethernet.TYPE_IPV6)) {
             log.warn("processSpecific: Unsupported forwarding objective criteria"
                     + "ethType:{} in dev:{}", ethType, deviceId);
             fail(fwd, ObjectiveError.UNSUPPORTED);
@@ -477,6 +544,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
                         + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
+        } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV6) {
+            if (buildIpv6Selector(filteredSelector, fwd) < 0) {
+                return Collections.emptyList();
+            }
+            forTableId = UNICAST_ROUTING_TABLE;
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)
@@ -535,19 +607,9 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         Collection<FlowRule> flowRuleCollection = new ArrayList<>();
         flowRuleCollection.add(ruleBuilder.build());
         if (defaultRule) {
-            FlowRule.Builder rule = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority())
-                .forDevice(deviceId)
-                .withSelector(complementarySelector.build())
-                .withTreatment(tb.build())
-                .forTable(forTableId);
-            if (fwd.permanent()) {
-                rule.makePermanent();
-            } else {
-                rule.makeTemporary(fwd.timeout());
-            }
-            flowRuleCollection.add(rule.build());
+            flowRuleCollection.add(
+                    defaultRoute(fwd, complementarySelector, forTableId, tb)
+            );
             log.debug("Default rule 0.0.0.0/0 is being installed two rules");
         }
         return flowRuleCollection;
@@ -655,6 +717,14 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             if (criterion instanceof VlanIdCriterion) {
                 // avoid matching on vlans
                 return;
+            } else if (criterion instanceof Icmpv6TypeCriterion ||
+                    criterion instanceof Icmpv6CodeCriterion) {
+                /*
+                 * We silenty discard these criterions, our current
+                 * OFDPA platform does not support these matches on
+                 * the ACL table.
+                 */
+                log.warn("ICMPv6 Type and ICMPv6 Code are not supported");
             } else {
                 sbuilder.add(criterion);
             }

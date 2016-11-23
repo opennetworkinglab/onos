@@ -2,6 +2,8 @@
   "name" : "Leaf-R1",
   "ipv4NodeSid" : 101,
   "ipv4Loopback" : "10.0.1.254",
+  "ipv6NodeSid" : 111,
+  "ipv6Loopback" : "2000::c0a8:0101",
   "routerMac" : "00:00:00:00:01:80",
   "isEdgeRouter" : true,
   "adjacencySids" : [

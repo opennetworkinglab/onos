@@ -41,6 +41,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class SegmentRoutingDeviceConfigTest {
     private SegmentRoutingDeviceConfig config;
+    private SegmentRoutingDeviceConfig ipv6Config;
     private Map<Integer, Set<Integer>> adjacencySids1;
     private Map<Integer, Set<Integer>> adjacencySids2;
 
@@ -48,6 +49,8 @@ public class SegmentRoutingDeviceConfigTest {
     public void setUp() throws Exception {
         InputStream jsonStream = SegmentRoutingDeviceConfigTest.class
                 .getResourceAsStream("/device.json");
+        InputStream ipv6JsonStream = SegmentRoutingDeviceConfigTest.class
+                .getResourceAsStream("/device-ipv6.json");
 
         adjacencySids1 = new HashMap<>();
         Set<Integer> ports1 = new HashSet<>();
@@ -68,10 +71,20 @@ public class SegmentRoutingDeviceConfigTest {
         String key = "segmentrouting";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);
+        JsonNode ipv6JsonNode = mapper.readTree(ipv6JsonStream);
         ConfigApplyDelegate delegate = new MockDelegate();
 
         config = new SegmentRoutingDeviceConfig();
         config.init(subject, key, jsonNode, mapper, delegate);
+
+        ipv6Config = new SegmentRoutingDeviceConfig();
+        ipv6Config.init(subject, key, ipv6JsonNode, mapper, delegate);
+    }
+
+    @Test
+    public void testIsValid() {
+        assertTrue(config.isValid());
+        assertTrue(ipv6Config.isValid());
     }
 
     @Test
@@ -89,13 +102,19 @@ public class SegmentRoutingDeviceConfigTest {
 
     @Test
     public void testRouterIp() throws Exception {
-        assertThat(config.routerIp(), is(IpAddress.valueOf("10.0.1.254")));
+        assertThat(config.routerIpv4(), is(IpAddress.valueOf("10.0.1.254")));
+        assertThat(ipv6Config.routerIpv4(), is(IpAddress.valueOf("10.0.1.254")));
+        assertThat(ipv6Config.routerIpv6(), is(IpAddress.valueOf("2000::c0a8:0101")));
     }
 
     @Test
     public void testSetRouterIp() throws Exception {
-        config.setRouterIp("10.0.2.254");
-        assertThat(config.routerIp(), is(IpAddress.valueOf("10.0.2.254")));
+        config.setRouterIpv4("10.0.2.254");
+        assertThat(config.routerIpv4(), is(IpAddress.valueOf("10.0.2.254")));
+        ipv6Config.setRouterIpv4("10.0.2.254");
+        assertThat(ipv6Config.routerIpv4(), is(IpAddress.valueOf("10.0.2.254")));
+        ipv6Config.setRouterIpv6("2000::c0a9:0101");
+        assertThat(ipv6Config.routerIpv6(), is(IpAddress.valueOf("2000::c0a9:0101")));
     }
 
     @Test
@@ -111,13 +130,19 @@ public class SegmentRoutingDeviceConfigTest {
 
     @Test
     public void testNodeSid() throws Exception {
-        assertThat(config.nodeSid(), is(101));
+        assertThat(config.nodeSidIPv4(), is(101));
+        assertThat(ipv6Config.nodeSidIPv4(), is(101));
+        assertThat(ipv6Config.nodeSidIPv6(), is(111));
     }
 
     @Test
     public void testSetNodeSid() throws Exception {
-        config.setNodeSid(200);
-        assertThat(config.nodeSid(), is(200));
+        config.setNodeSidIPv4(200);
+        assertThat(config.nodeSidIPv4(), is(200));
+        ipv6Config.setNodeSidIPv4(200);
+        assertThat(ipv6Config.nodeSidIPv4(), is(200));
+        ipv6Config.setNodeSidIPv6(201);
+        assertThat(ipv6Config.nodeSidIPv6(), is(201));
     }
 
     @Test
@@ -144,7 +169,7 @@ public class SegmentRoutingDeviceConfigTest {
 
     private class MockDelegate implements ConfigApplyDelegate {
         @Override
-        public void onApply(Config config) {
+        public void onApply(Config configFile) {
         }
     }
 }

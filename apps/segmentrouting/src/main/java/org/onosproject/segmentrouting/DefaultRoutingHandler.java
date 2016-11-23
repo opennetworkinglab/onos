@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -31,9 +32,6 @@ import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static org.onlab.util.Tools.groupedThreads;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,8 +43,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Default routing handler that is responsible for route computing and
@@ -335,7 +335,7 @@ public class DefaultRoutingHandler {
                         log.trace("TargetSwitch {} --> RootSwitch {}", targetSw, rootSw);
                         for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
                             log.trace(" Via:");
-                            via.forEach(e -> { log.trace("  {}", e); });
+                            via.forEach(e -> log.trace("  {}", e));
                         }
                     }
                     Set<ArrayList<DeviceId>> subLinks =
@@ -553,12 +553,14 @@ public class DefaultRoutingHandler {
         // rule for both subnet and router IP.
         boolean targetIsEdge;
         boolean destIsEdge;
-        Ip4Address destRouterIp;
+        Ip4Address destRouterIpv4;
+        Ip6Address destRouterIpv6;
 
         try {
             targetIsEdge = config.isEdgeDevice(targetSw);
             destIsEdge = config.isEdgeDevice(destSw);
-            destRouterIp = config.getRouterIp(destSw);
+            destRouterIpv4 = config.getRouterIpv4(destSw);
+            destRouterIpv6 = config.getRouterIpv6(destSw);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateEcmpRoutingRulePartial.");
             return false;
@@ -574,32 +576,60 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-            Ip4Address routerIp = destRouterIp;
-            IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                       targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
             }
+            /*
+             * If present we deal with IPv6 loopback.
+             */
+            if (destRouterIpv6 != null) {
+                routerIpPrefix = destRouterIpv6.toIpPrefix();
+                log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for v6 router IP {}",
+                          targetSw, destSw, routerIpPrefix);
+                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
+                if (!result) {
+                    return false;
+                }
+            }
 
         } else if (targetIsEdge) {
             // If the target switch is an edge router, then set IP rules for the router IP.
-            Ip4Address routerIp = destRouterIp;
-            IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
+            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                       targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
+            }
+            if (destRouterIpv6 != null) {
+                routerIpPrefix = destRouterIpv6.toIpPrefix();
+                log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for v6 router IP {}",
+                          targetSw, destSw, routerIpPrefix);
+                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
+                if (!result) {
+                    return false;
+                }
             }
         }
         // Populates MPLS rules to all routers
         log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
                 targetSw, destSw);
-        result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
+        result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops, destRouterIpv4);
         if (!result) {
             return false;
+        }
+        /*
+         * If present we will populate the MPLS rules for the IPv6 sid.
+         */
+        if (destRouterIpv6 != null) {
+            result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops, destRouterIpv6);
+            if (!result) {
+                return false;
+            }
         }
         return true;
     }

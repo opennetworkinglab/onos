@@ -19,6 +19,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MPLS;
 import org.onosproject.net.ConnectPoint;
@@ -77,9 +78,9 @@ public class IcmpHandler {
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
         Set<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
-        Ip4Address routerIp;
+        IpAddress routerIp;
         try {
-            routerIp = config.getRouterIp(deviceId);
+            routerIp = config.getRouterIpv4(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting processPacketIn.");
             return;
@@ -91,7 +92,7 @@ public class IcmpHandler {
         if (((ICMP) ipv4.getPayload()).getIcmpType() == ICMP.TYPE_ECHO_REQUEST &&
                 (destinationAddress.equals(routerIpAddress) ||
                         gatewayIpAddresses.contains(destinationAddress))) {
-            sendICMPResponse(ethernet, connectPoint);
+            sendIcmpResponse(ethernet, connectPoint);
 
         // ICMP for any known host
         } else if (!srManager.hostService.getHostsByIp(destinationAddress).isEmpty()) {
@@ -117,7 +118,7 @@ public class IcmpHandler {
      * @param icmpRequest the original ICMP request
      * @param outport the output port where the ICMP reply should be sent to
      */
-    private void sendICMPResponse(Ethernet icmpRequest, ConnectPoint outport) {
+    private void sendIcmpResponse(Ethernet icmpRequest, ConnectPoint outport) {
         // Note: We assume that packets arrive at the edge switches have
         // untagged VLAN.
         Ethernet icmpReplyEth = new Ethernet();
@@ -145,7 +146,7 @@ public class IcmpHandler {
 
         Ip4Address destIpAddress = Ip4Address.valueOf(icmpReplyIpv4.getDestinationAddress());
         Ip4Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
-        int destSid = config.getSegmentId(destRouterAddress);
+        int destSid = config.getIPv4SegmentId(destRouterAddress);
         if (destSid < 0) {
             log.warn("Cannot find the Segment ID for {}", destAddress);
             return;
@@ -160,7 +161,7 @@ public class IcmpHandler {
         IPv4 ipPacket = (IPv4) payload.getPayload();
         Ip4Address destIpAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
 
-        if (destSid == -1 || config.getSegmentId(payload.getDestinationMAC()) == destSid ||
+        if (destSid == -1 || config.getIPv4SegmentId(payload.getDestinationMAC()) == destSid ||
                 config.inSameSubnet(outport.deviceId(), destIpAddress)) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().
                     setOutput(outport.port()).build();

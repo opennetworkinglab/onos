@@ -69,7 +69,8 @@ public class DefaultGroupHandler {
     protected final ApplicationId appId;
     protected final DeviceProperties deviceConfig;
     protected final List<Integer> allSegmentIds;
-    protected int nodeSegmentId = -1;
+    protected int ipv4NodeSegmentId = -1;
+    protected int ipv6NodeSegmentId = -1;
     protected boolean isEdgeRouter = false;
     protected MacAddress nodeMacAddr = null;
     protected LinkService linkService;
@@ -111,7 +112,8 @@ public class DefaultGroupHandler {
         this.linkService = checkNotNull(linkService);
         this.allSegmentIds = checkNotNull(config.getAllDeviceSegmentIds());
         try {
-            this.nodeSegmentId = config.getSegmentId(deviceId);
+            this.ipv4NodeSegmentId = config.getIPv4SegmentId(deviceId);
+            this.ipv6NodeSegmentId = config.getIPv6SegmentId(deviceId);
             this.isEdgeRouter = config.isEdgeDevice(deviceId);
             this.nodeMacAddr = checkNotNull(config.getDeviceMac(deviceId));
         } catch (DeviceConfigNotFoundException e) {
@@ -597,7 +599,10 @@ public class DefaultGroupHandler {
     private boolean isSegmentIdSameAsNodeSegmentId(DeviceId deviceId, int sId) {
         int segmentId;
         try {
-            segmentId = deviceConfig.getSegmentId(deviceId);
+            /*
+             * IPv6 sid is not inserted. this part of the code is not used for now.
+             */
+            segmentId = deviceConfig.getIPv4SegmentId(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting isSegmentIdSameAsNodeSegmentId.");
             return false;
@@ -618,7 +623,7 @@ public class DefaultGroupHandler {
         // Filter out SegmentIds matching with the
         // nodes in the combo
         for (Integer sId : allSegmentIds) {
-            if (sId.equals(nodeSegmentId)) {
+            if (sId.equals(this.ipv4NodeSegmentId)) {
                 continue;
             }
             boolean filterOut = false;

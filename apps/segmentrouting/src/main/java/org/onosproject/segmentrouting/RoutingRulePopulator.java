@@ -19,6 +19,8 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -262,7 +264,7 @@ public class RoutingRulePopulator {
      * is reachable via destination device.
      *
      * @param deviceId target device ID to set the rules
-     * @param ipPrefix the IP address of the destination router
+     * @param ipPrefix the destination IP prefix
      * @param destSw device ID of the destination router
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
@@ -272,15 +274,17 @@ public class RoutingRulePopulator {
                                            Set<DeviceId> nextHops) {
         int segmentId;
         try {
-            segmentId = config.getSegmentId(destSw);
+            if (ipPrefix.isIp4()) {
+                segmentId = config.getIPv4SegmentId(destSw);
+            } else {
+                segmentId = config.getIPv6SegmentId(destSw);
+            }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForRouter.");
             return false;
         }
 
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchIPDst(ipPrefix);
-        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(ipPrefix);
         TrafficSelector selector = sbuilder.build();
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
@@ -379,13 +383,18 @@ public class RoutingRulePopulator {
      * @param targetSwId target device ID of the switch to set the rules
      * @param destSwId destination switch device ID
      * @param nextHops next hops switch ID list
+     * @param routerIp the router Ip
      * @return true if all rules are set successfully, false otherwise
      */
     public boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
-                                    Set<DeviceId> nextHops) {
+                                    Set<DeviceId> nextHops, IpAddress routerIp) {
         int segmentId;
         try {
-            segmentId = config.getSegmentId(destSwId);
+            if (routerIp.isIp4()) {
+                segmentId = config.getIPv4SegmentId(destSwId);
+            } else {
+                segmentId = config.getIPv6SegmentId(destSwId);
+            }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateMplsRule.");
             return false;
@@ -418,7 +427,8 @@ public class RoutingRulePopulator {
                                                nextHops,
                                                true,
                                                true,
-                                               metabuilder.build());
+                                               metabuilder.build(),
+                                               routerIp);
             if (fwdObjBosBuilder == null) {
                 return false;
             }
@@ -444,7 +454,8 @@ public class RoutingRulePopulator {
                                                nextHops,
                                                false,
                                                true,
-                                               metabuilder.build());
+                                               metabuilder.build(),
+                                               routerIp);
             if (fwdObjBosBuilder == null) {
                 return false;
             }
@@ -487,7 +498,8 @@ public class RoutingRulePopulator {
                                              Set<DeviceId> nextHops,
                                              boolean phpRequired,
                                              boolean isBos,
-                                             TrafficSelector meta) {
+                                             TrafficSelector meta,
+                                             IpAddress routerIp) {
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                 .builder().withFlag(ForwardingObjective.Flag.SPECIFIC);
@@ -499,8 +511,12 @@ public class RoutingRulePopulator {
             log.debug("getMplsForwardingObjective: php required");
             tbuilder.deferred().copyTtlIn();
             if (isBos) {
-                tbuilder.deferred().popMpls(EthType.EtherType.IPV4.ethType())
-                    .decNwTtl();
+                if (routerIp.isIp4()) {
+                    tbuilder.deferred().popMpls(EthType.EtherType.IPV4.ethType());
+                } else {
+                    tbuilder.deferred().popMpls(EthType.EtherType.IPV6.ethType());
+                }
+                tbuilder.decNwTtl();
             } else {
                 tbuilder.deferred().popMpls(EthType.EtherType.MPLS_UNICAST.ethType())
                     .decMplsTtl();
@@ -621,9 +637,11 @@ public class RoutingRulePopulator {
      * @param deviceId the switch dpid for the router
      */
     public void populateRouterIpPunts(DeviceId deviceId) {
-        Ip4Address routerIp;
+        Ip4Address routerIpv4;
+        Ip6Address routerIpv6;
         try {
-            routerIp = config.getRouterIp(deviceId);
+            routerIpv4 = config.getRouterIpv4(deviceId);
+            routerIpv6 = config.getRouterIpv6(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateRouterIpPunts.");
             return;
@@ -634,17 +652,50 @@ public class RoutingRulePopulator {
                       deviceId);
             return;
         }
-        Set<Ip4Address> allIps = new HashSet<>(config.getPortIPs(deviceId));
-        allIps.add(routerIp);
-        for (Ip4Address ipaddr : allIps) {
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(IpPrefix.valueOf(ipaddr, IpPrefix.MAX_INET_MASK_LENGTH));
+        Set<IpAddress> allIps = new HashSet<>(config.getPortIPs(deviceId));
+        allIps.add(routerIpv4);
+        if (routerIpv6 != null) {
+            allIps.add(routerIpv6);
+        }
+        for (IpAddress ipaddr : allIps) {
+            TrafficSelector.Builder sbuilder = buildIpSelectorFromIpAddress(ipaddr);
             Optional<DeviceId> optDeviceId = Optional.of(deviceId);
 
             srManager.packetService.requestPackets(sbuilder.build(),
                     PacketPriority.CONTROL, srManager.appId, optDeviceId);
         }
+    }
+
+    /**
+     * Method to build IPv4 or IPv6 selector.
+     *
+     * @param addressToMatch the address to match
+     */
+    private TrafficSelector.Builder buildIpSelectorFromIpAddress(IpAddress addressToMatch) {
+        return buildIpSelectorFromIpPrefix(addressToMatch.toIpPrefix());
+    }
+
+    /**
+     * Method to build IPv4 or IPv6 selector.
+     *
+     * @param prefixToMatch the prefix to match
+     */
+    private TrafficSelector.Builder buildIpSelectorFromIpPrefix(IpPrefix prefixToMatch) {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        /*
+         * If the prefix is IPv4
+         */
+        if (prefixToMatch.isIp4()) {
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
+            selectorBuilder.matchIPDst(prefixToMatch.getIp4Prefix());
+            return selectorBuilder;
+        }
+        /*
+         * If the prefix is IPv6
+         */
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPv6Dst(prefixToMatch.getIp6Prefix());
+        return selectorBuilder;
     }
 
     /**
@@ -675,9 +726,7 @@ public class RoutingRulePopulator {
                 });
         srManager.flowObjectiveService.forward(deviceId, puntFwd);
 
-        // TODO: The driver does not support NDP at this moment. Turn it back on later.
         // We punt all NDP packets towards the controller.
-        /*
         puntFwd = puntNdpFwdObjective()
                 .add(new ObjectiveContext() {
                     @Override
@@ -687,7 +736,6 @@ public class RoutingRulePopulator {
                     }
                 });
         srManager.flowObjectiveService.forward(deviceId, puntFwd);
-        */
     }
 
     private ForwardingObjective.Builder fwdObjBuilder(TrafficSelector selector) {

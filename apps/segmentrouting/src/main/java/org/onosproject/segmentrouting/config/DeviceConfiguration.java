@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -63,9 +64,11 @@ public class DeviceConfiguration implements DeviceProperties {
     private SegmentRoutingManager srManager;
 
     private class SegmentRouterInfo {
-        int nodeSid;
+        int ipv4NodeSid;
+        int ipv6NodeSid;
         DeviceId deviceId;
-        Ip4Address ip;
+        Ip4Address ipv4Loopback;
+        Ip6Address ipv6Loopback;
         MacAddress mac;
         boolean isEdge;
         Map<PortNumber, Ip4Address> gatewayIps;
@@ -95,14 +98,19 @@ public class DeviceConfiguration implements DeviceProperties {
                     srManager.cfgService.getConfig(subject, SegmentRoutingDeviceConfig.class);
             SegmentRouterInfo info = new SegmentRouterInfo();
             info.deviceId = subject;
-            info.nodeSid = config.nodeSid();
-            info.ip = config.routerIp();
+            info.ipv4NodeSid = config.nodeSidIPv4();
+            info.ipv6NodeSid = config.nodeSidIPv6();
+            info.ipv4Loopback = config.routerIpv4();
+            info.ipv6Loopback = config.routerIpv6();
             info.mac = config.routerMac();
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.adjacencySids();
             deviceConfigMap.put(info.deviceId, info);
             log.info("Read device config for device: {}", info.deviceId);
-            allSegmentIds.add(info.nodeSid);
+            /*
+             * IPv6 sid is not inserted. this part of the code is not used for now.
+             */
+            allSegmentIds.add(info.ipv4NodeSid);
         });
 
         // Read gatewayIps and subnets from port subject. Ignore suppressed ports.
@@ -148,28 +156,40 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     @Override
-    public int getSegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
+    public int getIPv4SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
-            log.trace("getSegmentId for device{} is {}", deviceId, srinfo.nodeSid);
-            return srinfo.nodeSid;
+            log.trace("getIPv4SegmentId for device{} is {}", deviceId, srinfo.ipv4NodeSid);
+            return srinfo.ipv4NodeSid;
         } else {
-            String message = "getSegmentId fails for device: " + deviceId + ".";
+            String message = "getIPv4SegmentId fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
+        }
+    }
+
+    @Override
+    public int getIPv6SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
+        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        if (srinfo != null) {
+            log.trace("getIPv6SegmentId for device{} is {}", deviceId, srinfo.ipv6NodeSid);
+            return srinfo.ipv6NodeSid;
+        } else {
+            String message = "getIPv6SegmentId fails for device: " + deviceId + ".";
             throw new DeviceConfigNotFoundException(message);
         }
     }
 
     /**
-     * Returns the Node segment id of a segment router given its Router mac address.
+     * Returns the IPv4 Node segment id of a segment router given its Router mac address.
      *
      * @param routerMac router mac address
      * @return node segment id, or -1 if not found in config
      */
-    public int getSegmentId(MacAddress routerMac) {
+    public int getIPv4SegmentId(MacAddress routerMac) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
                     deviceConfigMap.entrySet()) {
             if (entry.getValue().mac.equals(routerMac)) {
-                return entry.getValue().nodeSid;
+                return entry.getValue().ipv4NodeSid;
             }
         }
 
@@ -177,16 +197,50 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the Node segment id of a segment router given its Router ip address.
+     * Returns the IPv6 Node segment id of a segment router given its Router mac address.
+     *
+     * @param routerMac router mac address
+     * @return node segment id, or -1 if not found in config
+     */
+    public int getIPv6SegmentId(MacAddress routerMac) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                deviceConfigMap.entrySet()) {
+            if (entry.getValue().mac.equals(routerMac)) {
+                return entry.getValue().ipv6NodeSid;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the IPv4 Node segment id of a segment router given its Router ip address.
      *
      * @param routerAddress router ip address
      * @return node segment id, or -1 if not found in config
      */
-    public int getSegmentId(Ip4Address routerAddress) {
+    public int getIPv4SegmentId(Ip4Address routerAddress) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
             deviceConfigMap.entrySet()) {
-            if (entry.getValue().ip.equals(routerAddress)) {
-                return entry.getValue().nodeSid;
+            if (entry.getValue().ipv4Loopback.equals(routerAddress)) {
+                return entry.getValue().ipv4NodeSid;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Returns the IPv6 Node segment id of a segment router given its Router ip address.
+     *
+     * @param routerAddress router ip address
+     * @return node segment id, or -1 if not found in config
+     */
+    public int getIPv6SegmentId(Ip6Address routerAddress) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                deviceConfigMap.entrySet()) {
+            if (entry.getValue().ipv6Loopback.equals(routerAddress)) {
+                return entry.getValue().ipv6NodeSid;
             }
         }
 
@@ -206,13 +260,25 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     @Override
-    public Ip4Address getRouterIp(DeviceId deviceId) throws DeviceConfigNotFoundException {
+    public Ip4Address getRouterIpv4(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
-            log.trace("getDeviceIp for device{} is {}", deviceId, srinfo.ip);
-            return srinfo.ip;
+            log.trace("getRouterIpv4 for device{} is {}", deviceId, srinfo.ipv4Loopback);
+            return srinfo.ipv4Loopback;
         } else {
-            String message = "getRouterIp fails for device: " + deviceId + ".";
+            String message = "getRouterIpv4 fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
+        }
+    }
+
+    @Override
+    public Ip6Address getRouterIpv6(DeviceId deviceId) throws DeviceConfigNotFoundException {
+        SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
+        if (srinfo != null) {
+            log.trace("getRouterIpv6 for device{} is {}", deviceId, srinfo.ipv6Loopback);
+            return srinfo.ipv6Loopback;
+        } else {
+            String message = "getRouterIpv6 fails for device: " + deviceId + ".";
             throw new DeviceConfigNotFoundException(message);
         }
     }
@@ -275,7 +341,8 @@ public class DeviceConfiguration implements DeviceProperties {
     public DeviceId getDeviceId(int sid) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
             deviceConfigMap.entrySet()) {
-            if (entry.getValue().nodeSid == sid) {
+            if (entry.getValue().ipv4NodeSid == sid ||
+                    entry.getValue().ipv6NodeSid == sid) {
                 return entry.getValue().deviceId;
             }
         }
@@ -293,7 +360,25 @@ public class DeviceConfiguration implements DeviceProperties {
     public DeviceId getDeviceId(Ip4Address ipAddress) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
             deviceConfigMap.entrySet()) {
-            if (entry.getValue().ip.equals(ipAddress)) {
+            if (entry.getValue().ipv4Loopback.equals(ipAddress)) {
+                return entry.getValue().deviceId;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the device identifier or data plane identifier (dpid)
+     * of a segment router given its router ipv6 address.
+     *
+     * @param ipAddress router ipv6 address
+     * @return deviceId device identifier
+     */
+    public DeviceId getDeviceId(Ip6Address ipAddress) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
+                deviceConfigMap.entrySet()) {
+            if (entry.getValue().ipv6Loopback.equals(ipAddress)) {
                 return entry.getValue().deviceId;
             }
         }
@@ -390,7 +475,32 @@ public class DeviceConfiguration implements DeviceProperties {
             return null;
         }
 
-        return srInfo.ip;
+        return srInfo.ipv4Loopback;
+    }
+
+    /**
+     * Returns the router ipv6 address of segment router that has the
+     * specified ip address in its subnets.
+     *
+     * @param destIpAddress target ip address
+     * @return router ip address
+     */
+    public Ip6Address getRouterIpAddressForASubnetHost(Ip6Address destIpAddress) {
+        Interface matchIntf = srManager.interfaceService.getMatchingInterface(destIpAddress);
+
+        if (matchIntf == null) {
+            log.debug("No router was found for {}", destIpAddress);
+            return null;
+        }
+
+        DeviceId routerDeviceId = matchIntf.connectPoint().deviceId();
+        SegmentRouterInfo srInfo = deviceConfigMap.get(routerDeviceId);
+        if (srInfo == null) {
+            log.debug("No device config was found for {}", routerDeviceId);
+            return null;
+        }
+
+        return srInfo.ipv6Loopback;
     }
 
     /**

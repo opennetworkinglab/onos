@@ -15,14 +15,14 @@
  */
 package org.onosproject.segmentrouting.config;
 
-import java.util.List;
-import java.util.Map;
-
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Mechanism through which group handler module retrieves
@@ -39,13 +39,22 @@ public interface DeviceProperties {
     boolean isConfigured(DeviceId deviceId);
 
     /**
-     * Returns the segment id of a device to be used in group creation.
+     * Returns the IPv4 segment id of a device to be used in group creation.
      *
      * @param deviceId device identifier
      * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return segment id of a device
      */
-    int getSegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException;
+    int getIPv4SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException;
+
+    /**
+     * Returns the IPv6 segment id of a device to be used in group creation.
+     *
+     * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
+     * @return segment id of a device
+     */
+    int getIPv6SegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
      * Returns the Mac address of a device to be used in group creation.
@@ -57,13 +66,22 @@ public interface DeviceProperties {
     MacAddress getDeviceMac(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
-     * Returns the router ip address of a segment router.
+     * Returns the router ipv4 address of a segment router.
      *
      * @param deviceId device identifier
      * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return router ip address
      */
-    Ip4Address getRouterIp(DeviceId deviceId) throws DeviceConfigNotFoundException;
+    IpAddress getRouterIpv4(DeviceId deviceId) throws DeviceConfigNotFoundException;
+
+    /**
+     * Returns the router ipv6 address of a segment router.
+     *
+     * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
+     * @return router ip address
+     */
+    IpAddress getRouterIpv6(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
      * Indicates whether a device is edge device or transit/core device.

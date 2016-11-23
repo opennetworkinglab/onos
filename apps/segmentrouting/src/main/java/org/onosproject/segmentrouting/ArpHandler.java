@@ -180,7 +180,7 @@ public class ArpHandler {
                                                arpMsg.getTargetProtocolAddress());
         Set<Ip4Address> gatewayIpAddresses = null;
         try {
-            if (targetProtocolAddress.equals(config.getRouterIp(deviceId))) {
+            if (targetProtocolAddress.equals(config.getRouterIpv4(deviceId))) {
                 return true;
             }
             gatewayIpAddresses = config.getPortIPs(deviceId);
@@ -207,7 +207,7 @@ public class ArpHandler {
 
         try {
             senderMacAddress = config.getDeviceMac(deviceId).toBytes();
-            senderIpAddress = config.getRouterIp(deviceId).toOctets();
+            senderIpAddress = config.getRouterIpv4(deviceId).toOctets();
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting sendArpRequest.");
             return;

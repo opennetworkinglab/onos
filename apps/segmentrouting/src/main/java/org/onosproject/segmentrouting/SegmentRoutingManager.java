@@ -104,6 +104,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkState;
+import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
@@ -644,7 +645,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
             log.trace("Rcvd pktin: {}", ethernet);
-            if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+            if (ethernet.getEtherType() == TYPE_ARP) {
                 arpHandler.processPacketIn(pkt);
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 ipPacket = (IPv4) ethernet.getPayload();
