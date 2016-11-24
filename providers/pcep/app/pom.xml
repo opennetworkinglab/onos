@@ -53,6 +53,11 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-pcep-provider-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-pcep-provider-tunnel</artifactId>
             <version>${project.version}</version>
         </dependency>

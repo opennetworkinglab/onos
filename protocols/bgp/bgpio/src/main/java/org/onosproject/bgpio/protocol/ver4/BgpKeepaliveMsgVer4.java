@@ -124,13 +124,13 @@ public class BgpKeepaliveMsgVer4 implements BgpKeepaliveMsg {
         @Override
         public void write(ChannelBuffer cb, BgpKeepaliveMsgVer4 message) {
 
-            // write marker
+            log.debug("Write marker");
             cb.writeBytes(marker, 0, MARKER_LENGTH);
 
-            // write length of header
+            log.debug("Write length of header");
             cb.writeShort(PACKET_MINIMUM_LENGTH);
 
-            // write the type of message
+            log.debug("Write the type of message");
             cb.writeByte(MSG_TYPE.getType());
         }
     }

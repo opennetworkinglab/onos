@@ -24,6 +24,8 @@ import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
 
     BgpCfg bgpConfig = null;
 
+    protected final Logger log = LoggerFactory.getLogger(BgpAppConfig.class);
     public static final String ROUTER_ID = "routerId";
     public static final String LOCAL_AS = "localAs";
     public static final String MAX_SESSION = "maxSession";
@@ -170,10 +173,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
         if (flowSpecCapability() != null) {
             String flowSpec = flowSpecCapability();
             if ((!flowSpec.equals("IPV4")) && (!flowSpec.equals("VPNV4")) && (!flowSpec.equals("IPV4_VPNV4"))) {
+                log.debug("Flow specification capabality is false");
                 return false;
             }
         }
-
+        log.debug("Flow specification capabality is true");
         return true;
     }
 
@@ -303,10 +307,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
                     !validateRemoteAs(nodes.get(i).asNumber()) ||
                     !validatePeerHoldTime(nodes.get(i).holdTime()) ||
                     !(connectMode.equals(PEER_CONNECT_ACTIVE) || connectMode.equals(PEER_CONNECT_PASSIVE))) {
+                log.debug("BGP peer configration false");
                 return false;
             }
         }
-
+        log.debug("BGP peer configration true");
         return true;
     }
 
@@ -317,7 +322,6 @@ public class BgpAppConfig extends Config<ApplicationId> {
      */
     public List<BgpPeerConfig> bgpPeer() {
         List<BgpPeerConfig> nodes = new ArrayList<BgpPeerConfig>();
-
         JsonNode jsonNodes = object.get(BGP_PEER);
         if (jsonNodes == null) {
             return null;

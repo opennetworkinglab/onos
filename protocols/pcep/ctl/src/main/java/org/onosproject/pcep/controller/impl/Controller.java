@@ -20,8 +20,11 @@ import static org.onlab.util.Tools.groupedThreads;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.LinkedList;
+import java.util.TreeMap;
+import java.util.List;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -30,6 +33,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.controller.PcepCfg;
 import org.onosproject.pcep.controller.PcepPacketStats;
 import org.onosproject.pcep.controller.driver.PcepAgent;
 import org.onosproject.pcep.controller.driver.PcepClientDriver;
@@ -48,7 +52,7 @@ public class Controller {
     private static final Logger log = LoggerFactory.getLogger(Controller.class);
 
     private static final PcepFactory FACTORY1 = PcepFactories.getFactory(PcepVersion.PCEP_1);
-
+    private PcepCfg pcepConfig = new PcepConfig();
     private ChannelGroup cg;
 
     // Configuration options
@@ -60,10 +64,81 @@ public class Controller {
 
     private PcepAgent agent;
 
+    private Map<String, String> peerMap = new TreeMap<>();
+    private Map<String, List<String>> pcepExceptionMap = new TreeMap<>();
+    private Map<Integer, Integer> pcepErrorMsg = new TreeMap<>();
+    private Map<String, Byte> sessionMap = new TreeMap<>();
+    private LinkedList<String> pcepExceptionList = new LinkedList<String>();
+
     private NioServerSocketChannelFactory execFactory;
 
     // Perf. related configuration
     private static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
+
+    /**
+     * pcep session information.
+     *
+     * @param peerId id of the peer with which the session is being formed
+     * @param status pcep session status
+     * @param sessionId pcep session id
+     */
+    public void peerStatus(String peerId, String status, byte sessionId) {
+        if (peerId != null) {
+            peerMap.put(peerId, status);
+            sessionMap.put(peerId, sessionId);
+        } else {
+            log.debug("Peer Id is null");
+        }
+    }
+
+    /**
+     * Pcep session exceptions information.
+     *
+     * @param peerId id of the peer which has generated the exception
+     * @param exception pcep session exception
+     */
+    public void peerExceptions(String peerId, String exception) {
+        if (peerId != null) {
+            pcepExceptionList.add(exception);
+            pcepExceptionMap.put(peerId, pcepExceptionList);
+        } else {
+            log.debug("Peer Id is null");
+        }
+        if (pcepExceptionList.size() > 10) {
+            pcepExceptionList.clear();
+            pcepExceptionList.add(exception);
+            pcepExceptionMap.put(peerId, pcepExceptionList);
+        }
+    }
+
+    /**
+     * Create a map of pcep error messages received.
+     *
+     * @param peerId id of the peer which has sent the error message
+     * @param errorType error type of pcep error messgae
+     * @param errValue error value of pcep error messgae
+     */
+    public void peerErrorMsg(String peerId, Integer errorType, Integer errValue) {
+        if (peerId == null) {
+            pcepErrorMsg.put(errorType, errValue);
+        } else {
+            if (pcepErrorMsg.size() > 10) {
+                pcepErrorMsg.clear();
+            }
+            pcepErrorMsg.put(errorType, errValue);
+        }
+    }
+
+    /**
+     * Returns the pcep session details.
+     *
+     * @return pcep session details
+     */
+    public Map<String, Byte> mapSession() {
+        return this.sessionMap;
+    }
+
+
 
     /**
      * Returns factory version for processing pcep messages.
@@ -84,6 +159,33 @@ public class Controller {
     }
 
     /**
+     * Returns the list of pcep peers with session information.
+     *
+     * @return pcep peer information
+     */
+    public  Map<String, String> mapPeer() {
+        return this.peerMap;
+    }
+
+    /**
+     * Returns the list of pcep exceptions per peer.
+     *
+     * @return pcep exceptions
+     */
+    public  Map<String, List<String>> exceptionsMap() {
+        return this.pcepExceptionMap;
+    }
+
+    /**
+     * Returns the type and value of pcep error messages.
+     *
+     * @return pcep error message
+     */
+    public Map<Integer, Integer> mapErrorMsg() {
+        return this.pcepErrorMsg;
+    }
+
+    /**
      * Tell controller that we're ready to accept pcc connections.
      */
     public void run() {
@@ -101,7 +203,7 @@ public class Controller {
             InetSocketAddress sa = new InetSocketAddress(pcepPort);
             cg = new DefaultChannelGroup();
             cg.add(bootstrap.bind(sa));
-            log.info("Listening for PCC connection on {}", sa);
+            log.debug("Listening for PCC connection on {}", sa);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

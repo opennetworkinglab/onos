@@ -27,5 +27,6 @@
         <module>topology</module>
         <module>tunnel</module>
         <module>app</module>
+        <module>cli</module>
   </modules>
 </project>

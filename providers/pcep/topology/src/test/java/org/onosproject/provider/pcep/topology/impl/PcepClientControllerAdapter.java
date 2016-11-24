@@ -15,12 +15,7 @@
  */
 package org.onosproject.provider.pcep.topology.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -47,6 +42,15 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.PcepValueType;
 
 import com.google.common.collect.Sets;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
 import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
@@ -304,6 +308,32 @@ public class PcepClientControllerAdapter implements PcepClientController {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public Map<String, List<String>> getPcepExceptions() {
+        return null;
+    }
+
+    @Override
+    public Map<Integer, Integer> getPcepErrorMsg() {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getPcepSessionMap() {
+        return null;
+    }
+
+    @Override
+    public Map<String, Byte> getPcepSessionIdMap() {
+        return null;
+    }
+
+    @Override
+    public void peerErrorMsg(String peerId, Integer errorType, Integer errValue) {
+        return;
+    }
+
 
     @Override
     public boolean allocateLocalLabel(Tunnel tunnel) {

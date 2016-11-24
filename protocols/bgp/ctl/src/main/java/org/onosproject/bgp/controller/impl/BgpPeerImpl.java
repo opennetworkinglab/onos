@@ -142,16 +142,20 @@ public class BgpPeerImpl implements BgpPeer {
                 if (tlv.getType() == MultiProtocolExtnCapabilityTlv.TYPE) {
                     MultiProtocolExtnCapabilityTlv temp = (MultiProtocolExtnCapabilityTlv) tlv;
                     if ((temp.getAfi() == afi) && (temp.getSafi() == sAfi)) {
+                        log.debug("Multi prorotcol extension capabality TLV is true");
                         return true;
+
                     }
                 } else if (tlv.getType() == RpdCapabilityTlv.TYPE) {
                     RpdCapabilityTlv temp = (RpdCapabilityTlv) tlv;
                     if ((temp.getAfi() == afi) && (temp.getSafi() == sAfi)) {
+                        log.debug("RPD capabality TLV is true");
                         return true;
                     }
                 }
             }
         }
+        log.debug("IS capabality is not supported ");
         return false;
     }
 
@@ -236,7 +240,7 @@ public class BgpPeerImpl implements BgpPeer {
         BgpMessage msg = Controller.getBgpMessageFactory4().updateMessageBuilder()
                                                            .setBgpPathAttributes(attributesList).build();
 
-        log.debug("Sending Flow spec Update message to {}", channel.getRemoteAddress());
+        log.debug("Sending flow spec update message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
     }
 

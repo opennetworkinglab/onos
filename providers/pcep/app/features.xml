@@ -24,5 +24,6 @@
         <bundle>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-provider-cli/${project.version}</bundle>
     </feature>
 </features>

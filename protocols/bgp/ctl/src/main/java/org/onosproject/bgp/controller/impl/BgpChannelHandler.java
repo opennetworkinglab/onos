@@ -499,6 +499,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
 
         if (e.getCause() instanceof ReadTimeoutException) {
             // device timeout
+            bgpController.closedSessionExceptionAdd(peerAddr, e.getCause().toString());
             log.error("Disconnecting device {} due to read timeout", getPeerInfoString());
             sendNotification(BgpErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
             state = ChannelState.IDLE;
@@ -506,9 +507,11 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             ctx.getChannel().close();
             return;
         } else if (e.getCause() instanceof ClosedChannelException) {
+            bgpController.activeSessionExceptionAdd(peerAddr, e.getCause().toString());
             log.debug("Channel for bgp {} already closed", getPeerInfoString());
         } else if (e.getCause() instanceof IOException) {
             log.error("Disconnecting peer {} due to IO Error: {}", getPeerInfoString(), e.getCause().getMessage());
+            bgpController.closedSessionExceptionAdd(peerAddr, e.getCause().toString());
             if (log.isDebugEnabled()) {
                 // still print stack trace if debug is enabled
                 log.debug("StackTrace for previous Exception: ", e.getCause());
@@ -520,6 +523,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             BgpParseException errMsg = (BgpParseException) e.getCause();
             byte errorCode = errMsg.getErrorCode();
             byte errorSubCode = errMsg.getErrorSubCode();
+            bgpController.activeSessionExceptionAdd(peerAddr, e.getCause().toString());
             ChannelBuffer tempCb = errMsg.getData();
             if (tempCb != null) {
                 int dataLength = tempCb.readableBytes();
@@ -529,9 +533,11 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             sendNotification(errorCode, errorSubCode, data);
         } else if (e.getCause() instanceof RejectedExecutionException) {
             log.warn("Could not process message: queue full");
+            bgpController.activeSessionExceptionAdd(peerAddr, e.getCause().toString());
         } else {
             stopKeepAliveTimer();
             log.error("Error while processing message from peer " + getPeerInfoString() + "state " + this.state);
+            bgpController.closedSessionExceptionAdd(peerAddr, e.getCause().toString());
             ctx.getChannel().close();
         }
     }
@@ -733,7 +739,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      * @throws IOException while processing error message
      */
     public void processUnknownMsg(byte errorCode, byte errorSubCode, byte data) throws BgpParseException, IOException {
-        log.debug("UNKNOWN message received");
+        log.debug("Unknown message received");
         byte[] byteArray = new byte[1];
         byteArray[0] = data;
         sendNotification(errorCode, errorSubCode, byteArray);
@@ -782,7 +788,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      * @throws BgpParseException
      */
     private boolean capabilityValidation(BgpChannelHandler h, BgpOpenMsg openmsg) throws BgpParseException {
-        log.debug("capabilityValidation");
+        log.debug("capability validation");
 
         boolean isFourOctetCapabilityExits = false;
         boolean isRpdCapabilityExits = false;
@@ -916,7 +922,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      * @return true or false
      */
     private boolean asNumberValidation(BgpChannelHandler h, BgpOpenMsg openMsg) {
-        log.debug("AS Num validation");
+        log.debug("AS number validation");
 
         int capAsNum = 0;
         boolean isFourOctetCapabilityExits = false;

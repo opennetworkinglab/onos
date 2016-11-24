@@ -1,0 +1,12 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//incubator/api:onos-incubator-api',
+  '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
+  '//protocols/pcep/api:onos-protocols-pcep-api',
+  '//lib:org.apache.karaf.shell.console',
+  '//cli:onos-cli',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+)

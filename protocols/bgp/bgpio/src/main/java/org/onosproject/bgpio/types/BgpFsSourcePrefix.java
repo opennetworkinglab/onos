@@ -15,17 +15,16 @@
  */
 package org.onosproject.bgpio.types;
 
-import java.nio.ByteBuffer;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
+import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  * Provides implementation of IPv4AddressTlv.
@@ -33,18 +32,63 @@ import com.google.common.base.Preconditions;
 public class BgpFsSourcePrefix implements BgpValueType {
 
     public static final byte FLOW_SPEC_TYPE = Constants.BGP_FLOWSPEC_SRC_PREFIX;
+    public static final int BYTE_IN_BITS = 8;
     private byte length;
     private IpPrefix ipPrefix;
-    public static final int BYTE_IN_BITS = 8;
+
     /**
      * Constructor to initialize parameters.
      *
-     * @param length length of the prefix
+     * @param length   length of the prefix
      * @param ipPrefix ip prefix
      */
     public BgpFsSourcePrefix(byte length, IpPrefix ipPrefix) {
         this.ipPrefix = Preconditions.checkNotNull(ipPrefix);
         this.length = length;
+    }
+
+    /**
+     * Reads the channel buffer and returns object of IPv4AddressTlv.
+     *
+     * @param cb channelBuffer
+     * @return object of flow spec source prefix
+     * @throws BgpParseException while parsing BgpFsSourcePrefix
+     */
+    public static BgpFsSourcePrefix read(ChannelBuffer cb) throws BgpParseException {
+        IpPrefix ipPrefix;
+
+        int length = cb.readByte();
+        if (length == 0) {
+            byte[] prefix = new byte[]{0};
+            ipPrefix = Validation.bytesToPrefix(prefix, length);
+            return new BgpFsSourcePrefix((byte) ipPrefix.prefixLength(), ipPrefix);
+        }
+
+        int len = length / BYTE_IN_BITS;
+        int reminder = length % BYTE_IN_BITS;
+        if (reminder > 0) {
+            len = len + 1;
+        }
+        if (cb.readableBytes() < len) {
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                    BgpErrorType.MALFORMED_ATTRIBUTE_LIST, cb.readableBytes());
+        }
+        byte[] prefix = new byte[len];
+        cb.readBytes(prefix, 0, len);
+        ipPrefix = Validation.bytesToPrefix(prefix, length);
+
+        return new BgpFsSourcePrefix((byte) ipPrefix.prefixLength(), ipPrefix);
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param ipPrefix ip prefix
+     * @param length   length of ip prefix
+     * @return object of this class
+     */
+    public static BgpFsSourcePrefix of(final IpPrefix ipPrefix, final byte length) {
+        return new BgpFsSourcePrefix(length, ipPrefix);
     }
 
     /**
@@ -85,50 +129,6 @@ public class BgpFsSourcePrefix implements BgpValueType {
         cb.writeByte(length);
         cb.writeInt(ipPrefix.getIp4Prefix().address().toInt());
         return cb.writerIndex() - iLenStartIndex;
-    }
-
-    /**
-     * Reads the channel buffer and returns object of IPv4AddressTlv.
-     *
-     * @param cb channelBuffer
-     * @return object of flow spec source prefix
-     * @throws BgpParseException while parsing BgpFsSourcePrefix
-     */
-    public static BgpFsSourcePrefix read(ChannelBuffer cb) throws BgpParseException {
-        IpPrefix ipPrefix;
-
-        int length = cb.readByte();
-        if (length == 0) {
-            byte[] prefix = new byte[] {0};
-            ipPrefix = Validation.bytesToPrefix(prefix, length);
-            return new BgpFsSourcePrefix((byte) ipPrefix.prefixLength(), ipPrefix);
-        }
-
-        int len = length / BYTE_IN_BITS;
-        int reminder = length % BYTE_IN_BITS;
-        if (reminder > 0) {
-            len = len + 1;
-        }
-        if (cb.readableBytes() < len) {
-            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
-                    BgpErrorType.MALFORMED_ATTRIBUTE_LIST, cb.readableBytes());
-        }
-        byte[] prefix = new byte[len];
-        cb.readBytes(prefix, 0, len);
-        ipPrefix = Validation.bytesToPrefix(prefix, length);
-
-        return new BgpFsSourcePrefix((byte) ipPrefix.prefixLength(), ipPrefix);
-    }
-
-    /**
-     * Returns object of this class with specified values.
-     *
-     * @param ipPrefix ip prefix
-     * @param length length of ip prefix
-     * @return object of this class
-     */
-    public static BgpFsSourcePrefix of(final IpPrefix ipPrefix, final byte length) {
-        return new BgpFsSourcePrefix(length, ipPrefix);
     }
 
     @Override

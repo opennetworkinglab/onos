@@ -15,15 +15,17 @@
  */
 package org.onosproject.pcep.controller;
 
-import java.util.Collection;
-import java.util.LinkedList;
-
 import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.LabelStack;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.net.Path;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.types.PcepValueType;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstraction of an Pcep client controller. Serves as a one stop
@@ -135,4 +137,41 @@ public interface PcepClientController {
      * @return list of ERO sub-objects
      */
     public LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path);
+
+    /**
+     * Returns list of PCEP exceptions.
+     *
+     * @return PcepExceptions
+     */
+    public Map<String, List<String>> getPcepExceptions();
+
+    /**
+     * Returns all the pcep error messages received .
+     *
+     * @return PcepErrorMsg
+     */
+    public Map<Integer, Integer> getPcepErrorMsg();
+
+    /**
+     * Returns the pcep session details.
+     *
+     * @return PcepSession
+     */
+    public Map<String, String> getPcepSessionMap();
+
+    /**
+     * Returns the pcep sessionid information.
+     *
+     * @return PcepSessionId
+     */
+    public Map<String, Byte> getPcepSessionIdMap();
+
+    /**
+     * Creates detailed information about pcep error value and type per peer.
+     *
+     * @param peerId id of the peer which sent the error message
+     * @param errorType the error type of the error message received
+     * @param errValue the error value of the error message received
+     */
+    void peerErrorMsg(String peerId, Integer errorType, Integer errValue);
 }

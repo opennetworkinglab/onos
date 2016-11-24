@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//incubator/api:onos-incubator-api',
+    '//providers/bgp/cfg:onos-providers-bgp-cfg',
+    '//providers/bgp/topology:onos-providers-bgp-topology',
+    '//protocols/bgp/api:onos-protocols-bgp-api',
+    '//protocols/bgp/ctl:onos-protocols-bgp-ctl',
+    '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+)
+

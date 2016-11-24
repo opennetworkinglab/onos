@@ -193,14 +193,19 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
             // Read AS number
             asNumber = cb.getUnsignedShort(cb.readerIndex());
             cb.readShort();
+            log.debug("AS number read");
+
             // Read Hold timer
             holdTime = cb.readShort();
+            log.debug("Holding time read");
 
             // Read BGP Identifier
             bgpId = cb.readInt();
+            log.debug("BGP identifier read");
 
             // Read optional parameter length
             optParaLen = cb.readByte();
+            log.debug("OPtional parameter length read");
 
             // Read Capabilities if optional parameter length is greater than 0
             if (optParaLen != 0) {
@@ -263,7 +268,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                     throw new BgpParseException("Invalid length received for RpdCapability.");
                 }
                 if (length > cb.readableBytes()) {
-                    throw new BgpParseException("Four octet as num tlv length"
+                    throw new BgpParseException("Four octet as num TLV length"
                             + " is more than readableBytes.");
                 }
                 short rpdAfi = cb.readShort();
@@ -559,7 +564,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         while (listIterator.hasNext()) {
             BgpValueType tlv = listIterator.next();
             if (tlv == null) {
-                log.debug("Warning: tlv is null from CapabilityTlv list");
+                log.debug("Warning: TLV is null from CapabilityTlv list");
                 continue;
             }
             tlv.write(cb);

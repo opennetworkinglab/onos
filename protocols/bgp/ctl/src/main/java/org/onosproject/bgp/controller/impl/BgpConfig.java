@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
@@ -42,7 +44,7 @@ public class BgpConfig implements BgpCfg {
     private static final short DEFAULT_HOLD_TIMER = 120;
     private static final short DEFAULT_CONN_RETRY_TIME = 120;
     private static final short DEFAULT_CONN_RETRY_COUNT = 5;
-
+    private List<BgpConnectPeerImpl> peerList = new ArrayList();
     private State state = State.INIT;
     private int localAs;
     private int maxSession;
@@ -189,10 +191,10 @@ public class BgpConfig implements BgpCfg {
             }
 
             this.bgpPeerTree.put(routerid, lspeer);
-            log.debug("added successfully");
+            log.debug("Added successfully");
             return true;
         } else {
-            log.debug("already exists");
+            log.debug("Already exists");
             return false;
         }
     }
@@ -208,6 +210,8 @@ public class BgpConfig implements BgpCfg {
                 connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.BGP_PORT_NUM);
                 lspeer.setConnectPeer(connectPeer);
                 connectPeer.connectPeer();
+                peerList.add((BgpConnectPeerImpl) connectPeer);
+
             }
             return true;
         }

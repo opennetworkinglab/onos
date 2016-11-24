@@ -80,6 +80,7 @@ public class BgpAttrNodeName implements BgpValueType {
 
         nodeName = new byte[lsAttrLength];
         cb.readBytes(nodeName);
+        log.debug("LS attribute node name read");
         return BgpAttrNodeName.of(nodeName);
     }
 

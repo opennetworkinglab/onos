@@ -61,8 +61,10 @@ public final class BgpDpid {
         this.stringBuilder.append(":ROUTINGUNIVERSE=").append(((BgpLinkLsNlriVer4) linkNlri).getIdentifier());
 
         if (nodeDescriptorType == NODE_DESCRIPTOR_LOCAL) {
+            log.debug("Local node descriptor added");
             add(linkNlri.localNodeDescriptors());
         } else if (nodeDescriptorType == NODE_DESCRIPTOR_REMOTE) {
+            log.debug("Remote node descriptor added");
             add(linkNlri.remoteNodeDescriptors());
         }
     }
@@ -93,7 +95,7 @@ public final class BgpDpid {
 
         this.stringBuilder.append(":ROUTINGUNIVERSE=").append(((BgpNodeLSNlriVer4) nlri).getIdentifier());
         add(((BgpNodeLSNlriVer4) nlri).getLocalNodeDescriptors().getNodedescriptors());
-        log.info("BgpDpid :: add");
+        log.debug("BgpDpid :: add");
     }
 
     /**
@@ -103,7 +105,7 @@ public final class BgpDpid {
      * @return instance of this class
      */
     public BgpDpid add(final NodeDescriptors value) {
-        log.info("BgpDpid :: add function");
+        log.debug("BgpDpid :: add function");
         if (value != null) {
             List<BgpValueType> subTlvs = value.getSubTlvs();
             ListIterator<BgpValueType> listIterator = subTlvs.listIterator();
@@ -148,7 +150,7 @@ public final class BgpDpid {
         try {
             return new URI(SCHEME, value, null);
         } catch (URISyntaxException e) {
-            log.info("Exception BgpId URI: " + e.toString());
+            log.debug("Exception BgpId URI: " + e.toString());
         }
         return null;
     }

@@ -26,6 +26,7 @@ import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -105,6 +106,26 @@ public class BgpControllerAdapter implements BgpController {
     @Override
     public Set<BgpLinkListener> linkListener() {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void activeSessionExceptionAdd(String peerId, String exception) {
+        return;
+    }
+
+    @Override
+    public void closedSessionExceptionAdd(String peerId, String exception) {
+        return;
+    }
+
+    @Override
+    public Map<String, List<String>> activeSessionMap() {
+        return null;
+    }
+
+    @Override
+    public Map<String, List<String>> closedSessionMap() {
         return null;
     }
 

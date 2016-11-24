@@ -16,7 +16,13 @@ package org.onosproject.bgp.controller;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
+import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetailsLocalRib;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpPrefixLSIdentifier;
 import org.onosproject.bgpio.types.RouteDistinguisher;
+
+import java.util.Map;
 
 /**
  * Abstraction of BGP local RIB.
@@ -62,4 +68,46 @@ public interface BgpLocalRib {
      * @throws BgpParseException while deleting NLRI from local rib
      */
     void delete(BgpLSNlri nlri, RouteDistinguisher routeDistinguisher) throws BgpParseException;
+
+    /**
+     * Returns node NLRI tree.
+     *
+     * @return node tree
+     */
+    Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib> nodeTree();
+
+    /**
+     * Returns link NLRI tree.
+     *
+     * @return link tree
+     */
+    Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib> linkTree();
+
+    /**
+     * Returns prefix NLRI tree.
+     *
+     * @return prefix tree
+     */
+    Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib> prefixTree();
+
+    /**
+     * Returns VPN node NLRI tree.
+     *
+     * @return vpn node NLRI tree
+     */
+    Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnNodeTree();
+
+    /**
+     * Returns VPN link NLRI tree.
+     *
+     * @return vpn link NLRI Tree
+     */
+    Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnLinkTree();
+
+    /**
+     * Returns VPN prefix NLRI tree.
+     *
+     * @return vpn prefix NLRI Tree
+     */
+    Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnPrefixTree();
 }

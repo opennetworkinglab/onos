@@ -17,12 +17,28 @@ package org.onosproject.bgp.controller;
  */
 public interface BgpConnectPeer {
     /**
-    * Initiate bgp peer connection.
-    */
+     * Initiate bgp peer connection.
+     */
     void connectPeer();
 
     /**
-    * End bgp peer connection.
-    */
+     * End bgp peer connection.
+     */
     void disconnectPeer();
+
+    /**
+     * Returns the peer port.
+     *
+     * @return PeerPort
+     */
+    int getPeerPort();
+
+    /**
+     * Returns the connect retry counter.
+     *
+     * @return connectRetryCounter
+     */
+    int getConnectRetryCounter();
+
+
 }

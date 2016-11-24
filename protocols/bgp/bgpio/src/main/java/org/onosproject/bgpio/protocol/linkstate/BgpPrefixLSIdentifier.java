@@ -51,6 +51,7 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
     public BgpPrefixLSIdentifier() {
         this.localNodeDescriptors = null;
         this.prefixDescriptor = null;
+        log.debug("Parameters are reset");
     }
 
     /**
@@ -74,11 +75,11 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
      */
     public static BgpPrefixLSIdentifier parsePrefixIdendifier(ChannelBuffer cb, byte protocolId)
             throws BgpParseException {
-        //Parse Local Node descriptor
+        log.debug("Parse local node descriptor");
         NodeDescriptors localNodeDescriptors = new NodeDescriptors();
         localNodeDescriptors = parseLocalNodeDescriptors(cb, protocolId);
 
-        //Parse Prefix descriptor
+        log.debug("MultiTopologyId TLV cannot repeat more than once");
         List<BgpValueType> prefixDescriptor = new LinkedList<>();
         prefixDescriptor = parsePrefixDescriptors(cb);
         return new BgpPrefixLSIdentifier(localNodeDescriptors, prefixDescriptor);

@@ -1,0 +1,15 @@
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+    <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
+        <command>
+            <action class="org.onosproject.bgp.cli.BgpConfiguration"/>
+        </command>
+        <command>
+            <action class="org.onosproject.bgp.cli.BgpLocalRibDisplay"/>
+        </command>
+        <command>
+            <action class="org.onosproject.bgp.cli.BgpExceptions"/>
+        </command>
+    </command-bundle>
+
+</blueprint>

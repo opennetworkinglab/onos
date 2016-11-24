@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -296,6 +298,31 @@ public class PcepClientControllerAdapter implements PcepClientController {
     public LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public Map<String, List<String>> getPcepExceptions() {
+        return null;
+    }
+
+    @Override
+    public Map<Integer, Integer> getPcepErrorMsg() {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getPcepSessionMap() {
+        return null;
+    }
+
+    @Override
+    public Map<String, Byte> getPcepSessionIdMap() {
+        return null;
+    }
+
+    @Override
+    public void peerErrorMsg(String peerId, Integer errorType, Integer errValue) {
+        return;
     }
 
     @Override

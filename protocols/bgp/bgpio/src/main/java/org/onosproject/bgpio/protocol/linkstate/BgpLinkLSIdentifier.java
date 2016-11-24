@@ -83,15 +83,15 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
      * @throws BgpParseException while parsing link identifier
      */
     public static BgpLinkLSIdentifier parseLinkIdendifier(ChannelBuffer cb, byte protocolId) throws BgpParseException {
-        //Parse local node descriptor
+        log.debug("Parse local node descriptor");
         NodeDescriptors localNodeDescriptors = new NodeDescriptors();
         localNodeDescriptors = parseNodeDescriptors(cb, NodeDescriptors.LOCAL_NODE_DES_TYPE, protocolId);
 
-        //Parse remote node descriptor
+        log.debug("Parse remote node descriptor");
         NodeDescriptors remoteNodeDescriptors = new NodeDescriptors();
         remoteNodeDescriptors = parseNodeDescriptors(cb, NodeDescriptors.REMOTE_NODE_DES_TYPE, protocolId);
 
-        //Parse link descriptor
+        log.debug("Parse link descriptor");
         LinkedList<BgpValueType> linkDescriptor = new LinkedList<>();
         linkDescriptor = parseLinkDescriptors(cb);
         return new BgpLinkLSIdentifier(localNodeDescriptors, remoteNodeDescriptors, linkDescriptor);
@@ -108,7 +108,7 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
      */
     public static NodeDescriptors parseNodeDescriptors(ChannelBuffer cb, short desType, byte protocolId)
             throws BgpParseException {
-        log.debug("parse Node descriptors");
+        log.debug("Parse node descriptors");
         ChannelBuffer tempBuf = cb.copy();
         short type = cb.readShort();
         short length = cb.readShort();
@@ -166,8 +166,8 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
                 break;
             case BgpAttrNodeMultiTopologyId.ATTRNODE_MULTITOPOLOGY:
                 tlv = BgpAttrNodeMultiTopologyId.read(tempCb);
-                count++;
-                //MultiTopologyId TLV cannot repeat more than once
+                count = count++;
+                log.debug("MultiTopologyId TLV cannot repeat more than once");
                 if (count > 1) {
                     //length + 4 implies data contains type, length and value
                     throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,

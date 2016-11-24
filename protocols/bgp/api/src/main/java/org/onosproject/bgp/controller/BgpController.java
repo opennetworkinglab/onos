@@ -19,6 +19,7 @@ package org.onosproject.bgp.controller;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,7 +62,7 @@ public interface BgpController {
      * Send a message to a particular bgp peer.
      *
      * @param bgpId the id of the peer to send message.
-     * @param msg the message to send
+     * @param msg   the message to send
      */
     void writeMsg(BgpId bgpId, BgpMessage msg);
 
@@ -69,14 +70,13 @@ public interface BgpController {
      * Process a message and notify the appropriate listeners.
      *
      * @param bgpId id of the peer the message arrived on
-     * @param msg the message to process.
+     * @param msg   the message to process.
      * @throws BgpParseException on data processing error
      */
     void processBgpPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException;
 
     /**
      * Close all connected BGP peers.
-     *
      */
     void closeConnectedPeers();
 
@@ -149,4 +149,35 @@ public interface BgpController {
      * @return link listener
      */
     Set<BgpLinkListener> linkListener();
+
+    /**
+     * Stores the exceptions occured during an active session.
+     *
+     * @param peerId BGP peer id
+     * @param exception exceptions based on the peer id.
+     */
+    void activeSessionExceptionAdd(String peerId, String exception);
+
+    /**
+     * Stores the exceptions occured during an closed session.
+     *
+     * @param peerId BGP peer id
+     * @param exception exceptions based on the peer id
+     */
+    void closedSessionExceptionAdd(String peerId, String exception);
+
+    /**
+     * Return active session exceptions.
+     *
+     * @return activeSessionMap
+     */
+    Map<String, List<String>> activeSessionMap();
+
+    /**
+     * Return closed session exceptions.
+     *
+     * @return closedSessionMap
+     */
+    Map<String, List<String>> closedSessionMap();
+
 }

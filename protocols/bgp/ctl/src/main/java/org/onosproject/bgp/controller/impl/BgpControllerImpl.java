@@ -38,6 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class BgpControllerImpl implements BgpController {
 
     private static final Logger log = LoggerFactory.getLogger(BgpControllerImpl.class);
-
+    final Controller ctrl = new Controller(this);
     protected ConcurrentHashMap<BgpId, BgpPeer> connectedPeers = new ConcurrentHashMap<BgpId, BgpPeer>();
 
     protected BgpPeerManagerImpl peerManager = new BgpPeerManagerImpl();
@@ -60,10 +63,53 @@ public class BgpControllerImpl implements BgpController {
 
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
     protected Set<BgpLinkListener> bgpLinkListener = new CopyOnWriteArraySet<>();
-
-    final Controller ctrl = new Controller(this);
-
+    protected BgpController bgpController;
     private BgpConfig bgpconfig = new BgpConfig(this);
+    private List<String> activeExceptionList = new LinkedList();
+    private LinkedList<String> closedExceptionList = new LinkedList<String>();
+    private Map<String, List<String>> activeSessionExceptionMap = new TreeMap<>();
+    private Map<String, List<String>> closedSessionExceptionMap = new TreeMap<>();
+
+    @Override
+    public void activeSessionExceptionAdd(String peerId, String exception) {
+        if (peerId != null) {
+            activeExceptionList.add(exception);
+            activeSessionExceptionMap.put(peerId, activeExceptionList);
+        } else {
+            log.debug("Peer Id is null");
+        }
+        if (activeExceptionList.size() > 10) {
+            activeExceptionList.clear();
+            activeExceptionList.add(exception);
+            activeSessionExceptionMap.put(peerId, activeExceptionList);
+        }
+    }
+
+
+    @Override
+    public void closedSessionExceptionAdd(String peerId, String exception) {
+        if (peerId != null) {
+            closedExceptionList.add(exception);
+            closedSessionExceptionMap.put(peerId, closedExceptionList);
+         } else {
+            log.debug("Peer Id is null");
+        }
+        if (closedExceptionList.size() > 10) {
+            closedExceptionList.clear();
+            closedExceptionList.add(exception);
+            closedSessionExceptionMap.put(peerId, closedExceptionList);
+        }
+    }
+
+    @Override
+    public Map<String, List<String>> activeSessionMap() {
+        return activeSessionExceptionMap;
+    }
+
+    @Override
+    public Map<String, List<String>> closedSessionMap() {
+        return closedSessionExceptionMap;
+    }
 
     @Activate
     public void activate() {
@@ -73,6 +119,8 @@ public class BgpControllerImpl implements BgpController {
 
     @Deactivate
     public void deactivate() {
+        activeSessionExceptionMap.clear();
+        closedSessionExceptionMap.clear();
         // Close all connected peers
         closeConnectedPeers();
         this.ctrl.stop();

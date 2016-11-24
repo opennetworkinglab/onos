@@ -135,7 +135,7 @@ public class BgpNodeLSNlriVer4 implements BgpNodeLSNlri {
         byte protocolId = cb.readByte();
         long identifier = cb.readLong();
 
-        // Parse Local Node Descriptors
+        log.debug("Parse local node descriptors");
         BgpNodeLSIdentifier localNodeDescriptors = new BgpNodeLSIdentifier();
         localNodeDescriptors = BgpNodeLSIdentifier.parseLocalNodeDescriptors(cb, protocolId);
         return new BgpNodeLSNlriVer4(identifier, protocolId, localNodeDescriptors, isVpn, routeDistinguisher);

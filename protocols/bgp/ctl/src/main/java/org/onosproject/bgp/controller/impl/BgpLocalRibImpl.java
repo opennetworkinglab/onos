@@ -69,6 +69,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return node tree
      */
+    @Override
     public Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib> nodeTree() {
         return nodeTree;
     }
@@ -78,6 +79,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return link tree
      */
+    @Override
     public Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib> linkTree() {
         return linkTree;
     }
@@ -87,6 +89,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return prefix tree
      */
+    @Override
     public Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib> prefixTree() {
         return prefixTree;
     }
@@ -96,6 +99,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return vpn node NLRI tree
      */
+    @Override
     public Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnNodeTree() {
         return vpnNodeTree;
     }
@@ -105,6 +109,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return vpn link NLRI Tree
      */
+    @Override
     public Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnLinkTree() {
         return vpnLinkTree;
     }
@@ -114,6 +119,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @return vpn prefix NLRI Tree
      */
+    @Override
     public Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnPrefixTree() {
         return vpnPrefixTree;
     }
@@ -421,7 +427,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 decisionResult = selectionAlgo.compare(prefixTree.get(prefixIdentifier), detailsLocRib);
                 if (decisionResult < 0) {
                     prefixTree.replace(prefixIdentifier, detailsLocRib);
-                    log.debug("local RIB prefix updated: {}", detailsLocRib.toString());
+                    log.debug("Local RIB prefix updated: {}", detailsLocRib.toString());
                 }
             } else {
                     if (!isVpnRib) {

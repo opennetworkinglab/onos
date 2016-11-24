@@ -154,7 +154,7 @@ public class BgpPathAttributes {
                 pathAttribute = WideCommunity.read(cb);
                 break;
             default:
-                //skip bytes for unsupported attribute types
+                log.debug("Skip bytes for unsupported attribute types");
                 UnSupportedAttribute.read(cb);
             }
             pathAttributeList.add(pathAttribute);
@@ -263,19 +263,19 @@ public class BgpPathAttributes {
         }
 
         if (!isOrigin) {
-            log.debug("Mandatory Attributes not Present");
+            log.debug("Mandatory attributes not Present");
             Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
                     BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     Origin.ORIGIN_TYPE);
         }
         if (!isAsPath) {
-            log.debug("Mandatory Attributes not Present");
+            log.debug("Mandatory attributes not Present");
             Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
                     BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     AsPath.ASPATH_TYPE);
         }
         if (!isMpUnReach && !isMpReach && !isNextHop) {
-            log.debug("Mandatory Attributes not Present");
+            log.debug("Mandatory attributes not Present");
             Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
                     BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     NextHop.NEXTHOP_TYPE);

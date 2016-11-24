@@ -15,10 +15,7 @@
  */
 package org.onosproject.pcelabelstore.util;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+
 
 import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.LabelStack;
@@ -32,6 +29,12 @@ import org.onosproject.pcep.controller.PcepEventListener;
 import org.onosproject.pcep.controller.PcepNodeListener;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.types.PcepValueType;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.List;
 
 public class MockPcepClientController implements PcepClientController {
 
@@ -117,6 +120,31 @@ public class MockPcepClientController implements PcepClientController {
     public LinkedList<PcepValueType> createPcepLabelStack(DefaultLabelStack labelStack, Path path) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public Map<String, List<String>> getPcepExceptions() {
+        return null;
+    }
+
+    @Override
+    public Map<Integer, Integer> getPcepErrorMsg() {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getPcepSessionMap() {
+        return null;
+    }
+
+    @Override
+    public Map<String, Byte> getPcepSessionIdMap() {
+        return null;
+    }
+
+    @Override
+    public void peerErrorMsg(String peerId, Integer errorType, Integer errValue) {
+
     }
 
     @Override

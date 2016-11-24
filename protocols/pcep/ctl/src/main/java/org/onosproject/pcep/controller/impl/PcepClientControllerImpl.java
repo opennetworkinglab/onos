@@ -15,17 +15,18 @@
  */
 package org.onosproject.pcep.controller.impl;
 
-import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -185,6 +186,7 @@ public class PcepClientControllerImpl implements PcepClientController {
     private DeviceListener deviceListener = new InternalDeviceListener();
     private LinkListener linkListener = new InternalLinkListener();
     private InternalConfigListener cfgListener = new InternalConfigListener();
+    private Map<Integer, Integer> pcepErrorMsg = new TreeMap<>();
 
     @Activate
     public void activate() {
@@ -217,6 +219,39 @@ public class PcepClientControllerImpl implements PcepClientController {
         netCfgService.removeListener(cfgListener);
         ctrl.stop();
         log.info("Stopped");
+    }
+
+    @Override
+    public void peerErrorMsg(String peerId, Integer errorType, Integer errValue) {
+        if (peerId == null) {
+            pcepErrorMsg.put(errorType, errValue);
+        } else {
+            if (pcepErrorMsg.size() > 10) {
+                pcepErrorMsg.clear();
+            }
+            pcepErrorMsg.put(errorType, errValue);
+        }
+    }
+
+    @Override
+    public Map<String, List<String>> getPcepExceptions() {
+        return this.ctrl.exceptionsMap();
+    }
+
+    @Override
+    public Map<Integer, Integer> getPcepErrorMsg() {
+        return pcepErrorMsg;
+    }
+
+
+    @Override
+    public Map<String, String> getPcepSessionMap() {
+        return this.ctrl.mapPeer();
+    }
+
+    @Override
+    public Map<String, Byte> getPcepSessionIdMap() {
+        return this.ctrl.mapSession();
     }
 
     @Override
@@ -879,7 +914,7 @@ public class PcepClientControllerImpl implements PcepClientController {
 
             connectedClients.remove(pccId);
             for (PcepClientListener l : pcepClientListener) {
-                log.warn("removal for {}", pccId.toString());
+                log.warn("Removal for {}", pccId.toString());
                 l.clientDisconnected(pccId);
             }
         }
