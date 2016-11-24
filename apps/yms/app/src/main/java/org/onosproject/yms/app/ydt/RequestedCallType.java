@@ -27,9 +27,9 @@ enum RequestedCallType {
     LEAF,
 
     /**
-     * Requested Node is of type single/multi instance node.
+     * Requested Node is of type single/multi instance non leaf node.
      */
-    OTHER,
+    NON_LEAF,
 
     /**
      * Requested Node is of type multi instance leaf/node.

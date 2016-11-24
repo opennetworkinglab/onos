@@ -17,8 +17,6 @@
 package org.onosproject.yms.app.ydt;
 
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
-import org.onosproject.yangutils.datamodel.YangSchemaNodeContextInfo;
-import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
 import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YdtContextOperationType;
 
@@ -45,16 +43,6 @@ public interface YdtExtendedContext extends YdtContext {
      * @param object  application information object
      */
     void addAppInfo(AppType appType, Object object);
-
-    /**
-     * Returns child schema node context information. It is used by YMS to
-     * obtain the child schema corresponding to data node identifier.
-     *
-     * @param id represents a identifier of YANG data tree node
-     * @return YANG data node context information
-     */
-    YangSchemaNodeContextInfo getSchemaNodeContextInfo(
-            YangSchemaNodeIdentifier id);
 
     /**
      * Returns schema node from data model for curNode.

@@ -29,7 +29,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Representation of default YANG module library.
  */
-class DefaultYangModuleLibrary implements YangModuleLibrary {
+public class DefaultYangModuleLibrary implements YangModuleLibrary {
 
     private final String moduleSetId;
     private final List<YangModuleInformation> moduleInformation;
@@ -39,7 +39,7 @@ class DefaultYangModuleLibrary implements YangModuleLibrary {
      *
      * @param moduleSetId module id
      */
-    DefaultYangModuleLibrary(String moduleSetId) {
+    public DefaultYangModuleLibrary(String moduleSetId) {
         this.moduleSetId = moduleSetId;
         moduleInformation = new ArrayList<>();
     }

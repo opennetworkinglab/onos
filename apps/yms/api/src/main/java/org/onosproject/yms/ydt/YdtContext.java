@@ -41,6 +41,13 @@ public interface YdtContext {
     String getNamespace();
 
     /**
+     * Returns module name as namespace.
+     *
+     * @return module name
+     */
+    String getModuleNameAsNameSpace();
+
+    /**
      * Returns the YDT node extended context information corresponding to YDT
      * node.
      *

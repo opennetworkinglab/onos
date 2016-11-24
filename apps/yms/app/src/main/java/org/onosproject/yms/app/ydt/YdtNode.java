@@ -16,7 +16,6 @@
 
 package org.onosproject.yms.app.ydt;
 
-import org.onosproject.yangutils.datamodel.YangList;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangSchemaNodeContextInfo;
 import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
@@ -42,10 +41,8 @@ import static org.onosproject.yms.app.ydt.YdtConstants.errorMsg;
  */
 public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
 
-    // ydt formatted error string
-    private static final String FMT_UNI_KEY =
-            "Some of the key elements are not unique in %s.";
-    private static final String FMT_KLIST_STR =
+    // YDT formatted error string
+    private static final String FMT_NON_LIST_STR =
             "List of key cannot be created for leaf and leaf-list %s node.";
     private static final String FMT_VAL_N =
             "Value cannot be set in non leaf %s node.";
@@ -55,12 +52,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
             "Value cannot be invoke from non leaf %s node.";
     private static final String FMT_VAL_INS =
             "ValueSet cannot be invoke from non leaf-list %s node";
-    private static final String FMT_MANY_INS =
-            "Too many instances of %s. Expected maximum instances %d.";
-    private static final String FMT_FEW_INS =
-            "Too few instances of %s. Expected minimum instances %d.";
 
-    // ydt error string
+    // YDT error string
     private static final String E_EXIST = "Node is already part of a tree";
     private static final String E_ATOMIC =
             "Child to be added is not atomic, it already has a child";
@@ -99,7 +92,7 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     /*
      * Type of node.
      */
-    private YdtType ydtType;
+    private final YdtType ydtType;
 
     /*
      * Flag to keep the track of context switch,
@@ -118,9 +111,17 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     private YdtExtendedInfoType ydtExtendedInfoType;
 
     /*
-     * Ydt map to keep the track of node added in YDT.
+     * Ydt map to keep the track of node added under current parent node.
      */
-    final Map<YangSchemaNodeIdentifier, List<YdtNode<T>>> ydtNodeMap =
+    final Map<YangSchemaNodeIdentifier, YdtNode<T>> ydtNodeMap =
+            new HashMap<>();
+
+    /*
+     * Ydt map to keep the track of multi instance node added under current
+     * parent node.
+     */
+    private final Map<YangSchemaNodeIdentifier,
+            List<YdtNode<YdtMultiInstanceNode>>> ydtMultiInsMap =
             new HashMap<>();
 
     /*
@@ -134,17 +135,32 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     private YdtContextOperationType ydtContextOperationType;
 
     /*
-     * Key object for ydtNodeMap.
-     */
-    private YangSchemaNodeIdentifier id;
-
-    /*
      * Ydt map to keep the track of application information object
      * with respective type.
      */
     private final Map<AppType, Object> ydtAppInfoMap = new HashMap<>();
 
     private YdtContext clonedNode;
+
+    /**
+     * Creates a specific type of node.
+     *
+     * @param type of YDT node
+     * @param node schema node
+     */
+    YdtNode(YdtType type, YangSchemaNode node) {
+        ydtType = type;
+        yangSchemaNode = node;
+    }
+
+    /**
+     * Creates a specific type of node.
+     *
+     * @param type of YDT node
+     */
+    YdtNode(YdtType type) {
+        ydtType = type;
+    }
 
     /**
      * Returns the cloned ydt node.
@@ -166,12 +182,17 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
 
     @Override
     public String getName() {
-        return id.getName();
+        return yangSchemaNode.getName();
     }
 
     @Override
     public String getNamespace() {
-        return id.getNameSpace();
+        return yangSchemaNode.getNameSpace().getModuleNamespace();
+    }
+
+    @Override
+    public String getModuleNameAsNameSpace() {
+        return yangSchemaNode.getNameSpace().getModuleName();
     }
 
     @Override
@@ -223,15 +244,21 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
         ydtAppInfoMap.put(appType, object);
     }
 
-    @Override
+    /**
+     * Returns child schema node context information. It is used by YMS to
+     * obtain the child schema corresponding to data node identifier.
+     *
+     * @param id represents a identifier of YANG data tree node
+     * @return YANG data node context information
+     * @throws YdtException when user requested node schema doesn't exist
+     */
     public YangSchemaNodeContextInfo getSchemaNodeContextInfo(
-            YangSchemaNodeIdentifier id) {
+            YangSchemaNodeIdentifier id) throws YdtException {
         try {
             return getYangSchemaNode().getChildSchema(id);
         } catch (DataModelException e) {
-            errorHandler(e.getLocalizedMessage(), this);
+            throw new YdtException(e.getLocalizedMessage());
         }
-        return null;
     }
 
     /**
@@ -243,18 +270,20 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param value value in a single instance node
      */
-    public void addValue(String value) {
-        errorHandler(
-                errorMsg(FMT_VAL_N, getYdtNodeIdentifier().getName()), this);
+    public void addValue(String value) throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_N, getName()));
     }
 
     /**
      * Creates the list of key element's of multi instance node.
-     * this will not be applicable on leaf and leaf-list node.
+     * This will not be applicable on leaf and leaf-list node.
+     *
+     * @throws YdtException when user requested multi instance node is missing
+     *                      any of the key element in request or requested
+     *                      node is of type other then multi instance node
      */
-    public void createKeyNodeList() {
-        errorHandler(errorMsg(
-                FMT_KLIST_STR, getYdtNodeIdentifier().getName()), this);
+    public void createKeyNodeList() throws YdtException {
+        throw new YdtException(errorMsg(FMT_NON_LIST_STR, getName()));
     }
 
     /**
@@ -266,11 +295,12 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * This will be applicable in case of call from SBI so no need
      * to validate the value.
      *
-     * @param value value in a single instance leaf node
+     * @param value     value in a single instance leaf node
+     * @param isKeyLeaf true, for key leaf; false non key leaf
      */
-    public void addValueWithoutValidation(String value) {
-        errorHandler(
-                errorMsg(FMT_VAL_N, getYdtNodeIdentifier().getName()), this);
+    public void addValueWithoutValidation(String value, boolean isKeyLeaf)
+            throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_N, getName()));
     }
 
     /**
@@ -282,9 +312,8 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param valueSet valueSet in a multi instance leaf node
      */
-    public void addValueSet(Set<String> valueSet) {
-        errorHandler(
-                errorMsg(FMT_VAL_NS, getYdtNodeIdentifier().getName()), this);
+    public void addValueSet(Set<String> valueSet) throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_NS, getName()));
     }
 
     /**
@@ -298,9 +327,9 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param valueSet valueSet in a multi instance leaf node
      */
-    public void addValueSetWithoutValidation(Set<String> valueSet) {
-        errorHandler(
-                errorMsg(FMT_VAL_NS, getYdtNodeIdentifier().getName()), this);
+    public void addValueSetWithoutValidation(Set<String> valueSet)
+            throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_NS, getName()));
     }
 
     /**
@@ -310,7 +339,7 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      * the duplicate entry found. Subclasses may override this method
      * to provide the correct behavior for their specific implementation.
      */
-    public void validDuplicateEntryProcessing() {
+    void validDuplicateEntryProcessing() throws YdtException {
     }
 
     /**
@@ -318,33 +347,24 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
      *
      * @param id represents a identifier of YANG data tree node
      * @return YDT node
+     * @throws YdtException when user requested node already part of YDT tree.
      */
-    public YdtNode getCollidingChild(YangSchemaNodeIdentifier id) {
+    public YdtNode getCollidingChild(YangSchemaNodeIdentifier id)
+            throws YdtException {
 
         // Find the key in YDT map for getting the colliding node.
-        List<YdtNode<T>> collidingChild = ydtNodeMap.get(id);
+        YdtNode collidingChild = ydtNodeMap.get(id);
 
         /*
          * If colliding child exist then process colliding node in respective
          * YDT node type.
          */
         if (collidingChild != null) {
-            collidingChild.get(0).validDuplicateEntryProcessing();
-            return collidingChild.get(0);
+            collidingChild.validDuplicateEntryProcessing();
+            return collidingChild;
         }
 
         return null;
-    }
-
-    /**
-     * Creates a specific type of node.
-     *
-     * @param type of YDT node
-     * @param id   node identifier of the YDT node
-     */
-    YdtNode(YdtType type, YangSchemaNodeIdentifier id) {
-        ydtType = type;
-        setId(id);
     }
 
     /**
@@ -393,17 +413,13 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     }
 
     @Override
-    public String getValue() {
-        errorHandler(
-                errorMsg(FMT_VAL_IN, getYdtNodeIdentifier().getName()), this);
-        return null;
+    public String getValue() throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_IN, getName()));
     }
 
     @Override
-    public Set<String> getValueSet() {
-        errorHandler(
-                errorMsg(FMT_VAL_INS, getYdtNodeIdentifier().getName()), this);
-        return null;
+    public Set<String> getValueSet() throws YdtException {
+        throw new YdtException(errorMsg(FMT_VAL_INS, getName()));
     }
 
     /**
@@ -424,23 +440,6 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
         lastChild = child;
     }
 
-    /**
-     * Returns object node identifier.
-     *
-     * @return node identifier
-     */
-    public YangSchemaNodeIdentifier getYdtNodeIdentifier() {
-        return id;
-    }
-
-    /**
-     * Sets object node identifier.
-     *
-     * @param id node identifier
-     */
-    public void setId(YangSchemaNodeIdentifier id) {
-        this.id = id;
-    }
 
     /**
      * Adds a child node.
@@ -455,7 +454,7 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
             throws YdtException {
 
         if (!(newChild instanceof YdtNode)) {
-            errorHandler(errorMsg(E_SUPPORT), this);
+            throw new YdtException(errorMsg(E_SUPPORT));
         }
 
         YdtNode node = (YdtNode) newChild;
@@ -463,19 +462,19 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
         if (node.getParent() == null) {
             node.setParent(this);
         } else if (!node.getParent().equals(this)) {
-            errorHandler(errorMsg(E_EXIST), this);
+            throw new YdtException(E_EXIST);
         }
 
         if (node.getFirstChild() != null && isAtomic) {
-            errorHandler(errorMsg(E_ATOMIC), this);
+            throw new YdtException(E_ATOMIC);
         }
 
         if (node.getNextSibling() != null) {
-            errorHandler(errorMsg(E_SIB), this);
+            throw new YdtException(E_SIB);
         }
 
         if (node.getPreviousSibling() != null) {
-            errorHandler(errorMsg(E_PRE), this);
+            throw new YdtException(E_PRE);
         }
 
         // If new node needs to be added as first child.
@@ -507,16 +506,41 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     }
 
     /**
-     * Updates ydt map of current context parent node.
+     * Updates ydt maps of current context parent node.
+     *
+     * @param node ydt node for which map need to be updated
+     */
+    void updateYdtMap(YdtNode node) {
+
+        YangSchemaNodeIdentifier id = node.getYangSchemaNode()
+                .getYangSchemaNodeIdentifier();
+        /*
+         * If node to be added is of type multi instance node(list) then multi
+         * instance node to be updated
+         */
+        if (node.getYdtType() == YdtType.MULTI_INSTANCE_NODE) {
+            updateMultiInsMap(id, node);
+        }
+
+        /*
+         * If entry for multi instance node is already there with same id then
+         * existing entry will be overwritten by the new entry.
+         */
+        ydtNodeMap.put(id, node);
+    }
+
+    /**
+     * Updates ydt multi instance map of current context parent node.
      *
      * @param id   object node identifier
      * @param node ydt node for which map need to be updated
      */
-    public void updateYdtMap(YangSchemaNodeIdentifier id, YdtNode node) {
-        List<YdtNode<T>> list = ydtNodeMap.get(id);
+    private void updateMultiInsMap(YangSchemaNodeIdentifier id, YdtNode node) {
+
+        List<YdtNode<YdtMultiInstanceNode>> list = ydtMultiInsMap.get(id);
         if (list == null) {
             list = new ArrayList<>();
-            ydtNodeMap.put(id, list);
+            ydtMultiInsMap.put(id, list);
         }
         list.add(node);
     }
@@ -540,139 +564,45 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
     }
 
     /**
-     * Validates all multi Instance inside current context.
+     * Validates all multi Instance nodes inside current context.
      */
-    public void validateMultiInstanceNode() {
+    public void validateMultiInstanceNode() throws YdtException {
 
         // Set for checking whether input string is unique or not.
         Set<String> keyStringSet = new HashSet<>();
 
-        // Iterating over values in map and find multi instance node list only.
-        for (List<YdtNode<T>> ydtNodeList : ydtNodeMap.values()) {
-            validateInstances(keyStringSet, ydtNodeList);
-        }
-    }
-
-    /**
-     * Checks for any duplicate list entries.
-     *
-     * @param keyStringSet set to validate the composite key of an instance
-     * @param ydtNodeList  list of entries
-     */
-    private void validateInstances(Set<String> keyStringSet,
-                                   List<YdtNode<T>> ydtNodeList) {
-        // Clearing the set.
-        keyStringSet.clear();
-
-        if (ydtNodeList.get(0) instanceof YdtMultiInstanceNode) {
-
-            // Storing the number of multiInstance node for number
-            // if instance validation.
-            int instanceCount = ydtNodeList.size();
-
-            YangList list = (YangList) ydtNodeList.get(0).getYangSchemaNode();
-            int minElement;
-            int maxElement;
-            if (list.getMinElements() != null) {
-                minElement = list.getMinElements().getMinElement();
-                if (instanceCount < minElement) {
-                    errorHandler(errorMsg(FMT_FEW_INS, list.getName(),
-                                          minElement), this);
-                }
-            }
-
-            if (list.getMaxElements() != null) {
-                maxElement = list.getMaxElements().getMaxElement();
-                if (instanceCount > maxElement) {
-                    errorHandler(errorMsg(FMT_MANY_INS, list.getName(),
-                                          maxElement), this);
-                }
-            }
-
-            if (list.isConfig() && instanceCount > 1) {
-                // Iterating over values in ydtNodeList of
-                // multiInstanceNode and compare the key string.
-                for (YdtNode ydtNode : ydtNodeList) {
-                    if (!keyStringSet.add(((YdtMultiInstanceNode) ydtNode)
-                                                  .getCompositeKey())) {
-                        errorHandler(errorMsg(
-                                FMT_UNI_KEY, ydtNode.getYdtNodeIdentifier()
-                                        .getName()), this);
-                    }
+        if (ydtMultiInsMap.size() != 0) {
+            /*
+             * Iterating over values in map and find multi instance node list
+             * only.
+             */
+            for (List<YdtNode<YdtMultiInstanceNode>> ydtNodeList :
+                    ydtMultiInsMap.values()) {
+                try {
+                    ydtNodeList.get(0).validateInstances(keyStringSet,
+                                                         ydtNodeList);
+                } catch (YdtException e) {
+                    throw new YdtException(e.getLocalizedMessage());
                 }
             }
         }
     }
 
     /**
-     * Walks in whole Ydt Tree and de-reference all the tree node.
-     * This will be called only when any exception occurs while processing
-     * the node in Ydt tree.
+     * Validates the given list of instances by verifying the allowed
+     * instance count and key element uniqueness.
+     * <p>
+     * This default implementation do nothing if requested node is of type
+     * other then multiInstanceNode. Subclasses may override this method
+     * to provide the correct behavior for their specific implementation.
      *
-     * @param node ydt node
+     * @param keyStringSet set to validate the key element uniqueness
+     * @param ydtNodeList  list of instance's of same list
      */
-    public void freeRestResources(YdtNode node) {
-        // Traversing to logical rootNode.
-        YdtNode rootNode = node;
-        while (rootNode.getParent() != null) {
-            rootNode = rootNode.getParent();
-        }
-        YdtNode currentNode = rootNode;
-        while (currentNode != null) {
+    void validateInstances(Set<String> keyStringSet,
+                           List<YdtNode<YdtMultiInstanceNode>>
+                                   ydtNodeList) throws YdtException {
 
-            // Move down to first child
-            YdtNode nextNode = currentNode.getFirstChild();
-            if (nextNode != null) {
-                currentNode = nextNode;
-                continue;
-            }
-
-            // No child nodes, so walk tree
-            while (currentNode != null) {
-                // To keep the track of last sibling.
-                YdtNode lastSibling = currentNode;
-
-                // Move to sibling if possible.
-                nextNode = currentNode.getNextSibling();
-
-                // free currentNode resources
-                free(lastSibling);
-
-                lastSibling.getNamespace();
-                if (nextNode != null) {
-                    currentNode = nextNode;
-                    break;
-                }
-
-                // Move up
-                if (currentNode.equals(rootNode)) {
-                    currentNode = null;
-                } else {
-                    currentNode = currentNode.getParent();
-                    lastSibling.setParent(null);
-                }
-            }
-        }
-    }
-
-    /**
-     * Free the give YDT node by de-referencing it to null.
-     *
-     * @param node node to be freed
-     */
-    private void free(YdtNode node) {
-        if (node.getParent() != null) {
-            YdtNode parent = node.getParent();
-            parent.setChild(null);
-            parent.setLastChild(null);
-            if (node.getNextSibling() != null) {
-                parent.setChild(node.getNextSibling());
-            }
-        }
-        YdtNode parentRef = node.getParent();
-        node = new YdtSingleInstanceNode(null);
-        node.ydtType = null;
-        node.setParent(parentRef);
     }
 
     /**
@@ -690,18 +620,5 @@ public abstract class YdtNode<T> implements YdtExtendedContext, Cloneable {
         clonedNode.setChild(null);
         clonedNode.setLastChild(null);
         return clonedNode;
-    }
-
-    /**
-     * Handles an error scenario, freeing allocated resources for the given YTD
-     * node before throwing an exception with the specified error message.
-     *
-     * @param error   error message
-     * @param curNode ydt node
-     * @throws YdtException with the specified error message
-     */
-    public void errorHandler(String error, YdtNode curNode) {
-        curNode.freeRestResources(curNode);
-        throw new YdtException(error);
     }
 }

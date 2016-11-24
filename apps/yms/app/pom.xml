@@ -56,36 +56,9 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-yang-maven-plugin</artifactId>
-            <version>1.8</version>
+            <artifactId>onos-yang-utils-generator</artifactId>
+            <version>1.10</version>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-yang-datamodel</artifactId>
-            <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-osgi</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.osgi/spring-osgi-mock -->
-        <dependency>
-            <groupId>org.springframework.osgi</groupId>
-            <artifactId>spring-osgi-mock</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -105,21 +78,6 @@
                         </Private-Package>
                     </instructions>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onos-yang-maven-plugin</artifactId>
-                <version>1.8</version>
-                <configuration>
-                    <yangFilesDir>src/test/resources/</yangFilesDir>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>yang2java</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

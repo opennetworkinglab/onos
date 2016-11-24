@@ -18,12 +18,15 @@ package org.onosproject.yms.app.ydt;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.yangutils.datamodel.YangList;
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
+import org.onosproject.yms.app.ydt.exceptions.YdtException;
 import org.onosproject.yms.ydt.YdtContext;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.onosproject.yms.app.ydt.YdtConstants.errorMsg;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
@@ -34,9 +37,15 @@ import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
  */
 public class YdtMultiInstanceNode extends YdtNode {
 
-    // ydt formatted error string
+    // YDT formatted error string
     private static final String FMT_MISSING_KEY =
             "%s is missing some of the keys of %s.";
+    private static final String FMT_UNI_KEY =
+            "Some of the key elements are not unique in %s.";
+    private static final String FMT_MANY_INS =
+            "Too many instances of %s. Expected maximum instances %d.";
+    private static final String FMT_FEW_INS =
+            "Too few instances of %s. Expected minimum instances %d.";
 
     /*
      * Reference for list of key element's ydtContext.
@@ -51,10 +60,10 @@ public class YdtMultiInstanceNode extends YdtNode {
     /**
      * Creates a YANG multi instance node object.
      *
-     * @param id node identifier of YDT multi instance node .
+     * @param node schema of YDT multi instance node .
      */
-    protected YdtMultiInstanceNode(YangSchemaNodeIdentifier id) {
-        super(MULTI_INSTANCE_NODE, id);
+    YdtMultiInstanceNode(YangSchemaNode node) {
+        super(MULTI_INSTANCE_NODE, node);
     }
 
     /**
@@ -62,7 +71,7 @@ public class YdtMultiInstanceNode extends YdtNode {
      *
      * @return composite key string
      */
-    public String getCompositeKey() {
+    private String getCompositeKey() {
         return compositeKey;
     }
 
@@ -76,7 +85,7 @@ public class YdtMultiInstanceNode extends YdtNode {
     }
 
     @Override
-    public void createKeyNodeList() {
+    public void createKeyNodeList() throws YdtException {
         YangList yangListHolder = (YangList) getYangSchemaNode();
         List<String> schemaKeyList = yangListHolder.getKeyList();
 
@@ -96,30 +105,99 @@ public class YdtMultiInstanceNode extends YdtNode {
         List<YdtContext> nodeList = new ArrayList<>();
 
         YangSchemaNodeIdentifier id = new YangSchemaNodeIdentifier();
-        id.setNameSpace(getYdtNodeIdentifier().getNameSpace());
+        id.setNameSpace(new NameSpace(getNamespace()));
         // This loop should run while schema key list is not finished
         while (sklItr.hasNext()) {
             String name = sklItr.next();
             id.setName(name);
-            List<YdtNode<YdtMultiInstanceNode>> collidingChild =
-                    (List<YdtNode<YdtMultiInstanceNode>>) ydtNodeMap.get(id);
+            YdtNode<YdtSingleInstanceLeafNode> collidingChild =
+                    (YdtNode<YdtSingleInstanceLeafNode>) ydtNodeMap.get(id);
 
             if (collidingChild == null) {
-                errorHandler(errorMsg(FMT_MISSING_KEY,
-                                      yangListHolder.getParent().getName(),
-                                      yangListHolder.getName()), this);
+                throw new YdtException(
+                        errorMsg(FMT_MISSING_KEY, yangListHolder.getParent()
+                                .getName(), yangListHolder.getName()));
             }
 
-            YdtNode<YdtMultiInstanceNode> ydtNode = collidingChild.get(0);
             /*
              * Preparing composite key string by concatenating values of
              * all the key leaf.
              */
-            ksb.append(ydtNode.getValue());
-            nodeList.add(ydtNode);
+            ksb.append(collidingChild.getValue());
+            nodeList.add(collidingChild);
         }
         //Setting te key object in List.
         keyNodeList = nodeList;
         compositeKey = ksb.toString();
+    }
+
+    /**
+     * Validates the given list of instances by verifying the allowed
+     * instance count and key element uniqueness.
+     *
+     * @param keyStringSet set to validate the key element uniqueness
+     * @param list     list of instance's of same list
+     * @throws YdtException when user requested multi instance node instance's
+     *                      count doesn't fit into the allowed instance's limit
+     *                      or doesn't have unique key's
+     */
+    public void validateInstances(Set keyStringSet, List list)
+            throws YdtException {
+
+        // Clearing the set.
+        keyStringSet.clear();
+
+        /*
+         * Storing the number of multiInstance node for number
+         * if instance validation.
+         */
+        int instanceCount = list.size();
+
+        YangList listSchema = (YangList) ((YdtMultiInstanceNode) list.get(0))
+                .getYangSchemaNode();
+        validateInstanceCount(instanceCount, listSchema);
+        if (listSchema.isConfig() && instanceCount > 1) {
+
+            /*
+             * Iterating over values in ydtNodeList of
+             * multiInstanceNode and compare the key string.
+             */
+            for (YdtNode ydtNode : (List<YdtNode<YdtMultiInstanceNode>>) list) {
+                if (!keyStringSet.add(((YdtMultiInstanceNode) ydtNode)
+                                              .getCompositeKey())) {
+                    throw new YdtException(
+                            errorMsg(FMT_UNI_KEY, ydtNode.getName()));
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates the instance count for given list entry.
+     *
+     * @param instanceCount actual count
+     * @param list          list entry for which instance count need
+     *                      to be validated
+     * @throws YdtException when user requested multi instance node instance's
+     *                      count doesn't fit into the allowed instance's limit
+     */
+    private void validateInstanceCount(int instanceCount, YangList list)
+            throws YdtException {
+
+        if (list.getMinElements() != null) {
+            int minElement = list.getMinElements().getMinElement();
+            if (instanceCount < minElement) {
+                throw new YdtException(errorMsg(FMT_FEW_INS, list.getName(),
+                                                minElement));
+            }
+        }
+
+        if (list.getMaxElements() != null) {
+            int maxElement = list.getMaxElements().getMaxElement();
+            if (instanceCount > maxElement) {
+                throw new YdtException(errorMsg(FMT_MANY_INS, list.getName(),
+                                                maxElement));
+            }
+        }
     }
 }

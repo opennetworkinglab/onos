@@ -30,13 +30,12 @@ import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YmsOperationType;
+import org.onosproject.yms.ysr.YangModuleLibrary;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.onosproject.yms.app.ych.defaultcodecs.utils.DefaultCodecUtils.isNonEmpty;
 
 
 /**
@@ -54,6 +53,7 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
      * Schema registry for driver.
      */
     private final YangSchemaRegistry schemaRegistry;
+    private YangModuleLibrary library;
 
     /**
      * Default codecs.
@@ -90,8 +90,9 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
             YangProtocolEncodingFormat dataFormat) {
         YangDataTreeCodec codec = defaultCodecs.get(dataFormat);
 
+        int size = overrideCodecs.size();
         // Check over ridden codec handler is exist or not.
-        if (overrideCodecs != null) {
+        if (size != 0) {
             YangDataTreeCodec overrideCodec = overrideCodecs.get(dataFormat);
             if (overrideCodec != null) {
                 codec = overrideCodec;
@@ -103,6 +104,7 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
     @Override
     public void addDeviceSchema(Class<?> yangModule) {
         schemaRegistry.registerApplication(null, yangModule);
+        schemaRegistry.processModuleLibrary(yangModule.getName(), library);
     }
 
     @Override
@@ -166,7 +168,6 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
                                            opType,
                                            schemaRegistry);
 
-
         // Get the composite response from codec handler.
         return codec.encodeYdtToCompositeProtocolFormat(extBuilder);
     }
@@ -176,15 +177,20 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
                                YangProtocolEncodingFormat dataFormat,
                                YmsOperationType opType) {
 
+        YdtBuilder ydtBuilder;
         YangDataTreeCodec codec = getAppropriateCodec(dataFormat);
         if (codec == null) {
             throw new YchException(E_DATA_TREE_CODEC);
         }
 
-        // Get the YANG data tree
-        YdtBuilder ydtBuilder = codec.decodeProtocolDataToYdt(inputString,
-                                                              schemaRegistry,
-                                                              opType);
+        try {
+            // Get the YANG data tree
+            ydtBuilder = codec.decodeProtocolDataToYdt(inputString,
+                                                       schemaRegistry,
+                                                       opType);
+        } catch (Exception e) {
+            throw new YchException(e.getLocalizedMessage());
+        }
 
         if (ydtBuilder != null) {
             return getObjectList(ydtBuilder.getRootNode());
@@ -210,10 +216,7 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
 
         // Get the module object by using YANG data tree
         if (ydtBuilder != null) {
-            List<Object> objectList = getObjectList(ydtBuilder.getRootNode());
-            if (isNonEmpty(objectList)) {
-                return objectList.get(0);
-            }
+            return getObjectList(ydtBuilder.getRootNode());
         }
 
         return null;
@@ -259,5 +262,23 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
         }
 
         return objectList;
+    }
+
+    /**
+     * Returns module library for YSR.
+     *
+     * @return module library for YSR
+     */
+    public YangModuleLibrary getLibrary() {
+        return library;
+    }
+
+    /**
+     * Sets module library for YSR.
+     *
+     * @param library module library for YSR
+     */
+    public void setLibrary(YangModuleLibrary library) {
+        this.library = library;
     }
 }

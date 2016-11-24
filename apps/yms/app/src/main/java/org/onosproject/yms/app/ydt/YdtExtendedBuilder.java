@@ -64,8 +64,11 @@ public interface YdtExtendedBuilder extends YdtBuilder {
      * Traverses up in YANG data tree to the parent node, it is to be used when
      * protocol is using extended context type and wanted to traverse
      * up the tree without doing any validation.
+     *
+     * @throws IllegalStateException when user request for traverse to logical
+     *                               root node parent
      */
-    void traverseToParentWithoutValidation();
+    void traverseToParentWithoutValidation() throws IllegalStateException;
 
     @Override
     YdtExtendedContext getRootNode();

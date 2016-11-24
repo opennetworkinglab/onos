@@ -1,0 +1,36 @@
+module augmentNetwork {
+
+    yang-version 1;
+
+    namespace "ydt.augmentNetwork";
+
+    prefix "aug";
+
+    organization "ON-LAB";
+
+    description "This module defines for augmentNetwork classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list node {
+        key "name";
+        leaf name {
+            type string;
+            description "name of node";
+        }
+    }
+
+    augment "/node" {
+        description
+        "Add container to the node model.";
+        container cont1s {
+            container cont1s {
+                leaf fine {
+                    type string;
+                }
+            }
+        }
+    }
+}

@@ -16,9 +16,6 @@
 
 package org.onosproject.yms.app.ydt;
 
-import static org.onosproject.yms.app.ydt.DefaultYdtAppContext.getAugmentAppContext;
-import static org.onosproject.yms.app.ydt.DefaultYdtAppContext.getModuleAppContext;
-
 /**
  * Represents an application tree node factory to create different types of
  * application tree node.
@@ -33,10 +30,11 @@ public final class AppNodeFactory {
      * Returns the appropriate application context on the basis of provided
      * isAugmented flag for given request.
      *
-     * @param isAugmented true for augmented context; false for module context
+     * @param flag true for augmented context; false for module context
      * @return appContext application context
      */
-    public static DefaultYdtAppContext getAppContext(boolean isAugmented) {
-        return isAugmented ? getAugmentAppContext() : getModuleAppContext();
+    public static DefaultYdtAppContext getAppContext(boolean flag) {
+        return flag ? new DefaultYdtAppContext(new AugmentedSchemaData()) :
+                new DefaultYdtAppContext(new ModuleSchemaData());
     }
 }

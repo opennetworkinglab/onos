@@ -50,16 +50,4 @@ public class YdtException extends RuntimeException {
     public YdtException(Throwable cause) {
         super(cause);
     }
-
-    /**
-     * Creates a new YDT exception from given parameters.
-     *
-     * @param keyword identify error scenario whether it is many or few
-     * @param name    name of the node
-     * @param count   supported count value
-     */
-    public YdtException(String keyword, String name, int count) {
-        super("Too " + keyword + " key parameter in " + name + ". Expected " +
-                      "count " + count + ".");
-    }
 }

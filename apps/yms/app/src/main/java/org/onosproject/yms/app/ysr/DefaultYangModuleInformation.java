@@ -17,6 +17,7 @@
 package org.onosproject.yms.app.ysr;
 
 import com.google.common.collect.ImmutableList;
+import org.onosproject.yangutils.datamodel.YangNamespace;
 import org.onosproject.yms.ysr.YangModuleIdentifier;
 import org.onosproject.yms.ysr.YangModuleInformation;
 
@@ -32,7 +33,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 class DefaultYangModuleInformation implements YangModuleInformation {
 
     private final YangModuleIdentifier moduleIdentifier;
-    private final String nameSpace;
+    private final YangNamespace nameSpace;
     private final List<String> features;
     private final List<YangModuleIdentifier> subModuleIdentifiers;
 
@@ -43,7 +44,7 @@ class DefaultYangModuleInformation implements YangModuleInformation {
      * @param nameSpace        name space of module
      */
     DefaultYangModuleInformation(YangModuleIdentifier moduleIdentifier,
-                                 String nameSpace) {
+                                 YangNamespace nameSpace) {
         this.moduleIdentifier = moduleIdentifier;
         this.nameSpace = nameSpace;
         subModuleIdentifiers = new ArrayList<>();
@@ -55,8 +56,7 @@ class DefaultYangModuleInformation implements YangModuleInformation {
         return moduleIdentifier;
     }
 
-    @Override
-    public String namespace() {
+    public YangNamespace namespace() {
         return nameSpace;
     }
 

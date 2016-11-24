@@ -69,6 +69,10 @@ class XmlCodecListener implements XmlListener {
             nameSpace = element.getNamespace().getURI();
         }
 
+        if (nodeType == OBJECT_NODE && element.content() == null || element
+                .content().isEmpty()) {
+            nodeType = TEXT_NODE;
+        }
         if (nodeType == OBJECT_NODE) {
             if (ydtExtBuilder != null) {
                 ydtExtBuilder.addChild(element.getName(), nameSpace, opType);

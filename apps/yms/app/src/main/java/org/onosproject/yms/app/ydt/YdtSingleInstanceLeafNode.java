@@ -16,7 +16,8 @@
 
 package org.onosproject.yms.app.ydt;
 
-import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.app.ydt.exceptions.YdtException;
 
 import static org.onosproject.yms.app.ydt.YdtConstants.FMT_DUP_ENTRY;
 import static org.onosproject.yms.app.ydt.YdtConstants.errorMsg;
@@ -33,13 +34,27 @@ class YdtSingleInstanceLeafNode extends YdtNode {
      */
     private String value;
 
+    /*
+     * Value of the leaf.
+     */
+    private Boolean isKeyLeaf = false;
+
     /**
      * Creates a YANG single instance leaf node.
      *
-     * @param id node identifier of YDT single instance leaf node
+     * @param node schema of YDT single instance leaf node
      */
-    protected YdtSingleInstanceLeafNode(YangSchemaNodeIdentifier id) {
-        super(SINGLE_INSTANCE_LEAF_VALUE_NODE, id);
+    YdtSingleInstanceLeafNode(YangSchemaNode node) {
+        super(SINGLE_INSTANCE_LEAF_VALUE_NODE, node);
+    }
+
+    /**
+     * Returns the flag indicating that requested leaf is key-leaf or not.
+     *
+     * @return isKeyLeaf true, for key leaf; false non key leaf
+     */
+    public Boolean isKeyLeaf() {
+        return isKeyLeaf;
     }
 
     @Override
@@ -48,13 +63,14 @@ class YdtSingleInstanceLeafNode extends YdtNode {
     }
 
     @Override
-    public void addValue(String value) {
+    public void addValue(String value) throws YdtException {
         // Check the value against corresponding data-type.
-        try {
-            getYangSchemaNode().isValueValid(value);
-        } catch (Exception e) {
-            errorHandler(e.getLocalizedMessage(), this);
-        }
+        //TODO validation need to be decided
+//        try {
+//            getYangSchemaNode().isValueValid(value);
+//        } catch (Exception e) {
+//            throw new YdtException(e.getLocalizedMessage());
+//        }
 
         // After validation is successful then add value to node.
         this.value = value;
@@ -62,13 +78,13 @@ class YdtSingleInstanceLeafNode extends YdtNode {
 
 
     @Override
-    public void addValueWithoutValidation(String value) {
+    public void addValueWithoutValidation(String value, boolean isKeyLeaf) {
         this.value = value;
+        this.isKeyLeaf = isKeyLeaf;
     }
 
     @Override
-    public void validDuplicateEntryProcessing() {
-        errorHandler(errorMsg(FMT_DUP_ENTRY, getYdtNodeIdentifier().getName()),
-                     this);
+    public void validDuplicateEntryProcessing() throws YdtException {
+        throw new YdtException(errorMsg(FMT_DUP_ENTRY, getName()));
     }
 }

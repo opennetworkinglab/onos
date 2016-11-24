@@ -16,7 +16,8 @@
 
 package org.onosproject.yms.app.ydt;
 
-import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.app.ydt.exceptions.YdtException;
 
 import static org.onosproject.yms.app.ydt.YdtConstants.FMT_DUP_ENTRY;
 import static org.onosproject.yms.app.ydt.YdtConstants.errorMsg;
@@ -30,15 +31,14 @@ class YdtSingleInstanceNode extends YdtNode {
     /**
      * Creates a YANG single instance node object.
      *
-     * @param id node identifier of YDT single instance node
+     * @param node schema of YDT single instance node
      */
-    protected YdtSingleInstanceNode(YangSchemaNodeIdentifier id) {
-        super(SINGLE_INSTANCE_NODE, id);
+    YdtSingleInstanceNode(YangSchemaNode node) {
+        super(SINGLE_INSTANCE_NODE, node);
     }
 
     @Override
-    public void validDuplicateEntryProcessing() {
-        errorHandler(errorMsg(FMT_DUP_ENTRY, getYdtNodeIdentifier().getName()),
-                     this);
+    public void validDuplicateEntryProcessing() throws YdtException {
+        throw new YdtException(errorMsg(FMT_DUP_ENTRY, getName()));
     }
 }

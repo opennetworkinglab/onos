@@ -229,8 +229,8 @@ public final class YtbUtil {
         YangNode moduleNode = curNode.getParent();
         String moduleName = moduleNode.getJavaClassNameOrBuiltInType();
         String modulePackage = moduleNode.getJavaPackage();
-        return registry.getRegisteredClass(moduleNode,
-                                           modulePackage + PERIOD + moduleName);
+        return registry.getRegisteredClass(moduleNode
+        );
     }
 
     /**

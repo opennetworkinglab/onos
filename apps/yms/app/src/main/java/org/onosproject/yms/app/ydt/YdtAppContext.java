@@ -17,8 +17,6 @@
 package org.onosproject.yms.app.ydt;
 
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
-import org.onosproject.yangutils.datamodel.YangSchemaNodeContextInfo;
-import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
 import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YdtContextOperationType;
 
@@ -55,25 +53,11 @@ public interface YdtAppContext {
     YdtAppContext getFirstChild();
 
     /**
-     * Sets the context of first child.
-     *
-     * @param child node
-     */
-    void setChild(YdtAppContext child);
-
-    /**
      * Returns the context of last child.
      *
      * @return context of last child
      */
     YdtAppContext getLastChild();
-
-    /**
-     * Sets the context of last child.
-     *
-     * @param child node
-     */
-    void setLastChild(YdtAppContext child);
 
     /**
      * Returns the context of next sibling.
@@ -139,13 +123,6 @@ public interface YdtAppContext {
     YdtContext getModuleContext();
 
     /**
-     * Sets the application's ydtContext.
-     *
-     * @param moduleNode application's ydtContext
-     */
-    void setModuleContext(YdtContext moduleNode);
-
-    /**
      * Returns the YangSchemaNode of augmenting application.
      *
      * @return YangSchemaNode of augmenting application
@@ -165,19 +142,6 @@ public interface YdtAppContext {
      * @param newChild name of child to be added
      */
     void addChild(YdtAppContext newChild);
-
-    /**
-     * Returns augmenting node module yang schema node.
-     *
-     * @param id          schema node identifier
-     * @param contextInfo Yang Schema node context info
-     *                    which is having YangSchemaNode and
-     *                    ContextSwitchedNode
-     * @return augmenting node module yang schema node
-     */
-    YangSchemaNode getAugmentingSchemaNode(
-            YangSchemaNodeIdentifier id,
-            YangSchemaNodeContextInfo contextInfo);
 
     /**
      * Updates the app tree operation type.
@@ -212,12 +176,4 @@ public interface YdtAppContext {
      * @return schema node
      */
     YangSchemaNode getYangSchemaNode();
-
-    /**
-     * Adds the given schema node in to application set.
-     *
-     * @param schemaNode schema node to be added
-     * @return true for success; false otherwise
-     */
-    boolean addSchemaToAppSet(YangSchemaNode schemaNode);
 }

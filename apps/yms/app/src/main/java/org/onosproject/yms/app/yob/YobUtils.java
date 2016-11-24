@@ -295,8 +295,8 @@ final class YobUtils {
 
             }
 
-            Class<?> regClass = registry.getRegisteredClass(curSchemaNode,
-                                                            qualifiedClassName);
+            Class<?> regClass = registry.getRegisteredClass(curSchemaNode
+            );
             return regClass.getClassLoader();
 
         }
@@ -328,8 +328,7 @@ final class YobUtils {
                     ((YangNode) augmentSchemaNode).getParent();
 
             Class<?> moduleClass = registry.getRegisteredClass(
-                    moduleNode, getCapitalCase(
-                            moduleNode.getJavaClassNameOrBuiltInType()));
+                    moduleNode);
             return moduleClass.getClassLoader();
         }
 

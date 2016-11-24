@@ -17,10 +17,10 @@
 package org.onosproject.yms.app.ydt;
 
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
-import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.app.ydt.exceptions.YdtException;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static org.onosproject.yms.app.ydt.YdtConstants.errorMsg;
@@ -39,15 +39,15 @@ class YdtMultiInstanceLeafNode extends YdtNode {
     /**
      * Set of values.
      */
-    private final Set<String> valueSet = new HashSet<>();
+    private final Set<String> valueSet = new LinkedHashSet<>();
 
     /**
      * Creates a YANG multi instance leaf node.
      *
-     * @param id node identifier of YDT multi instance node
+     * @param node schema of YDT multi instance node
      */
-    protected YdtMultiInstanceLeafNode(YangSchemaNodeIdentifier id) {
-        super(MULTI_INSTANCE_LEAF_VALUE_NODE, id);
+    YdtMultiInstanceLeafNode(YangSchemaNode node) {
+        super(MULTI_INSTANCE_LEAF_VALUE_NODE, node);
     }
 
     @Override
@@ -56,13 +56,14 @@ class YdtMultiInstanceLeafNode extends YdtNode {
     }
 
     @Override
-    public void addValue(String value) {
+    public void addValue(String value) throws YdtException {
         // check the value against corresponding data-type.
-        try {
-            getYangSchemaNode().isValueValid(value);
-        } catch (Exception e) {
-            errorHandler(e.getLocalizedMessage(), this);
-        }
+        //TODO validation need to be decided
+//        try {
+//            getYangSchemaNode().isValueValid(value);
+//        } catch (Exception e) {
+//            throw new YdtException(e.getLocalizedMessage());
+//        }
         addValueToValueSet(value);
     }
 
@@ -71,33 +72,33 @@ class YdtMultiInstanceLeafNode extends YdtNode {
      * the value.
      *
      * @param value value to be added
+     * @throws YdtException when the duplicate entry found in leaf-list node
      */
-    private void addValueToValueSet(String value) {
-
+    private void addValueToValueSet(String value) throws YdtException {
         if (!valueSet.add(value)) {
-            errorHandler(errorMsg(FMT_DUP_ENTRY,
-                                  getYdtNodeIdentifier().getName()), this);
+            throw new YdtException(errorMsg(FMT_DUP_ENTRY, getName()));
         }
     }
 
     @Override
-    public void addValueSet(Set valueSet) {
-        String value = null;
+    public void addValueSet(Set valueSet) throws YdtException {
+        String value;
         // Check the value against corresponding data-type.
         for (Object aValueSet : valueSet) {
-
-            try {
-                value = String.valueOf(aValueSet);
-                getYangSchemaNode().isValueValid(value);
-            } catch (DataModelException e) {
-                errorHandler(e.getLocalizedMessage(), this);
-            }
+            value = String.valueOf(aValueSet);
+            //TODO validation need to be decided
+//            try {
+//                value = String.valueOf(aValueSet);
+//                getYangSchemaNode().isValueValid(value);
+//            } catch (DataModelException e) {
+//                throw new YdtException(e.getLocalizedMessage());
+//            }
             addValueToValueSet(value);
         }
     }
 
     @Override
-    public void addValueWithoutValidation(String value) {
+    public void addValueWithoutValidation(String value, boolean isKeyLeaf) {
         valueSet.add(value);
     }
 

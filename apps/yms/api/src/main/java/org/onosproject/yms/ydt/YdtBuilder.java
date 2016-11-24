@@ -68,8 +68,11 @@ public interface YdtBuilder extends Ydt {
      * @param name      name of child to be added
      * @param namespace namespace of child to be added, if it's null, parent's
      *                  namespace will be applied to child
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
-    void addChild(String name, String namespace);
+    void addChild(String name, String namespace)
+            throws IllegalArgumentException;
 
     /**
      * Adds a last child to YANG data tree, this method is to be used by
@@ -92,8 +95,11 @@ public interface YdtBuilder extends Ydt {
      * @param namespace namespace of child to be added, if it's null, parent's
      *                  namespace will be applied to child
      * @param ydtType   type of YDT node to be added
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
-    void addChild(String name, String namespace, YdtType ydtType);
+    void addChild(String name, String namespace, YdtType ydtType)
+            throws IllegalArgumentException;
 
     /**
      * Adds a last child to YANG data tree; this method is to be used by
@@ -119,9 +125,11 @@ public interface YdtBuilder extends Ydt {
      * @param namespace namespace of child to be added, if it's null, parent's
      *                  namespace will be applied to child
      * @param opType    type of requested operation over a node
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
-    void addChild(String name, String namespace,
-                  YdtContextOperationType opType);
+    void addChild(String name, String namespace, YdtContextOperationType opType)
+            throws IllegalArgumentException;
 
     /**
      * Adds a last child to YANG data tree; this method is to be used by
@@ -148,10 +156,12 @@ public interface YdtBuilder extends Ydt {
      *                  namespace will be applied to child
      * @param ydtType   type of YDT node to be added
      * @param opType    type of requested operation over a node
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
     void addChild(String name, String namespace, YdtType ydtType,
-                  YdtContextOperationType opType);
-
+                  YdtContextOperationType opType)
+            throws IllegalArgumentException;
 
     /**
      * Adds a last leaf with value to YANG data tree. Protocols unaware of
@@ -165,8 +175,11 @@ public interface YdtBuilder extends Ydt {
      * @param namespace namespace of child to be added, if it's null, parent's
      *                  namespace will be applied to child
      * @param value     value of the child
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
-    void addLeaf(String name, String namespace, String value);
+    void addLeaf(String name, String namespace, String value)
+            throws IllegalArgumentException;
 
     /**
      * Adds a last leaf with list of values to YANG data tree. This method is
@@ -179,8 +192,11 @@ public interface YdtBuilder extends Ydt {
      * @param namespace namespace of child to be added, if it's null, parent's
      *                  namespace will be applied to child
      * @param valueSet  list of value of the child
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
-    void addLeaf(String name, String namespace, Set<String> valueSet);
+    void addLeaf(String name, String namespace, Set<String> valueSet)
+            throws IllegalArgumentException;
 
     /**
      * Adds an instance of a child list node, or adds a child leaf list with
@@ -201,17 +217,23 @@ public interface YdtBuilder extends Ydt {
      * @param valueList values of the keys in URI in the same order
      *                  as defined in YANG file
      * @param opType    type of requested operation over a node
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
      */
     void addMultiInstanceChild(String name, String namespace,
                                List<String> valueList,
-                               YdtContextOperationType opType);
+                               YdtContextOperationType opType)
+            throws IllegalArgumentException;
 
     /**
      * Traverses up in YANG data tree to the parent node, it is to be used when
      * protocol is using context type "current" and wanted to traverse up the
      * tree.
+     *
+     * @throws IllegalStateException when application is not in an appropriate
+     *                               state for the requested operation.
      */
-    void traverseToParent();
+    void traverseToParent() throws IllegalStateException;
 
     /**
      * Returns the current context information available in YDT node.

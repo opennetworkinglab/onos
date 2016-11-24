@@ -29,6 +29,9 @@ public class XmlCodecSingleInstanceLeafHandler extends XmlCodecHandler {
     @Override
     public void setXmlValue(YdtContext ydtContext,
                             Stack<Element> elementStack) {
-        elementStack.peek().setText(ydtContext.getValue());
+
+        if (ydtContext.getValue() != null) {
+            elementStack.peek().setText(ydtContext.getValue());
+        }
     }
 }

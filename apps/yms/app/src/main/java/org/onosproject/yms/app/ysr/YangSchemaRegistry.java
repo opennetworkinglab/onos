@@ -17,6 +17,8 @@
 package org.onosproject.yms.app.ysr;
 
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.ysr.YangModuleIdentifier;
+import org.onosproject.yms.ysr.YangModuleLibrary;
 
 /**
  * Abstraction of entity which provides interfaces to YANG schema registry.
@@ -27,7 +29,8 @@ public interface YangSchemaRegistry {
      * Registers applications to YMS.
      *
      * @param managerObject application's object
-     * @param serviceClass  service class to be registered
+     * @param serviceClass  service class which needs to be
+     *                      registered
      */
     void registerApplication(Object managerObject, Class<?> serviceClass);
 
@@ -96,9 +99,46 @@ public interface YangSchemaRegistry {
      * Returns registered service class.
      *
      * @param schemaNode YANG schema node
-     * @param appName    application's name
      * @return registered service class
      */
-    Class<?> getRegisteredClass(YangSchemaNode schemaNode, String appName);
+    Class<?> getRegisteredClass(YangSchemaNode schemaNode);
+
+    /**
+     * Verifies if the manager object is already registered with notification
+     * handler.
+     *
+     * @param appObj  application object
+     * @param service service class
+     * @return true if the manager object is already registered with
+     * notification handler
+     */
+    boolean verifyNotificationObject(Object appObj, Class<?> service);
+
+    /**
+     * Clears database for YSR.
+     */
+    void flushYsrData();
+
+    /**
+     * Protocols like RESTCONF, use the definitions within the YANG modules
+     * advertised by the server are used to construct an RPC operation or
+     * data resource identifier.
+     * <p>
+     * Schema Resource:
+     * The server can optionally support retrieval of the YANG modules it
+     * supports.
+     *
+     * @param moduleIdentifier module's identifier
+     * @return YANG file contents of the requested YANG module.
+     */
+    String getYangFile(YangModuleIdentifier moduleIdentifier);
+
+    /**
+     * Process module library for a registered service.
+     *
+     * @param serviceName service class name
+     * @param library     YANG module library
+     */
+    void processModuleLibrary(String serviceName, YangModuleLibrary library);
 
 }

@@ -17,7 +17,6 @@
 package org.onosproject.yms.app.ydt;
 
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
-import org.onosproject.yms.app.ydt.exceptions.YdtException;
 import org.onosproject.yms.ydt.YdtContext;
 
 import java.util.ArrayList;
@@ -27,20 +26,17 @@ import java.util.List;
  * Manages the application information required for schema nodes defined in
  * the module (sub-module).
  */
-public class ModuleSchemaData implements AppData {
-
-    private static final String E_NOT_MAINTAINED =
-            "Augmented info is not maintained.";
+public class ModuleSchemaData implements ModuleAppData {
 
     /*
      * Reference for application's root ydtContext.
      */
-    private YdtContext moduleContext;
+    private YdtExtendedContext moduleContext;
 
     /*
      * Reference for list of nodes with operation type delete.
      */
-    private List<YdtContext> deleteNodes = new ArrayList<>();
+    private final List<YdtContext> deleteNodes = new ArrayList<>();
 
     @Override
     public List<YdtContext> getDeleteNodes() {
@@ -59,27 +55,17 @@ public class ModuleSchemaData implements AppData {
     }
 
     @Override
-    public void setModuleContext(YdtContext moduleContext) {
+    public void setModuleContext(YdtExtendedContext moduleContext) {
         this.moduleContext = moduleContext;
     }
 
     @Override
-    public YangSchemaNode getAugmentingSchemaNode() {
-        throw new YdtException(E_NOT_MAINTAINED);
-    }
-
-    @Override
-    public void setAugmentingSchemaNode(YangSchemaNode schemaNode) {
-        throw new YdtException(E_NOT_MAINTAINED);
-    }
-
-    @Override
     public YangSchemaNode getSchemaNode() {
-        return ((YdtExtendedContext) moduleContext).getYangSchemaNode();
+        return moduleContext.getYangSchemaNode();
     }
 
     @Override
     public YangSchemaNode getRootSchemaNode() {
-        return getSchemaNode();
+        return moduleContext.getYangSchemaNode();
     }
 }

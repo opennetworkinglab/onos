@@ -26,7 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Representation of default YANG module identifier.
  */
-class DefaultYangModuleIdentifier implements YangModuleIdentifier,
+public class DefaultYangModuleIdentifier implements YangModuleIdentifier,
         Comparator<YangModuleIdentifier> {
 
     private final String moduleName;

@@ -78,16 +78,6 @@ public final class DefaultCodecUtils {
     }
 
     /**
-     * Returns true, if the list is not null and non-empty; false otherwise.
-     *
-     * @param object list object
-     * @return true, if the list is not null and non-empty; false otherwise
-     */
-    public static boolean isNonEmpty(List object) {
-        return object != null && !object.isEmpty();
-    }
-
-    /**
      * Converts a list of path segments to a YDT builder tree.
      *
      * @param paths     the list of path segments split from URI

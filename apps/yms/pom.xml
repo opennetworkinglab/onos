@@ -33,6 +33,14 @@
     <modules>
         <module>api</module>
         <module>app</module>
+        <module>ut</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-datamodel</artifactId>
+            <version>1.10</version>
+        </dependency>
+    </dependencies>
 
 </project>

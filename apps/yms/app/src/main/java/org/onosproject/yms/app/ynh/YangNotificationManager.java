@@ -43,10 +43,22 @@ public class YangNotificationManager
         implements YangNotificationExtendedService {
 
     private static final String YANG_NOTIFICATION = "yangnotification";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final ExecutorService executor;
-    private final YnhAbstractListener listener;
-    private final YangSchemaRegistry schemaRegistry;
+
+    private ExecutorService executor;
+
+    /**
+     * YANG notification abstract listener. This listener will listens
+     * abstractly to all the notification from the application to which it
+     * has subscribed.
+     */
+    private YnhAbstractListener listener;
+
+    /**
+     * Maintains schema registry.
+     */
+    private YangSchemaRegistry schemaRegistry;
 
     /**
      * Creates an instance of YANG notification manager.
@@ -55,8 +67,8 @@ public class YangNotificationManager
      */
     public YangNotificationManager(YangSchemaRegistry registry) {
         listener = new YnhAbstractListener();
-        executor = Executors.newSingleThreadExecutor(
-                groupedThreads("onos/yms", "event-handler-%d", log));
+        executor = Executors.newSingleThreadExecutor(groupedThreads(
+                "onos/yms", "event-handler-%d", log));
         schemaRegistry = registry;
     }
 
@@ -78,10 +90,12 @@ public class YangNotificationManager
      */
     private class YnhAbstractListener<E extends Event> implements
             EventListener<E> {
+
         @Override
         public void event(Event event) {
             executor.execute(() -> {
                 try {
+                    log.info("Event received in ynh " + event.type());
                     /*
                      * Obtain YANG data tree corresponding to notification with
                      * logical root node as yangnotification, followed by
