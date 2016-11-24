@@ -20,6 +20,7 @@ import org.onosproject.yms.app.yob.exception.YobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onosproject.yms.app.yob.YobConstants.E_BUILDER_IS_NOT_ALREADY_SET;
 import static org.onosproject.yms.app.yob.YobConstants.E_BUILDER_IS_NOT_SET;
 import static org.onosproject.yms.app.yob.YobConstants.E_BUILT_OBJ_IS_NOT_SET;
 import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_CREATE_OBJ;
@@ -27,6 +28,7 @@ import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_LOAD_CLASS;
 import static org.onosproject.yms.app.yob.YobConstants.E_OBJ_BUILDING_WITHOUT_BUILDER;
 import static org.onosproject.yms.app.yob.YobConstants.E_OBJ_IS_ALREADY_BUILT_NOT_BUILD;
 import static org.onosproject.yms.app.yob.YobConstants.E_OBJ_IS_ALREADY_BUILT_NOT_FETCH;
+import static org.onosproject.yms.app.yob.YobConstants.E_OBJ_IS_ALREADY_BUILT_NOT_SET;
 import static org.onosproject.yms.app.yob.YobConstants.E_OBJ_IS_NOT_SET_NOT_FETCH;
 import static org.onosproject.yms.app.yob.YobConstants.E_REFLECTION_FAIL_TO_CREATE_OBJ;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_CREATE_OBJ;
@@ -73,7 +75,7 @@ class YobBuilderOrBuiltObject {
             yangDefaultClass =
                     registeredAppClassLoader.loadClass(qualifiedClassName);
             yangBuilderClass = yangDefaultClass.getDeclaredClasses()[0];
-            builderOrBuiltObject = yangBuilderClass.newInstance();
+            setBuilderObject(yangBuilderClass.newInstance());
         } catch (ClassNotFoundException e) {
             log.error(L_FAIL_TO_LOAD_CLASS, qualifiedClassName);
             throw new YobException(E_FAIL_TO_LOAD_CLASS + qualifiedClassName);
@@ -91,8 +93,7 @@ class YobBuilderOrBuiltObject {
      * Returns the builder object if it is set.
      *
      * @return builder object
-     * @throws YobException if builder object is not available or if it is
-     *                      already built
+     * @throws YobException if builder is not available
      */
     Object getBuilderObject() {
         if (isBuilt) {
@@ -104,6 +105,25 @@ class YobBuilderOrBuiltObject {
         }
 
         return builderOrBuiltObject;
+    }
+
+    /**
+     * Check if the builder object is being initialized for the first time and
+     * set it.
+     *
+     * @param builderObject new builder object
+     * @throws YobException if built object is not available
+     */
+    private void setBuilderObject(Object builderObject) {
+        if (isBuilt) {
+            throw new YobException(E_OBJ_IS_ALREADY_BUILT_NOT_SET);
+        }
+
+        if (builderOrBuiltObject != null) {
+            throw new YobException(E_BUILDER_IS_NOT_ALREADY_SET);
+        }
+
+        builderOrBuiltObject = builderObject;
     }
 
     /**

@@ -1,0 +1,92 @@
+module uniontest {
+
+    yang-version 1;
+
+    namespace "ydt.uniontest";
+
+    prefix "uniontest";
+
+    organization "ON-LAB";
+
+    description "This module defines for union classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list unionList {
+        config false;
+        leaf id {
+            type union {
+                type int8;
+                type binary;
+            }
+        }
+    }
+
+    typedef percent {
+        type union {
+            type int8;
+            type bits {
+                bit bit0 {
+                    position 0;
+                }
+                bit bit1 {
+                    position 1;
+                }
+                bit bit2 {
+                    position 2;
+                }
+            }
+        }
+    }
+
+    leaf name {
+        type percent;
+    }
+
+    grouping greeting {
+        leaf surname {
+            type union {
+                type int8;
+                type string;
+            }
+        }
+    }
+
+    container cont1 {
+        uses greeting;
+    }
+
+    augment "/cont1" {
+        leaf lastname {
+            type union {
+                type int8;
+                type bits {
+                    bit bit0 {
+                        position 0;
+                    }
+                    bit bit1 {
+                        position 1;
+                    }
+                    bit bit2 {
+                        position 2;
+                    }
+                }
+            }
+        }
+    }
+
+    container food {
+        choice snack {
+            case sportsarena {
+                leaf pretzel {
+                    type union {
+                        type int8;
+                        type binary;
+                    }
+                }
+            }
+        }
+    }
+}

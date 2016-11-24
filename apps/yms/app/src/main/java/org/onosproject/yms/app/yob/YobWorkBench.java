@@ -23,6 +23,7 @@ import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
 import org.onosproject.yms.app.yob.exception.YobException;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
+import org.onosproject.yms.ydt.YdtContextOperationType;
 import org.onosproject.yms.ydt.YdtType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ import java.util.Map;
 
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_AUGMENT_NODE;
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_CHOICE_NODE;
-import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yms.app.ydt.AppType.YOB;
 import static org.onosproject.yms.app.yob.YobConstants.ADD_AUGMENT_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.ADD_TO;
@@ -47,15 +47,18 @@ import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_GET_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_INVOKE_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_LOAD_CLASS;
 import static org.onosproject.yms.app.yob.YobConstants.E_HAS_NO_CHILD;
-import static org.onosproject.yms.app.yob.YobConstants.E_NO_HANDLE_FOR_YDT;
 import static org.onosproject.yms.app.yob.YobConstants.E_SET_OP_TYPE_FAIL;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_BUILD;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_GET_FIELD;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_GET_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_INVOKE_METHOD;
-import static org.onosproject.yms.app.yob.YobConstants.OPERATION_TYPE;
+import static org.onosproject.yms.app.yob.YobConstants.ONOS_YANG_OP_TYPE;
 import static org.onosproject.yms.app.yob.YobConstants.OP_TYPE;
 import static org.onosproject.yms.app.yob.YobConstants.VALUE_OF;
+import static org.onosproject.yms.app.yob.YobConstants.YANG;
+import static org.onosproject.yms.app.yob.YobUtils.getCapitalCase;
+import static org.onosproject.yms.app.yob.YobUtils.getModuleInterface;
+import static org.onosproject.yms.app.yob.YobUtils.getQualifiedDefaultClass;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
 import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_NODE;
 
@@ -113,228 +116,12 @@ class YobWorkBench {
     }
 
     /**
-     * Returns the builder object or the built object corresponding to the
-     * current schema node.
-     *
-     * @return builder or built object
-     */
-    YobBuilderOrBuiltObject getBuilderOrBuiltObject() {
-        return builderOrBuiltObject;
-    }
-
-    /**
-     * Returns the parent builder object in which the child object can be set.
-     *
-     * @param node     child YDT node
-     * @param registry schema registry
-     * @return parent builder object
-     * @throws YobException if schema node does not have child
-     */
-    Object getParentBuilder(YdtExtendedContext node,
-                            YangSchemaRegistry registry) {
-
-        // Descendant schema node for whom the builder is required.
-        YangSchemaNodeIdentifier targetNode =
-                node.getYangSchemaNode().getYangSchemaNodeIdentifier();
-
-        //Current builder container
-        YobWorkBench curWorkBench = this;
-
-        YangSchemaNode nonSchemaHolder;
-        do {
-
-            //Current Schema node context
-            YangSchemaNodeContextInfo schemaContext;
-            try {
-                //Find the new schema context node.
-                schemaContext = curWorkBench.yangSchemaNode.getChildSchema(
-                        targetNode);
-
-            } catch (DataModelException e) {
-                throw new YobException(yangSchemaNode.getName() +
-                                               E_HAS_NO_CHILD +
-                                               targetNode.getName());
-            }
-
-            nonSchemaHolder = schemaContext.getContextSwitchedNode();
-
-            //If the descendant schema node is in switched context
-            if (nonSchemaHolder != null) {
-
-                YangSchemaNodeIdentifier nonSchemaIdentifier =
-                        nonSchemaHolder.getYangSchemaNodeIdentifier();
-
-                //check if the descendant builder container is already available
-                YobWorkBench childWorkBench =
-                        curWorkBench.attributeMap.get(nonSchemaIdentifier);
-
-                if (childWorkBench == null) {
-                    YobWorkBench newWorkBench = getNewChildWorkBench(
-                            schemaContext, targetNode, curWorkBench, registry);
-
-                    curWorkBench.attributeMap.put(nonSchemaIdentifier,
-                                                  newWorkBench);
-                    curWorkBench = newWorkBench;
-                } else {
-                    curWorkBench = childWorkBench;
-                }
-            }
-
-        } while (nonSchemaHolder != null);
-
-        return curWorkBench.builderOrBuiltObject.getBuilderObject();
-    }
-
-    /**
-     * Set the operation type attribute and build the object from the builder
-     * object, by invoking the build method.
-     *
-     * @param ydtNode data tree node
-     * @throws YobException if member method is not found or failed to build
-     */
-    void buildObject(YdtExtendedContext ydtNode) {
-
-        buildNonSchemaAttributes(ydtNode);
-
-        Object builderObject = builderOrBuiltObject.getBuilderObject();
-        Class<?> defaultBuilderClass = builderOrBuiltObject.yangBuilderClass;
-
-        //set the operation type
-        setOperationType(ydtNode);
-
-        // Invoking the build method to get built object from build method.
-        try {
-            Method method = defaultBuilderClass.getDeclaredMethod(BUILD);
-            if (method == null) {
-                log.error(L_FAIL_TO_GET_METHOD, defaultBuilderClass.getName());
-                throw new YobException(E_FAIL_TO_GET_METHOD +
-                                               defaultBuilderClass.getName());
-            }
-            Object builtObject = method.invoke(builderObject);
-            // The built object will be maintained in ydt context and same will
-            // be used while setting into parent method.
-            builderOrBuiltObject.setBuiltObject(builtObject);
-
-        } catch (NoSuchMethodException | InvocationTargetException |
-                IllegalAccessException e) {
-            log.error(L_FAIL_TO_BUILD, defaultBuilderClass.getName());
-            throw new YobException(E_FAIL_TO_BUILD +
-                                           defaultBuilderClass.getName());
-        }
-    }
-
-    /**
-     * Set the operation type in the built object from the YDT node.
-     * <p>
-     * It needs to be invoked only for the workbench corresponding to the
-     * schema YDT nodes, non schema node without the YDT node should not
-     * invoke this, as it is not applicable to it.
-     *
-     * @param ydtNode schema data tree node
-     * @throws YobException if fail to set the operation type
-     */
-    private void setOperationType(YdtExtendedContext ydtNode) {
-
-        Object builderObject = builderOrBuiltObject.getBuilderObject();
-        Class<?> defaultBuilderClass = builderOrBuiltObject.yangBuilderClass;
-
-        // Setting the value into YANG node operation type from ydtContext
-        // operation type.
-        try {
-            Class<?> interfaceClass = builderOrBuiltObject.yangDefaultClass;
-            Object operationType;
-            Class<?>[] innerClasses = interfaceClass.getClasses();
-            for (Class<?> innerEnumClass : innerClasses) {
-                if (innerEnumClass.getSimpleName().equals(OP_TYPE)) {
-                    Method valueOfMethod = innerEnumClass
-                            .getDeclaredMethod(VALUE_OF, String.class);
-                    if (ydtNode.getYdtContextOperationType() != null) {
-                        operationType = valueOfMethod.invoke(null, ydtNode
-                                .getYdtContextOperationType().toString());
-                        Field operationTypeField = defaultBuilderClass
-                                .getDeclaredField(OPERATION_TYPE);
-                        operationTypeField.setAccessible(true);
-                        operationTypeField.set(builderObject, operationType);
-                        break;
-                    }
-                }
-            }
-        } catch (NoSuchFieldException | NoSuchMethodException |
-                InvocationTargetException | IllegalAccessException e) {
-            log.error(E_SET_OP_TYPE_FAIL);
-            throw new YobException(E_SET_OP_TYPE_FAIL);
-        }
-    }
-
-    /**
-     * build the non schema objects and maintain it in the contained schema
-     * node.
-     *
-     * @param ydtNode contained schema node
-     */
-    private void buildNonSchemaAttributes(YdtExtendedContext ydtNode) {
-        for (Map.Entry<YangSchemaNodeIdentifier, YobWorkBench> entry :
-                attributeMap.entrySet()) {
-            YobWorkBench childWorkBench = entry.getValue();
-            childWorkBench.buildObject(ydtNode);
-
-            if (childWorkBench.yangSchemaNode.getYangSchemaNodeType() ==
-                    YANG_AUGMENT_NODE) {
-                addInAugmentation(builderOrBuiltObject.getBuilderObject(),
-                                  childWorkBench.setterInParent,
-                                  childWorkBench.getBuilderOrBuiltObject()
-                                          .getBuiltObject());
-                return;
-            }
-
-            setObjectInBuilder(
-                    builderOrBuiltObject.getBuilderObject(),
-                    childWorkBench.setterInParent,
-                    SINGLE_INSTANCE_NODE,
-                    childWorkBench.getBuilderOrBuiltObject().getBuiltObject());
-        }
-    }
-
-
-    //TODO add objectIn Augmentation
-
-    /**
-     * Sets the YANG built object in corresponding parent class method.
-     *
-     * @param ydtNode ydtExtendedContext is used to get application
-     *                related information maintained in YDT
-     * @throws YobException if there is no parent's YOB handler
-     */
-    void setObjectInParent(YdtExtendedContext ydtNode) {
-        YdtExtendedContext parentNode =
-                (YdtExtendedContext) ydtNode.getParent();
-        if (parentNode == null || parentNode.getAppInfo(YOB) == null) {
-            throw new YobException(E_NO_HANDLE_FOR_YDT);
-        }
-        YobWorkBench parentWorkBench =
-                (YobWorkBench) parentNode.getAppInfo(YOB);
-        Object parentBuilderObject =
-                parentWorkBench.builderOrBuiltObject.getBuilderObject();
-        YdtType nodeType = ydtNode.getYdtType();
-        Object objectToSetInParent = builderOrBuiltObject.getBuiltObject();
-
-        // set the object in the parent builder
-        setObjectInBuilder(parentBuilderObject, setterInParent, nodeType,
-                           objectToSetInParent);
-
-        ydtNode.addAppInfo(YOB, this);
-    }
-
-    /**
      * Set the attribute in a builder object.
      *
-     * @param builder   builder object in which the attribute needs to be
-     *                  set
+     * @param builder   builder object in which the attribute needs to be set
      * @param setter    setter method in parent
      * @param nodeType  type of node to set
      * @param attribute attribute to set in the builder
-     * @throws YobException if member is not found or failed to invoke the
-     *                      method
      */
     private static void setObjectInBuilder(Object builder, String setter,
                                            YdtType nodeType, Object attribute) {
@@ -408,7 +195,6 @@ class YobWorkBench {
 
     }
 
-
     /**
      * Creates a new builder container object corresponding to a context
      * switch schema node.
@@ -420,7 +206,6 @@ class YobWorkBench {
      * @param registry     schema registry
      * @return new builder container object corresponding to a context
      * switch schema node
-     * @throws YobException if expected child is not found in schema
      */
     private static YobWorkBench getNewChildWorkBench(
             YangSchemaNodeContextInfo childContext,
@@ -430,7 +215,7 @@ class YobWorkBench {
         YangSchemaNode ctxSwitchedNode = childContext.getContextSwitchedNode();
         String name;
 
-         /*This is the first child trying to set its object in the
+         /* This is the first child trying to set its object in the
          current context. */
         String setterInParent = ctxSwitchedNode.getJavaAttributeName();
 
@@ -440,7 +225,7 @@ class YobWorkBench {
             try {
                 childContext = ctxSwitchedNode.getChildSchema(targetNode);
                 ctxSwitchedNode = childContext.getContextSwitchedNode();
-                name = YobUtils.getQualifiedDefaultClass(
+                name = getQualifiedDefaultClass(
                         childContext.getContextSwitchedNode());
 
             } catch (DataModelException e) {
@@ -450,10 +235,10 @@ class YobWorkBench {
             }
         } else if (ctxSwitchedNode.getYangSchemaNodeType() ==
                 YANG_AUGMENT_NODE) {
-            name = YobUtils.getQualifiedDefaultClass(ctxSwitchedNode);
+            name = getQualifiedDefaultClass(ctxSwitchedNode);
             setterInParent = YobUtils.getQualifiedinterface(ctxSwitchedNode);
         } else {
-            name = YobUtils.getQualifiedDefaultClass(childContext.getSchemaNode());
+            name = getQualifiedDefaultClass(childContext.getSchemaNode());
         }
 
         ClassLoader newClassesLoader = YobUtils.getTargetClassLoader(
@@ -463,4 +248,216 @@ class YobWorkBench {
                                 setterInParent);
     }
 
+    /**
+     * Returns the builder object or the built object corresponding to the
+     * current schema node.
+     *
+     * @return builder or built object
+     */
+    YobBuilderOrBuiltObject getBuilderOrBuiltObject() {
+        return builderOrBuiltObject;
+    }
+
+    /**
+     * Returns the parent builder object in which the child object can be set.
+     *
+     * @param node     child YDT node
+     * @param registry schema registry
+     * @return parent builder object
+     */
+    Object getParentBuilder(YdtExtendedContext node,
+                            YangSchemaRegistry registry) {
+
+        // Descendant schema node for whom the builder is required.
+        YangSchemaNodeIdentifier targetNode =
+                node.getYangSchemaNode().getYangSchemaNodeIdentifier();
+
+        //Current builder container
+        YobWorkBench curWorkBench = this;
+
+        YangSchemaNode nonSchemaHolder;
+        do {
+
+            //Current Schema node context
+            YangSchemaNodeContextInfo schemaContext;
+            try {
+                //Find the new schema context node.
+                schemaContext = curWorkBench.yangSchemaNode
+                        .getChildSchema(targetNode);
+
+            } catch (DataModelException e) {
+                throw new YobException(yangSchemaNode.getName() +
+                                               E_HAS_NO_CHILD +
+                                               targetNode.getName());
+            }
+
+            nonSchemaHolder = schemaContext.getContextSwitchedNode();
+
+            //If the descendant schema node is in switched context
+            if (nonSchemaHolder != null) {
+
+                YangSchemaNodeIdentifier nonSchemaIdentifier =
+                        nonSchemaHolder.getYangSchemaNodeIdentifier();
+
+                //check if the descendant builder container is already available
+                YobWorkBench childWorkBench =
+                        curWorkBench.attributeMap.get(nonSchemaIdentifier);
+
+                if (childWorkBench == null) {
+                    YobWorkBench newWorkBench = getNewChildWorkBench(
+                            schemaContext, targetNode, curWorkBench, registry);
+
+                    curWorkBench.attributeMap.put(nonSchemaIdentifier,
+                                                  newWorkBench);
+                    curWorkBench = newWorkBench;
+                } else {
+                    curWorkBench = childWorkBench;
+                }
+            }
+
+        } while (nonSchemaHolder != null);
+
+        return curWorkBench.builderOrBuiltObject.getBuilderObject();
+    }
+
+    /**
+     * Set the operation type attribute and build the object from the builder
+     * object, by invoking the build method.
+     *
+     * @param operationType  data tree node
+     * @param schemaRegistry YANG schema registry
+     */
+    void buildObject(YdtContextOperationType operationType,
+                     YangSchemaRegistry schemaRegistry) {
+
+        buildNonSchemaAttributes(operationType, schemaRegistry);
+
+        Object builderObject = builderOrBuiltObject.getBuilderObject();
+        Class<?> defaultBuilderClass = builderOrBuiltObject.yangBuilderClass;
+
+        //set the operation type
+        setOperationType(operationType, schemaRegistry);
+
+        // Invoking the build method to get built object from build method.
+        try {
+            Method method = defaultBuilderClass.getDeclaredMethod(BUILD);
+            if (method == null) {
+                log.error(L_FAIL_TO_GET_METHOD, defaultBuilderClass.getName());
+                throw new YobException(E_FAIL_TO_GET_METHOD +
+                                               defaultBuilderClass.getName());
+            }
+            Object builtObject = method.invoke(builderObject);
+            // The built object will be maintained in ydt context and same will
+            // be used while setting into parent method.
+            builderOrBuiltObject.setBuiltObject(builtObject);
+
+        } catch (NoSuchMethodException | InvocationTargetException |
+                IllegalAccessException e) {
+            log.error(L_FAIL_TO_BUILD, defaultBuilderClass.getName());
+            throw new YobException(E_FAIL_TO_BUILD +
+                                           defaultBuilderClass.getName());
+        }
+    }
+
+    /**
+     * Set the operation type in the built object from the YDT node.
+     * <p>
+     * It needs to be invoked only for the workbench corresponding to the
+     * schema YDT nodes, non schema node without the YDT node should not
+     * invoke this, as it is not applicable to it.
+     *
+     * @param ydtoperation   schema data tree node
+     * @param schemaRegistry YANG schema registry
+     */
+    private void setOperationType(YdtContextOperationType ydtoperation,
+                                  YangSchemaRegistry schemaRegistry) {
+
+        if (ydtoperation == null) {
+            return;
+        }
+
+        Object builderObject = builderOrBuiltObject.getBuilderObject();
+        Class<?> defaultBuilderClass = builderOrBuiltObject.yangBuilderClass;
+        Class<?>[] intfClass = builderOrBuiltObject.yangDefaultClass
+                .getInterfaces();
+        String setterName = YANG + intfClass[0].getSimpleName() + OP_TYPE;
+
+        // Setting the value into YANG node operation type from ydtContext
+        // operation type.
+        try {
+            Class<?> interfaceClass;
+            interfaceClass = getModuleInterface(yangSchemaNode,
+                                                schemaRegistry);
+            Object operationType;
+            Class<?>[] innerClasses = interfaceClass.getClasses();
+            for (Class<?> innerEnumClass : innerClasses) {
+                if (innerEnumClass.getSimpleName().equals(ONOS_YANG_OP_TYPE)) {
+                    Method valueOfMethod = innerEnumClass
+                            .getDeclaredMethod(VALUE_OF, String.class);
+                    operationType = valueOfMethod.invoke(null, ydtoperation.
+                            toString());
+                    Field operationTypeField = defaultBuilderClass
+                            .getDeclaredField(setterName);
+                    operationTypeField.setAccessible(true);
+                    operationTypeField.set(builderObject, operationType);
+                    break;
+                }
+            }
+        } catch (NoSuchMethodException |
+                InvocationTargetException | IllegalAccessException |
+                IllegalArgumentException e) {
+            log.error(E_SET_OP_TYPE_FAIL);
+            throw new YobException(E_SET_OP_TYPE_FAIL);
+        } catch (NoSuchFieldException e) {
+            log.error(E_SET_OP_TYPE_FAIL);
+        }
+    }
+
+    /**
+     * build the non schema objects and maintain it in the contained schema
+     * node.
+     *
+     * @param operationType  contained schema node
+     * @param schemaRegistry YANG schema registry
+     */
+    private void buildNonSchemaAttributes(YdtContextOperationType operationType,
+                                          YangSchemaRegistry schemaRegistry) {
+        for (Map.Entry<YangSchemaNodeIdentifier, YobWorkBench> entry :
+                attributeMap.entrySet()) {
+            YobWorkBench childWorkBench = entry.getValue();
+            childWorkBench.buildObject(operationType, schemaRegistry);
+
+            if (childWorkBench.yangSchemaNode.getYangSchemaNodeType() ==
+                    YANG_AUGMENT_NODE) {
+                addInAugmentation(builderOrBuiltObject.getBuilderObject(),
+                                  childWorkBench.setterInParent,
+                                  childWorkBench.getBuilderOrBuiltObject()
+                                          .getBuiltObject());
+                continue;
+            }
+
+            setObjectInBuilder(
+                    builderOrBuiltObject.getBuilderObject(),
+                    childWorkBench.setterInParent,
+                    SINGLE_INSTANCE_NODE,
+                    childWorkBench.getBuilderOrBuiltObject().getBuiltObject());
+        }
+    }
+
+    /**
+     * Sets the YANG built object in corresponding parent class method.
+     *
+     * @param childnode      ydtExtendedContext is used to get application
+     *                       related information maintained in YDT
+     * @param schemaRegistry YANG schema registry
+     */
+    public void setObject(YdtExtendedContext childnode,
+                          YangSchemaRegistry schemaRegistry) {
+        Object builder = getParentBuilder(childnode, schemaRegistry);
+        YobWorkBench childWorkBench = (YobWorkBench) childnode.getAppInfo(YOB);
+
+        setObjectInBuilder(builder, childWorkBench.setterInParent,
+                           childnode.getYdtType(), childWorkBench
+                                   .builderOrBuiltObject.getBuiltObject());
+    }
 }

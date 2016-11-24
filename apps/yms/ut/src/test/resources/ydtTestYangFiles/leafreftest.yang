@@ -1,0 +1,71 @@
+module leafreftest {
+
+    yang-version 1;
+
+    namespace "ydt.leafreftest";
+
+    prefix "uniontest";
+
+    organization "ON-LAB";
+
+    description "This module defines for union classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf middlename  {
+        type string;
+    }
+
+    list leafrefList {
+        config false;
+        leaf id {
+            type leafref {
+                path "/middlename";
+            }
+        }
+    }
+
+    typedef percent {
+        type leafref {
+            path "/middlename";
+        }
+    }
+
+    leaf name {
+        type percent;
+    }
+
+    grouping greeting {
+        leaf surname {
+            type leafref {
+                path "/middlename";
+            }
+        }
+    }
+
+    container cont1 {
+        uses greeting;
+    }
+
+    augment "/cont1" {
+        leaf lastname {
+            type leafref {
+                path "/middlename";
+            }
+        }
+    }
+
+    container food {
+        choice snack {
+            case sportsarena {
+                leaf pretzel {
+                    type leafref {
+                        path "/middlename";
+                    }
+                }
+            }
+        }
+    }
+}

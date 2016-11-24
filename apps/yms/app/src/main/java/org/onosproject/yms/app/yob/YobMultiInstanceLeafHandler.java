@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Set;
 
+import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.IDENTITYREF;
 import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yms.app.ydt.AppType.YOB;
 import static org.onosproject.yms.app.yob.YobConstants.ADD_TO;
@@ -74,6 +75,10 @@ class YobMultiInstanceLeafHandler
                             YangSchemaRegistry schemaRegistry) {
         Class<?> parentBuilderClass = null;
         YangSchemaNode yangSchemaNode = leafListNode.getYangSchemaNode();
+        while (yangSchemaNode.getReferredSchema() != null) {
+            yangSchemaNode = yangSchemaNode.getReferredSchema();
+        }
+
         YdtExtendedContext parentYdtNode =
                 (YdtExtendedContext) leafListNode.getParent();
         YobWorkBench parentYobWorkBench =
@@ -90,17 +95,25 @@ class YobMultiInstanceLeafHandler
                         .getDeclaredField(setterInParent);
                 ParameterizedType genericListType =
                         (ParameterizedType) leafName.getGenericType();
-                Class<?> genericListClass =
-                        (Class<?>) genericListType.getActualTypeArguments()[0];
-                Method setterMethod =
-                        parentBuilderClass.getDeclaredMethod(
-                                ADD_TO + getCapitalCase(setterInParent),
-                                genericListClass);
+                Class<?> genericListClass;
+                if (((YangLeafList) leafListNode.getYangSchemaNode())
+                        .getDataType().getDataType() == IDENTITYREF) {
+                    ParameterizedType type = (ParameterizedType)
+                            genericListType.getActualTypeArguments()[0];
+                    genericListClass = type.getClass().getClass();
+                } else {
+                    genericListClass = (Class<?>) genericListType.getActualTypeArguments()[0];
+                }
+
+                Method setterMethod = parentBuilderClass.getDeclaredMethod(
+                        ADD_TO + getCapitalCase(setterInParent), genericListClass);
+
                 JavaQualifiedTypeInfoContainer javaQualifiedType =
                         (JavaQualifiedTypeInfoContainer) yangSchemaNode;
                 YangType<?> yangType =
                         ((YangLeafList) javaQualifiedType).getDataType();
-                YobUtils.setDataFromStringValue(yangType, value, setterMethod,
+                YobUtils.setDataFromStringValue(yangType.getDataType(), value,
+                                                setterMethod,
                                                 builderObject, leafListNode);
             } catch (NoSuchMethodException | InvocationTargetException
                     | IllegalAccessException | NoSuchFieldException e) {

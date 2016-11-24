@@ -44,6 +44,7 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.yms.app.utils.TraversalType.CHILD;
@@ -67,6 +68,7 @@ public class YangApplicationBroker {
     private static final String AUGMENTED = "Augmented";
     private static final String VOID = "void";
     private final YangSchemaRegistry schemaRegistry;
+    private Set<String> augGenMethodSet;
 
     /**
      * Creates a new YANG application broker.
@@ -88,11 +90,14 @@ public class YangApplicationBroker {
             throws YabException {
         List<Object> responseObjects = new LinkedList<>();
         YangRequestWorkBench workBench = (YangRequestWorkBench) ydtWorkBench;
+        augGenMethodSet = ((YangRequestWorkBench) ydtWorkBench).getAugGenMethodSet();
 
         for (YdtAppContext appContext = workBench.getAppRootNode().getFirstChild();
              appContext != null; appContext = appContext.getNextSibling()) {
             Object responseObject = processQueryOfApplication(appContext);
-            responseObjects.add(responseObject);
+            if (responseObject != null) {
+                responseObjects.add(responseObject);
+            }
         }
 
         YdtContext rootYdtContext = workBench.getRootNode();
@@ -116,7 +121,7 @@ public class YangApplicationBroker {
     public YdtResponse processEdit(YdtBuilder ydtWorkBench)
             throws CloneNotSupportedException, YabException {
         YangRequestWorkBench workBench = (YangRequestWorkBench) ydtWorkBench;
-
+        augGenMethodSet = ((YangRequestWorkBench) ydtWorkBench).getAugGenMethodSet();
         for (YdtAppContext appContext = workBench.getAppRootNode().getFirstChild();
              appContext != null; appContext = appContext.getNextSibling()) {
             processEditOfApplication(appContext);
@@ -229,10 +234,13 @@ public class YangApplicationBroker {
                 String methodName = getApplicationMethodName(appContext,
                                                              appName, GET);
 
+                String moduleName = appContext.getAppData()
+                        .getRootSchemaNode().getName();
+
                 // invoke application's getter method
                 outputObject = invokeApplicationsMethod(appManagerObject,
                                                         outputObject,
-                                                        methodName);
+                                                        methodName, moduleName);
             }
 
             /*
@@ -293,9 +301,12 @@ public class YangApplicationBroker {
                     String methodName = getApplicationMethodName(appContext,
                                                                  appName, SET);
 
+                    String moduleName = appContext.getAppData()
+                            .getRootSchemaNode().getName();
+
                     // invoke application's setter method
                     invokeApplicationsMethod(appManagerObject, outputObject,
-                                             methodName);
+                                             methodName, moduleName);
                 }
 
                 /*
@@ -366,8 +377,12 @@ public class YangApplicationBroker {
                 String methodName = getApplicationMethodName(appContext,
                                                              appName, SET);
 
+                String moduleName = appContext.getAppData().getRootSchemaNode()
+                        .getName();
+
                 // invoke application's setter method
-                invokeApplicationsMethod(appManagerObject, inputObject, methodName);
+                invokeApplicationsMethod(appManagerObject, inputObject,
+                                         methodName, moduleName);
 
                 if (appContext.getPreviousSibling() != null) {
                     curTraversal = SIBLING;
@@ -614,7 +629,8 @@ public class YangApplicationBroker {
                 .getAugmentedInfoList()) {
             Object appManagerObject = schemaRegistry
                     .getRegisteredApplication(yangAugment.getParent());
-            if (appManagerObject != null) {
+            if (appManagerObject != null
+                    && augGenMethodSet.add(yangAugment.getSetterMethodName())) {
                 childAppContext = addChildToYdtAppTree(curAppContext,
                                                        yangAugment);
                 processAugmentForChildNode(childAppContext, yangAugment);
@@ -788,7 +804,8 @@ public class YangApplicationBroker {
      */
     private Object invokeApplicationsMethod(Object appManagerObject,
                                             Object inputObject,
-                                            String methodName) throws YabException {
+                                            String methodName, String appName)
+            throws YabException {
         checkNotNull(appManagerObject);
         Class<?> appClass = appManagerObject.getClass();
         try {
@@ -798,9 +815,11 @@ public class YangApplicationBroker {
                 return methodObject.invoke(appManagerObject, inputObject);
             }
             throw new YabException("No such method in application");
-        } catch (IllegalAccessException | NoSuchMethodException |
-                InvocationTargetException e) {
+        } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new YabException(e);
+        } catch (InvocationTargetException e) {
+            throw new YabException("Invocation exception in service " + appName,
+                                   e.getCause());
         }
     }
 
@@ -868,5 +887,14 @@ public class YangApplicationBroker {
                 InvocationTargetException e) {
             throw new YabException(e);
         }
+    }
+
+    /**
+     * Sets the augment setter method name.
+     *
+     * @param augGenMethodSet augment setter method name
+     */
+    public void setAugGenMethodSet(Set<String> augGenMethodSet) {
+        this.augGenMethodSet = augGenMethodSet;
     }
 }

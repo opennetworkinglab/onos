@@ -47,6 +47,9 @@ abstract class YobHandler {
                               YangSchemaRegistry registry) {
         String setterName = null;
         YangSchemaNode node = curNode.getYangSchemaNode();
+        while (node.getReferredSchema() != null) {
+            node = node.getReferredSchema();
+        }
 
         String qualName = getQualifiedDefaultClass(node);
         ClassLoader classLoader = YobUtils.getClassLoader(registry, qualName,
@@ -56,7 +59,7 @@ abstract class YobHandler {
             setterName = node.getJavaAttributeName();
         }
 
-        Object workBench = new YobWorkBench(node, classLoader, qualName,
+        Object workBench = new YobWorkBench(curNode.getYangSchemaNode(), classLoader, qualName,
                                             setterName);
 
         curNode.addAppInfo(YOB, workBench);
@@ -71,8 +74,9 @@ abstract class YobHandler {
      */
     public void setInParent(YdtExtendedContext ydtNode,
                             YangSchemaRegistry schemaRegistry) {
-        YobWorkBench yobWorkBench = (YobWorkBench) ydtNode.getAppInfo(YOB);
-        yobWorkBench.setObjectInParent(ydtNode);
+        YdtExtendedContext parentNode = (YdtExtendedContext) ydtNode.getParent();
+        YobWorkBench parentWorkbench = (YobWorkBench) parentNode.getAppInfo(YOB);
+        parentWorkbench.setObject(ydtNode, schemaRegistry);
     }
 
     /**
@@ -88,6 +92,6 @@ abstract class YobHandler {
                             YdtExtendedContext ydtRootNode,
                             YangSchemaRegistry schemaRegistry) {
         YobWorkBench yobWorkBench = (YobWorkBench) ydtNode.getAppInfo(YOB);
-        yobWorkBench.buildObject(ydtNode);
+        yobWorkBench.buildObject(ydtNode.getYdtContextOperationType(), schemaRegistry);
     }
 }

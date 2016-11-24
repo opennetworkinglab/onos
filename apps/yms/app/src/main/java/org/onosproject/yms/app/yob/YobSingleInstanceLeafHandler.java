@@ -19,6 +19,7 @@ package org.onosproject.yms.app.yob;
 import org.onosproject.yangutils.datamodel.YangLeaf;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangType;
+import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
 import org.onosproject.yms.app.yob.exception.YobException;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
@@ -69,6 +70,10 @@ class YobSingleInstanceLeafHandler extends YobHandler {
 
         try {
             YangSchemaNode schemaNode = leafNode.getYangSchemaNode();
+            while (schemaNode.getReferredSchema() != null) {
+                schemaNode = schemaNode.getReferredSchema();
+            }
+
             String setterInParent = schemaNode.getJavaAttributeName();
             YdtExtendedContext parentNode =
                     (YdtExtendedContext) leafNode.getParent();
@@ -76,13 +81,20 @@ class YobSingleInstanceLeafHandler extends YobHandler {
             Object builderObject = workBench
                     .getParentBuilder(leafNode, schemaRegistry);
             builderClass = builderObject.getClass();
-            Field leafName = builderClass.getDeclaredField(setterInParent);
-            Method setterMethod = builderClass
-                    .getDeclaredMethod(setterInParent, leafName.getType());
-            YangType<?> yangType = ((YangLeaf) schemaNode).getDataType();
-            YobUtils.setDataFromStringValue(yangType, leafNode.getValue(),
-                                            setterMethod, builderObject,
-                                            leafNode);
+            if (leafNode.getValue() != null || ((YangLeaf) schemaNode)
+                    .getDataType().getDataType() == YangDataTypes.EMPTY) {
+                Field leafName = builderClass.getDeclaredField(setterInParent);
+                Method setterMethod = builderClass
+                        .getDeclaredMethod(setterInParent, leafName.getType());
+                YangType<?> yangType = ((YangLeaf) schemaNode).getDataType();
+                YobUtils.setDataFromStringValue(yangType.getDataType(), leafNode
+                                                        .getValue(),
+                                                setterMethod, builderObject,
+                                                leafNode);
+            } else {
+                YobUtils.setSelectLeaf(builderClass, leafNode,
+                                       schemaRegistry, builderObject);
+            }
         } catch (NoSuchMethodException | InvocationTargetException |
                 IllegalAccessException | NoSuchFieldException e) {
             log.error(L_FAIL_TO_INVOKE_METHOD, builderClass.getName());

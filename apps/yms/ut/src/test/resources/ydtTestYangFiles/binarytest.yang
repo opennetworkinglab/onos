@@ -30,4 +30,45 @@ module binarytest {
               }
         }
     }
+
+    typedef percent {
+        type binary;
+    }
+
+    leaf name {
+        type percent;
+    }
+
+    grouping greeting {
+        leaf surname {
+            type binary;
+        }
+    }
+
+    container cont1 {
+        uses greeting;
+    }
+
+    augment "/cont1" {
+        leaf lastname {
+            type binary;
+        }
+    }
+
+    container food {
+        choice snack {
+            case sportsarena {
+                leaf pretzel {
+                    type binary;
+                }
+            }
+        }
+    }
+
+    leaf middlename {
+        type union {
+            type int8;
+            type binary;
+        }
+    }
 }
