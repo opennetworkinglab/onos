@@ -1,0 +1,45 @@
+module YtbEmptyType {
+    yang-version 1;
+    namespace "yms:test:ytb:empty:type";
+    prefix "data";
+    revision "2016-08-26";
+    typedef emp-type {
+        type emp-type2;
+    }
+    typedef emp-type2 {
+        type empty;
+    }
+    typedef emp-type3 {
+        type leafref {
+            path "/empty";
+        }
+    }
+    leaf empty {
+        type empty;
+    }
+    leaf-list empty-list {
+        type empty;
+    }
+    leaf empty-ref {
+        type leafref {
+            path "/empty";
+        }
+    }
+    leaf-list empty-list-ref {
+        type leafref {
+            path "/empty-list";
+        }
+    }
+    leaf empty-type {
+        type emp-type;
+    }
+    leaf-list empty-list-type {
+        type emp-type;
+    }
+    leaf empty-ref-type {
+        type emp-type3;
+    }
+    leaf-list empty-list-ref-type {
+        type emp-type3;
+    }
+}

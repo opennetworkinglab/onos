@@ -1,0 +1,48 @@
+module YtbDataType {
+    yang-version 1;
+    namespace "yms:test:ytb:data:type";
+    prefix "data";
+    revision "2016-08-26";
+    // Enum with all combinations.
+    typedef enum-der-1 {
+        type enum-der-2;
+    }
+    typedef enum-der-2 {
+        type enumeration {
+            enum ten { value "10";}
+            enum hundred { value "100";}
+            enum thousand { value "1000"; }
+        }
+    }
+    leaf enum {
+        type enum-der-1;
+    }
+    leaf-list enum-leaf-list {
+        type union {
+            type uint64;
+            type enumeration {
+                enum ten { value "10";}
+                enum hundred { value "100";}
+                enum thousand { value "1000"; }
+            }
+        }
+    }
+    leaf union-enum {
+        type union {
+            type enumeration {
+                enum ten { value "10";}
+                enum hundred { value "100";}
+                enum thousand { value "1000"; }
+            }
+            type enum-der-1;
+        }
+    }
+    leaf-list leaf-ref-enum {
+        type leafref {
+            path "/enum";
+        }
+    }
+
+
+
+}

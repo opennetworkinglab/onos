@@ -20,7 +20,6 @@ import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ydt.YdtExtendedBuilder;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
-import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YmsOperationType;
 
 import java.util.List;
@@ -47,12 +46,11 @@ public class DefaultYangTreeBuilder implements YangTreeBuilder {
     }
 
     @Override
-    public YdtExtendedBuilder getYdtBuilderForYo(
-            List<Object> moduleObj, String rootName,
-            String rootNameSpace, YmsOperationType opType,
-            YangSchemaRegistry registry) {
+    public YdtExtendedBuilder getYdtBuilderForYo(List<Object> moduleObj, String rootName,
+                                                 String rootNameSpace, YmsOperationType opType,
+                                                 YangSchemaRegistry registry) {
 
-        if (moduleObj == null || moduleObj.isEmpty()) {
+        if (moduleObj == null) {
             throw new YtbException(emptyObjErrMsg(OBJ_LIST));
         }
 
@@ -70,8 +68,8 @@ public class DefaultYangTreeBuilder implements YangTreeBuilder {
     }
 
     @Override
-    public YdtContext getYdtForNotification(Object object, String rootName,
-                                            YangSchemaRegistry registry) {
+    public YdtExtendedContext getYdtForNotification(Object object, String rootName,
+                                                    YangSchemaRegistry registry) {
 
         if (object == null) {
             throw new YtbException(emptyObjErrMsg(EVENT_OBJ));
@@ -93,12 +91,14 @@ public class DefaultYangTreeBuilder implements YangTreeBuilder {
     }
 
     @Override
-    public YdtExtendedBuilder getYdtForRpcResponse(
-            Object outputObj, YangRequestWorkBench workBench) {
+    public YdtExtendedBuilder getYdtForRpcResponse(Object outputObj,
+                                                   YdtExtendedBuilder reqBuilder) {
 
         if (outputObj == null) {
             throw new YtbException(emptyObjErrMsg(OUTPUT_OBJ));
         }
+
+        YangRequestWorkBench workBench = (YangRequestWorkBench) reqBuilder;
 
         // Gets the logical root node from RPC request work bench.
         YdtExtendedContext rootNode = workBench.getRootNode();
@@ -107,12 +107,13 @@ public class DefaultYangTreeBuilder implements YangTreeBuilder {
          * Creates a new work bench for RPC reply from the contents of the
          * request work bench
          */
-        YdtExtendedBuilder ydtBuilder = new YangRequestWorkBench(
-                rootNode.getName(), rootNode.getNamespace(),
-                RPC_REPLY, workBench.getYangSchemaRegistry(), false);
-        YdtBuilderFromYo moduleBuilder = new YdtBuilderFromYo(
-                ydtBuilder, outputObj,
-                workBench.getYangSchemaRegistry());
+        YdtExtendedBuilder ydtBuilder =
+                new YangRequestWorkBench(null, null, RPC_REPLY,
+                                         workBench.getYangSchemaRegistry(),
+                                         false);
+        YdtBuilderFromYo moduleBuilder =
+                new YdtBuilderFromYo(ydtBuilder, outputObj,
+                                     workBench.getYangSchemaRegistry());
 
         // Forms YDT till RPC, so that output can further enhance the tree.
         moduleBuilder.createModuleAndRpcInYdt(rootNode);

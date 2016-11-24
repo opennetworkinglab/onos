@@ -18,11 +18,14 @@ package org.onosproject.yms.app.ytb;
 
 import org.onosproject.yangutils.datamodel.YangAugment;
 import org.onosproject.yangutils.datamodel.YangCase;
+import org.onosproject.yangutils.datamodel.YangIdentity;
+import org.onosproject.yangutils.datamodel.YangIdentityRef;
 import org.onosproject.yangutils.datamodel.YangLeafRef;
 import org.onosproject.yangutils.datamodel.YangNode;
 import org.onosproject.yangutils.datamodel.YangNotification;
 import org.onosproject.yangutils.datamodel.YangOutput;
 import org.onosproject.yangutils.datamodel.YangRpc;
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
 import org.onosproject.yangutils.datamodel.YangType;
 import org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes;
 import org.onosproject.yangutils.translator.tojava.javamodel.JavaLeafInfoContainer;
@@ -34,14 +37,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_AUGMENT_NODE;
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_MULTI_INSTANCE_NODE;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.BOOLEAN;
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.DECIMAL64;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.EMPTY;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT16;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.INT32;
@@ -50,8 +52,8 @@ import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangData
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.LEAFREF;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT16;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT32;
-import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT64;
 import static org.onosproject.yangutils.datamodel.utils.builtindatatype.YangDataTypes.UINT8;
+import static org.onosproject.yangutils.utils.io.impl.YangIoUtils.getCapitalCase;
 import static org.onosproject.yms.app.utils.TraversalType.PARENT;
 
 /**
@@ -70,16 +72,14 @@ public final class YtbUtil {
     public static final String PERIOD = ".";
 
     private static final int ONE = 1;
-    private static final String SCHEMA_NAME_IN_ENUM = "schemaName";
-    private static final String OPERATION_TYPE = "onosYangNodeOperationType";
+    private static final String YANG = "yang";
+    private static final String OP_TYPE = "OpType";
     private static final String STR_NONE = "NONE";
-    private static final String EQUALS = "=";
     private static final String ENUM_LEAF_IDENTIFIER = "$LeafIdentifier";
-    private static final char CLOSE_BRACE = '}';
     private static final Set<YangDataTypes> PRIMITIVE_TYPES =
             new HashSet<>(Arrays.asList(INT8, INT16, INT32, INT64, UINT8,
-                                        UINT16, UINT32, UINT64, DECIMAL64,
-                                        BOOLEAN, EMPTY));
+                                        UINT16, UINT32, BOOLEAN, EMPTY));
+    private static final String TO_STRING = "toString";
 
     // No instantiation.
     private YtbUtil() {
@@ -107,18 +107,6 @@ public final class YtbUtil {
     }
 
     /**
-     * Returns the capital cased first letter of the given string.
-     *
-     * @param name string to be capital cased
-     * @return capital cased string
-     */
-    public static String getCapitalCase(String name) {
-        // TODO: It will be removed if common util is committed.
-        return name.substring(0, 1).toUpperCase() +
-                name.substring(1);
-    }
-
-    /**
      * Returns the value of an attribute, in a class object. The attribute
      * name is taken from the YANG node java name.
      *
@@ -143,13 +131,13 @@ public final class YtbUtil {
      * Returns the object of the declared method in parent class by invoking
      * through the child class object.
      *
-     * @param parentClass parent class of the declared method
-     * @param childClass  child class which inherits the parent class
-     * @param methodName  name of the declared method
+     * @param childClass child class which inherits the parent class
+     * @param methodName name of the declared method
      * @return value of the method
      */
-    public static Object getAttributeFromInheritance(
-            Class<?> parentClass, Object childClass, String methodName) {
+    public static Object getAttributeFromInheritance(Object childClass,
+                                                     String methodName) {
+        Class<?> parentClass = childClass.getClass().getSuperclass();
         Method getterMethod;
         try {
             getterMethod = parentClass.getDeclaredMethod(methodName);
@@ -163,12 +151,11 @@ public final class YtbUtil {
     /**
      * Returns interface class from an implementation class object.
      *
-     * @param implClassObj implementation class object
+     * @param obj implementation class object
      * @return interface class
      */
-    public static Class<?> getInterfaceClassFromImplClass(Object implClassObj) {
-        Class<?> implClass = implClassObj.getClass();
-        Class<?>[] interfaces = implClass.getInterfaces();
+    public static Class<?> getInterfaceClassFromImplClass(Object obj) {
+        Class<?>[] interfaces = obj.getClass().getInterfaces();
         if (interfaces.length > ONE) {
             // TODO: Need to handle when impl class has more than one interface.
             throw new YtbException("Implementation class having more than one" +
@@ -181,20 +168,21 @@ public final class YtbUtil {
      * Returns the operation type value for a class object. If the operation
      * type is not set, then none type is returned.
      *
-     * @param nodeObj node object
+     * @param nodeObj  node object
+     * @param typeName data type name
      * @return operation type of the class
      */
-    public static YdtContextOperationType getOperationTypeOfTheNode(
-            Object nodeObj) {
+    public static YdtContextOperationType getNodeOpType(Object nodeObj,
+                                                        String typeName) {
         Object opTypeObj;
         try {
-            opTypeObj = getAttributeOfObject(nodeObj, OPERATION_TYPE);
+            opTypeObj = getAttributeOfObject(nodeObj, typeName);
         } catch (NoSuchMethodException e) {
             return YdtContextOperationType.valueOf(STR_NONE);
         }
         String opTypeValue = String.valueOf(opTypeObj);
         if (opTypeValue.equals(STR_NULL)) {
-            opTypeValue = STR_NONE;
+            return null;
         }
         return YdtContextOperationType.valueOf(opTypeValue);
     }
@@ -237,21 +225,25 @@ public final class YtbUtil {
      * Returns the string true, if the leaf data is actually set; false
      * otherwise.
      *
+     * @param holder     leaf holder
      * @param nodeObj    object if the node
      * @param javaName   java name of the leaf
      * @param methodName getter method name
      * @return string value of the boolean method
+     * @throws NoSuchMethodException if the method is not present
      */
-    public static String isValueOrSelectLeafSet(
-            Object nodeObj, String javaName, String methodName) {
+    public static String isValueOrSelectLeafSet(YangSchemaNode holder, Object nodeObj,
+                                                String javaName, String methodName)
+            throws NoSuchMethodException {
 
         Class<?> nodeClass = nodeObj.getClass();
-        Class<?> interfaceClass = getInterfaceClassFromImplClass(nodeObj);
 
         // Appends the enum inner package to the interface class package.
-        String enumPackage = interfaceClass.getName() + ENUM_LEAF_IDENTIFIER;
+        String enumPackage = holder.getJavaPackage() + PERIOD +
+                getCapitalCase(holder.getJavaClassNameOrBuiltInType()) +
+                ENUM_LEAF_IDENTIFIER;
 
-        ClassLoader classLoader = interfaceClass.getClassLoader();
+        ClassLoader classLoader = nodeClass.getClassLoader();
         Class leafEnum;
         try {
             leafEnum = classLoader.loadClass(enumPackage);
@@ -261,7 +253,7 @@ public final class YtbUtil {
             // Invokes the method with the value of enum as param.
             return String.valueOf(getterMethod.invoke(nodeObj, value));
         } catch (IllegalAccessException | InvocationTargetException |
-                NoSuchMethodException | ClassNotFoundException e) {
+                ClassNotFoundException e) {
             throw new YtbException(e);
         }
     }
@@ -269,14 +261,21 @@ public final class YtbUtil {
     /**
      * Returns the string value from the respective data types of the
      * leaf/leaf-list.
-     * // TODO: Remove this method and append to the data model utils.
      *
-     * @param fieldObj object of the leaf/leaf-list field
-     * @param dataType type of the leaf/leaf-list
+     * @param holder    leaf/leaf-list holder
+     * @param holderObj leaf/leaf-list holder object
+     * @param name      leaf/leaf-list name
+     * @param fieldObj  object of the leaf/leaf-list field
+     * @param dataType  type of the leaf/leaf-list
      * @return string value from the type
      */
-    public static String getStringFromDataType(Object fieldObj,
-                                               YangType dataType) {
+    public static String getStringFromType(YangSchemaNode holder, Object holderObj,
+                                           String name, Object fieldObj, YangType dataType) {
+
+        if (fieldObj == null) {
+            throw new YtbException("Value of " + holder.getName() + " is null");
+        }
+
         YangDataTypes type = dataType.getDataType();
         switch (type) {
             case INT8:
@@ -288,36 +287,34 @@ public final class YtbUtil {
             case UINT32:
             case UINT64:
             case EMPTY:
-            case IDENTITYREF:
             case STRING:
             case DECIMAL64:
             case INSTANCE_IDENTIFIER:
             case DERIVED:
             case UNION:
-                //TODO: Generated code has to be changed, it must select
-                // the setting leaf and it must give back the corresponding
-                // toString of that type.
+            case ENUMERATION:
             case BOOLEAN:
+                return String.valueOf(fieldObj).trim();
+
             case BITS:
-                return getValueFromToStringHelper(String.valueOf(fieldObj));
+                return getBitsValue(holder, holderObj, name, fieldObj).trim();
 
             case BINARY:
                 return Base64.getEncoder().encodeToString((byte[]) fieldObj);
 
+            case IDENTITYREF:
+                YangIdentityRef ir =
+                        (YangIdentityRef) dataType.getDataTypeExtendedInfo();
+                if (ir.isInGrouping()) {
+                    return String.valueOf(fieldObj).trim();
+                }
+                return getIdentityRefValue(fieldObj, ir, holderObj);
+
             case LEAFREF:
                 YangLeafRef leafRef =
                         (YangLeafRef) dataType.getDataTypeExtendedInfo();
-                return getStringFromDataType(fieldObj,
-                                             leafRef.getEffectiveDataType());
-
-            case ENUMERATION:
-                Object value;
-                try {
-                    value = getAttributeOfObject(fieldObj, SCHEMA_NAME_IN_ENUM);
-                } catch (NoSuchMethodException e) {
-                    throw new YtbException(e);
-                }
-                return getValueFromToStringHelper(String.valueOf(value));
+                return getStringFromType(holder, holderObj, name, fieldObj,
+                                         leafRef.getEffectiveDataType());
 
             default:
                 throw new YtbException("Unsupported data type. Cannot be " +
@@ -326,24 +323,63 @@ public final class YtbUtil {
     }
 
     /**
-     * Returns the value, from the toString value which uses toStringHelper.
-     * It gives values in non-usable format(e.g., {value = 5}). But the value
-     * that has to be returned is only 5.So it parses the string and returns
-     * only the value. In certain toString, to string helper is not used, so
-     * the original value is sent without parsing.
+     * Returns the string values for the data type bits.
      *
-     * @param rawString raw string
-     * @return parsed value
+     * @param holder    leaf/leaf-list holder
+     * @param holderObj leaf/leaf-list holder object
+     * @param name      leaf/leaf-list name
+     * @param fieldObj  object of the leaf/leaf-list field
+     * @return string value for bits type
      */
-    private static String getValueFromToStringHelper(String rawString) {
-        if (rawString.contains(EQUALS)) {
-            int index = rawString.lastIndexOf(EQUALS);
-            int braceIndex = rawString.indexOf(CLOSE_BRACE);
-            if (index != -1) {
-                return rawString.substring(index + 1, braceIndex);
-            }
+    private static String getBitsValue(YangSchemaNode holder, Object holderObj,
+                                       String name, Object fieldObj) {
+
+        Class<?> holderClass = holderObj.getClass();
+        String interfaceName = holder.getJavaClassNameOrBuiltInType();
+        String className = interfaceName.toLowerCase() + PERIOD +
+                getCapitalCase(name);
+        String pkgName = holder.getJavaPackage() + PERIOD + className;
+        ClassLoader classLoader = holderClass.getClassLoader();
+
+        Class<?> bitClass;
+        try {
+            bitClass = classLoader.loadClass(pkgName);
+            Method getterMethod = bitClass.getDeclaredMethod(
+                    TO_STRING, fieldObj.getClass());
+            return String.valueOf(getterMethod.invoke(null, fieldObj));
+        } catch (ClassNotFoundException | NoSuchMethodException |
+                InvocationTargetException | IllegalAccessException e) {
+            throw new YtbException(e);
         }
-        return rawString;
+    }
+
+    /**
+     * Returns the string value of the type identity-ref.
+     *
+     * @param fieldObj  object of the leaf/leaf-list field
+     * @param ir        YANG identity ref
+     * @param holderObj leaf/leaf-list holder object
+     * @return string value for identity ref type
+     */
+    private static String getIdentityRefValue(Object fieldObj, YangIdentityRef ir,
+                                              Object holderObj) {
+
+        YangIdentity id = ir.getReferredIdentity();
+        String idName = id.getJavaClassNameOrBuiltInType();
+        String idPkg = id.getJavaPackage() + PERIOD + getCapitalCase(idName);
+        String methodName = idName + getCapitalCase(TO_STRING);
+
+        Class<?> holderClass = holderObj.getClass();
+        ClassLoader classLoader = holderClass.getClassLoader();
+        Class<?> idClass;
+        try {
+            idClass = classLoader.loadClass(idPkg);
+            Method method = idClass.getDeclaredMethod(methodName, null);
+            return String.valueOf(method.invoke(fieldObj, null)).trim();
+        } catch (ClassNotFoundException | NoSuchMethodException |
+                InvocationTargetException | IllegalAccessException e) {
+            throw new YtbException(e);
+        }
     }
 
     /**
@@ -413,11 +449,11 @@ public final class YtbUtil {
     /**
      * Returns true, if the list is not null and non-empty; false otherwise.
      *
-     * @param object list object
+     * @param c collection object
      * @return true, if the list is not null and non-empty; false otherwise
      */
-    public static boolean isNonEmpty(List object) {
-        return object != null && !object.isEmpty();
+    public static boolean nonEmpty(Collection<?> c) {
+        return c != null && !c.isEmpty();
     }
 
     /**
@@ -426,7 +462,7 @@ public final class YtbUtil {
      * @param str string value
      * @return true, if the string is not null and non-empty; false otherwise.
      */
-    public static boolean isNonEmpty(String str) {
+    public static boolean nonEmpty(String str) {
         return str != null && !str.isEmpty();
     }
 
@@ -446,4 +482,14 @@ public final class YtbUtil {
                 curNode instanceof YangOutput;
     }
 
+    /**
+     * Returns the name of the operation type variable from the yang name.
+     *
+     * @param curNode YANG node
+     * @return name of operation type
+     */
+    public static String getOpTypeName(YangNode curNode) {
+        return YANG + getCapitalCase(curNode.getJavaClassNameOrBuiltInType()) +
+                OP_TYPE;
+    }
 }

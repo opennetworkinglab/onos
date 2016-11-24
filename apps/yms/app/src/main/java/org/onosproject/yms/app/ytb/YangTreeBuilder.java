@@ -16,10 +16,9 @@
 
 package org.onosproject.yms.app.ytb;
 
-import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ydt.YdtExtendedBuilder;
+import org.onosproject.yms.app.ydt.YdtExtendedContext;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
-import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YmsOperationType;
 
 import java.util.List;
@@ -36,8 +35,8 @@ public interface YangTreeBuilder {
      * YCH.
      *
      * @param moduleObj     application module object
-     * @param rootName      root node name
-     * @param rootNameSpace root node namespace
+     * @param rootName      logical root node name
+     * @param rootNameSpace logical root node namespace
      * @param opType        root node operation type
      * @param registry      application schema registry
      * @return YDT builder from the tree
@@ -53,22 +52,22 @@ public interface YangTreeBuilder {
      * protocol YNH.
      *
      * @param object   application notification object
-     * @param rootName root node name
+     * @param rootName logical root node name
      * @param registry application schema registry
      * @return YDT context from the tree
      */
-    YdtContext getYdtForNotification(Object object, String rootName,
-                                     YangSchemaRegistry registry);
+    YdtExtendedContext getYdtForNotification(Object object, String rootName,
+                                             YangSchemaRegistry registry);
 
     /**
      * Returns the YDT context after building the RPC response tree. The input
-     * for building the tree is RPC request workbench, RPC output java object.
+     * for building the tree is RPC request builder, RPC output java object.
      * These are received from the YSB protocol.
      *
-     * @param outputObj application output object
-     * @param workBench RPC request workbench from YDT
+     * @param outputObj  application output object
+     * @param reqBuilder RPC request builder from YDT
      * @return YDT builder where RPC response tree is created
      */
     YdtExtendedBuilder getYdtForRpcResponse(Object outputObj,
-                                            YangRequestWorkBench workBench);
+                                            YdtExtendedBuilder reqBuilder);
 }

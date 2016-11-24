@@ -72,4 +72,7 @@ public interface YdtExtendedBuilder extends YdtBuilder {
 
     @Override
     YdtExtendedContext getRootNode();
+
+    @Override
+    YdtExtendedContext getCurNode();
 }
