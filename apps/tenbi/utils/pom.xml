@@ -45,6 +45,27 @@
             <artifactId>onos-app-tetopology-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-     </dependencies>
-
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-tetunnel-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>3.2.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Private-Package>
+                            org.onosproject.yang.gen.*,
+                        </Private-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
