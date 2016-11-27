@@ -22,6 +22,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MPLS;
+import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -77,7 +78,7 @@ public class IcmpHandler {
         DeviceId deviceId = connectPoint.deviceId();
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
-        Set<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
+        Set<IpAddress> gatewayIpAddresses = config.getPortIPs(deviceId);
         IpAddress routerIp;
         try {
             routerIp = config.getRouterIpv4(deviceId);
@@ -108,6 +109,19 @@ public class IcmpHandler {
             log.debug("ICMP request for unknown host {} ", destinationAddress);
             // Do nothing
         }
+    }
+
+    /**
+     * Process incoming ICMP packet.
+     * If it is an ICMP request to router or known host, then sends an ICMP response.
+     * If it is an ICMP packet to known host and forward the packet to the host.
+     * If it is an ICMP packet to unknown host in a subnet, then sends an ARP request
+     * to the subnet.
+     *
+     * @param pkt inbound packet
+     */
+    public void processPacketIn(NeighbourMessageContext pkt) {
+
     }
 
     /**

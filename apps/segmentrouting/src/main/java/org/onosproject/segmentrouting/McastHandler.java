@@ -376,7 +376,7 @@ public class McastHandler {
         }
 
         // Reuse unicast VLAN if the port has subnet configured
-        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortSubnet(deviceId, port);
+        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, port);
         VlanId unicastVlan = srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
         final VlanId finalVlanId = (unicastVlan != null) ? unicastVlan : assignedVlan;
 
@@ -764,7 +764,7 @@ public class McastHandler {
         // Reuse unicast VLAN if the port has subnet configured
         if (cp != null) {
             Ip4Prefix portSubnet = srManager.deviceConfiguration
-                    .getPortSubnet(cp.deviceId(), cp.port());
+                    .getPortIPv4Subnet(cp.deviceId(), cp.port());
             VlanId unicastVlan = srManager.getSubnetAssignedVlanId(cp.deviceId(), portSubnet);
             if (unicastVlan != null) {
                 return unicastVlan;
@@ -791,7 +791,7 @@ public class McastHandler {
             for (PortNumber port : ports) {
                 // Spine-facing port should have no subnet and no xconnect
                 if (srManager.deviceConfiguration != null &&
-                        srManager.deviceConfiguration.getPortSubnet(ingressDevice, port) == null &&
+                        srManager.deviceConfiguration.getPortSubnets(ingressDevice, port).isEmpty() &&
                         !srManager.xConnectHandler.hasXConnect(new ConnectPoint(ingressDevice, port))) {
                     return port;
                 }

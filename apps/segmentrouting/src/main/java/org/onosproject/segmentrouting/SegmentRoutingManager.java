@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
@@ -34,10 +35,12 @@ import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -56,27 +59,27 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.MulticastRouteService;
+import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkListener;
-import org.onosproject.net.link.LinkService;
-import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
 import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
@@ -102,6 +105,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -118,6 +122,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ComponentConfigService compCfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private NeighbourResolutionService neighbourResolutionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     CoreService coreService;
@@ -179,7 +186,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private McastHandler mcastHandler = null;
     HostHandler hostHandler = null;
     private CordConfigHandler cordConfigHandler = null;
-    RouteHandler routeHandler = null;
+    private RouteHandler routeHandler = null;
+    private SegmentRoutingNeighbourHandler neighbourHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
@@ -352,6 +360,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         hostHandler = new HostHandler(this);
         cordConfigHandler = new CordConfigHandler(this);
         routeHandler = new RouteHandler(this);
+        neighbourHandler = new SegmentRoutingNeighbourHandler(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
@@ -467,8 +476,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public Map<DeviceId, Set<Ip4Prefix>> getDeviceSubnetMap() {
-        Map<DeviceId, Set<Ip4Prefix>> deviceSubnetMap = Maps.newHashMap();
+    public Map<DeviceId, Set<IpPrefix>> getDeviceSubnetMap() {
+        Map<DeviceId, Set<IpPrefix>> deviceSubnetMap = Maps.newHashMap();
         deviceService.getAvailableDevices().forEach(device -> {
             deviceSubnetMap.put(device.id(), deviceConfiguration.getSubnets(device.id()));
         });
@@ -517,7 +526,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *         the master for the device.
      */
     // TODO: We should avoid assigning VLAN IDs that are used by VLAN cross-connection.
-    public VlanId getSubnetAssignedVlanId(DeviceId deviceId, Ip4Prefix subnet) {
+    public VlanId getSubnetAssignedVlanId(DeviceId deviceId, IpPrefix subnet) {
         VlanId assignedVid = subnetVidStore.get(new SubnetAssignedVidStoreKey(
                                                         deviceId, subnet));
         if (assignedVid != null) {
@@ -532,7 +541,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return null;
         }
         // vlan assignment is expensive but done only once
-        Set<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId);
+        // FIXME for now we will do assignment considering only the ipv4 subnet.
+        Set<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId)
+                .stream()
+                .filter(IpPrefix::isIp4)
+                .map(IpPrefix::getIp4Prefix)
+                .collect(Collectors.toSet());
         Set<Short> assignedVlans = new HashSet<>();
         Set<Ip4Prefix> unassignedSubnets = new HashSet<>();
         for (Ip4Prefix sub : configuredSubnets) {
@@ -646,7 +660,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             Ethernet ethernet = pkt.parsed();
             log.trace("Rcvd pktin: {}", ethernet);
             if (ethernet.getEtherType() == TYPE_ARP) {
-                arpHandler.processPacketIn(pkt);
+                log.warn("{} - we are still receiving ARP packets from {}",
+                         context.inPacket().receivedFrom());
+                log.debug("{}", ethernet);
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 ipPacket = (IPv4) ethernet.getPayload();
                 // ipHandler.addToPacketBuffer(ipPacket);
@@ -657,6 +673,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     //       is not necessary. Also it causes duplication of DHCP packets.
                     // ipHandler.processPacketIn(pkt);
                 }
+            } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV6) {
+                IPv6 ipv6Packet = (IPv6) ethernet.getPayload();
+                /*
+                 * TODO send to ICMPv6 handler and generalize the interaction with IP Handler
+                 */
             }
         }
     }
@@ -931,7 +952,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // to switch ports, link-events should take care of any re-routing or
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
-         Ip4Prefix configuredSubnet = deviceConfiguration.getPortSubnet(device.id(),
+         Ip4Prefix configuredSubnet = deviceConfiguration.getPortIPv4Subnet(device.id(),
                                                                         port.number());
         if (configuredSubnet == null) {
             log.debug("Not handling port updated event for unconfigured port "
@@ -962,6 +983,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    /**
+     * Registers the given connect point with the NRS, this is necessary
+     * to receive the NDP and ARP packets from the NRS.
+     *
+     * @param portToRegister connect point to register
+     */
+    public void registerConnectPoint(ConnectPoint portToRegister) {
+        /*
+         * First we register the ARP handler.
+         */
+        this.neighbourResolutionService.registerNeighbourHandler(
+                portToRegister,
+                neighbourHandler,
+                appId
+        );
+    }
+
     private class InternalConfigListener implements NetworkConfigListener {
         SegmentRoutingManager srManager;
 
@@ -978,6 +1016,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          * Reads network config and initializes related data structure accordingly.
          */
         public void configureNetwork() {
+
             deviceConfiguration = new DeviceConfiguration(srManager);
 
             arpHandler = new ArpHandler(srManager);

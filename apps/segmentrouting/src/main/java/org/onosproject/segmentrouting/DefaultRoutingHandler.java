@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
@@ -505,7 +504,7 @@ public class DefaultRoutingHandler {
      */
     private boolean populateEcmpRoutingRules(DeviceId destSw,
                                              EcmpShortestPathGraph ecmpSPG,
-                                             Set<Ip4Prefix> subnets) {
+                                             Set<IpPrefix> subnets) {
 
         HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia = ecmpSPG
                 .getAllLearnedSwitchesAndVia();
@@ -543,7 +542,7 @@ public class DefaultRoutingHandler {
     private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
                                                    DeviceId destSw,
                                                    Set<DeviceId> nextHops,
-                                                   Set<Ip4Prefix> subnets) {
+                                                   Set<IpPrefix> subnets) {
         boolean result;
 
         if (nextHops.isEmpty()) {
@@ -704,7 +703,7 @@ public class DefaultRoutingHandler {
      * @param subnets subnet being added
      * @return true if succeed
      */
-    protected boolean populateSubnet(ConnectPoint cp, Set<Ip4Prefix> subnets) {
+    protected boolean populateSubnet(ConnectPoint cp, Set<IpPrefix> subnets) {
         statusLock.lock();
         try {
             EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(cp.deviceId());
@@ -724,7 +723,7 @@ public class DefaultRoutingHandler {
      * @param subnets subnet being removed
      * @return true if succeed
      */
-    protected boolean revokeSubnet(Set<Ip4Prefix> subnets) {
+    protected boolean revokeSubnet(Set<IpPrefix> subnets) {
         statusLock.lock();
         try {
             return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);

@@ -21,6 +21,7 @@ import com.google.common.collect.SetMultimap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +59,7 @@ public class DeviceConfiguration implements DeviceProperties {
     private static final String ERROR_CONFIG = "Configuration error.";
     private static final String TOO_MANY_SUBNET = ERROR_CONFIG + " Too many subnets configured on {}";
     private static final String NO_SUBNET = "No subnet configured on {}";
+    private static final String MISCONFIGURED = "Subnets are not configured correctly for {}";
 
     private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
@@ -71,12 +74,12 @@ public class DeviceConfiguration implements DeviceProperties {
         Ip6Address ipv6Loopback;
         MacAddress mac;
         boolean isEdge;
-        Map<PortNumber, Ip4Address> gatewayIps;
-        SetMultimap<PortNumber, Ip4Prefix> subnets;
+        SetMultimap<PortNumber, IpAddress> gatewayIps;
+        SetMultimap<PortNumber, IpPrefix> subnets;
         Map<Integer, Set<Integer>> adjacencySids;
 
         public SegmentRouterInfo() {
-            gatewayIps = new HashMap<>();
+            gatewayIps = HashMultimap.create();
             subnets = HashMultimap.create();
         }
     }
@@ -116,6 +119,7 @@ public class DeviceConfiguration implements DeviceProperties {
         // Read gatewayIps and subnets from port subject. Ignore suppressed ports.
         Set<ConnectPoint> portSubjects = srManager.cfgService
                 .getSubjects(ConnectPoint.class, InterfaceConfig.class);
+
         portSubjects.stream().filter(subject -> !isSuppressedPort(subject)).forEach(subject -> {
             InterfaceConfig config =
                     srManager.cfgService.getConfig(subject, InterfaceConfig.class);
@@ -138,15 +142,27 @@ public class DeviceConfiguration implements DeviceProperties {
                     // Extract subnet information
                     List<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddressesList();
                     interfaceAddresses.forEach(interfaceAddress -> {
-                        // Do not add /0 and /32 to gateway IP list
+                        // Do not add /0, /32 and /128 to gateway IP list
                         int prefixLength = interfaceAddress.subnetAddress().prefixLength();
-                        if (prefixLength != 0 && prefixLength != IpPrefix.MAX_INET_MASK_LENGTH) {
-                            info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
+                        IpPrefix ipPrefix = interfaceAddress.subnetAddress();
+                        if (ipPrefix.isIp4()) {
+                            if (prefixLength != 0 && prefixLength != IpPrefix.MAX_INET_MASK_LENGTH) {
+                                info.gatewayIps.put(port, interfaceAddress.ipAddress());
+                            }
+                            info.subnets.put(port, interfaceAddress.subnetAddress());
+                        } else {
+                            if (prefixLength != 0 && prefixLength != IpPrefix.MAX_INET6_MASK_LENGTH) {
+                                info.gatewayIps.put(port, interfaceAddress.ipAddress());
+                            }
+                            info.subnets.put(port, interfaceAddress.subnetAddress());
                         }
-                        info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
                     });
                 }
             });
+            /*
+             * We register the connect point with the NRS.
+             */
+            srManager.registerConnectPoint(subject);
         });
     }
 
@@ -301,7 +317,7 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     @Override
-    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
+    public Map<IpPrefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
             throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo == null) {
@@ -309,14 +325,15 @@ public class DeviceConfiguration implements DeviceProperties {
             throw new DeviceConfigNotFoundException(message);
         }
         // Construct subnet-port mapping from port-subnet mapping
-        SetMultimap<PortNumber, Ip4Prefix> portSubnetMap = srinfo.subnets;
-        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
+        SetMultimap<PortNumber, IpPrefix> portSubnetMap = srinfo.subnets;
+        Map<IpPrefix, List<PortNumber>> subnetPortMap = new HashMap<>();
 
         portSubnetMap.entries().forEach(entry -> {
             PortNumber port = entry.getKey();
-            Ip4Prefix subnet = entry.getValue();
+            IpPrefix subnet = entry.getValue();
 
-            if (subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
+            if (subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH ||
+                    subnet.prefixLength() == IpPrefix.MAX_INET6_MASK_LENGTH) {
                 return;
             }
 
@@ -394,7 +411,7 @@ public class DeviceConfiguration implements DeviceProperties {
      * @param deviceId device identifier
      * @return immutable set of ip addresses configured on the ports or null if not found
      */
-    public Set<Ip4Address> getPortIPs(DeviceId deviceId) {
+    public Set<IpAddress> getPortIPs(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getSubnetGatewayIps for device{} is {}", deviceId,
@@ -410,10 +427,10 @@ public class DeviceConfiguration implements DeviceProperties {
      * @param deviceId device identifier
      * @return list of ip prefixes or null if not found
      */
-    public Set<Ip4Prefix> getSubnets(DeviceId deviceId) {
+    public Set<IpPrefix> getSubnets(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
-            ImmutableSet.Builder<Ip4Prefix> builder = ImmutableSet.builder();
+            ImmutableSet.Builder<IpPrefix> builder = ImmutableSet.builder();
             return builder.addAll(srinfo.subnets.values()).build();
         }
         return null;
@@ -425,17 +442,17 @@ public class DeviceConfiguration implements DeviceProperties {
      *
      * @param deviceId Device ID
      * @param port Port number
-     * @return The subnet configured on given port or null if
+     * @return The subnets configured on given port or empty set if
      *         the port is unconfigured, misconfigured or suppressed.
      */
-    public Ip4Prefix getPortSubnet(DeviceId deviceId, PortNumber port) {
+    public Set<IpPrefix> getPortSubnets(DeviceId deviceId, PortNumber port) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
 
         if (isSuppressedPort(connectPoint)) {
-            return null;
+            return Collections.emptySet();
         }
 
-        Set<Ip4Prefix> subnets =
+        Set<IpPrefix> subnets =
                 srManager.interfaceService.getInterfacesByPort(connectPoint).stream()
                         .flatMap(intf -> intf.ipAddressesList().stream())
                         .map(InterfaceIpAddress::subnetAddress)
@@ -444,13 +461,69 @@ public class DeviceConfiguration implements DeviceProperties {
 
         if (subnets.isEmpty()) {
             log.info(NO_SUBNET, connectPoint);
-            return null;
-        } else if (subnets.size() > 1) {
+            return Collections.emptySet();
+        } else if (subnets.size() > 2) {
             log.warn(TOO_MANY_SUBNET, connectPoint);
-            return null;
-        } else {
-            return subnets.stream().findFirst().orElse(null);
+            return Collections.emptySet();
+        } else if (verifySubnets(subnets)) {
+            return subnets;
         }
+        log.warn(MISCONFIGURED, connectPoint);
+        return Collections.emptySet();
+    }
+
+    /**
+     * Returns the IPv4 subnet configured of given device and port.
+     *
+     * @param deviceId Device ID
+     * @param port Port number
+     * @return The IPv4 subnet configured on given port or null if
+     *         the port is unconfigured, misconfigured or suppressed.
+     */
+    public Ip4Prefix getPortIPv4Subnet(DeviceId deviceId, PortNumber port) {
+        return getPortSubnets(deviceId, port).stream()
+                .filter(IpPrefix::isIp4)
+                .map(IpPrefix::getIp4Prefix)
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Returns the IPv6 subnet configured of given device and port.
+     *
+     * @param deviceId Device ID
+     * @param port Port number
+     * @return The IPV6 subnet configured on given port or null if
+     *         the port is unconfigured, misconfigured or suppressed.
+     */
+    public Ip6Prefix getPortIPv6Subnet(DeviceId deviceId, PortNumber port) {
+        return getPortSubnets(deviceId, port).stream()
+                .filter(IpPrefix::isIp6)
+                .map(IpPrefix::getIp6Prefix)
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Utility to verify the configuration of a given port.
+     *
+     * @param subnets the subnets set to verify
+     * @return true if the configured subnets are ok. False otherwise.
+     */
+    private boolean verifySubnets(Set<IpPrefix> subnets) {
+        Set<Ip4Prefix> ip4Prefices = subnets.stream()
+                .filter(IpPrefix::isIp4)
+                .map(IpPrefix::getIp4Prefix)
+                .collect(Collectors.toSet());
+        if (ip4Prefices.size() > 1) {
+            return false;
+        }
+        Set<Ip6Prefix> ip6Prefices = subnets.stream()
+                .filter(IpPrefix::isIp6)
+                .map(IpPrefix::getIp6Prefix)
+                .collect(Collectors.toSet());
+        if (ip6Prefices.size() > 1) {
+            return false;
+        }
+        return !(ip4Prefices.isEmpty() && ip6Prefices.isEmpty());
     }
 
     /**
@@ -510,7 +583,7 @@ public class DeviceConfiguration implements DeviceProperties {
      * @param gatewayIpAddress router gateway ip address
      * @return router mac address or null if not found
      */
-    public MacAddress getRouterMacForAGatewayIp(Ip4Address gatewayIpAddress) {
+    public MacAddress getRouterMacForAGatewayIp(IpAddress gatewayIpAddress) {
         for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
                 deviceConfigMap.entrySet()) {
             if (entry.getValue().gatewayIps.
@@ -534,14 +607,14 @@ public class DeviceConfiguration implements DeviceProperties {
      * false if no subnet is defined under the router or if the host is not
      * within the subnet defined in the router
      */
-    public boolean inSameSubnet(DeviceId deviceId, Ip4Address hostIp) {
+    public boolean inSameSubnet(DeviceId deviceId, IpAddress hostIp) {
 
-        Set<Ip4Prefix> subnets = getSubnets(deviceId);
+        Set<IpPrefix> subnets = getSubnets(deviceId);
         if (subnets == null) {
             return false;
         }
 
-        for (Ip4Prefix subnet: subnets) {
+        for (IpPrefix subnet: subnets) {
             // Exclude /0 since it is a special case used for default route
             if (subnet.prefixLength() != 0 && subnet.contains(hostIp)) {
                 return true;
@@ -561,8 +634,10 @@ public class DeviceConfiguration implements DeviceProperties {
      *         there is no subnet configuration on given connect point.
      */
     public boolean inSameSubnet(ConnectPoint connectPoint, IpAddress ip) {
-        Ip4Prefix portSubnet = getPortSubnet(connectPoint.deviceId(), connectPoint.port());
-        return portSubnet != null && portSubnet.contains(ip);
+        Ip4Prefix ipv4Subnet = getPortIPv4Subnet(connectPoint.deviceId(), connectPoint.port());
+        Ip6Prefix ipv6Subnet = getPortIPv6Subnet(connectPoint.deviceId(), connectPoint.port());
+        return (ipv4Subnet != null && ipv4Subnet.contains(ip)) ||
+                (ipv6Subnet != null && ipv6Subnet.contains(ip));
     }
 
     /**
@@ -596,34 +671,34 @@ public class DeviceConfiguration implements DeviceProperties {
      * Add subnet to specific connect point.
      *
      * @param cp connect point
-     * @param ip4Prefix subnet being added to the device
+     * @param ipPrefix subnet being added to the device
      */
-    public void addSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+    public void addSubnet(ConnectPoint cp, IpPrefix ipPrefix) {
         checkNotNull(cp);
-        checkNotNull(ip4Prefix);
+        checkNotNull(ipPrefix);
         SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
         if (srinfo == null) {
             log.warn("Device {} is not configured. Abort.", cp.deviceId());
             return;
         }
-        srinfo.subnets.put(cp.port(), ip4Prefix);
+        srinfo.subnets.put(cp.port(), ipPrefix);
     }
 
     /**
      * Remove subnet from specific connect point.
      *
      * @param cp connect point
-     * @param ip4Prefix subnet being removed to the device
+     * @param ipPrefix subnet being removed to the device
      */
-    public void removeSubnet(ConnectPoint cp, Ip4Prefix ip4Prefix) {
+    public void removeSubnet(ConnectPoint cp, IpPrefix ipPrefix) {
         checkNotNull(cp);
-        checkNotNull(ip4Prefix);
+        checkNotNull(ipPrefix);
         SegmentRouterInfo srinfo = deviceConfigMap.get(cp.deviceId());
         if (srinfo == null) {
             log.warn("Device {} is not configured. Abort.", cp.deviceId());
             return;
         }
-        srinfo.subnets.remove(cp.port(), ip4Prefix);
+        srinfo.subnets.remove(cp.port(), ipPrefix);
     }
 
     private boolean isSuppressedPort(ConnectPoint connectPoint) {

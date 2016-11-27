@@ -203,7 +203,7 @@ public class RoutingRulePopulator {
         // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
         // for switch pipelines that need it, provide outgoing vlan as metadata
         VlanId outvlan = null;
-        Ip4Prefix subnet = srManager.deviceConfiguration.getPortSubnet(deviceId, outPort);
+        Ip4Prefix subnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, outPort);
         if (subnet == null) {
             outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
         } else {
@@ -234,7 +234,7 @@ public class RoutingRulePopulator {
      * @param nextHops next hop switch ID list
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId, Set<Ip4Prefix> subnets,
+    public boolean populateIpRuleForSubnet(DeviceId deviceId, Set<IpPrefix> subnets,
             DeviceId destSw, Set<DeviceId> nextHops) {
         for (IpPrefix subnet : subnets) {
             if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
@@ -250,7 +250,7 @@ public class RoutingRulePopulator {
      * @param subnets subnet being removed
      * @return true if all rules are removed successfully, false otherwise
      */
-    public boolean revokeIpRuleForSubnet(Set<Ip4Prefix> subnets) {
+    public boolean revokeIpRuleForSubnet(Set<IpPrefix> subnets) {
         for (IpPrefix subnet : subnets) {
             if (!revokeIpRuleForRouter(subnet)) {
                 return false;
@@ -597,7 +597,7 @@ public class RoutingRulePopulator {
                 suppressedPorts++;
             }
 
-            Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
+            Ip4Prefix portSubnet = config.getPortIPv4Subnet(deviceId, port.number());
             VlanId assignedVlan = (portSubnet == null || isSuppressed)
                     ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                     : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
@@ -785,7 +785,8 @@ public class RoutingRulePopulator {
     public void populateSubnetBroadcastRule(DeviceId deviceId) {
         config.getSubnets(deviceId).forEach(subnet -> {
             if (subnet.prefixLength() == 0 ||
-                    subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
+                    subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH ||
+                    subnet.prefixLength() == IpPrefix.MAX_INET6_MASK_LENGTH) {
                 return;
             }
             int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);

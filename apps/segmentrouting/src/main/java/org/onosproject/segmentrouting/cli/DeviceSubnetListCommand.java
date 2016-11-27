@@ -17,7 +17,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -38,11 +38,11 @@ public class DeviceSubnetListCommand extends AbstractShellCommand {
         printDeviceSubnetMap(srService.getDeviceSubnetMap());
     }
 
-    private void printDeviceSubnetMap(Map<DeviceId, Set<Ip4Prefix>> deviceSubnetMap) {
-        deviceSubnetMap.forEach(((deviceId, ip4Prefices) -> {
+    private void printDeviceSubnetMap(Map<DeviceId, Set<IpPrefix>> deviceSubnetMap) {
+        deviceSubnetMap.forEach(((deviceId, ipPrefices) -> {
             print("%s", deviceId);
-            ip4Prefices.forEach(ip4Prefix -> {
-                print("    %s", ip4Prefix);
+            ipPrefices.forEach(ipPrefix -> {
+                print("    %s", ipPrefix);
             });
         }));
     }

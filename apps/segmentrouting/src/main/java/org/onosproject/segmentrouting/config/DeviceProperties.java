@@ -15,8 +15,8 @@
  */
 package org.onosproject.segmentrouting.config;
 
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -111,6 +111,6 @@ public interface DeviceProperties {
      * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return a map that contains all subnet-to-ports mapping of given device
      */
-    Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
+    Map<IpPrefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId)
             throws DeviceConfigNotFoundException;
 }

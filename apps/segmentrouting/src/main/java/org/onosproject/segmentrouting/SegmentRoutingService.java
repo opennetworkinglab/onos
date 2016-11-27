@@ -15,7 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
-import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.net.DeviceId;
 
 import java.util.List;
@@ -115,5 +115,5 @@ public interface SegmentRoutingService {
      *
      * @return device-subnet mapping
      */
-    Map<DeviceId, Set<Ip4Prefix>> getDeviceSubnetMap();
+    Map<DeviceId, Set<IpPrefix>> getDeviceSubnetMap();
 }

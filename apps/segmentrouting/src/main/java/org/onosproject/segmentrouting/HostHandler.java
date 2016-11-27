@@ -257,7 +257,8 @@ public class HostHandler {
             PortNumber outport) {
         // Get assigned VLAN for the subnets
         VlanId outvlan = null;
-        Ip4Prefix subnet = srManager.deviceConfiguration.getPortSubnet(deviceId, outport);
+        // FIXME L2 forwarding should consider also IPv6
+        Ip4Prefix subnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, outport);
         if (subnet == null) {
             outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
         } else {

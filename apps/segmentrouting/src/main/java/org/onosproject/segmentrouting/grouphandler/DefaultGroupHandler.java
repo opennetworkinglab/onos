@@ -713,7 +713,7 @@ public class DefaultGroupHandler {
      * all configured subnets.
      */
     public void createGroupsFromSubnetConfig() {
-        Map<Ip4Prefix, List<PortNumber>> subnetPortMap;
+        Map<IpPrefix, List<PortNumber>> subnetPortMap;
         try {
             subnetPortMap = this.deviceConfig.getSubnetPortsMap(this.deviceId);
         } catch (DeviceConfigNotFoundException e) {
@@ -722,7 +722,11 @@ public class DefaultGroupHandler {
             return;
         }
         // Construct a broadcast group for each subnet
-        subnetPortMap.forEach((subnet, ports) -> createBcastGroupFromSubnet(subnet, ports));
+        subnetPortMap.forEach((subnet, ports) -> {
+            if (subnet.isIp4()) {
+                createBcastGroupFromSubnet(subnet.getIp4Prefix(), ports);
+            }
+        });
     }
 
     /**
