@@ -48,4 +48,28 @@ public class LispAuthenticationTest {
         assertThat(sha1AuthData.length, is(20));
         assertThat(sha256AuthData.length, is(32));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidAuthType() {
+        LispAuthenticationKeyEnum authType = LispAuthenticationKeyEnum.valueOf((short) 0);
+        LispMacAuthentication macAuth = new LispMacAuthentication(authType);
+
+        macAuth.getAuthenticationData("onos", new byte[0]);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNullAuthKey() {
+        LispAuthenticationKeyEnum authType = LispAuthenticationKeyEnum.valueOf((short) 1);
+
+        LispMacAuthentication macAuth = new LispMacAuthentication(authType);
+        macAuth.getAuthenticationData(null, new byte[0]);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testInvalidAuthKey() {
+        LispAuthenticationKeyEnum authType = LispAuthenticationKeyEnum.valueOf((short) 1);
+
+        LispMacAuthentication macAuth = new LispMacAuthentication(authType);
+        macAuth.getAuthenticationData("", new byte[0]);
+    }
 }
