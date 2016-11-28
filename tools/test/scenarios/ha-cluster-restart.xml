@@ -25,9 +25,9 @@
             </parallel>
         </group>
 
-        <step name="Breathe" exec="sleep 5" requires="~Fail"/>
+        <step name="Breathe" exec="sleep 5" requires="Fail"/>
 
-        <group name="Recover" requires="~Breathe,~Fail">
+        <group name="Recover" requires="~Breathe,Fail">
             <parallel var="${OC#}">
                 <step name="Node-Start-${#}" exec="onos-service ${OC#} start"/>
                 <step name="Wait-for-Start-${#}" requires="~Node-Start-${#}"
@@ -35,7 +35,7 @@
             </parallel>
         </group>
 
-        <group name="Validate-Recovery" requires="~Recover">
+        <group name="Validate-Recovery" requires="Recover">
             <parallel var="${OC#}">
                 <step name="Check-Nodes-${#}"
                       exec="onos-check-nodes ${OC#}"/>
@@ -53,7 +53,7 @@
             </parallel>
         </group>
 
-        <step name="Balance-Masters-Again" requires="~Validate-Recovery"
+        <step name="Balance-Masters-Again" requires="Validate-Recovery"
               exec="onos ${OC1} balance-masters"/>
     </group>
 
