@@ -76,7 +76,9 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -151,6 +153,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private DeviceProviderService providerService;
 
@@ -374,11 +379,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             ChassisId cId = new ChassisId(dpid.value());
 
-            SparseAnnotations annotations = DefaultAnnotations.builder()
+            DefaultAnnotations.Builder annotationsBuilder = DefaultAnnotations.builder()
                     .set(AnnotationKeys.PROTOCOL, sw.factory().getVersion().toString())
                     .set(AnnotationKeys.CHANNEL_ID, sw.channelId())
-                    .set(AnnotationKeys.MANAGEMENT_ADDRESS, sw.channelId().split(":")[0])
-                    .build();
+                    .set(AnnotationKeys.MANAGEMENT_ADDRESS, sw.channelId().split(":")[0]);
+
+            Driver driver = driverService.getDriver(sw.manufacturerDescription(),
+                    sw.hardwareDescription(),
+                    sw.softwareDescription());
+            if (driver != null) {
+                annotationsBuilder.set(AnnotationKeys.DRIVER, driver.name());
+            }
+
+            SparseAnnotations annotations = annotationsBuilder.build();
 
             DeviceDescription description =
                     new DefaultDeviceDescription(did.uri(), sw.deviceType(),
