@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
@@ -141,12 +142,15 @@ public class DefaultRoutingHandler {
     /**
      * Populates the routing rules according to the route changes due to the link
      * failure or link add. It computes the routes changed due to the link changes and
-     * repopulates the rules only for the routes.
+     * repopulates the rules only for these routes. Note that when a switch goes
+     * away, all of its links fail as well, but this is handled as a single
+     * switch removal event.
      *
-     * @param linkFail link failed, null for link added
+     * @param failedLink the single failed link, or null for other conditions
+     *                  such as an added link or a removed switch
      * @return true if it succeeds to populate all rules, false otherwise
      */
-    public boolean populateRoutingRulesForLinkStatusChange(Link linkFail) {
+    public boolean populateRoutingRulesForLinkStatusChange(Link failedLink) {
 
         statusLock.lock();
         try {
@@ -173,16 +177,16 @@ public class DefaultRoutingHandler {
             log.trace("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
-            // optimized re-routing
-            if (linkFail == null) {
-                // Compare all routes of existing ECMP SPG with the new ones
+            // try optimized re-routing
+            if (failedLink == null) {
+                // Compare all routes of existing ECMP SPG to new ECMP SPG
                 routeChanges = computeRouteChange();
             } else {
                 // Compare existing ECMP SPG only with the link removed
-                routeChanges = computeDamagedRoutes(linkFail);
+                routeChanges = computeDamagedRoutes(failedLink);
             }
 
-            // null routeChanges indicates that full re-routing is required
+            // do full re-routing if optimized routing returns null routeChanges
             if (routeChanges == null) {
                 return populateAllRoutingRules();
             }
@@ -277,8 +281,11 @@ public class DefaultRoutingHandler {
             }
             //Only if all the flows for all impacted routes to a
             //specific target are pushed successfully, update the
-            //ECMP graph for that target. (Or else the next event
-            //would not see any changes in the ECMP graphs)
+            //ECMP graph for that target. Or else the next event
+            //would not see any changes in the ECMP graphs.
+            //In another case, the target switch has gone away, so
+            //routes can't be installed. In that case, the current map
+            //is updated here, without any flows being pushed.
             currentEcmpSpgMap.put(impactedDevice,
                                   updatedEcmpSpgMap.get(impactedDevice));
         }
@@ -286,7 +293,7 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Computes set of affected ECMP routes due to failed link. Assumes
+     * Computes set of affected routes due to failed link. Assumes
      * previous ecmp shortest-path graph exists for a switch in order to compute
      * affected routes. If such a graph does not exist, the method returns null.
      *
@@ -319,26 +326,26 @@ public class DefaultRoutingHandler {
                 HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
                         switchVia.get(itrIdx);
                 for (DeviceId targetSw : swViaMap.keySet()) {
-                    DeviceId destSw = sw.id();
+                    DeviceId rootSw = sw.id();
                     if (log.isTraceEnabled()) {
-                        log.trace("TargetSwitch {} --> RootSwitch {}", targetSw, destSw);
+                        log.trace("TargetSwitch {} --> RootSwitch {}", targetSw, rootSw);
                         for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
                             log.trace(" Via:");
                             via.forEach(e -> { log.trace("  {}", e); });
                         }
                     }
                     Set<ArrayList<DeviceId>> subLinks =
-                            computeLinks(targetSw, destSw, swViaMap);
+                            computeLinks(targetSw, rootSw, swViaMap);
                     for (ArrayList<DeviceId> alink: subLinks) {
                         if ((alink.get(0).equals(linkFail.src().deviceId()) &&
                                 alink.get(1).equals(linkFail.dst().deviceId()))
                                 ||
                              (alink.get(0).equals(linkFail.dst().deviceId()) &&
                                      alink.get(1).equals(linkFail.src().deviceId()))) {
-                            log.debug("Impacted route:{}->{}", targetSw, destSw);
+                            log.debug("Impacted route:{}->{}", targetSw, rootSw);
                             ArrayList<DeviceId> aRoute = new ArrayList<>();
                             aRoute.add(targetSw);
-                            aRoute.add(destSw);
+                            aRoute.add(rootSw);
                             routes.add(aRoute);
                             break;
                         }
@@ -351,77 +358,109 @@ public class DefaultRoutingHandler {
         return routes;
     }
 
+    /**
+     * Computes set of affected routes due to new links or failed switches.
+     *
+     * @return the set of affected routes which may be empty if no routes were
+     *         affected
+     */
     private Set<ArrayList<DeviceId>> computeRouteChange() {
 
-        Set<ArrayList<DeviceId>> routes = new HashSet<>();
+        ImmutableSet.Builder<ArrayList<DeviceId>> changedRoutesBuilder =
+                ImmutableSet.builder();
 
         for (Device sw : srManager.deviceService.getDevices()) {
-            log.debug("Computing the impacted routes for device {}", sw.id());
-            if (!srManager.mastershipService.isLocalMaster(sw.id())) {
+            DeviceId rootSw = sw.id();
+            log.debug("Computing the impacted routes for device {}", rootSw);
+            if (!srManager.mastershipService.isLocalMaster(rootSw)) {
                 log.debug("No mastership for {} ... skipping route optimization",
-                          sw.id());
+                          rootSw);
                 continue;
             }
             if (log.isTraceEnabled()) {
-                log.trace("link of {} - ", sw.id());
-                for (Link link: srManager.linkService.getDeviceLinks(sw.id())) {
+                log.trace("link of {} - ", rootSw);
+                for (Link link: srManager.linkService.getDeviceLinks(rootSw)) {
                     log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
                 }
             }
-            EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
-            if (ecmpSpg == null) {
-                log.debug("No existing ECMP graph for device {}", sw.id());
-                ArrayList<DeviceId> route = new ArrayList<>();
-                route.add(sw.id());
-                routes.add(route);
+            EcmpShortestPathGraph currEcmpSpg = currentEcmpSpgMap.get(rootSw);
+            if (currEcmpSpg == null) {
+                log.debug("No existing ECMP graph for device {}", rootSw);
+                changedRoutesBuilder.add(Lists.newArrayList(rootSw));
                 continue;
             }
-            EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(sw.id());
-            //currentEcmpSpgMap.put(sw.id(), newEcmpSpg);
-            HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
-                    ecmpSpg.getAllLearnedSwitchesAndVia();
-            HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchViaUpdated =
-                    newEcmpSpg.getAllLearnedSwitchesAndVia();
+            EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(rootSw);
+            if (log.isTraceEnabled()) {
+                log.trace("Root switch: {}", rootSw);
+                log.trace("  Current/Existing SPG: {}", currEcmpSpg);
+                log.trace("       New/Updated SPG: {}", newEcmpSpg);
+            }
+            // first use the updated/new map to compare to current/existing map
+            // as new links may have come up
+            changedRoutesBuilder.addAll(compareGraphs(newEcmpSpg, currEcmpSpg, rootSw));
+            // then use the current/existing map to compare to updated/new map
+            // as switch may have been removed
+            changedRoutesBuilder.addAll(compareGraphs(currEcmpSpg, newEcmpSpg, rootSw));
+        }
 
-            for (Integer itrIdx : switchViaUpdated.keySet()) {
-                HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMapUpdated =
-                        switchViaUpdated.get(itrIdx);
-                for (DeviceId srcSw : swViaMapUpdated.keySet()) {
-                    ArrayList<ArrayList<DeviceId>> viaUpdated = swViaMapUpdated.get(srcSw);
-                    ArrayList<ArrayList<DeviceId>> via = getVia(switchVia, srcSw);
-                    if ((via == null) || !viaUpdated.equals(via)) {
-                        log.debug("Impacted route:{} -> {}", srcSw, sw.id());
-                        ArrayList<DeviceId> route = new ArrayList<>();
-                        route.add(srcSw);
-                        route.add(sw.id());
-                        routes.add(route);
-                    }
+        Set<ArrayList<DeviceId>> changedRoutes = changedRoutesBuilder.build();
+        for (ArrayList<DeviceId> route: changedRoutes) {
+            log.debug("Route changes Target -> Root");
+            if (route.size() == 1) {
+                log.debug(" : all -> {}", route.get(0));
+            } else {
+                log.debug(" : {} -> {}", route.get(0), route.get(1));
+            }
+        }
+        return changedRoutes;
+    }
+
+    /**
+     * For the root switch, searches all the target nodes reachable in the base
+     * graph, and compares paths to the ones in the comp graph.
+     *
+     * @param base the graph that is indexed for all reachable target nodes
+     *             from the root node
+     * @param comp the graph that the base graph is compared to
+     * @param rootSw  both ecmp graphs are calculated for the root node
+     * @return all the routes that have changed in the base graph
+     */
+    private Set<ArrayList<DeviceId>> compareGraphs(EcmpShortestPathGraph base,
+                                                   EcmpShortestPathGraph comp,
+                                                   DeviceId rootSw) {
+        ImmutableSet.Builder<ArrayList<DeviceId>> changedRoutesBuilder =
+                ImmutableSet.builder();
+        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> baseMap =
+                base.getAllLearnedSwitchesAndVia();
+        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> compMap =
+                comp.getAllLearnedSwitchesAndVia();
+        for (Integer itrIdx : baseMap.keySet()) {
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> baseViaMap =
+                    baseMap.get(itrIdx);
+            for (DeviceId targetSw : baseViaMap.keySet()) {
+                ArrayList<ArrayList<DeviceId>> basePath = baseViaMap.get(targetSw);
+                ArrayList<ArrayList<DeviceId>> compPath = getVia(compMap, targetSw);
+                if ((compPath == null) || !basePath.equals(compPath)) {
+                    log.debug("Impacted route:{} -> {}", targetSw, rootSw);
+                    ArrayList<DeviceId> route = new ArrayList<>();
+                    route.add(targetSw);
+                    route.add(rootSw);
+                    changedRoutesBuilder.add(route);
                 }
             }
         }
-
-        if (log.isTraceEnabled()) {
-            for (ArrayList<DeviceId> link: routes) {
-                log.trace("Route changes - ");
-                if (link.size() == 1) {
-                    log.trace(" : all -> {}", link.get(0));
-                } else {
-                    log.trace(" : {} -> {}", link.get(0), link.get(1));
-                }
-            }
-        }
-        return routes;
+        return changedRoutesBuilder.build();
     }
 
     private ArrayList<ArrayList<DeviceId>> getVia(HashMap<Integer, HashMap<DeviceId,
-            ArrayList<ArrayList<DeviceId>>>> switchVia, DeviceId srcSw) {
+            ArrayList<ArrayList<DeviceId>>>> switchVia, DeviceId targetSw) {
         for (Integer itrIdx : switchVia.keySet()) {
             HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
                     switchVia.get(itrIdx);
-            if (swViaMap.get(srcSw) == null) {
+            if (swViaMap.get(targetSw) == null) {
                 continue;
             } else {
-                return swViaMap.get(srcSw);
+                return swViaMap.get(targetSw);
             }
         }
 

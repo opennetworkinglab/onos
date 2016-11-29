@@ -303,7 +303,10 @@ public class EcmpShortestPathGraph {
 
     /**
      * Return the complete info of the computed ECMP paths for each Device
-     * learned in multiple iterations from the root Device.
+     * learned in multiple iterations from the root Device. The computed info
+     * returned is per iteration (Integer key of outer HashMap). In each
+     * iteration, for each device as root (DeviceId key of inner HashMap),
+     * the ECMP paths are detailed (2D array).
      *
      * @return the hash table of Devices learned in multiple Dijkstra
      *         iterations and corresponding ECMP paths in terms of Devices to
@@ -358,10 +361,12 @@ public class EcmpShortestPathGraph {
         StringBuilder sBuilder = new StringBuilder();
         for (Device device: srManager.deviceService.getDevices()) {
             if (device.id() != rootDevice) {
-                sBuilder.append("Paths from" + rootDevice + " to " + device.id() + "\r\n");
+                sBuilder.append("\r\n Paths from " + rootDevice + " to "
+                                + device.id() + "\r\n");
                 ArrayList<Path> paths = getECMPPaths(device.id());
                 if (paths != null) {
                     for (Path path : paths) {
+                        sBuilder.append("\r\n == "); // equal cost paths delimiter
                         for (Link link : path.links()) {
                             sBuilder.append(" : " + link.src() + " -> " + link.dst());
                         }
