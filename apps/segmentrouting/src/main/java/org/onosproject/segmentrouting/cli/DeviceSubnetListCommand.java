@@ -41,9 +41,7 @@ public class DeviceSubnetListCommand extends AbstractShellCommand {
     private void printDeviceSubnetMap(Map<DeviceId, Set<IpPrefix>> deviceSubnetMap) {
         deviceSubnetMap.forEach(((deviceId, ipPrefices) -> {
             print("%s", deviceId);
-            ipPrefices.forEach(ipPrefix -> {
-                print("    %s", ipPrefix);
-            });
+            ipPrefices.forEach(ipPrefix -> print("    %s", ipPrefix));
         }));
     }
 }

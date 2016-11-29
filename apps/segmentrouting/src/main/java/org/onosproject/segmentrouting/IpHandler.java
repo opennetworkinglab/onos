@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -155,6 +156,24 @@ public class IpHandler {
                 ipPacketQueue.get(destIpAddress).remove(ipPacket);
             }
         }
+    }
+
+    //////////////////////
+    //  IPv6 Handling  //
+    ////////////////////
+
+    /**
+     * Forwards IP packets in the buffer to the destination IP address.
+     * It is called when the controller finds the destination MAC address
+     * via NDP replies.
+     *
+     * @param deviceId the target device
+     * @param destIpAddress the destination ip address
+     */
+    public void forwardPackets(DeviceId deviceId, Ip6Address destIpAddress) {
+        /*
+         * TODO in the following commit.
+         */
     }
 
 }

@@ -119,7 +119,6 @@ public class DeviceConfiguration implements DeviceProperties {
         // Read gatewayIps and subnets from port subject. Ignore suppressed ports.
         Set<ConnectPoint> portSubjects = srManager.cfgService
                 .getSubjects(ConnectPoint.class, InterfaceConfig.class);
-
         portSubjects.stream().filter(subject -> !isSuppressedPort(subject)).forEach(subject -> {
             InterfaceConfig config =
                     srManager.cfgService.getConfig(subject, InterfaceConfig.class);

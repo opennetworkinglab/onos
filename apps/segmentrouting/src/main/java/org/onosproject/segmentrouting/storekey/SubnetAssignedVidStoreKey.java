@@ -39,6 +39,14 @@ public class SubnetAssignedVidStoreKey {
     }
 
     /**
+     * Default constructor for Kryo.
+     */
+    protected SubnetAssignedVidStoreKey() {
+        this.deviceId = null;
+        this.subnet = null;
+    }
+
+    /**
      * Returns the device identification used to create this key.
      *
      * @return the device identifier

@@ -520,7 +520,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * per subnet.
      *
      * @param deviceId switch dpid
-     * @param subnet IPv4 prefix for which assigned vlan is desired
+     * @param subnet IP prefix for which assigned vlan is desired
      * @return VlanId assigned for the subnet on the device, or
      *         null if no vlan assignment was found and this instance is not
      *         the master for the device.
@@ -563,19 +563,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             nextAssignedVlan = (short) (Collections.min(assignedVlans) - 1);
         }
         for (Ip4Prefix unsub : unassignedSubnets) {
-            // Special case for default route. Assign default VLAN ID to /32 and /0 subnets
-            if (unsub.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH ||
-                    unsub.prefixLength() == 0) {
-                subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
-                        VlanId.vlanId(ASSIGNED_VLAN_NO_SUBNET));
-            } else {
-                subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
-                        VlanId.vlanId(nextAssignedVlan--));
-                log.info("Assigned vlan: {} to subnet: {} on device: {}",
-                        nextAssignedVlan + 1, unsub, deviceId);
-            }
+            subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
+                    VlanId.vlanId(nextAssignedVlan--));
+            log.info("Assigned vlan: {} to subnet: {} on device: {}",
+                    nextAssignedVlan + 1, unsub, deviceId);
         }
-
         return subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId, subnet));
     }
 

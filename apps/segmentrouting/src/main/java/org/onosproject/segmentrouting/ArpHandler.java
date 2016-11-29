@@ -92,12 +92,14 @@ public class ArpHandler {
                 .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
         if (appConfig != null && appConfig.suppressSubnet().contains(pkt.inPort())) {
             // Ignore ARP packets come from suppressed ports
+            pkt.drop();
             return;
         }
 
         if (!validateArpSpa(pkt)) {
             log.debug("Ignore ARP packet discovered on {} with unexpected src protocol address {}.",
                     pkt.inPort(), pkt.sender().getIp4Address());
+            pkt.drop();
             return;
         }
 
@@ -312,7 +314,6 @@ public class ArpHandler {
      */
     private void forward(Ethernet packet, ConnectPoint outPort) {
         packet.setEtherType(Ethernet.TYPE_ARP);
-
         ByteBuffer buf = ByteBuffer.wrap(packet.serialize());
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();

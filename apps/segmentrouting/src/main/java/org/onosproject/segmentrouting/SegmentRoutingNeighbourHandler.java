@@ -54,7 +54,7 @@ public class SegmentRoutingNeighbourHandler implements NeighbourMessageHandler {
                 break;
             case NDP:
                 if (this.manager.icmpHandler != null) {
-                    this.manager.icmpHandler.processPacketIn(context);
+                    this.manager.icmpHandler.processPacketIn(context, hostService);
                 }
                 break;
             default:
