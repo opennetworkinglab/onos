@@ -15,15 +15,16 @@
  */
 package org.onlab.packet;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import com.google.common.net.InetAddresses;
+import com.google.common.primitives.UnsignedBytes;
+
 import java.net.Inet4Address;
 import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
-import com.google.common.net.InetAddresses;
-import com.google.common.primitives.UnsignedBytes;
 
 
 /**
@@ -68,6 +69,14 @@ public class IpAddress implements Comparable<IpAddress> {
             this.octets = null;
             break;
         }
+    }
+
+    /**
+     * Default constructor for Kryo serialization.
+     */
+    protected IpAddress() {
+        this.version = null;
+        this.octets = null;
     }
 
     /**

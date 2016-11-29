@@ -252,7 +252,7 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
         ICMP6 icmpv6 = (ICMP6) ipv6.getPayload();
 
         IpAddress sender = Ip6Address.valueOf(ipv6.getSourceAddress());
-        IpAddress target = null;
+        IpAddress target;
 
         NeighbourMessageType type;
         if (icmpv6.getIcmpType() == ICMP6.NEIGHBOR_SOLICITATION) {
@@ -261,6 +261,11 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
             target = Ip6Address.valueOf(nsol.getTargetAddress());
         } else if (icmpv6.getIcmpType() == ICMP6.NEIGHBOR_ADVERTISEMENT) {
             type = NeighbourMessageType.REPLY;
+            /*
+             * sender and target are the same in the reply.
+             * We use as target the destination ip.
+             */
+            target = Ip6Address.valueOf(ipv6.getDestinationAddress());
         } else {
             return null;
         }

@@ -66,6 +66,14 @@ public class IpPrefix {
     }
 
     /**
+     * Default constructor for Kryo serialization.
+     */
+    protected IpPrefix() {
+        this.address = null;
+        this.prefixLength = 0;
+    }
+
+    /**
      * Returns the IP version of the prefix.
      *
      * @return the IP version of the prefix
