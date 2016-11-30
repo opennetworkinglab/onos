@@ -33,14 +33,18 @@ import java.util.List;
  * LISP map resolver class.
  * Handles map-request message and acknowledges with map-reply message.
  */
-public class LispMapResolver {
+public final class LispMapResolver {
 
     private static final Logger log = LoggerFactory.getLogger(LispMapResolver.class);
 
-    private LispEidRlocMap eidRlocMap;
+    private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
 
-    LispMapResolver() {
-        eidRlocMap = LispEidRlocMap.getInstance();
+    // non-instantiable (except for our Singleton)
+    private LispMapResolver() {
+    }
+
+    public static LispMapResolver getInstance() {
+        return SingletonHelper.INSTANCE;
     }
 
     /**
@@ -54,9 +58,6 @@ public class LispMapResolver {
         LispEncapsulatedControl ecm = (LispEncapsulatedControl) message;
         LispMapRequest request = (LispMapRequest) ecm.getControlMessage();
 
-        // TODO: for now we always generate map-reply message and send to ITR
-        // no matter proxy bit is set or not
-
         // build map-reply message
         LispMapReply.ReplyBuilder replyBuilder = new DefaultReplyBuilder();
         replyBuilder.withNonce(request.getNonce());
@@ -64,7 +65,7 @@ public class LispMapResolver {
         replyBuilder.withIsSecurity(false);
         replyBuilder.withIsProbe(request.isProbe());
 
-        List<LispMapRecord> mapRecords = eidRlocMap.getMapRecordByEidRecords(request.getEids());
+        List<LispMapRecord> mapRecords = mapDb.getMapRecordByEidRecords(request.getEids());
 
         if (mapRecords.size() == 0) {
             log.warn("Map information is not found.");
@@ -84,5 +85,17 @@ public class LispMapResolver {
         }
 
         return reply;
+    }
+
+    /**
+     * Prevents object instantiation from external.
+     */
+    private static final class SingletonHelper {
+        private static final String ILLEGAL_ACCESS_MSG = "Should not instantiate this class.";
+        private static final LispMapResolver INSTANCE = new LispMapResolver();
+
+        private SingletonHelper() {
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MSG);
+        }
     }
 }

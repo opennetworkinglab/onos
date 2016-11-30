@@ -35,9 +35,9 @@ import static org.hamcrest.Matchers.is;
 /**
  * Tests for LISP EID RLOC Map class.
  */
-public class LispEidRlocMapTest {
+public class LispMappingDatabaseTest {
 
-    final LispEidRlocMap eidRlocMap = LispEidRlocMap.getInstance();
+    final LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
 
     @Before
     public void setup() {
@@ -89,23 +89,26 @@ public class LispEidRlocMapTest {
         builder1.withMaskLength(cidr1);
         builder1.withEidPrefixAfi(eid1);
         builder1.withLocators(locatorRecords1);
+        builder1.withRecordTtl(60);
         LispMapRecord mapRecord1 = builder1.build();
 
         MapRecordBuilder builder2 = new DefaultMapRecordBuilder();
         builder2.withMaskLength(cidr2);
         builder2.withEidPrefixAfi(eid2);
         builder2.withLocators(locatorRecords2);
+        builder2.withRecordTtl(60);
         LispMapRecord mapRecord2 = builder2.build();
 
         MapRecordBuilder builder3 = new DefaultMapRecordBuilder();
         builder3.withMaskLength(cidr3);
         builder3.withEidPrefixAfi(eid3);
         builder3.withLocators(locatorRecords3);
+        builder3.withRecordTtl(60);
         LispMapRecord mapRecord3 = builder3.build();
 
-        eidRlocMap.insertMapRecord(eidRecord1, mapRecord1);
-        eidRlocMap.insertMapRecord(eidRecord2, mapRecord2);
-        eidRlocMap.insertMapRecord(eidRecord3, mapRecord3);
+        mapDb.putMapRecord(eidRecord1, mapRecord1);
+        mapDb.putMapRecord(eidRecord2, mapRecord2);
+        mapDb.putMapRecord(eidRecord3, mapRecord3);
     }
 
     @Test
@@ -113,7 +116,7 @@ public class LispEidRlocMapTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
         LispEidRecord record = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord = eidRlocMap.getMapRecordByEidRecord(record);
+        LispMapRecord mapRecord = mapDb.getMapRecordByEidRecord(record);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord.getLocatorCount(), is(3));
@@ -124,12 +127,12 @@ public class LispEidRlocMapTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.2.1"));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = eidRlocMap.getMapRecordByEidRecord(record32);
+        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.1.2.0"));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = eidRlocMap.getMapRecordByEidRecord(record24);
+        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord32.getLocatorCount(), is(2));
@@ -142,17 +145,17 @@ public class LispEidRlocMapTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.2.1.1"));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = eidRlocMap.getMapRecordByEidRecord(record32);
+        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.2.1.0"));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = eidRlocMap.getMapRecordByEidRecord(record24);
+        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24);
 
         byte cidr16 = (byte) 16;
         LispIpv4Address eid16 = new LispIpv4Address(IpAddress.valueOf("10.2.0.0"));
         LispEidRecord record16 = new LispEidRecord(cidr16, eid16);
-        LispMapRecord mapRecord16 = eidRlocMap.getMapRecordByEidRecord(record16);
+        LispMapRecord mapRecord16 = mapDb.getMapRecordByEidRecord(record16);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord32.getLocatorCount(), is(1));

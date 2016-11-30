@@ -57,15 +57,15 @@ public final class LispMapServer {
 
     private static final Logger log = LoggerFactory.getLogger(LispMapServer.class);
 
-    private LispEidRlocMap eidRlocMap = LispEidRlocMap.getInstance();
+    private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
     private LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
-
-    public static LispMapServer getInstance() {
-        return SingletonHelper.INSTANCE;
-    }
 
     // non-instantiable (except for our Singleton)
     private LispMapServer() {
+    }
+
+    public static LispMapServer getInstance() {
+        return SingletonHelper.INSTANCE;
     }
 
     /**
@@ -83,6 +83,14 @@ public final class LispMapServer {
             return null;
         }
 
+        register.getMapRecords().forEach(mapRecord -> {
+            LispEidRecord eidRecord =
+                    new LispEidRecord(mapRecord.getMaskLength(),
+                                      mapRecord.getEidPrefixAfi());
+
+            mapDb.putMapRecord(eidRecord, mapRecord);
+        });
+
         // we only acknowledge back to ETR when want-map-notify bit is set to true
         // otherwise, we do not acknowledge back to ETR
         if (register.isWantMapNotify()) {
@@ -98,12 +106,6 @@ public final class LispMapServer {
             InetSocketAddress address =
                     new InetSocketAddress(register.getSender().getAddress(), MAP_NOTIFY_PORT);
             notify.configSender(address);
-
-            register.getMapRecords().forEach(record -> {
-                LispEidRecord eidRecord =
-                        new LispEidRecord(record.getMaskLength(), record.getEidPrefixAfi());
-                eidRlocMap.insertMapRecord(eidRecord, record);
-            });
 
             return notify;
         }
@@ -213,7 +215,12 @@ public final class LispMapServer {
     /**
      * Prevents object instantiation from external.
      */
-    private static class SingletonHelper {
+    private static final class SingletonHelper {
+        private static final String ILLEGAL_ACCESS_MSG = "Should not instantiate this class.";
         private static final LispMapServer INSTANCE = new LispMapServer();
+
+        private SingletonHelper() {
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MSG);
+        }
     }
 }

@@ -17,29 +17,37 @@ package org.onosproject.lisp.ctl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.lisp.ctl.map.ExpireHashMap;
+import org.onosproject.lisp.ctl.map.ExpireMap;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * A singleton class that stores EID-RLOC mapping information.
  */
-public final class LispEidRlocMap {
+public final class LispMappingDatabase {
 
-    private ConcurrentMap<LispEidRecord, LispMapRecord> map = Maps.newConcurrentMap();
+    private static final long MINUTE_TO_MS_UNIT = 60 * 1000;
+
+    private ExpireMap<LispEidRecord, LispMapRecord> map = new ExpireHashMap<>();
+
+    /**
+     * Prevents object instantiation from external.
+     */
+    private LispMappingDatabase() {
+    }
 
     /**
      * Obtains a singleton instance.
      *
      * @return singleton instance
      */
-    public static LispEidRlocMap getInstance() {
+    public static LispMappingDatabase getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
@@ -49,8 +57,18 @@ public final class LispEidRlocMap {
      * @param eid  endpoint identifier
      * @param rloc route locator record
      */
-    public void insertMapRecord(LispEidRecord eid, LispMapRecord rloc) {
-        map.putIfAbsent(eid, rloc);
+    public void putMapRecord(LispEidRecord eid, LispMapRecord rloc) {
+        map.put(eid, rloc, rloc.getRecordTtl() * MINUTE_TO_MS_UNIT);
+    }
+
+    /**
+     * Returns the results whether a given EidRecord is contained in the map.
+     *
+     * @param eid endpoint identifier
+     * @return the results whether a given EidRecord is contained in the map
+     */
+    public boolean hasEidRecord(LispEidRecord eid) {
+        return map.containsKey(eid);
     }
 
     /**
@@ -105,21 +123,7 @@ public final class LispEidRlocMap {
     public LispMapRecord getMapRecordByEidAddress(LispAfiAddress address) {
         Optional<LispEidRecord> eidRecord =
                 map.keySet().stream().filter(k -> k.getPrefix().equals(address)).findFirst();
-        if (eidRecord.isPresent()) {
-            return map.get(eidRecord);
-        }
-
-        return null;
-    }
-
-    /**
-     * Prevents object instantiation from external.
-     */
-    private LispEidRlocMap() {
-    }
-
-    private static class SingletonHelper {
-        private static final LispEidRlocMap INSTANCE = new LispEidRlocMap();
+        return eidRecord.map(lispEidRecord -> map.get(lispEidRecord)).orElse(null);
     }
 
     /**
@@ -149,5 +153,17 @@ public final class LispEidRlocMap {
         IpPrefix compareIpPrefix = IpPrefix.valueOf(cidrfy(compare));
 
         return originIpPrefix.contains(compareIpPrefix);
+    }
+
+    /**
+     * Prevents object instantiation from external.
+     */
+    private static final class SingletonHelper {
+        private static final String ILLEGAL_ACCESS_MSG = "Should not instantiate this class.";
+        private static final LispMappingDatabase INSTANCE = new LispMappingDatabase();
+
+        private SingletonHelper() {
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MSG);
+        }
     }
 }

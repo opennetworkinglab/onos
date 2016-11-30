@@ -44,13 +44,11 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
         try {
             // first we need to check whether this is an ECM
             if (msg instanceof LispEncapsulatedControl) {
-                LispMessage innerMsg =
-                        extractLispMessage((LispEncapsulatedControl) msg);
+                LispMessage innerMsg = extractLispMessage((LispEncapsulatedControl) msg);
                 if (innerMsg instanceof LispMapRequest) {
-                    LispMapResolver mapResolver = new LispMapResolver();
+                    LispMapResolver mapResolver = LispMapResolver.getInstance();
                     LispMessage lispMessage =
-                            mapResolver.processMapRequest(
-                                    (LispEncapsulatedControl) msg);
+                            mapResolver.processMapRequest((LispEncapsulatedControl) msg);
 
                     ctx.writeAndFlush(lispMessage);
                 }
