@@ -21,7 +21,7 @@
             <parallel var="${OC#}">
                 <step name="Node-Stop-${#}" exec="onos-service ${OC#} stop"/>
                 <step name="Wait-for-Stop-${#}" requires="~Node-Stop-${#}"
-                      exec="onos-wait-for-stop ${OC#}"/>
+                      exec="onos-wait-for-stop ${OC#} ${ONOS_KILL_OPTION}"/>
             </parallel>
         </group>
 

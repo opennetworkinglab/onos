@@ -19,3 +19,8 @@ ssh -t $remote "
     done
     exit 1
 "
+
+[ $? -eq 0 ] && exit 0
+[ "$2" = "--kill" ] && onos-kill $node && exit 0
+
+exit 1
