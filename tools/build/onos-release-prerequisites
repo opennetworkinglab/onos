@@ -100,6 +100,9 @@ function testEC2Access {
     aux=$(mktemp)
     trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
     printf "Checking EC2 access... "
+    : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID must be set}"
+    : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY must be set}"
+
     uploadToS3.py -v 1>$aux 2>&1
     rm -f $aux
     echo "OK"
@@ -122,7 +125,8 @@ function testSonatypeAccessMvn {
 }
 
 function testSonatypeAccessRest {
-    #FIXME check SONATYPE_USER SONATYPE_PASSWORD
+    : "${SONATYPE_USER:?SONATYPE_USER must be set}"
+    : "${SONATYPE_PASSWORD:?SONATYPE_PASSWORD must be set}"
     export ONOS_VERSION=1.2.3
     printf "Checking Sonatype access via REST... "
     pushd $ONOS_ROOT/tools/build/release-test >/dev/null
