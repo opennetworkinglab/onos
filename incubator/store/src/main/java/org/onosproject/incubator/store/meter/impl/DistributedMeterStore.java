@@ -26,18 +26,22 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
+import org.onosproject.net.meter.MeterFeatures;
+import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
+import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -54,6 +58,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static org.onosproject.net.meter.MeterFailReason.TIMEOUT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -68,6 +73,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     private Logger log = getLogger(getClass());
 
     private static final String METERSTORE = "onos-meter-store";
+    private static final String METERFEATURESSTORE = "onos-meter-features-store";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private StorageService storageService;
@@ -80,6 +86,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     private ConsistentMap<MeterKey, MeterData> meters;
     private NodeId local;
+
+    private ConsistentMap<MeterFeaturesKey, MeterFeatures> meterFeatures;
 
     private MapEventListener<MeterKey, MeterData> mapListener = new InternalMapEventListener();
 
@@ -105,6 +113,16 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                                      MeterFailReason.class)).build();
 
         meters.addListener(mapListener);
+
+        meterFeatures = storageService.<MeterFeaturesKey, MeterFeatures>consistentMapBuilder()
+                .withName(METERFEATURESSTORE)
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                        MeterFeaturesKey.class,
+                        MeterFeatures.class,
+                        DefaultMeterFeatures.class,
+                        Band.Type.class,
+                        Meter.Unit.class,
+                        MeterFailReason.class)).build();
 
         log.info("Started");
     }
@@ -154,6 +172,30 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
 
         return future;
+    }
+
+    @Override
+    public MeterStoreResult storeMeterFeatures(MeterFeatures meterfeatures) {
+        MeterStoreResult result = MeterStoreResult.success();
+        MeterFeaturesKey key = MeterFeaturesKey.key(meterfeatures.deviceId());
+        try {
+            meterFeatures.putIfAbsent(key, meterfeatures);
+        } catch (StorageException e) {
+            result = MeterStoreResult.fail(TIMEOUT);
+        }
+        return result;
+    }
+
+    @Override
+    public MeterStoreResult deleteMeterFeatures(DeviceId deviceId) {
+        MeterStoreResult result = MeterStoreResult.success();
+        MeterFeaturesKey key = MeterFeaturesKey.key(deviceId);
+        try {
+            meterFeatures.remove(key);
+        } catch (StorageException e) {
+            result = MeterStoreResult.fail(TIMEOUT);
+        }
+        return result;
     }
 
     @Override
@@ -212,6 +254,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         MeterKey key = MeterKey.key(m.deviceId(), m.id());
         futures.remove(key);
         meters.remove(key);
+    }
+
+    @Override
+    public long getMaxMeters(MeterFeaturesKey key) {
+        MeterFeatures features = Versioned.valueOrElse(meterFeatures.get(key), null);
+        return features == null ? 0L : features.maxMeter();
     }
 
     private class InternalMapEventListener implements MapEventListener<MeterKey, MeterData> {

@@ -29,6 +29,7 @@ import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
+import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
@@ -225,6 +226,16 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
                     store.deleteMeterNow(m);
                 }
             });
+        }
+
+        @Override
+        public void pushMeterFeatures(DeviceId deviceId, MeterFeatures meterfeatures) {
+            store.storeMeterFeatures(meterfeatures);
+        }
+
+        @Override
+        public void deleteMeterFeatures(DeviceId deviceId) {
+            store.deleteMeterFeatures(deviceId);
         }
     }
 

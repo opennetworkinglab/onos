@@ -30,6 +30,7 @@ import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFMeterFeaturesStatsReply;
 import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
@@ -469,6 +470,15 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
         return this.ports.stream()
                   .flatMap(portReply -> portReply.getEntries().stream())
                   .collect(Collectors.toList());
+    }
+
+    @Override
+    public OFMeterFeatures getMeterFeatures() {
+        if (this.meterfeatures != null) {
+            return this.meterfeatures.getFeatures();
+        } else {
+            return null;
+        }
     }
 
     @Override

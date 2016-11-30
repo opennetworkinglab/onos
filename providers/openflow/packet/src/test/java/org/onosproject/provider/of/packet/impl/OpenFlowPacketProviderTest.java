@@ -48,6 +48,7 @@ import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketInReason;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
@@ -372,6 +373,11 @@ public class OpenFlowPacketProviderTest {
         @Override
         public List<OFPortDesc> getPorts() {
             return PLIST;
+        }
+
+        @Override
+        public OFMeterFeatures getMeterFeatures() {
+            return null;
         }
 
         @Override

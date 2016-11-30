@@ -54,6 +54,7 @@ import org.projectfloodlight.openflow.protocol.OFGroupModFailedCode;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.errormsg.OFGroupModFailedErrorMsg;
@@ -354,6 +355,11 @@ public class OpenFlowGroupProviderTest {
 
         @Override
         public List<OFPortDesc> getPorts() {
+            return null;
+        }
+
+        @Override
+        public OFMeterFeatures getMeterFeatures() {
             return null;
         }
 

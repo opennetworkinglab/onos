@@ -45,5 +45,21 @@ public interface MeterProviderService extends ProviderService<MeterProvider> {
     void pushMeterMetrics(DeviceId deviceId,
                           Collection<Meter> meterEntries);
 
+    /**
+     * Pushes the meter features collected from the device.
+     *
+     * @param deviceId the device Id
+     * @param meterfeatures the meter features
+     */
+    void pushMeterFeatures(DeviceId deviceId,
+                           MeterFeatures meterfeatures);
+
+
+    /**
+     * Delete meter features collected from the device.
+     *
+     * @param deviceId the device id
+     */
+    void deleteMeterFeatures(DeviceId deviceId);
 
 }

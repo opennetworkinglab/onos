@@ -18,6 +18,7 @@ package org.onosproject.openflow.controller;
 import org.onosproject.net.Device;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 
 import java.util.List;
@@ -53,6 +54,11 @@ public class OpenFlowSwitchAdapter implements OpenFlowSwitch {
 
     @Override
     public List<OFPortDesc> getPorts() {
+        return null;
+    }
+
+    @Override
+    public OFMeterFeatures getMeterFeatures() {
         return null;
     }
 

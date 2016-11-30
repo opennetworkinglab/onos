@@ -34,6 +34,7 @@ import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterFailReason;
+import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterOperations;
@@ -51,11 +52,13 @@ import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.provider.of.meter.util.MeterFeaturesBuilder;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterBandStats;
 import org.projectfloodlight.openflow.protocol.OFMeterConfigStatsReply;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFMeterStats;
 import org.projectfloodlight.openflow.protocol.OFMeterStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
@@ -74,6 +77,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.openflow.controller.Dpid.uri;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -255,6 +260,25 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
     }
 
+    private MeterFeatures buildMeterFeatures(Dpid dpid, OFMeterFeatures mf) {
+        if (mf != null) {
+            return new MeterFeaturesBuilder(mf, deviceId(uri(dpid)))
+                    .build();
+        } else {
+            // This will usually happen for OpenFlow devices prior to 1.3
+            return MeterFeaturesBuilder.noMeterFeatures(deviceId(uri(dpid)));
+        }
+    }
+
+    private void pushMeterFeatures(Dpid dpid, OFMeterFeatures meterFeatures) {
+        providerService.pushMeterFeatures(deviceId(uri(dpid)),
+                buildMeterFeatures(dpid, meterFeatures));
+    }
+
+    private void destroyMeterFeatures(Dpid dpid) {
+        providerService.deleteMeterFeatures(deviceId(uri(dpid)));
+    }
+
     private Map<Long, Meter> collectMeters(DeviceId deviceId,
                                            OFMeterConfigStatsReply reply) {
         return Maps.newHashMap();
@@ -383,11 +407,13 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
         @Override
         public void switchAdded(Dpid dpid) {
             createStatsCollection(controller.getSwitch(dpid));
+            pushMeterFeatures(dpid, controller.getSwitch(dpid).getMeterFeatures());
         }
 
         @Override
         public void switchRemoved(Dpid dpid) {
             stopCollectorIfNeeded(collectors.remove(dpid));
+            destroyMeterFeatures(dpid);
         }
 
         @Override

@@ -18,6 +18,7 @@ package org.onosproject.openflow.controller;
 import org.onosproject.net.Device;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 
 import java.util.List;
@@ -72,6 +73,12 @@ public interface OpenFlowSwitch {
      * @return unmodifiable list of the ports.
      */
     List<OFPortDesc> getPorts();
+
+    /**
+     * Fetches the meter features of this switch.
+     * @return unmodifiable meter features
+     */
+    OFMeterFeatures getMeterFeatures();
 
     /**
      * Provides the factory for this OF version.

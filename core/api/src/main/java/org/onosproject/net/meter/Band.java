@@ -40,7 +40,12 @@ public interface Band {
          * IP header of the packets that exceed the band
          * rate value.
          */
-        REMARK
+        REMARK,
+
+        /**
+         * defines an experimental meter band.
+         */
+        EXPERIMENTAL
     }
 
     /**

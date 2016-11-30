@@ -31,6 +31,7 @@ import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFMeterFeaturesStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
@@ -237,6 +238,11 @@ public class OpenflowSwitchDriverAdapter implements OpenFlowSwitchDriver {
 
     @Override
     public List<OFPortDesc> getPorts() {
+        return null;
+    }
+
+    @Override
+    public OFMeterFeatures getMeterFeatures() {
         return null;
     }
 

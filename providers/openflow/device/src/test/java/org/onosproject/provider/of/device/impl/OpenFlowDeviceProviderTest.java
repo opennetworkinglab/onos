@@ -46,6 +46,7 @@ import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
@@ -237,7 +238,6 @@ public class OpenFlowDeviceProviderTest {
             public void updatePortStatistics(DeviceId deviceId, Collection<PortStatistics> portStatistics) {
 
             }
-
         }
     }
 
@@ -360,6 +360,11 @@ public class OpenFlowDeviceProviderTest {
         @Override
         public List<OFPortDesc> getPorts() {
             return PLIST;
+        }
+
+        @Override
+        public OFMeterFeatures getMeterFeatures() {
+            return null;
         }
 
         @Override
