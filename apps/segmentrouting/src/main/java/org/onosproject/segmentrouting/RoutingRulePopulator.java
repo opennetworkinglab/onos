@@ -147,6 +147,11 @@ public class RoutingRulePopulator {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
         }
+        if (fwdBuilder == null) {
+            log.warn("Aborting host routing table entries due "
+                    + "to error for dev:{} route:{}", deviceId, prefix);
+            return;
+        }
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("IP rule for route {} revoked", prefix),
                 (objective, error) ->
