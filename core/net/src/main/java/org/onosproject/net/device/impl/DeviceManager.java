@@ -71,8 +71,11 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.Provider;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 
@@ -870,11 +873,18 @@ public class DeviceManager
             .filter(mastershipService::isLocalMaster)
             // for each locally managed Device, update all port descriptions
             .map(did -> {
+                ProviderId pid = Optional.ofNullable(getProvider(did))
+                                            .map(Provider::id)
+                                            .orElse(null);
+                if (pid == null) {
+                    log.warn("Provider not found for {}", did);
+                    return ImmutableList.<DeviceEvent>of();
+                }
                 List<PortDescription> pds
-                    = store.getPortDescriptions(getProvider(did).id(), did)
+                    = store.getPortDescriptions(pid, did)
                         .map(pdesc -> applyAllPortOps(did, pdesc))
                         .collect(Collectors.toList());
-                return store.updatePorts(getProvider(did).id(), did, pds);
+                return store.updatePorts(pid, did, pds);
                 })
             // ..and port port update event if necessary
             .forEach(evts -> evts.forEach(this::post));
