@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//apps/pce/app:onos-apps-pce-app',
+    '//core/store/serializers:onos-core-serializers',
+    '//core/api:onos-api',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS
+)
+
+onos_app (
+    title = 'PCE Rest application',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Tunnel Service between network devices via REST interface',
+)

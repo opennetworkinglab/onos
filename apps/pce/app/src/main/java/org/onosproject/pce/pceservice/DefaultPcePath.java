@@ -18,8 +18,11 @@ package org.onosproject.pce.pceservice;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
+import org.onlab.rest.BaseResource;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -39,6 +42,7 @@ public final class DefaultPcePath implements PcePath {
     private String name; // symbolic-path-name
     private Constraint costConstraint; // cost constraint
     private Constraint bandwidthConstraint; // bandwidth constraint
+    private Collection<ExplicitPathInfo> explicitPathInfo; //list of explicit path info
 
     /**
      * Initializes PCE path attributes.
@@ -50,10 +54,11 @@ public final class DefaultPcePath implements PcePath {
      * @param name symbolic-path-name
      * @param costConstrnt cost constraint
      * @param bandwidthConstrnt bandwidth constraint
+     * @param explicitPathInfo list of explicit path info
      */
     private DefaultPcePath(TunnelId id, String src, String dst, LspType lspType,
-                           String name, Constraint costConstrnt, Constraint bandwidthConstrnt) {
-
+                           String name, Constraint costConstrnt, Constraint bandwidthConstrnt,
+                           Collection<ExplicitPathInfo> explicitPathInfo) {
         this.id = id;
         this.source = src;
         this.destination = dst;
@@ -61,6 +66,7 @@ public final class DefaultPcePath implements PcePath {
         this.name = name;
         this.costConstraint = costConstrnt;
         this.bandwidthConstraint = bandwidthConstrnt;
+        this.explicitPathInfo = explicitPathInfo;
     }
 
     @Override
@@ -114,6 +120,11 @@ public final class DefaultPcePath implements PcePath {
     }
 
     @Override
+    public Collection<ExplicitPathInfo> explicitPathInfo() {
+        return explicitPathInfo;
+    }
+
+    @Override
     public PcePath copy(PcePath path) {
         if (null != path.source()) {
             this.source = path.source();
@@ -138,7 +149,8 @@ public final class DefaultPcePath implements PcePath {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, source, destination, lspType, name, costConstraint, bandwidthConstraint);
+        return Objects.hash(id, source, destination, lspType, name, costConstraint, bandwidthConstraint,
+                explicitPathInfo);
     }
 
     @Override
@@ -154,7 +166,8 @@ public final class DefaultPcePath implements PcePath {
                     && Objects.equals(lspType, that.lspType)
                     && Objects.equals(name, that.name)
                     && Objects.equals(costConstraint, that.costConstraint)
-                    && Objects.equals(bandwidthConstraint, that.bandwidthConstraint);
+                    && Objects.equals(bandwidthConstraint, that.bandwidthConstraint)
+                    && Objects.equals(explicitPathInfo, that.explicitPathInfo);
         }
         return false;
     }
@@ -170,6 +183,7 @@ public final class DefaultPcePath implements PcePath {
                 .add("name", name)
                 .add("costConstraint", costConstraint)
                 .add("bandwidthConstraint", bandwidthConstraint)
+                .add("explicitPathInfo", explicitPathInfo)
                 .toString();
     }
 
@@ -185,7 +199,7 @@ public final class DefaultPcePath implements PcePath {
     /**
      * Builder class for pce path.
      */
-    public static final class Builder implements PcePath.Builder {
+    public static final class Builder extends BaseResource implements PcePath.Builder {
         private TunnelId id;
         private String source;
         private String destination;
@@ -193,6 +207,7 @@ public final class DefaultPcePath implements PcePath {
         private String name;
         private Constraint costConstraint;
         private Constraint bandwidthConstraint;
+        private Collection<ExplicitPathInfo> explicitPathInfo;
 
         @Override
         public Builder id(String id) {
@@ -240,7 +255,13 @@ public final class DefaultPcePath implements PcePath {
         }
 
         @Override
-        public Builder of(Tunnel tunnel) {
+        public Builder explicitPathInfo(Collection<ExplicitPathInfo> explicitPathInfo) {
+            this.explicitPathInfo = explicitPathInfo;
+            return this;
+        }
+
+        @Override
+        public Builder of(Tunnel tunnel, List<ExplicitPathInfo> explicitPathInfoList) {
             this.id = TunnelId.valueOf(tunnel.tunnelId().id());
             this.source = tunnel.path().src().deviceId().toString();
             this.destination = tunnel.path().dst().deviceId().toString();
@@ -264,13 +285,18 @@ public final class DefaultPcePath implements PcePath {
                                                                   DataRateUnit.valueOf("BPS"));
             }
 
+            // Explicit Path
+            if (explicitPathInfoList != null) {
+                this.explicitPathInfo = explicitPathInfoList;
+            }
+
             return this;
         }
 
         @Override
         public PcePath build() {
             return new DefaultPcePath(id, source, destination, lspType, name,
-                                      costConstraint, bandwidthConstraint);
+                                      costConstraint, bandwidthConstraint, explicitPathInfo);
         }
     }
 }

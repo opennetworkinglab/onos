@@ -48,9 +48,11 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
+import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Constraint;
@@ -86,6 +88,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
@@ -223,17 +226,196 @@ public class PceManager implements PceService {
         if (pathService == null) {
             return ImmutableSet.of();
         }
+
         Set<Path> paths = pathService.getPaths(src, dst, weight(constraints));
+        log.info("paths in computePath ::" + paths);
         if (!paths.isEmpty()) {
             return paths;
         }
         return ImmutableSet.of();
     }
 
-    //[TODO:] handle requests in queue
+    //Computes the partial path from partial computed path to specified dst.
+    private List<Path> computePartialPath(List<Path> computedPath, DeviceId src, DeviceId dst,
+                                    List<Constraint> constraints) {
+        int size = computedPath.size();
+        Path path = null;
+        DeviceId deviceId = size == 0 ? src :
+                computedPath.get(size - 1).dst().deviceId();
+
+        Set<Path> tempComputePath = computePath(deviceId, dst, constraints);
+
+        if (tempComputePath.isEmpty()) {
+            return null;
+        }
+
+        //if path validation fails return null
+        //Validate computed path to avoid loop in the path
+        for (Path p : tempComputePath) {
+            if (pathValidation(computedPath, p)) {
+                path = p;
+                break;
+            }
+        }
+        if (path == null) {
+            return null;
+        }
+
+        //Store the partial path result in a list
+        computedPath.add(path);
+        return computedPath;
+    }
+
+    private List<DeviceId> createListOfDeviceIds(List<? extends NetworkResource> list) {
+        List<Link> links = new LinkedList<>();
+        if (!list.isEmpty() && list.iterator().next() instanceof Path) {
+            for (Path path : (List<Path>) list) {
+                links.addAll(path.links());
+            }
+        } else if (!list.isEmpty() && list.iterator().next() instanceof Link) {
+            links.addAll((List<Link>) list);
+        }
+
+        //List of devices for new path computed
+        DeviceId source = null;
+        DeviceId destination = null;
+        List<DeviceId> devList = new LinkedList<>();
+
+        for (Link l : links) {
+            if (!devList.contains(l.src().deviceId())) {
+                devList.add(l.src().deviceId());
+            }
+            if (!devList.contains(l.dst().deviceId())) {
+                devList.add(l.dst().deviceId());
+            }
+        }
+
+        return devList;
+    }
+
+    //To dectect loops in the path i.e if the partial paths has intersection node avoid it.
+    private boolean pathValidation(List<Path> partialPath, Path path) {
+
+        //List of devices in new path computed
+        List<DeviceId> newPartialPathDevList;
+        newPartialPathDevList = createListOfDeviceIds(path.links());
+
+        //List of devices in partial computed path
+        List<DeviceId> partialComputedPathDevList;
+        partialComputedPathDevList = createListOfDeviceIds(partialPath);
+
+        for (DeviceId deviceId : newPartialPathDevList) {
+            for (DeviceId devId : partialComputedPathDevList) {
+                if (!newPartialPathDevList.get(0).equals(deviceId) &&
+                        !partialComputedPathDevList.get(partialComputedPathDevList.size() - 1).equals(devId)
+                        && deviceId.equals(devId)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    //Returns final computed explicit path (list of partial computed paths).
+    private List<Path> computeExplicitPath(List<ExplicitPathInfo> explicitPathInfo, DeviceId src, DeviceId dst,
+            List<Constraint> constraints) {
+        List<Path> finalComputedPath = new LinkedList<>();
+        for (ExplicitPathInfo info : explicitPathInfo) {
+            /*
+             * If explicit path object is LOOSE,
+             * 1) If specified as DeviceId (node) :
+             * If it is source , compute from source to destination (partial computation not required),
+             * otherwise compute from specified source to specified device
+             * 2) If specified as Link :
+             * Compute partial path from source to link's source , if path exists compute from link's source to dst
+             */
+            if (info.type().equals(ExplicitPathInfo.Type.LOOSE)) {
+                if (info.value() instanceof DeviceId) {
+                    // If deviceId is source no need to compute
+                    if (!(info.value()).equals(src)) {
+                        log.debug("computeExplicitPath :: Loose , device");
+                        finalComputedPath = computePartialPath(finalComputedPath, src, (DeviceId) info.value(),
+                                constraints);
+                        log.debug("finalComputedPath in computeExplicitPath ::" + finalComputedPath);
+                    }
+
+                } else if (info.value() instanceof Link) {
+                    if ((((Link) info.value()).src().deviceId().equals(src))
+                            || (!finalComputedPath.isEmpty()
+                            && finalComputedPath.get(finalComputedPath.size() - 1).dst().deviceId().equals(
+                                    ((Link) info.value()).src().deviceId()))) {
+
+                        finalComputedPath = computePartialPath(finalComputedPath, src, ((Link) info.value()).dst()
+                                .deviceId(), constraints);
+                    } else {
+
+                        finalComputedPath = computePartialPath(finalComputedPath, src, ((Link) info.value()).src()
+                                .deviceId(), constraints) != null ? computePartialPath(finalComputedPath, src,
+                                ((Link) info.value()).dst().deviceId(), constraints) : null;
+                    }
+                }
+                /*
+                 * If explicit path object is STRICT,
+                 * 1) If specified as DeviceId (node) :
+                 * Check whether partial computed path has reachable to strict specified node orde
+                 * strict node is the source, if no set path as null else do nothing
+                 * 2) If specified as Link :
+                 * Check whether partial computed path has reachable to strict link's src, if yes compute
+                 * path from strict link's src to link's dst (to include specified link)
+                 */
+            } else if (info.type().equals(ExplicitPathInfo.Type.STRICT)) {
+                if (info.value() instanceof DeviceId) {
+                    log.debug("computeExplicitPath :: Strict , device");
+                    if (!(!finalComputedPath.isEmpty() && finalComputedPath.get(finalComputedPath.size() - 1).dst()
+                            .deviceId().equals(info.value()))
+                            && !info.value().equals(src)) {
+                        finalComputedPath = null;
+                    }
+
+                } else if (info.value() instanceof Link) {
+                    log.info("computeExplicitPath :: Strict");
+                    finalComputedPath = ((Link) info.value()).src().deviceId().equals(src)
+                            || !finalComputedPath.isEmpty()
+                            && finalComputedPath.get(finalComputedPath.size() - 1).dst().deviceId()
+                                    .equals(((Link) info.value()).src().deviceId()) ? computePartialPath(
+                            finalComputedPath, src, ((Link) info.value()).dst().deviceId(), constraints) : null;
+
+                    //Log.info("computeExplicitPath :: (Link) info.value() " + (Link) info.value());
+                    //Log.info("computeExplicitPath :: finalComputedPath " + finalComputedPath);
+
+                    if (finalComputedPath != null && !finalComputedPath.get(finalComputedPath.size() - 1).links()
+                            .contains((Link) info.value())) {
+                        finalComputedPath = null;
+                    }
+                }
+            }
+            if (finalComputedPath == null) {
+                return null;
+            }
+        }
+        // Destination is not reached in Partial computed path then compute till destination
+        if (finalComputedPath.isEmpty() || !finalComputedPath.isEmpty()
+                && !finalComputedPath.get(finalComputedPath.size() - 1).dst().deviceId().equals(dst)) {
+
+            finalComputedPath = computePartialPath(finalComputedPath, src, dst, constraints);
+            if (finalComputedPath == null) {
+                return null;
+            }
+        }
+
+        return finalComputedPath;
+    }
+
     @Override
     public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
                              LspType lspType) {
+        return setupPath(src, dst, tunnelName, constraints, lspType, null);
+    }
+
+    //[TODO:] handle requests in queue
+    @Override
+    public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
+                             LspType lspType, List<ExplicitPathInfo> explicitPathInfo) {
         checkNotNull(src);
         checkNotNull(dst);
         checkNotNull(tunnelName);
@@ -245,7 +427,7 @@ public class PceManager implements PceService {
 
         if (srcDevice == null || dstDevice == null) {
             // Device is not known.
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
             return false;
         }
 
@@ -255,7 +437,7 @@ public class PceManager implements PceService {
 
         if (srcLsrId == null || dstLsrId == null) {
             // LSR id is not known.
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
             return false;
         }
 
@@ -263,7 +445,7 @@ public class PceManager implements PceService {
         DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(srcLsrId), DeviceCapability.class);
         if (cfg == null) {
             log.debug("No session to ingress.");
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
             return false;
         }
 
@@ -299,12 +481,30 @@ public class PceManager implements PceService {
             constraints = new LinkedList<>();
             constraints.add(CapabilityConstraint.of(CapabilityType.valueOf(lspType.name())));
         }
+        Set<Path> computedPathSet = Sets.newLinkedHashSet();
 
-        Set<Path> computedPathSet = computePath(src, dst, constraints);
+        if (explicitPathInfo != null && !explicitPathInfo.isEmpty()) {
+            List<Path> finalComputedPath = computeExplicitPath(explicitPathInfo, src, dst, constraints);
+            if (finalComputedPath == null) {
+                return false;
+            }
+
+            pceStore.tunnelNameExplicitPathInfoMap(tunnelName, explicitPathInfo);
+            List<Link> links = new LinkedList<>();
+            double totalCost = 0;
+            // Add all partial computed paths
+            for (Path path : finalComputedPath) {
+                links.addAll(path.links());
+                totalCost = totalCost + path.cost();
+            }
+            computedPathSet.add(new DefaultPath(finalComputedPath.iterator().next().providerId(), links, totalCost));
+        } else {
+            computedPathSet = computePath(src, dst, constraints);
+        }
 
         // NO-PATH
         if (computedPathSet.isEmpty()) {
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
             return false;
         }
 
@@ -339,14 +539,15 @@ public class PceManager implements PceService {
         if (bwConstraintValue != 0) {
             consumerId = reserveBandwidth(computedPath, bwConstraintValue, null);
             if (consumerId == null) {
-                pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+                pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints,
+                        lspType, explicitPathInfo));
                 return false;
             }
         }
 
         TunnelId tunnelId = tunnelService.setupTunnel(appId, src, tunnel, computedPath);
         if (tunnelId == null) {
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
             if (consumerId != null) {
                 resourceService.release(consumerId);
             }
@@ -363,7 +564,7 @@ public class PceManager implements PceService {
     @Override
     public boolean updatePath(TunnelId tunnelId, List<Constraint> constraints) {
         checkNotNull(tunnelId);
-        Set<Path> computedPathSet = null;
+        Set<Path> computedPathSet = Sets.newLinkedHashSet();
         Tunnel tunnel = tunnelService.queryTunnel(tunnelId);
 
         if (tunnel == null) {
@@ -441,8 +642,30 @@ public class PceManager implements PceService {
             constraints.add(costConstraint);
         }
 
-        computedPathSet = computePath(links.get(0).src().deviceId(), links.get(links.size() - 1).dst().deviceId(),
-                                      constraints);
+        List<ExplicitPathInfo> explicitPathInfo = pceStore
+                .getTunnelNameExplicitPathInfoMap(tunnel.tunnelName().value());
+        if (explicitPathInfo != null) {
+            List<Path> finalComputedPath = computeExplicitPath(explicitPathInfo,
+                    tunnel.path().src().deviceId(), tunnel.path().dst().deviceId(),
+                    constraints);
+
+            if (finalComputedPath == null) {
+                return false;
+            }
+
+            List<Link> totalLinks = new LinkedList<>();
+            double totalCost = 0;
+            //Add all partial computed paths
+            for (Path path : finalComputedPath) {
+                totalLinks.addAll(path.links());
+                totalCost = totalCost + path.cost();
+            }
+            computedPathSet.add(new DefaultPath(finalComputedPath.iterator().next().providerId(),
+                    totalLinks, totalCost));
+        } else {
+            computedPathSet = computePath(tunnel.path().src().deviceId(), tunnel.path().dst().deviceId(),
+                    constraints);
+        }
 
         // NO-PATH
         if (computedPathSet.isEmpty()) {
@@ -636,7 +859,8 @@ public class PceManager implements PceService {
                 // then PCInitiate (Remove)
                 pceStore.addFailedPathInfo(new PcePathInfo(tunnel.path().src().deviceId(), tunnel
                         .path().dst().deviceId(), tunnel.tunnelName().value(), constraintList,
-                        LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE))));
+                        LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)),
+                         pceStore.getTunnelNameExplicitPathInfoMap(tunnel.tunnelName().value())));
                 //Release that tunnel calling PCInitiate
                 releasePath(tunnel.tunnelId());
             }
@@ -832,7 +1056,9 @@ public class PceManager implements PceService {
                     List<Link> links = tunnel.path().links();
                     pceStore.addFailedPathInfo(new PcePathInfo(links.get(0).src().deviceId(),
                                                                   links.get(links.size() - 1).dst().deviceId(),
-                                                                  tunnel.tunnelName().value(), constraints, lspType));
+                                                                  tunnel.tunnelName().value(), constraints, lspType,
+                                                                  pceStore.getTunnelNameExplicitPathInfoMap(tunnel
+                                                                          .tunnelName().value())));
                 }
 
                 break;
@@ -861,6 +1087,11 @@ public class PceManager implements PceService {
         }
     }
 
+    @Override
+    public List<ExplicitPathInfo> explicitPathInfoList(String tunnelName) {
+        return pceStore.getTunnelNameExplicitPathInfoMap(tunnelName);
+    }
+
     //Computes path from tunnel store and also path failed to setup.
     private void callForOptimization() {
         //Recompute the LSPs which it was delegated [LSPs stored in PCE store (failed paths)]
@@ -880,7 +1111,7 @@ public class PceManager implements PceService {
          */
         if (mastershipService.isLocalMaster(failedPathInfo.src())) {
             if (setupPath(failedPathInfo.src(), failedPathInfo.dst(), failedPathInfo.name(),
-                    failedPathInfo.constraints(), failedPathInfo.lspType())) {
+                    failedPathInfo.constraints(), failedPathInfo.lspType(), failedPathInfo.explicitPathInfo())) {
                 // If computation is success remove that path
                 pceStore.removeFailedPathInfo(failedPathInfo);
                 return true;

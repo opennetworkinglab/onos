@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.LspType;
 
 /**
@@ -40,6 +41,8 @@ public final class PcePathInfo {
 
     private LspType lspType; // lsp type
 
+    private List<ExplicitPathInfo> explicitPathInfo; //Explicit path info to compute explicit path
+
     /**
      * Initialization of member variables.
      *
@@ -48,17 +51,20 @@ public final class PcePathInfo {
      * @param name tunnel name
      * @param constraints list of constraints
      * @param lspType lsp type
+     * @param explicitPathInfo explicit path info
      */
     public PcePathInfo(DeviceId src,
                     DeviceId dst,
                     String name,
                     List<Constraint> constraints,
-                    LspType lspType) {
+                    LspType lspType,
+                    List<ExplicitPathInfo> explicitPathInfo) {
        this.src = src;
        this.dst = dst;
        this.name = name;
        this.constraints = constraints;
        this.lspType = lspType;
+       this.explicitPathInfo = explicitPathInfo;
     }
 
     /**
@@ -70,6 +76,7 @@ public final class PcePathInfo {
        this.name = null;
        this.constraints = null;
        this.lspType = null;
+       this.explicitPathInfo = null;
     }
 
     /**
@@ -162,9 +169,27 @@ public final class PcePathInfo {
         this.lspType = lspType;
     }
 
+    /**
+     * Returns list of explicit path info.
+     *
+     * @return list of explicit path info
+     */
+    public List<ExplicitPathInfo> explicitPathInfo() {
+        return explicitPathInfo;
+    }
+
+    /**
+     * Sets list of explicit path info.
+     *
+     * @param explicitPathInfo list of explicit path info
+     */
+    public void explicitPathInfo(List<ExplicitPathInfo> explicitPathInfo) {
+        this.explicitPathInfo = explicitPathInfo;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(src, dst, name, constraints, lspType);
+        return Objects.hash(src, dst, name, constraints, lspType, explicitPathInfo);
     }
 
     @Override
@@ -178,7 +203,8 @@ public final class PcePathInfo {
                     Objects.equals(this.dst, other.dst) &&
                     Objects.equals(this.name, other.name) &&
                     Objects.equals(this.constraints, other.constraints) &&
-                    Objects.equals(this.lspType, other.lspType);
+                    Objects.equals(this.lspType, other.lspType) &&
+                    Objects.equals(this.explicitPathInfo, other.explicitPathInfo);
         }
         return false;
     }
@@ -187,11 +213,12 @@ public final class PcePathInfo {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .omitNullValues()
-                .add("Source", src.toString())
-                .add("Destination", dst.toString())
-                .add("Name", name.toString())
-                .add("Constraints", constraints.toString())
-                .add("LspType", lspType.toString())
+                .add("Source", src)
+                .add("Destination", dst)
+                .add("Name", name)
+                .add("Constraints", constraints)
+                .add("explicitPathInfo", explicitPathInfo)
+                .add("LspType", lspType)
                 .toString();
     }
 }

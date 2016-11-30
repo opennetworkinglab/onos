@@ -7,5 +7,10 @@
    "constraint":
     {  "cost":2,
        "bandwidth":200.0
-    }
+    },
+   "explicitPathInfo" :
+   {"type":1,
+    "subtype":0,
+    "value":"11.0.0.2"
+   }
 }
