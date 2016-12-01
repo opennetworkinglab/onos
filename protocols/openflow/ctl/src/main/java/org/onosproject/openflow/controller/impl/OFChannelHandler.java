@@ -33,6 +33,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
+import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
@@ -578,7 +579,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             @Override
             void processOFError(OFChannelHandler h, OFErrorMsg m)
                     throws IOException {
-                // will never be called. We override processOFMessage
+                // Hardware switches may reply OFErrorMsg if meter is not supported
+                log.warn("Received OFError {}. It seems {} does not support Meter.",
+                        m.getErrType().name(), Dpid.uri(h.thisdpid));
+                log.debug("{}", m);
+                h.sendHandshakeDescriptionStatsRequest();
+                h.setState(WAIT_DESCRIPTION_STAT_REPLY);
             }
 
             @Override
