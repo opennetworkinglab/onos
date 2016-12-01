@@ -30,13 +30,11 @@ import org.onosproject.tetopology.management.api.TeStatus;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.tetopology.management.api.link.ElementType;
-import org.onosproject.tetopology.management.api.link.NetworkLink;
 import org.onosproject.tetopology.management.api.link.TeLinkId;
 import org.onosproject.tetopology.management.api.link.TePathAttributes;
 import org.onosproject.tetopology.management.api.link.UnderlayAbstractPath;
 import org.onosproject.tetopology.management.api.node.CommonNodeData;
 import org.onosproject.tetopology.management.api.node.ConnectivityMatrix;
-import org.onosproject.tetopology.management.api.node.ConnectivityMatrixKey;
 import org.onosproject.tetopology.management.api.node.DefaultNetworkNode;
 import org.onosproject.tetopology.management.api.node.DefaultTeNode;
 import org.onosproject.tetopology.management.api.node.LocalLinkConnectivity;
@@ -57,7 +55,6 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev2
                .ietfnetwork.networks.network.node.DefaultSupportingNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
                .ietfnetwork.networks.network.node.SupportingNode;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.TpId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.networks.network.AugmentedNdNetwork;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.networks.network.augmentedndnetwork.Link;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208
@@ -68,7 +65,6 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.DefaultInformationSourceState;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.InformationSourceState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.DefaultInformationSourceState.InformationSourceStateBuilder;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.informationsourcestate.DefaultTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.informationsourcestate.Topology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
@@ -155,8 +151,8 @@ public final class NodeConverter {
         }
 
         // TODO: should we ignore this from te to yang? as we've already set yang supportingNode
-        if (teSubsystemTeNode.supportingTeNodeId() != null) {
-        }
+        //if (teSubsystemTeNode.supportingTeNodeId() != null) {
+        //}
 
         if (teSubsystemTeNode.connectivityMatrices() != null) {
             teNodeAttributesConfigBuilder = te2YangConnectivityMatrix(teNodeAttributesConfigBuilder,
@@ -244,8 +240,8 @@ public final class NodeConverter {
         }
 
         // TODO: should we ignore this from te to yang? as we've already set yang supportingNode
-        if (teSubsystemTeNode.supportingTeNodeId() != null) {
-        }
+        //if (teSubsystemTeNode.supportingTeNodeId() != null) {
+        //}
 
         State.StateBuilder yangStateBuilder = DefaultState.builder();
         yangStateBuilder = yangStateBuilder.teNodeAttributes(teNodeAttributesStateBuilder.build());
@@ -498,10 +494,10 @@ public final class NodeConverter {
                                      srlgs);
             ConnectivityMatrix coreCm = new ConnectivityMatrix(cmYang.id(),
                                                                from,
-                                                               mergingList ,
+                                                               mergingList,
                                                                constrainingElements,
                                                                flags,
-                                                               teAttributes ,
+                                                               teAttributes,
                                                                underlayPath);
 
             teCmList.put(cmYang.id(), coreCm);
@@ -543,7 +539,7 @@ public final class NodeConverter {
                 TunnelTerminationPoint ttpTe = new
                 org.onosproject.tetopology.management.api.node.
                 DefaultTunnelTerminationPoint(ByteUtils.bytesToLong(ttpYang.tunnelTpId()),
-                                              switchingLayer ,
+                                              switchingLayer,
                                               encodingLayer,
                                               flags,
                                               interLayerLockList,
@@ -767,8 +763,8 @@ public final class NodeConverter {
 
         KeyId networkNodeId = yangNodeEvent2NetworkNodeKey(yangNodeEvent).nodeId();
 
-        org.onosproject.tetopology.management.api.Network network = teTopologyService.network
-                (yangNodeEvent2NetworkNodeKey(yangNodeEvent).networkId());
+        org.onosproject.tetopology.management.api.Network network = teTopologyService.network(
+                yangNodeEvent2NetworkNodeKey(yangNodeEvent).networkId());
         if (network == null) {
             return null;
         }

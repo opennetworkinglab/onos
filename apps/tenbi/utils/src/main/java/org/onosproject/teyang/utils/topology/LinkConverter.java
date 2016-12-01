@@ -19,10 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 
 import org.onlab.packet.Ip4Address;
 import org.onosproject.tetopology.management.api.KeyId;
@@ -32,12 +30,10 @@ import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.tetopology.management.api.link.CommonLinkData;
 import org.onosproject.tetopology.management.api.link.DefaultNetworkLink;
 import org.onosproject.tetopology.management.api.link.DefaultTeLink;
-import org.onosproject.tetopology.management.api.link.ElementType;
 import org.onosproject.tetopology.management.api.link.ExternalLink;
 import org.onosproject.tetopology.management.api.link.LinkBandwidth;
 import org.onosproject.tetopology.management.api.link.NetworkLink;
 import org.onosproject.tetopology.management.api.link.NetworkLinkKey;
-import org.onosproject.tetopology.management.api.link.OduResource;
 import org.onosproject.tetopology.management.api.link.PathElement;
 import org.onosproject.tetopology.management.api.link.TeLink;
 import org.onosproject.tetopology.management.api.link.TeLinkTpGlobalKey;
@@ -49,7 +45,6 @@ import org.onosproject.tetopology.management.api.link.UnderlayBackupPath;
 import org.onosproject.tetopology.management.api.link.UnderlayPath;
 import org.onosproject.tetopology.management.api.node.NodeTpKey;
 import org.onosproject.tetopology.management.api.node.TeNode;
-import org.onosproject.tetopology.management.api.node.TeNodeKey;
 import org.onosproject.tetopology.management.api.node.TerminationPointKey;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.NetworkId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.Networks;
@@ -137,7 +132,6 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 
 /**
