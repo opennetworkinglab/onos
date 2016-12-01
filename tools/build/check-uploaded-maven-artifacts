@@ -1,0 +1,75 @@
+#! /usr/bin/env python
+
+# Spot checks some published artifacts to be sure that they uploaded correctly
+# to the release repository
+
+import requests
+import sys
+import sha
+import os
+
+
+from requests.auth import HTTPBasicAuth
+
+if len(sys.argv) != 4:
+    print "usage: check-uploaded-maven-artifact version buildRoot repoRoot"
+    sys.exit(1)
+
+version = sys.argv[1]
+buildRoot = sys.argv[2]
+repoRoot = sys.argv[3]
+
+def checkArtifact(localPath, remoteUrl):
+
+    repoResponse = requests.head(remoteUrl)
+
+    if repoResponse.status_code != 200:
+        print 'Cannot find jar file artifact'
+        print repoResponse.text
+        sys.exit(1)
+
+    remoteSize = int(repoResponse.headers['content-length'])
+    etag = repoResponse.headers['etag']
+
+    localSize = os.path.getsize(localPath)
+
+    localArtifact = open(localPath)
+    localArtifactSha = sha.new(localArtifact.read())
+    expectedSha1 = localArtifactSha.hexdigest()
+
+    if localSize != remoteSize:
+        print 'Size for ' + remoteUrl + ' is wrong local ' + str(localSize) + ' but found remote ' + str(remoteSize)
+        sys.exit(1)
+
+    sha1 = ''
+    if '{SHA1{' in etag:
+        # this is a sonatype style artifact
+        sha1 = etag[7:len(etag)-3]
+    else:
+        sha1 = repoResponse.headers['x-checksum-sha1']
+
+    if sha1 != expectedSha1:
+        print 'SHA1 hash is wrong expected ' + expectedSha1 + ' but found ' + sha1
+        sys.exit(1)
+
+def checkArtifactsForComponent(version, name, component, buildRoot, repoRoot):
+    localArtifactRootPath = buildRoot + '/buck-out/gen/' + component
+    localArtifactJarPath = localArtifactRootPath + '/lib__' + name + '__output/' + name + '.jar'
+    localArtifactJavadocPath = localArtifactRootPath + '/' + name + '#javadoc,maven-sources.jar'
+    localArtifactSourcesPath = localArtifactRootPath + '/' + name + '#maven,src-sources.jar'
+
+    remoteArtifactBaseUrl = repoRoot + '/org/onosproject/' + name + '/' + version + '/' + name + '-' + version
+    remoteArtifactJarUrl = remoteArtifactBaseUrl + '.jar'
+    remoteArtifactJavadocUrl = remoteArtifactBaseUrl + '-javadoc.jar'
+    remoteArtifactSourcesUrl = remoteArtifactBaseUrl + '-sources.jar'
+
+    checkArtifact(localArtifactJarPath, remoteArtifactJarUrl)
+    checkArtifact(localArtifactJavadocPath, remoteArtifactJavadocUrl)
+    checkArtifact(localArtifactSourcesPath, remoteArtifactSourcesUrl)
+
+checkArtifactsForComponent(version, 'onos-api', 'core/api', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-protocols-openflow-api', 'protocols/openflow/api', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-drivers-ciena', 'drivers/ciena', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-providers-lldp', 'providers/lldp', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-apps-bgprouter', 'apps/bgprouter', buildRoot, repoRoot)
+

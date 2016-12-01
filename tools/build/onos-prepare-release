@@ -4,9 +4,11 @@
 # --------------------------------------------------------
 
 set -e
+set -x
 
 GERRIT_USER=${GERRIT_USER:-$USER}
 BRANCH=${2:-master}
+COMMAND=${3:--i}
 
 export ONOS_VERSION=${1:-$ONOS_VERSION}
 if [ -z "$ONOS_VERSION" ]; then
@@ -35,6 +37,6 @@ cp $ONOS_ROOT/.buckconfig.local $DIR/
 
 export ONOS_ROOT=$DIR
 . $ONOS_ROOT/tools/build/envDefaults
-exec bash -i
+exec bash $COMMAND
 
 # TODO on exit, print "leaving directory"

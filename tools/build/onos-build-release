@@ -1,0 +1,30 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds an ONOS release
+# -----------------------------------------------------------------------------
+
+if [ $# -ne 3 ]; then
+    echo "Usage: onos-build-release version next-version branch"
+    echo "For example, to build rc2 on the 1.8 branch - onos-build-release onos-1.8 1.8.0-rc2 1.8.0-SNAPSHOT"
+    exit 1
+fi
+
+BRANCH=$1
+VERSION=$2
+NEXT_VERSION=$3
+
+set -e
+set -x
+
+# Check that environment setup is correct
+onos-release-prerequisites
+
+# Block commits to Gerrit
+ssh -p 29418 gerrit.onosproject.org projectlock lock onos ${BRANCH}
+
+# Prepare the build tree
+onos-prepare-release $VERSION $BRANCH "onos-build-and-upload $VERSION $NEXT_VERSION $BRANCH"
+
+# Unblock commits
+ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
+
