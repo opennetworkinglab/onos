@@ -77,14 +77,14 @@ public class TeTunnelNbiManager
     @Activate
     protected void activate() {
         ymsService.registerService(this, IetfTeService.class, null);
-        ymsService.registerService(this, IetfTeTypes.class, null);
+        ymsService.registerService(null, IetfTeTypes.class, null);
         log.info("started");
     }
 
     @Deactivate
     protected void deactivate() {
         ymsService.unRegisterService(this, IetfTeService.class);
-        ymsService.unRegisterService(this, IetfTeTypes.class);
+        ymsService.unRegisterService(null, IetfTeTypes.class);
         log.info("stopped");
     }
 
