@@ -1,4 +1,20 @@
-package org.onosproject.provider.te.topology;
+/*
+ * Copyright 2016-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.provider.te.utils;
 
 import org.onosproject.yms.ych.YangCompositeEncoding;
 import org.onosproject.yms.ych.YangResourceIdentifierType;
@@ -21,49 +37,43 @@ public class YangCompositeEncodingImpl implements YangCompositeEncoding {
     /**
      * Resource identifier type.
      */
-    public YangResourceIdentifierType resourceIdentifierType;
+    private YangResourceIdentifierType resourceIdentifierType;
 
     /**
      * Creates an instance of YangCompositeEncodingImpl.
      *
-     * @param resourceIdentifierType is URI
-     * @param resourceIdentifier is the URI string
-     * @param resourceInformation is the JSON body string
+     * @param resIdType is URI
+     * @param resId     is the URI string
+     * @param resInfo   is the JSON body string
      */
-    public YangCompositeEncodingImpl(YangResourceIdentifierType resourceIdentifierType,
-                                     String resourceIdentifier,
-                                     String resourceInformation) {
-        this.resourceIdentifierType = resourceIdentifierType;
-        this.resourceIdentifier = resourceIdentifier;
-        this.resourceInformation = resourceInformation;
+    public YangCompositeEncodingImpl(YangResourceIdentifierType resIdType,
+                                     String resId,
+                                     String resInfo) {
+        this.resourceIdentifierType = resIdType;
+        this.resourceIdentifier = resId;
+        this.resourceInformation = resInfo;
     }
 
-    @Override
     public String getResourceIdentifier() {
         return resourceIdentifier;
     }
 
-    @Override
     public YangResourceIdentifierType getResourceIdentifierType() {
         return resourceIdentifierType;
     }
 
-    @Override
     public String getResourceInformation() {
         return resourceInformation;
     }
 
-    @Override
     public void setResourceIdentifier(String resourceId) {
         resourceIdentifier = resourceId;
     }
 
-    @Override
     public void setResourceInformation(String resourceInfo) {
         resourceInformation = resourceInfo;
     }
 
-    @Override
     public void setResourceIdentifierType(YangResourceIdentifierType idType) {
         resourceIdentifierType = idType;
     }

@@ -36,6 +36,8 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
+import org.onosproject.provider.te.utils.DefaultJsonCodec;
+import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.tetopology.management.api.TeTopologyProvider;
 import org.onosproject.tetopology.management.api.TeTopologyProviderRegistry;
 import org.onosproject.tetopology.management.api.TeTopologyProviderService;
@@ -155,7 +157,7 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         codecHandler.addDeviceSchema(IetfNetworkTopology.class);
         codecHandler.addDeviceSchema(IetfTeTopology.class);
         // Register JSON CODEC functions
-        codecHandler.registerOverriddenCodec(new JsonYdtCodec(ymsService),
+        codecHandler.registerOverriddenCodec(new DefaultJsonCodec(ymsService),
                                              YangProtocolEncodingFormat.JSON);
 
         appId = coreService.registerApplication(APP_NAME);

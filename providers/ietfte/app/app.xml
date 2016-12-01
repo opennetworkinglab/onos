@@ -14,11 +14,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.teprovider.topology" origin="HUAWEI" version="${project.version}"
-     category="Provider" title="RESTCONF TE Topology Provider"
+<app name="org.onosproject.teprovider" origin="HUAWEI" version="${project.version}"
+     category="Provider" url="http://onosproject.org" title="RESTCONF TE Topology Provider"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-tenbi-yangmodel/${project.version}</artifact>    
+    <artifact>mvn:${project.groupId}/onos-restconf-client-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-restconf-client-ctl/${project.version}</artifact>
+
+    <artifact>mvn:${project.groupId}/onos-ietfte-provider-utils/${project.version}</artifact>
+    <!--<artifact>mvn:${project.groupId}/onos-ietfte-provider-topology/${project.version}</artifact>-->
+    <artifact>mvn:${project.groupId}/onos-ietfte-provider-tunnel/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-tenbi-yangmodel/${project.version}</artifact>
 </app>
