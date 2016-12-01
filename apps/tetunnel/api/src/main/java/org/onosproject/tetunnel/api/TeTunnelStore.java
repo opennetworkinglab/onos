@@ -18,6 +18,8 @@ package org.onosproject.tetunnel.api;
 
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
+import org.onosproject.tetunnel.api.lsp.TeLsp;
+import org.onosproject.tetunnel.api.lsp.TeLspKey;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelKey;
 
@@ -114,4 +116,41 @@ public interface TeTunnelStore {
      * @return filtered collection of TE tunnels
      */
     Collection<TeTunnel> getTeTunnels(TeTopologyKey teTopologyKey);
+
+    /**
+     * Adds a TE LSP.
+     *
+     * @param lsp TE LSP attributes
+     * @return true when success
+     */
+    boolean addTeLsp(TeLsp lsp);
+
+    /**
+     * Updates TE LSP attributes.
+     *
+     * @param lsp new TE LSP attributes
+     */
+    void updateTeLsp(TeLsp lsp);
+
+    /**
+     * Removes a TE LSP.
+     *
+     * @param key TE LSP key
+     */
+    void removeTeLsp(TeLspKey key);
+
+    /**
+     * Returns the TE LSP with the specified key.
+     *
+     * @param key TE LSP key
+     * @return TeLsp or null if one with the given key is not known
+     */
+    TeLsp getTeLsp(TeLspKey key);
+
+    /**
+     * Returns a collection of currently known TE LSP.
+     *
+     * @return collection of TeLsp
+     */
+    Collection<TeLsp> getTeLsps();
 }

@@ -37,6 +37,8 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.tetopology.management.api.TeTopology;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeTopologyService;
+import org.onosproject.tetunnel.api.lsp.TeLsp;
+import org.onosproject.tetunnel.api.lsp.TeLspKey;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.TeTunnelAdminService;
 import org.onosproject.tetunnel.api.TeTunnelProviderService;
@@ -151,6 +153,25 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
     }
 
     @Override
+    public TeLspKey teLspAdded(TeLsp lsp) {
+        if (store.addTeLsp(lsp)) {
+            return lsp.teLspKey();
+        }
+
+        return null;
+    }
+
+    @Override
+    public void teLspRemoved(TeLsp lsp) {
+        store.removeTeLsp(lsp.teLspKey());
+    }
+
+    @Override
+    public void updateTeLsp(TeLsp lsp) {
+        store.updateTeLsp(lsp);
+    }
+
+    @Override
     public void removeTeTunnel(TeTunnelKey teTunnelKey) {
         tunnelAdminService.updateTunnelState(
                 tunnelService.queryTunnel(getTunnelId(teTunnelKey)),
@@ -211,6 +232,16 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
     @Override
     public Collection<TeTunnel> getTeTunnels(TeTopologyKey key) {
         return store.getTeTunnels(key);
+    }
+
+    @Override
+    public TeLsp getTeLsp(TeLspKey key) {
+        return store.getTeLsp(key);
+    }
+
+    @Override
+    public Collection<TeLsp> getTeLsps() {
+        return store.getTeLsps();
     }
 
     @Override

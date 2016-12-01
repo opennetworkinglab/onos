@@ -30,6 +30,8 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
+import org.onosproject.tetunnel.api.lsp.TeLsp;
+import org.onosproject.tetunnel.api.lsp.TeLspKey;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.TeTunnelStore;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelKey;
@@ -57,6 +59,7 @@ public class DistributedTeTunnelStore implements TeTunnelStore {
 
     private EventuallyConsistentMap<TeTunnelKey, TeTunnel> teTunnels;
     private EventuallyConsistentMap<TeTunnelKey, TunnelId> tunnelIds;
+    private EventuallyConsistentMap<TeLspKey, TeLsp> lsps;
 
     @Activate
     public void activate() {
@@ -77,6 +80,12 @@ public class DistributedTeTunnelStore implements TeTunnelStore {
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
+        lsps = storageService.<TeLspKey, TeLsp>eventuallyConsistentMapBuilder()
+                .withName("TeLspStore")
+                .withSerializer(serializer)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+                .build();
+
         log.info("Started");
     }
 
@@ -84,6 +93,7 @@ public class DistributedTeTunnelStore implements TeTunnelStore {
     public void deactivate() {
         teTunnels.destroy();
         tunnelIds.destroy();
+        lsps.destroy();
 
         log.info("Stopped");
     }
@@ -165,5 +175,43 @@ public class DistributedTeTunnelStore implements TeTunnelStore {
                         .teTopologyKey()
                         .equals(teTopologyKey))
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public boolean addTeLsp(TeLsp lsp) {
+        if (lsp == null) {
+            log.warn("TeLsp is null");
+            return false;
+        }
+        if (lsps.containsKey(lsp.teLspKey())) {
+            log.error("TeLsp exist {}", lsp.teLspKey());
+            return false;
+        }
+        lsps.put(lsp.teLspKey(), lsp);
+        return true;
+    }
+
+    @Override
+    public void updateTeLsp(TeLsp lsp) {
+        if (lsp == null) {
+            log.warn("TeLsp is null");
+            return;
+        }
+        lsps.put(lsp.teLspKey(), lsp);
+    }
+
+    @Override
+    public void removeTeLsp(TeLspKey key) {
+        lsps.remove(key);
+    }
+
+    @Override
+    public TeLsp getTeLsp(TeLspKey key) {
+        return lsps.get(key);
+    }
+
+    @Override
+    public Collection<TeLsp> getTeLsps() {
+        return ImmutableList.copyOf(lsps.values());
     }
 }

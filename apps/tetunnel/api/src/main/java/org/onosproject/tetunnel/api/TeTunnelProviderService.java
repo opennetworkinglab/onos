@@ -18,6 +18,8 @@ package org.onosproject.tetunnel.api;
 
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.tetunnel.api.lsp.TeLsp;
+import org.onosproject.tetunnel.api.lsp.TeLspKey;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelKey;
 
@@ -61,6 +63,28 @@ public interface TeTunnelProviderService {
      * @param state new state of the tunnel
      */
     void updateTunnelState(TeTunnelKey key, Tunnel.State state);
+
+    /**
+     * Signifies that a TE LSP is created.
+     *
+     * @param lsp new created TE LSP attributes
+     * @return key of the TE LSP or null if failed
+     */
+    TeLspKey teLspAdded(TeLsp lsp);
+
+    /**
+     * Signifies that a TE LSP is removed.
+     *
+     * @param lsp removed TE LSP
+     */
+    void teLspRemoved(TeLsp lsp);
+
+    /**
+     * Updates TE LSP attributes.
+     *
+     * @param lsp new TE LSP attributes
+     */
+    void updateTeLsp(TeLsp lsp);
 
     //TODO: add interfaces for teGlobal and teLspState
 }
