@@ -16,6 +16,10 @@
 
 package org.onosproject.yms.app.ych;
 
+import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yangutils.datamodel.YangSchemaNodeContextInfo;
+import org.onosproject.yangutils.datamodel.YangSchemaNodeIdentifier;
+import org.onosproject.yangutils.datamodel.exceptions.DataModelException;
 import org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry;
 import org.onosproject.yms.app.ydt.YdtExtendedBuilder;
 import org.onosproject.yms.app.ydt.YdtExtendedContext;
@@ -37,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.onosproject.yms.app.yob.YobUtils.createAndSetInEventInstance;
+import static org.onosproject.yms.app.yob.YobUtils.createAndSetInEventSubjectInstance;
 
 /**
  * Represents implementation of YANG SBI broker interfaces.
@@ -48,6 +54,10 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
             "sub-module object list cannot be null.";
     private static final String E_DATA_TREE_CODEC = "data tree codec handler" +
             " is null.";
+    private static final String E_DATA_MODEL_CHILD = "Unable to find the " +
+            "child node";
+    private static final String E_NOTIFICATION_NODE = "Notification node " +
+            "should be the first child of module in YDT";
 
     /**
      * Schema registry for driver.
@@ -214,12 +224,53 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
                                                        schemaRegistry,
                                                        opType);
 
+        YdtExtendedContext rootNode = ((YdtExtendedContext) ydtBuilder
+                .getRootNode());
+
+        if (opType == YmsOperationType.NOTIFICATION) {
+            return getNotificationObject(((YdtExtendedContext) rootNode
+                    .getFirstChild()));
+        }
+
         // Get the module object by using YANG data tree
         if (ydtBuilder != null) {
             return getObjectList(ydtBuilder.getRootNode());
         }
 
         return null;
+    }
+
+    //returns notification event object
+    private Object getNotificationObject(YdtExtendedContext rootNode) {
+        YangSchemaNode module = rootNode.getYangSchemaNode();
+        YangSchemaNode childSchema = ((YdtExtendedContext) rootNode
+                .getFirstChild()).getYangSchemaNode();
+
+        YangSchemaNodeIdentifier id = new YangSchemaNodeIdentifier();
+        id.setNameSpace(childSchema.getNameSpace());
+        id.setName(childSchema.getName());
+
+        YangSchemaNodeContextInfo contextInfo;
+        try {
+            contextInfo = module.getChildSchema(id);
+        } catch (DataModelException e) {
+            throw new YchException(E_DATA_MODEL_CHILD);
+        }
+
+        if (contextInfo == null) {
+            throw new YchException(E_NOTIFICATION_NODE);
+        }
+
+        DefaultYobBuilder builder = new DefaultYobBuilder();
+        Object object = builder.getYangObject(((YdtExtendedContext) rootNode
+                                                      .getFirstChild()),
+                                              schemaRegistry);
+
+        Object eventSubObj = createAndSetInEventSubjectInstance(object,
+                                                                rootNode,
+                                                                schemaRegistry);
+        return createAndSetInEventInstance(eventSubObj, rootNode,
+                                           schemaRegistry);
     }
 
     @Override

@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -42,26 +43,37 @@ import java.math.BigInteger;
 import java.util.Base64;
 
 import static org.onosproject.yangutils.datamodel.YangSchemaNodeType.YANG_AUGMENT_NODE;
+import static org.onosproject.yangutils.translator.tojava.utils.JavaIdentifierSyntax.getEnumJavaAttribute;
 import static org.onosproject.yms.app.ydt.AppType.YOB;
 import static org.onosproject.yms.app.yob.YobConstants.DEFAULT;
+import static org.onosproject.yms.app.yob.YobConstants.EVENT;
+import static org.onosproject.yms.app.yob.YobConstants.EVENT_SUBJECT;
 import static org.onosproject.yms.app.yob.YobConstants.E_DATA_TYPE_NOT_SUPPORT;
+import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_CREATE_OBJ;
+import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_GET_FIELD;
+import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_GET_METHOD;
+import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_INVOKE_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_LOAD_CLASS;
 import static org.onosproject.yms.app.yob.YobConstants.E_FAIL_TO_LOAD_CONSTRUCTOR;
 import static org.onosproject.yms.app.yob.YobConstants.E_INVALID_DATA_TREE;
 import static org.onosproject.yms.app.yob.YobConstants.E_INVALID_EMPTY_DATA;
 import static org.onosproject.yms.app.yob.YobConstants.FROM_STRING;
 import static org.onosproject.yms.app.yob.YobConstants.LEAF_IDENTIFIER;
+import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_GET_FIELD;
+import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_GET_METHOD;
+import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_INVOKE_METHOD;
 import static org.onosproject.yms.app.yob.YobConstants.L_FAIL_TO_LOAD_CLASS;
 import static org.onosproject.yms.app.yob.YobConstants.OF;
 import static org.onosproject.yms.app.yob.YobConstants.OP_PARAM;
 import static org.onosproject.yms.app.yob.YobConstants.PERIOD;
 import static org.onosproject.yms.app.yob.YobConstants.SELECT_LEAF;
+import static org.onosproject.yms.app.yob.YobConstants.TYPE;
 import static org.onosproject.yms.app.yob.YobConstants.VALUE_OF;
 
 /**
  * Utils to support object creation.
  */
-final class YobUtils {
+public final class YobUtils {
 
     private static final Logger log = LoggerFactory.getLogger(YobUtils.class);
 
@@ -630,5 +642,143 @@ final class YobUtils {
         }
 
         parentSetterMethod.invoke(parentBuilderObject, childValue);
+    }
+
+    /**
+     * Creates and sets default notification object in event subject object.
+     *
+     * @param defaultObj default notification object
+     * @param curNode    application context
+     * @param registry   YANG schema registry
+     * @return notification event subject object
+     */
+    public static Object createAndSetInEventSubjectInstance(Object defaultObj,
+                                                            YdtExtendedContext curNode,
+                                                            YangSchemaRegistry registry) {
+        YangSchemaNode childSchema = ((YdtExtendedContext) curNode
+                .getFirstChild()).getYangSchemaNode();
+        String packageName = childSchema.getJavaPackage();
+        String className = getCapitalCase(curNode.getYangSchemaNode()
+                                                  .getJavaClassNameOrBuiltInType());
+        String qualName = packageName + PERIOD + className + EVENT_SUBJECT;
+
+        ClassLoader classLoader = YobUtils.getClassLoader(registry, qualName,
+                                                          curNode, curNode);
+
+        Object eventSubObj;
+        Class<?> eventSubjectClass = null;
+        try {
+            eventSubjectClass = classLoader.loadClass(qualName);
+            eventSubObj = eventSubjectClass.newInstance();
+        } catch (ClassNotFoundException e) {
+            log.error(E_FAIL_TO_LOAD_CLASS, className);
+            throw new YobException(E_FAIL_TO_LOAD_CLASS +
+                                           eventSubjectClass.getName());
+        } catch (InstantiationException e) {
+            log.error(E_FAIL_TO_CREATE_OBJ, className);
+            throw new YobException(E_FAIL_TO_CREATE_OBJ +
+                                           eventSubjectClass.getName());
+        } catch (IllegalAccessException e) {
+            log.error(L_FAIL_TO_INVOKE_METHOD, className);
+            throw new YobException(E_FAIL_TO_INVOKE_METHOD +
+                                           eventSubjectClass.getName());
+        }
+
+        setInEventSubject(((YdtExtendedContext) curNode.getFirstChild()),
+                          eventSubObj, defaultObj);
+        return eventSubObj;
+    }
+
+    /**
+     * Sets the default notification object in event subject class.
+     *
+     * @param ydtNode     application context
+     * @param eventSubObj notification event subject instance
+     * @param defaultObj  default notification instance
+     */
+    public static void setInEventSubject(YdtExtendedContext ydtNode,
+                                         Object eventSubObj,
+                                         Object defaultObj) {
+
+        Class<?> eventSubjectClass = eventSubObj.getClass();
+        String className = eventSubjectClass.getName();
+        String setter = ydtNode.getYangSchemaNode().getJavaAttributeName();
+
+        try {
+            Class<?> type = null;
+            Field fieldName = eventSubjectClass.getDeclaredField(setter);
+            if (fieldName != null) {
+                type = fieldName.getType();
+            }
+
+            Method method;
+            method = eventSubjectClass.getDeclaredMethod(setter, type);
+            method.invoke(eventSubObj, defaultObj);
+        } catch (NoSuchFieldException e) {
+            log.error(L_FAIL_TO_GET_FIELD, className);
+            throw new YobException(E_FAIL_TO_GET_FIELD + className);
+        } catch (NoSuchMethodException e) {
+            log.error(L_FAIL_TO_GET_METHOD, className);
+            throw new YobException(E_FAIL_TO_GET_METHOD + className);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            log.error(L_FAIL_TO_INVOKE_METHOD, className);
+            throw new YobException(E_FAIL_TO_INVOKE_METHOD + className);
+        }
+    }
+
+    /**
+     * Creates an object of notification event class and sets event subject
+     * in event class.
+     *
+     * @param eventSubObj instance of event subject class
+     * @param curNode     current YDT node
+     * @param registry    YANG schema registry
+     * @return notification event object
+     */
+    public static Object createAndSetInEventInstance(Object eventSubObj,
+                                                     YdtExtendedContext curNode,
+                                                     YangSchemaRegistry registry) {
+        YangSchemaNode childSchema = ((YdtExtendedContext) curNode
+                .getFirstChild()).getYangSchemaNode();
+        String packageName = childSchema.getJavaPackage();
+        String className = getCapitalCase(curNode.getYangSchemaNode()
+                                                  .getJavaClassNameOrBuiltInType());
+        String qualName = packageName + PERIOD + className + EVENT;
+
+        try {
+            ClassLoader classLoader = YobUtils.getClassLoader(registry, qualName,
+                                                              curNode, curNode);
+            Class<?> eventClass = classLoader.loadClass(qualName);
+            Class<?>[] innerClasses = eventClass.getClasses();
+            Object typeObj = null;
+            for (Class<?> innerEnumClass : innerClasses) {
+                if (innerEnumClass.getSimpleName().equals(TYPE)) {
+                    Method valueOfMethod = innerEnumClass
+                            .getDeclaredMethod(VALUE_OF, String.class);
+                    String eventType = getEnumJavaAttribute(childSchema.getName())
+                            .toUpperCase();
+                    typeObj = valueOfMethod.invoke(null, eventType);
+                    break;
+                }
+            }
+
+            Constructor constructor = eventClass
+                    .getDeclaredConstructor(typeObj.getClass(),
+                                            eventSubObj.getClass());
+            constructor.setAccessible(true);
+            return constructor.newInstance(typeObj, eventSubObj);
+        } catch (ClassNotFoundException e) {
+            log.error(L_FAIL_TO_INVOKE_METHOD, className);
+            throw new YobException(E_FAIL_TO_INVOKE_METHOD + className);
+        } catch (InstantiationException e) {
+            log.error(E_FAIL_TO_CREATE_OBJ, className);
+            throw new YobException(E_FAIL_TO_CREATE_OBJ + className);
+        } catch (NoSuchMethodException e) {
+            log.error(L_FAIL_TO_GET_METHOD, className);
+            throw new YobException(E_FAIL_TO_GET_METHOD + className);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            log.error(L_FAIL_TO_INVOKE_METHOD, className);
+            throw new YobException(E_FAIL_TO_INVOKE_METHOD + className);
+        }
     }
 }

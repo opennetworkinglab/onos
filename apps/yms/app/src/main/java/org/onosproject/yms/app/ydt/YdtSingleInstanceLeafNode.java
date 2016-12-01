@@ -27,7 +27,7 @@ import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE;
  * Represents YDT single instance leaf node which is an atomic element
  * and doesn't have any child.
  */
-class YdtSingleInstanceLeafNode extends YdtNode {
+public class YdtSingleInstanceLeafNode extends YdtNode {
 
     /*
      * Value of the leaf.

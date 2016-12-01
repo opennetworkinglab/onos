@@ -40,6 +40,9 @@ final class YobConstants {
     static final String JAVA_LANG = "java.lang";
     static final String LEAF_IDENTIFIER = "LeafIdentifier";
     static final String SELECT_LEAF = "selectLeaf";
+    static final String EVENT_SUBJECT = "EventSubject";
+    static final String EVENT = "Event";
+    static final String TYPE = "Type";
 
     //Error strings
     static final String E_NO_HANDLE_FOR_YDT = "No handler for YDT node";
