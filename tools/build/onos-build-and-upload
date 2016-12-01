@@ -1,0 +1,32 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds the release bits and uploads them.
+# -----------------------------------------------------------------------------
+
+VERSION=$1
+NEXT_VERSION=$2
+BRANCH=$3
+
+set -e
+set -x
+
+# fix version strings, build artifacts, upload artifacts
+onos-release $VERSION | tee build.log
+
+# upload docs
+onos-upload-docs ${WIKI_USER}
+
+# upload release bits
+onos-upload-bits
+
+# spot check that uploaded artifacts are correct
+check-uploaded-maven-artifacts  $VERSION $ONOS_ROOT https://oss.sonatype.org/content/groups/staging
+
+# set the version strings to the next version
+onos-snapshot ${NEXT_VERSION}
+
+# Push version string changes to git
+git push origin ${BRANCH}
+
+# Push tag for this build to git
+git push origin ${VERSION}

@@ -38,7 +38,7 @@ def checkArtifact(localPath, remoteUrl):
     expectedSha1 = localArtifactSha.hexdigest()
 
     if localSize != remoteSize:
-        print 'Size is wrong local ' + str(localSize) + ' but found remote ' + str(remoteSize)
+        print 'Size for ' + remoteUrl + ' is wrong local ' + str(localSize) + ' but found remote ' + str(remoteSize)
         sys.exit(1)
 
     sha1 = ''
