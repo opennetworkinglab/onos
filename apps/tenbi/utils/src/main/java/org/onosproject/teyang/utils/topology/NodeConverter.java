@@ -408,7 +408,6 @@ public final class NodeConverter {
      *
      * @param yangNode Node in YANG model
      * @param yangNetwork YANG network
-     * @param yangNetwork Network node in YANG model
      * @return TE subsystem node
      */
     public static org.onosproject.tetopology.management.api.node.NetworkNode

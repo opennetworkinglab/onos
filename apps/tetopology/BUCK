@@ -1,5 +1,6 @@
 BUNDLES = [
   '//apps/tetopology/api:onos-apps-tetopology-api',
+  '//apps/tetopology/app:onos-apps-tetopology-app',
 ]
 
 onos_app (

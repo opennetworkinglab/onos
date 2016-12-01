@@ -1,9 +1,10 @@
-COMPILE = [
-  '//lib:guava',
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS'
 ]
 
-#yang_library(
-#  deps = COMPILE,
-#  name = 'onos-app-tenbi-yangmodel',
-#  srcs = glob(['src/main/**/*.yang']),
-#)
+yang_library(
+  deps = COMPILE_DEPS,
+  name = 'onos-apps-tenbi-yangmodel',
+  srcs = glob(['src/main/**/*.yang']),
+  visibility = [ 'PUBLIC' ],
+)

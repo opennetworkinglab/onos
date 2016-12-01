@@ -19,7 +19,7 @@ package org.onosproject.teyang.utils.tunnel;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.IpAddress;
 
 /**
- * Basic converter tools for ietf NBI & SBI.
+ * Basic converter tools for ietf NBI &amp; SBI.
  */
 public abstract class BasicConverter {
 

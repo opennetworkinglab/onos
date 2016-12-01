@@ -1,0 +1,19 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel',
+    '//apps/tenbi/utils:onos-apps-tenbi-utils',
+    '//apps/tetopology/api:onos-apps-tetopology-api',
+    '//apps/tetunnel/api:onos-apps-tetunnel-api',
+    '//apps/yms/api:onos-apps-yms-api',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
