@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -37,6 +38,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,13 +46,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Default routing handler that is responsible for route computing and
  * routing rule population.
  */
 public class DefaultRoutingHandler {
-    private static final int MAX_RETRY_ATTEMPTS = 25;
+    private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 4;
+    private static final int RETRY_INTERVAL_MS = 500;
     private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
@@ -62,7 +66,7 @@ public class DefaultRoutingHandler {
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
     private ScheduledExecutorService executorService
-        = newScheduledThreadPool(1, groupedThreads("RoutingHandler", "retry-%d", log));
+        = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
 
     /**
      * Represents the default routing population status.
@@ -612,10 +616,12 @@ public class DefaultRoutingHandler {
         // ports for this device yet. It results in missing filtering rules in the
         // switch. We will attempt it a few times. If it still does not work,
         // user can manually repopulate using CLI command sr-reroute-network
-        boolean success = rulePopulator.populateRouterMacVlanFilters(deviceId);
-        if (!success) {
-            executorService.schedule(new RetryFilters(deviceId), 200, TimeUnit.MILLISECONDS);
+        PortFilterInfo firstRun = rulePopulator.populateRouterMacVlanFilters(deviceId);
+        if (firstRun == null) {
+            firstRun = new PortFilterInfo(0, 0, 0);
         }
+        executorService.schedule(new RetryFilters(deviceId, firstRun),
+                                 RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -704,26 +710,82 @@ public class DefaultRoutingHandler {
         this.populateRoutingRulesForLinkStatusChange(null);
     }
 
-    private final class RetryFilters implements Runnable {
-        int attempts = MAX_RETRY_ATTEMPTS;
-        DeviceId devId;
+    /**
+     * Utility class used to temporarily store information about the ports on a
+     * device processed for filtering objectives.
+     *
+     */
+    public final class PortFilterInfo {
+        int disabledPorts = 0, suppressedPorts = 0, filteredPorts = 0;
 
-        private RetryFilters(DeviceId deviceId) {
+        public PortFilterInfo(int disabledPorts, int suppressedPorts,
+                           int filteredPorts) {
+            this.disabledPorts = disabledPorts;
+            this.filteredPorts = filteredPorts;
+            this.suppressedPorts = suppressedPorts;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(disabledPorts, filteredPorts, suppressedPorts);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if ((obj == null) || (!(obj instanceof PortFilterInfo))) {
+                return false;
+            }
+            PortFilterInfo other = (PortFilterInfo) obj;
+            return ((disabledPorts == other.disabledPorts) &&
+                    (filteredPorts == other.filteredPorts) &&
+                    (suppressedPorts == other.suppressedPorts));
+        }
+
+        @Override
+        public String toString() {
+            MoreObjects.ToStringHelper helper = toStringHelper(this)
+                    .add("disabledPorts", disabledPorts)
+                    .add("suppressedPorts", suppressedPorts)
+                    .add("filteredPorts", filteredPorts);
+            return helper.toString();
+        }
+    }
+
+    /**
+     * RetryFilters populates filtering objectives for a device and keeps retrying
+     * till the number of ports filtered are constant for a predefined number
+     * of attempts.
+     */
+    protected final class RetryFilters implements Runnable {
+        int constantAttempts = MAX_CONSTANT_RETRY_ATTEMPTS;
+        DeviceId devId;
+        int counter;
+        PortFilterInfo prevRun;
+
+        private RetryFilters(DeviceId deviceId, PortFilterInfo previousRun) {
             devId = deviceId;
+            prevRun = previousRun;
+            counter = 0;
         }
 
         @Override
         public void run() {
-            log.info("RETRY FILTER ATTEMPT# {} for dev:{}",
-                     MAX_RETRY_ATTEMPTS - attempts, devId);
-            boolean success = rulePopulator.populateRouterMacVlanFilters(devId);
-            if (!success && --attempts > 0) {
-                executorService.schedule(this, 200, TimeUnit.MILLISECONDS);
-            } else if (attempts == 0) {
-                log.error("Unable to populate MacVlan filters in dev:{}", devId);
+            log.info("RETRY FILTER ATTEMPT {} ** dev:{}", ++counter, devId);
+            PortFilterInfo thisRun = rulePopulator.populateRouterMacVlanFilters(devId);
+            boolean sameResult = prevRun.equals(thisRun);
+            log.debug("dev:{} prevRun:{} thisRun:{} sameResult:{}", devId, prevRun,
+                      thisRun, sameResult);
+            if (thisRun == null || !sameResult || (sameResult && --constantAttempts > 0)) {
+                executorService.schedule(this, RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
+                if (!sameResult) {
+                    constantAttempts = MAX_CONSTANT_RETRY_ATTEMPTS; //reset
+                }
             }
+            prevRun = (thisRun == null) ? prevRun : thisRun;
         }
-
     }
 
 }

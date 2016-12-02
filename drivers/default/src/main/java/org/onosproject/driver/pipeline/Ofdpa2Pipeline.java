@@ -207,7 +207,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             rules.stream()
             .filter(Objects::nonNull)
             .forEach(flowOpsBuilder::add);
-            log.info("Applying a flow rule to sw:{}", deviceId);
+            log.debug("Applying a add fwd-obj {} to sw:{}", fwd.id(), deviceId);
             break;
         case REMOVE:
             rules.stream()
@@ -710,12 +710,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *             the flow rule
      */
     protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
-        log.info("Processing versatile forwarding objective");
+        log.info("Processing versatile forwarding objective:{} in dev:{}",
+                 fwd.id(), deviceId);
 
         EthTypeCriterion ethType =
                 (EthTypeCriterion) fwd.selector().getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null) {
-            log.error("Versatile forwarding objective must include ethType");
+            log.error("Versatile forwarding objective:{} must include ethType",
+                      fwd.id());
             fail(fwd, ObjectiveError.BADPARAMS);
             return Collections.emptySet();
         }
