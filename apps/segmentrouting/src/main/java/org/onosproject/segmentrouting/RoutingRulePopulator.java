@@ -26,6 +26,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
@@ -535,9 +536,9 @@ public class RoutingRulePopulator {
      * that drivers can obtain other information (like Router MAC and IP).
      *
      * @param deviceId  the switch dpid for the router
-     * @return true if operation succeeds
+     * @return PortFilterInfo information about the processed ports
      */
-    public boolean populateRouterMacVlanFilters(DeviceId deviceId) {
+    public PortFilterInfo populateRouterMacVlanFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
@@ -546,14 +547,14 @@ public class RoutingRulePopulator {
             deviceMac = config.getDeviceMac(deviceId);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateRouterMacVlanFilters.");
-            return false;
+            return null;
         }
 
         List<Port> devPorts = srManager.deviceService.getPorts(deviceId);
         if (devPorts != null && devPorts.size() == 0) {
             log.warn("Device {} ports not available. Unable to add MacVlan filters",
                      deviceId);
-            return false;
+            return null;
         }
         int disabledPorts = 0, suppressedPorts = 0, filteredPorts = 0;
         for (Port port : devPorts) {
@@ -596,13 +597,8 @@ public class RoutingRulePopulator {
         }
         log.info("Filtering on dev:{}, disabledPorts:{}, suppressedPorts:{}, filteredPorts:{}",
                   deviceId, disabledPorts, suppressedPorts, filteredPorts);
-        // XXX With this check, there is a chance that not all the ports that
-        // should be filtered actually get filtered as long as one of them does.
-        // Note there is no PORT_UPDATED event that makes the port go from disabled
-        // to enabled state, because the ports comes enabled from the switch.
-        // Check ONOS core, where the port becoming available and being declared
-        // enabled is possibly not atomic.
-        return (filteredPorts > 0) ? true : false;
+        return srManager.defaultRoutingHandler.new PortFilterInfo(disabledPorts,
+                                                       suppressedPorts, filteredPorts);
     }
 
     /**

@@ -742,14 +742,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             processDeviceRemoved((Device) event.subject());
                         }
                     } else if (event.type() == DeviceEvent.Type.PORT_ADDED) {
-                        // XXX typically these calls come when device is added
-                        // so port filtering rules are handled there, and it
-                        // represents all ports on the device, enabled or not.
+                        // typically these calls come when device is added first time
+                        // so port filtering rules are handled at the device_added event.
+                        // port added calls represent all ports on the device,
+                        // enabled or not.
                         log.debug("** PORT ADDED {}/{} -> {}",
-                                 event.subject(),
-                                 ((DeviceEvent) event).port(),
-                                 event.type());
+                                  ((DeviceEvent) event).subject().id(),
+                                  ((DeviceEvent) event).port().number(),
+                                  event.type());
                     } else if (event.type() == DeviceEvent.Type.PORT_UPDATED) {
+                        // these calls happen for every subsequent event
+                        // ports enabled, disabled, switch goes away, comes back
                         log.info("** PORT UPDATED {}/{} -> {}",
                                  event.subject(),
                                  ((DeviceEvent) event).port(),
