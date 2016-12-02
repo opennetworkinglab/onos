@@ -29,10 +29,11 @@ import org.slf4j.LoggerFactory;
 import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertJsonToYdt;
 import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertUriToYdt;
 import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertYdtToJson;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.getJsonNameFromYdtNode;
 import static org.onosproject.provider.te.utils.CodecTools.jsonToString;
 import static org.onosproject.provider.te.utils.CodecTools.toJson;
-import static org.onosproject.yms.ych.YangResourceIdentifierType.URI;
 import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
+import static org.onosproject.yms.ych.YangResourceIdentifierType.URI;
 
 
 /**
@@ -53,7 +54,8 @@ public class DefaultJsonCodec implements YangDataTreeCodec {
 
     @Override
     public String encodeYdtToProtocolFormat(YdtBuilder builder) {
-        ObjectNode jsonNode = convertYdtToJson(builder.getRootNode().getName(),
+        YdtContext context = builder.getRootNode();
+        ObjectNode jsonNode = convertYdtToJson(getJsonNameFromYdtNode(context),
                                                builder.getRootNode(),
                                                ymsService.getYdtWalker());
         return jsonToString(jsonNode);
@@ -67,9 +69,10 @@ public class DefaultJsonCodec implements YangDataTreeCodec {
         YdtContext child = rootNode.getFirstChild();
         String name = child.getName();
         String url = rootName + SLASH + DATA + SLASH + name;
-        ObjectNode objectNode = convertYdtToJson(name, child,
+        String jsonRoot = getJsonNameFromYdtNode(child);
+        ObjectNode objectNode = convertYdtToJson(jsonRoot, child,
                                                  ymsService.getYdtWalker());
-        String payload = jsonToString((ObjectNode) objectNode.get(name));
+        String payload = jsonToString((ObjectNode) objectNode.get(jsonRoot));
         return new YangCompositeEncodingImpl(URI, url, payload);
     }
 

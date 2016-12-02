@@ -35,6 +35,7 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
+import org.onosproject.provider.te.utils.DefaultJsonCodec;
 import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.tetopology.management.api.TeTopology;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
@@ -45,8 +46,10 @@ import org.onosproject.tetunnel.api.tunnel.DefaultTeTunnel;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.IetfTe;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.Tunnels;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.IetfTeTypes;
 import org.onosproject.yms.ych.YangCodecHandler;
 import org.onosproject.yms.ych.YangCompositeEncoding;
+import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +124,9 @@ public class TeTunnelRestconfProvider extends AbstractProvider
         tunnelProviderRegistry.register(this);
         codecHandler = ymsService.getYangCodecHandler();
         codecHandler.addDeviceSchema(IetfTe.class);
+        codecHandler.addDeviceSchema(IetfTeTypes.class);
+        codecHandler.registerOverriddenCodec(new DefaultJsonCodec(ymsService),
+                                             YangProtocolEncodingFormat.JSON);
         collectInitialTunnels();
         subscribe();
         log.info("Started");
@@ -200,8 +206,6 @@ public class TeTunnelRestconfProvider extends AbstractProvider
             log.error("Can't find remote device for tunnel : {}", tunnel);
             return;
         }
-        log.info("Create tunnel get here");
-
         controller.post((DeviceId) srcElement, identifier,
                         new ByteArrayInputStream(resourceInformation.getBytes()),
                         MediaType.APPLICATION_JSON, ObjectNode.class);
