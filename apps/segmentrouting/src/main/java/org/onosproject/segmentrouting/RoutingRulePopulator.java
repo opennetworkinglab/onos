@@ -602,6 +602,12 @@ public class RoutingRulePopulator {
                     ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                     : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
 
+            if (assignedVlan == null) {
+                log.warn("Assigned vlan is null for {} in {} - Aborting populateRouterMacVlanFilters.",
+                         port.number(), deviceId);
+                return null;
+            }
+
             FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
             fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(deviceMac))

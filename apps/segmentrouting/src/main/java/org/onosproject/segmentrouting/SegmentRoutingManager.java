@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Prefix;
@@ -35,10 +36,10 @@ import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.InterfaceService;
-import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
+import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -187,7 +188,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     HostHandler hostHandler = null;
     private CordConfigHandler cordConfigHandler = null;
     private RouteHandler routeHandler = null;
-    private SegmentRoutingNeighbourHandler neighbourHandler = null;
+    private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
@@ -360,7 +361,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         hostHandler = new HostHandler(this);
         cordConfigHandler = new CordConfigHandler(this);
         routeHandler = new RouteHandler(this);
-        neighbourHandler = new SegmentRoutingNeighbourHandler(this);
+        neighbourHandler = new SegmentRoutingNeighbourDispatcher(this);
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
@@ -656,10 +657,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                          context.inPacket().receivedFrom());
                 log.debug("{}", ethernet);
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
-                IPv4 ipPacket = (IPv4) ethernet.getPayload();
-                // ipHandler.addToPacketBuffer(ipPacket);
-                if (ipPacket.getProtocol() == IPv4.PROTOCOL_ICMP) {
-                    icmpHandler.processPacketIn(pkt);
+                IPv4 ipv4Packet = (IPv4) ethernet.getPayload();
+                //ipHandler.addToPacketBuffer(ipv4Packet);
+                if (ipv4Packet.getProtocol() == IPv4.PROTOCOL_ICMP) {
+                    icmpHandler.processIcmp(ethernet, pkt.receivedFrom());
                 } else {
                     // NOTE: We don't support IP learning at this moment so this
                     //       is not necessary. Also it causes duplication of DHCP packets.
@@ -667,9 +668,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 }
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6Packet = (IPv6) ethernet.getPayload();
+                //ipHandler.addToPacketBuffer(ipv6Packet);
                 /*
-                 * TODO send to ICMPv6 handler and generalize the interaction with IP Handler
+                 * We deal with the packet only if the packet is a ICMP6 ECHO/REPLY
                  */
+                if (ipv6Packet.getNextHeader() == IPv6.PROTOCOL_ICMP6) {
+                    ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
+                    if (icmp6Packet.getIcmpType() == ICMP6.ECHO_REQUEST ||
+                            icmp6Packet.getIcmpType() == ICMP6.ECHO_REPLY) {
+                        icmpHandler.processIcmpv6(ethernet, pkt.receivedFrom());
+                    } else {
+                        log.warn("Received ICMPv6 0x{} - not handled",
+                                 Integer.toHexString(icmp6Packet.getIcmpType() & 0xff));
+                    }
+                } else {
+                   // NOTE: We don't support IP learning at this moment so this
+                   //       is not necessary. Also it causes duplication of DHCPv6 packets.
+                   // ipHandler.processPacketIn(ipv6Packet, pkt.receivedFrom());
+                }
             }
         }
     }
