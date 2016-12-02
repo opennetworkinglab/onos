@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//apps/tetunnel/api:onos-apps-tetunnel-api',
+    '//apps/actn-mdsc/tetunnel-pce:onos-apps-actn-mdsc-tetunnel-pce',
+    '//apps/tetopology/api:onos-apps-tetopology-api',
+    '//incubator/api:onos-incubator-api'
+ ]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+

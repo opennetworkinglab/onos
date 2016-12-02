@@ -23,7 +23,7 @@
     <artifact>mvn:${project.groupId}/onos-restconf-client-ctl/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-ietfte-provider-utils/${project.version}</artifact>
-    <!--<artifact>mvn:${project.groupId}/onos-ietfte-provider-topology/${project.version}</artifact>-->
+    <artifact>mvn:${project.groupId}/onos-ietfte-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ietfte-provider-tunnel/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-tenbi-yangmodel/${project.version}</artifact>
 </app>

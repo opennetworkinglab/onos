@@ -34,7 +34,7 @@
         <bundle>mvn:${project.groupId}/onos-restconf-server-utils/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-ietfte-provider-utils/${project.version}</bundle>
-        <!--<bundle>mvn:${project.groupId}/onos-ietfte-provider-topology/${project.version}</bundle>-->
+        <bundle>mvn:${project.groupId}/onos-ietfte-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ietfte-provider-tunnel/${project.version}</bundle>
     </feature>
 </features>
