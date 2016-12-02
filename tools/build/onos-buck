@@ -27,7 +27,7 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat 
         SHA=$(shasum cache/$BUCK_FILE | cut -d' ' -f1)
         [ "$SHA" != "$BUCK_SHA" ] &&
            echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
-           exit 1
+           rm -f cache/$BUCK_FILE && exit 1
     else
         echo "SHA cannot be verified"
     fi
