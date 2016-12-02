@@ -42,4 +42,4 @@ popd > /dev/null
 BUCK=$ROOT_DIR/bin/buck
 
 # Finally, run the Buck command...
-$BUCK "$@"
+NO_BUCKD=1 $BUCK "$@"
