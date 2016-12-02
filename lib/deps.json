@@ -204,9 +204,9 @@
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:2.11",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11",
     "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11",
-    "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.10",
-    "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.10",
-    "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.10",
+    "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.11",
+    "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.11",
+    "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.11",
     "org.apache.servicemix.bundles.dom4j":"mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:1.6.1_5"
   }
 }
