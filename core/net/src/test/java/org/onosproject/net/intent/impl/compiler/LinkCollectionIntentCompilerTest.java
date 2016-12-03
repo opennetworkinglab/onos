@@ -41,6 +41,7 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.resource.MockResourceService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -100,6 +101,7 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
         registrator.activate();
 
         sut.registrator = registrator;
+        sut.resourceService = new MockResourceService();
 
         LinkCollectionCompiler.optimize = false;
         LinkCollectionCompiler.copyTtl = false;
