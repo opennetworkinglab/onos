@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
  *
  * Device supports 96 wavelengths of 50 GHz, between center frequencies 191.350 THz and 196.075 THz.
  */
-public class LambdaQueryLumentumRoadm extends AbstractHandlerBehaviour implements LambdaQuery {
+public class LumentumSdnRoadmLambdaQuery extends AbstractHandlerBehaviour implements LambdaQuery {
     private static final int LAMBDA_COUNT = 96;
 
     @Override

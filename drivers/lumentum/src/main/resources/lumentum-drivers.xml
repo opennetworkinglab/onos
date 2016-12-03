@@ -15,15 +15,21 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="lumentum" manufacturer="Lumentum" hwVersion="SDN ROADM" swVersion="1.0">
+    <driver name="lumentum-sdn" manufacturer="Lumentum" hwVersion="SDN ROADM" swVersion="1.0">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.lumentum.LumentumRoadmDeviceDescription"/>
+                   impl="org.onosproject.drivers.lumentum.LumentumRoadmDiscovery"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.drivers.lumentum.LambdaQueryLumentumRoadm"/>
+                   impl="org.onosproject.drivers.lumentum.LumentumSdnRoadmLambdaQuery"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-                   impl="org.onosproject.drivers.lumentum.LumentumFlowRuleProgrammable"/>
+                   impl="org.onosproject.drivers.lumentum.LumentumSdnRoadmFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
                    impl="org.onosproject.drivers.lumentum.LumentumAlarmConsumer"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+    </driver>
+    <driver name="lumentum-waveready" manufacturer="Lumentum" hwVersion="WR*">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.lumentum.LumentumWaveReadyDiscovery"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>

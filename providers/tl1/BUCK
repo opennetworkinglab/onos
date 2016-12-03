@@ -1,0 +1,14 @@
+BUNDLES = [
+    '//providers/tl1/device:onos-providers-tl1-device',
+    '//protocols/tl1/api:onos-protocols-tl1-api',
+    '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
+]
+
+onos_app (
+    app_name = 'org.onosproject.tl1',
+    title = 'TL1 Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'TL1 protocol southbound providers.',
+)

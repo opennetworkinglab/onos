@@ -51,6 +51,7 @@
         <module>ospf</module>
         <module>link</module>
         <module>ietfte</module>
+        <module>tl1</module>
     </modules>
 
     <dependencies>

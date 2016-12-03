@@ -38,7 +38,8 @@
         <onos.app.requires>
             org.onosproject.snmp,
             org.onosproject.faultmanagement,
-            org.onosproject.optical-model
+            org.onosproject.optical-model,
+            org.onosproject.tl1
         </onos.app.requires>
     </properties>
 
@@ -57,6 +58,16 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-snmp-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-tl1-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-tl1-ctl</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

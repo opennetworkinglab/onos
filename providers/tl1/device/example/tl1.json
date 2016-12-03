@@ -1,0 +1,22 @@
+{
+  "devices": {
+    "tl1:10.128.14.81:3082": {
+      "basic": {
+        "name": "Lumentum",
+        "driver": "lumentum-waveready"
+      }
+    }
+  },
+  "apps": {
+    "org.onosproject.tl1": {
+      "devices": [
+        {
+          "ip": "10.128.14.81",
+          "port": 3082,
+          "username": "test",
+          "password": "test"
+        }
+      ]
+    }
+  }
+}

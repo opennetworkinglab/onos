@@ -3,6 +3,8 @@ COMPILE_DEPS = [
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//drivers/utilities:onos-drivers-utilities',
     '//protocols/snmp/api:onos-protocols-snmp-api',
+    '//protocols/tl1/api:onos-protocols-tl1-api',
+    '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
     '//incubator/api:onos-incubator-api',
     '//apps/optical-model:onos-apps-optical-model',
 ]
@@ -25,5 +27,6 @@ onos_app (
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS Lumentum Device Drivers application.',
-    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model' ],
+    required_apps = [ 'org.onosproject.snmp', 'org.onosproject.faultmanagement', 'org.onosproject.optical-model',
+     'org.onosproject.tl1'],
 )

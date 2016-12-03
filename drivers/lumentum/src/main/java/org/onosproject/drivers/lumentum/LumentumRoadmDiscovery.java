@@ -46,7 +46,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Device description behaviour for Lumentum Snmp devices.
  */
-public class LumentumRoadmDeviceDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
+public class LumentumRoadmDiscovery extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
 
     private final Logger log = getLogger(getClass());
 

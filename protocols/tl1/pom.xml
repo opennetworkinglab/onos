@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-present Open Networking Laboratory
+  ~ Copyright 2016-present Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,51 +16,32 @@
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <artifactId>onos-protocols</artifactId>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
         <version>1.9.0-SNAPSHOT</version>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-protocols</artifactId>
+    <artifactId>onos-tl1</artifactId>
     <packaging>pom</packaging>
-
-    <description>ONOS southbound protocols</description>
-
     <modules>
-        <module>openflow</module>
-        <module>netconf</module>
-        <module>pcep</module>
-        <module>ovsdb</module>
-        <module>bgp</module>
-        <module>rest</module>
-        <module>ospf</module>
-        <module>isis</module>
-        <module>snmp</module>
-        <module>bmv2</module>
-        <module>lisp</module>
-        <module>restconf</module>
-        <module>tl1</module>
+        <module>ctl</module>
+        <module>api</module>
     </modules>
 
     <dependencies>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <artifactId>onos-api</artifactId>
         </dependency>
     </dependencies>
+
 
     <build>
         <plugins>
@@ -69,10 +50,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onos-maven-plugin</artifactId>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-
 </project>
