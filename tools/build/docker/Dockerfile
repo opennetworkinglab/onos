@@ -22,7 +22,7 @@ ENV PATH $PATH:$KARAF_ROOT/bin
 WORKDIR /src
 RUN     apt-get update && apt-get install -y python git less zip curl oracle-java8-installer oracle-java8-set-default && \
         git clone https://github.com/opennetworkinglab/onos.git && \
-        cd onos && \
+        cd onos && git checkout onos-1.8 && \
         tools/build/onos-buck build onos && \
         cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
         cd .. && \
