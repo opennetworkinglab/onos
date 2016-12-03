@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Defautl implementation of a NETCONF device.
+ * Default implementation of a NETCONF device.
  */
 public class DefaultNetconfDevice implements NetconfDevice {
 
