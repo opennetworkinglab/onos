@@ -22,11 +22,13 @@ import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
@@ -87,6 +89,7 @@ public class ComponentConfigWebResource extends AbstractWebResource {
      * Sets only the properties present in the JSON request.
      *
      * @param component component name
+     * @param preset preset the property if true
      * @param request   JSON configuration
      * @return 200 OK
      * @throws IOException to signify bad request
@@ -95,11 +98,17 @@ public class ComponentConfigWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("{component}")
     public Response setConfigs(@PathParam("component") String component,
+                               @DefaultValue("false") @QueryParam("preset") boolean preset,
                                InputStream request) throws IOException {
         ComponentConfigService service = get(ComponentConfigService.class);
         ObjectNode props = (ObjectNode) mapper().readTree(request);
-        props.fieldNames().forEachRemaining(k -> service.setProperty(component, k,
-                                                                     props.path(k).asText()));
+        if (preset) {
+            props.fieldNames().forEachRemaining(k ->
+                    service.preSetProperty(component, k, props.path(k).asText()));
+        } else {
+            props.fieldNames().forEachRemaining(k ->
+                    service.setProperty(component, k, props.path(k).asText()));
+        }
         return Response.ok().build();
     }
 
