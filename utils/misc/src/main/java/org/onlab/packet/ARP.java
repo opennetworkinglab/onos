@@ -341,6 +341,47 @@ public class ARP extends BasePacket {
     }
 
     /**
+     * Builds an ARP request using the supplied parameters.
+     *
+     * @param senderMacAddress the mac address of the sender
+     * @param senderIpAddress the ip address of the sender
+     * @param targetAddress the address to resolve
+     * @param vlanId the vlan id
+     * @return the Ethernet frame containing the ARP request
+     */
+    public static Ethernet buildArpRequest(byte[] senderMacAddress,
+                                           byte[] senderIpAddress,
+                                           byte[] targetAddress,
+                                           short vlanId) {
+
+        if (senderMacAddress.length != MacAddress.MAC_ADDRESS_LENGTH ||
+                senderIpAddress.length != Ip4Address.BYTE_LENGTH ||
+                targetAddress.length != Ip4Address.BYTE_LENGTH) {
+            return null;
+        }
+
+        ARP arpRequest = new ARP();
+        arpRequest.setHardwareType(ARP.HW_TYPE_ETHERNET)
+                .setProtocolType(ARP.PROTO_TYPE_IP)
+                .setHardwareAddressLength(
+                        (byte) Ethernet.DATALAYER_ADDRESS_LENGTH)
+                .setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH)
+                .setOpCode(ARP.OP_REQUEST)
+                .setSenderHardwareAddress(senderMacAddress)
+                .setTargetHardwareAddress(MacAddress.ZERO.toBytes())
+                .setSenderProtocolAddress(senderIpAddress)
+                .setTargetProtocolAddress(targetAddress);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(MacAddress.BROADCAST.toBytes())
+                .setSourceMACAddress(senderMacAddress)
+                .setEtherType(Ethernet.TYPE_ARP)
+                .setVlanID(vlanId)
+                .setPayload(arpRequest);
+        return eth;
+    }
+
+    /**
      * Builds an ARP reply based on a request.
      *
      * @param srcIp the IP address to use as the reply source

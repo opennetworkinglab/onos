@@ -225,4 +225,51 @@ public class ICMP extends BasePacket {
                 .add("checksum", Short.toString(checksum))
                 .toString();
     }
+
+    /**
+     * Builds an ICMP reply using the supplied ICMP request.
+     *
+     * @param ethRequest the Ethernet packet containing the ICMP ECHO request
+     * @return the Ethernet packet containing the ICMP ECHO reply
+     */
+    public static Ethernet buildIcmpReply(Ethernet ethRequest) {
+
+        if (ethRequest.getEtherType() != Ethernet.TYPE_IPV4) {
+            return null;
+        }
+
+        IPv4 ipRequest = (IPv4) ethRequest.getPayload();
+
+        if (ipRequest.getProtocol() != IPv4.PROTOCOL_ICMP) {
+            return null;
+        }
+
+        Ethernet ethReply = new Ethernet();
+        IPv4 ipReply = new IPv4();
+
+        int destAddress = ipRequest.getDestinationAddress();
+        ipReply.setDestinationAddress(ipRequest.getSourceAddress());
+        ipReply.setSourceAddress(destAddress);
+        ipReply.setTtl((byte) 64);
+        ipReply.setChecksum((short) 0);
+        ipReply.setProtocol(IPv4.PROTOCOL_ICMP);
+
+        ICMP icmpRequest = (ICMP) ipRequest.getPayload();
+        ICMP icmpReply = new ICMP();
+
+        icmpReply.setPayload(icmpRequest.getPayload());
+        icmpReply.setIcmpType(ICMP.TYPE_ECHO_REPLY);
+        icmpReply.setIcmpCode(ICMP.SUBTYPE_ECHO_REPLY);
+        icmpReply.setChecksum((short) 0);
+        ipReply.setPayload(icmpReply);
+
+        ethReply.setEtherType(Ethernet.TYPE_IPV4);
+        ethReply.setVlanID(ethRequest.getVlanID());
+        ethReply.setDestinationMACAddress(ethRequest.getSourceMACAddress());
+        ethReply.setSourceMACAddress(ethRequest.getDestinationMACAddress());
+        ethReply.setPayload(ipReply);
+
+
+        return ethReply;
+    }
 }

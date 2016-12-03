@@ -19,12 +19,10 @@ import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Timer;
 import org.onosproject.incubator.net.intf.Interface;
@@ -212,14 +210,31 @@ public class HostMonitor implements TimerTask {
                            IpAddress targetIp,
                            IpAddress sourceIp, MacAddress sourceMac,
                            VlanId vlan) {
-        Ethernet probePacket = null;
+        Ethernet probePacket;
 
         if (targetIp.isIp4()) {
             // IPv4: Use ARP
             probePacket = buildArpRequest(targetIp, sourceIp, sourceMac, vlan);
         } else {
-            // IPv6: Use Neighbor Discovery
-            probePacket = buildNdpRequest(targetIp, sourceIp, sourceMac, vlan);
+            /*
+             * IPv6: Use Neighbor Discovery. According to the NDP protocol,
+             * we should use the solicitation node address as IPv6 destination
+             * and the multicast mac address as Ethernet destination.
+             */
+            byte[] destIp = IPv6.solicitationNodeAddress(targetIp.toOctets());
+            probePacket = NeighborSolicitation.buildNdpSolicit(
+                    targetIp.toOctets(),
+                    sourceIp.toOctets(),
+                    destIp,
+                    sourceMac.toBytes(),
+                    IPv6.multicastMacAddress(destIp),
+                    vlan
+            );
+        }
+
+        if (probePacket == null) {
+            log.warn("Not able to build the probe packet");
+            return;
         }
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -263,43 +278,4 @@ public class HostMonitor implements TimerTask {
         return ethernet;
     }
 
-    private Ethernet buildNdpRequest(IpAddress targetIp, IpAddress sourceIp,
-                                     MacAddress sourceMac, VlanId vlan) {
-
-        // Create the Ethernet packet
-        Ethernet ethernet = new Ethernet();
-        ethernet.setEtherType(Ethernet.TYPE_IPV6)
-                .setDestinationMACAddress(MacAddress.BROADCAST)
-                .setSourceMACAddress(sourceMac);
-        if (!vlan.equals(VlanId.NONE)) {
-            ethernet.setVlanID(vlan.toShort());
-        }
-
-        //
-        // Create the IPv6 packet
-        //
-        // TODO: The destination IP address should be the
-        // solicited-node multicast address
-        IPv6 ipv6 = new IPv6();
-        ipv6.setSourceAddress(sourceIp.toOctets());
-        ipv6.setDestinationAddress(targetIp.toOctets());
-        ipv6.setHopLimit((byte) 255);
-
-        // Create the ICMPv6 packet
-        ICMP6 icmp6 = new ICMP6();
-        icmp6.setIcmpType(ICMP6.NEIGHBOR_SOLICITATION);
-        icmp6.setIcmpCode((byte) 0);
-
-        // Create the Neighbor Solicitation packet
-        NeighborSolicitation ns = new NeighborSolicitation();
-        ns.setTargetAddress(targetIp.toOctets());
-        ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS,
-                     sourceMac.toBytes());
-
-        icmp6.setPayload(ns);
-        ipv6.setPayload(icmp6);
-        ethernet.setPayload(ipv6);
-
-        return ethernet;
-    }
 }

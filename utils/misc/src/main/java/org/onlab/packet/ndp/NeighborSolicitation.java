@@ -17,8 +17,13 @@ package org.onlab.packet.ndp;
 
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.Deserializer;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPacket;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -197,5 +202,68 @@ public class NeighborSolicitation extends BasePacket {
                 .add("targetAddress", Arrays.toString(targetAddress))
                 .toString();
         // TODO: need to handle options
+    }
+
+    /**
+     * Builds a NDP solicitation using the supplied parameters.
+     *
+     * @param targetIp the target ip
+     * @param sourceIp the source ip
+     * @param destinationIp the destination ip
+     * @param sourceMac the source mac address
+     * @param destinationMac the destination mac address
+     * @param vlan the vlan id
+     * @return the ethernet packet containing the ndp solicitation
+     */
+    public static Ethernet buildNdpSolicit(byte[] targetIp,
+                                           byte[] sourceIp,
+                                           byte[] destinationIp,
+                                           byte[] sourceMac,
+                                           byte[] destinationMac,
+                                           VlanId vlan) {
+
+        if (targetIp.length != Ip6Address.BYTE_LENGTH ||
+                sourceIp.length != Ip6Address.BYTE_LENGTH ||
+                destinationIp.length != Ip6Address.BYTE_LENGTH ||
+                sourceMac.length != MacAddress.MAC_ADDRESS_LENGTH ||
+                destinationMac.length != MacAddress.MAC_ADDRESS_LENGTH) {
+            return null;
+        }
+
+        /*
+         * Here we craft the Ethernet packet.
+         */
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_IPV6)
+                .setDestinationMACAddress(destinationMac)
+                .setSourceMACAddress(sourceMac);
+        ethernet.setVlanID(vlan.id());
+        /*
+         * IPv6 packet is created.
+         */
+        IPv6 ipv6 = new IPv6();
+        ipv6.setSourceAddress(sourceIp);
+        ipv6.setDestinationAddress(destinationIp);
+        ipv6.setHopLimit((byte) 255);
+        /*
+         * Create the ICMPv6 packet.
+         */
+        ICMP6 icmp6 = new ICMP6();
+        icmp6.setIcmpType(ICMP6.NEIGHBOR_SOLICITATION);
+        icmp6.setIcmpCode((byte) 0);
+        /*
+         * Create the Neighbor Solicitation packet.
+         */
+        NeighborSolicitation ns = new NeighborSolicitation();
+        ns.setTargetAddress(targetIp);
+        ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS, sourceMac);
+        /*
+         * Set the payloads
+         */
+        icmp6.setPayload(ns);
+        ipv6.setPayload(icmp6);
+        ethernet.setPayload(ipv6);
+
+        return ethernet;
     }
 }

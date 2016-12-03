@@ -373,4 +373,48 @@ public class ICMP6 extends BasePacket {
                 .add("checksum", Short.toString(checksum))
                 .toString();
     }
+
+    /**
+     * Builds an ICMPv6 reply using the supplied ICMPv6 request.
+     *
+     * @param ethRequest the Ethernet packet containing the ICMPv6 ECHO request
+     * @return the Ethernet packet containing the ICMPv6 ECHO reply
+     */
+    public static Ethernet buildIcmp6Reply(Ethernet ethRequest) {
+
+        if (ethRequest.getEtherType() != Ethernet.TYPE_IPV6) {
+            return null;
+        }
+
+        IPv6 ipv6Request = (IPv6) ethRequest.getPayload();
+
+        if (ipv6Request.getNextHeader() != IPv6.PROTOCOL_ICMP6) {
+            return null;
+        }
+
+        Ethernet ethReply = new Ethernet();
+
+
+        IPv6 ipv6Reply = new IPv6();
+
+        byte[] destAddress = ipv6Request.getDestinationAddress();
+        ipv6Reply.setDestinationAddress(ipv6Request.getSourceAddress());
+        ipv6Reply.setSourceAddress(destAddress);
+        ipv6Reply.setHopLimit((byte) 64);
+        ipv6Reply.setNextHeader(IPv6.PROTOCOL_ICMP6);
+
+        ICMP6 icmpv6Reply = new ICMP6();
+        icmpv6Reply.setPayload(ipv6Request.getPayload().getPayload());
+        icmpv6Reply.setIcmpType(ICMP6.ECHO_REPLY);
+        icmpv6Reply.setIcmpCode((byte) 0);
+        ipv6Reply.setPayload(icmpv6Reply);
+
+        ethReply.setEtherType(Ethernet.TYPE_IPV6);
+        ethReply.setVlanID(ethRequest.getVlanID());
+        ethReply.setDestinationMACAddress(ethRequest.getSourceMACAddress());
+        ethReply.setSourceMACAddress(ethRequest.getDestinationMACAddress());
+        ethReply.setPayload(ipv6Reply);
+
+        return ethReply;
+    }
 }

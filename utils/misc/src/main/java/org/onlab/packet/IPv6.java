@@ -385,4 +385,52 @@ public class IPv6 extends IP implements IExtensionHeader {
                 .add("destinationAddress", Arrays.toString(destinationAddress))
                 .toString();
     }
+
+    /**
+     * According to the RFC 4291, the solicitation node addresses are
+     * formed by taking the low-order 24 bits of an address (unicast or anycast)
+     * and appending those bits to the prefix FF02:0:0:0:0:1:FF00::/104.
+     *
+     * Solicited-Node Address:  FF02:0:0:0:0:1:FFXX:XXXX
+     *
+     * @param targetIp the unicast or anycast address
+     * @return the computed solicitation node address
+     */
+    public static byte[] solicitationNodeAddress(byte[] targetIp) {
+        return targetIp.length != Ip6Address.BYTE_LENGTH ? null : new byte[] {
+                (byte) 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, (byte) 0xff,
+                targetIp[targetIp.length - 3],
+                targetIp[targetIp.length - 2],
+                targetIp[targetIp.length - 1]
+        };
+    }
+
+    /**
+     * According to the RFC 2464, an IPv6 packet with a multicast
+     * destination address DST, consisting of the sixteen octets DST[1]
+     * through DST[16], is transmitted to the Ethernet multicast address
+     * whose first two octets are the value 3333 hexadecimal and whose last
+     * four octets are the last four octets of DST.
+     *
+     *                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *                   |0 0 1 1 0 0 1 1|0 0 1 1 0 0 1 1|
+     *                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *                   |   DST[13]     |   DST[14]     |
+     *                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *                   |   DST[15]     |   DST[16]     |
+     *                   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     *
+     * @param targetIp the multicast address.
+     * @return the multicast mac address
+     */
+    public static byte[] multicastMacAddress(byte[] targetIp) {
+        return targetIp.length != Ip6Address.BYTE_LENGTH ? null : new byte[] {
+                0x33, 0x33,
+                targetIp[targetIp.length - 4],
+                targetIp[targetIp.length - 3],
+                targetIp[targetIp.length - 2],
+                targetIp[targetIp.length - 1],
+        };
+    }
 }

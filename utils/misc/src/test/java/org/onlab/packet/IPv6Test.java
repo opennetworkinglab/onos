@@ -24,12 +24,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link IPv6}.
@@ -42,6 +40,13 @@ public class IPv6Test {
     private static final byte[] DESTINATION_ADDRESS = {
             (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18, (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
             (byte) 0xe6, (byte) 0xce, (byte) 0x8f, (byte) 0xff, (byte) 0xfe, (byte) 0x54, (byte) 0x37, (byte) 0xc8
+    };
+    private static final byte[] SOLICITATION_NODE_ADDRESS = {
+            (byte) 0xff, (byte) 0x02, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0xff, (byte) 0x54, (byte) 0x37, (byte) 0xc8
+    };
+    private static final byte[] MULTICAST_ADDRESS = {
+            (byte) 0x33, (byte) 0x33, (byte) 0xfe, (byte) 0x54, (byte) 0x37, (byte) 0xc8
     };
     private static Data data;
     private static UDP udp;
@@ -167,5 +172,21 @@ public class IPv6Test {
         assertTrue(StringUtils.contains(str, "nextHeader=" + IPv6.PROTOCOL_UDP));
         assertTrue(StringUtils.contains(str, "hopLimit=" + (byte) 32));
         // TODO: test IPv6 source and destination address
+    }
+
+    /**
+     * Tests the proper operation of the solicitationNodeAddress function.
+     */
+    @Test
+    public void testSolicitationNodeAddress() {
+        assertTrue(Arrays.equals(SOLICITATION_NODE_ADDRESS, IPv6.solicitationNodeAddress(DESTINATION_ADDRESS)));
+    }
+
+    /**
+     * Tests the proper operation of the multicastAddress function.
+     */
+    @Test
+    public void testMulticastAddress() {
+        assertTrue(Arrays.equals(MULTICAST_ADDRESS, IPv6.multicastMacAddress(DESTINATION_ADDRESS)));
     }
 }
