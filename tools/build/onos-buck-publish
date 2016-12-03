@@ -22,7 +22,7 @@ onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> $ART
 onos-buck query "filter('.*-oar', deps('//tools/package:onos-package', 1))" >> $ARTIFACT_PUB
 echo "//tools/package:onos-features" >> $ARTIFACT_PUB
 
-sed -i "" -E 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' $ARTIFACT_PUB
+sed -i.bak 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' $ARTIFACT_PUB
 
 # Print commands to be run and then run them
 cat $ARTIFACT_PUB
@@ -30,7 +30,7 @@ bash $ARTIFACT_PUB
 
 # Prepare test publish commands
 onos-buck query "testsof(kind('onos_jar', deps('//tools/package:onos-package')))" >> $TEST_PUB
-sed -i "" -E 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
+sed -i.bak 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
 
 # Print commands to be run and then run them
 cat $TEST_PUB
