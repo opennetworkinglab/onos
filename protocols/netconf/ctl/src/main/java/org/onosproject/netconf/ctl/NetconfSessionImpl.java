@@ -129,8 +129,8 @@ public class NetconfSessionImpl implements NetconfSession {
                             deviceInfo.name(), deviceInfo.password());
                 }
             } catch (IOException e) {
-                log.error("Authentication connection to device {} failed: {} ",
-                          deviceInfo.getDeviceId(), e.getMessage());
+                log.error("Authentication connection to device {} failed",
+                          deviceInfo.getDeviceId(), e);
                 throw new NetconfException("Authentication connection to device " +
                                                    deviceInfo.getDeviceId() + " failed", e);
             }
@@ -154,7 +154,7 @@ public class NetconfSessionImpl implements NetconfSession {
             this.addDeviceOutputListener(new NetconfDeviceOutputEventListenerImpl(deviceInfo));
             sendHello();
         } catch (IOException e) {
-            log.error("Failed to create ch.ethz.ssh2.Session session." + e.getMessage());
+            log.error("Failed to create ch.ethz.ssh2.Session session.", e);
             throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
                                                deviceInfo, e);
         }
@@ -246,7 +246,7 @@ public class NetconfSessionImpl implements NetconfSession {
             try {
                 startSshSession();
             } catch (IOException e) {
-                log.debug("The connection with {} had to be reopened", deviceInfo.getDeviceId());
+                log.debug("The connection with {} was reopened", deviceInfo.getDeviceId());
                 try {
                     startConnection();
                 } catch (IOException e2) {
