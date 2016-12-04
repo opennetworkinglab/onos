@@ -21,11 +21,13 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
-import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +36,6 @@ import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 
 /**
  * Default LISP map notify message class.
@@ -279,7 +280,7 @@ public final class DefaultLispMapNotify extends AbstractLispMessage
 
             List<LispMapRecord> mapRecords = Lists.newArrayList();
             for (int i = 0; i < recordCount; i++) {
-                mapRecords.add(new DefaultLispMapRecord.MapRecordReader().readFrom(byteBuf));
+                mapRecords.add(new MapRecordReader().readFrom(byteBuf));
             }
 
             return new DefaultNotifyBuilder()

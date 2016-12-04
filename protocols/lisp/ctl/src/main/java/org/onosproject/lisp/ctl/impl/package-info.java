@@ -15,6 +15,6 @@
  */
 
 /**
- * LISP controller API.
+ * LISP controller implementations.
  */
-package org.onosproject.lisp;
+package org.onosproject.lisp.ctl.impl;

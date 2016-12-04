@@ -20,17 +20,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
+import org.onosproject.lisp.msg.protocols.LispEidRecord.EidRecordReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.lisp.msg.protocols.LispEidRecord.EidRecordWriter;
-import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
  * Default LISP map request message class.
@@ -339,18 +341,18 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
             // nonce -> 64 bits
             long nonce = byteBuf.readLong();
 
-            LispAfiAddress sourceEid = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress sourceEid = new AfiAddressReader().readFrom(byteBuf);
 
             // deserialize a collection of RLOC addresses
             List<LispAfiAddress> itrRlocs = Lists.newArrayList();
             for (int i = 0; i < irc + 1; i++) {
-                itrRlocs.add(new LispAfiAddress.AfiAddressReader().readFrom(byteBuf));
+                itrRlocs.add(new AfiAddressReader().readFrom(byteBuf));
             }
 
             // deserialize a collection of EID records
             List<LispEidRecord> eidRecords = Lists.newArrayList();
             for (int i = 0; i < recordCount; i++) {
-                eidRecords.add(new LispEidRecord.EidRecordReader().readFrom(byteBuf));
+                eidRecords.add(new EidRecordReader().readFrom(byteBuf));
             }
 
             return new DefaultRequestBuilder()

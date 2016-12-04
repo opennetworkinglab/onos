@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
+import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
-import org.onosproject.lisp.msg.protocols.LispMapRequest;
-import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
-
+import org.onosproject.lisp.msg.protocols.LispMapReply.ReplyBuilder;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.lisp.msg.types.LispIpAddress;
+import org.onosproject.lisp.msg.protocols.LispMapRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +60,7 @@ public final class LispMapResolver {
         LispMapRequest request = (LispMapRequest) ecm.getControlMessage();
 
         // build map-reply message
-        LispMapReply.ReplyBuilder replyBuilder = new DefaultReplyBuilder();
+        ReplyBuilder replyBuilder = new DefaultReplyBuilder();
         replyBuilder.withNonce(request.getNonce());
         replyBuilder.withIsEtr(false);
         replyBuilder.withIsSecurity(false);

@@ -23,10 +23,11 @@ import org.junit.Test;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
+import org.onosproject.lisp.msg.types.LispDistinguishedNameAddress.DistinguishedNameAddressReader;
+import org.onosproject.lisp.msg.types.LispDistinguishedNameAddress.DistinguishedNameAddressWriter;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-
-import static org.onosproject.lisp.msg.types.LispDistinguishedNameAddress.*;
 
 /**
  * Unit tests for LispDistinguishedNameAddress class.
@@ -69,7 +70,6 @@ public class LispDistinguishedNameAddressTest {
         DistinguishedNameAddressReader reader = new DistinguishedNameAddressReader();
         LispDistinguishedNameAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

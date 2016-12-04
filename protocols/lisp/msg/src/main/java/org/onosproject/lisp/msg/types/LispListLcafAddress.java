@@ -20,6 +20,8 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispIpv4Address.Ipv4AddressWriter;
+import org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressWriter;
 
 import java.util.List;
 import java.util.Objects;
@@ -189,8 +191,8 @@ public final class LispListLcafAddress extends LispLcafAddress {
             int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
-            LispIpv4Address.Ipv4AddressWriter v4Writer = new LispIpv4Address.Ipv4AddressWriter();
-            LispIpv6Address.Ipv6AddressWriter v6Writer = new LispIpv6Address.Ipv6AddressWriter();
+            Ipv4AddressWriter v4Writer = new Ipv4AddressWriter();
+            Ipv6AddressWriter v6Writer = new Ipv6AddressWriter();
 
             LispAfiAddress ipv4 = address.getAddresses().get(IPV4_ADDRESS_INDEX);
             LispAfiAddress ipv6 = address.getAddresses().get(IPV6_ADDRESS_INDEX);

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.lisp.ctl.map.ExpireHashMap;
-import org.onosproject.lisp.ctl.map.ExpireMap;
+import org.onosproject.lisp.ctl.impl.map.ExpireMap;
+import org.onosproject.lisp.ctl.impl.map.ExpireHashMap;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;

@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.DefaultLocatorRecordBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispLocatorRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.DefaultLocatorRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 

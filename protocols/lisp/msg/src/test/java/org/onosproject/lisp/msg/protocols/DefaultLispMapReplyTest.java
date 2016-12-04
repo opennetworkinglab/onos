@@ -126,7 +126,6 @@ public final class DefaultLispMapReplyTest {
         ReplyReader reader = new ReplyReader();
         LispMapReply deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(reply1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(reply1, deserialized).testEquals();
     }
 }

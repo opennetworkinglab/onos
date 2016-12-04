@@ -156,7 +156,6 @@ public class LispTeLcafAddressTest {
         TeLcafAddressReader reader = new TeLcafAddressReader();
         LispTeLcafAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

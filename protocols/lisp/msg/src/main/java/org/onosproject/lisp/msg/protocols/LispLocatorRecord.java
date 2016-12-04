@@ -16,8 +16,8 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
-import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
 /**
  * LISP locator record section which is part of LISP map record.

@@ -30,12 +30,21 @@ import org.onlab.packet.UDP;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.DefaultEcmBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmWriter;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
+import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl.EcmBuilder;
+import org.onosproject.lisp.msg.protocols.LispMapRegister.RegisterBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
+import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+
 
 /**
  * Unit tests for DefaultLispEncapsulatedControl class.
@@ -58,8 +67,7 @@ public final class DefaultLispEncapsulatedControlTest {
     public void setup() {
 
         //Creates ecm1
-        LispEncapsulatedControl.EcmBuilder builder1 =
-                new DefaultLispEncapsulatedControl.DefaultEcmBuilder();
+        EcmBuilder builder1 = new DefaultEcmBuilder();
 
         IP innerIp1 = new IPv4().setSourceAddress(ECM1_SRC_IP)
                 .setDestinationAddress(ECM1_DST_IP)
@@ -67,8 +75,7 @@ public final class DefaultLispEncapsulatedControlTest {
         UDP innerUdp1 = new UDP().setSourcePort(1)
                 .setDestinationPort(2);
 
-        LispMapRegister.RegisterBuilder msgBuilder = new
-                DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder msgBuilder = new DefaultRegisterBuilder();
 
         List<LispMapRecord> records1 = ImmutableList.of(getMapRecord(),
                                                         getMapRecord());
@@ -88,8 +95,7 @@ public final class DefaultLispEncapsulatedControlTest {
                 .build();
 
         //Creates sameAsEcm1
-        LispEncapsulatedControl.EcmBuilder builder2 =
-                new DefaultLispEncapsulatedControl.DefaultEcmBuilder();
+        EcmBuilder builder2 = new DefaultEcmBuilder();
 
         IP innerIp2 = new IPv4().setSourceAddress(ECM1_SRC_IP)
                 .setDestinationAddress(ECM1_DST_IP)
@@ -97,8 +103,7 @@ public final class DefaultLispEncapsulatedControlTest {
         UDP innerUdp2 = new UDP().setSourcePort(1)
                 .setDestinationPort(2);
 
-        LispMapRegister.RegisterBuilder msgBuilder2 =
-                new DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder msgBuilder2 = new DefaultRegisterBuilder();
 
         List<LispMapRecord> records2 = ImmutableList.of(getMapRecord(),
                                                         getMapRecord());
@@ -118,8 +123,7 @@ public final class DefaultLispEncapsulatedControlTest {
                 .build();
 
         //Creates ecm2
-        LispEncapsulatedControl.EcmBuilder builder3 =
-                new DefaultLispEncapsulatedControl.DefaultEcmBuilder();
+        EcmBuilder builder3 = new DefaultEcmBuilder();
 
         IP innerIp3 = new IPv4().setSourceAddress(ECM2_SRC_IP)
                 .setDestinationAddress(ECM2_DST_IP)
@@ -127,8 +131,7 @@ public final class DefaultLispEncapsulatedControlTest {
         UDP innerUdp3 = new UDP().setSourcePort(10)
                 .setDestinationPort(20);
 
-        LispMapRegister.RegisterBuilder msgBuilder3 =
-                new DefaultLispMapRegister.DefaultRegisterBuilder();
+        RegisterBuilder msgBuilder3 = new DefaultRegisterBuilder();
 
         List<LispMapRecord> records3 = ImmutableList.of(getMapRecord(),
                                                         getMapRecord());
@@ -157,8 +160,7 @@ public final class DefaultLispEncapsulatedControlTest {
 
     @Test
     public void testConstruction() {
-        DefaultLispEncapsulatedControl ecm =
-                (DefaultLispEncapsulatedControl) ecm1;
+        DefaultLispEncapsulatedControl ecm = (DefaultLispEncapsulatedControl) ecm1;
 
         assertThat("Inner Ip versions are not match",
                    ecm.innerIpHeader().getVersion(), is((byte) 4));
@@ -185,22 +187,18 @@ public final class DefaultLispEncapsulatedControlTest {
             LispWriterException, LispParseError, DeserializationException {
 
         ByteBuf byteBuf = Unpooled.buffer();
-        DefaultLispEncapsulatedControl.EcmWriter writer =
-                new DefaultLispEncapsulatedControl.EcmWriter();
+        EcmWriter writer = new EcmWriter();
         writer.writeTo(byteBuf, ecm1);
 
-        DefaultLispEncapsulatedControl.EcmReader reader =
-                new DefaultLispEncapsulatedControl.EcmReader();
+        EcmReader reader = new EcmReader();
 
         LispEncapsulatedControl deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(ecm1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(ecm1, deserialized).testEquals();
     }
 
     private LispMapRecord getMapRecord() {
-        LispMapRecord.MapRecordBuilder builder1 =
-                new DefaultLispMapRecord.DefaultMapRecordBuilder();
+        MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
 
         LispIpv4Address ipv4Locator1 =
                 new LispIpv4Address(IpAddress.valueOf(RECORD_EID));

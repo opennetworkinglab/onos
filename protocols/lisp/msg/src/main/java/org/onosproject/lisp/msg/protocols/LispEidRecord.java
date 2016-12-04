@@ -21,10 +21,11 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
  * LISP EID record section which is part of LISP map request message.
@@ -108,7 +109,7 @@ public final class LispEidRecord {
             // mask length -> 8 bits
             short maskLength = byteBuf.readUnsignedByte();
 
-            LispAfiAddress prefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress prefix = new AfiAddressReader().readFrom(byteBuf);
 
             return new LispEidRecord((byte) maskLength, prefix);
         }

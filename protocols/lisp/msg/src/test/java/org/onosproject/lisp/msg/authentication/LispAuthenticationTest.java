@@ -20,7 +20,10 @@ import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.*;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.NONE;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.SHA1;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.SHA256;
+import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.UNKNOWN;
 
 /**
  * Test case for LISP authentication.

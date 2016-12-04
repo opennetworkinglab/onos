@@ -24,11 +24,14 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.DefaultLocatorRecordBuilder;
+import org.onosproject.lisp.msg.protocols.LispLocatorRecord.LocatorRecordBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordWriter;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordReader;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.*;
 
 /**
  * Unit tests for DefaultLispLocatorRecord class.

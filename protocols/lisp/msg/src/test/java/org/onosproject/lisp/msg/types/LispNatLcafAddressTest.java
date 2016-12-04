@@ -136,7 +136,6 @@ public class LispNatLcafAddressTest {
         NatLcafAddressReader reader = new NatLcafAddressReader();
         LispNatLcafAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

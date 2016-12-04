@@ -24,10 +24,11 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
+import org.onosproject.lisp.msg.types.LispMacAddress.MacAddressWriter;
+import org.onosproject.lisp.msg.types.LispMacAddress.MacAddressReader;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispMacAddress.MacAddressReader;
-import static org.onosproject.lisp.msg.types.LispMacAddress.MacAddressWriter;
 
 /**
  * Unit tests for LispMacAddress class.
@@ -69,7 +70,6 @@ public class LispMacAddressTest {
         MacAddressReader reader = new MacAddressReader();
         LispMacAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

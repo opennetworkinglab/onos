@@ -19,6 +19,8 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import java.util.Objects;
 
@@ -267,14 +269,14 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
         @Override
         public LispSourceDestLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
-            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
+            LispLcafAddress lcafAddress = deserializeCommon(byteBuf);
 
             short reserved = byteBuf.readShort();
             byte srcMaskLength = (byte) byteBuf.readUnsignedByte();
             byte dstMaskLength = (byte) byteBuf.readUnsignedByte();
 
-            LispAfiAddress srcPrefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
-            LispAfiAddress dstPrefix = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress srcPrefix = new AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress dstPrefix = new AfiAddressReader().readFrom(byteBuf);
 
             return new SourceDestAddressBuilder()
                     .withReserved1(lcafAddress.getReserved1())
@@ -301,16 +303,16 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
                 throws LispWriterException {
 
             int lcafIndex = byteBuf.writerIndex();
-            LispLcafAddress.serializeCommon(byteBuf, address);
+            serializeCommon(byteBuf, address);
 
             byteBuf.writeShort(address.getReserved());
             byteBuf.writeByte(address.getSrcMaskLength());
             byteBuf.writeByte(address.getDstMaskLength());
-            AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
+            AfiAddressWriter writer = new AfiAddressWriter();
             writer.writeTo(byteBuf, address.getSrcPrefix());
             writer.writeTo(byteBuf, address.getDstPrefix());
 
-            LispLcafAddress.updateLength(lcafIndex, byteBuf);
+            updateLength(lcafIndex, byteBuf);
         }
     }
 }

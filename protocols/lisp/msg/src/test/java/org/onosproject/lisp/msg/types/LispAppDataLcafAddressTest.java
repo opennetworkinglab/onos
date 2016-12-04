@@ -24,12 +24,12 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataAddressBuilder;
 import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressReader;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataAddressBuilder;
-import static org.onosproject.lisp.msg.types.LispAppDataLcafAddress.AppDataLcafAddressReader;
 
 /**
  * Unit tests for LispAppDataLcafAddress class.
@@ -116,7 +116,6 @@ public class LispAppDataLcafAddressTest {
         AppDataLcafAddressReader reader = new AppDataLcafAddressReader();
         LispAppDataLcafAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

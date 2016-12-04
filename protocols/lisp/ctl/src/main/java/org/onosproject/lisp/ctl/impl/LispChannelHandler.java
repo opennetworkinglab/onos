@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -21,10 +21,10 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
-import org.onosproject.lisp.msg.protocols.LispInfoReply;
-import org.onosproject.lisp.msg.protocols.LispInfoRequest;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
+import org.onosproject.lisp.msg.protocols.LispInfoReply;
+import org.onosproject.lisp.msg.protocols.LispInfoRequest;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.slf4j.Logger;

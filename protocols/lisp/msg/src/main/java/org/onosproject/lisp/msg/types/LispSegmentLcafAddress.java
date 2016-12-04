@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
 
 import java.util.Objects;
 
@@ -205,7 +206,7 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
             byte idMaskLength = lcafAddress.getReserved2();
 
             int instanceId = (int) byteBuf.readUnsignedInt();
-            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress address = new AfiAddressReader().readFrom(byteBuf);
 
             return new SegmentAddressBuilder()
                     .withReserved1(lcafAddress.getReserved1())

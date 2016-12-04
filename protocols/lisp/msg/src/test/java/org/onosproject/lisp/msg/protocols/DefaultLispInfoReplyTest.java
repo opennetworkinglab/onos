@@ -27,9 +27,9 @@ import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.DefaultInfoReplyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyReader;
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyWriter;
-import org.onosproject.lisp.msg.protocols.LispInfoReply.InfoReplyBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress;
+import org.onosproject.lisp.msg.protocols.LispInfoReply.InfoReplyBuilder;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;

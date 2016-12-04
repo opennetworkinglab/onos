@@ -19,12 +19,12 @@ import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
-import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispNoAddress;
+import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,7 +237,7 @@ public class DefaultLispInfoRequest extends DefaultLispInfo
         public LispInfoRequest readFrom(ByteBuf byteBuf)
                 throws LispParseError, LispReaderException {
 
-            LispInfo lispInfo = DefaultLispInfo.deserialize(byteBuf);
+            LispInfo lispInfo = deserialize(byteBuf);
 
             return new DefaultInfoRequestBuilder()
                     .withIsInfoReply(lispInfo.isInfoReply())
@@ -261,7 +261,7 @@ public class DefaultLispInfoRequest extends DefaultLispInfo
         public void writeTo(ByteBuf byteBuf, LispInfoRequest message)
                 throws LispWriterException {
 
-            DefaultLispInfo.serialize(byteBuf, message);
+            serialize(byteBuf, message);
 
             //Fill AFI=0, no address
             new LispAfiAddress.AfiAddressWriter()

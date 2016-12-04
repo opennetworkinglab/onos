@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp;
+package org.onosproject.lisp.ctl;
 
 /**
  * Abstraction of a LISP controller. Serves as a one stop shop for obtaining

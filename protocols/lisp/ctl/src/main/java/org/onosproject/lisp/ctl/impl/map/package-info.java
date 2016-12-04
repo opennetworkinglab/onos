@@ -17,4 +17,4 @@
 /**
  * A package that contains ExpireMap interface and implementation classes.
  */
-package org.onosproject.lisp.ctl.map;
+package org.onosproject.lisp.ctl.impl.map;

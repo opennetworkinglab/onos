@@ -26,12 +26,13 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 
+import org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressReader;
+
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressReader;
-import static org.onosproject.lisp.msg.types.LispListLcafAddress.ListLcafAddressWriter;
 
 /**
  * Unit tests for LispListLcafAddress class.
@@ -97,7 +98,6 @@ public class LispListLcafAddressTest {
         ListLcafAddressReader reader = new ListLcafAddressReader();
         LispListLcafAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

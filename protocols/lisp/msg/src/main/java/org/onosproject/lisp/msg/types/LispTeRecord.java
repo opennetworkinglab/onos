@@ -21,6 +21,7 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import java.util.Objects;
 
@@ -256,7 +257,7 @@ public class LispTeRecord {
             byteBuf.writeByte((byte) (lookup + rlocProbe + strict));
 
             // RTR RLOC address
-            LispAfiAddress.AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
+            AfiAddressWriter writer = new AfiAddressWriter();
             writer.writeTo(byteBuf, record.rtrRlocAddress);
         }
     }

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationConfig;
-import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply;
+import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.DefaultInfoReplyBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.DefaultInfoRequestBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.DefaultRegisterBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
@@ -33,6 +34,7 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 import org.onosproject.lisp.msg.types.LispIpv6Address;
+import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
 import org.onosproject.lisp.msg.types.LispNoAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +45,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
-import static org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.DefaultInfoRequestBuilder;
-import static org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
 
 /**
  * LISP map server class.
@@ -152,7 +152,7 @@ public final class LispMapServer {
             log.warn("Fails during formulate NAT address", e);
         }
 
-        InfoReplyBuilder replyBuilder = new DefaultLispInfoReply.DefaultInfoReplyBuilder();
+        InfoReplyBuilder replyBuilder = new DefaultInfoReplyBuilder();
         replyBuilder.withKeyId(request.getKeyId());
         replyBuilder.withAuthDataLength(valueOf(authConfig.lispAuthKeyId()).getHashLength());
         replyBuilder.withAuthKey(authConfig.lispAuthKey());

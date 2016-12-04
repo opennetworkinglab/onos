@@ -23,11 +23,11 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressReader;
+import org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressReader;
-import static org.onosproject.lisp.msg.types.LispIpv6Address.Ipv6AddressWriter;
 
 
 /**
@@ -70,7 +70,6 @@ public class LispIpv6AddressTest {
         Ipv6AddressReader reader = new Ipv6AddressReader();
         LispIpv6Address deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

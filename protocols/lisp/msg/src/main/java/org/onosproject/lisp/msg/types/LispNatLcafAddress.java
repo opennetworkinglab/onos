@@ -277,7 +277,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
         public LispNatLcafAddress readFrom(ByteBuf byteBuf)
                 throws LispParseError, LispReaderException {
 
-            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
+            LispLcafAddress lcafAddress = deserializeCommon(byteBuf);
 
             short msUdpPortNumber = (short) byteBuf.readUnsignedShort();
             short etrUdpPortNumber = (short) byteBuf.readUnsignedShort();
@@ -288,7 +288,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
 
             List<LispAfiAddress> rtrRlocAddresses = Lists.newArrayList();
 
-            while (byteBuf.readerIndex() - LispLcafAddress.COMMON_HEADER_SIZE < lcafAddress.getLength()) {
+            while (byteBuf.readerIndex() - COMMON_HEADER_SIZE < lcafAddress.getLength()) {
                 rtrRlocAddresses.add(new AfiAddressReader().readFrom(byteBuf));
             }
 
@@ -317,7 +317,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                 throws LispWriterException {
 
             int lcafIndex = byteBuf.writerIndex();
-            LispLcafAddress.serializeCommon(byteBuf, address);
+            serializeCommon(byteBuf, address);
 
             byteBuf.writeShort(address.getMsUdpPortNumber());
             byteBuf.writeShort(address.getEtrUdpPortNumber());
@@ -333,7 +333,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                 writer.writeTo(byteBuf, rtrRlocAddresses.get(i));
             }
 
-            LispLcafAddress.updateLength(lcafIndex, byteBuf);
+            updateLength(lcafIndex, byteBuf);
         }
     }
 }

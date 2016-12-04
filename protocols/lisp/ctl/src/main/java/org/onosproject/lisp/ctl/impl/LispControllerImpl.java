@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
-import org.onosproject.lisp.LispController;
+import org.onosproject.lisp.ctl.LispController;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationConfig;
 import org.onosproject.net.device.DeviceService;
 import org.osgi.service.component.ComponentContext;

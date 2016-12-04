@@ -25,6 +25,11 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyWriter;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
+import org.onosproject.lisp.msg.protocols.LispMapNotify.NotifyBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
@@ -32,8 +37,6 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.*;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
 
 /**
  * Unit tests for DefaultLispMapNotify class.
@@ -120,7 +123,6 @@ public final class DefaultLispMapNotifyTest {
         NotifyReader reader = new NotifyReader();
         LispMapNotify deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(notify1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(notify1, deserialized).testEquals();
     }
 }

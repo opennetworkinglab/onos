@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.lisp.msg.types.LispLcafAddress.COMMON_HEADER_SIZE;
 
 /**
  * Traffic Engineering (TE) type LCAF address class.
@@ -134,7 +135,7 @@ public final class LispTeLcafAddress extends LispLcafAddress {
             LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
             List<LispTeRecord> teRecords = Lists.newArrayList();
-            while (byteBuf.readerIndex() - LispLcafAddress.COMMON_HEADER_SIZE < lcafAddress.getLength()) {
+            while (byteBuf.readerIndex() - COMMON_HEADER_SIZE < lcafAddress.getLength()) {
                 teRecords.add(new LispTeRecord.TeRecordReader().readFrom(byteBuf));
             }
 

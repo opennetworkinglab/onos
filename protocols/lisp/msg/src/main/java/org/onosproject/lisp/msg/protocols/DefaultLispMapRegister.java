@@ -23,10 +23,11 @@ import io.netty.buffer.Unpooled;
 import org.onlab.util.ByteOperator;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
-import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +36,6 @@ import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.MapRecordWriter;
-
 
 /**
  * Default LISP map register message class.
@@ -255,7 +253,7 @@ public final class DefaultLispMapRegister extends AbstractLispMessage
             if (authData == null) {
                 LispAuthenticationFactory factory = LispAuthenticationFactory.getInstance();
 
-                authDataLength = LispAuthenticationKeyEnum.valueOf(keyId).getHashLength();
+                authDataLength = valueOf(keyId).getHashLength();
                 byte[] tmpAuthData = new byte[authDataLength];
                 Arrays.fill(tmpAuthData, (byte) 0);
                 authData = tmpAuthData;

@@ -18,12 +18,12 @@ package org.onosproject.lisp.msg.protocols;
 import com.google.common.base.Objects;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationFactory;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressReader;
 import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressWriter;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress;
@@ -244,7 +244,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
         @Override
         public LispInfoReply readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
-            LispInfo lispInfo = DefaultLispInfo.deserialize(byteBuf);
+            LispInfo lispInfo = deserialize(byteBuf);
 
             LispNatLcafAddress natLcafAddress = (LispNatLcafAddress)
                     new LcafAddressReader().readFrom(byteBuf);
@@ -266,7 +266,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
         @Override
         public void writeTo(ByteBuf byteBuf, LispInfoReply message) throws LispWriterException {
-            DefaultLispInfo.serialize(byteBuf, message);
+            serialize(byteBuf, message);
 
             new LcafAddressWriter().writeTo(byteBuf, message.getNatLcafAddress());
         }

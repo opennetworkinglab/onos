@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.protocols.LispMessage;

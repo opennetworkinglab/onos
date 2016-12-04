@@ -22,10 +22,11 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 /**
  * Default implementation of LispLocatorRecord.
@@ -262,7 +263,7 @@ public final class DefaultLispLocatorRecord implements LispLocatorRecord {
             // routed flag -> 1 bit
             boolean routed = ByteOperator.getBit(flags, ROUTED_INDEX);
 
-            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress address = new AfiAddressReader().readFrom(byteBuf);
 
             return new DefaultLocatorRecordBuilder()
                         .withPriority(priority)

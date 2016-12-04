@@ -25,11 +25,11 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentAddressBuilder;
+import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressReader;
+import org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressReader;
-import static org.onosproject.lisp.msg.types.LispSegmentLcafAddress.SegmentLcafAddressWriter;
 
 /**
  * Unit tests for LispSegmentLcafAddress class.
@@ -99,7 +99,6 @@ public class LispSegmentLcafAddressTest {
         SegmentLcafAddressReader reader = new SegmentLcafAddressReader();
         LispSegmentLcafAddress deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

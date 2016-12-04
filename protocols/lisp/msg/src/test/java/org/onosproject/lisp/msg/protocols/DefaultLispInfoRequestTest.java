@@ -113,7 +113,6 @@ public final class DefaultLispInfoRequestTest {
         InfoRequestReader reader = new InfoRequestReader();
         LispInfoRequest deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(request1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(request1, deserialized).testEquals();
     }
 }

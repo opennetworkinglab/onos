@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.ctl;
+package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -87,7 +87,8 @@ public class LispMessageEncoderTest {
         expBuilder.append("LISP message [LISP_MAP_NOTIFY] ");
 
         String expected = expBuilder.toString();
-        String returned = new String(buff.array(), StandardCharsets.UTF_8).substring(0, expected.length());
+        String returned = new String(buff.array(),
+                        StandardCharsets.UTF_8).substring(0, expected.length());
         assertThat(returned, is(expected));
     }
 }

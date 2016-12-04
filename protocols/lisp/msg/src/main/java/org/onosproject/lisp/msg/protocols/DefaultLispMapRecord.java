@@ -21,15 +21,16 @@ import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordReader;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 import static org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordWriter;
 
 /**
@@ -263,7 +264,7 @@ public final class DefaultLispMapRecord implements LispMapRecord {
 
             List<LispLocatorRecord> locators = Lists.newArrayList();
             for (int i = 0; i < locatorCount; i++) {
-                locators.add(new DefaultLispLocatorRecord.LocatorRecordReader().readFrom(byteBuf));
+                locators.add(new LocatorRecordReader().readFrom(byteBuf));
             }
 
             return new DefaultMapRecordBuilder()

@@ -17,14 +17,13 @@ package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
 import org.onlab.util.ByteOperator;
-
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.InfoRequestReader;
-import static org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.EcmReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispInfoRequest.InfoRequestReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.NotifyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRegister.RegisterReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestReader;
 
 /**
  * A factory class which helps to instantiate LISP reader class.

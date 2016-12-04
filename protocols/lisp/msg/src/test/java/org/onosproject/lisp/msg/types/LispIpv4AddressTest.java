@@ -23,11 +23,11 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispIpv4Address.Ipv4AddressReader;
+import org.onosproject.lisp.msg.types.LispIpv4Address.Ipv4AddressWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.types.LispIpv4Address.Ipv4AddressReader;
-import static org.onosproject.lisp.msg.types.LispIpv4Address.Ipv4AddressWriter;
 
 /**
  * Unit tests for LispIpv4Address class.
@@ -69,7 +69,6 @@ public class LispIpv4AddressTest {
         Ipv4AddressReader reader = new Ipv4AddressReader();
         LispIpv4Address deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                    .addEqualityGroup(address1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(address1, deserialized).testEquals();
     }
 }

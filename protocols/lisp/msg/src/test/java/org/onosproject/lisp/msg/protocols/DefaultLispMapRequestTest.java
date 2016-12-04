@@ -24,15 +24,18 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
-import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.DefaultRequestBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.RequestWriter;
+import org.onosproject.lisp.msg.protocols.LispMapRequest.RequestBuilder;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.lisp.msg.protocols.DefaultLispMapRequest.*;
 
 /**
  * Unit tests for DefaultLispMapRequest class.
@@ -142,7 +145,6 @@ public final class DefaultLispMapRequestTest {
         RequestReader reader = new RequestReader();
         LispMapRequest deserialized = reader.readFrom(byteBuf);
 
-        new EqualsTester()
-                .addEqualityGroup(request1, deserialized).testEquals();
+        new EqualsTester().addEqualityGroup(request1, deserialized).testEquals();
     }
 }

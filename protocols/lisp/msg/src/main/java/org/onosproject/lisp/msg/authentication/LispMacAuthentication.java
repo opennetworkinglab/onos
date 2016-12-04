@@ -23,9 +23,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.SHA1;
-import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.SHA256;
-
 /**
  * LISP MAC authentication utility class.
  */
@@ -46,7 +43,7 @@ public class LispMacAuthentication {
      */
     LispMacAuthentication(LispAuthenticationKeyEnum authType) {
 
-        if (authType == SHA1 || authType == SHA256) {
+        if (authType == LispAuthenticationKeyEnum.SHA1 || authType == LispAuthenticationKeyEnum.SHA256) {
             algorithm = authType.getName();
         } else {
             log.warn(NOT_SUPPORT_ALGORITHM_MSG, authType.getName());
