@@ -282,7 +282,7 @@ public class SingleSwitchFibInstaller {
 
     private Set<Interface> getInterfaces() {
         Set<Interface> intfs;
-        if (interfaces.isEmpty()) {
+        if (interfaces == null || interfaces.isEmpty()) {
             intfs = interfaceService.getInterfaces();
         } else {
             // TODO need to fix by making interface names globally unique
