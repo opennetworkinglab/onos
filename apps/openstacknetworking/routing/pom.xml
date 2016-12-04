@@ -30,7 +30,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.openstackrouting</onos.app.name>
-        <onos.app.title>Openstack Switching App</onos.app.title>
+        <onos.app.title>Openstack Routing App</onos.app.title>
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
