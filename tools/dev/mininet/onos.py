@@ -270,6 +270,21 @@ class ONOSNode( Controller ):
 
     # pylint: enable=arguments-differ
 
+    def intfsDown( self ):
+        """Bring all interfaces down"""
+        for intf in self.intfs.values():
+            cmdOutput = intf.ifconfig( 'down' )
+            # no output indicates success
+            if cmdOutput:
+                error( "Error setting %s down: %s " % ( intf.name, cmdOutput ) )
+
+    def intfsUp( self ):
+        """Bring all interfaces up"""
+        for intf in self.intfs.values():
+            cmdOutput = intf.ifconfig( 'up' )
+            if cmdOutput:
+                error( "Error setting %s up: %s " % ( intf.name, cmdOutput ) )
+
     def stop( self ):
         # XXX This will kill all karafs - too bad!
         self.cmd( 'pkill -HUP -f karaf.jar && wait' )
@@ -616,6 +631,31 @@ class ONOSCLI( OldCLI ):
         info( '\n' )
         elapsed = time.time() - startTime
         debug( 'Completed in %.2f seconds\n' % elapsed )
+
+    def onosupdown( self, cmd, instance ):
+        if not instance:
+            info( 'Provide the name of an ONOS instance.\n' )
+            return
+        c0 = self.mn.controllers[ 0 ]
+        if isONOSCluster( c0 ):
+            try:
+                onos = self.mn.controllers[ 0 ].net.getNodeByName( instance )
+                if isONOSNode( onos ):
+                    info('Bringing %s %s...\n' % ( instance, cmd ) )
+                    if cmd == 'up':
+                        onos.intfsUp()
+                    else:
+                        onos.intfsDown()
+            except KeyError:
+                info( 'No such ONOS instance %s.\n' % instance )
+
+    def do_onosdown( self, instance=None ):
+        """Disconnects an ONOS instance from the network"""
+        self.onosupdown( 'down', instance )
+
+    def do_onosup( self, instance=None ):
+        """"Connects an ONOS instance to the network"""
+        self.onosupdown( 'up', instance )
 
 
 # For interactive use, exit on error

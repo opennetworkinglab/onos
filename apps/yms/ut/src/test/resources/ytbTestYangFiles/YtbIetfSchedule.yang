@@ -1,0 +1,29 @@
+module YtbIetfSchedule {
+    yang-version 1;
+    namespace "yms:test:ytb:module:with:leaf:ietfschedule";
+    prefix "sch";
+    revision "2016-08-26";
+        leaf time {
+            type int8;
+        }
+        leaf enum1 {
+        type enumeration {
+                      enum ten { value "10";}
+                      enum hundred { value "100";}
+                      enum thousand { value "1000"; }
+                    }
+        }
+        leaf-list enum2 {
+        type enumeration {
+                      enum ten-10 { value "10";}
+                      enum hundred-100 { value "100";}
+                      enum thousand-1000 { value "1000"; }
+                    }
+        }
+    container monitor {
+        leaf check {
+            type uint8;
+        }
+    }
+}
+

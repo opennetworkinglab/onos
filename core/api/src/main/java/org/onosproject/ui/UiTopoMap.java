@@ -16,6 +16,8 @@
 
 package org.onosproject.ui;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Represents a geographically-based map to be used in the user interface
  * topology view. Instances of this class are immutable.
@@ -26,6 +28,8 @@ public class UiTopoMap {
     private final String desc;
     private final String filePath;
     private final double scale;
+    private static final int MAX_LENGTH = 32;
+    private static final String DES_EXC_LIM = "Description is too long";
 
 
     /**
@@ -37,6 +41,7 @@ public class UiTopoMap {
      * @param scale map scale
      */
     public UiTopoMap(String id, String desc, String filePath, double scale) {
+        checkState(desc.length() <= MAX_LENGTH, DES_EXC_LIM);
         this.id = id;
         this.desc = desc;
         this.filePath = filePath;

@@ -35,11 +35,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.common.collect.ImmutableList;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pceservice.PcePath;
 import org.onosproject.pce.pceservice.DefaultPcePath;
@@ -74,12 +76,16 @@ public class PcePathWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response queryAllPath() {
         log.debug("Query all paths.");
-        Iterable<Tunnel> tunnels = get(PceService.class).queryAllPath();
+        PceService pceService = get(PceService.class);
+        Iterable<Tunnel> tunnels = pceService.queryAllPath();
+
         ObjectNode result = mapper().createObjectNode();
         ArrayNode pathEntry = result.putArray("paths");
         if (tunnels != null) {
             for (final Tunnel tunnel : tunnels) {
-                PcePath path = DefaultPcePath.builder().of(tunnel).build();
+                PcePath path = DefaultPcePath.builder().of(tunnel, pceService.explicitPathInfoList(tunnel
+                        .tunnelName().value()))
+                        .build();
                 pathEntry.add(codec(PcePath.class).encode(path, this));
             }
         }
@@ -98,9 +104,12 @@ public class PcePathWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response queryPath(@PathParam("path_id") String id) {
         log.debug("Query path by identifier {}.", id);
-        Tunnel tunnel = nullIsNotFound(get(PceService.class).queryPath(TunnelId.valueOf(id)),
-                                       PCE_PATH_NOT_FOUND);
-        PcePath path = DefaultPcePath.builder().of(tunnel).build();
+        PceService pceService = get(PceService.class);
+
+        Tunnel tunnel = nullIsNotFound(pceService.queryPath(TunnelId.valueOf(id)),
+                PCE_PATH_NOT_FOUND);
+        PcePath path = DefaultPcePath.builder().of(tunnel, pceService.explicitPathInfoList(tunnel
+                .tunnelName().value())).build();
         if (path == null) {
             return Response.status(OK).entity(PCE_SETUP_PATH_FAILED).build();
         }
@@ -150,8 +159,14 @@ public class PcePathWebResource extends AbstractWebResource {
             // Add cost
             listConstrnt.add(path.costConstraint());
 
+            List<ExplicitPathInfo> explicitPathInfoList = null;
+            if (path.explicitPathInfo() != null) {
+                explicitPathInfoList = ImmutableList.copyOf(path.explicitPathInfo());
+            }
+
             Boolean issuccess = nullIsNotFound(get(PceService.class)
-                                               .setupPath(srcDevice, dstDevice, path.name(), listConstrnt, lspType),
+                                               .setupPath(srcDevice, dstDevice, path.name(), listConstrnt,
+                                                       lspType, explicitPathInfoList),
                                                PCE_SETUP_PATH_FAILED);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException e) {

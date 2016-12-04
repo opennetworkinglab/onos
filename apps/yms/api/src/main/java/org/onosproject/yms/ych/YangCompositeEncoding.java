@@ -18,10 +18,10 @@ package org.onosproject.yms.ych;
 
 /**
  * Abstraction of an entity which has the composite protocol request.
- *
+ * <p>
  * Protocols like RESTCONF, have split the schema specific information across
  * different components in the protocol encoding.
- *
+ * <p>
  * There is a resource identifier, which is part of the RESTCONF request URL.
  * and there is the information about the resource being operated on in the
  * request, this is part of the request body.
@@ -49,4 +49,25 @@ public interface YangCompositeEncoding {
      * @return the resource information in the protocol encoding format
      */
     String getResourceInformation();
+
+    /**
+     * Sets resource identifier.
+     *
+     * @param resourceId resource identifier
+     */
+    void setResourceIdentifier(String resourceId);
+
+    /**
+     * Sets the resource information.
+     *
+     * @param resourceInfo resource information
+     */
+    void setResourceInformation(String resourceInfo);
+
+    /**
+     * Sets the resource identifier type.
+     *
+     * @param idType resource identifier
+     */
+    void setResourceIdentifierType(YangResourceIdentifierType idType);
 }

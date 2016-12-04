@@ -1,0 +1,39 @@
+module food {
+
+    yang-version 1;
+
+    namespace "ydt.food";
+
+    prefix "foodType";
+
+    organization "ON-LAB";
+
+    description "This module defines for food.";
+
+    revision "2016-06-24" {
+        description "Initial revision.";
+    }
+
+    container food {
+       choice snack {
+           case sportsarena {
+
+               leaf pretzel {
+                   type empty;
+               }
+               leaf beer {
+                   type empty;
+               }
+           }
+           case latenight {
+               leaf chocolate {
+                   type enumeration {
+                       enum dark;
+                       enum milk;
+                       enum first-available;
+                   }
+               }
+           }
+       }
+    }
+}

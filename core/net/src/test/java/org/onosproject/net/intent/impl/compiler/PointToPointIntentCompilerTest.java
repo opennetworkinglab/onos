@@ -15,21 +15,22 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.onlab.util.Bandwidth;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
-import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
-import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
@@ -37,14 +38,16 @@ import org.onosproject.net.resource.ResourceService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
-import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.connectPoint;
@@ -74,8 +77,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
                 .appId(APPID)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(connectPoint(ingressIdString, 1))
-                .egressPoint(connectPoint(egressIdString, 1))
+                .filteredIngressPoint(new FilteredConnectPoint(connectPoint(ingressIdString, 1)))
+                .filteredEgressPoint(new FilteredConnectPoint(connectPoint(egressIdString, 1)))
                 .build();
     }
 
@@ -93,8 +96,8 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
                 .appId(APPID)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(connectPoint(ingressIdString, 1))
-                .egressPoint(connectPoint(egressIdString, 1))
+                .filteredIngressPoint(new FilteredConnectPoint(connectPoint(ingressIdString, 1)))
+                .filteredEgressPoint(new FilteredConnectPoint(connectPoint(egressIdString, 1)))
                 .constraints(constraints)
                 .build();
     }
@@ -140,20 +143,25 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent forwardResultIntent = result.get(0);
-        assertThat(forwardResultIntent instanceof PathIntent, is(true));
+        assertThat(forwardResultIntent instanceof LinkCollectionIntent, is(true));
 
-        if (forwardResultIntent instanceof PathIntent) {
-            PathIntent forwardPathIntent = (PathIntent) forwardResultIntent;
+        if (forwardResultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent forwardIntent = (LinkCollectionIntent) forwardResultIntent;
+            FilteredConnectPoint ingressPoint = new FilteredConnectPoint(connectPoint("d1", 1));
+            FilteredConnectPoint egressPoint = new FilteredConnectPoint(connectPoint("d8", 1));
             // 7 links for the hops, plus one default lnk on ingress and egress
-            assertThat(forwardPathIntent.path().links(), hasSize(hops.length + 1));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d1", "d2"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d2", "d3"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d3", "d4"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d4", "d5"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d5", "d6"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d6", "d7"));
-            assertThat(forwardPathIntent.path().links(), linksHasPath("d7", "d8"));
+            assertThat(forwardIntent.links(), hasSize(hops.length - 1));
+            assertThat(forwardIntent.links(), linksHasPath("d1", "d2"));
+            assertThat(forwardIntent.links(), linksHasPath("d2", "d3"));
+            assertThat(forwardIntent.links(), linksHasPath("d3", "d4"));
+            assertThat(forwardIntent.links(), linksHasPath("d4", "d5"));
+            assertThat(forwardIntent.links(), linksHasPath("d5", "d6"));
+            assertThat(forwardIntent.links(), linksHasPath("d6", "d7"));
+            assertThat(forwardIntent.links(), linksHasPath("d7", "d8"));
+            assertThat(forwardIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
+            assertThat(forwardIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
         }
+        assertThat("key is inherited", forwardResultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -171,19 +179,24 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
         assertThat(result, is(Matchers.notNullValue()));
         assertThat(result, hasSize(1));
         Intent reverseResultIntent = result.get(0);
-        assertThat(reverseResultIntent instanceof PathIntent, is(true));
+        assertThat(reverseResultIntent instanceof LinkCollectionIntent, is(true));
 
-        if (reverseResultIntent instanceof PathIntent) {
-            PathIntent reversePathIntent = (PathIntent) reverseResultIntent;
-            assertThat(reversePathIntent.path().links(), hasSize(hops.length + 1));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d2", "d1"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d3", "d2"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d4", "d3"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d5", "d4"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d6", "d5"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d7", "d6"));
-            assertThat(reversePathIntent.path().links(), linksHasPath("d8", "d7"));
+        if (reverseResultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent reverseLinkCollectionIntent = (LinkCollectionIntent) reverseResultIntent;
+            FilteredConnectPoint egressPoint = new FilteredConnectPoint(connectPoint("d1", 1));
+            FilteredConnectPoint ingressPoint = new FilteredConnectPoint(connectPoint("d8", 1));
+            assertThat(reverseLinkCollectionIntent.links(), hasSize(hops.length - 1));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d2", "d1"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d3", "d2"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d4", "d3"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d5", "d4"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d6", "d5"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d7", "d6"));
+            assertThat(reverseLinkCollectionIntent.links(), linksHasPath("d8", "d7"));
+            assertThat(reverseLinkCollectionIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
+            assertThat(reverseLinkCollectionIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
         }
+        assertThat("key is inherited", reverseResultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -191,14 +204,14 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      */
     @Test
     public void testSameSwitchDifferentPortsIntentCompilation() {
-        ConnectPoint src = new ConnectPoint(deviceId("1"), portNumber(1));
-        ConnectPoint dst = new ConnectPoint(deviceId("1"), portNumber(2));
+        FilteredConnectPoint src = new FilteredConnectPoint(new ConnectPoint(deviceId("1"), portNumber(1)));
+        FilteredConnectPoint dst = new FilteredConnectPoint(new ConnectPoint(deviceId("1"), portNumber(2)));
         PointToPointIntent intent = PointToPointIntent.builder()
                 .appId(APP_ID)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(src)
-                .egressPoint(dst)
+                .filteredIngressPoint(src)
+                .filteredEgressPoint(dst)
                 .build();
 
         String[] hops = {"1"};
@@ -206,15 +219,18 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         List<Intent> compiled = sut.compile(intent, null);
 
-        assertThat(compiled, hasSize(1));
-        assertThat(compiled.get(0), is(instanceOf(PathIntent.class)));
-        Path path = ((PathIntent) compiled.get(0)).path();
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
 
-        assertThat(path.links(), hasSize(2));
-        Link firstLink = path.links().get(0);
-        assertThat(firstLink, is(createEdgeLink(src, true)));
-        Link secondLink = path.links().get(1);
-        assertThat(secondLink, is(createEdgeLink(dst, false)));
+        assertThat(compiled, hasSize(1));
+        assertThat(compiled.get(0), is(instanceOf(LinkCollectionIntent.class)));
+        LinkCollectionIntent linkCollectionIntent = (LinkCollectionIntent) compiled.get(0);
+        Set<Link> links = linkCollectionIntent.links();
+
+        assertThat(links, hasSize(0));
+        assertThat(linkCollectionIntent.filteredIngressPoints(), is(ImmutableSet.of(src)));
+        assertThat(linkCollectionIntent.filteredEgressPoints(), is(ImmutableSet.of(dst)));
     }
 
     /**
@@ -237,6 +253,11 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         assertThat(compiledIntents, Matchers.notNullValue());
         assertThat(compiledIntents, hasSize(1));
+
+        assertThat("key is inherited",
+                   compiledIntents.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
     }
 
     /**

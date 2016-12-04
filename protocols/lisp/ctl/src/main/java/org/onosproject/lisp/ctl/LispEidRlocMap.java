@@ -18,6 +18,7 @@ package org.onosproject.lisp.ctl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
@@ -68,7 +69,14 @@ public final class LispEidRlocMap {
      * @return an EID-RLOC mapping record
      */
     public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid) {
-        return map.get(eid);
+
+        for (LispEidRecord key : map.keySet()) {
+            if (isInRange(key, eid)) {
+                return map.get(key);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -112,5 +120,34 @@ public final class LispEidRlocMap {
 
     private static class SingletonHelper {
         private static final LispEidRlocMap INSTANCE = new LispEidRlocMap();
+    }
+
+    /**
+     * Generates CIDR style string from EID record.
+     *
+     * @param eidRecord EID record
+     * @return CIDR style string
+     */
+    private String cidrfy(LispEidRecord eidRecord) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(eidRecord.getPrefix().toString());
+        sb.append("/");
+        sb.append(eidRecord.getMaskLength());
+        return sb.toString();
+    }
+
+    /**
+     * Checks whether the EID record is included in the given EID record.
+     *
+     * @param origin  the EID record to be compared
+     * @param compare the EID record to compare
+     * @return boolean result
+     */
+    private boolean isInRange(LispEidRecord origin, LispEidRecord compare) {
+
+        IpPrefix originIpPrefix = IpPrefix.valueOf(cidrfy(origin));
+        IpPrefix compareIpPrefix = IpPrefix.valueOf(cidrfy(compare));
+
+        return originIpPrefix.contains(compareIpPrefix);
     }
 }

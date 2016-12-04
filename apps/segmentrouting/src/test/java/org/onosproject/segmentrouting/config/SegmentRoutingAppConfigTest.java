@@ -43,6 +43,7 @@ import static org.junit.Assert.*;
 public class SegmentRoutingAppConfigTest {
     private SegmentRoutingAppConfig config;
     private SegmentRoutingAppConfig invalidConfig;
+    private SegmentRoutingAppConfig mplsEcmpConfig;
 
     private static final MacAddress ROUTER_MAC_1 = MacAddress.valueOf("00:00:00:00:00:01");
     private static final MacAddress ROUTER_MAC_2 = MacAddress.valueOf("00:00:00:00:00:02");
@@ -67,18 +68,23 @@ public class SegmentRoutingAppConfigTest {
                 .getResourceAsStream("/app.json");
         InputStream invalidJsonStream = SegmentRoutingAppConfigTest.class
                 .getResourceAsStream("/app-invalid.json");
+        InputStream mplsEcmpJsonStream = SegmentRoutingAppConfigTest.class
+                .getResourceAsStream("/app-ecmp.json");
 
-        String key = SegmentRoutingManager.SR_APP_ID;
+        String key = SegmentRoutingManager.APP_NAME;
         ApplicationId subject = new TestApplicationId(key);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);
         JsonNode invalidJsonNode = mapper.readTree(invalidJsonStream);
+        JsonNode mplsEcmpJsonNode = mapper.readTree(mplsEcmpJsonStream);
         ConfigApplyDelegate delegate = new MockDelegate();
 
         config = new SegmentRoutingAppConfig();
         config.init(subject, key, jsonNode, mapper, delegate);
         invalidConfig = new SegmentRoutingAppConfig();
         invalidConfig.init(subject, key, invalidJsonNode, mapper, delegate);
+        mplsEcmpConfig = new SegmentRoutingAppConfig();
+        mplsEcmpConfig.init(subject, key, mplsEcmpJsonNode, mapper, delegate);
     }
 
     /**
@@ -90,6 +96,49 @@ public class SegmentRoutingAppConfigTest {
     public void testIsValid() throws Exception {
         assertTrue(config.isValid());
         assertFalse(invalidConfig.isValid());
+        assertTrue(mplsEcmpConfig.isValid());
+    }
+
+    /**
+     * Test MPLS-ECMP default getter. By-default
+     * MPLS-ECMPS is false.
+     */
+    @Test
+    public void testDefaultMplsEcmp() {
+        boolean mplsEcmp = config.mplsEcmp();
+        assertThat(mplsEcmp, is(false));
+    }
+
+    /**
+     * Test MPLS-ECMP getter.
+     */
+    @Test
+    public void testMplsEcmp() {
+        boolean mplsEcmp = mplsEcmpConfig.mplsEcmp();
+        assertThat(mplsEcmp, is(true));
+    }
+
+    /**
+     * Test MPLS-ECMP setter.
+     */
+    @Test
+    public void testSetMplsEcmp() {
+        /*
+         * In the config the value is not set.
+         */
+        boolean mplsEcmp = config.mplsEcmp();
+        assertThat(mplsEcmp, is(false));
+        config.setMplsEcmp(true);
+        mplsEcmp = config.mplsEcmp();
+        assertThat(mplsEcmp, is(true));
+        /*
+         * In the mplsEcmpConfig the value is true,
+         */
+        mplsEcmp = mplsEcmpConfig.mplsEcmp();
+        assertThat(mplsEcmp, is(true));
+        config.setMplsEcmp(false);
+        mplsEcmp = config.mplsEcmp();
+        assertThat(mplsEcmp, is(false));
     }
 
     /**

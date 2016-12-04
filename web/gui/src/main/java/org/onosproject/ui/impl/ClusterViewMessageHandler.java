@@ -16,12 +16,15 @@
 
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.joda.time.DateTime;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
@@ -29,6 +32,11 @@ import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.TimeFormatter;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.google.common.collect.ImmutableList.copyOf;
+import static org.onosproject.net.MastershipRole.MASTER;
 
 
 /**
@@ -44,6 +52,7 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String CLUSTER_DETAILS_RESP = "clusterDetailsResponse";
     private static final String DETAILS = "details";
 
+    private static final String DEVICES = "devices";
     private static final String ID = "id";
     private static final String IP = "ip";
     private static final String TCP_PORT = "tcp";
@@ -54,6 +63,16 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
     private static final String[] COL_IDS = {
             ID, IP, TCP_PORT, STATE_IID, STARTED_IID, UPDATED
     };
+
+    private static final String URI = "id";
+    private static final String TYPE = "type";
+    private static final String CHASSIS_ID = "chassisid";
+    private static final String HW = "hw";
+    private static final String SW = "sw";
+    private static final String MFR = "mfr";
+    private static final String PROTOCOL = "protocol";
+    private static final String SERIAL = "serial";
+
 
     private static final String ICON_ID_ONLINE = "active";
     private static final String ICON_ID_OFFLINE = "inactive";
@@ -121,6 +140,33 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
             super(CLUSTER_DETAILS_REQ);
         }
 
+        private List<Device> populateDevices() {
+            DeviceService ds = get(DeviceService.class);
+            return copyOf(ds.getDevices()).stream()
+                    .filter(d -> ds.getRole(d.id()) == MASTER)
+                    .collect(Collectors.toList());
+        }
+
+        private String deviceProtocol(Device device) {
+            String protocol = device.annotations().value(PROTOCOL);
+            return protocol != null ? protocol : "";
+        }
+
+        private ObjectNode deviceData(Device d) {
+            ObjectNode device = objectNode();
+
+            device.put(URI, d.id().toString());
+            device.put(TYPE, d.type().toString());
+            device.put(CHASSIS_ID, d.chassisId().toString());
+            device.put(MFR, d.manufacturer());
+            device.put(HW, d.hwVersion());
+            device.put(SW, d.swVersion());
+            device.put(PROTOCOL, deviceProtocol(d));
+            device.put(SERIAL, d.serialNumber());
+
+            return device;
+        }
+
         @Override
         public void process(long sid, ObjectNode payload) {
 
@@ -129,8 +175,17 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
             ControllerNode node = cs.getNode(new NodeId(id));
 
             ObjectNode data = objectNode();
+            ArrayNode devices = arrayNode();
+            List<Device> deviceList = populateDevices();
+
             data.put(ID, node.id().toString());
             data.put(IP, node.ip().toString());
+
+            for (Device d : deviceList) {
+                devices.add(deviceData(d));
+            }
+
+            data.set(DEVICES, devices);
 
             //TODO put more detail info to data
 

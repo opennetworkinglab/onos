@@ -1,0 +1,76 @@
+module crypto-base {
+
+    yang-version 1;
+
+    namespace "ydt.crypto-base";
+
+    prefix "crypto";
+
+    organization "ON-LAB";
+
+    description "This module defines for crypto-base classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    identity crypto-alg {
+    description
+        "Base identity from which all crypto algorithms
+        are derived.";
+    }
+
+    identity crypto-alg2 {
+       base crypto-alg;
+    }
+
+    identity crypto-alg3 {
+       base crypto-alg2;
+    }
+
+    leaf crypto {
+        type identityref {
+            base "crypto-alg";
+        }
+    }
+
+    typedef abc {
+       type identityref {
+                   base "crypto-alg";
+               }
+    }
+
+    leaf-list abc-type {
+        type abc;
+    }
+
+    leaf abc-zeunion {
+        type union {
+             type identityref {
+                               base "crypto-alg";
+                           }
+        type abc;
+        }
+    }
+
+    leaf level2 {
+       type identityref {
+                          base "crypto-alg2";
+                      }
+    }
+
+    leaf level3 {
+       type identityref {
+                          base "crypto-alg3";
+                      }
+    }
+
+    leaf level4 {
+        type union {
+             type identityref {
+                               base "crypto-alg3";
+                           }
+        type abc;
+        }
+    }
+}

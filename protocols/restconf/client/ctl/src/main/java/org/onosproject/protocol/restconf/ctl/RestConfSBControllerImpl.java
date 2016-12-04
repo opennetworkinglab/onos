@@ -60,7 +60,7 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
     private static final String ROOT_RESOURCE = "/onos/restconf";
 
     private static final String RESOURCE_PATH_PREFIX = "/data/";
-    private static final String NOTIFICATION_PATH_PREFIX = "/data/";
+    private static final String NOTIFICATION_PATH_PREFIX = "/streams/";
 
     private Map<DeviceId, RestConfNotificationEventListener>
                                             restconfNotificationListenerMap = new ConcurrentHashMap<>();
@@ -77,7 +77,7 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         if (ymsService != null) {
             ymsService
                     .registerDefaultCodec(new JsonYdtCodec(ymsService),
-                                          YangProtocolEncodingFormat.JSON_ENCODING);
+                                          YangProtocolEncodingFormat.JSON);
         }
     }
 

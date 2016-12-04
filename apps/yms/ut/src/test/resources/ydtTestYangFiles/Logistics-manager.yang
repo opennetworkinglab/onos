@@ -1,0 +1,66 @@
+module Logistics-manager {
+
+    yang-version 1;
+
+    namespace "ydt.root";
+
+    prefix "root";
+
+    organization "ON-LAB";
+
+    description "This module defines for organisation.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf Customs-supervisor {
+        type string;
+        description "name of the customs-supervisor.";
+    }
+
+    leaf Merchandiser-supervisor {
+        type string;
+        description "name of merchandiser-supervisor";
+    }
+
+    list Material-supervisor {
+        key "name";
+        leaf name {
+            type string;
+            description "name of logistics-supervisor";
+        }
+
+        leaf departmentId {
+            type string;
+            description "name of department";
+        }
+    }
+
+    container Purchasing-supervisor {
+        leaf purchasing-specialist {
+            type string;
+            description "name of the purchasing-specialist person";
+        }
+
+        leaf support {
+            type string;
+            description "name of the support person";
+        }
+    }
+
+    leaf-list Warehouse-supervisor {
+        type string;
+        description "name of the warehouse-supervisor's";
+    }
+
+    leaf trading-supervisor {
+        type string;
+        description "name of the trading-supervisor";
+    }
+
+    leaf-list employee-id {
+        type string;
+        description "list of the employee id";
+    }
+}

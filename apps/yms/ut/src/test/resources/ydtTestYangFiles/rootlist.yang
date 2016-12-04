@@ -1,0 +1,111 @@
+module rootlist {
+
+    yang-version 1;
+
+    namespace "ydt.rootlist";
+
+    prefix "rootlist";
+
+    organization "ON-LAB";
+
+    description "This submodule defines for root.";
+
+    revision "2016-06-24" {
+        description "Initial revision.";
+    }
+/*
+                 +--------------+---------+-------------+
+                 | substatement | section | cardinality |
+                 +--------------+---------+-------------+
+                 | anyxml       | 7.10    | 0..n        |
+                 | choice       | 7.9     | 0..n        |
+                 | config       | 7.19.1  | 0..1        |
+                 | container    | 7.5     | 0..n        |
+                 | description  | 7.19.3  | 0..1        |
+                 | grouping     | 7.11    | 0..n        |
+                 | if-feature   | 7.18.2  | 0..n        |
+                 | key          | 7.8.2   | 0..1        |
+                 | leaf         | 7.6     | 0..n        |
+                 | leaf-list    | 7.7     | 0..n        |
+                 | list         | 7.8     | 0..n        |
+                 | max-elements | 7.7.4   | 0..1        |
+                 | min-elements | 7.7.3   | 0..1        |
+                 | must         | 7.5.3   | 0..n        |
+                 | ordered-by   | 7.7.5   | 0..1        |
+                 | reference    | 7.19.4  | 0..1        |
+                 | status       | 7.19.2  | 0..1        |
+                 | typedef      | 7.3     | 0..n        |
+                 | unique       | 7.8.3   | 0..n        |
+                 | uses         | 7.12    | 0..n        |
+                 | when         | 7.19.5  | 0..1        |
+                 +--------------+---------+-------------+
+*/
+
+    list listwithoutcontainer {
+        key "invalidinterval";
+        min-elements 1;  //-- comment
+        leaf invalidinterval {
+            type "uint16";
+            units "seconds";
+            description "Interval before a route is declared invalid";
+            config true;
+            mandatory true;
+            status current;
+            reference "RFC 6020";
+        }
+    }
+
+     list listwithcontainer {
+            key "invalid invalid1";
+            max-elements 3;
+            min-elements 1;
+            reference "list reference";
+            unique "invalid";
+            leaf-list invalidinterval {
+                type "uint16";
+                units "seconds";
+                description "Interval before a route is declared invalid";
+                config false;
+                status current;
+                reference "RFC 6020";
+            }
+
+            container interface {
+                leaf invalidinterval {
+                    type "uint16";
+                    units "seconds";
+                    status current;
+                    mandatory true;
+                    reference "RFC 6020";
+                }
+
+                leaf invalid {
+                    type "uint16";
+                    units "seconds";
+                    description "Interval before a route is declared invalid";
+                    default "16";
+                    status current;
+                    reference "RFC 6020";
+                }
+
+            }
+
+            leaf invalid {
+                type "uint16";
+                units "seconds";
+                description "Interval before a route is declared invalid";
+                mandatory true;
+                status current;
+                reference "RFC 6020";
+            }
+
+            leaf invalid1 {
+                type "uint16";
+                units "seconds";
+                description "Interval before a route is declared invalid";
+                mandatory true;
+                status current;
+                reference "RFC 6020";
+            }
+     }
+}

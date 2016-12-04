@@ -1,26 +1,40 @@
 #!/bin/bash
+#
+# Script that queries buck for main and test artifacts and publishes them to
+# a remote Maven repository. Main artifacts are published with javadoc and sources
+# jars and auto-generated pom.xml files. Test artifacts are published as compiled
+# jars only. All artifacts are signed.
+#
 
-rm /tmp/publish.sh
+ARTIFACT_PUB=$(mktemp /tmp/onos-publish.XXXXX) &&
+  echo "Created temp file for artifact publish: $ARTIFACT_PUB" ||
+  { echo "Failed to create temp file"; exit 1; }
+
+TEST_PUB=$(mktemp /tmp/onos-publish-tests.XXXXX) &&
+  echo "Created temp file for test artifact publish: $TEST_PUB" ||
+  { echo "Failed to create temp file"; exit 1; }
 
 set -e
 set -x
 
-onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> /tmp/publish.sh
-onos-buck query "filter('.*-oar', deps('//tools/package:onos-package', 1))" >> /tmp/publish.sh
-echo "//tools/package:onos-features" >> /tmp/publish.sh
+# Prepare artifact publish commands
+onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> $ARTIFACT_PUB
+onos-buck query "filter('.*-oar', deps('//tools/package:onos-package', 1))" >> $ARTIFACT_PUB
+echo "//tools/package:onos-features" >> $ARTIFACT_PUB
 
-sed -i '' 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' /tmp/publish.sh
+sed -i "" -E 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' $ARTIFACT_PUB
 
-cat /tmp/publish.sh
+# Print commands to be run and then run them
+cat $ARTIFACT_PUB
+bash $ARTIFACT_PUB
 
-bash /tmp/publish.sh
+# Prepare test publish commands
+onos-buck query "testsof(kind('onos_jar', deps('//tools/package:onos-package')))" >> $TEST_PUB
+sed -i "" -E 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
 
-rm /tmp/publish.sh
+# Print commands to be run and then run them
+cat $TEST_PUB
+bash $TEST_PUB
 
-onos-buck query "testsof(kind('onos_jar', deps('//tools/package:onos-package')))" >> /tmp/publish.sh
-sed -i '' 's#^#onos-buck publish --to-maven-central --sign #g' /tmp/publish.sh
-
-cat /tmp/publish.sh
-
-bash /tmp/publish.sh
-
+# Close the staging area
+onos-close-staging

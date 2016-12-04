@@ -1,0 +1,1112 @@
+module yms-ietf-te-topology {
+ yang-version 1;
+ namespace "urn:ietf:params:xml:ns:yang:ietf-te-topology";
+ // replace with IANA namespace when assigned
+
+ prefix "tet";
+
+ import yms-ietf-inet-types {
+   prefix "inet";
+ }
+
+ import yms-ietf-schedule {
+   prefix "sch";
+ }
+
+ import yms-ietf-te-types {
+   prefix "te-types";
+ }
+
+ import yms-ietf-network {
+   prefix "nw";
+ }
+
+ import yms-network-topology {
+   prefix "nt";
+ }
+
+ organization
+   "Traffic Engineering Architecture and Signaling (TEAS)
+    Working Group";
+
+ contact
+   "WG Web:   <http://tools.ietf.org/wg/teas/>
+    WG List:  <mailto:teas@ietf.org>
+    WG Chair: Lou Berger
+              <mailto:lberger@labn.net>
+    WG Chair: Vishnu Pavan Beeram
+              <mailto:vbeeram@juniper.net>
+    Editor:   Xufeng Liu
+              <mailto:xliu@kuatrotech.com>
+    Editor:   Igor Bryskin
+              <mailto:Igor.Bryskin@huawei.com>
+    Editor:   Vishnu Pavan Beeram
+              <mailto:vbeeram@juniper.net>
+    Editor:   Tarek Saad
+              <mailto:tsaad@cisco.com>
+    Editor:   Himanshu Shah
+              <mailto:hshah@ciena.com>
+    Editor:   Oscar Gonzalez De Dios
+              <mailto:oscar.gonzalezdedios@telefonica.com>";
+
+ description "TE topology model";
+
+ revision "2016-03-17" {
+   description "Initial revision";
+   reference "TBD";
+ }
+
+ /*
+  * Features
+  */
+
+ feature configuration-schedule {
+   description
+     "This feature indicates that the system supports
+      configuration scheduling.";
+ }
+
+ feature te-topology-hierarchy {
+   description
+     "This feature indicates that the system allows underlay
+      and/or overlay TE topology hierarchy.";
+ }
+
+ feature te-performance-metric {
+   description
+     "This feature indicates that the system supports
+      TE performance metric defined in
+      RFC7471: OSPF Traffic Engineering (TE) Metric Extensions.";
+ }
+
+ feature template {
+   description
+     "This feature indicates that the system supports
+      template configuration.";
+ }
+
+ /*
+  * Typedefs
+  */
+ typedef performance-metric-normality {
+   type enumeration {
+     enum "unknown" {
+       value 0;
+       description
+         "Unknown.";
+     }
+     enum "normal" {
+       value 1;
+       description
+         "Normal.";
+     }
+     enum "abnormal" {
+       value 2;
+       description
+         "Abnormal. The anomalous bit is set.";
+     }
+   }
+   description
+     "Indicates whether a performance metric is normal, abnormal, or
+      unknown.";
+   reference
+     "RFC7471: OSPF Traffic Engineering (TE) Metric Extensions.";
+ }
+
+ typedef te-admin-status {
+   type enumeration {
+     enum up {
+       description
+         "Enabled.";
+     }
+     enum down {
+       description
+         "Disabled.";
+     }
+     enum testing {
+       description
+         "In some test mode.";
+     }
+     enum preparing-maintenance {
+       description
+         "Resource is disabled in the control plane to prepare for
+          graceful shutdown for maintenance purposes.";
+       reference
+         "RFC5817: Graceful Shutdown in MPLS and Generalized MPLS
+          Traffic Engineering Networks";
+     }
+     enum maintenance {
+       description
+         "Resource is disabled in the data plane for maintenance
+          purposes.";
+     }
+   }
+   description
+     "Defines a type representing the administrative status of
+      a TE resource.";
+ }
+ typedef te-global-id {
+   type uint32;
+   description
+     "An identifier to uniquely identify an operator, which can be
+      either a provider or a client.
+      The definition of this type is taken from RFC6370 and RFC5003.
+      This attribute type is used solely to provide a globally
+      unique context for TE topologies.";
+ }
+
+ typedef te-link-access-type {
+   type enumeration {
+     enum point-to-point {
+       description
+         "The link is point-to-point.";
+     }
+     enum multi-access {
+       description
+         "The link is multi-access, including broacast and NBMA.";
+     }
+   }
+   description
+     "Defines a type representing the access type of a TE link.";
+   reference
+     "RFC3630: Traffic Engineering (TE) Extensions to OSPF
+      Version 2.";
+ }
+
+ typedef te-node-id {
+   type inet:ip-address;
+   description
+     "An identifier for a node in a topology.
+      The identifier is represented as an IPv4 or IPv6 address.
+      This attribute is mapped to Router ID in
+      RFC3630, RFC5329, RFC5305, and RFC 6119.";
+ }
+
+ typedef te-oper-status {
+   type enumeration {
+     enum up {
+       description
+       "Operational up.";
+     }
+     enum down {
+       description
+       "Operational down.";
+     }
+     enum testing {
+       description
+       "In some test mode.";
+     }
+     enum unknown {
+       description
+       "Status cannot be determined for some reason.";
+     }
+     enum preparing-maintenance {
+       description
+         "Resource is disabled in the control plane to prepare for
+          graceful shutdown for maintenance purposes.";
+       reference
+         "RFC5817: Graceful Shutdown in MPLS and Generalized MPLS
+          Traffic Engineering Networks";
+     }
+     enum maintenance {
+       description
+         "Resource is disabled in the data plane for maintenance
+          purposes.";
+     }
+   }
+   description
+     "Defines a type representing the operational status of
+      a TE resource.";
+ }
+
+ typedef te-recovery-status {
+   type enumeration {
+     enum normal {
+       description
+         "Both the recovery and working spans are fully
+          allocated and active, data traffic is being
+          transported over (or selected from) the working
+          span, and no trigger events are reported.";
+     }
+     enum recovery-started {
+       description
+         "The recovery action has been started, but not completed.";
+     }
+     enum recovery-succeeded {
+       description
+         "The recovery action has succeeded. The working span has
+          reported a failure/degrade condition and the user traffic
+          is being transported (or selected) on the recovery span.";
+     }
+     enum recovery-failed {
+       description
+         "The recovery action has failed.";
+     }
+     enum reversion-started {
+       description
+         "The reversion has started.";
+     }
+     enum reversion-failed {
+       description
+         "The reversion has failed.";
+     }
+     enum recovery-unavailable {
+       description
+         "The recovery is unavailable -- either as a result of an
+          operator Lockout command or a failure condition detected
+          on the recovery span.";
+     }
+     enum recovery-admin {
+       description
+         "The operator has issued a command switching the user
+          traffic to the recovery span.";
+     }
+     enum wait-to-restore {
+       description
+         "The recovery domain is recovering from a failuer/degrade
+          condition on the working span that is being controlled by
+          the Wait-to-Restore (WTR) timer.";
+     }
+   }
+ }
+
+ typedef te-template-name {
+   type string {
+     pattern '/?([a-zA-Z0-9\-_.]+)(/[a-zA-Z0-9\-_.]+)*';
+   }
+ }
+
+ typedef te-topology-event-type {
+   type enumeration {
+     enum "add" {
+       value 0;
+     }
+     enum "remove" {
+       value 1;
+     }
+     enum "update" {
+       value 2;
+     }
+   }
+ } // te-topology-event-type
+ typedef te-topology-id {
+   type string {
+     pattern '/?([a-zA-Z0-9\-_.]+)(/[a-zA-Z0-9\-_.]+)*';
+   }
+ }
+
+ typedef te-tp-id {
+   type union {
+     type uint32;          // Unnumbered
+     type inet:ip-address; // IPv4 or IPv6 address
+   }
+ }
+
+ /*
+  * Identities
+  */
+
+ /*
+  * Groupings
+  */
+ grouping information-source-attributes {
+   leaf information-source {
+     type enumeration {
+       enum "unknown";
+       enum "locally-configured";
+       enum "ospfv2";
+       enum "ospfv3";
+       enum "isis";
+       enum "system-processed";
+       enum "other";
+     }
+   }
+   container information-source-state {
+     leaf credibility-preference {
+       type uint16;
+     }
+     container topology {
+       uses te-topology-ref;
+     } // topology
+     leaf routing-instance {
+       type string;
+     } // routing-information
+   }
+ } // information-source-attributes
+
+ grouping performance-metric-attributes {
+   leaf unidirectional-delay {
+     type uint32 {
+       range 0..16777215;
+     }
+   }
+   leaf unidirectional-min-delay {
+     type uint32 {
+       range 0..16777215;
+     }
+   }
+   leaf unidirectional-max-delay {
+     type uint32 {
+       range 0..16777215;
+     }
+   }
+   leaf unidirectional-delay-variation {
+     type uint32 {
+       range 0..16777215;
+     }
+   }
+   leaf unidirectional-packet-loss {
+     type decimal64 {
+       fraction-digits 6;
+       range "0 .. 50.331642";
+     }
+   }
+   leaf unidirectional-residual-bandwidth {
+     type decimal64 {
+       fraction-digits 2;
+     }
+   }
+   leaf unidirectional-available-bandwidth {
+     type decimal64 {
+       fraction-digits 2;
+     }
+   }
+   leaf unidirectional-utilized-bandwidth {
+     type decimal64 {
+       fraction-digits 2;
+     }
+   }
+ } // performance-metric-attributes
+ grouping performance-metric-normality-attributes {
+   leaf unidirectional-delay {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-min-delay {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-max-delay {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-delay-variation {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-packet-loss {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-residual-bandwidth {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-available-bandwidth {
+     type performance-metric-normality;
+   }
+   leaf unidirectional-utilized-bandwidth {
+     type performance-metric-normality;
+   }
+ } // performance-metric-normality-attributes
+
+ grouping performance-metric-throttle-container {
+   container performance-metric-throttle {
+     leaf unidirectional-delay-offset {
+       type uint32 {
+         range 0..16777215;
+       }
+     }
+     leaf measure-interval {
+       type uint32;
+       default 30;
+     }
+     leaf advertisement-interval {
+       type uint32;
+     }
+     leaf suppression-interval {
+       type uint32 {
+         range "1 .. max";
+       }
+       default 120;
+     }
+     container threshold-out {
+       uses performance-metric-attributes;
+     }
+     container threshold-in {
+       uses performance-metric-attributes;
+     }
+     container threshold-accelerated-advertisement {
+       uses performance-metric-attributes;
+     }
+   }
+ } // performance-metric-throttle-container
+
+ grouping te-link-augment {
+   container te {
+     presence "TE support.";
+     container config {
+       uses te-link-config;
+     } // config
+     container state {
+       config false;
+       uses te-link-config;
+       uses te-link-state-derived;
+     } // state
+   } // te
+ } // te-link-augment
+
+ grouping te-link-config {
+   choice bundle-stack-level {
+     case bundle {
+       container bundled-links {
+         list bundled-link {
+           key "sequence";
+           leaf sequence {
+             type uint32;
+           }
+           leaf src-tp-ref {
+             type leafref {
+               path "../../../../../../nw:node[nw:node-id = "
+                 + "current()/../../../../../nt:source/"
+                 + "nt:source-node]/"
+                 + "nt:t-point/nt:tp-id";
+               require-instance true;
+             }
+           }
+           leaf des-tp-ref {
+             type leafref {
+               path "../../../../../../nw:node[nw:node-id = "
+                 + "current()/../../../../../nt:destination/"
+                 + "nt:dest-node]/"
+                 + "nt:t-point/nt:tp-id";
+               require-instance true;
+             }
+           }
+         } // list bundled-link
+       }
+     }
+     case component {
+       container component-links {
+         list component-link {
+           key "sequence";
+           leaf sequence {
+             type uint32;
+           }
+           leaf src-interface-ref {
+             type string;
+           }
+           leaf des-interface-ref {
+             type string;
+           }
+         }
+       }
+     }
+   } // bundle-stack-level
+
+   leaf-list te-link-template {
+     if-feature template;
+     type leafref {
+       path "../../../../../te/templates/link-template/name";
+     }
+   }
+   uses te-link-config-attributes;
+ } // te-link-config
+
+ grouping te-link-config-attributes {
+   container te-link-attributes {
+     uses sch:schedules;
+     leaf access-type {
+       type te-link-access-type;
+     }
+     leaf is-abstract {
+       type empty;
+     }
+     leaf name {
+       type string;
+     }
+     container underlay {
+       presence
+         "Indicates the underlay exists for this link.";
+       uses te-link-underlay-attributes;
+     } // underlay
+     leaf admin-status {
+       type te-admin-status;
+       description
+         "The administrative state of the link.";
+     }
+
+     uses performance-metric-throttle-container;
+     uses te-link-info-attributes;
+   } // te-link-attributes
+ } // te-link-config-attributes
+
+ grouping te-link-info-attributes {
+   leaf link-index {
+     type uint64;
+   }
+   leaf administrative-group {
+     type te-types:admin-groups;
+   }
+   leaf max-link-bandwidth {
+     type decimal64 {
+       fraction-digits 2;
+     }
+   }
+   leaf max-resv-link-bandwidth {
+     type decimal64 {
+       fraction-digits 2;
+     }
+   }
+   list unreserved-bandwidth {
+     key "priority";
+     max-elements "8";
+     leaf priority {
+       type uint8 {
+         range "0..7";
+       }
+     }
+     leaf bandwidth {
+       type decimal64 {
+         fraction-digits 2;
+       }
+     }
+   }
+   leaf te-default-metric {
+     type uint32;
+   }
+   container performance-metric {
+     container measurement {
+       uses performance-metric-attributes;
+     }
+     container normality
+     {
+       uses performance-metric-normality-attributes;
+     }
+   }
+   leaf link-protection-type {
+     type enumeration {
+       enum "unprotected";
+       enum "extra-traffic";
+       enum "shared";
+       enum "1-for-1";
+       enum "1-plus-1";
+       enum "enhanced";
+     }
+   }
+   list interface-switching-capability {
+     key "switching-capability";
+     leaf switching-capability {
+       type identityref {
+         base te-types:switching-capabilities;
+       }
+     }
+     leaf encoding {
+       type identityref {
+         base te-types:lsp-encoding-types;
+       }
+     }
+     list max-lsp-bandwidth {
+       key "priority";
+       max-elements "8";
+       leaf priority {
+         type uint8 {
+           range "0..7";
+         }
+       }
+       leaf bandwidth {
+         type decimal64 {
+           fraction-digits 2;
+         }
+       }
+     }
+     container time-division-multiplex-capable {
+       leaf minimum-lsp-bandwidth {
+         type decimal64 {
+           fraction-digits 2;
+         }
+       }
+       leaf indication {
+         type enumeration {
+           enum "standard";
+           enum "arbitrary";
+         }
+       }
+     }
+     list interface-adjustment-capability {
+       key "upper-sc";
+       leaf upper-sc {
+         type identityref {
+           base te-types:switching-capabilities;
+         }
+       }
+       leaf upper-encoding {
+         type identityref {
+           base te-types:lsp-encoding-types;
+         }
+       }
+       list max-lsp-bandwidth {
+         key "priority";
+         max-elements "8";
+         leaf priority {
+           type uint8 {
+             range "0..7";
+           }
+           description "Priority.";
+         }
+         leaf bandwidth {
+           type decimal64 {
+             fraction-digits 2;
+           }
+         }
+       }
+     } // interface-adjustment-capability
+   } // interface-switching-capability
+   container te-srlgs {
+     leaf-list values {
+       type te-types:srlg;
+     }
+   }
+ } // te-link-info-attributes
+
+ grouping te-link-state-derived {
+   leaf oper-status {
+     type te-oper-status;
+   }
+   uses information-source-attributes;
+   list alt-information-sources {
+     key "information-source";
+     uses information-source-attributes;
+     uses te-link-info-attributes;
+   }
+   container recovery {
+     leaf restoration-status {
+       type te-recovery-status;
+     }
+     leaf protection-status {
+       type te-recovery-status;
+     }
+   }
+   container underlay {
+     uses te-link-state-underlay-attributes;
+   }
+ } // te-link-state-derived
+ grouping te-link-state-underlay-attributes {
+   leaf dynamic {
+     type boolean;
+   }
+   leaf committed {
+     type boolean;
+   }
+ } // te-link-state-underlay-attributes
+
+ grouping te-link-underlay-attributes {
+   container underlay-primary-path {
+     uses te-topology-ref;
+     list path-element {
+       key "path-element-id";
+       leaf path-element-id {
+         type uint32;
+       }
+       uses te-path-element;
+     }
+   } // underlay-primary-path
+   list underlay-backup-path {
+     key "index";
+     leaf index {
+       type uint32;
+     }
+     uses te-topology-ref;
+     list path-element {
+       key "path-element-id";
+       leaf path-element-id {
+         type uint32;
+       }
+       uses te-path-element;
+     }
+   } // underlay-backup-path
+   leaf underlay-protection-type {
+     type uint16;
+   }
+   container underlay-trail-src {
+     uses nt:tp-ref;
+   }
+   container underlay-trail-des {
+     uses nt:tp-ref;
+   }
+ } // te-link-underlay-attributes
+
+ grouping te-node-augment {
+   container te {
+     presence "TE support.";
+     leaf te-node-id {
+       type te-node-id;
+     }
+
+     container config {
+       description
+         "Configuration data.";
+       uses te-node-config;
+     } // config
+     container state {
+       config false;
+       description
+         "Operational state data.";
+
+       uses te-node-config;
+       uses te-node-state-derived;
+     } // state
+
+     list tunnel-termination-point {
+       key "tunnel-tp-id";
+       leaf tunnel-tp-id {
+         type binary;
+       }
+       container config {
+         uses te-node-tunnel-termination-capability;
+       }
+
+       container state {
+         config false;
+         uses te-node-tunnel-termination-capability;
+         leaf switching-capability {
+           type identityref {
+             base te-types:switching-capabilities;
+           }
+         }
+         leaf encoding {
+           type identityref {
+             base te-types:lsp-encoding-types;
+           }
+         }
+       } // state
+
+     } // tunnel-termination-point
+   } // te
+ } // te-node-augment
+
+ grouping te-node-config {
+   leaf-list te-node-template {
+     if-feature template;
+     type leafref {
+       path "../../../../../te/templates/node-template/name";
+     }
+   }
+   uses te-node-config-attributes;
+ } // te-node-config
+
+ grouping te-node-config-attributes {
+   container te-node-attributes {
+     uses sch:schedules;
+     leaf admin-status {
+       type te-admin-status;
+       description
+         "The administrative state of the link.";
+     }
+     uses te-node-connectivity-matrix;
+     uses te-node-info-attributes;
+   } // te-node-attributes
+ } // te-node-config-attributes
+
+ grouping te-node-config-attributes-notification {
+   container te-node-attributes {
+     uses sch:schedules;
+     leaf admin-status {
+       type te-admin-status;
+     }
+     uses te-node-connectivity-matrix-abs;
+     uses te-node-info-attributes;
+   } // te-node-attributes
+ } // te-node-config-attributes-notification
+
+ grouping te-node-config-attributes-template {
+   container te-node-attributes {
+     uses sch:schedules;
+     leaf admin-status {
+       type te-admin-status;
+     }
+     uses te-node-info-attributes;
+   } // te-node-attributes
+ } // te-node-config-attributes-template
+
+ grouping te-node-connectivity-matrix {
+   list connectivity-matrix {
+     key "id";
+     leaf id {
+       type uint32;
+     }
+     container from {
+       leaf tp-ref {
+         type leafref {
+           path "../../../../../../nt:t-point/nt:tp-id";
+         }
+       }
+     }
+     container to {
+       leaf tp-ref {
+         type leafref {
+           path "../../../../../../nt:t-point/nt:tp-id";
+         }
+       }
+     }
+     leaf is-allowed {
+       type boolean;
+     }
+   }
+ } // te-node-connectivity-matrix
+
+ grouping te-node-connectivity-matrix-abs {
+   list connectivity-matrix {
+     key "id";
+     leaf id {
+       type uint32;
+     }
+     container from {
+       uses nt:tp-ref;
+     }
+     container to {
+       uses nt:tp-ref;
+     }
+     leaf is-allowed {
+       type boolean;
+     }
+   }
+ } // te-node-connectivity-matrix-abs
+
+ grouping te-node-info-attributes {
+   leaf domain-id {
+     type uint32;
+   }
+   leaf is-abstract {
+     type empty;
+   }
+   leaf name {
+     type inet:domain-name;
+   }
+   leaf-list signaling-address {
+     type inet:ip-address;
+   }
+   container underlay-topology {
+     if-feature te-topology-hierarchy;
+     uses te-topology-ref;
+   }
+ } // te-node-info-attributes
+
+ grouping te-node-state-derived {
+   description "Node state attributes in a TE topology.";
+   leaf oper-status {
+     type te-oper-status;
+   }
+   leaf is-multi-access-dr {
+     type empty;
+   }
+   uses information-source-attributes;
+   list alt-information-sources {
+     key "information-source";
+     uses information-source-attributes;
+     uses te-node-connectivity-matrix;
+     uses te-node-info-attributes;
+   }
+ } // te-node-state-derived
+
+ grouping te-node-state-derived-notification {
+   description "Node state attributes in a TE topology.";
+   leaf oper-status {
+     type te-oper-status;
+   }
+   leaf is-multi-access-dr {
+     type empty;
+   }
+   uses information-source-attributes;
+   list alt-information-sources {
+     key "information-source";
+     uses information-source-attributes;
+     uses te-node-connectivity-matrix-abs;
+     uses te-node-info-attributes;
+   }
+ } // te-node-state-derived-notification
+
+ grouping te-node-tunnel-termination-capability {
+   list termination-capability {
+     key "link-tp";
+     leaf link-tp {
+       type leafref {
+         path "../../../../../nt:t-point/nt:tp-id";
+       }
+     }
+   } // termination-capability
+ } // te-node-tunnel-termination-capability
+
+ grouping te-path-element {
+   uses te-types:explicit-route-subobject;
+ } // te-path-element
+
+ grouping te-termination-point-augment {
+
+   container te {
+     presence "TE support.";
+
+     leaf te-tp-id {
+       type te-tp-id;
+       mandatory true;
+     }
+
+     container config {
+       uses te-termination-point-config;
+     } // config
+     container state {
+       config false;
+       uses te-termination-point-config;
+     } // state
+   } // te
+ } // te-termination-point-augment
+
+ grouping te-termination-point-config {
+   uses sch:schedules;
+ } // te-termination-point-config
+
+ grouping te-topologies-augment {
+
+   container te {
+     presence "TE support.";
+
+     container templates {
+       list node-template {
+         if-feature template;
+         key "name";
+         leaf name {
+           type te-template-name;
+         }
+         uses template-attributes;
+         uses te-node-config-attributes-template;
+       } // node-template
+
+       list link-template {
+         if-feature template;
+         key "name";
+         leaf name {
+           type te-template-name;
+         }
+         uses template-attributes;
+         uses te-link-config-attributes;
+       } // link-template
+     } // templates
+   } // te
+ } // te-topologies-augment
+
+ grouping te-topology-augment {
+
+   container te {
+     presence "TE support.";
+     leaf provider-id {
+       type te-global-id;
+     }
+     leaf client-id {
+       type te-global-id;
+     }
+     leaf te-topology-id {
+       type te-topology-id;
+       mandatory true;
+     }
+
+     container config {
+       uses te-topology-config;
+     } // config
+     container state {
+       config false;
+       uses te-topology-config;
+     } // state
+   } // te
+ } // te-topology-augment
+
+ grouping te-topology-config {
+   uses sch:schedules;
+   leaf preference {
+     type uint8 {
+       range "1..255";
+     }
+   }
+ } // te-topology-config
+
+ grouping te-topology-ref {
+   leaf provider-id-ref {
+     type leafref {
+       path "/nw:networks/nw:network[nw:network-id = "
+         + "current()/../network-id-ref]/tet:te/tet:provider-id";
+       require-instance false;
+     }
+   }
+   leaf client-id-ref {
+     type leafref {
+       path "/nw:networks/nw:network[nw:network-id = "
+         + "current()/../network-id-ref]/tet:te/tet:client-id";
+       require-instance false;
+     }
+   }
+   leaf te-topology-id-ref {
+     type leafref {
+       path "/nw:networks/nw:network[nw:network-id = "
+         + "current()/../network-id-ref]/tet:te/tet:te-topology-id";
+       require-instance false;
+     }
+   }
+   leaf network-id-ref {
+     type leafref {
+       path "/nw:networks/nw:network/nw:network-id";
+       require-instance false;
+     }
+   }
+ } // te-topology-ref
+
+ grouping te-topology-type {
+   container te-topology {
+     presence "Indicates TE topology.";
+   }
+ } // te-topology-type
+
+ grouping template-attributes {
+   leaf priority {
+     type uint16;
+   }
+   leaf reference-change-policy {
+     type enumeration {
+       enum no-action;
+       enum not-allowed;
+       enum cascade;
+     }
+   }
+ } // template-attributes
+
+ /*
+  * Configuration data nodes
+  */
+ augment "/nw:networks/nw:network/nw:network-types" {
+   uses te-topology-type;
+ }
+
+ augment "/nw:networks" {
+   uses te-topologies-augment;
+ }
+
+ augment "/nw:networks/nw:network" {
+   uses te-topology-augment;
+ }
+
+ augment "/nw:networks/nw:network/nw:node" {
+   uses te-node-augment;
+ }
+
+ augment "/nw:networks/nw:network/nt:link" {
+   uses te-link-augment;
+ }
+
+ augment "/nw:networks/nw:network/nw:node/"
+       + "nt:t-point" {
+   uses te-termination-point-augment;
+ }
+
+ container te-node-event {
+   leaf event-type {
+     type te-topology-event-type;
+     description "Event type.";
+   }
+   uses nw:node-ref;
+   uses te-topology-type;
+   uses tet:te-node-config-attributes-notification;
+   uses tet:te-node-state-derived-notification;
+ }
+}

@@ -146,6 +146,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("h7", "h8"));
             assertThat(linkIntent.links(), linksHasPath("h8", "egress"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -178,6 +179,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("inner1", "inner2"));
             assertThat(linkIntent.links(), linksHasPath("inner2", "egress"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -213,6 +215,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             }
             assertThat(linkIntent.links(), linksHasPath("n1", egress));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -243,6 +246,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("i1", "i3"));
             assertThat(linkIntent.links(), linksHasPath("i2", "i3"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -280,6 +284,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("of2", "of3"));
             assertThat(linkIntent.links(), linksHasPath("of3", "of4"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
 
     }
 
@@ -323,6 +328,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("of3", "of4"));
             assertThat(linkIntent.selector(), is(ipPrefixSelector));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
 
     }
 

@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var $log, Collection, Model, ts, sus, t2zs, t2vs;
+    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn;
 
     var linkLabelOffset = '0.35em';
 
@@ -124,6 +124,16 @@
             type: function () {
                 return this.get('type');
             },
+            svgClassName: function () {
+                return fn.classNames('link',
+                    this.nodeType,
+                    this.get('type'),
+                    {
+                        enhanced: this.get('enhanced'),
+                        selected: this.get('selected')
+                    }
+                );
+            },
             expected: function () {
                 // TODO: original code is: (s && s.expected) && (t && t.expected);
                 return true;
@@ -137,6 +147,12 @@
 
                 return (sourceOnline) && (targetOnline);
             },
+            onChange: function () {
+                // Update class names when the model changes
+                if (this.el) {
+                    this.el.attr('class', this.svgClassName());
+                }
+            },
             enhance: function () {
                 var data = [],
                     point;
@@ -145,7 +161,7 @@
                     link.unenhance();
                 });
 
-                this.el.classed('enhanced', true);
+                this.set('enhanced', true);
 
                 if (showPort()) {
                     point = this.locatePortLabel();
@@ -193,8 +209,35 @@
                 }
             },
             unenhance: function () {
-                this.el.classed('enhanced', false);
+                this.set('enhanced', false);
                 d3.select('#topo-portLabels').selectAll('.portLabel').remove();
+            },
+            select: function () {
+                var ev = d3.event;
+
+                // TODO: if single selection clear selected devices, hosts, sub-regions
+                var s = Boolean(this.get('selected'));
+                // Clear all selected Items
+                _.each(this.collection.models, function (m) {
+                    m.set('selected', false);
+                });
+
+                this.set('selected', !s);
+
+                var selected = this.collection.filter(function (m) {
+                    return m.get('selected');
+                });
+
+                return selected;
+            },
+            showDetails: function () {
+                var selected = this.select(d3.event);
+
+                if (selected) {
+                    t2lps.displayLink(this);
+                } else {
+                    t2lps.hide();
+                }
             },
             locatePortLabel: function (src) {
 
@@ -259,6 +302,7 @@
                 // from mouse position.
                 this.el.on('mouseover', this.enhance.bind(this));
                 this.el.on('mouseout', this.unenhance.bind(this));
+                this.el.on('click', this.showDetails.bind(this));
 
                 if (this.get('type') === 'hostLink') {
                     // sus.visible(link, api.showHosts());
@@ -277,7 +321,7 @@
 
             },
             update: function () {
-                if (this.el.classed('enhanced')) {
+                if (this.get('enhanced')) {
                     this.enhance();
                 }
             }
@@ -298,9 +342,9 @@
     .factory('Topo2LinkService',
         ['$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
-        'Topo2ViewService',
+        'Topo2ViewService', 'Topo2LinkPanelService', 'FnService',
             function (_$log_, _Collection_, _Model_, _ts_, _sus_,
-                _t2zs_, _t2vs_) {
+                _t2zs_, _t2vs_, _t2lps_, _fn_) {
 
                 $log = _$log_;
                 ts = _ts_;
@@ -309,6 +353,8 @@
                 t2vs = _t2vs_;
                 Collection = _Collection_;
                 Model = _Model_;
+                t2lps = _t2lps_;
+                fn = _fn_;
 
                 return {
                     createLinkCollection: createLinkCollection

@@ -1,0 +1,26 @@
+module YtbSimpleRpcResponse {
+    yang-version 1;
+    namespace "yms:test:ytb:simple:rpc:response";
+    prefix "sch";
+    revision "2016-08-26";
+    container ytb-rpc-cont {
+        leaf vary {
+            type uint8;
+        }
+    }
+    rpc rpc {
+        input {
+        }
+        output {
+            leaf output-leaf {
+                type uint32;
+            }
+        }
+    }
+    list cumulative {
+        key "sum";
+        leaf sum {
+            type int8;
+        }
+    }
+}

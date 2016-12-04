@@ -21,6 +21,8 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
+import org.onosproject.lisp.msg.protocols.LispInfoReply;
+import org.onosproject.lisp.msg.protocols.LispInfoRequest;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
@@ -39,28 +41,40 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        // first we need to check whether this is an ECM
-        if (msg instanceof LispEncapsulatedControl) {
-            LispMessage innerMsg = extractLispMessage((LispEncapsulatedControl) msg);
-            if (innerMsg instanceof LispMapRequest) {
-                LispMapResolver mapResolver = new LispMapResolver();
-                LispMessage lispMessage = mapResolver.processMapRequest((LispEncapsulatedControl) msg);
+        try {
+            // first we need to check whether this is an ECM
+            if (msg instanceof LispEncapsulatedControl) {
+                LispMessage innerMsg =
+                        extractLispMessage((LispEncapsulatedControl) msg);
+                if (innerMsg instanceof LispMapRequest) {
+                    LispMapResolver mapResolver = new LispMapResolver();
+                    LispMessage lispMessage =
+                            mapResolver.processMapRequest(
+                                    (LispEncapsulatedControl) msg);
 
-                // try to remove the received map-request message from buffer
-                ReferenceCountUtil.release(msg);
-
-                ctx.writeAndFlush(lispMessage);
+                    ctx.writeAndFlush(lispMessage);
+                }
             }
-        }
 
-        if (msg instanceof LispMapRegister) {
-            LispMapServer mapServer = new LispMapServer();
-            LispMapNotify mapNotify = mapServer.processMapRegister((LispMapRegister) msg);
+            if (msg instanceof LispMapRegister) {
+                LispMapServer mapServer = LispMapServer.getInstance();
+                LispMapNotify mapNotify =
+                        mapServer.processMapRegister((LispMapRegister) msg);
 
-            // try to remove the received map-register message from buffer
+                if (mapNotify != null) {
+                    ctx.writeAndFlush(mapNotify);
+                }
+            }
+
+            if (msg instanceof LispInfoRequest) {
+                LispMapServer mapServer = LispMapServer.getInstance();
+                LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
+
+                ctx.writeAndFlush(infoReply);
+            }
+        } finally {
+            // try to remove the received message form the buffer
             ReferenceCountUtil.release(msg);
-
-            ctx.writeAndFlush(mapNotify);
         }
     }
 
@@ -87,7 +101,8 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         log.warn(cause.getMessage());
-        ctx.close();
+
+        //TODO: add error handle mechanisms for each cases
     }
 
     /**

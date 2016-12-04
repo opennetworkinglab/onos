@@ -228,11 +228,14 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
         public void writeTo(ByteBuf byteBuf, LispSegmentLcafAddress address)
                 throws LispWriterException {
 
+            int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             byteBuf.writeInt(address.getInstanceId());
 
             new LispAfiAddress.AfiAddressWriter().writeTo(byteBuf, address.getAddress());
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
     }
 }

@@ -244,6 +244,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             // Create optical connectivity intent
             connectivityIntent = OpticalConnectivityIntent.builder()
                     .appId(appId)
+                    // TODO New top-level Intent created and submitted
+                    // during compilation.
+                    // We'll need to track inter-Intent dependency,
+                    // but `key` field cannot be used for the purpose.
                     .src(srcCP)
                     .dst(dstCP)
                     .signalType(ochPorts.getLeft().signalType())
@@ -324,7 +328,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             rules.add(connectPorts(higherIntent.getDst(), lowerIntent.getDst(), higherIntent.priority(), slots));
         }
 
-        return new FlowRuleIntent(appId, rules, higherIntent.resources());
+        return new FlowRuleIntent(appId, higherIntent.key(), rules, higherIntent.resources());
     }
 
     /**

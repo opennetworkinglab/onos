@@ -1,0 +1,114 @@
+module Combined {
+
+    yang-version 1;
+    namespace "ych:combined";
+    prefix "combined";
+
+    organization "Huawei India Pvt. Ltd.";
+
+    description "This module defines for purchasing-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    typedef protocol-version {
+        type uint8 {
+            range 1..7;
+        }
+    }
+
+    typedef path-id {
+        type uint32;
+        default 0;
+        description
+            "Identifier of a single path. The identifier does not
+             carry any semantic meaning beyond uniquely identifying
+             a path.";
+    }
+
+    typedef as-num {
+        type uint32;
+        default 0;
+        description
+            "Identifier of a single path. The identifier does not
+             carry any semantic meaning beyond uniquely identifying
+             a path.";
+    }
+
+    typedef metric {
+        type uint32;
+        default 0;
+        description
+            "Identifier of a single path. The identifier does not
+             carry any semantic meaning beyond uniquely identifying
+             a path.";
+    }
+
+    container attributes {
+        container origin {
+            reference "http://tools.ietf.org/html/rfc4271#section-5.1.1";
+            leaf value {
+                type path-id;
+                mandatory true;
+            }
+        }
+        container multi-exit-disc {
+            reference "http://tools.ietf.org/html/rfc4271#section-5.1.4";
+            leaf med {
+                type uint32;
+            }
+        }
+        container local-pref {
+            reference "http://tools.ietf.org/html/rfc4271#section-5.1.5";
+            leaf pref {
+                type uint32;
+            }
+        }
+        container aigp {
+            container aigp-tlv {
+                leaf metric {
+                    type metric;
+                }
+            }
+        }
+
+        list unrecognized-attributes {
+            key type;
+            leaf partial {
+                type boolean;
+                mandatory true;
+            }
+            leaf transitive {
+                type boolean;
+                mandatory true;
+            }
+            leaf type {
+                type uint8;
+                mandatory true;
+            }
+            leaf value {
+                type binary {
+                    length 0..65535;
+                }
+                mandatory true;
+            }
+        }
+
+        list bgp-parameters {
+            config false;
+            list optional-capabilities {
+                config false;
+                reference "http://tools.ietf.org/html/rfc5492#section-4";
+                container c-parameters {
+                    container as4-bytes-capability {
+                        reference "http://tools.ietf.org/html/rfc6793";
+                        leaf as-number {
+                            type as-num;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

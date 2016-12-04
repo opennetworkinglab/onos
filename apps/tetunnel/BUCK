@@ -1,0 +1,14 @@
+BUNDLES = [
+  '//apps/tetunnel/api:onos-apps-tetunnel-api',
+  '//apps/tetunnel/app:onos-apps-tetunnel-app',
+]
+
+onos_app (
+    app_name = 'org.onosproject.tetunnel',
+    title = 'TE Tunnel Core App',
+    category = 'ACTN',
+    url = 'http://onosproject.org',
+    description = 'Application to create and manage TE tunnels.',
+    included_bundles = BUNDLES,
+)
+

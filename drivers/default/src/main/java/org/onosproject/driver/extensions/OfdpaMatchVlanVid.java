@@ -88,7 +88,7 @@ public class OfdpaMatchVlanVid extends AbstractExtension implements ExtensionSel
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OfdpaMatchVlanVid) {
+        if (obj != null && obj.getClass() == OfdpaMatchVlanVid.class) {
             OfdpaMatchVlanVid that = (OfdpaMatchVlanVid) obj;
             return Objects.equals(vlanId, that.vlanId);
 

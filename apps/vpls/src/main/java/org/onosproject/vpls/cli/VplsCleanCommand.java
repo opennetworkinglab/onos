@@ -18,7 +18,7 @@ package org.onosproject.vpls.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to clean the VPLS app configuration.
@@ -26,11 +26,11 @@ import org.onosproject.vpls.config.VplsConfigurationService;
 @Command(scope = "onos", name = "vpls-clean",
         description = "Cleans the VPLS app configuration")
 public class VplsCleanCommand extends AbstractShellCommand {
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Override
     protected void execute() {
-        vplsConfigService.cleanVpls();
+        vplsConfigService.cleanVplsConfig();
     }
 }

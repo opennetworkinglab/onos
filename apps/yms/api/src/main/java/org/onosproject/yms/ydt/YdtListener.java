@@ -19,12 +19,12 @@ package org.onosproject.yms.ydt;
 /**
  * Abstraction of an entity which provide call back methods which are called
  * by YDT walker while walking the YANG data tree.
- *
+ * <p>
  * In a response to execute operation YMS returns the YMS operation results
  * with root YDT node. Now, protocols needs to walk through the YDT node and
  * constructs the corresponding data format string. Protocol can opt to use
  * listener or visitor based walking mechanism.
- *
+ * <p>
  * This interface needs to be implemented by protocol implementing listener's
  * based call backs while YDT walk.
  */

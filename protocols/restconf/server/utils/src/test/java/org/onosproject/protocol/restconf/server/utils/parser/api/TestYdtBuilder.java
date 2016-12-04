@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
-import static org.onosproject.yms.ydt.YdtType.*;
+import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_LEAF_VALUE_NODE;
+import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE;
+import static org.onosproject.yms.ydt.YdtType.SINGLE_INSTANCE_NODE;
 
 /**
  * A test class which represents YANG request work bench which contains all
@@ -96,7 +98,6 @@ public class TestYdtBuilder implements YdtBuilder {
     @Override
     public void addChild(String name, String namespace, YdtType ydtType) {
         addChild(name, namespace, ydtType, NONE);
-
     }
 
     @Override
@@ -136,8 +137,10 @@ public class TestYdtBuilder implements YdtBuilder {
 
     @Override
     public void addMultiInstanceChild(String name, String namespace,
-                                      List<String> valueList) {
-        addChild(name, namespace, MULTI_INSTANCE_LEAF_VALUE_NODE, NONE);
+                                      List<String> valueList,
+                                      YdtContextOperationType operationType) {
+        addChild(name, namespace, MULTI_INSTANCE_LEAF_VALUE_NODE,
+                 operationType);
         if (curNode.getYdtType() == MULTI_INSTANCE_LEAF_VALUE_NODE) {
             for (String value : valueList) {
                 curNode.addValue(value);

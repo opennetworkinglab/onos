@@ -1,0 +1,9 @@
+module YtbModuleWithLeafList {
+    yang-version 1;
+    namespace "yms:test:ytb:module:with:leaflist";
+    prefix "sch";
+    revision "2016-08-26";
+    leaf-list time {
+        type int64;
+    }
+}

@@ -1,0 +1,23 @@
+module YtbSimpleChoiceCase {
+    yang-version 1;
+    namespace "yms:test:ytb:simple:choice:case";
+    prefix "sch";
+    revision "2016-08-26";
+    container YtbFood {
+       choice YtbSnack {
+           case ytb-sports-arena {
+               leaf pretzel {
+                   type string;
+               }
+               leaf beer {
+                   type string;
+               }
+           }
+           case ytb-late-night {
+               leaf chocolate {
+                   type string;
+               }
+           }
+       }
+    }
+}

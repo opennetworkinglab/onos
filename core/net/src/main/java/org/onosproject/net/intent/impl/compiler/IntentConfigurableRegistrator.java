@@ -67,6 +67,18 @@ public class IntentConfigurableRegistrator {
             label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
     private String labelSelection = DEFAULT_LABEL_SELECTION;
 
+    private static final boolean DEFAULT_FLOW_OPTIMIZATION = false;
+    @Property(name = "useFlowOptimization",
+            boolValue = DEFAULT_FLOW_OPTIMIZATION,
+            label = "Indicates whether or not to optimize the flows in the link collection compiler")
+    private boolean useFlowOptimization = DEFAULT_FLOW_OPTIMIZATION;
+
+    private static final boolean DEFAULT_COPY_TTL = false;
+    @Property(name = "useCopyTtl",
+            boolValue = DEFAULT_COPY_TTL,
+            label = "Indicates whether or not to use copy ttl in the link collection compiler")
+    private boolean useCopyTtl = DEFAULT_COPY_TTL;
+
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowRuleBased = Maps.newConcurrentMap();
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowObjectiveBased = Maps.newConcurrentMap();
 
@@ -87,6 +99,8 @@ public class IntentConfigurableRegistrator {
         if (context == null) {
             log.info("Settings: useFlowObjectives={}", useFlowObjectives);
             log.info("Settings: labelSelection={}", labelSelection);
+            log.info("Settings: useFlowOptimization={}", useFlowOptimization);
+            log.info("Settings: useCopyTtl={}", useCopyTtl);
             return;
         }
 
@@ -116,6 +130,34 @@ public class IntentConfigurableRegistrator {
             labelSelection = newLabelSelection;
             changeLabelSelections();
             log.info("Settings: labelSelection={}", labelSelection);
+        }
+
+        boolean newFlowOptimization;
+        try {
+            String s = Tools.get(context.getProperties(), "useFlowOptimization");
+            newFlowOptimization = isNullOrEmpty(s) ? useFlowOptimization : Boolean.parseBoolean(s.trim());
+        } catch (ClassCastException e) {
+            newFlowOptimization = useFlowOptimization;
+        }
+
+        if (useFlowOptimization != newFlowOptimization) {
+            useFlowOptimization = newFlowOptimization;
+            changeFlowOptimization();
+            log.info("Settings: useFlowOptimization={}", useFlowOptimization);
+        }
+
+        boolean newCopyTtl;
+        try {
+            String s = Tools.get(context.getProperties(), "useCopyTtl");
+            newCopyTtl = isNullOrEmpty(s) ? useCopyTtl : Boolean.parseBoolean(s.trim());
+        } catch (ClassCastException e) {
+            newCopyTtl = useCopyTtl;
+        }
+
+        if (useCopyTtl != newCopyTtl) {
+            useCopyTtl = newCopyTtl;
+            changeCopyTtl();
+            log.info("Settings: useCopyTtl={}", useCopyTtl);
         }
     }
 
@@ -170,7 +212,15 @@ public class IntentConfigurableRegistrator {
     }
 
     private void changeLabelSelections() {
-        PathCompiler.labelAllocator.setLabelSelection(labelSelection);
+        LinkCollectionCompiler.labelAllocator.setLabelSelection(labelSelection);
+    }
+
+    private void changeFlowOptimization() {
+        LinkCollectionCompiler.optimize = useFlowOptimization;
+    }
+
+    private void changeCopyTtl() {
+        LinkCollectionCompiler.copyTtl = useCopyTtl;
     }
 
 }

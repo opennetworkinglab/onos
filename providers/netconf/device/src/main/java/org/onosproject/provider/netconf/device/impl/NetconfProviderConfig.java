@@ -36,7 +36,7 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
     private static final String IP = "ip";
     private static final int DEFAULT_TCP_PORT = 830;
     private static final String PORT = "port";
-    private static final String NAME = "name";
+    private static final String NAME = "username";
     private static final String PASSWORD = "password";
 
     public Set<NetconfDeviceAddress> getDevicesAddresses() throws ConfigException {

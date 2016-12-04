@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//lib:netty-buffer',
     '//lib:netty-codec',
     '//lib:netty-transport',
+    '//lib:netty-transport-native-epoll',
     '//lib:netty-handler'
 ]
 

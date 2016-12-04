@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-yms</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>1.9.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-yms</artifactId>
@@ -38,6 +38,12 @@
             <artifactId>org.apache.felix.framework</artifactId>
             <version>4.2.1</version>
         </dependency>
+        <!--https://mvnrepository.com/artifact/org.apache.servicemix.bundles/org.apache.servicemix.bundles.dom4j -->
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.dom4j</artifactId>
+            <version>1.6.1_5</version>
+        </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
@@ -50,36 +56,9 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-yang-maven-plugin</artifactId>
-            <version>1.8</version>
+            <artifactId>onos-yang-utils-generator</artifactId>
+            <version>1.10</version>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-yang-datamodel</artifactId>
-            <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-osgi</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.osgi/spring-osgi-mock -->
-        <dependency>
-            <groupId>org.springframework.osgi</groupId>
-            <artifactId>spring-osgi-mock</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -99,21 +78,6 @@
                         </Private-Package>
                     </instructions>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.onosproject</groupId>
-                <artifactId>onos-yang-maven-plugin</artifactId>
-                <version>1.8</version>
-                <configuration>
-                    <yangFilesDir>src/test/resources/</yangFilesDir>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>yang2java</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

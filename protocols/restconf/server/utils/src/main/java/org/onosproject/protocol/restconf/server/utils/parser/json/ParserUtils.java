@@ -213,14 +213,14 @@ public final class ParserUtils {
         if (keyStr == null) {
             throw new JsonParseException(ERROR_LIST_MSG);
         }
-        builder.setDefaultEditOperationType(opType);
+
         if (keyStr.contains(COMMA)) {
             List<String> keys = Lists.
                     newArrayList(COMMA_SPLITTER.split(keyStr));
-            builder.addMultiInstanceChild(nodeName, namespace, keys);
+            builder.addMultiInstanceChild(nodeName, namespace, keys, opType);
         } else {
             builder.addMultiInstanceChild(nodeName, namespace,
-                                          Lists.newArrayList(keyStr));
+                                          Lists.newArrayList(keyStr), opType);
         }
         return builder;
     }

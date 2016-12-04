@@ -147,6 +147,11 @@ public class PcepTunnelAddedTest {
                 tunnelService.tunnelIdAsKeyStore.replace(tunnel.tunnelId(), tunnel);
             }
         }
+
+        @Override
+        public void updateTunnelState(Tunnel tunnel, State state) {
+            // TODO Auto-generated method stub
+        }
     }
 
     private class MockMasterShipService extends MastershipServiceAdapter {

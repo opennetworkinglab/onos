@@ -1,0 +1,29 @@
+module materialsupervisor {
+
+    yang-version 1;
+
+    namespace "ydt.material-supervisor";
+
+    prefix "material";
+
+    organization "ON-LAB";
+
+    description "This module defines for material-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list supervisor {
+        key "name";
+        leaf name {
+            type string;
+            description "name of material-supervisor";
+        }
+
+        leaf departmentId {
+            type string;
+            description "name of department";
+        }
+    }
+}

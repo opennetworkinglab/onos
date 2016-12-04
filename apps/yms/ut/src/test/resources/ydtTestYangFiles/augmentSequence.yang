@@ -1,0 +1,23 @@
+module augmentSequence {
+
+    yang-version 1;
+
+    namespace "ydt.augmentSequence";
+
+    prefix "aug";
+
+    organization "ON-LAB";
+
+    description "This module defines for augmentSequence classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list l1 {
+        key  leaf1;
+        leaf leaf1 {
+              type int8;
+        }
+    }
+}

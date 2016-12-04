@@ -1,0 +1,20 @@
+<rpc message-id="101"
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <edit-config>
+        <target>
+            <running/>
+        </target>
+        <config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+            <Logistics-manager xmlns="ydt.root">
+                <Customs-supervisor>abc</Customs-supervisor>
+                <Purchasing-supervisor xmlns="ydt.root">
+                    <purchasing-specialist>bcd</purchasing-specialist>
+                    <support>cde</support>
+                </Purchasing-supervisor>
+            </Logistics-manager>
+            <merchandisersupervisor xmlns="ydt.Merchandiser-supervisor">
+                <supervisor>abc</supervisor>
+            </merchandisersupervisor>
+        </config>
+    </edit-config>
+</rpc>

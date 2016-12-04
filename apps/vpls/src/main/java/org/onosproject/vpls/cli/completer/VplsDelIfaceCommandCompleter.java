@@ -18,7 +18,7 @@ package org.onosproject.vpls.cli.completer;
 
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.List;
 import java.util.Set;
@@ -33,9 +33,9 @@ public class VplsDelIfaceCommandCompleter extends AbstractChoicesCompleter {
 
     @Override
     protected List<String> choices() {
-        VplsConfigurationService vplsConfigService =
-                get(VplsConfigurationService.class);
-        Set<Interface> ifaces = vplsConfigService.getAllInterfaces();
+        VplsConfigService vplsConfigService =
+                get(VplsConfigService.class);
+        Set<Interface> ifaces = vplsConfigService.allIfaces();
         return ifaces.stream().map(Interface::name).collect(Collectors.toList());
     }
 }

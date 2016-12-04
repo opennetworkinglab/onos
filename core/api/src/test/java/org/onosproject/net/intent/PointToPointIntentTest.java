@@ -42,6 +42,15 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect egress", P2, intent.egressPoint());
     }
 
+    @Test
+    public void filtered() {
+        PointToPointIntent intent = createOneFiltered();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", FP1, intent.filteredIngressPoint());
+        assertEquals("incorrect egress", FP2, intent.filteredEgressPoint());
+    }
+
     @Override
     protected PointToPointIntent createOne() {
         return PointToPointIntent.builder()
@@ -61,6 +70,16 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
                 .treatment(NOP)
                 .ingressPoint(P2)
                 .egressPoint(P1)
+                .build();
+    }
+
+    protected PointToPointIntent createOneFiltered() {
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .filteredIngressPoint(FP1)
+                .filteredEgressPoint(FP2)
                 .build();
     }
 }

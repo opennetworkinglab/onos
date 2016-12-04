@@ -15,180 +15,87 @@
  */
 package org.onosproject.vpls.config;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.Config;
+import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.EncapsulationType;
 
+import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Configuration object for VPLS config.
+ * Configuration of a VPLS.
  */
-public class VplsConfig extends Config<ApplicationId> {
-    private static final String VPLS = "vplsNetworks";
-    private static final String NAME = "name";
-    private static final String INTERFACE = "interfaces";
+public class VplsConfig {
+    private final String name;
+    private final Set<String> ifaces;
+    private final EncapsulationType encap;
 
     /**
-     * Returns a set of configured VPLSs.
-     *
-     * @return set of VPLSs
-     */
-    public Set<VplsNetworkConfig> vplsNetworks() {
-        Set<VplsNetworkConfig> vpls = Sets.newHashSet();
-
-        JsonNode vplsNode = object.get(VPLS);
-
-        if (vplsNode == null) {
-            return vpls;
-        }
-
-        vplsNode.forEach(jsonNode -> {
-            Set<String> ifaces = Sets.newHashSet();
-            jsonNode.path(INTERFACE).forEach(ifacesNode ->
-                    ifaces.add(ifacesNode.asText())
-            );
-
-            String name = jsonNode.get(NAME).asText();
-
-            vpls.add(new VplsNetworkConfig(name, ifaces));
-        });
-
-        return vpls;
-    }
-
-    /**
-     * Returns the VPLS configuration given a VPLS name.
+     * Creates a new VPLS configuration.
      *
      * @param name the VPLS name
-     * @return the VPLS configuration if it exists; null otherwise
+     * @param ifaces the interfaces associated with the VPLS
+     * @param encap the encapsulation type if set
      */
-    public VplsNetworkConfig getVplsWithName(String name) {
-        for (VplsNetworkConfig vpls : vplsNetworks()) {
-            if (vpls.name().equals(name)) {
-                return vpls;
-            }
+    public VplsConfig(String name, Set<String> ifaces, EncapsulationType encap) {
+        this.name = checkNotNull(name);
+        this.ifaces = checkNotNull(ImmutableSet.copyOf(ifaces));
+        this.encap = checkNotNull(encap);
+    }
+
+    /**
+     * The name of the VPLS.
+     *
+     * @return the name of the VPLS
+     */
+    public String name() {
+        return name;
+    }
+
+    /**
+     * The name of the interfaces associated with the VPLS.
+     *
+     * @return a set of interface names associated with the VPLS
+     */
+    public Set<String> ifaces() {
+        return ImmutableSet.copyOf(ifaces);
+    }
+
+    /**
+     * The encapsulation type.
+     *
+     * @return the encapsulation type, if active; null otherwise
+     */
+    public EncapsulationType encap() {
+        return encap;
+    }
+
+    /**
+     * States if a given interface is part of a VPLS.
+     * @param iface the interface attached to a VPLS
+     * @return true if the interface is associated to the VPLS; false otherwise
+     */
+    protected boolean isAttached(String iface) {
+        return ifaces.stream().anyMatch(iface::equals);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
-        return null;
-    }
-
-    /**
-     * Adds a VPLS to the configuration.
-     *
-     * @param name the name of the VPLS to be added
-     */
-    public void addVpls(VplsNetworkConfig name) {
-        ObjectNode vplsNode = JsonNodeFactory.instance.objectNode();
-
-        vplsNode.put(NAME, name.name());
-
-        ArrayNode ifacesNode = vplsNode.putArray(INTERFACE);
-        name.ifaces().forEach(ifacesNode::add);
-
-        ArrayNode vplsArray = vplsNetworks().isEmpty() ?
-                initVplsConfiguration() : (ArrayNode) object.get(VPLS);
-        vplsArray.add(vplsNode);
-    }
-
-    /**
-     * Removes a VPLS from the configuration.
-     *
-     * @param name the name of the VPLS to be removed
-     */
-    public void removeVpls(String name) {
-        ArrayNode vplsArray = (ArrayNode) object.get(VPLS);
-
-        for (int i = 0; i < vplsArray.size(); i++) {
-            if (vplsArray.get(i).hasNonNull(NAME) &&
-                    vplsArray.get(i).get(NAME).asText().equals(name)) {
-                vplsArray.remove(i);
-                return;
-            }
+        if (obj instanceof VplsConfig) {
+            VplsConfig that = (VplsConfig) obj;
+            return Objects.equals(name, that.name) &&
+                    Objects.equals(ifaces, that.ifaces) &&
+                    Objects.equals(encap, that.encap);
         }
+        return false;
     }
 
-    /**
-     * Finds a VPLS with a given network interface.
-     *
-     * @param iface the network interface
-     * @return the VPLS if found; null otherwise
-     */
-    public VplsNetworkConfig getVplsFromInterface(String iface) {
-        for (VplsNetworkConfig vpls : vplsNetworks()) {
-            if (vpls.isAttached(iface)) {
-                return vpls;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Adds a network interface to a VPLS.
-     *
-     * @param name the name of the VPLS
-     * @param iface the network interface to be added
-     */
-    public void addInterfaceToVpls(String name, String iface) {
-        JsonNode vplsNode = object.get(VPLS);
-        vplsNode.forEach(jsonNode -> {
-
-            if (hasNamedNode(jsonNode, name)) {
-                ArrayNode ifacesNode = (ArrayNode) jsonNode.get(INTERFACE);
-                for (int i = 0; i < ifacesNode.size(); i++) {
-                    if (ifacesNode.get(i).asText().equals(iface)) {
-                        return; // Interface already exists.
-                    }
-                }
-                ifacesNode.add(iface);
-            }
-        });
-    }
-
-    /**
-     * Removes a network interface from a VPLS.
-     *
-     * @param name the name of the VPLS
-     * @param iface the network interface to be removed
-     */
-    public void removeInterfaceFromVpls(VplsNetworkConfig name, String iface) {
-        JsonNode vplsNode = object.get(VPLS);
-        vplsNode.forEach(jsonNode -> {
-            if (hasNamedNode(jsonNode, name.name())) {
-                ArrayNode ifacesNode = (ArrayNode) jsonNode.get(INTERFACE);
-                for (int i = 0; i < ifacesNode.size(); i++) {
-                    if (ifacesNode.get(i).asText().equals(iface)) {
-                        ifacesNode.remove(i);
-                        return;
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * States if a JSON node has a "name" attribute and if the value is equal to
-     * the name given.
-     *
-     * @param jsonNode the JSON node
-     * @param name the node name
-     * @return true if the JSON node has a "name" attribute with value equal to
-     * the name given; false otherwise
-     */
-    private boolean hasNamedNode(JsonNode jsonNode, String name) {
-        return jsonNode.hasNonNull(NAME) &&
-                jsonNode.get(NAME).asText().equals(name);
-    }
-
-    /**
-     * Creates an empty VPLS configuration.
-     *
-     * @return empty ArrayNode to store the VPLS configuration
-     */
-    private ArrayNode initVplsConfiguration() {
-        return object.putArray(VPLS);
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, ifaces, encap);
     }
 }

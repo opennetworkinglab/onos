@@ -35,6 +35,8 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +73,7 @@ public final class LabelAllocator {
      * @param rs the resource service
      */
     public LabelAllocator(ResourceService rs) {
-        this.resourceService = rs;
+        this.resourceService = checkNotNull(rs);
         this.labelSelection = this.getLabelSelection(Behavior.RANDOM);
     }
 

@@ -58,7 +58,7 @@ public class AppConfigHandler {
      * @param event network config added event
      */
     protected void processAppConfigAdded(NetworkConfigEvent event) {
-        log.info("Processing vRouter CONFIG_ADDED");
+        log.info("Processing AppConfig CONFIG_ADDED");
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         deviceService.getAvailableDevices().forEach(device -> {
             populateVRouter(device.id(), getMacAddresses(config));
@@ -71,7 +71,7 @@ public class AppConfigHandler {
      * @param event network config updated event
      */
     protected void processAppConfigUpdated(NetworkConfigEvent event) {
-        log.info("Processing vRouter CONFIG_UPDATED");
+        log.info("Processing AppConfig CONFIG_UPDATED");
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
         deviceService.getAvailableDevices().forEach(device -> {
@@ -96,7 +96,7 @@ public class AppConfigHandler {
      * @param event network config removed event
      */
     protected void processAppConfigRemoved(NetworkConfigEvent event) {
-        log.info("Processing vRouter CONFIG_REMOVED");
+        log.info("Processing AppConfig CONFIG_REMOVED");
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
         deviceService.getAvailableDevices().forEach(device -> {
             revokeVRouter(device.id(), getMacAddresses(prevConfig));

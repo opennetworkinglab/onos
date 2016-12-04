@@ -175,7 +175,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
                 rules.addAll(createRules(intent, intent.getDst(), intent.getSrc(), path, slotsMap, true));
             }
 
-            return Collections.singletonList(new FlowRuleIntent(appId,
+            return Collections.singletonList(new FlowRuleIntent(appId, intent.key(),
                     rules, ImmutableSet.copyOf(path.links())));
         }
 

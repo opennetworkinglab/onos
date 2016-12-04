@@ -19,10 +19,7 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.vpls.config.VplsConfigurationService;
-
-import java.util.Set;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to remove an interface from an existing VPLS.
@@ -31,23 +28,36 @@ import java.util.Set;
         description = "Removes an interface from an existing VPLS")
 public class VplsDelIfaceCommand extends AbstractShellCommand {
 
-    private static final String NO_CONFIGURATION = "Interface %s is not configured";
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
-    @Argument(index = 0, name = "IFACE_NAME", description = "Name of the interface" +
-            " to remove from the VPLS", required = true, multiValued = false)
+    @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
+            required = true, multiValued = false)
+    private String vplsName = null;
+
+    @Argument(index = 1, name = "ifaceName", description = "Name of the interface" +
+            " to be removed from the VPLS", required = true, multiValued = false)
     private String ifaceName = null;
 
     @Override
     protected void execute() {
-        Set<Interface> ifaces = vplsConfigService.getAllInterfaces();
-
-        if (!ifaces.stream().map(Interface::name).anyMatch(ifaceName::equals)) {
-            print(NO_CONFIGURATION, ifaceName);
+        if (!VplsCommandUtils.vplsExists(vplsName)) {
+            print(VplsCommandUtils.VPLS_NOT_FOUND, vplsName);
+            return;
         }
 
-        vplsConfigService.removeInterfaceFromVpls(ifaceName);
+        if (!VplsCommandUtils.ifaceExists(ifaceName)) {
+            print(VplsCommandUtils.IFACE_NOT_FOUND, ifaceName);
+            return;
+        }
+
+        if (!VplsCommandUtils.ifaceAlreadyAssociated(ifaceName)) {
+            print(VplsCommandUtils.IFACE_NOT_ASSOCIATED,
+                  ifaceName, VplsCommandUtils.vplsNameFromIfaceName(ifaceName));
+            return;
+        }
+
+        vplsConfigService.removeIface(ifaceName);
     }
 
 }

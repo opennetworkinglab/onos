@@ -263,7 +263,7 @@ abstract class AbstractTopoModelTest extends AbstractUiImplTest {
                                          String parentId) {
         UiTopoLayoutId pid = parentId == null
                 ? UiTopoLayoutId.DEFAULT_ID : layoutId(parentId);
-        return new UiTopoLayout(layoutId(layoutId), region, pid);
+        return new UiTopoLayout(layoutId(layoutId)).region(region).parent(pid);
     }
 
     /**

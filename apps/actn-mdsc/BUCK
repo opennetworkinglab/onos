@@ -1,0 +1,15 @@
+BUNDLES = [
+    '//apps/tetunnel/api:onos-apps-tetunnel-api',
+    '//apps/tetopology/api:onos-apps-tetopology-api',
+    '//apps/actn-mdsc/tetunnel-ctl:onos-apps-actn-mdsc-tetunnel-ctl',
+    '//apps/actn-mdsc/tetunnel-pce:onos-apps-actn-mdsc-tetunnel-pce',
+]
+
+onos_app (
+    title = 'ACTN MDSC',
+    category = 'ACTN APP',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'ACTN MDSC APP.',
+)
+

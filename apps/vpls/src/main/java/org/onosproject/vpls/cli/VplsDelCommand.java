@@ -19,19 +19,17 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to remove VPLSs.
  */
 @Command(scope = "onos", name = "vpls-del",
-        description = "Deletes a VPLS")
+        description = "Deletes an existing VPLS")
 public class VplsDelCommand extends AbstractShellCommand {
 
-    private static final String NETWORK_NOT_FOUND =
-            "VPLS %s not found";
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)
@@ -39,9 +37,8 @@ public class VplsDelCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-
-        if (!vplsConfigService.getAllVpls().contains(vplsName)) {
-            print(NETWORK_NOT_FOUND, vplsName);
+        if (!VplsCommandUtils.vplsExists(vplsName)) {
+            print(VplsCommandUtils.VPLS_NOT_FOUND, vplsName);
             return;
         }
 

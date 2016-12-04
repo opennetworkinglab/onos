@@ -94,7 +94,10 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         Map<LinkKey, MplsLabel> labels = assignMplsLabel(intent);
         List<FlowRule> rules = generateRules(intent, labels);
 
-        return Collections.singletonList(new FlowRuleIntent(appId, rules, intent.resources()));
+        return Collections.singletonList(new FlowRuleIntent(appId,
+                                                            intent.key(),
+                                                            rules,
+                                                            intent.resources()));
     }
 
     @Activate

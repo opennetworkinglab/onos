@@ -87,6 +87,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -94,6 +95,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -432,6 +434,10 @@ public class OpticalCircuitIntentCompilerTest {
         List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
 
         FlowRule rule1 = rules.stream()
@@ -505,6 +511,10 @@ public class OpticalCircuitIntentCompilerTest {
         List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
 
         FlowRule rule1 = rules.stream()
@@ -572,6 +582,11 @@ public class OpticalCircuitIntentCompilerTest {
 
         List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
+
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
 

@@ -15,8 +15,11 @@
  */
 package org.onosproject.pce.pcestore.api;
 
+import java.util.List;
+
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.resource.ResourceConsumer;
+import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pcestore.PcePathInfo;
 
 import java.util.Map;
@@ -107,4 +110,21 @@ public interface PceStore {
      * @return success or failure
      */
     boolean removeFailedPathInfo(PcePathInfo failedPathInfo);
+
+    /**
+     * Adds explicit path info to the map with corresponding tunnel name.
+     *
+     * @param tunnelName tunnel name as key
+     * @param explicitPathInfo list of explicit path objects
+     * @return whether it is added to map
+     */
+    boolean tunnelNameExplicitPathInfoMap(String tunnelName, List<ExplicitPathInfo> explicitPathInfo);
+
+    /**
+     * Gets explicit path info based on tunnel name.
+     *
+     * @param tunnelName tunnel name as key
+     * @return list of explicit path info
+     */
+    List<ExplicitPathInfo> getTunnelNameExplicitPathInfoMap(String tunnelName);
 }

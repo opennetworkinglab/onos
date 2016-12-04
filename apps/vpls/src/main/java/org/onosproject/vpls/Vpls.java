@@ -33,6 +33,7 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -49,7 +50,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.routing.IntentSynchronizationService;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -58,18 +59,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.vpls.IntentInstaller.PREFIX_BROADCAST;
 import static org.onosproject.vpls.IntentInstaller.PREFIX_UNICAST;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Application to create L2 broadcast overlay networks using VLAN.
+ * Application to create L2 broadcast overlay networks using VLANs.
  */
 @Component(immediate = true)
 public class Vpls {
-    /**
-     * Application name of VPLS.
-     */
     static final String VPLS_APP = "org.onosproject.vpls";
 
     private static final String HOST_FCP_NOT_FOUND =
@@ -104,12 +102,12 @@ public class Vpls {
     protected NetworkConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VplsConfigurationService vplsConfigService;
+    protected VplsConfigService vplsConfigService;
 
     private final HostListener hostListener = new InternalHostListener();
 
-    private final InternalInterfaceListener interfaceListener
-            = new InternalInterfaceListener();
+    private final InternalInterfaceListener interfaceListener =
+            new InternalInterfaceListener();
 
     private final InternalNetworkConfigListener configListener =
             new InternalNetworkConfigListener();
@@ -155,16 +153,16 @@ public class Vpls {
      */
     private void setupConnectivity(boolean isNetworkConfigEvent) {
         SetMultimap<String, Interface> networkInterfaces =
-                vplsConfigService.getVplsNetworks();
+                vplsConfigService.ifacesByVplsName();
 
         Set<String> vplsAffectedByApi =
-                new HashSet<>(vplsConfigService.getVplsAffectedByApi());
+                new HashSet<>(vplsConfigService.vplsAffectedByApi());
 
         if (isNetworkConfigEvent && vplsAffectedByApi.isEmpty()) {
-            vplsAffectedByApi.addAll(vplsConfigService.getOldVpls());
+            vplsAffectedByApi.addAll(vplsConfigService.vplsNamesOld());
         }
 
-        networkInterfaces.asMap().forEach((networkName, interfaces) -> {
+        networkInterfaces.asMap().forEach((vplsName, interfaces) -> {
             Set<Host> hosts = Sets.newHashSet();
             interfaces.forEach(intf -> {
                 // Add hosts that belongs to the specific VPLS
@@ -174,14 +172,17 @@ public class Vpls {
                         .forEach(hosts::add);
             });
 
-            setupConnectivity(networkName, interfaces, hosts,
-                    vplsAffectedByApi.contains(networkName));
-            vplsAffectedByApi.remove(networkName);
+            EncapsulationType encap =
+                    vplsConfigService.encap(vplsName);
+
+            setupConnectivity(vplsName, interfaces, hosts, encap,
+                              vplsAffectedByApi.contains(vplsName));
+            vplsAffectedByApi.remove(vplsName);
         });
 
         if (!vplsAffectedByApi.isEmpty()) {
-            for (String networkName:vplsAffectedByApi) {
-                withdrawIntents(networkName, Lists.newArrayList());
+            for (String vplsName : vplsAffectedByApi) {
+                withdrawIntents(vplsName, Lists.newArrayList());
             }
         }
     }
@@ -189,28 +190,31 @@ public class Vpls {
     /**
      * Sets up connectivity for specific VPLS.
      *
-     * @param networkName the VPLS name
-     * @param interfaces the interfaces that belong to the VPLS
-     * @param hosts the hosts that belong to the VPLS
+     * @param vplsName      the VPLS name
+     * @param interfaces    the interfaces that belong to the VPLS
+     * @param hosts         the hosts that belong to the VPLS
+     * @param encap         the encapsulation type
      * @param affectedByApi true if this function is triggered from the APIs;
      *                      false otherwise
      */
-    private void setupConnectivity(String networkName,
+    private void setupConnectivity(String vplsName,
                                    Collection<Interface> interfaces,
                                    Set<Host> hosts,
+                                   EncapsulationType encap,
                                    boolean affectedByApi) {
+
         List<Intent> intents = Lists.newArrayList();
         List<Key> keys = Lists.newArrayList();
         Set<FilteredConnectPoint> fcPoints = buildFCPoints(interfaces);
 
-        intents.addAll(buildUnicastIntents(
-                networkName, hosts, fcPoints, affectedByApi));
         intents.addAll(buildBroadcastIntents(
-                networkName, fcPoints, affectedByApi));
+                vplsName, fcPoints, encap, affectedByApi));
+        intents.addAll(buildUnicastIntents(
+                vplsName, hosts, fcPoints, encap, affectedByApi));
 
         if (affectedByApi) {
             intents.forEach(intent -> keys.add(intent.key()));
-            withdrawIntents(networkName, keys);
+            withdrawIntents(vplsName, keys);
         }
 
         intentInstaller.submitIntents(intents);
@@ -219,19 +223,18 @@ public class Vpls {
     /**
      * Withdraws intents belonging to a VPLS, given a VPLS name.
      *
-     * @param networkName the VPLS name
-     * @param keys the keys of the intents to be installed
+     * @param vplsName the VPLS name
+     * @param keys     the keys of the intents to be installed
      */
-    private void withdrawIntents(String networkName,
-                                 List<Key> keys) {
+    private void withdrawIntents(String vplsName, List<Key> keys) {
         List<Intent> intents = Lists.newArrayList();
 
-        intentInstaller.getIntentsFromVpls(networkName)
+        intentInstaller.getIntentsFromVpls(vplsName)
                 .forEach(intent -> {
                     if (!keys.contains(intent.key())) {
                         intents.add(intent);
                     }
-        });
+                });
 
         intentInstaller.withdrawIntents(intents);
     }
@@ -239,14 +242,16 @@ public class Vpls {
     /**
      * Sets up broadcast intents between any given filtered connect point.
      *
-     * @param networkName the VPLS name
-     * @param fcPoints the set of filtered connect points
+     * @param vplsName      the VPLS name
+     * @param fcPoints      the set of filtered connect points
+     * @param encap         the encapsulation type
      * @param affectedByApi true if the function triggered from APIs;
      *                      false otherwise
      * @return the set of broadcast intents
      */
-    private Set<Intent> buildBroadcastIntents(String networkName,
+    private Set<Intent> buildBroadcastIntents(String vplsName,
                                               Set<FilteredConnectPoint> fcPoints,
+                                              EncapsulationType encap,
                                               boolean affectedByApi) {
         Set<Intent> intents = Sets.newHashSet();
         fcPoints.forEach(point -> {
@@ -257,14 +262,15 @@ public class Vpls {
 
             Key brcKey = intentInstaller.buildKey(PREFIX_BROADCAST,
                                                   point.connectPoint(),
-                                                  networkName,
+                                                  vplsName,
                                                   MacAddress.BROADCAST);
 
-            if ((!intentInstaller.intentExists(brcKey) || affectedByApi) &&
-                    !otherPoints.isEmpty()) {
+            if ((!intentInstaller.intentExists(brcKey) || affectedByApi)
+                    && !otherPoints.isEmpty()) {
                 intents.add(intentInstaller.buildBrcIntent(brcKey,
                                                            point,
-                                                           otherPoints));
+                                                           otherPoints,
+                                                           encap));
             }
         });
 
@@ -274,16 +280,18 @@ public class Vpls {
     /**
      * Sets up unicast intents between any given filtered connect point.
      *
-     * @param networkName the VPLS name
-     * @param hosts the set of destination hosts
-     * @param fcPoints the set of filtered connect points
+     * @param vplsName      the VPLS name
+     * @param hosts         the set of destination hosts
+     * @param fcPoints      the set of filtered connect points
+     * @param encap         the encapsulation type
      * @param affectedByApi true if the function triggered from APIs;
      *                      false otherwise
      * @return the set of unicast intents
      */
-    private Set<Intent> buildUnicastIntents(String networkName,
+    private Set<Intent> buildUnicastIntents(String vplsName,
                                             Set<Host> hosts,
                                             Set<FilteredConnectPoint> fcPoints,
+                                            EncapsulationType encap,
                                             boolean affectedByApi) {
         Set<Intent> intents = Sets.newHashSet();
         hosts.forEach(host -> {
@@ -301,7 +309,7 @@ public class Vpls {
 
             Key uniKey = intentInstaller.buildKey(PREFIX_UNICAST,
                                                   host.location(),
-                                                  networkName,
+                                                  vplsName,
                                                   host.mac());
 
             if ((!intentInstaller.intentExists(uniKey) || affectedByApi) &&
@@ -309,7 +317,8 @@ public class Vpls {
                 intents.add(intentInstaller.buildUniIntent(uniKey,
                                                            otherPoints,
                                                            hostPoint,
-                                                           host));
+                                                           host,
+                                                           encap));
             }
         });
 
@@ -317,7 +326,7 @@ public class Vpls {
     }
 
     /**
-     * Finds the filtered connect point a host is attached to.
+     * Returns the filtered connect point associated to a given host.
      *
      * @param host the target host
      * @param fcps the filtered connected points
@@ -331,8 +340,7 @@ public class Vpls {
                     VlanIdCriterion vlanCriterion =
                             (VlanIdCriterion) fcp.trafficSelector().
                                     getCriterion(Criterion.Type.VLAN_VID);
-
-                    return vlanCriterion != null &&
+                    return vlanCriterion == null ||
                             vlanCriterion.vlanId().equals(host.vlan());
                 })
                 .findFirst()
@@ -346,17 +354,15 @@ public class Vpls {
      * @return the set of filtered connect points
      */
     private Set<FilteredConnectPoint> buildFCPoints(Collection<Interface> interfaces) {
-        // Build all filtered connected points in the network
+        // Build all filtered connected points in the VPLS
         return interfaces
                 .stream()
                 .map(intf -> {
                     TrafficSelector.Builder selectorBuilder =
                             DefaultTrafficSelector.builder();
-
                     if (!intf.vlan().equals(VlanId.NONE)) {
                         selectorBuilder.matchVlanId(intf.vlan());
                     }
-
                     return new FilteredConnectPoint(intf.connectPoint(),
                                                     selectorBuilder.build());
                 })
@@ -396,7 +402,6 @@ public class Vpls {
                 case INTERFACE_REMOVED:
                     setupConnectivity(false);
                     break;
-
                 default:
                     break;
             }
@@ -409,7 +414,7 @@ public class Vpls {
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass() == VplsConfigurationService.CONFIG_CLASS) {
+            if (event.configClass() == VplsConfigService.CONFIG_CLASS) {
                 log.debug(NET_CONF_EVENT, event.configClass());
                 switch (event.type()) {
                     case CONFIG_ADDED:
@@ -417,7 +422,6 @@ public class Vpls {
                     case CONFIG_REMOVED:
                         setupConnectivity(true);
                         break;
-
                     default:
                         break;
                 }

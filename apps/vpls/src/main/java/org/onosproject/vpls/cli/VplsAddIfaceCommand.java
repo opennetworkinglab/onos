@@ -19,22 +19,17 @@ package org.onosproject.vpls.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
-
-import java.util.Map;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to add an interface to a VPLS.
  */
 @Command(scope = "onos", name = "vpls-add-iface",
-        description = "Add an interface to an existing VPLS")
+        description = "Adds an interface to an existing VPLS")
 public class VplsAddIfaceCommand extends AbstractShellCommand {
 
-    private static final String IFACE_ADD_FAIL = "Interface cannot be added.";
-    private static final String IFACE_EXIST =
-            "Interface %s already associated to network %s.";
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private static VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = true, multiValued = false)
@@ -46,24 +41,25 @@ public class VplsAddIfaceCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        if (!vplsConfigService.getAllVpls().contains(vplsName)) {
-            print(IFACE_ADD_FAIL);
+        // Check if the VPLS exists
+        if (!VplsCommandUtils.vplsExists(vplsName)) {
+            print(VplsCommandUtils.VPLS_NOT_FOUND, vplsName);
             return;
         }
 
-        if (vplsConfigService.getAllInterfaces()
-                .stream()
-                .anyMatch(e -> e.name().equals(ifaceName))) {
-            print(IFACE_EXIST, ifaceName, vplsConfigService.getVplsNetworks()
-                    .entries()
-                    .stream()
-                    .filter(e->e.getValue().name().equals(ifaceName))
-                    .map(Map.Entry::getKey)
-                    .findFirst()
-                    .get());
+        // Check if the interface exists
+        if (!VplsCommandUtils.ifaceExists(ifaceName)) {
+            print(VplsCommandUtils.IFACE_NOT_FOUND, ifaceName);
             return;
         }
 
-        vplsConfigService.addInterfaceToVpls(vplsName, ifaceName);
+        // Check if the interface is already associated to a VPLS
+        if (VplsCommandUtils.ifaceAlreadyAssociated(ifaceName)) {
+            print(VplsCommandUtils.IFACE_ALREADY_ASSOCIATED,
+                  ifaceName, VplsCommandUtils.vplsNameFromIfaceName(ifaceName));
+            return;
+        }
+
+        vplsConfigService.addIface(vplsName, ifaceName);
     }
 }

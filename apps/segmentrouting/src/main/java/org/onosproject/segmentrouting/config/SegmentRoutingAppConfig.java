@@ -40,14 +40,36 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     private static final String SUPPRESS_HOST_BY_PORT = "suppressHostByPort";
     // TODO We might want to move SUPPRESS_HOST_BY_PROVIDER to Component Config
     private static final String SUPPRESS_HOST_BY_PROVIDER = "suppressHostByProvider";
+    private static final String MPLS_ECMP = "MPLS-ECMP";
 
     @Override
     public boolean isValid() {
         return hasOnlyFields(VROUTER_MACS, VROUTER_ID, SUPPRESS_SUBNET,
-                SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER) &&
+                SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER, MPLS_ECMP) &&
                 vRouterMacs() != null && vRouterId() != null &&
                 suppressSubnet() != null && suppressHostByPort() != null &&
                 suppressHostByProvider() != null;
+    }
+
+    /**
+     * Gets MPLS-ECMP configuration from the config.
+     *
+     * @return the configuration of MPLS-ECMP. If it is not
+     *         specified, the default behavior is false.
+     */
+    public boolean mplsEcmp() {
+        return get(MPLS_ECMP, false);
+    }
+
+    /**
+     * Sets MPLS-ECMP to the config.
+     *
+     * @param mplsEcmp the MPLS-ECMP configuration
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setMplsEcmp(boolean mplsEcmp) {
+        object.put(MPLS_ECMP, mplsEcmp);
+        return this;
     }
 
     /**
@@ -276,6 +298,7 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
                 .add("suppressSubnet", suppressSubnet())
                 .add("suppressHostByPort", suppressHostByPort())
                 .add("suppressHostByProvider", suppressHostByProvider())
+                .add("mplsEcmp", mplsEcmp())
                 .toString();
     }
 }

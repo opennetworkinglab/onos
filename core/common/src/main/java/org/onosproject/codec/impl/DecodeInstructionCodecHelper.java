@@ -365,7 +365,12 @@ public final class DecodeInstructionCodecHelper {
         } else if (type.equals(Instruction.Type.QUEUE.name())) {
             long queueId = nullIsIllegal(json.get(InstructionCodec.QUEUE_ID),
                     InstructionCodec.QUEUE_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asLong();
-            return Instructions.setQueue(queueId, getPortNumber(json));
+            if (json.get(InstructionCodec.PORT) == null ||
+                    json.get(InstructionCodec.PORT).isNull()) {
+                return Instructions.setQueue(queueId, null);
+            } else {
+                return Instructions.setQueue(queueId, getPortNumber(json));
+            }
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
         } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {

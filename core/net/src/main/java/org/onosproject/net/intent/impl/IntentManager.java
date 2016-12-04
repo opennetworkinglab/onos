@@ -266,6 +266,14 @@ public class IntentManager
     }
 
     @Override
+    public void addPending(IntentData intentData) {
+        checkPermission(INTENT_WRITE);
+        checkNotNull(intentData, INTENT_NULL);
+        //TODO we might consider further checking / assertions
+        store.addPending(intentData);
+    }
+
+    @Override
     public Iterable<IntentData> getIntentData() {
         checkPermission(INTENT_READ);
         return store.getIntentData(false, 0);

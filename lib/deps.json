@@ -30,7 +30,11 @@
       "jackson-databind",
       "org.apache.karaf.features.core",
       "org.apache.karaf.system.core",
-      { "name": "jsr305", "compile_only": true }
+      { "name": "jsr305", "compile_only": true },
+      "onos-yang-datamodel",
+      "onos-yang-utils-generator",
+      "org.apache.servicemix.bundles.dom4j",
+      "onos-yang-maven-plugin"
     ],
     "CORE_DEPS": [
       ":COMPILE",
@@ -183,7 +187,7 @@
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.11.2",
-    "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.5.tar.gz",
+    "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.5-offline-20161115.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "cord-config": "mvn:org.onosproject:cord-config:1.0-b1",
     "libthrift": "mvn:org.apache.thrift:libthrift:0.9.3",
@@ -199,6 +203,10 @@
     // Openstack4j related jars
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:2.11",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:2.11",
-    "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11"
+    "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:2.11",
+    "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.11",
+    "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.11",
+    "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.11",
+    "org.apache.servicemix.bundles.dom4j":"mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:1.6.1_5"
   }
 }

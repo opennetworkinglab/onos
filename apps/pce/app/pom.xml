@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-pce</artifactId>
-        <version>1.8.0-SNAPSHOT</version>
+        <version>1.9.0-SNAPSHOT</version>
     </parent>
     <artifactId>onos-app-pce</artifactId>
     <packaging>bundle</packaging>
@@ -105,5 +105,10 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-pcep-api</artifactId>
         </dependency>
+       <dependency>
+           <groupId>org.easymock</groupId>
+           <artifactId>easymock</artifactId>
+           <scope>test</scope>
+       </dependency>
     </dependencies>
 </project>

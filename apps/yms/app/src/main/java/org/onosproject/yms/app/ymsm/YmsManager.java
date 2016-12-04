@@ -25,7 +25,15 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.event.ListenerService;
+import org.onosproject.yms.app.yab.YangApplicationBroker;
+import org.onosproject.yms.app.ych.DefaultYangCodecHandler;
+import org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry;
+import org.onosproject.yms.app.ydt.DefaultYdtWalker;
+import org.onosproject.yms.app.ydt.YangRequestWorkBench;
 import org.onosproject.yms.app.ynh.YangNotificationExtendedService;
+import org.onosproject.yms.app.ynh.YangNotificationManager;
+import org.onosproject.yms.app.ysr.DefaultYangModuleLibrary;
 import org.onosproject.yms.app.ysr.DefaultYangSchemaRegistry;
 import org.onosproject.yms.app.ysr.YangSchemaRegistry;
 import org.onosproject.yms.ych.YangCodecHandler;
@@ -44,9 +52,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+import static java.lang.String.valueOf;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry.initializeDefaultCodec;
 
 /**
  * Represents implementation of YANG management system manager.
@@ -65,8 +75,9 @@ public class YmsManager
     //module id generator should be used to generate a new module id for
     //each YSR instance. So YCH also should generate it.
     private IdGenerator moduleIdGenerator;
-    private ExecutorService schemaRegistryExecutor;
+    private ExecutorService executor;
     private YangNotificationExtendedService ynhExtendedService;
+    private YangModuleLibrary library;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -75,19 +86,22 @@ public class YmsManager
     public void activate() {
         appId = coreService.registerApplication(APP_ID);
         moduleIdGenerator = coreService.getIdGenerator(MODULE_ID);
-        schemaRegistry = new DefaultYangSchemaRegistry(String.valueOf(
-                moduleIdGenerator.getNewId()));
-        schemaRegistryExecutor =
-                Executors.newSingleThreadExecutor(groupedThreads(
-                        "onos/apps/yang-management-system/schema-registry",
-                        "schema-registry-handler", log));
+        schemaRegistry = new DefaultYangSchemaRegistry();
+        library = new DefaultYangModuleLibrary(getNewModuleId());
+        executor = newSingleThreadExecutor(groupedThreads(
+                "onos/apps/yang-management-system/schema-registry",
+                "schema-registry-handler", log));
+        ynhExtendedService = new YangNotificationManager(schemaRegistry);
+        //Initialize the default codec
+        initializeDefaultCodec();
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        ((DefaultYangSchemaRegistry) schemaRegistry).flushYsrData();
-        schemaRegistryExecutor.shutdown();
+        schemaRegistry.flushYsrData();
+        executor.shutdown();
 
         // TODO implementation for other components.
         log.info("Stopped");
@@ -96,25 +110,50 @@ public class YmsManager
     @Override
     public YdtBuilder getYdtBuilder(String logicalRootName,
                                     String rootNamespace,
-                                    YmsOperationType operationType) {
-        return null;
+                                    YmsOperationType opType) {
+        return new YangRequestWorkBench(logicalRootName, rootNamespace,
+                                        opType, schemaRegistry, true);
     }
 
     @Override
     public YdtBuilder getYdtBuilder(String logicalRootName,
                                     String rootNamespace,
-                                    YmsOperationType operationType,
+                                    YmsOperationType opType,
                                     Object schemaRegistryForYdt) {
-        return null;
+        if (schemaRegistryForYdt != null) {
+            return new YangRequestWorkBench(
+                    logicalRootName, rootNamespace, opType,
+                    (YangSchemaRegistry) schemaRegistryForYdt, false);
+        }
+        return new YangRequestWorkBench(logicalRootName, rootNamespace,
+                                        opType, schemaRegistry, true);
     }
 
     @Override
     public YdtWalker getYdtWalker() {
-        return null;
+        return new DefaultYdtWalker();
     }
 
     @Override
     public YdtResponse executeOperation(YdtBuilder operationRequest) {
+        YangApplicationBroker requestBroker =
+                new YangApplicationBroker(schemaRegistry);
+        switch (operationRequest.getYmsOperationType()) {
+            case EDIT_CONFIG_REQUEST:
+                try {
+                    return requestBroker.processEdit(operationRequest);
+                } catch (CloneNotSupportedException e) {
+                    log.error("YAB: failed to process edit request.");
+                }
+            case QUERY_CONFIG_REQUEST:
+                // TODO : to be implemented
+            case QUERY_REQUEST:
+                return requestBroker.processQuery(operationRequest);
+            case RPC_REQUEST:
+                return requestBroker.processOperation(operationRequest);
+            default:
+                // TODO : throw exception
+        }
         return null;
     }
 
@@ -123,40 +162,52 @@ public class YmsManager
         return ynhExtendedService;
     }
 
-    /**
-     * Returns YANG notification extended service.
-     *
-     * @return YANG notification extended service
-     */
-    private YangNotificationExtendedService getYnhExtendedService() {
-        return ynhExtendedService;
-    }
-
     @Override
     public YangModuleLibrary getYangModuleLibrary() {
-        return ((DefaultYangSchemaRegistry) schemaRegistry).getLibrary();
+        //TODO: get for YCH should be handled.
+        return library;
     }
 
     @Override
     public String getYangFile(YangModuleIdentifier moduleIdentifier) {
-        return ((DefaultYangSchemaRegistry) schemaRegistry)
-                .getYangFile(moduleIdentifier);
+        return schemaRegistry.getYangFile(moduleIdentifier);
     }
 
     @Override
     public void registerDefaultCodec(YangDataTreeCodec defaultCodec,
                                      YangProtocolEncodingFormat dataFormat) {
-
+        YangCodecRegistry.registerDefaultCodec(defaultCodec, dataFormat);
     }
 
     @Override
-    public void registerService(Object yangManager, Class<?> yangService,
-                                List<String> supportedFeatureList) {
-
+    public void registerService(Object manager, Class<?> service,
+                                List<String> features) {
         //perform registration of service
-        schemaRegistryExecutor.execute(() -> schemaRegistry
-                .registerApplication(yangManager, yangService,
-                                     getYnhExtendedService()));
+        executor.execute(() -> {
+
+            schemaRegistry.registerApplication(manager, service);
+            //process notification registration.
+            processNotificationRegistration(manager, service);
+
+            schemaRegistry.processModuleLibrary(service.getName(), library);
+        });
+        // TODO implementation based on supported features.
+    }
+
+    /**
+     * Process notification registration for manager class object.
+     *
+     * @param manager yang manager
+     * @param service service class
+     */
+    private void processNotificationRegistration(Object manager, Class<?> service) {
+        synchronized (service) {
+            if (manager != null && manager instanceof ListenerService) {
+                if (schemaRegistry.verifyNotificationObject(manager, service)) {
+                    ynhExtendedService.registerAsListener((ListenerService) manager);
+                }
+            }
+        }
     }
 
     @Override
@@ -166,7 +217,10 @@ public class YmsManager
 
     @Override
     public YangCodecHandler getYangCodecHandler() {
-        return null;
+        YangSchemaRegistry registry = new DefaultYangSchemaRegistry();
+        DefaultYangCodecHandler handler = new DefaultYangCodecHandler(registry);
+        handler.setLibrary(new DefaultYangModuleLibrary(getNewModuleId()));
+        return handler;
     }
 
     /**
@@ -178,4 +232,12 @@ public class YmsManager
         return schemaRegistry;
     }
 
+    /**
+     * Returns new generated module id.
+     *
+     * @return new module id
+     */
+    private String getNewModuleId() {
+        return valueOf(moduleIdGenerator.getNewId());
+    }
 }

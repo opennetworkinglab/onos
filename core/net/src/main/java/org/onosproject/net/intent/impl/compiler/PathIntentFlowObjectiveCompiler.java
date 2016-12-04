@@ -89,7 +89,11 @@ public class PathIntentFlowObjectiveCompiler
         List<DeviceId> devices = new LinkedList<>();
         compile(this, intent, objectives, devices);
 
-        return ImmutableList.of(new FlowObjectiveIntent(appId, devices, objectives, intent.resources()));
+        return ImmutableList.of(new FlowObjectiveIntent(appId,
+                                                        intent.key(),
+                                                        devices,
+                                                        objectives,
+                                                        intent.resources()));
     }
 
     @Override

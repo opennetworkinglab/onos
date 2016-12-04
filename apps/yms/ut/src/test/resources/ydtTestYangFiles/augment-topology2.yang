@@ -1,0 +1,63 @@
+module augment-topology2 {
+
+    yang-version 1;
+
+    namespace "ydt.augment-topology2";
+
+    prefix "aug2";
+
+    import yms-ietf-network {
+        prefix nd;
+    }
+
+    import yms-network-topology {
+        prefix topo;
+    }
+
+    organization "ON-LAB";
+
+    description "This module defines for augment-topology2 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    augment "/nd:networks/nd:network/topo:link" {
+        description
+        "Add augment2 to the link model.";
+        list augment2 {
+            key "key1 key2";
+            leaf key1 {
+                  type int8;
+            }
+            leaf key2 {
+                  type int8;
+            }
+        }
+
+        leaf-list augment2leafList {
+            type string;
+        }
+    }
+
+    augment "/nd:networks/nd:network/nd:node/topo:t-point/" +
+    "supporting-termination-point" {
+        description
+        "Add augment2 to the supporting-termination-point model.";
+        container augment2 {
+            config false;
+            leaf value2 {
+                  type int8;
+            }
+        }
+
+        leaf-list augment2leafList {
+            type string;
+        }
+
+        leaf augment2leaf {
+            type string;
+        }
+
+    }
+}

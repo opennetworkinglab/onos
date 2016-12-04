@@ -1,0 +1,23 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
+    '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
+    '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
+    '//protocols/rest/api:onos-protocols-rest-api',
+    '//apps/tetopology/api:onos-apps-tetopology-api',
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel',
+    '//apps/tenbi/utils:onos-apps-tenbi-utils',
+    '//apps/yms/api:onos-apps-yms-api',
+    '//providers/ietfte/utils:onos-providers-ietfte-utils',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)

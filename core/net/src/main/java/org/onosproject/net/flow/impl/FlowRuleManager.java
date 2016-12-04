@@ -264,11 +264,27 @@ public class FlowRuleManager
         removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
     }
 
+    @Deprecated
     @Override
     public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
         checkPermission(FLOWRULE_READ);
 
         Set<FlowRule> flowEntries = Sets.newHashSet();
+        for (Device d : deviceService.getDevices()) {
+            for (FlowEntry flowEntry : store.getFlowEntries(d.id())) {
+                if (flowEntry.appId() == id.id()) {
+                    flowEntries.add(flowEntry);
+                }
+            }
+        }
+        return flowEntries;
+    }
+
+    @Override
+    public Iterable<FlowEntry> getFlowEntriesById(ApplicationId id) {
+        checkPermission(FLOWRULE_READ);
+
+        Set<FlowEntry> flowEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
             for (FlowEntry flowEntry : store.getFlowEntries(d.id())) {
                 if (flowEntry.appId() == id.id()) {

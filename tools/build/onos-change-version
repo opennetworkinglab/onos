@@ -19,6 +19,7 @@ cd $ONOS_ROOT
 mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
 mvn -f lib/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 sed -i "" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" pom.xml
+sed -i "" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" drivers/bti/pom.xml
 
 # Augment the version of the Java API pom files and the overview.html file.
 for pom in docs/internal.xml docs/external.xml; do
@@ -44,10 +45,6 @@ for atype in api bundle cli rest ui uitab uitopo; do
 done
 sed -i "" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION/g" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 
-# Augment the version cord-gui
-perl -i -0pe "s#<artifactId>cord-gui<.*\n.*version>#<artifactId>cord-gui</artifactId>\n    <version>$NEW_VERSION</version>#" $ONOS_ROOT/apps/demo/cord-gui/pom.xml
-sed -i "" -E "s#demo/cord-gui/target/cord-gui-.*\.war#demo/cord-gui/target/cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/pullwar.sh
-sed -i "" -E "s#CORD=./cord-gui-.*\.war#CORD=./cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/run.me
-
 # Version the BUCK artifacts
 sed -i "" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
+sed -i "" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar

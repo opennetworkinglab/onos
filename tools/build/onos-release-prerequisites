@@ -100,6 +100,9 @@ function testEC2Access {
     aux=$(mktemp)
     trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
     printf "Checking EC2 access... "
+    : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID must be set}"
+    : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY must be set}"
+
     uploadToS3.py -v 1>$aux 2>&1
     rm -f $aux
     echo "OK"
@@ -107,10 +110,10 @@ function testEC2Access {
 
 # Sonatype account must be created & ~/.m2/settings.xml must be configured
 # Test by "releasing" a fake project setup for that purpose to validate access.
-function testSonatypeAccess {
+function testSonatypeAccessMvn {
     aux=$(mktemp)
     trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
-    printf "Checking Sonatype access... "
+    printf "Checking Sonatype access via Maven... "
     pushd $ONOS_ROOT/tools/build/release-test >/dev/null
     # TODO: Figure out how to supress the GPG note
     mvn -Prelease clean deploy org.sonatype.plugins:nexus-staging-maven-plugin:drop \
@@ -121,12 +124,65 @@ function testSonatypeAccess {
     echo "OK"
 }
 
+function testSonatypeAccessRest {
+    : "${SONATYPE_USER:?SONATYPE_USER must be set}"
+    : "${SONATYPE_PASSWORD:?SONATYPE_PASSWORD must be set}"
+    export ONOS_VERSION=1.2.3
+    printf "Checking Sonatype access via REST... "
+    pushd $ONOS_ROOT/tools/build/release-test >/dev/null
+    #FIXME this won't work on Linux
+    md5 pom.xml > pom.xml.md5
+    shasum pom.xml > pom.xml.sha1
+    gpg --detach-sign --output pom.xml.asc pom.xml
+    # Upload the files to staging
+    curl -s -u$SONATYPE_USER:$SONATYPE_PASSWORD --upload-file pom.xml \
+    https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-api/$ONOS_VERSION/onos-api-$ONOS_VERSION.pom
+    curl -s -u$SONATYPE_USER:$SONATYPE_PASSWORD --upload-file pom.xml.md5 \
+    https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-api/$ONOS_VERSION/onos-api-$ONOS_VERSION.pom.md5
+    curl -s -u$SONATYPE_USER:$SONATYPE_PASSWORD --upload-file pom.xml.sha1 \
+    https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-api/$ONOS_VERSION/onos-api-$ONOS_VERSION.pom.sha1
+    curl -s -u$SONATYPE_USER:$SONATYPE_PASSWORD --upload-file pom.xml.asc \
+    https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-api/$ONOS_VERSION/onos-api-$ONOS_VERSION.pom.asc
+    rm pom.xml.md5 pom.xml.sha1 pom.xml.asc
+    onos-close-staging -d >/dev/null
+    popd >/dev/null
+    unset ONOS_VERSION
+    echo "OK"
+}
+
+# .buckconfig.local must exist and the sonatype credentials must be set up
+function testBuckconfigLocal() {
+    printf "Checking local buck config..."
+    if [ ! -f $ONOS_ROOT/.buckconfig.local ]; then
+        echo ".buckconfig.local not found"
+        return 1
+    fi
+
+    trap "echo [publish] must be specified" ERR
+    grep -q "^\[publish\]" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_url must be specified" ERR
+    grep -q "maven_url" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_user must be specified" ERR
+    grep -q "maven_user" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo maven_password must be specified" ERR
+    grep -q "maven_password" $ONOS_ROOT/.buckconfig.local
+
+    trap "echo pgp_keyring must be specified" ERR
+    grep -q "pgp_keyring" $ONOS_ROOT/.buckconfig.local
+
+    echo "OK"
+}
+
+testBuckconfigLocal
 testToolchain
 testSnapshotDependencies
 testGerritAccess
 testWikiAccess
 testEC2Access
-testSonatypeAccess
+testSonatypeAccessMvn
+testSonatypeAccessRest
 
 echo "Ready to commence release process!"
-

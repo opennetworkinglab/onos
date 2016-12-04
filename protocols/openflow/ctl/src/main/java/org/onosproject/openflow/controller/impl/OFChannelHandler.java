@@ -33,6 +33,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
+import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.onosproject.openflow.controller.driver.SwitchStateException;
 import org.projectfloodlight.openflow.exceptions.OFParseError;
@@ -56,6 +57,8 @@ import org.projectfloodlight.openflow.protocol.OFGetConfigRequest;
 import org.projectfloodlight.openflow.protocol.OFHello;
 import org.projectfloodlight.openflow.protocol.OFHelloElem;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeaturesStatsReply;
+import org.projectfloodlight.openflow.protocol.OFMeterFeaturesStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsRequest;
@@ -102,6 +105,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     // Temporary storage for switch-features and port-description
     private OFFeaturesReply featuresReply;
     private List<OFPortDescStatsReply> portDescReplies;
+    private OFMeterFeaturesStatsReply meterFeaturesReply;
     //private OFPortDescStatsReply portDescReply;
     // a concurrent ArrayList to temporarily store port status messages
     // before we are ready to deal with them
@@ -357,8 +361,16 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                             h.getSwitchInfoString(),
                             m.getMissSendLen());
                 }
-                h.sendHandshakeDescriptionStatsRequest();
-                h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+
+                if (h.ofVersion == OFVersion.OF_13) {
+                    // Meters were introduced in OpenFlow 1.3
+                    h.sendMeterFeaturesRequest();
+                    h.setState(WAIT_METER_FEATURES_REPLY);
+                }
+                else {
+                    h.sendHandshakeDescriptionStatsRequest();
+                    h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+                }
             }
 
             @Override
@@ -432,6 +444,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 h.sw.setFeaturesReply(h.featuresReply);
                 //h.sw.setPortDescReply(h.portDescReply);
                 h.sw.setPortDescReplies(h.portDescReplies);
+                h.sw.setMeterFeaturesReply(h.meterFeaturesReply);
                 h.sw.setConnected(true);
                 h.sw.setChannel(h.channel);
 //                boolean success = h.sw.connectSwitch();
@@ -555,6 +568,59 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 }
             }
 
+        },
+
+        /**
+         * We are expecting a OF Multi Part Meter Features Stats Reply.
+         * Notice that this information is only available for switches running
+         * OpenFlow 1.3
+         */
+        WAIT_METER_FEATURES_REPLY(true) {
+            @Override
+            void processOFError(OFChannelHandler h, OFErrorMsg m)
+                    throws IOException {
+                // Hardware switches may reply OFErrorMsg if meter is not supported
+                log.warn("Received OFError {}. It seems {} does not support Meter.",
+                        m.getErrType().name(), Dpid.uri(h.thisdpid));
+                log.debug("{}", m);
+                h.sendHandshakeDescriptionStatsRequest();
+                h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+            }
+
+            @Override
+            void processOFStatisticsReply(OFChannelHandler h,
+                                          OFStatsReply  m)
+                    throws IOException, SwitchStateException {
+                switch(m.getStatsType()) {
+                    case METER_FEATURES:
+
+                        log.debug("Received Meter Features");
+                        OFMeterFeaturesStatsReply ofmfsr = (OFMeterFeaturesStatsReply)m;
+                        log.info("Received meter features from {} with max meters: {}",
+                                h.getSwitchInfoString(),
+                                ofmfsr.getFeatures().getMaxMeter());
+                        h.meterFeaturesReply = ofmfsr;
+                        h.sendHandshakeDescriptionStatsRequest();
+                        h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+                        break;
+                    default:
+                        log.error("Unexpected OF Multi Part stats reply");
+                        illegalMessageReceived(h, m);
+                        break;
+                }
+            }
+
+            @Override
+            void processOFFeaturesReply(OFChannelHandler h, OFFeaturesReply  m)
+                    throws IOException, SwitchStateException {
+                illegalMessageReceived(h, m);
+            }
+
+            @Override
+            void processOFPortStatus(OFChannelHandler h, OFPortStatus m)
+                    throws IOException {
+                h.pendingPortStatusMsg.add(m);
+            }
         },
 
 
@@ -1305,6 +1371,20 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 .setXid(handshakeTransactionIds--)
                 .build();
         channel.write(Collections.singletonList(dreq));
+    }
+
+    /**
+     * send a meter features request
+     * @throws IOException
+     */
+    private void sendMeterFeaturesRequest() throws IOException {
+        // Get meter features including the MaxMeters value available for the device
+        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFMeterFeaturesStatsRequest mfreq = factory
+                .buildMeterFeaturesStatsRequest()
+                .setXid(handshakeTransactionIds--)
+                .build();
+        channel.write(Collections.singletonList(mfreq));
     }
 
     private void sendHandshakeOFPortDescRequest() throws IOException {

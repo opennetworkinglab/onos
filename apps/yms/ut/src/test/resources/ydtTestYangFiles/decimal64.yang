@@ -1,0 +1,95 @@
+module decimal64 {
+
+    yang-version 1;
+
+    namespace "ydt.decimal64";
+
+    prefix "decimal64";
+
+    organization "ON-LAB";
+
+    description "This module defines for decimal64 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+    leaf negInt {
+          type decimal64 {
+                fraction-digits 2;
+          }
+    }
+
+    leaf posInt {
+          type decimal64 {
+                fraction-digits 2;
+          }
+    }
+
+    leaf negIntWithMinFraction {
+          type decimal64 {
+                fraction-digits 1;
+          }
+    }
+
+    leaf posIntWithMinFraction {
+          type decimal64 {
+                fraction-digits 1;
+          }
+
+    }
+    leaf negIntWithMaxFraction {
+          type decimal64 {
+                fraction-digits 18;
+          }
+    }
+
+    leaf posIntWithMaxFraction {
+          type decimal64 {
+                fraction-digits 18;
+          }
+
+    }
+
+    leaf midIntWithRange {
+          type decimal64 {
+             fraction-digits 2;
+             range "10 .. 100";
+         }
+    }
+
+    leaf minIntWithRange {
+          type decimal64 {
+                fraction-digits 2;
+                range "10 .. 100";
+          }
+    }
+
+    leaf maxIntWithRange {
+          type decimal64 {
+             fraction-digits 2;
+             range "10 .. 100";
+         }
+    }
+
+    list multiRangeValidation {
+        config false;
+        leaf decimal {
+              type decimal64 {
+                 fraction-digits 2;
+                 range "10..40 | 50..100";
+              }
+        }
+        leaf revDecimal {
+              type decimal64 {
+                 fraction-digits 2;
+                 range "min .. 3.14 | 10 | 20..max";
+              }
+        }
+    }
+
+    leaf l1 {
+        type decimal64 {
+            fraction-digits 2;
+        }
+    }
+}

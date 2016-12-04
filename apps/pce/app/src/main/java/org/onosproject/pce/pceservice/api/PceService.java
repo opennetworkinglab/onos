@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -40,6 +41,20 @@ public interface PceService {
      * @return false on failure and true on successful path creation
      */
     boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints, LspType lspType);
+
+    /**
+     * Creates new path based on constraints and LSP type.
+     *
+     * @param src source device
+     * @param dst destination device
+     * @param tunnelName name of the tunnel
+     * @param constraints list of constraints to be applied on path
+     * @param lspType type of path to be setup
+     * @param explicitPathInfo list of explicit path info
+     * @return false on failure and true on successful path creation
+     */
+    boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints, LspType lspType,
+                      List<ExplicitPathInfo> explicitPathInfo);
 
     /**
      * Updates an existing path.
@@ -72,4 +87,12 @@ public interface PceService {
      * @return tunnel if path exists, otherwise null
      */
     Tunnel queryPath(TunnelId tunnelId);
+
+    /**
+     * Returns list of explicit path info.
+     *
+     * @param tunnelName tunnel name
+     * @return list of explicit path info
+     */
+    List<ExplicitPathInfo> explicitPathInfoList(String tunnelName);
 }

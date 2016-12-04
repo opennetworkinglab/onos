@@ -1,0 +1,21 @@
+module employeeid {
+
+    yang-version 1;
+
+    namespace "ydt.employee-id";
+
+    prefix "id";
+
+    organization "ON-LAB";
+
+    description "This module defines for employee-id.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf-list employeeid {
+        type string;
+        description "list of the employee id";
+    }
+}

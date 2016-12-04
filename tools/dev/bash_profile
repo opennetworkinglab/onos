@@ -35,6 +35,9 @@ export ONOS_CELL=${ONOS_CELL:-local}
 export ONOS_WEB_USER=onos
 export ONOS_WEB_PASS=rocks
 
+# Use raw SSH client for CLI console access by default
+export ONOS_USE_SSH=true
+
 # Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
@@ -59,7 +62,7 @@ alias deprecatedAlias='echo "This alias has been deprecated."'
 alias obi=deprecatedAlias
 alias obs=deprecatedAlias
 
-alias ok='buck run onos-local --'
+alias ok='NO_BUCKD=1 buck run onos-local --'
 alias oh='onos localhost halt'
 
 alias ol='onos-log'
@@ -206,11 +209,11 @@ function cell {
         ;;
 
     "")
-        env | egrep "ONOS_CELL"
-        env | egrep "OCI"
-        env | egrep "OC[0-9]+" | sort
-        env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
+        env | egrep "^ONOS_CELL"
+        env | egrep "^OCI"
+        env | egrep "^OC[0-9]+" | sort
+        env | egrep "^OC[NT]"
+        env | egrep "^ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
         ;;
 
     *)

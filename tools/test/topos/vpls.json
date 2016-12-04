@@ -3,59 +3,98 @@
     "of:0000000000000001": { "basic": { "name": "s1", "latitude": 37.7576793, "longitude": -122.5076405 }},
     "of:0000000000000002": { "basic": { "name": "s2", "latitude": 34.0502337, "longitude": -118.3263353 }},
     "of:0000000000000003": { "basic": { "name": "s3", "latitude": 38.9082909, "longitude": -77.0886051 }},
-    "of:0000000000000004": { "basic": { "name": "s4", "latitude": 30.2787717, "longitude": -82.3069047 }}
+    "of:0000000000000004": { "basic": { "name": "s4", "latitude": 30.2787717, "longitude": -82.3069047 }},
+    "of:0000000000000005": { "basic": { "name": "s5", "latitude": 32.1932468, "longitude": -96.6318932 }}
   },
   "hosts": {
-    "00:00:00:00:00:01/100": { "basic": { "location": "of:0000000000000001/1", "ips": [ "10.0.0.1" ], "name": "v100h1", "latitude": 37.7576793, "longitude": -125.0076405  }},
-    "00:00:00:00:00:02/200": { "basic": { "location": "of:0000000000000002/1", "ips": [ "10.0.0.2" ], "name": "v200h1", "latitude": 34.0502337, "longitude": -120.8263353  }},
-    "00:00:00:00:00:03/300": { "basic": { "location": "of:0000000000000003/1", "ips": [ "10.0.0.3" ], "name": "v300h1", "latitude": 38.9082909, "longitude": -74.5886051  }},
-    "00:00:00:00:00:04/400": { "basic": { "location": "of:0000000000000004/1", "ips": [ "10.0.0.4" ], "name": "v400h1", "latitude": 30.2787717, "longitude": -79.8069047  }}
+    "00:00:00:00:00:01/10": { "basic": { "location": "of:0000000000000001/1", "ips": [ "10.0.0.1" ], "name": "vpls1h1", "latitude": 37.7576793, "longitude": -125.0076405 }},
+    "00:00:00:00:00:02/10": { "basic": { "location": "of:0000000000000004/1", "ips": [ "10.0.0.2" ], "name": "vpls1h2", "latitude": 30.2787717, "longitude": -79.8069047 }},
+    "00:00:00:00:00:03/20": { "basic": { "location": "of:0000000000000003/1", "ips": [ "10.0.0.3" ], "name": "vpls1h3", "latitude": 38.9082909, "longitude": -74.5886051 }},
+    "00:00:00:00:00:04/30": { "basic": { "location": "of:0000000000000004/2", "ips": [ "10.0.0.4" ], "name": "vpls2h1", "latitude": 30.2787717, "longitude": -79.8069047 }},
+    "00:00:00:00:00:05/40": { "basic": { "location": "of:0000000000000002/1", "ips": [ "10.0.0.5" ], "name": "vpls2h2", "latitude": 34.0502337, "longitude": -120.8263353 }},
+    "00:00:00:00:00:06/-1": { "basic": { "location": "of:0000000000000004/3", "ips": [ "10.0.0.6" ], "name": "vpls2h3", "latitude": 30.2787717, "longitude": -79.8069047 }},
+    "00:00:00:00:00:07/-1": { "basic": { "location": "of:0000000000000003/2", "ips": [ "10.0.0.7" ], "name": "vpls3h1", "latitude": 38.9082909, "longitude": -74.5886051 }},
+    "00:00:00:00:00:08/-1": { "basic": { "location": "of:0000000000000005/1", "ips": [ "10.0.0.8" ], "name": "vpls3h2", "latitude": 32.1932468, "longitude": -96.6318932 }}
   },
   "ports": {
     "of:0000000000000001/1": {
       "interfaces": [
         {
-          "name": "vlan100H1",
-          "vlan": "100"
+          "name": "vpls1h1",
+          "vlan": "10"
         }
       ]
     },
     "of:0000000000000002/1": {
       "interfaces": [
         {
-          "name": "vlan200H1",
-          "vlan": "200"
+          "name": "vpls2h2",
+          "vlan": "40"
         }
       ]
     },
     "of:0000000000000003/1": {
       "interfaces": [
         {
-          "name": "vlan300H1",
-          "vlan": "300"
+          "name": "vpls1h3",
+          "vlan": "20"
+        }
+      ]
+    },
+    "of:0000000000000003/2": {
+      "interfaces": [
+        {
+          "name": "vpls3h1"
         }
       ]
     },
     "of:0000000000000004/1": {
       "interfaces": [
         {
-          "name": "vlan400H1",
-          "vlan": "400"
+          "name": "vpls1h2",
+          "vlan": "10"
+        }
+      ]
+    },
+    "of:0000000000000004/2": {
+      "interfaces": [
+        {
+          "name": "vpls2h1",
+          "vlan": "30"
+        }
+      ]
+    },
+    "of:0000000000000004/3": {
+      "interfaces": [
+        {
+          "name": "vpls2h3"
+        }
+      ]
+    },
+    "of:0000000000000005/1": {
+      "interfaces": [
+        {
+          "name": "vpls3h2"
         }
       ]
     }
   },
   "apps" : {
     "org.onosproject.vpls" : {
-      "vpls" : {
-        "vplsNetworks" : [
+      "vpls": {
+        "vplsList" : [
           {
-            "name" : "net1",
-            "interfaces" : ["vlan100H1", "vlan200H1"]
+            "name" : "VPLS1",
+            "encapsulation" : "VLAN",
+            "interfaces" : ["vpls1h1", "vpls1h2", "vpls1h3"]
           },
           {
-            "name" : "net2",
-            "interfaces" : []
+            "name" : "VPLS2",
+            "interfaces" : ["vpls2h1", "vpls2h2", "vpls2h3"]
+          },
+          {
+            "name" : "VPLS3",
+            "interfaces" : ["vpls3h1", "vpls3h2"]
           }
         ]
       }

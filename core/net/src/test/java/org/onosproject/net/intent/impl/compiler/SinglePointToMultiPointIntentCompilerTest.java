@@ -37,7 +37,6 @@ import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -150,6 +149,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("h7", "h8"));
             assertThat(linkIntent.links(), linksHasPath("h8", "egress"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -182,6 +182,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("inner2", "egress1"));
             assertThat(linkIntent.links(), linksHasPath("inner2", "egress2"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -215,6 +216,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
             }
             assertThat(linkIntent.links(), linksHasPath(ingress, "n1"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -245,6 +247,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
             assertThat(linkIntent.links(), linksHasPath("i1", "i2"));
             assertThat(linkIntent.links(), linksHasPath("i1", "i3"));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
     }
 
     /**
@@ -291,6 +294,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
             assertThat("Link collection egress points do not match base intent",
                        linkIntent.filteredEgressPoints().equals(intent.filteredEgressPoints()));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
 
     }
 
@@ -342,6 +346,7 @@ public class SinglePointToMultiPointIntentCompilerTest extends AbstractIntentTes
                        linkIntent.filteredEgressPoints().equals(intent.filteredEgressPoints()));
             assertThat(linkIntent.selector(), is(ipPrefixSelector));
         }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
 
     }
 }

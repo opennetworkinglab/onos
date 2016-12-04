@@ -38,6 +38,7 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public class Ethernet extends BasePacket {
     private static final String HEXES = "0123456789ABCDEF";
+    private static final String HEX_PROTO = "0x%s";
 
     public static final short TYPE_ARP = EthType.EtherType.ARP.ethType().toShort();
     public static final short TYPE_RARP = EthType.EtherType.RARP.ethType().toShort();
@@ -494,7 +495,13 @@ public class Ethernet extends BasePacket {
         } else if (pkt instanceof DHCP) {
             sb.append("dhcp");
         } else {
-            sb.append(this.getEtherType());
+            /*
+             * When we don't know the protocol, we print using
+             * the well known hex format instead of a decimal
+             * value.
+             */
+            sb.append(String.format(HEX_PROTO,
+                                    Integer.toHexString(this.getEtherType() & 0xffff)));
         }
 
         sb.append("\ndl_vlan: ");

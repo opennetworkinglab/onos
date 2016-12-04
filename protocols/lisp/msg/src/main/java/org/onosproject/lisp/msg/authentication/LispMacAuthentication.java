@@ -33,22 +33,24 @@ public class LispMacAuthentication {
 
     private static final Logger log = LoggerFactory.getLogger(LispMacAuthentication.class);
 
-    private String algorithm;
-    private int authenticationLength;
+    private static final String NOT_SUPPORT_ALGORITHM_MSG =
+                                "Not support provided algorithm {}";
+    private static final String INVALID_KEY_MSG = "Provided key {} is invalid";
 
-    public LispMacAuthentication(LispAuthenticationKeyEnum authType) {
+    private String algorithm;
+
+    /**
+     * Default constructor with given authentication key type.
+     *
+     * @param authType authentication key type
+     */
+    LispMacAuthentication(LispAuthenticationKeyEnum authType) {
 
         if (authType == SHA1 || authType == SHA256) {
             algorithm = authType.getName();
         } else {
-            log.warn("Not support provided algorithm {}", authType.getName());
+            log.warn(NOT_SUPPORT_ALGORITHM_MSG, authType.getName());
             return;
-        }
-
-        try {
-            authenticationLength = Mac.getInstance(algorithm).getMacLength();
-        } catch (NoSuchAlgorithmException e) {
-            log.warn("Not support provided algorithm {}", algorithm);
         }
     }
 
@@ -57,18 +59,18 @@ public class LispMacAuthentication {
      *
      * @return dummy authentication data
      */
-    public byte[] getAuthenticationData() {
+    byte[] getAuthenticationData() {
         return new byte[0];
     }
 
     /**
      * Obtains authentication data with given key and algorithm.
      *
-     * @param key  authentication key (e.g., EID)
+     * @param key  authentication key
      * @param data array of byte buffer for place holder
      * @return authentication data
      */
-    public byte[] getAuthenticationData(String key, byte[] data) {
+    byte[] getAuthenticationData(String key, byte[] data) {
         try {
             SecretKeySpec signKey = new SecretKeySpec(key.getBytes(), algorithm);
             Mac mac = Mac.getInstance(algorithm);
@@ -76,20 +78,12 @@ public class LispMacAuthentication {
 
             return mac.doFinal(data);
         } catch (NoSuchAlgorithmException e) {
-            log.warn("Not support provided algorithm {}", algorithm);
+            log.warn(NOT_SUPPORT_ALGORITHM_MSG, algorithm, e.getMessage());
+            throw new RuntimeException(e);
         } catch (InvalidKeyException e) {
-            log.warn("Provided key {} is invalid", key);
+            log.warn(INVALID_KEY_MSG, key, e.getMessage());
+            throw new RuntimeException(e);
         }
-        return null;
-    }
-
-    /**
-     * Obtains authentication data length.
-     *
-     * @return authentication data length
-     */
-    public int getAuthenticationLength() {
-        return authenticationLength;
     }
 
     /**
@@ -97,7 +91,7 @@ public class LispMacAuthentication {
      *
      * @return authentication algorithm
      */
-    public String getAlgorithm() {
+    String getAlgorithm() {
         return algorithm;
     }
 }

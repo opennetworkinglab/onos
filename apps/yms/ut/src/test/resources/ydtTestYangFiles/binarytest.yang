@@ -1,0 +1,74 @@
+module binarytest {
+
+    yang-version 1;
+
+    namespace "ydt.binarytest";
+
+    prefix "binarytest";
+
+    organization "ON-LAB";
+
+    description "This module defines for binarytest classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list binaryList {
+        config false;
+        leaf binary {
+              type binary;
+        }
+        leaf binaryWithRange {
+              type binary {
+                   length "2 .. 10";
+              }
+        }
+        leaf binaryWithMultiRange {
+              type binary {
+                   length "min..10 | 20 | 30..max";
+              }
+        }
+    }
+
+    typedef percent {
+        type binary;
+    }
+
+    leaf name {
+        type percent;
+    }
+
+    grouping greeting {
+        leaf surname {
+            type binary;
+        }
+    }
+
+    container cont1 {
+        uses greeting;
+    }
+
+    augment "/cont1" {
+        leaf lastname {
+            type binary;
+        }
+    }
+
+    container food {
+        choice snack {
+            case sportsarena {
+                leaf pretzel {
+                    type binary;
+                }
+            }
+        }
+    }
+
+    leaf middlename {
+        type union {
+            type int8;
+            type binary;
+        }
+    }
+}

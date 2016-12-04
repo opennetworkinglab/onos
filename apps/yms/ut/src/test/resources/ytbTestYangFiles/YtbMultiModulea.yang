@@ -1,0 +1,12 @@
+module YtbMultiModulea {
+    yang-version 1;
+    namespace "yms:test:ytb:multi:module:a";
+    prefix "sch";
+    revision "2016-08-26";
+    list ytbmultilist {
+        config false;
+        leaf-list check {
+            type uint64;
+        }
+    }
+}

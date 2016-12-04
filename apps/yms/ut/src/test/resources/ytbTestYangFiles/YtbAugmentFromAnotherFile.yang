@@ -1,0 +1,41 @@
+module YtbAugmentFromAnotherFile {
+    yang-version 1;
+    namespace "yms:test:ytb:augment:from:another:file";
+    prefix "sch";
+    import yms-ietf-network {
+        prefix nd;
+    }
+    revision "2016-08-26";
+
+    augment "/nd:networks/nd:network/nd:node" {
+        list termination-point {
+            key "tp-id";
+            leaf tp-id {
+                type string;
+            }
+            list supporting-termination-point {
+                key "network-ref node-ref tp-ref";
+                leaf network-ref {
+                    type leafref {
+                        path "../../../nd:supporting-node/nd:network-ref";
+                        require-instance false;
+                    }
+                }
+                leaf node-ref {
+                    type leafref {
+                        path "../../../nd:supporting-node/nd:node-ref";
+                        require-instance false;
+                    }
+                }
+                leaf tp-ref {
+                    type leafref {
+                        path "/nd:networks/nd:network[nd:network-id=current()/"+
+                            "../network-ref]/nd:node[nd:node-id=current()/../"+
+                            "node-ref]/termination-point/tp-id";
+                        require-instance false;
+                    }
+                }
+            }
+        }
+    }
+}

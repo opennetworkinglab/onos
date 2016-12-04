@@ -1,0 +1,40 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//core/api:onos-api',
+  '//lib:javax.ws.rs-api',
+  '//lib:jersey-server',
+  '//utils/rest:onlab-rest',
+  '//core/store/serializers:onos-core-serializers',
+  '//incubator/api:onos-incubator-api',
+  '//apps/routing-api:onos-apps-routing-api',
+]
+
+BUNDLES = [
+  '//apps/castor:onos-apps-castor',
+  '//apps/routing-api:onos-apps-routing-api',
+  '//apps/routing:onos-apps-routing',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_ADAPTERS',
+  '//incubator/api:onos-incubator-api-tests',
+  '//apps/routing-api:onos-apps-routing-api-tests',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+  web_context = '/onos/castor',
+  api_title = 'Castor App',
+  api_version = '1.0',
+  api_description = 'REST API for Castor App',
+  api_package = 'org.onosproject.castor',
+)
+
+onos_app (
+  title = 'Castor App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'Castor application',
+)

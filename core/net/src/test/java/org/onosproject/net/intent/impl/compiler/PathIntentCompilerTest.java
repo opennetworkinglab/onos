@@ -60,6 +60,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
@@ -783,6 +784,10 @@ public class PathIntentCompilerTest {
         List<Intent> compiled = sut.compile(intent, Collections.emptyList());
         assertThat(compiled, hasSize(1));
 
+        assertThat("key is inherited",
+                   compiled.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
 
         FlowRule rule1 = rules.stream()
@@ -987,8 +992,8 @@ public class PathIntentCompilerTest {
                     .collect(Collectors.toSet());
             assertThat(vlanRules, hasSize(1));
             L2ModificationInstruction.ModVlanIdInstruction vlanRule = vlanRules.iterator().next();
-            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) VlanId.NO_VID));
-            assertThat(vlanRule.vlanId().toShort(), lessThan((short) VlanId.MAX_VLAN));
+            assertThat(vlanRule.vlanId().toShort(), greaterThan(VlanId.NO_VID));
+            assertThat(vlanRule.vlanId().toShort(), lessThan(VlanId.MAX_VLAN));
             vlanToEncap = vlanRule.vlanId();
         } else if (!isIngress && !isEgress) {
 
@@ -998,8 +1003,8 @@ public class PathIntentCompilerTest {
                     .collect(Collectors.toSet());
             assertThat(vlanRules, hasSize(1));
             L2ModificationInstruction.ModVlanIdInstruction vlanRule = vlanRules.iterator().next();
-            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) VlanId.NO_VID));
-            assertThat(vlanRule.vlanId().toShort(), lessThan((short) VlanId.MAX_VLAN));
+            assertThat(vlanRule.vlanId().toShort(), greaterThan(VlanId.NO_VID));
+            assertThat(vlanRule.vlanId().toShort(), lessThan(VlanId.MAX_VLAN));
             vlanToEncap = vlanRule.vlanId();
 
         } else {

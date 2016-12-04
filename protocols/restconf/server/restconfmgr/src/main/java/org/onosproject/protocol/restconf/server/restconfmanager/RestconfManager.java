@@ -99,7 +99,9 @@ public class RestconfManager implements RestconfService {
 
     private static final String RESTCONF_ROOT = "/onos/restconf";
     private static final int THREAD_TERMINATION_TIMEOUT = 10;
-    private static final String EOL = String.format("%n");
+
+    // Jersey's default chunk parser uses "\r\n" as the chunk separator.
+    private static final String EOL = "\r\n";
 
     private final int maxNumOfWorkerThreads = 5;
 
@@ -173,7 +175,7 @@ public class RestconfManager implements RestconfService {
             throw new RestconfException(String.format("No content for %s = %s",
                                                       getJsonNameFromYdtNode(child),
                                                       child.getValue()),
-                                                      INTERNAL_SERVER_ERROR);
+                                        INTERNAL_SERVER_ERROR);
         }
         return result;
     }
@@ -263,15 +265,14 @@ public class RestconfManager implements RestconfService {
      * Creates a worker thread to listen to events and write to chunkedOutput.
      * The worker thread blocks if no events arrive.
      *
-     * @param streamId ID of the RESTCONF stream to subscribe
-     * @param output   A string data stream
+     * @param streamId the RESTCONF stream id to which the client subscribes
+     * @param output   the string data stream
      * @throws RestconfException if the worker thread fails to create
      */
     @Override
     public void subscribeEventStream(String streamId,
                                      ChunkedOutput<String> output)
             throws RestconfException {
-        BlockingQueue<ObjectNode> eventQueue = new LinkedBlockingQueue<>();
         if (workerThreadPool instanceof ThreadPoolExecutor) {
             if (((ThreadPoolExecutor) workerThreadPool).getActiveCount() >=
                     maxNumOfWorkerThreads) {
@@ -286,9 +287,9 @@ public class RestconfManager implements RestconfService {
 
         }
 
+        BlockingQueue<ObjectNode> eventQueue = new LinkedBlockingQueue<>();
         workerThreadPool.submit(new EventConsumer(output, eventQueue));
     }
-
 
     /**
      * Shutdown a pool cleanly if possible.
@@ -315,23 +316,32 @@ public class RestconfManager implements RestconfService {
         }
     }
 
+    /**
+     * Implementation of a worker thread which reads data from a
+     * blocking queue and writes the data to a given chunk output stream.
+     * The thread is blocked when no data arrive to the queue and is
+     * terminated when the chunk output stream is closed (i.e., the
+     * HTTP-keep-alive session is closed).
+     */
     private class EventConsumer implements Runnable {
 
-        private final String queueId;
+        private String queueId;
         private final ChunkedOutput<String> output;
         private final BlockingQueue<ObjectNode> bqueue;
 
         public EventConsumer(ChunkedOutput<String> output,
                              BlockingQueue<ObjectNode> q) {
-            this.queueId = Thread.currentThread().getName();
             this.output = output;
             this.bqueue = q;
-            eventQueueList.put(queueId, bqueue);
         }
 
         @Override
         public void run() {
             try {
+                queueId = String.valueOf(Thread.currentThread().getId());
+                eventQueueList.put(queueId, bqueue);
+                log.debug("EventConsumer thread created: {}", queueId);
+
                 ObjectNode chunk;
                 while ((chunk = bqueue.take()) != null) {
                     output.write(chunk.toString().concat(EOL));
@@ -381,10 +391,15 @@ public class RestconfManager implements RestconfService {
                  * There is no consumer waiting to consume, so don't have to
                  * produce this event.
                  */
+                log.debug("Q list is empty");
                 return;
             }
 
             try {
+                YdtContext ydtNode = event.subject().getNotificationRootContext();
+                ObjectNode jsonNode = convertYdtToJson(getJsonNameFromYdtNode(ydtNode),
+                                                       ydtNode,
+                                                       ymsService.getYdtWalker());
                 /*
                  * Put the event to every queue out there. Each queue is
                  * corresponding to an event stream session. The queue is
@@ -392,10 +407,6 @@ public class RestconfManager implements RestconfService {
                  */
                 for (Entry<String, BlockingQueue<ObjectNode>> entry : eventQueueList
                         .entrySet()) {
-                    YdtContext ydtNode = event.subject().getNotificationRootContext();
-                    ObjectNode jsonNode = convertYdtToJson(getJsonNameFromYdtNode(ydtNode),
-                                                           ydtNode,
-                                                           ymsService.getYdtWalker());
                     entry.getValue().put(jsonNode);
                 }
             } catch (InterruptedException e) {

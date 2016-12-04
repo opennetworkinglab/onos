@@ -1,16 +1,13 @@
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//incubator/api:onos-incubator-api',
-    '//core/store/serializers:onos-core-serializers',
+BUNDLES = [
+  '//apps/tetopology/api:onos-apps-tetopology-api',
+  '//apps/tetopology/app:onos-apps-tetopology-app',
 ]
 
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-)
-
 onos_app (
+    app_name = 'org.onosproject.tetopology',
     title = 'TE Topology Core App',
-    category = 'Traffic Steering',
+    category = 'ACTN',
     url = 'http://onosproject.org',
     description = 'Application to create and manage hierarchical TE topologies.',
+    included_bundles = BUNDLES,
 )

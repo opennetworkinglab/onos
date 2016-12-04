@@ -21,7 +21,7 @@ import org.onosproject.yms.ydt.YmsOperationType;
 
 /**
  * Abstraction of an entity which overrides the default codec.
- *
+ * <p>
  * YANG has it extension framework which allows vendor / implementation
  * specific operation or extensions. The default CODECs will fail to handle
  * such protocol requests. In such scenarios, the providers can register
@@ -40,13 +40,11 @@ public interface YangDataTreeCodec {
      * extension or representation of protocol data.
      * The operation type will be set in YANG data tree builder.
      *
-     * @param ydtBuilder        Abstract YANG data tree contains the  operation
-     *                          request
-     * @param protocolOperation protocol operation being performed
+     * @param ydtBuilder Abstract YANG data tree contains the  operation
+     *                   request
      * @return protocol specific string representation.
      */
-    String encodeYdtToProtocolFormat(YdtBuilder ydtBuilder,
-                                     YmsOperationType protocolOperation);
+    String encodeYdtToProtocolFormat(YdtBuilder ydtBuilder);
 
     /**
      * When the YMS need to encode composite protocol operation request, it
@@ -54,24 +52,25 @@ public interface YangDataTreeCodec {
      * tree and invoke this registered encode method. Protocol CODEC
      * implementation needs to ensure the overridden method can  handle any
      * specific extension or representation of protocol data.
+     * <p>
      * The Initial chain of node in the YDT will have the operation type set
      * to NONE to specify it is a resource identifier. The Resource
      * information is maintained as a subtree to the resource identifier node.
      *
-     * @param ydtBuilder        Abstract YANG data tree contains the  operation
-     *                          request
-     * @param protocolOperation protocol operation being performed
+     * @param ydtBuilder Abstract YANG data tree contains the  operation
+     *                   request
      * @return composite response containing the requested operation
      * information
      */
     YangCompositeEncoding encodeYdtToCompositeProtocolFormat(
-            YdtBuilder ydtBuilder, YmsOperationType protocolOperation);
+            YdtBuilder ydtBuilder);
 
     /**
      * When YMS decode simple protocol operation request it uses the
      * registered decode method to translate the protocol data into a
      * abstract YANG data tree. Then translate the abstract YANG data
      * tree into the YANG modeled Java objects.
+     * <p>
      * The CODEC implementation are unaware of the schema against which they
      * are performing the codec operation, so YMS will send the schema
      * registry on which the YANG data tree needs to operate, so the code
@@ -94,6 +93,7 @@ public interface YangDataTreeCodec {
      * registered decode method to translate the protocol data into a
      * abstract YANG data tree. Then translate the abstract YANG data
      * tree into the YANG modeled Java objects.
+     * <p>
      * The CODEC implementation are unaware of the schema against which they
      * are performing the codec operation, so YMS will send the schema
      * registry on which the YANG data tree needs to operate, so the code

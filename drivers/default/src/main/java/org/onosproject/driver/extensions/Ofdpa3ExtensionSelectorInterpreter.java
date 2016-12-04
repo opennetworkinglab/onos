@@ -26,11 +26,13 @@ import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsL2Port;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaOvid;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmVlanVid;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmVlanVidMasked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U16;
+import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,8 @@ public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
         if (extensionSelectorType.equals(ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
             return true;
         } else if (extensionSelectorType.equals(ExtensionSelectorTypes.OFDPA_MATCH_OVID.type())) {
+            return true;
+        } else if (extensionSelectorType.equals(ExtensionSelectorTypes.OFDPA_MATCH_MPLS_L2_PORT.type())) {
             return true;
         }
         return false;
@@ -82,6 +86,18 @@ public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
                 short oVid = (short) (mask | vlanId.toShort());
                 return factory.oxms().ofdpaOvid(U16.ofRaw(oVid));
             }
+        } else if (type.equals(ExtensionSelectorTypes.OFDPA_MATCH_MPLS_L2_PORT.type())) {
+            int mplsL2Port = ((Ofdpa3MatchMplsL2Port) extensionSelector).mplsL2Port();
+            /*
+             * 0x0000XXXX UNI Interface.
+             * 0x0002XXXX NNI Interface
+             */
+            if ((mplsL2Port >= 0 && mplsL2Port <= 0x0000FFFF) ||
+                    (mplsL2Port >= 0x00020000 && mplsL2Port <= 0x0002FFFF)) {
+                return factory.oxms().ofdpaMplsL2Port(U32.ofRaw(mplsL2Port));
+            }
+            throw new UnsupportedOperationException(
+                        "Unexpected ExtensionSelector: " + extensionSelector.toString());
         }
         throw new UnsupportedOperationException(
                 "Unexpected ExtensionSelector: " + extensionSelector.toString());
@@ -126,6 +142,28 @@ public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
                 vlanId = VlanId.vlanId(oVid);
                 }
             return new Ofdpa3MatchOvid(vlanId);
+        } else if (oxm.getMatchField().equals(MatchField.OFDPA_MPLS_L2_PORT)) {
+            Integer mplsL2Port;
+            /*
+             * Supported but not used for now.
+             */
+            if (oxm.isMasked()) {
+                throw new UnsupportedOperationException(
+                        "Unexpected OXM: " + oxm.toString());
+            } else {
+                OFOxmOfdpaMplsL2Port mplsl2port = ((OFOxmOfdpaMplsL2Port) oxm);
+                mplsL2Port = mplsl2port.getValue().getRaw();
+                /*
+                 * 0x0000XXXX UNI Interface.
+                 * 0x0002XXXX NNI Interface
+                 */
+                if ((mplsL2Port >= 0 && mplsL2Port <= 0x0000FFFF) ||
+                        (mplsL2Port >= 0x00020000 && mplsL2Port <= 0x0002FFFF)) {
+                    return new Ofdpa3MatchMplsL2Port(mplsL2Port);
+                }
+                throw new UnsupportedOperationException(
+                        "Unexpected OXM: " + oxm.toString());
+            }
         }
         throw new UnsupportedOperationException(
                 "Unexpected OXM: " + oxm.toString());
@@ -137,6 +175,8 @@ public class Ofdpa3ExtensionSelectorInterpreter extends AbstractHandlerBehaviour
             return new OfdpaMatchVlanVid();
         } else if (type.equals(ExtensionSelectorTypes.OFDPA_MATCH_OVID.type())) {
             return new Ofdpa3MatchOvid();
+        } else if (type.equals(ExtensionSelectorTypes.OFDPA_MATCH_MPLS_L2_PORT.type())) {
+            return new Ofdpa3MatchMplsL2Port();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());

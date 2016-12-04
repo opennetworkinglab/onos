@@ -37,7 +37,7 @@ public interface UiTopoLayoutService {
     UiTopoLayout getRootLayout();
 
     /**
-     * Returns the set of available layouts.
+     * Returns the set of available layouts (not including the root layout).
      *
      * @return set of available layouts
      */

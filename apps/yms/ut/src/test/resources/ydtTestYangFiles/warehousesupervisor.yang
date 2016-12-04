@@ -1,0 +1,21 @@
+module warehousesupervisor {
+
+    yang-version 1;
+
+    namespace "ydt.warehouse-supervisor";
+
+    prefix "warehouse";
+
+    organization "ON-LAB";
+
+    description "This module defines for warehouse-supervisor.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    leaf-list supervisor {
+        type string;
+        description "name of the warehouse-supervisor's";
+    }
+}

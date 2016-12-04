@@ -15,11 +15,8 @@
  */
 package org.onosproject.protocol.restconf.ctl;
 
-import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
-
-import java.io.IOException;
-import java.io.InputStream;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils;
 import org.onosproject.yms.ych.YangCompositeEncoding;
@@ -30,8 +27,10 @@ import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
 
 
 /**
@@ -49,18 +48,16 @@ public class JsonYdtCodec implements YangDataTreeCodec {
     }
 
     @Override
-    public String encodeYdtToProtocolFormat(YdtBuilder builder,
-                                            YmsOperationType protocolOperation) {
-        String json = ParserUtils.convertYdtToJson(builder.getRootNode().getName(),
-                                                   builder.getRootNode(),
+    public String encodeYdtToProtocolFormat(YdtBuilder ydtBuilder) {
+        String json = ParserUtils.convertYdtToJson(ydtBuilder.getRootNode().getName(),
+                                                   ydtBuilder.getRootNode(),
                                                    ymsService.getYdtWalker())
-                                 .textValue();
+                .textValue();
         return json;
-     }
+    }
 
     @Override
-    public YangCompositeEncoding encodeYdtToCompositeProtocolFormat(YdtBuilder builder,
-                                                                    YmsOperationType protocolOperation) {
+    public YangCompositeEncoding encodeYdtToCompositeProtocolFormat(YdtBuilder ydtBuilder) {
         // Mainly for POST/PUT operation.
         // YdtBuilder/YdtContext has YdtContextType NONE for URI,
         // YdtContextType CREATE/MERGE/REPLACE for Resource data.

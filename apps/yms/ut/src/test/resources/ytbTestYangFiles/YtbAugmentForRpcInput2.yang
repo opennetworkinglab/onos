@@ -1,0 +1,17 @@
+module YtbAugmentForRpcInput2 {
+    yang-version 1;
+    namespace "yms:test:ytb:augment:for:rpc:input";
+    prefix "sch";
+    import YtbRpcResponseWithAdvancedInputAndOutput {
+        prefix input;
+    }
+    revision "2016-08-26";
+    augment "/input:activate-software-image/input:output/" {
+        list friction {
+            key "speed";
+            leaf speed {
+                type uint64;
+            }
+        }
+    }
+}

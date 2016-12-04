@@ -16,16 +16,17 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.Identifier;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -38,10 +39,15 @@ import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.impl.LabelAllocator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -61,12 +67,19 @@ public class LinkCollectionIntentFlowObjectiveCompiler
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
+
     private ApplicationId appId;
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.net.intent");
         registrator.registerCompiler(LinkCollectionIntent.class, this, true);
+        if (labelAllocator == null) {
+            labelAllocator = new LabelAllocator(resourceService);
+        }
+
     }
 
     @Deactivate
@@ -79,8 +92,17 @@ public class LinkCollectionIntentFlowObjectiveCompiler
 
         SetMultimap<DeviceId, PortNumber> inputPorts = HashMultimap.create();
         SetMultimap<DeviceId, PortNumber> outputPorts = HashMultimap.create();
+        Map<ConnectPoint, Identifier<?>> labels = ImmutableMap.of();
+
+        Optional<EncapsulationConstraint> encapConstraint = this.getIntentEncapConstraint(intent);
 
         computePorts(intent, inputPorts, outputPorts);
+
+        if (encapConstraint.isPresent()) {
+            labels = labelAllocator.assignLabelToPorts(intent.links(),
+                                                       intent.id(),
+                                                       encapConstraint.get().encapType());
+        }
 
         List<Objective> objectives = new ArrayList<>();
         List<DeviceId> devices = new ArrayList<>();
@@ -89,36 +111,41 @@ public class LinkCollectionIntentFlowObjectiveCompiler
                     createRules(intent,
                                 deviceId,
                                 inputPorts.get(deviceId),
-                                outputPorts.get(deviceId));
+                                outputPorts.get(deviceId),
+                                labels);
             deviceObjectives.forEach(objective -> {
                 objectives.add(objective);
                 devices.add(deviceId);
             });
         }
         return Collections.singletonList(
-                new FlowObjectiveIntent(appId, devices, objectives, intent.resources()));
+                new FlowObjectiveIntent(appId, intent.key(), devices, objectives, intent.resources()));
     }
 
     @Override
-    protected List<Objective> createRules(LinkCollectionIntent intent, DeviceId deviceId,
-                                       Set<PortNumber> inPorts, Set<PortNumber> outPorts) {
-
-        Set<PortNumber> ingressPorts = Sets.newHashSet();
-        Set<PortNumber> egressPorts = Sets.newHashSet();
-
-        computePorts(intent, deviceId, ingressPorts, egressPorts);
+    protected List<Objective> createRules(LinkCollectionIntent intent,
+                                          DeviceId deviceId,
+                                          Set<PortNumber> inPorts,
+                                          Set<PortNumber> outPorts,
+                                          Map<ConnectPoint, Identifier<?>> labels) {
 
         List<Objective> objectives = new ArrayList<>(inPorts.size());
-        Set<PortNumber> copyIngressPorts = ImmutableSet.copyOf(ingressPorts);
-        Set<PortNumber> copyEgressPorts = ImmutableSet.copyOf(egressPorts);
+
+        /*
+         * Looking for the encapsulation constraint
+         */
+        Optional<EncapsulationConstraint> encapConstraint = this.getIntentEncapConstraint(intent);
 
         inPorts.forEach(inport -> {
-            ForwardingInstructions instructions = this.createForwardingInstructions(intent,
-                                                                                    inport,
-                                                                                    deviceId,
-                                                                                    outPorts,
-                                                                                    copyIngressPorts,
-                                                                                    copyEgressPorts);
+
+            ForwardingInstructions instructions = this.createForwardingInstruction(
+                    encapConstraint,
+                    intent,
+                    inport,
+                    outPorts,
+                    deviceId,
+                    labels
+            );
 
             NextObjective nextObjective = DefaultNextObjective.builder()
                     .withId(flowObjectiveService.allocateNextId())

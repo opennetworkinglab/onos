@@ -47,5 +47,10 @@ public enum YdtType {
     /**
      * Multi instance leaf node.
      */
-    MULTI_INSTANCE_LEAF_VALUE_NODE
+    MULTI_INSTANCE_LEAF_VALUE_NODE,
+
+    /**
+     * Logical root node.
+     */
+    LOGICAL_ROOT_NODE
 }

@@ -1,0 +1,23 @@
+module emptydata {
+
+    yang-version 1;
+
+    namespace "ydt.emptydata";
+
+    prefix "emptydata";
+
+    organization "ON-LAB";
+
+    description "This module defines for emptydata classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list emptyList {
+        config false;
+        leaf empty {
+              type empty;
+        }
+    }
+}

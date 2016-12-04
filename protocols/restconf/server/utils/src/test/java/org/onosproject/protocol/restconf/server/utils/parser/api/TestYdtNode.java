@@ -62,6 +62,11 @@ public class TestYdtNode implements YdtContext {
     }
 
     @Override
+    public String getModuleNameAsNameSpace() {
+        return null;
+    }
+
+    @Override
     public <T> T getYdtContextExtendedInfo() {
         return null;
     }

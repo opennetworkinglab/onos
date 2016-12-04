@@ -78,13 +78,16 @@ public class DefaultGroupHandler {
     // that connect to the same neighbor
     protected ConcurrentHashMap<DeviceId, Set<PortNumber>> devicePortMap =
             new ConcurrentHashMap<>();
-    //local store for ports on this device connected to neighbor-device-id
+    // local store for ports on this device connected to neighbor-device-id
     protected ConcurrentHashMap<PortNumber, DeviceId> portDeviceMap =
             new ConcurrentHashMap<>();
+    // distributed store for (device+neighborset) mapped to next-id
     protected EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
             nsNextObjStore = null;
+    // distributed store for (device+subnet-ip-prefix) mapped to next-id
     protected EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
             subnetNextObjStore = null;
+    // distributed store for (device+port+treatment) mapped to next-id
     protected EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
     private SegmentRoutingManager srManager;
@@ -271,7 +274,8 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Performs group recovery procedures when a port goes down on this device.
+     * Performs hash group recovery procedures when a switch-to-switch
+     * port goes down on this device.
      *
      * @param port port number that has gone down
      * @param isMaster true if local instance is the master
@@ -350,6 +354,70 @@ public class DefaultGroupHandler {
     }
 
     /**
+     * Adds or removes a port that has been configured with a subnet to a broadcast group
+     * for bridging. Note that this does not create the broadcast group itself.
+     *
+     * @param port the port on this device that needs to be added/removed to a bcast group
+     * @param subnet the subnet corresponding  to the broadcast group
+     * @param portUp true if port is enabled, false if disabled
+     * @param isMaster true if local instance is the master
+     */
+    public void processEdgePort(PortNumber port, Ip4Prefix subnet,
+                                boolean portUp, boolean isMaster) {
+        if (!isMaster) {
+            return;
+        }
+        //get the next id for the subnet and edit it.
+        Integer nextId = getSubnetNextObjectiveId(subnet);
+        if (nextId == -1) {
+            if (portUp) {
+                log.debug("**Creating flooding group for first port enabled in"
+                        + " subnet {} on dev {} port {}", subnet, deviceId, port);
+                createBcastGroupFromSubnet(subnet, Collections.singletonList(port));
+            } else {
+                log.warn("Could not find flooding group for subnet {} on dev:{} when"
+                        + " removing port:{}", subnet, deviceId, port);
+            }
+            return;
+        }
+
+        log.info("**port{} in device {}: {} Bucket with Port {} to"
+                + " next-id {}", (portUp) ? "UP" : "DOWN", deviceId,
+                                          (portUp) ? "Adding" : "Removing",
+                                          port, nextId);
+        // Create the bucket to be added or removed
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.popVlan();
+        tBuilder.setOutput(port);
+
+        VlanId assignedVlanId =
+                srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
+        TrafficSelector metadata =
+                DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                .addTreatment(tBuilder.build())
+                .withMeta(metadata);
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+            (objective) -> log.debug("port {} successfully {} NextObj {} on {}",
+                                     port, (portUp) ? "addedTo" : "removedFrom",
+                                     nextId, deviceId),
+            (objective, error) ->
+            log.warn("port {} failed to {} NextObj {} on {}: {}",
+                     port, (portUp) ? "addTo" : "removeFrom",
+                     nextId, deviceId, error));
+
+        NextObjective nextObj = (portUp) ? nextObjBuilder.addToExisting(context)
+                                         : nextObjBuilder.removeFromExisting(context);
+        log.debug("edgePort processed: Submited next objective {} in device {}",
+                  nextId, deviceId);
+        flowObjectiveService.next(deviceId, nextObj);
+    }
+
+    /**
      * Returns the next objective of type hashed associated with the neighborset.
      * If there is no next objective for this neighborset, this method
      * would create a next objective and return. Optionally metadata can be
@@ -394,7 +462,8 @@ public class DefaultGroupHandler {
      * Returns the next objective of type broadcast associated with the subnet,
      * or -1 if no such objective exists. Note that this method does NOT create
      * the next objective as a side-effect. It is expected that is objective is
-     * created at startup from network configuration.
+     * created at startup from network configuration. Typically this is used
+     * for L2 flooding within the subnet configured on the switch.
      *
      * @param prefix subnet information
      * @return int if found or -1
@@ -411,7 +480,9 @@ public class DefaultGroupHandler {
      * device, given the treatment. Different treatments to the same port result
      * in different next objectives. If no such objective exists, this method
      * creates one and returns the id. Optionally metadata can be passed in for
-     * the creation of the objective.
+     * the creation of the objective. Typically this is used for L2 and L3 forwarding
+     * to compute nodes and containers/VMs on the compute nodes directly attached
+     * to the switch.
      *
      * @param portNum the port number for the simple next objective
      * @param treatment the actions to apply on the packets (should include outport)
@@ -567,7 +638,7 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Creates Groups from a set of NeighborSet given.
+     * Creates hash groups from a set of NeighborSet given.
      *
      * @param nsSet a set of NeighborSet
      * @param meta metadata passed into the creation of a Next Objective
@@ -633,7 +704,8 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Creates broadcast groups for all ports in the same configured subnet.
+     * Creates broadcast groups for all ports in the same subnet for
+     * all configured subnets.
      */
     public void createGroupsFromSubnetConfig() {
         Map<Ip4Prefix, List<PortNumber>> subnetPortMap;
@@ -645,43 +717,50 @@ public class DefaultGroupHandler {
             return;
         }
         // Construct a broadcast group for each subnet
-        subnetPortMap.forEach((subnet, ports) -> {
-            SubnetNextObjectiveStoreKey key =
-                    new SubnetNextObjectiveStoreKey(deviceId, subnet);
+        subnetPortMap.forEach((subnet, ports) -> createBcastGroupFromSubnet(subnet, ports));
+    }
 
-            if (subnetNextObjStore.containsKey(key)) {
-                log.debug("Broadcast group for device {} and subnet {} exists",
-                          deviceId, subnet);
-                return;
-            }
+    /**
+     * Creates a single broadcast group from a given subnet and list of ports.
+     *
+     * @param subnet a configured subnet
+     * @param ports list of ports in the subnet
+     */
+    public void createBcastGroupFromSubnet(Ip4Prefix subnet, List<PortNumber> ports) {
+        SubnetNextObjectiveStoreKey key =
+                new SubnetNextObjectiveStoreKey(deviceId, subnet);
 
-            VlanId assignedVlanId =
-                    srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
-            TrafficSelector metadata =
-                    DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
+        if (subnetNextObjStore.containsKey(key)) {
+            log.debug("Broadcast group for device {} and subnet {} exists",
+                      deviceId, subnet);
+            return;
+        }
 
-            int nextId = flowObjectiveService.allocateNextId();
+        VlanId assignedVlanId =
+                srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
+        TrafficSelector metadata =
+                DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
 
-            NextObjective.Builder nextObjBuilder = DefaultNextObjective
-                    .builder().withId(nextId)
-                    .withType(NextObjective.Type.BROADCAST).fromApp(appId)
-                    .withMeta(metadata);
+        int nextId = flowObjectiveService.allocateNextId();
 
-            ports.forEach(port -> {
-                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-                tBuilder.popVlan();
-                tBuilder.setOutput(port);
-                nextObjBuilder.addTreatment(tBuilder.build());
-            });
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                .withMeta(metadata);
 
-            NextObjective nextObj = nextObjBuilder.add();
-            flowObjectiveService.next(deviceId, nextObj);
-            log.debug("createGroupFromSubnetConfig: Submited "
-                              + "next objective {} in device {}",
-                      nextId, deviceId);
-
-            subnetNextObjStore.put(key, nextId);
+        ports.forEach(port -> {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            tBuilder.popVlan();
+            tBuilder.setOutput(port);
+            nextObjBuilder.addTreatment(tBuilder.build());
         });
+
+        NextObjective nextObj = nextObjBuilder.add();
+        flowObjectiveService.next(deviceId, nextObj);
+        log.debug("createBcastGroupFromSubnet: Submited next objective {} in device {}",
+                  nextId, deviceId);
+
+        subnetNextObjStore.put(key, nextId);
     }
 
     /**

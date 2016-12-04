@@ -15,11 +15,19 @@
  */
 package org.onosproject.rest.resources;
 
-import com.eclipsesource.json.Json;
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -46,7 +54,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
-import org.onosproject.net.flow.FlowRule.FlowRemoveReason;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
@@ -55,17 +62,10 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.easymock.EasyMock.anyObject;
@@ -115,13 +115,7 @@ public class FlowsResourceTest extends ResourceTest {
     final MockFlowEntry flow5 = new MockFlowEntry(deviceId2, 5);
     final MockFlowEntry flow6 = new MockFlowEntry(deviceId2, 6);
 
-    final MockFlowRule flowRule1 = new MockFlowRule(deviceId1, 1);
-    final MockFlowRule flowRule2 = new MockFlowRule(deviceId1, 2);
-
-    final MockFlowRule flowRule3 = new MockFlowRule(deviceId2, 3);
-    final MockFlowRule flowRule4 = new MockFlowRule(deviceId2, 4);
-
-    final Set<FlowRule> flowRules = Sets.newHashSet();
+    final Set<FlowEntry> flowEntries = ImmutableSet.of(flow1, flow2, flow3, flow4, flow5, flow6);
 
     /**
      * Mock class for a flow entry.
@@ -249,92 +243,6 @@ public class FlowsResourceTest extends ResourceTest {
         }
     }
 
-    /**
-     * Mock class for a flow rule.
-     */
-    private static class MockFlowRule implements FlowRule {
-
-        final DeviceId deviceId;
-        final long baseValue;
-        TrafficTreatment treatment;
-        TrafficSelector selector;
-
-        public MockFlowRule(DeviceId deviceId, long id) {
-            this.deviceId = deviceId;
-            this.baseValue = id * 100;
-        }
-
-        @Override
-        public FlowId id() {
-            final long id = baseValue + 55;
-            return FlowId.valueOf(id);
-        }
-
-        @Override
-        public short appId() {
-            return 4;
-        }
-
-        @Override
-        public GroupId groupId() {
-            return new DefaultGroupId(3);
-        }
-
-        @Override
-        public int priority() {
-            return 0;
-        }
-
-        @Override
-        public DeviceId deviceId() {
-            return deviceId;
-        }
-
-        @Override
-        public TrafficSelector selector() {
-            return selector;
-        }
-
-        @Override
-        public TrafficTreatment treatment() {
-            return treatment;
-        }
-
-        @Override
-        public int timeout() {
-            return (int) (baseValue + 77);
-        }
-
-        @Override
-        public int hardTimeout() {
-            return 0;
-        }
-
-        @Override
-        public FlowRemoveReason reason() {
-            return FlowRemoveReason.NO_REASON;
-        }
-
-        @Override
-        public boolean isPermanent() {
-            return false;
-        }
-
-        @Override
-        public int tableId() {
-            return 0;
-        }
-
-        @Override
-        public boolean exactMatch(FlowRule rule) {
-            return false;
-        }
-
-        @Override
-        public FlowRuleExtPayLoad payLoad() {
-            return null;
-        }
-    }
 
     /**
      * Populates some flows used as testing data.
@@ -364,26 +272,6 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(rules.get(deviceId1)).anyTimes();
         expect(mockFlowService.getFlowEntries(deviceId2))
                 .andReturn(rules.get(deviceId2)).anyTimes();
-    }
-
-    /**
-     * Populates some flow rules used as testing data.
-     */
-    private void setupMockFlowRules() {
-        flowRule2.treatment = DefaultTrafficTreatment.builder()
-                .setEthDst(MacAddress.BROADCAST)
-                .build();
-        flowRule2.selector = DefaultTrafficSelector.builder()
-                .matchEthType((short) 3)
-                .matchIPProtocol((byte) 9)
-                .build();
-        flowRule4.treatment = DefaultTrafficTreatment.builder()
-                .build();
-
-        flowRules.add(flowRule1);
-        flowRules.add(flowRule2);
-        flowRules.add(flowRule3);
-        flowRules.add(flowRule4);
     }
 
     /**
@@ -944,16 +832,16 @@ public class FlowsResourceTest extends ResourceTest {
      */
     @Test
     public void testGetFlowByAppId() {
-        setupMockFlowRules();
+        setupMockFlows();
 
         expect(mockApplicationService.getId(anyObject())).andReturn(APP_ID).anyTimes();
         replay(mockApplicationService);
 
-        expect(mockFlowService.getFlowRulesById(APP_ID)).andReturn(flowRules).anyTimes();
+        expect(mockFlowService.getFlowEntriesById(APP_ID)).andReturn(flowEntries).anyTimes();
         replay(mockFlowService);
 
         final WebTarget wt = target();
-        final String response = wt.path("flows/application/1").request().get(String.class);
+        final String response = wt.path("/flows/application/1").request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -961,10 +849,10 @@ public class FlowsResourceTest extends ResourceTest {
         assertThat(result.names().get(0), is("flows"));
         final JsonArray jsonFlows = result.get("flows").asArray();
         assertThat(jsonFlows, notNullValue());
-        assertThat(jsonFlows, hasFlowRule(flowRule1));
-        assertThat(jsonFlows, hasFlowRule(flowRule2));
-        assertThat(jsonFlows, hasFlowRule(flowRule3));
-        assertThat(jsonFlows, hasFlowRule(flowRule4));
+        assertThat(jsonFlows, hasFlowRule(flow1));
+        assertThat(jsonFlows, hasFlowRule(flow2));
+        assertThat(jsonFlows, hasFlowRule(flow3));
+        assertThat(jsonFlows, hasFlowRule(flow4));
     }
 
     /**

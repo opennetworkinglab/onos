@@ -1,0 +1,18 @@
+BUNDLES = [
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel',
+    '//apps/tenbi/utils:onos-apps-tenbi-utils',
+    '//apps/tenbi/tunnel:onos-apps-tenbi-tunnel',
+    '//apps/tenbi/topology:onos-apps-tenbi-topology',
+]
+
+onos_app (
+    title = 'TE NBI',
+    category = 'ACTN APP',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'TE YANG NBI.',
+    required_apps = [ 'org.onosproject.onos-app-tetopology',
+                      'org.onosproject.onos-app-tetunnel',
+                      'org.onosproject.onos-app-yms' ],
+)
+

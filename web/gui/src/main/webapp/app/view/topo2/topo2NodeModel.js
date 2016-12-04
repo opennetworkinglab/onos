@@ -76,6 +76,31 @@
                         'mouseout': 'mouseoutHandler'
                     };
                 },
+                select: function () {
+                    var ev = d3.event;
+
+                    // TODO: if single selection clear selected devices, hosts, sub-regions
+
+                    if (ev.shiftKey) {
+                        // TODO: Multi-Select Details Panel
+                        this.set('selected', true);
+                    } else {
+
+                        var s = Boolean(this.get('selected'));
+                        // Clear all selected Items
+                        _.each(this.collection.models, function (m) {
+                            m.set('selected', false);
+                        });
+
+                        this.set('selected', !s);
+                    }
+
+                    var selected = this.collection.filter(function (m) {
+                        return m.get('selected');
+                    });
+
+                    return selected;
+                },
                 createNode: function () {
                     this.set('svgClass', this.svgClassName());
                     t2nps.positionNode(this);

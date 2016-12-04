@@ -45,6 +45,13 @@
       <action class="org.onosproject.vpls.cli.VplsListCommand"/>
     </command>
     <command>
+      <action class="org.onosproject.vpls.cli.VplsSetEncapCommand"/>
+      <completers>
+        <ref component-id="VplsSetEncapCommandCompleter"/>
+        <null/>
+      </completers>
+    </command>
+    <command>
       <action class="org.onosproject.vpls.cli.VplsShowCommand"/>
       <completers>
         <ref component-id="VplsShowCommandCompleter"/>
@@ -56,8 +63,9 @@
     </command>
   </command-bundle>
 
-  <bean id="VplsAddIfaceCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsAddIfaceCmdCompleter"/>
+  <bean id="VplsAddIfaceCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsAddIfaceCommandCompleter"/>
   <bean id="VplsDelCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsDelCommandCompleter"/>
   <bean id="VplsDelIfaceCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsDelIfaceCommandCompleter"/>
+  <bean id="VplsSetEncapCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsSetEncapCommandCompleter"/>
   <bean id="VplsShowCommandCompleter" class="org.onosproject.vpls.cli.completer.VplsShowCommandCompleter"/>
 </blueprint>

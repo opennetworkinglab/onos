@@ -20,5 +20,7 @@
             <step name="Fetch-Logs-${#}" exec="onos-fetch-logs ${OC#}"
                   cwd="${WORKSPACE}/tmp/stc" requires="~^"/>
         </parallel>
+        <!-- FIXME Figure out how to handle a .m2 repo that exists before the test is run -->
+        <!-- <step name="Check-Maven-Repo" exec="ssh ${ONOS_USER}@${OC1} ls -l .m2 " env="!"/> -->
     </group>
 </scenario>

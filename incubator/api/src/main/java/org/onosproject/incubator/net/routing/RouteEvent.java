@@ -36,7 +36,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
     public enum Type {
 
         /**
-         * Route is new.
+         * Route is new and the next hop is resolved.
          * <p>
          * The subject of this event should be the route being added.
          * The prevSubject of this event should be null.
@@ -52,7 +52,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
         ROUTE_UPDATED,
 
         /**
-         * Route was removed.
+         * Route was removed or the next hop becomes unresolved.
          * <p>
          * The subject of this event should be the route being removed.
          * The prevSubject of this event should be null.

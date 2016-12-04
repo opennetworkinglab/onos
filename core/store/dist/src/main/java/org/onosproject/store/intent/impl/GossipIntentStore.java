@@ -38,6 +38,7 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
@@ -272,13 +273,15 @@ public class GossipIntentStore
     public void addPending(IntentData data) {
         checkNotNull(data);
 
-        if (data.version() == null) {
-            pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
-                                                      new WallClockTimestamp(), clusterService.getLocalNode().id()));
-        } else {
-            pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
-                                                      data.version(), clusterService.getLocalNode().id()));
-        }
+        Timestamp version = data.version() != null ? data.version() : new WallClockTimestamp();
+        pendingMap.compute(data.key(), (key, existingValue) -> {
+            if (existingValue == null || existingValue.version().isOlderThan(version)) {
+                return new IntentData(data.intent(), data.state(),
+                                      version, clusterService.getLocalNode().id());
+            } else {
+                return existingValue;
+            }
+        });
     }
 
     @Override

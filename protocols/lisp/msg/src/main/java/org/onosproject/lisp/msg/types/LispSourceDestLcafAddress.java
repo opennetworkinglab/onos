@@ -300,6 +300,7 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
         public void writeTo(ByteBuf byteBuf, LispSourceDestLcafAddress address)
                 throws LispWriterException {
 
+            int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             byteBuf.writeShort(address.getReserved());
@@ -308,6 +309,8 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
             AfiAddressWriter writer = new LispAfiAddress.AfiAddressWriter();
             writer.writeTo(byteBuf, address.getSrcPrefix());
             writer.writeTo(byteBuf, address.getDstPrefix());
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
     }
 }

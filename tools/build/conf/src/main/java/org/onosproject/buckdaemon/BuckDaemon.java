@@ -21,6 +21,7 @@ import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import org.onosproject.checkstyle.CheckstyleRunner;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -176,9 +177,14 @@ public final class BuckDaemon {
                     BuckTask task = tasks.get(taskName);
                     if (task != null) {
                         System.out.println(String.format("Executing task '%s'", taskName));
-                        task.execute(context);
-                        for (String line : context.output()) {
-                            output(socket, line);
+                        try {
+                            task.execute(context);
+                            for (String line : context.output()) {
+                                output(socket, line);
+                            }
+                        // TODO should we catch Exception, RuntimeException, or something specific?
+                        } catch (Throwable e) {
+                            e.printStackTrace(new PrintStream(socket.getOutputStream()));
                         }
                     } else {
                         String message = String.format("No task named '%s'", taskName);

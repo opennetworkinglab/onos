@@ -15,6 +15,8 @@
  */
 package org.onosproject.yms.ysr;
 
+import org.onosproject.yangutils.datamodel.YangNamespace;
+
 import java.util.List;
 
 /**
@@ -56,7 +58,7 @@ public interface YangModuleInformation {
      *
      * @return YANG modules namespace
      */
-    String namespace();
+    YangNamespace namespace();
 
     /**
      * Reference RFC 7895

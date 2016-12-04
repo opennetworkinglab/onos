@@ -83,6 +83,7 @@ import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TransportPort;
@@ -489,8 +490,8 @@ public class FlowEntryBuilder {
             break;
         case MPLS_BOS:
             @SuppressWarnings("unchecked")
-            OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
-            builder.setMplsBos(mplsBos.getValue() != U8.ZERO);
+            OFOxm<OFBooleanValue> mplsBos = (OFOxm<OFBooleanValue>) oxm;
+            builder.setMplsBos(mplsBos.getValue().getValue());
             break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")
@@ -580,6 +581,8 @@ public class FlowEntryBuilder {
             break;
         case OFDPA_MPLS_TYPE:
         case OFDPA_OVID:
+        case OFDPA_MPLS_L2_PORT:
+        case OFDPA_QOS_INDEX:
             if (treatmentInterpreter != null) {
                 try {
                     builder.extension(treatmentInterpreter.mapAction(action), deviceId);
@@ -965,6 +968,18 @@ public class FlowEntryBuilder {
                         selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_OVID.type())) {
                     if (match.getVersion().equals(OFVersion.OF_13)) {
                         OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_OVID);
+                        builder.extension(selectorInterpreter.mapOxm(oxm),
+                                          deviceId);
+                    } else {
+                        break;
+                    }
+                }
+                break;
+            case OFDPA_MPLS_L2_PORT:
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_MPLS_L2_PORT.type())) {
+                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_MPLS_L2_PORT);
                         builder.extension(selectorInterpreter.mapOxm(oxm),
                                           deviceId);
                     } else {

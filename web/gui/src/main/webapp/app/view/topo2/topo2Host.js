@@ -48,12 +48,34 @@
     angular.module('ovTopo2')
     .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
-        'IconService', 'Topo2ZoomService',
-        function (_Collection_, _NodeModel_, _t2vs_, is, zs) {
+        'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService', 
+        function (_Collection_, _NodeModel_, _t2vs_, is, zs, t2hds) {
 
             Collection = _Collection_;
 
             Model = _NodeModel_.extend({
+                initialize: function () {
+                    this.super = this.constructor.__super__;
+                    this.super.initialize.apply(this, arguments);
+                },
+                events: {
+                    'click': 'onClick'
+                },
+                onChange: function () {
+                    // Update class names when the model changes
+                    if (this.el) {
+                        this.el.attr('class', this.svgClassName());
+                    }
+                },
+                onClick: function () {
+                    var selected = this.select(d3.select);
+
+                    if (selected.length > 0) {
+                        t2hds.displayPanel(this);
+                    } else {
+                        t2hds.hide();
+                    }
+                },
                 nodeType: 'host',
                 icon: function () {
                     var type = this.get('type');
@@ -117,6 +139,7 @@
                         .attr('text-anchor', 'middle');
 
                     this.setScale();
+                    this.setUpEvents();
                 }
             });
 

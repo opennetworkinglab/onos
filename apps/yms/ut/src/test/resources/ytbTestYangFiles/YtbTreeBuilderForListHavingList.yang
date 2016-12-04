@@ -1,0 +1,26 @@
+module YtbTreeBuilderForListHavingList {
+    yang-version 1;
+    namespace "yms:test:ytb:tree:builder:for:list:having:list";
+    prefix "sch";
+    revision "2016-08-26";
+    container carrier {
+        list multiplexes {
+            key "types";
+            list application-areas {
+                config false;
+                leaf-list destination-areas {
+                    type binary;
+                }
+            }
+            leaf types {
+                type enumeration {
+                    enum space-division;
+                    enum frequency-division;
+                    enum time-division {
+                        value 3;
+                    }
+                }
+            }
+        }
+    }
+}

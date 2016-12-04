@@ -1,0 +1,31 @@
+module YtbMultiNotificationWithContainer {
+    yang-version 1;
+    namespace "yms:test:ytb:multi:notification:with:container";
+    prefix "sch";
+    revision "2016-08-26";
+    notification fortesta {
+        container ytbnot {
+            leaf notileaf {
+                type bits {
+                    bit leaf1 {
+                        position 0;
+                    }
+                    bit leaf2 {
+                        position 1;
+                    }
+                }
+            }
+        }
+    }
+    list cumulative {
+        key "sum";
+        leaf sum {
+            type int8;
+        }
+    }
+    notification fortestb {
+        leaf-list notileaflist {
+            type empty;
+        }
+    }
+}

@@ -1,0 +1,56 @@
+module YtbDerivedTypeWithBitsAndBinary {
+    yang-version 1;
+    namespace "yms:test:ytb:derived:type:with:bits:and:binary";
+    prefix "sch";
+    revision "2016-08-26";
+
+    typedef derivedbinarya {
+        type derivedbinaryb;
+    }
+
+    typedef derivedbinaryb {
+        type binary;
+    }
+
+    typedef derivedbitsa {
+        type derivedbitsb;
+    }
+
+    typedef derivedbitsb {
+        type bits {
+            bit index {
+                position 1;
+            }
+            bit name {
+                position 10;
+            }
+            bit signature {
+                position 100;
+            }
+        }
+    }
+
+    leaf forbinary {
+        type derivedbinarya;
+    }
+
+    leaf forbits {
+        type derivedbitsa;
+    }
+
+    leaf-list forbinarylist {
+        type derivedbinarya;
+    }
+
+    leaf-list forbitslist {
+        type derivedbitsa;
+    }
+
+    leaf forunion {
+        type union {
+            type binary;
+            type int8;
+        }
+    }
+}
+

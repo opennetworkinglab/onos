@@ -16,7 +16,7 @@
   in_build = true
 
 [maven_repositories]
-  central = https://repo.maven.apache.org/maven2
+  central = https://repo1.maven.org/maven2
 
 [project]
   ide = intellij

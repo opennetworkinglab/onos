@@ -18,7 +18,7 @@ package org.onosproject.vpls.cli.completer;
 
 import com.google.common.collect.Lists;
 import org.onosproject.cli.AbstractChoicesCompleter;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.List;
 
@@ -31,8 +31,8 @@ public class VplsShowCommandCompleter extends AbstractChoicesCompleter {
 
     @Override
     protected List<String> choices() {
-        VplsConfigurationService vplsConfigService =
-                get(VplsConfigurationService.class);
-        return Lists.newArrayList(vplsConfigService.getAllVpls());
+        VplsConfigService vplsConfigService =
+                get(VplsConfigService.class);
+        return Lists.newArrayList(vplsConfigService.vplsNames());
     }
 }

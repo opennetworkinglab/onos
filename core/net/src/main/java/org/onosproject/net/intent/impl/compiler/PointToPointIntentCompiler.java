@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -52,6 +53,7 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.ProtectionConstraint;
@@ -66,6 +68,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -123,12 +126,12 @@ public class PointToPointIntentCompiler
         ConnectPoint egressPoint = intent.egressPoint();
 
         if (ingressPoint.deviceId().equals(egressPoint.deviceId())) {
-            return createZeroHopIntent(ingressPoint, egressPoint, intent);
+            return createZeroHopLinkCollectionIntent(intent);
         }
 
         // proceed with no protected paths
         if (!ProtectionConstraint.requireProtectedPath(intent)) {
-            return createUnprotectedIntent(ingressPoint, egressPoint, intent);
+            return createUnprotectedLinkCollectionIntent(intent);
         }
 
         try {
@@ -149,6 +152,11 @@ public class PointToPointIntentCompiler
                                        intent, PathIntent.ProtectionType.PRIMARY));
     }
 
+    private List<Intent> createZeroHopLinkCollectionIntent(PointToPointIntent intent) {
+        return asList(createLinkCollectionIntent(ImmutableSet.of(), DEFAULT_COST,
+                                       intent));
+    }
+
     private List<Intent> createUnprotectedIntent(ConnectPoint ingressPoint,
                                                  ConnectPoint egressPoint,
                                                  PointToPointIntent intent) {
@@ -163,6 +171,15 @@ public class PointToPointIntentCompiler
         return asList(createPathIntent(new DefaultPath(PID, links, path.cost(),
                                                        path.annotations()), intent,
                                        PathIntent.ProtectionType.PRIMARY));
+    }
+
+    private List<Intent> createUnprotectedLinkCollectionIntent(PointToPointIntent intent) {
+        Path path = getPath(intent, intent.filteredIngressPoint().connectPoint().deviceId(),
+                            intent.filteredEgressPoint().connectPoint().deviceId());
+
+        return asList(createLinkCollectionIntent(ImmutableSet.copyOf(path.links()),
+                                                 path.cost(),
+                                                 intent));
     }
 
     //FIXME: Compatibility with EncapsulationConstraint
@@ -239,6 +256,7 @@ public class PointToPointIntentCompiler
             createFailoverTreatmentGroup(path.links(), path.backup().links(), intent);
 
             FlowRuleIntent frIntent = new FlowRuleIntent(intent.appId(),
+                                                         intent.key(),
                                                          createFailoverFlowRules(intent),
                                                          asList(ingressPoint.deviceId()),
                                                          PathIntent.ProtectionType.FAILOVER);
@@ -276,7 +294,6 @@ public class PointToPointIntentCompiler
             links.add(createEdgeLink(ingressPoint, true));
             links.addAll(onlyPath.links());
             links.add(createEdgeLink(egressPoint, false));
-
             return asList(createPathIntent(new DefaultPath(PID, links, onlyPath.cost(),
                                                            onlyPath.annotations()),
                                            intent, PathIntent.ProtectionType.PRIMARY));
@@ -296,6 +313,7 @@ public class PointToPointIntentCompiler
                                     PathIntent.ProtectionType type) {
         return PathIntent.builder()
                 .appId(intent.appId())
+                .key(intent.key())
                 .selector(intent.selector())
                 .treatment(intent.treatment())
                 .path(path)
@@ -305,12 +323,45 @@ public class PointToPointIntentCompiler
                 .build();
     }
 
+
+    /**
+     * Creates a link collection intent from the specified path and original
+     * point to point intent.
+     *
+     * @param links the links of the packets
+     * @param cost the cost associated to the links
+     * @param intent the point to point intent we are compiling
+     * @return the link collection intent
+     */
+    private Intent createLinkCollectionIntent(Set<Link> links,
+                                              double cost,
+                                              PointToPointIntent intent) {
+
+        return LinkCollectionIntent.builder()
+                .key(intent.key())
+                .appId(intent.appId())
+                .selector(intent.selector())
+                .treatment(intent.treatment())
+                .links(ImmutableSet.copyOf(links))
+                .filteredIngressPoints(ImmutableSet.of(
+                        intent.filteredIngressPoint()
+                ))
+                .filteredEgressPoints(ImmutableSet.of(
+                        intent.filteredEgressPoint()
+                ))
+                .applyTreatmentOnEgress(true)
+                .constraints(intent.constraints())
+                .priority(intent.priority())
+                .cost(cost)
+                .build();
+    }
+
     /**
      * Gets primary port number through failover group associated
      * with this intent.
      */
     private PortNumber getPrimaryPort(PointToPointIntent intent) {
-        Group group = groupService.getGroup(intent.ingressPoint().deviceId(),
+        Group group = groupService.getGroup(intent.filteredIngressPoint().connectPoint().deviceId(),
                                             makeGroupKey(intent.id()));
         PortNumber primaryPort = null;
         if (group != null) {
@@ -323,7 +374,7 @@ public class PointToPointIntentCompiler
                     Instructions.OutputInstruction outInstruction =
                             (Instructions.OutputInstruction) individualInstruction;
                     PortNumber tempPortNum = outInstruction.port();
-                    Port port = deviceService.getPort(intent.ingressPoint().deviceId(),
+                    Port port = deviceService.getPort(intent.filteredIngressPoint().connectPoint().deviceId(),
                                                       tempPortNum);
                     if (port != null && port.isEnabled()) {
                         primaryPort = tempPortNum;
@@ -585,7 +636,7 @@ public class PointToPointIntentCompiler
             }
         }
         // remove buckets whose watchports are disabled if the failover group exists
-        Group group = groupService.getGroup(pointIntent.ingressPoint().deviceId(),
+        Group group = groupService.getGroup(pointIntent.filteredIngressPoint().connectPoint().deviceId(),
                                             makeGroupKey(pointIntent.id()));
         if (group != null) {
             updateFailoverGroup(pointIntent);
@@ -595,7 +646,7 @@ public class PointToPointIntentCompiler
     // Removes buckets whose treatments rely on disabled ports from the
     // failover group.
     private void updateFailoverGroup(PointToPointIntent pointIntent) {
-        DeviceId deviceId = pointIntent.ingressPoint().deviceId();
+        DeviceId deviceId = pointIntent.filteredIngressPoint().connectPoint().deviceId();
         GroupKey groupKey = makeGroupKey(pointIntent.id());
         Group group = waitForGroup(deviceId, groupKey);
         Iterator<GroupBucket> groupIterator = group.buckets().buckets().iterator();

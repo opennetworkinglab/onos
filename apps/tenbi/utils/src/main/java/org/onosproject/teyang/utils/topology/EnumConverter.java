@@ -15,7 +15,7 @@
  */
 package org.onosproject.teyang.utils.topology;
 
-import org.onosproject.tetopology.management.api.node.TeStatus;
+import org.onosproject.tetopology.management.api.TeStatus;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeAdminStatus;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeOperStatus;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.teadminstatus.TeAdminStatusEnum;

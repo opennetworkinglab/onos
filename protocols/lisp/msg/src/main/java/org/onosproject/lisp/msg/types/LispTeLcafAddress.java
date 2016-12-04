@@ -62,8 +62,8 @@ public final class LispTeLcafAddress extends LispLcafAddress {
      *
      * @param records a collection of Re-encapsulated RLOC addresses
      */
-    private LispTeLcafAddress(short length, List<LispTeRecord> records) {
-        super(LispCanonicalAddressFormatEnum.TRAFFIC_ENGINEERING, length);
+    private LispTeLcafAddress(List<LispTeRecord> records) {
+        super(LispCanonicalAddressFormatEnum.TRAFFIC_ENGINEERING);
         this.records = records;
     }
 
@@ -102,8 +102,6 @@ public final class LispTeLcafAddress extends LispLcafAddress {
 
     public static final class TeAddressBuilder extends LcafAddressBuilder<TeAddressBuilder> {
         private List<LispTeRecord> records;
-        private short length;
-        private static final int SIZE_OF_AFI_RECORD = 8;
 
         /**
          * Sets a collection of TE records.
@@ -113,7 +111,6 @@ public final class LispTeLcafAddress extends LispLcafAddress {
          */
         public TeAddressBuilder withTeRecords(List<LispTeRecord> records) {
             this.records = records;
-            this.length = (short) (records.size() * SIZE_OF_AFI_RECORD);
             return this;
         }
 
@@ -123,51 +120,49 @@ public final class LispTeLcafAddress extends LispLcafAddress {
          * @return LispTeLcafAddress instance
          */
         public LispTeLcafAddress build() {
-            return new LispTeLcafAddress(length, records);
+            return new LispTeLcafAddress(records);
         }
+    }
+    /**
+     * TE LCAF address reader class.
+     */
+    public static class TeLcafAddressReader implements LispAddressReader<LispTeLcafAddress> {
 
-        /**
-         * TE LCAF address reader class.
-         */
-        public static class TeLcafAddressReader implements LispAddressReader<LispTeLcafAddress> {
+        @Override
+        public LispTeLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
-            private static final int SIZE_OF_AFI_RECORD = 8;
+            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
-            @Override
-            public LispTeLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
-
-                LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
-
-                // TODO: for RTR RLOC is IPv4 only for now
-                int numOfRecords = lcafAddress.getLength() / SIZE_OF_AFI_RECORD;
-
-                List<LispTeRecord> teRecords = Lists.newArrayList();
-                for (int i = 0; i < numOfRecords; i++) {
-                    teRecords.add(new LispTeRecord.TeRecordReader().readFrom(byteBuf));
-                }
-
-                return new TeAddressBuilder()
-                            .withTeRecords(teRecords)
-                            .build();
+            List<LispTeRecord> teRecords = Lists.newArrayList();
+            while (byteBuf.readerIndex() - LispLcafAddress.COMMON_HEADER_SIZE < lcafAddress.getLength()) {
+                teRecords.add(new LispTeRecord.TeRecordReader().readFrom(byteBuf));
             }
+
+            return new TeAddressBuilder()
+                        .withTeRecords(teRecords)
+                        .build();
         }
+    }
 
-        /**
-         * TE LCAF address writer class.
-         */
-        public static class TeLcafAddressWriter implements LispAddressWriter<LispTeLcafAddress> {
+    /**
+     * TE LCAF address writer class.
+     */
+    public static class TeLcafAddressWriter implements LispAddressWriter<LispTeLcafAddress> {
 
-            @Override
-            public void writeTo(ByteBuf byteBuf, LispTeLcafAddress address) throws LispWriterException {
-                LispLcafAddress.serializeCommon(byteBuf, address);
+        @Override
+        public void writeTo(ByteBuf byteBuf, LispTeLcafAddress address) throws LispWriterException {
 
-                TeRecordWriter writer = new TeRecordWriter();
+            int lcafIndex = byteBuf.writerIndex();
+            LispLcafAddress.serializeCommon(byteBuf, address);
 
-                List<LispTeRecord> teRecords = address.getTeRecords();
-                for (int i = 0; i < teRecords.size(); i++) {
-                    writer.writeTo(byteBuf, teRecords.get(i));
-                }
+            TeRecordWriter writer = new TeRecordWriter();
+
+            List<LispTeRecord> teRecords = address.getTeRecords();
+            for (int i = 0; i < teRecords.size(); i++) {
+                writer.writeTo(byteBuf, teRecords.get(i));
             }
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
     }
 }

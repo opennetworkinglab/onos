@@ -54,8 +54,6 @@
             link.createLink();
         });
 
-        console.log(region.get('id'));
-
         // TEMP Map Zoom
         var regionPanZooms = {
             "(root)": {

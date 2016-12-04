@@ -29,7 +29,7 @@ public interface InfoBuilder<T> extends Builder {
      * @param infoReply info reply
      * @return T object
      */
-    T withInfoReply(boolean infoReply);
+    T withIsInfoReply(boolean infoReply);
 
     /**
      * Sets nonce value.

@@ -22,7 +22,8 @@
 (function () {
     'use strict';
 
-    var Model;
+    var Model,
+        extend;
 
     function Collection(models, options) {
 
@@ -91,34 +92,12 @@
         }
     };
 
-    Collection.extend = function (protoProps, staticProps) {
-
-        var parent = this;
-        var child;
-
-        child = function () {
-            return parent.apply(this, arguments);
-        };
-
-        angular.extend(child, parent, staticProps);
-
-        // Set the prototype chain to inherit from `parent`, without calling
-        // `parent`'s constructor function and add the prototype properties.
-        child.prototype = angular.extend({}, parent.prototype, protoProps);
-        child.prototype.constructor = child;
-
-        // Set a convenience property in case the parent's prototype is needed
-        // later.
-        child.__super__ = parent.prototype;
-
-        return child;
-    };
-
     angular.module('ovTopo2')
         .factory('Topo2Collection',
-        ['Topo2Model',
-            function (_Model_) {
+        ['Topo2Model', 'FnService',
+            function (_Model_, fn) {
 
+                Collection.extend = fn.extend;
                 Model = _Model_;
                 return Collection;
             }

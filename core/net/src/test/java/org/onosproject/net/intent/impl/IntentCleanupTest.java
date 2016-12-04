@@ -50,15 +50,26 @@ public class IntentCleanupTest {
     private static class MockIntentService extends IntentServiceAdapter {
 
         private int submitCounter = 0;
+        private int pendingCounter = 0;
 
         @Override
         public void submit(Intent intent) {
             submitCounter++;
         }
 
+        @Override
+        public void addPending(IntentData intentData) {
+            pendingCounter++;
+        }
+
         public int submitCounter() {
             return submitCounter;
         }
+
+        public int pendingCounter() {
+            return pendingCounter;
+        }
+
     }
 
     @Before
@@ -138,7 +149,7 @@ public class IntentCleanupTest {
 
         cleanup.run();
         assertEquals("Expect number of submits incorrect",
-                     1, service.submitCounter());
+                     1, service.pendingCounter());
 
     }
 
@@ -168,7 +179,7 @@ public class IntentCleanupTest {
 
         cleanup.run();
         assertEquals("Expect number of submits incorrect",
-                     1, service.submitCounter());
+                     1, service.pendingCounter());
 
     }
 

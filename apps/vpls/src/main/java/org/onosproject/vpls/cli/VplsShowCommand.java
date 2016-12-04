@@ -16,14 +16,13 @@
 
 package org.onosproject.vpls.cli;
 
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.vpls.config.VplsConfigService;
 
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -35,40 +34,36 @@ import static com.google.common.base.Strings.isNullOrEmpty;
         description = "Shows the details of an existing VPLS")
 public class VplsShowCommand extends AbstractShellCommand {
 
-    private static final String NAME_FORMAT = "%10s: interface=%s";
-    private static final String NETWORK_NOT_FOUND =
-            "VPLS with name \'%s\' not found";
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
-    @Argument(index = 0, name = "NETWORK_NAME", description = "Name of the VPLS",
+    @Argument(index = 0, name = "vplsName", description = "Name of the VPLS",
             required = false, multiValued = false)
     private String vplsName = null;
 
     @Override
     protected void execute() {
-        Set<String> vplsNames = vplsConfigService.getAllVpls();
-        SetMultimap<String, Interface> vplsNetowrks = vplsConfigService.getVplsNetworks();
-        Set<String> ifaceNames = Sets.newHashSet();
-
+        Set<String> vplsNames = vplsConfigService.vplsNames();
+        Map<String, EncapsulationType> encapByVplsName =
+                vplsConfigService.encapByVplsName();
 
         if (!isNullOrEmpty(vplsName)) {
-
-            if (vplsNames.contains(vplsName)) {
-                vplsNetowrks.get(vplsName).stream()
-                        .map(Interface::name)
-                        .forEach(ifaceNames::add);
-                print(NAME_FORMAT, vplsName, ifaceNames);
+            // A VPLS name is provided. Check first if the VPLS exists
+            if (VplsCommandUtils.vplsExists(vplsName)) {
+                print(VplsCommandUtils.VPLS_DISPLAY,
+                      vplsName,
+                      VplsCommandUtils.ifacesFromVplsName(vplsName).toString(),
+                      encapByVplsName.get(vplsName).toString());
             } else {
-                print(NETWORK_NOT_FOUND, vplsName);
+                print(VplsCommandUtils.VPLS_NOT_FOUND, vplsName);
             }
         } else {
+            // No VPLS names are provided. Display all VPLSs configured
             vplsNames.forEach(vplsName -> {
-                ifaceNames.clear();
-                vplsNetowrks.get(vplsName).stream()
-                        .map(Interface::name)
-                        .forEach(ifaceNames::add);
-                print(NAME_FORMAT, vplsName, ifaceNames);
+                print(VplsCommandUtils.VPLS_DISPLAY,
+                      vplsName,
+                      VplsCommandUtils.ifacesFromVplsName(vplsName).toString(),
+                      encapByVplsName.get(vplsName).toString());
             });
         }
     }

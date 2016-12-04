@@ -118,7 +118,8 @@ public class PersistentMap<K, V> implements Map<K, V> {
     @Override
     public V get(Object key) {
         checkNotNull(key, "Key cannot be null.");
-        return serializer.decode(items.get(serializer.encode(key)));
+        byte[] bytes = items.get(serializer.encode(key));
+        return bytes == null ? null : serializer.decode(bytes);
     }
 
     @Override

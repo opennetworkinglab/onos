@@ -16,14 +16,14 @@
 
 package org.onosproject.yms.ych;
 
+import org.onosproject.yms.ydt.YmsOperationType;
+
 import java.util.List;
 import java.util.Map;
 
-import org.onosproject.yms.ydt.YmsOperationType;
-
 /**
  * Abstraction of an entity which provides interfaces to YANG codec handler.
- *
+ * <p>
  * In SBI, the provider or driver uses YANG management system as a CODEC
  * utility. Providers/drivers register the device schema with YANG management
  * system. YANG utils is used to generate the java files corresponding to the
@@ -45,7 +45,7 @@ public interface YangCodecHandler {
      * @param yangModule YANG utils generated class corresponding to SBI
      *                   device schema module
      */
-    void addDeviceSchema(Class yangModule);
+    void addDeviceSchema(Class<?> yangModule);
 
 
     /**
@@ -55,7 +55,7 @@ public interface YangCodecHandler {
      * the driver / provider need to provide the list of application(s) module
      * object. Each module object contains the request information
      * corresponding to that application.
-     *
+     * <p>
      * The protocols can have a logical root node which acts as a container
      * of applications module node. For example in NETCONF, it could be
      * data/filter/config, etc. Protocols needs to pass this parameter in the
@@ -68,7 +68,7 @@ public interface YangCodecHandler {
      * tags that can be attached to the root node, for example in NETCONF,
      * the tag type="subtree" can be specified. In such scenarios the
      * required tags should be sent as a parameter.
-     *
+     * <p>
      * The provider / driver would require to operate on multiple schema
      * nodes in a single request, for example it may be require to configure
      * a tunnel and associate a QOS to this tunnel, in this scenario, it
@@ -79,6 +79,7 @@ public interface YangCodecHandler {
      * If the request to be generated needs to be a wild card for no
      * application(s), then this parameter needs to be null. For example a
      * "empty filter" request in NETCONF get request.
+     * <p>
      * If the request to be generated needs to be a wild card for  all
      * application(s), then the driver / provider should not invoke this API,
      * as there is no encoding of application related information for the
@@ -113,13 +114,13 @@ public interface YangCodecHandler {
      * composite operation API is used. The application module object
      * containing the request information has both the resource identifier
      * part and the resource information part.
-     *
+     * <p>
      * The protocols can have a logical root node which acts as a container
      * of applications module node.  For example in RESTCONF, it could be
      * RootResource/data, etc. There is no validation done on the value
      * of this parameter. It is upto the protocol to use it. It is a
      * mandatory parameter and protocols must pass this parameter.
-     *
+     * <p>
      * The resource to be operated upon in the device is identified in a
      * module's schema object. This modules object should contain the
      * information about the resource on which the operation needs to be
@@ -179,6 +180,7 @@ public interface YangCodecHandler {
      * using native JAVA objects. Drivers use this Decode method to translate
      * the received protocol specific composite data to YANG modeled Java
      * objects.
+     * <p>
      * If the response received is not in line with the schema, for example,
      * there is some error info, etc, then the decode operation will throw an
      * exception and decode operation will fail.

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2015-present Open Networking Laboratory
  *

@@ -1,0 +1,63 @@
+#!/bin/bash
+
+KARAF_VERSION="3.0.5"
+KARAF_TARFILE_NAME="apache-karaf-${KARAF_VERSION}.tar"
+BOOT_FEATURES="standard,ssh,scr,war,webconsole"
+
+# fetch the standard karaf bits
+rm -f /tmp/${KARAF_TARFILE_NAME}
+curl -o /tmp/${KARAF_TARFILE_NAME}.gz http://onlab.vicci.org/onos/third-party/${KARAF_TARFILE_NAME}.gz
+
+# get a small cell
+source ${ONOS_ROOT}/tools/dev/bash_profile
+cell borrow 60 1+0
+scp /tmp/${KARAF_TARFILE_NAME}.gz sdn@${OC1}:/tmp/${KARAF_TARFILE_NAME}.gz
+
+ssh sdn@${OC1} "
+
+    # unroll the base karaf
+    rm -rf karaf
+    mkdir karaf
+    cd karaf
+    tar xf /tmp/${KARAF_TARFILE_NAME}.gz
+
+    # set the ONOS default boot features
+    perl -pi.old -e 's|^(featuresBoot=).*|\1${BOOT_FEATURES}|' apache-karaf-${KARAF_VERSION}/etc/org.apache.karaf.features.cfg
+
+    # run karaf to fill the maven repo with required artifacts
+    apache-karaf-${KARAF_VERSION}/bin/karaf server 1>/tmp/onos.out 2>/tmp/onos.err &
+
+    sleep 15
+
+    # stop karaf and capture the artifacts that were downloaded into the maven repo
+    apache-karaf-${KARAF_VERSION}/bin/karaf stop 1>/tmp/onos.out 2>/tmp/onos.err &
+    cd ~/.m2/repository
+    tar cvf ~/repo.tar *
+
+    # start with a fresh karaf and overlay the downloaded artifacts
+    cd
+    rm -rf karaf-offline
+    mkdir karaf-offline
+    cd karaf-offline
+    tar xf /tmp/${KARAF_TARFILE_NAME}.gz
+
+    # load the downloaded artifacts into the karaf system directory
+    cd apache-karaf-${KARAF_VERSION}/system
+    tar xf ~/repo.tar
+
+    # create a zipped tar ball of the updated karaf tree
+    cd ~/karaf-offline
+    tar czf ~/karaf-offline.tar.gz apache-karaf-${KARAF_VERSION}
+"
+
+# fetch the new offline karaf tar ball
+BUILD_NUMBER="apache-karaf-${KARAF_VERSION}-offline-$(date +'%Y%m%d')"
+scp sdn@${OC1}:karaf-offline.tar.gz /tmp/${BUILD_NUMBER}.tar.gz
+
+cell return
+
+
+
+
+
+

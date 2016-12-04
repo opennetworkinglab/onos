@@ -22,30 +22,24 @@
 (function () {
     'use strict';
 
-    var ps;
+    // Injected Services
+    var flash, ps;
 
-    var Panel = function (id, options) {
-        this.id = id;
-        this.p = ps.createPanel(this.id, options);
-        this.setup();
+    var panel = {
+        initialize: function (id, options) {
+            this.id = id;
+            this.el = ps.createPanel(id, options);
+            this.setup();
 
-        if (options.show) {
-            this.p.show();
-        }
-    };
-
-    Panel.prototype = {
+            if (options.show) {
+                this.el.show();
+            }
+        },
         setup: function () {
-            var panel = this.p;
-            panel.empty();
-
-            panel.append('div').classed('header', true);
-            panel.append('div').classed('body', true);
-            panel.append('div').classed('footer', true);
-
-            this.header = panel.el().select('.header');
-            this.body = panel.el().select('.body');
-            this.footer = panel.el().select('.body');
+            this.el.empty();
+            this.header = this.el.append('div').classed('header', true);
+            this.body = this.el.append('div').classed('body', true);
+            this.footer = this.el.append('div').classed('footer', true);
         },
         appendToHeader: function (x) {
             return this.header.append(x);
@@ -65,15 +59,19 @@
             ps.destroyPanel(this.id);
         },
         isVisible: function () {
-            return this.p.isVisible();
+            return this.el.isVisible();
         }
-    };
+    }
 
     angular.module('ovTopo2')
-    .factory('Topo2PanelService', ['PanelService',
-        function (_ps_) {
+    .factory('Topo2PanelService',
+    ['Topo2UIView', 'FlashService', 'PanelService',
+        function (View, _flash_, _ps_) {
+
+            flash = _flash_;
             ps = _ps_;
-            return Panel;
+
+            return View.extend(panel);
         }
     ]);
 

@@ -1,0 +1,98 @@
+module integer32 {
+
+    yang-version 1;
+
+    namespace "ydt.integer32";
+
+    prefix "integer32";
+
+    organization "ON-LAB";
+
+    description "This module defines for integer32 classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list multiRangeValidation {
+        config false;
+        leaf integer {
+              type int32 {
+                 range "10..40 | 50..100";
+              }
+        }
+        leaf UnInteger {
+              type uint32 {
+                 range "10..40 | 50..100";
+              }
+        }
+
+        leaf revInteger {
+              type int32 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+
+        leaf revUnInteger {
+              type uint32 {
+                 range "min .. 2 | 10 | 20..max";
+              }
+        }
+    }
+
+    leaf negInt {
+          type int32 {
+         }
+    }
+
+    leaf posInt {
+          type int32 {
+         }
+    }
+
+    leaf minIntWithRange {
+          type int32 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midIntWithRange {
+          type int32 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxIntWithRange {
+          type int32 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf minUInt {
+          type uint32 {
+         }
+    }
+
+    leaf maxUInt {
+          type uint32 {
+         }
+    }
+
+    leaf minUIntWithRange {
+          type uint32 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf midUIntWithRange {
+          type uint32 {
+             range "10 .. 100";
+         }
+    }
+
+    leaf maxUIntWithRange {
+          type uint32 {
+             range "10 .. 100";
+         }
+    }
+}

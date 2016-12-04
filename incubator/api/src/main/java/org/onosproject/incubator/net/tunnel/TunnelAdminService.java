@@ -62,4 +62,11 @@ public interface TunnelAdminService {
      */
     void updateTunnel(Tunnel tunnel, Path path);
 
+    /**
+     * Updates the state of a tunnel.
+     *
+     * @param tunnel tunnel to be changed
+     * @param state new state of the tunnel
+     */
+    void updateTunnelState(Tunnel tunnel, Tunnel.State state);
 }

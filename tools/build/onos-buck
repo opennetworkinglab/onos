@@ -5,9 +5,9 @@
 
 set -e
 
-BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2016.11.12.01.zip"
-BUCK_SHA="c7472ed3046b6126d3eab2d06cccae2f488e3d85"
-REQUIRED_VERSION="buck version 50b259823655bd5f5f4be7a1e15fb22b4a2e62d5"
+BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2016.12.02.01.zip"
+BUCK_SHA="c7b1b46f998c08a175adec37f210c14092f84216"
+REQUIRED_VERSION="buck version c4e714c9c0c774cbb674c2fde0a4419824f0cfdb"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
 
@@ -27,7 +27,7 @@ if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat 
         SHA=$(shasum cache/$BUCK_FILE | cut -d' ' -f1)
         [ "$SHA" != "$BUCK_SHA" ] &&
            echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
-           exit 1
+           rm -f cache/$BUCK_FILE && exit 1
     else
         echo "SHA cannot be verified"
     fi
@@ -42,4 +42,4 @@ popd > /dev/null
 BUCK=$ROOT_DIR/bin/buck
 
 # Finally, run the Buck command...
-$BUCK "$@"
+NO_BUCKD=1 $BUCK "$@"

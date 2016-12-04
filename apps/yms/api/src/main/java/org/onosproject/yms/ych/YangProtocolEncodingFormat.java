@@ -23,10 +23,10 @@ public enum YangProtocolEncodingFormat {
     /**
      * XML protocol encoding.
      */
-    XML_ENCODING,
+    XML,
 
     /**
      * JSON protocol encoding.
      */
-    JSON_ENCODING
+    JSON
 }

@@ -18,20 +18,20 @@ package org.onosproject.vpls.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vpls.config.VplsConfigurationService;
+import org.onosproject.vpls.config.VplsConfigService;
 
 /**
  * CLI to list VPLSs.
  */
-@Command(scope = "onos", name = "vpls-list", description = "Lists the existing VPLSs")
+@Command(scope = "onos", name = "vpls-list", description = "List the VPLSs configured")
 public class VplsListCommand extends AbstractShellCommand {
-    private VplsConfigurationService vplsConfigService =
-            get(VplsConfigurationService.class);
+    private VplsConfigService vplsConfigService =
+            get(VplsConfigService.class);
 
     @Override
     protected void execute() {
-        vplsConfigService.getAllVpls().forEach(vpls -> {
-            print("%s", vpls);
+        vplsConfigService.vplsNames().forEach(vpls -> {
+            print(VplsCommandUtils.VPLS_NAME, vpls);
         });
     }
 }

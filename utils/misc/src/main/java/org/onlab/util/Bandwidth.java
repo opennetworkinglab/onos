@@ -86,6 +86,26 @@ public interface Bandwidth extends RichComparable<Bandwidth> {
     }
 
     /**
+     * Creates a new instance with given bandwidth in KBps.
+     *
+     * @param kBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth kBps(long kBps) {
+        return bps(kBps * 8_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in KBps.
+     *
+     * @param kBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth kBps(double kBps) {
+        return bps(kBps * 8_000L);
+    }
+
+    /**
      * Creates a new instance with given bandwidth in Mbps.
      *
      * @param mbps bandwidth value to be assigned
@@ -106,6 +126,26 @@ public interface Bandwidth extends RichComparable<Bandwidth> {
     }
 
     /**
+     * Creates a new instance with given bandwidth in MBps.
+     *
+     * @param mBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth mBps(long mBps) {
+        return bps(mBps * 8_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in MBps.
+     *
+     * @param mBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth mBps(double mBps) {
+        return bps(mBps * 8_000_000L);
+    }
+
+    /**
      * Creates a new instance with given bandwidth in Gbps.
      *
      * @param gbps bandwidth value to be assigned
@@ -123,6 +163,26 @@ public interface Bandwidth extends RichComparable<Bandwidth> {
      */
     static Bandwidth gbps(double gbps) {
         return bps(gbps * 1_000_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in GBps.
+     *
+     * @param gBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth gBps(long gBps) {
+        return bps(gBps * 8_000_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in GBps.
+     *
+     * @param gBps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth gBps(double gBps) {
+        return bps(gBps * 8_000_000_000L);
     }
 
     /**

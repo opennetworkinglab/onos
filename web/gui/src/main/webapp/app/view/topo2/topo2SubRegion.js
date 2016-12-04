@@ -41,9 +41,9 @@
     angular.module('ovTopo2')
     .factory('Topo2SubRegionService',
         ['WebSocketService', 'Topo2Collection', 'Topo2NodeModel',
-        'ThemeService', 'Topo2ViewService',
+        'ThemeService', 'Topo2ViewService', 'Topo2SubRegionPanelService',
 
-            function (_wss_, _c_, _NodeModel_, _ts_, _t2vs_) {
+            function (_wss_, _c_, _NodeModel_, _ts_, _t2vs_m, _t2srp_) {
 
                 wss = _wss_;
                 Collection = _c_;
@@ -54,12 +54,28 @@
                         this.super.initialize.apply(this, arguments);
                     },
                     events: {
-                        'dblclick': 'navigateToRegion'
+                        'dblclick': 'navigateToRegion',
+                        'click': 'onClick'
+                    },
+                    onChange: function () {
+                        // Update class names when the model changes
+                        if (this.el) {
+                            this.el.attr('class', this.svgClassName());
+                        }
                     },
                     nodeType: 'sub-region',
                     icon: function () {
                         var type = this.get('type');
                         return remappedDeviceTypes[type] || type || 'm_cloud';
+                    },
+                    onClick: function () {
+                        var selected = this.select(d3.event);
+
+                        if (selected.length > 0) {
+                            _t2srp_.displayPanel(this);
+                        } else {
+                            _t2srp_.hide();
+                        }
                     },
                     navigateToRegion: function () {
 

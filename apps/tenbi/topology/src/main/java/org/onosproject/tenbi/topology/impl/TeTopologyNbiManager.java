@@ -115,7 +115,7 @@ public class TeTopologyNbiManager
         checkNotNull(ietfNetwork, "getIetfNetwork: ietfNetwork cannot be null");
 
         // Get the entire data tree from TE Subsystem core.
-        org.onosproject.tetopology.management.api.Networks teNetworks = teTopologyService.getNetworks();
+        org.onosproject.tetopology.management.api.Networks teNetworks = teTopologyService.networks();
 
         // Convert the TE Subsystem core data into YANG Objects.
         Networks networks = NetworkConverter.teSubsystem2YangNetworks(teNetworks, OperationType.QUERY);

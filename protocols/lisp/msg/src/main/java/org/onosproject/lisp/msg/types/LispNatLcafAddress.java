@@ -162,7 +162,8 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                     Objects.equals(this.etrUdpPortNumber, other.etrUdpPortNumber) &&
                     Objects.equals(this.globalEtrRlocAddress, other.globalEtrRlocAddress) &&
                     Objects.equals(this.msRlocAddress, other.msRlocAddress) &&
-                    Objects.equals(this.privateEtrRlocAddress, other.privateEtrRlocAddress);
+                    Objects.equals(this.privateEtrRlocAddress, other.privateEtrRlocAddress) &&
+                    Objects.equals(this.rtrRlocAddresses, other.rtrRlocAddresses);
         }
         return false;
     }
@@ -175,6 +176,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
                 .add("global ETR RLOC address", globalEtrRlocAddress)
                 .add("Map Server RLOC address", msRlocAddress)
                 .add("private ETR RLOC address", privateEtrRlocAddress)
+                .add("RTR RLOC addresses", rtrRlocAddresses)
                 .toString();
     }
 
@@ -280,13 +282,14 @@ public final class LispNatLcafAddress extends LispLcafAddress {
             short msUdpPortNumber = (short) byteBuf.readUnsignedShort();
             short etrUdpPortNumber = (short) byteBuf.readUnsignedShort();
 
-            LispAfiAddress globalEtrRlocAddress = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
-            LispAfiAddress msRlocAddress = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
-            LispAfiAddress privateEtrRlocAddress = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress globalEtrRlocAddress = new AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress msRlocAddress = new AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress privateEtrRlocAddress = new AfiAddressReader().readFrom(byteBuf);
 
             List<LispAfiAddress> rtrRlocAddresses = Lists.newArrayList();
-            for (int i = 0; i < lcafAddress.getLength(); i++) {
-                rtrRlocAddresses.add(new LispAfiAddress.AfiAddressReader().readFrom(byteBuf));
+
+            while (byteBuf.readerIndex() - LispLcafAddress.COMMON_HEADER_SIZE < lcafAddress.getLength()) {
+                rtrRlocAddresses.add(new AfiAddressReader().readFrom(byteBuf));
             }
 
             return new NatAddressBuilder()
@@ -313,6 +316,7 @@ public final class LispNatLcafAddress extends LispLcafAddress {
         public void writeTo(ByteBuf byteBuf, LispNatLcafAddress address)
                 throws LispWriterException {
 
+            int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
             byteBuf.writeShort(address.getMsUdpPortNumber());
@@ -328,6 +332,8 @@ public final class LispNatLcafAddress extends LispLcafAddress {
             for (int i = 0; i < rtrRlocAddresses.size(); i++) {
                 writer.writeTo(byteBuf, rtrRlocAddresses.get(i));
             }
+
+            LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }
     }
 }

@@ -1,0 +1,51 @@
+module EmptyLeafList {
+
+    yang-version 1;
+
+    namespace "ydt.Empty.leafList";
+
+    prefix "emptyleaflist";
+
+    organization "ON-LAB";
+
+    description "This module defines for empty leaf list.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    typedef type-def {
+        type leafref {
+                    path /l1;
+                }
+    }
+
+    leaf l1 {
+        type empty;
+    }
+
+    leaf l2 {
+        type leafref {
+            path /l1;
+        }
+    }
+
+    leaf l3 {
+        type type-def;
+    }
+
+    leaf-list list1 {
+        type empty;
+    }
+
+    leaf-list list2 {
+        type leafref {
+            path /l1;
+        }
+    }
+
+    leaf-list list3 {
+        type type-def;
+    }
+
+}

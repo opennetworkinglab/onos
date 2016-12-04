@@ -1,0 +1,15 @@
+module YtbModuleWithList {
+    yang-version 1;
+    namespace "yms:test:ytb:module:with:list";
+    prefix "sch";
+    revision "2016-08-26";
+    list ytblistlist {
+        config false;
+        leaf-list prediction {
+            type find;
+        }
+    }
+    typedef find {
+        type boolean;
+    }
+}

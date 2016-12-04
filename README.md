@@ -23,5 +23,5 @@ performance, scale-out.
   controlled by distributed routing protocols such as BGP.
 * IP-Optical use case demonstration.
 
-Checkout out our [website](http://www.onosproject.org) and our
+Checkout our [website](http://www.onosproject.org) and our
 [tools](http://www.onosproject.org/software/#tools)

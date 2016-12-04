@@ -50,7 +50,7 @@
 <!--
    The default severity setting in checkstyle is 'error', so some
    of the rules below are configured to change the severity to
-   'warning'.  Over time, these 'warning' settings should be 
+   'warning'.  Over time, these 'warning' settings should be
    removed as more of the ONOS source code is modified to
    follow the recommended rules.
 -->
@@ -105,6 +105,11 @@
     <!--   <property name="headerFile" value="${checkstyle.header.file}"/> -->
     <!--   <property name="fileExtensions" value="java"/> -->
     <!-- </module> -->
+
+    <module name="RegexpHeader">
+        <property name="headerFile" value="tools/build/conf/src/main/resources/onos/onos-java.header"/>
+    </module>
+
 
     <module name="SuppressionCommentFilter">
         <property name="offCommentFormat"

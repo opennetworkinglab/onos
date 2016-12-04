@@ -189,6 +189,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         return OpticalPathIntent.builder()
                 .appId(parentIntent.appId())
+                .key(parentIntent.key())
                 .src(parentIntent.getSrc())
                 .dst(parentIntent.getDst())
                 // calling paths.iterator().next() is safe because of non-empty set

@@ -22,8 +22,8 @@
         <step name="Validate-Death" requires="Node-Death"
               exec="onos-check-node-status ${OC2} ${OC1} INACTIVE"/>
 
-        <group name="Validate-Normal-Operation">
-            <step name="Check-Summary" requires="~Validate-Death"
+        <group name="Validate-Normal-Operation" requires="Validate-Death">
+            <step name="Check-Summary"
                   exec="onos-check-summary ${OC2} [0-9]* ${OTD} ${OTL} ${OTH}"/>
 
             <step name="Balance-Masters" requires="~Check-Summary"
@@ -36,7 +36,7 @@
                   exec="onos-check-flows ${OC2}"/>
         </group>
 
-        <group name="Recover" requires="~Validate-Normal-Operation">
+        <group name="Recover" requires="Validate-Normal-Operation">
             <step name="Node-Start"
                   exec="onos-service ${OC1} start"/>
 
@@ -44,7 +44,7 @@
                   exec="onos-wait-for-start ${OC1}"/>
         </group>
 
-        <group name="Validate-Recovery" requires="~Recover">
+        <group name="Validate-Recovery" requires="Recover">
             <parallel var="${OC#}">
                 <step name="Check-Nodes-${#}"
                       exec="onos-check-nodes ${OC#}"/>
@@ -62,7 +62,7 @@
             </parallel>
         </group>
 
-        <step name="Balance-Masters-Again" requires="~Validate-Recovery"
+        <step name="Balance-Masters-Again" requires="Validate-Recovery"
               exec="onos ${OC1} balance-masters"/>
     </group>
 

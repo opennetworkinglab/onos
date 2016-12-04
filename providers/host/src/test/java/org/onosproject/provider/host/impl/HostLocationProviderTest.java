@@ -16,14 +16,17 @@
 package org.onosproject.provider.host.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ARP;
 import org.onlab.packet.ChassisId;
+import org.onlab.packet.DHCP;
+import org.onlab.packet.DHCPOption;
+import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
@@ -31,6 +34,7 @@ import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
@@ -73,23 +77,33 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.onlab.packet.VlanId.vlanId;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
 
 public class HostLocationProviderTest {
     private static final ProviderId PROVIDER_ID =
             new ProviderId("of", "org.onosproject.provider.host");
 
     private static final Integer INPORT = 10;
+    private static final Integer INPORT2 = 11;
     private static final String DEV1 = "of:1";
     private static final String DEV2 = "of:2";
     private static final String DEV3 = "of:3";
@@ -109,8 +123,8 @@ public class HostLocationProviderTest {
             new HostLocation(deviceId(DEV1), portNumber(INPORT), 0L);
     private static final DefaultHost HOST =
             new DefaultHost(PROVIDER_ID, hostId(MAC), MAC,
-                            vlanId(VlanId.UNTAGGED), LOCATION,
-                            ImmutableSet.of(IP_ADDRESS));
+                    VLAN, LOCATION,
+                    ImmutableSet.of(IP_ADDRESS));
 
     // IPv6 Host
     private static final MacAddress MAC2 = MacAddress.valueOf("00:00:22:00:00:02");
@@ -122,8 +136,21 @@ public class HostLocationProviderTest {
             new HostLocation(deviceId(DEV4), portNumber(INPORT), 0L);
     private static final DefaultHost HOST2 =
             new DefaultHost(PROVIDER_ID, hostId(MAC2), MAC2,
-                            vlanId(VlanId.UNTAGGED), LOCATION2,
-                            ImmutableSet.of(IP_ADDRESS2));
+                    VLAN, LOCATION2,
+                    ImmutableSet.of(IP_ADDRESS2));
+
+    // DHCP Server
+    private static final MacAddress MAC3 = MacAddress.valueOf("00:00:33:00:00:03");
+    private static final byte[] IP3 = new byte[]{10, 0, 0, 2};
+    private static final IpAddress IP_ADDRESS3 =
+            IpAddress.valueOf(IpAddress.Version.INET, IP3);
+
+    private static final HostLocation LOCATION3 =
+            new HostLocation(deviceId(DEV1), portNumber(INPORT2), 0L);
+    private static final DefaultHost HOST3 =
+            new DefaultHost(PROVIDER_ID, hostId(MAC3), MAC3,
+                    VLAN, LOCATION3,
+                    ImmutableSet.of(IP_ADDRESS3));
 
     private static final ComponentContextAdapter CTX_FOR_REMOVE =
             new ComponentContextAdapter() {
@@ -187,33 +214,39 @@ public class HostLocationProviderTest {
 
     @Test
     public void events() {
-        // new host
+        // New host. Expect one additional host description.
         testProcessor.process(new TestArpPacketContext(DEV1));
-        assertNotNull("new host expected", providerService.added);
-        assertNull("host motion unexpected", providerService.moved);
+        assertThat("New host expected", providerService.descriptions.size(), is(1));
 
-        // the host moved to new switch
+        // The host moved to new switch. Expect one additional host description.
+        // The second host description should have a different location.
         testProcessor.process(new TestArpPacketContext(DEV2));
-        assertNotNull("host motion expected", providerService.moved);
+        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
+        HostLocation loc1 = providerService.descriptions.get(0).location();
+        HostLocation loc2 = providerService.descriptions.get(1).location();
+        assertNotEquals("Host location should be different", loc1, loc2);
 
-        // the host was misheard on a spine
+        // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestArpPacketContext(DEV3));
-        assertNull("host misheard on spine switch", providerService.spine);
+        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
 
         providerService.clear();
 
-        // new host
+        // New host. Expect one additional host description.
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertNotNull("new host expected", providerService.added);
-        assertNull("host motion unexpected", providerService.moved);
+        assertThat("New host expected", providerService.descriptions.size(), is(1));
 
-        // the host moved to new switch
+        // The host moved to new switch. Expect one additional host description.
+        // The second host description should have a different location.
         testProcessor.process(new TestNaPacketContext(DEV5));
-        assertNotNull("host motion expected", providerService.moved);
+        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
+        loc1 = providerService.descriptions.get(0).location();
+        loc2 = providerService.descriptions.get(1).location();
+        assertNotEquals("Host location should be different", loc1, loc2);
 
-        // the host was misheard on a spine
+        // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestNaPacketContext(DEV6));
-        assertNull("host misheard on spine switch", providerService.spine);
+        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
     }
 
     @Test
@@ -225,12 +258,12 @@ public class HostLocationProviderTest {
         Device device = new DefaultDevice(ProviderId.NONE, deviceId(DEV1), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_REMOVED, device));
-        assertEquals("incorrect remove count", 1, providerService.removeCount);
+        assertEquals("incorrect remove count", 2, providerService.removeCount);
 
         device = new DefaultDevice(ProviderId.NONE, deviceId(DEV4), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_REMOVED, device));
-        assertEquals("incorrect remove count", 2, providerService.removeCount);
+        assertEquals("incorrect remove count", 3, providerService.removeCount);
     }
 
     @Test
@@ -242,12 +275,12 @@ public class HostLocationProviderTest {
         Device device = new DefaultDevice(ProviderId.NONE, deviceId(DEV1), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device));
-        assertEquals("incorrect remove count", 1, providerService.removeCount);
+        assertEquals("incorrect remove count", 2, providerService.removeCount);
 
         device = new DefaultDevice(ProviderId.NONE, deviceId(DEV4), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device));
-        assertEquals("incorrect remove count", 2, providerService.removeCount);
+        assertEquals("incorrect remove count", 3, providerService.removeCount);
     }
 
     @Test
@@ -275,7 +308,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveArp() {
         testProcessor.process(new TestArpPacketContext(DEV1));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveArp. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
         assertThat(descr.hwAddress(), is(MAC));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS));
@@ -288,11 +323,50 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv4() {
         testProcessor.process(new TestIpv4PacketContext(DEV1));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveIpv4. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION));
         assertThat(descr.hwAddress(), is(MAC));
         assertThat(descr.ipAddress().size(), is(0));
         assertThat(descr.vlan(), is(VLAN));
+    }
+
+    /**
+     * When receiving DHCP REQUEST, update MAC, location of client.
+     * When receiving DHCP ACK, update MAC, location of server and IP of client.
+     */
+    @Test
+    public void testReceiveDhcp() {
+        // DHCP Request
+        testProcessor.process(new TestDhcpRequestPacketContext(DEV1));
+        assertThat("testReceiveDhcpRequest. One host description expected",
+                providerService.descriptions.size(), is(1));
+        // Should learn the MAC and location of DHCP client
+        HostDescription descr = providerService.descriptions.get(0);
+        assertThat(descr.location(), is(LOCATION));
+        assertThat(descr.hwAddress(), is(MAC));
+        assertThat(descr.ipAddress().size(), is(0));
+        assertThat(descr.vlan(), is(VLAN));
+
+        // DHCP Ack
+        testProcessor.process(new TestDhcpAckPacketContext(DEV1));
+        assertThat("testReceiveDhcpAck. Two additional host descriptions expected",
+                providerService.descriptions.size(), is(3));
+        // Should learn the IP of DHCP client
+        HostDescription descr2 = providerService.descriptions.get(1);
+        assertThat(descr2.location(), is(LOCATION));
+        assertThat(descr2.hwAddress(), is(MAC));
+        assertThat(descr2.ipAddress().size(), is(1));
+        assertTrue(descr2.ipAddress().contains(IP_ADDRESS));
+        assertThat(descr2.vlan(), is(VLAN));
+        // Should also learn the MAC, location of DHCP server
+        HostDescription descr3 = providerService.descriptions.get(2);
+        assertThat(descr3.location(), is(LOCATION3));
+        assertThat(descr3.hwAddress(), is(MAC3));
+        assertThat(descr3.ipAddress().size(), is(0));
+        assertThat(descr3.vlan(), is(VLAN));
+
     }
 
     /**
@@ -301,8 +375,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveNa() {
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertNotNull(providerService.added);
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveNa. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
@@ -315,7 +390,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveNs() {
         testProcessor.process(new TestNsPacketContext(DEV4));
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveNs. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
@@ -328,7 +405,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceivesRa() {
         testProcessor.process(new TestRAPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveRa. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -337,7 +415,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveRs() {
         testProcessor.process(new TestRSPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveRs. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -346,7 +425,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveDad() {
         testProcessor.process(new TestDadPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveDad. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -355,7 +435,8 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv6Multicast() {
         testProcessor.process(new TestIpv6McastPacketContext(DEV4));
-        assertNull(providerService.added);
+        assertThat("testReceiveIpv6Multicast. No host description expected",
+                providerService.descriptions.size(), is(0));
     }
 
     /**
@@ -364,8 +445,9 @@ public class HostLocationProviderTest {
     @Test
     public void testReceiveIpv6Unicast() {
         testProcessor.process(new TestIpv6PacketContext(DEV4));
-        assertNotNull(providerService.added);
-        HostDescription descr = providerService.added;
+        assertThat("testReceiveIpv6Unicast. One host description expected",
+                providerService.descriptions.size(), is(1));
+        HostDescription descr = providerService.descriptions.get(0);
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
         assertThat(descr.ipAddress().size(), is(0));
@@ -402,15 +484,11 @@ public class HostLocationProviderTest {
             extends AbstractProviderService<HostProvider>
             implements HostProviderService {
 
-        HostDescription added = null;
-        HostDescription moved = null;
-        HostDescription spine = null;
-        public int removeCount;
+        List<HostDescription> descriptions = Lists.newArrayList();
+        int removeCount;
 
         public void clear() {
-            added = null;
-            moved = null;
-            spine = null;
+            descriptions.clear();
             removeCount = 0;
         }
 
@@ -420,13 +498,7 @@ public class HostLocationProviderTest {
 
         @Override
         public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
-            if (added == null) {
-                added = hostDescription;
-            } else if ((moved == null) && hostDescription != added) {
-                moved = hostDescription;
-            } else {
-                spine = hostDescription;
-            }
+            descriptions.add(hostDescription);
         }
 
         @Override
@@ -522,7 +594,7 @@ public class HostLocationProviderTest {
     }
 
     /**
-     * Generates IPv6 Unicast packet.
+     * Generates IPv4 Unicast packet.
      */
     private class TestIpv4PacketContext implements PacketContext {
         private final String deviceId;
@@ -551,6 +623,152 @@ public class HostLocationProviderTest {
                                                          portNumber(INPORT));
             return new DefaultInboundPacket(receivedFrom, eth,
                                             ByteBuffer.wrap(eth.serialize()));
+        }
+
+        @Override
+        public OutboundPacket outPacket() {
+            return null;
+        }
+
+        @Override
+        public TrafficTreatment.Builder treatmentBuilder() {
+            return null;
+        }
+
+        @Override
+        public void send() {
+
+        }
+
+        @Override
+        public boolean block() {
+            return false;
+        }
+
+        @Override
+        public boolean isHandled() {
+            return false;
+        }
+    }
+    /**
+     * Generates DHCP REQUEST packet.
+     */
+    private class TestDhcpRequestPacketContext implements PacketContext {
+        private final String deviceId;
+
+        public TestDhcpRequestPacketContext(String deviceId) {
+            this.deviceId = deviceId;
+        }
+
+        @Override
+        public long time() {
+            return 0;
+        }
+
+        @Override
+        public InboundPacket inPacket() {
+            byte[] dhcpMsgType = new byte[1];
+            dhcpMsgType[0] = (byte) DHCPPacketType.DHCPREQUEST.getValue();
+
+            DHCPOption dhcpOption = new DHCPOption();
+            dhcpOption.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
+            dhcpOption.setData(dhcpMsgType);
+            dhcpOption.setLength((byte) 1);
+            DHCP dhcp = new DHCP();
+            dhcp.setOptions(Collections.singletonList(dhcpOption));
+            dhcp.setClientHardwareAddress(MAC.toBytes());
+            UDP udp = new UDP();
+            udp.setPayload(dhcp);
+            udp.setSourcePort(UDP.DHCP_CLIENT_PORT);
+            udp.setDestinationPort(UDP.DHCP_SERVER_PORT);
+            IPv4 ipv4 = new IPv4();
+            ipv4.setPayload(udp);
+            ipv4.setDestinationAddress(IP_ADDRESS3.toString());
+            ipv4.setSourceAddress(IP_ADDRESS.toString());
+            Ethernet eth = new Ethernet();
+            eth.setEtherType(Ethernet.TYPE_IPV4)
+                    .setVlanID(VLAN.toShort())
+                    .setSourceMACAddress(MAC)
+                    .setDestinationMACAddress(MAC3)
+                    .setPayload(ipv4);
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId(deviceId),
+                    portNumber(INPORT));
+            return new DefaultInboundPacket(receivedFrom, eth,
+                    ByteBuffer.wrap(eth.serialize()));
+        }
+
+        @Override
+        public OutboundPacket outPacket() {
+            return null;
+        }
+
+        @Override
+        public TrafficTreatment.Builder treatmentBuilder() {
+            return null;
+        }
+
+        @Override
+        public void send() {
+
+        }
+
+        @Override
+        public boolean block() {
+            return false;
+        }
+
+        @Override
+        public boolean isHandled() {
+            return false;
+        }
+    }
+
+    /**
+     * Generates DHCP ACK packet.
+     */
+    private class TestDhcpAckPacketContext implements PacketContext {
+        private final String deviceId;
+
+        public TestDhcpAckPacketContext(String deviceId) {
+            this.deviceId = deviceId;
+        }
+
+        @Override
+        public long time() {
+            return 0;
+        }
+
+        @Override
+        public InboundPacket inPacket() {
+            byte[] dhcpMsgType = new byte[1];
+            dhcpMsgType[0] = (byte) DHCPPacketType.DHCPACK.getValue();
+
+            DHCPOption dhcpOption = new DHCPOption();
+            dhcpOption.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
+            dhcpOption.setData(dhcpMsgType);
+            dhcpOption.setLength((byte) 1);
+            DHCP dhcp = new DHCP();
+            dhcp.setOptions(Collections.singletonList(dhcpOption));
+            dhcp.setClientHardwareAddress(MAC.toBytes());
+            dhcp.setYourIPAddress(IP_ADDRESS.getIp4Address().toInt());
+            UDP udp = new UDP();
+            udp.setPayload(dhcp);
+            udp.setSourcePort(UDP.DHCP_SERVER_PORT);
+            udp.setDestinationPort(UDP.DHCP_CLIENT_PORT);
+            IPv4 ipv4 = new IPv4();
+            ipv4.setPayload(udp);
+            ipv4.setDestinationAddress(IP_ADDRESS.toString());
+            ipv4.setSourceAddress(IP_ADDRESS3.toString());
+            Ethernet eth = new Ethernet();
+            eth.setEtherType(Ethernet.TYPE_IPV4)
+                    .setVlanID(VLAN.toShort())
+                    .setSourceMACAddress(MAC3)
+                    .setDestinationMACAddress(MAC)
+                    .setPayload(ipv4);
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId(deviceId),
+                    portNumber(INPORT2));
+            return new DefaultInboundPacket(receivedFrom, eth,
+                    ByteBuffer.wrap(eth.serialize()));
         }
 
         @Override
@@ -1024,10 +1242,13 @@ public class HostLocationProviderTest {
         public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
             ConnectPoint cp1 = new ConnectPoint(deviceId(DEV1), portNumber(INPORT));
             ConnectPoint cp2 = new ConnectPoint(deviceId(DEV4), portNumber(INPORT));
+            ConnectPoint cp3 = new ConnectPoint(deviceId(DEV1), portNumber(INPORT2));
             if (connectPoint.equals(cp1)) {
                 return ImmutableSet.of(HOST);
             } else if (connectPoint.equals(cp2)) {
                 return ImmutableSet.of(HOST2);
+            } else if (connectPoint.equals(cp3)) {
+                return ImmutableSet.of(HOST3);
             } else {
                 return ImmutableSet.of();
             }
@@ -1036,12 +1257,24 @@ public class HostLocationProviderTest {
         @Override
         public Set<Host> getConnectedHosts(DeviceId deviceId) {
             if (deviceId.equals(deviceId(DEV1))) {
-                return ImmutableSet.of(HOST);
+                return ImmutableSet.of(HOST, HOST3);
             } else if (deviceId.equals(deviceId(DEV4))) {
                 return ImmutableSet.of(HOST2);
             } else {
                 return ImmutableSet.of();
             }
+        }
+
+        @Override
+        public Host getHost(HostId hostId) {
+            if (hostId.equals(HostId.hostId(MAC, VLAN))) {
+                return HOST;
+            } else if (hostId.equals(HostId.hostId(MAC2, VLAN))) {
+                return HOST2;
+            } else if (hostId.equals(HostId.hostId(MAC3, VLAN))) {
+                return HOST3;
+            }
+            return null;
         }
 
     }

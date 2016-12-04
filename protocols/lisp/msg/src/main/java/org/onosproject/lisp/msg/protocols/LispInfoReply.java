@@ -20,8 +20,8 @@ import org.onosproject.lisp.msg.types.LispNatLcafAddress;
 /**
  * LISP info reply message interface.
  * <p>
- * LISP info reply message format is defined in draft-ermagan-lisp-nat-traversal-01.
- * https://tools.ietf.org/html/draft-ermagan-lisp-nat-traversal-01#page-8
+ * LISP info reply message format is defined in draft-ermagan-lisp-nat-traversal-11.
+ * https://tools.ietf.org/html/draft-ermagan-lisp-nat-traversal-11#page-9
  *
  * <pre>
  * {@literal

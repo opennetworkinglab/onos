@@ -20,5 +20,6 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-yms-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.dom4j/1.6.1_5</bundle>
     </feature>
 </features>

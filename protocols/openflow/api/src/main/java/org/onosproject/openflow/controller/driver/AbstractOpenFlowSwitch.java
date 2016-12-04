@@ -30,6 +30,7 @@ import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterFeaturesStatsReply;
 import org.projectfloodlight.openflow.protocol.OFNiciraControllerRoleRequest;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
@@ -81,6 +82,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     protected OFFeaturesReply features;
     protected OFDescStatsReply desc;
+
+    protected OFMeterFeaturesStatsReply meterfeatures;
 
     // messagesPendingMastership is used as synchronization variable for
     // all mastership related changes. In this block, mastership (including
@@ -239,6 +242,11 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public void setFeaturesReply(OFFeaturesReply featuresReply) {
         this.features = featuresReply;
+    }
+
+    @Override
+    public void setMeterFeaturesReply(OFMeterFeaturesStatsReply meterFeaturesReply) {
+        meterfeatures = meterFeaturesReply;
     }
 
     @Override

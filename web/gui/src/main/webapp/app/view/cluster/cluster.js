@@ -53,6 +53,15 @@
         ],
         friendlyProps = [
             'Node ID', 'IP Address'
+        ],
+        deviceCols = [
+            'id', 'type', 'chassisid', 'mfr',
+            'hw', 'sw', 'protocol', 'serial'
+        ],
+        friendlyDeviceCols = [
+            'URI', 'Type', 'Chassis ID', 'Vendor',
+            'H/W Version', 'S/W Version', 'Protocol',
+            'Serial #'
         ];
 
     function closePanel() {
@@ -88,6 +97,9 @@
             .append('table');
         top.append('hr');
 
+        bottom = container.append('div').classed('bottom', true);
+        bottom.append('h2').classed('devices-title', true).html('Devices');
+        bottom.append('table');
         //ToDo add more details
     }
 
@@ -112,6 +124,45 @@
         });
     }
 
+    function addDeviceRow(tbody, device) {
+        var tr = tbody.append('tr');
+
+        deviceCols.forEach(function (col) {
+            tr.append('td').html(device[col]);
+        });
+    }
+
+    function populateBottom(devices) {
+        var table = bottom.select('table'),
+            theader = table.append('thead').append('tr'),
+            tbody = table.append('tbody'),
+            tbWidth, tbHeight;
+
+        friendlyDeviceCols.forEach(function (col) {
+            theader.append('th').html(col);
+        });
+        devices.forEach(function (device) {
+            addDeviceRow(tbody, device);
+        });
+
+        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
+        tbHeight = pHeight
+                    - (fs.noPxStyle(detailsPanel.el()
+                                        .select('.top'), 'height')
+                    + fs.noPxStyle(detailsPanel.el()
+                                        .select('.devices-title'), 'height')
+                    + portsTblPdg);
+
+        table.style({
+            height: tbHeight + 'px',
+            width: tbWidth + 'px',
+            overflow: 'auto',
+            display: 'block'
+        });
+
+        detailsPanel.width(tbWidth + ctnrPdg);
+    }
+
     function createDetailsPane() {
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
@@ -128,11 +179,13 @@
 
     function populateDetails(details) {
         setUpPanel();
+
         populateTop(details);
+        populateBottom(details.devices);
 
         //ToDo add more details
         detailsPanel.height(pHeight);
-        detailsPanel.width(wtPdg);
+        //detailsPanel.width(wtPdg); ToDO Use this when needed!
     }
 
     function respDetailsCb(data) {

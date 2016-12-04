@@ -87,6 +87,7 @@ ONOS_DRIVERS = [
     '//drivers/netconf:onos-drivers-netconf-oar',
     '//drivers/optical:onos-drivers-optical-oar',
     '//drivers/ovsdb:onos-drivers-ovsdb-oar',
+    '//drivers/juniper:onos-drivers-juniper-oar',
 ]
 
 ONOS_PROVIDERS = [
@@ -163,6 +164,8 @@ ONOS_APPS = [
     '//apps/xosclient:onos-apps-xosclient-oar',
     '//apps/scalablegateway:onos-apps-scalablegateway-oar',
     '//apps/patchpanel:onos-apps-patchpanel-oar',
+    '//apps/castor:onos-apps-castor-oar',
+    '//apps/yms:onos-apps-yms-oar',
 ]
 
 APP_JARS = [

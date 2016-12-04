@@ -11,13 +11,16 @@ import os
 from shutil import copy, copytree, rmtree
 from subprocess import call, check_call, check_output
 
+# FIXME pull the version from the Buck version file
+ONOS_VERSION='1.9.0-SNAPSHOT'
+
 # SonarQube property file name and template
 FILE_NAME = 'sonar-project.properties'
 ROOT_TEMPLATE = '''# Auto-generated properties file
 sonar.projectKey=%(key)s
 sonar.projectName=%(name)s
 sonar.projectVersion=%(version)s
- 
+
 #sonar.sources=src
 sonar.sourceEncoding=UTF-8
 sonar.java.target = 1.8
@@ -109,12 +112,11 @@ def write_module(target, out):
     rmtree('surefire-reports')
 
 # Write the sonar properties file
-# FIXME pull the version from the Buck version file
 with open(FILE_NAME, 'w') as out:
   out.write(ROOT_TEMPLATE % {
     'name': 'onos',
     'key': 'org.onosproject:onos',
-    'version': '1.8.0-SNAPSHOT',
+    'version': ONOS_VERSION,
     'jacoco': '%s/buck-out/gen/jacoco/jacoco.exec' % ONOS_ROOT,
     'modules': ','.join([splitTarget(t)[1] for t in targets])
   })

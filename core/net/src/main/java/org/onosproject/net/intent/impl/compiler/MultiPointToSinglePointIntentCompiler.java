@@ -119,6 +119,7 @@ public class MultiPointToSinglePointIntentCompiler
 
         Intent result = LinkCollectionIntent.builder()
                 .appId(intent.appId())
+                .key(intent.key())
                 .treatment(intent.treatment())
                 .selector(intent.selector())
                 .links(Sets.newHashSet(links.values()))

@@ -21,6 +21,12 @@ package org.onosproject.lisp.msg.authentication;
 public final class LispAuthenticationFactory {
 
     /**
+     * Prevents object instantiation from external.
+     */
+    private LispAuthenticationFactory() {
+    }
+
+    /**
      * Obtains a factory singleton instance.
      *
      * @return factory singleton instance
@@ -57,13 +63,15 @@ public final class LispAuthenticationFactory {
     }
 
     /**
-     * Prevents object instantiation from external.
+     * A private singleton helper class.
      */
-    private LispAuthenticationFactory() {
-    }
-
-    private static class SingletonHelper {
+    private static final class SingletonHelper {
         private static final LispAuthenticationFactory INSTANCE =
-                new LispAuthenticationFactory();
+                                                new LispAuthenticationFactory();
+        private static final String ILLEGAL_ACCESS_MSG = "Should not instantiate this class.";
+
+        private SingletonHelper() {
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MSG);
+        }
     }
 }

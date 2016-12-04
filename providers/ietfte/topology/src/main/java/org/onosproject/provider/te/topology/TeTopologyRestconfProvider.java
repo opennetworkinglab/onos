@@ -15,22 +15,7 @@
  */
 package org.onosproject.provider.te.topology;
 
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -49,15 +34,27 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBDevice;
+import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
+import org.onosproject.provider.te.utils.DefaultJsonCodec;
+import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.tetopology.management.api.TeTopologyProvider;
 import org.onosproject.tetopology.management.api.TeTopologyProviderRegistry;
 import org.onosproject.tetopology.management.api.TeTopologyProviderService;
+import org.onosproject.tetopology.management.api.TeTopologyService;
+import org.onosproject.tetopology.management.api.link.NetworkLink;
+import org.onosproject.tetopology.management.api.link.NetworkLinkKey;
+import org.onosproject.tetopology.management.api.node.NetworkNode;
+import org.onosproject.tetopology.management.api.node.NetworkNodeKey;
+import org.onosproject.teyang.utils.topology.LinkConverter;
 import org.onosproject.teyang.utils.topology.NetworkConverter;
+import org.onosproject.teyang.utils.topology.NodeConverter;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.networks.Network;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.IetfNetworkTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
 import org.onosproject.yms.ych.YangCodecHandler;
 import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ych.YangResourceIdentifierType;
@@ -65,7 +62,21 @@ import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider for IETF TE Topology that use RESTCONF as means of communication.
@@ -75,10 +86,18 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         implements TeTopologyProvider {
     private static final String APP_NAME = "org.onosproject.teprovider.topology";
     private static final String RESTCONF = "restconf";
-    private static final String PROVIDER = "org.onosproject.teprovider.restconf.domain";
+    private static final String PROVIDER =
+            "org.onosproject.teprovider.restconf.domain";
     private static final String IETF_NETWORK_URI = "ietf-network:networks";
-    private static final String IETF_NETWORKS_PREFIX_TO_BE_REMOVED = "{\"networks\":";
-    private static final String IETF_NOTIFICATION_URI = "/streams/NETCONF";
+    private static final String IETF_NETWORKS_PREFIX =
+            "{\"ietf-network:networks\":";
+    private static final String TE_NOTIFICATION_PREFIX =
+            "{\"ietf-te-topology:ietf-te-topology\":";
+    private static final String TE_LINK_EVENT_PREFIX =
+            "{\"ietf-te-topology:te-link-event\":";
+    private static final String TE_NODE_EVENT_PREFIX =
+            "{\"ietf-te-topology:te-node-event\":";
+    private static final String IETF_NOTIFICATION_URI = "netconf";
     private static final String JSON = "json";
     private static final String E_DEVICE_NULL = "Restconf device is null";
 
@@ -102,13 +121,16 @@ public class TeTopologyRestconfProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected YmsService ymsService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TeTopologyService teTopologyService;
+
     private YangCodecHandler codecHandler;
 
     private TeTopologyProviderService topologyProviderService;
 
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/restconfsbprovider",
-                                               "device-installer-%d", log));
+                                                           "device-installer-%d", log));
 
     private final ConfigFactory<ApplicationId, RestconfServerConfig> factory =
             new ConfigFactory<ApplicationId, RestconfServerConfig>(APP_SUBJECT_FACTORY,
@@ -135,8 +157,8 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         codecHandler.addDeviceSchema(IetfNetworkTopology.class);
         codecHandler.addDeviceSchema(IetfTeTopology.class);
         // Register JSON CODEC functions
-        codecHandler.registerOverriddenCodec(new JsonYdtCodec(ymsService),
-                                             YangProtocolEncodingFormat.JSON_ENCODING);
+        codecHandler.registerOverriddenCodec(new DefaultJsonCodec(ymsService),
+                                             YangProtocolEncodingFormat.JSON);
 
         appId = coreService.registerApplication(APP_NAME);
         topologyProviderService = topologyProviderRegistry.register(this);
@@ -175,11 +197,13 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 
     private void connectDevices() {
 
-        RestconfServerConfig cfg = cfgService.getConfig(appId, RestconfServerConfig.class);
+        RestconfServerConfig cfg = cfgService.getConfig(appId,
+                                                        RestconfServerConfig.class);
         try {
             if (cfg != null && cfg.getDevicesAddresses() != null) {
                 //Precomputing the devices to be removed
-                Set<RestSBDevice> toBeRemoved = new HashSet<>(restconfClient.getDevices().values());
+                Set<RestSBDevice> toBeRemoved = new HashSet<>(restconfClient.
+                        getDevices().values());
                 toBeRemoved.removeAll(cfg.getDevicesAddresses());
                 //Adding new devices
                 for (RestSBDevice device : cfg.getDevicesAddresses()) {
@@ -202,9 +226,12 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 
     private void retrieveTopology(DeviceId deviceId) {
         // Retrieve IETF Network at top level.
-        InputStream jsonStream = restconfClient.get(deviceId, IETF_NETWORK_URI, JSON);
+        InputStream jsonStream = restconfClient.get(deviceId,
+                                                    IETF_NETWORK_URI,
+                                                    JSON);
         if (jsonStream == null) {
-            log.warn("Unable to retrieve network Topology from restconf server {}", deviceId);
+            log.warn("Unable to retrieve network Topology from restconf " +
+                             "server {}", deviceId);
             return;
         }
 
@@ -213,19 +240,22 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         try {
             IOUtils.copy(jsonStream, writer, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.warn("There is an exception {} for copy jsonStream to stringWriter for restconf {}",
+            log.warn("There is an exception {} for copy jsonStream to " +
+                             "stringWriter for restconf {}",
                      e.getMessage(), deviceId);
             return;
         }
         String jsonString = writer.toString();
-        String networkLevelJsonString = getNetworkLevelJsonResponse(jsonString);
+        String networkLevelJsonString = removePrefixTagFromJson(jsonString,
+                                                                IETF_NETWORKS_PREFIX);
 
-        YangCompositeEncodingImpl yce = new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
-                                                                      IETF_NETWORK_URI,
-                                                                      networkLevelJsonString);
+        YangCompositeEncodingImpl yce =
+                new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                              IETF_NETWORK_URI,
+                                              networkLevelJsonString);
 
         Object yo = codecHandler.decode(yce,
-                                        YangProtocolEncodingFormat.JSON_ENCODING,
+                                        YangProtocolEncodingFormat.JSON,
                                         YmsOperationType.QUERY_REPLY);
 
         if ((yo == null)) {
@@ -242,7 +272,7 @@ public class TeTopologyRestconfProvider extends AbstractProvider
             //Convert the YO to TE Core data and update TE Core.
             for (Network nw : ietfNetwork.networks().network()) {
                 topologyProviderService.networkUpdated(
-                        NetworkConverter.yang2TeSubsystemNetwork(nw));
+                        NetworkConverter.yang2TeSubsystemNetwork(nw, ietfNetwork.networks()));
             }
         }
 
@@ -258,35 +288,19 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 //            topologyProviderService.networkUpdated(network);
 //        }
 
-        //TODO: Uncomment when the RESTCONF server and the RESTCONF client
-        //      both fully support notifications in Ibis Release
-//        RestConfNotificationEventListener callBackListener = new RestConfNotificationEventListenerImpl();
-//        restconfClient.enableNotifications(deviceId, IETF_NOTIFICATION_URI, JSON, callBackListener);
+        RestConfNotificationEventListener<String> callBackListener =
+                new InternalRestconfNotificationEventListener();
+        restconfClient.enableNotifications(deviceId, IETF_NOTIFICATION_URI,
+                                           "application/json",
+                                           callBackListener);
     }
 
-    private String getNetworkLevelJsonResponse(String jsonString) {
-        if (jsonString.startsWith(IETF_NETWORKS_PREFIX_TO_BE_REMOVED)) {
-            log.debug("The retrieved JSON body from the RESTCONF server is in "
-                    + "networks level -- going to remove it from networks container");
-            return jsonString.substring(IETF_NETWORKS_PREFIX_TO_BE_REMOVED.length(), jsonString.length() - 1);
+    private String removePrefixTagFromJson(String jsonString, String prefixTag) {
+        if (jsonString.startsWith(prefixTag)) {
+            return jsonString.substring(prefixTag.length(), jsonString.length() - 1);
         }
-        log.debug("The retrieved JSON body from the RESTCONF server is not in "
-                + "networks level -- nothing to be removed");
         return jsonString;
     }
-
-    //TODO: Uncomment when the RESTCONF server and the RESTCONF client
-    //      both fully support notifications in Ibis release
-//    private class RestConfNotificationEventListenerImpl implements RestConfNotificationEventListener {
-//
-//        @Override
-//        public <T> void handleNotificationEvent(DeviceId deviceId,
-//                                                T eventJsonString) {
-//            // TODO: handle the event properly once the RESTCONF server fully supports
-//            // notifications in Ibis release.
-//            log.debug("a new notification: {} is received for device {}", eventJsonString, deviceId.toString());
-//        }
-//    }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
 
@@ -303,4 +317,75 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         }
     }
 
+    private class InternalRestconfNotificationEventListener implements
+            RestConfNotificationEventListener<String> {
+        @Override
+        public void handleNotificationEvent(DeviceId deviceId,
+                                            String eventJsonString) {
+            log.debug("New notification: {} for device: {}",
+                      eventJsonString, deviceId.toString());
+
+            String teEventString = removePrefixTagFromJson(eventJsonString,
+                                                           TE_NOTIFICATION_PREFIX);
+            if (teEventString.startsWith(TE_LINK_EVENT_PREFIX)) {
+                String linkString = removePrefixTagFromJson(teEventString,
+                                                            TE_LINK_EVENT_PREFIX);
+                log.debug("link event={}", linkString);
+                handleRestconfLinkNotification(linkString);
+            } else if (teEventString.startsWith(TE_NODE_EVENT_PREFIX)) {
+                String nodeString = removePrefixTagFromJson(teEventString,
+                                                            TE_NODE_EVENT_PREFIX);
+                log.debug("node event={}", nodeString);
+                handleRestconfNodeNotification(nodeString);
+            }
+        }
+
+        private void handleRestconfLinkNotification(String linkString) {
+            YangCompositeEncodingImpl yce =
+                    new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                                  "ietf-te-topology:te-link-event",
+                                                  linkString);
+            Object yo = codecHandler.decode(yce,
+                                            YangProtocolEncodingFormat.JSON,
+                                            YmsOperationType.NOTIFICATION);
+
+            if (yo == null) {
+                log.error("YMS decoder error");
+                return;
+            }
+
+            NetworkLinkKey linkKey = LinkConverter.yangLinkEvent2NetworkLinkKey(
+                    (TeLinkEvent) yo);
+
+            NetworkLink networkLink = LinkConverter.yangLinkEvent2NetworkLink(
+                    (TeLinkEvent) yo,
+                    teTopologyService);
+
+            topologyProviderService.linkUpdated(linkKey, networkLink);
+        }
+
+        private void handleRestconfNodeNotification(String nodeString) {
+            YangCompositeEncodingImpl yce =
+                    new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                                  "ietf-te-topology:te-node-event",
+                                                  nodeString);
+            Object yo = codecHandler.decode(yce,
+                                            YangProtocolEncodingFormat.JSON,
+                                            YmsOperationType.NOTIFICATION);
+
+            if (yo == null) {
+                log.error("YMS decoder error");
+                return;
+            }
+
+            NetworkNodeKey nodeKey = NodeConverter.yangNodeEvent2NetworkNodeKey(
+                    (TeNodeEvent) yo);
+
+            NetworkNode networkNode = NodeConverter.yangNodeEvent2NetworkNode(
+                    (TeNodeEvent) yo,
+                    teTopologyService);
+
+            topologyProviderService.nodeUpdated(nodeKey, networkNode);
+        }
+    }
 }

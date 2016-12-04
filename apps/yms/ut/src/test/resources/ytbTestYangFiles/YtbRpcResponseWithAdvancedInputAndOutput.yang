@@ -1,0 +1,39 @@
+module YtbRpcResponseWithAdvancedInputAndOutput {
+    yang-version 1;
+    namespace "yms:test:ytb:rpc:response:with:advanced:input:and:output";
+    prefix "sch";
+    revision "2016-08-26";
+    leaf refer {
+        type binary;
+    }
+    rpc activate-software-image {
+        input {
+            container final {
+                leaf-list value {
+                    type uint16;
+                }
+            }
+        }
+        output {
+            list output-list {
+                key "list-key";
+                leaf list-key {
+                    type leafref {
+                        path "/refer";
+                    }
+                }
+                container content_inside {
+                    leaf-list available {
+                        type int16;
+                    }
+                }
+            }
+        }
+    }
+    list cumulative {
+        key "sum";
+        leaf sum {
+            type int8;
+        }
+    }
+}

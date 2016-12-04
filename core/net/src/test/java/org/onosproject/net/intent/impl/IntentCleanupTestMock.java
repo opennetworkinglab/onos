@@ -92,7 +92,6 @@ public class IntentCleanupTestMock {
     /**
      * Trigger resubmit of intent in CORRUPT during periodic poll.
      */
-    // FIXME there is a race condition in this test that will trigger a failure very rarely
     @Test
     public void corruptPoll() {
         IntentStoreDelegate mockDelegate = new IntentStoreDelegate() {
@@ -117,7 +116,7 @@ public class IntentCleanupTestMock {
         replay(service);
 
         synchronized (service) {
-            cleanup.run(); //FIXME broken?
+            cleanup.run();
         }
         verify(service);
         reset(service);
@@ -144,7 +143,7 @@ public class IntentCleanupTestMock {
         IntentData data = new IntentData(intent, INSTALL_REQ, version);
         store.addPending(data);
 
-        service.submit(intent);
+        service.addPending(data);
         expectLastCall().once();
         replay(service);
 
@@ -177,7 +176,7 @@ public class IntentCleanupTestMock {
         IntentData data = new IntentData(intent, INSTALL_REQ, version);
         store.addPending(data);
 
-        service.submit(intent);
+        service.addPending(data);
         expectLastCall().once();
         replay(service);
 

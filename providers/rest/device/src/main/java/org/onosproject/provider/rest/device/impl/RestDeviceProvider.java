@@ -16,6 +16,7 @@
 
 package org.onosproject.provider.rest.device.impl;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -71,6 +72,7 @@ public class RestDeviceProvider extends AbstractProvider
         implements DeviceProvider {
     private static final String APP_NAME = "org.onosproject.restsb";
     private static final String REST = "rest";
+    private static final String JSON = "json";
     private static final String PROVIDER = "org.onosproject.provider.rest.device";
     private static final String IPADDRESS = "ipaddress";
     private static final int TEST_CONNECT_TIMEOUT = 1000;
@@ -106,7 +108,7 @@ public class RestDeviceProvider extends AbstractProvider
     private final ConfigFactory factory =
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  RestProviderConfig.class,
-                                                                 "restDevices",
+                                                                 "devices",
                                                                  true) {
                 @Override
                 public RestProviderConfig createConfig() {
@@ -185,7 +187,53 @@ public class RestDeviceProvider extends AbstractProvider
                 annotations);
         nodeId.setActive(true);
         providerService.deviceConnected(deviceId, deviceDescription);
+        checkAndUpdateDevice(deviceId);
         addedDevices.add(deviceId);
+    }
+
+    private void checkAndUpdateDevice(DeviceId deviceId) {
+        if (deviceService.getDevice(deviceId) == null) {
+            log.warn("Device {} has not been added to store, " +
+                             "maybe due to a problem in connectivity", deviceId);
+        } else {
+            boolean isReachable = isReachable(deviceId);
+            if (isReachable && deviceService.isAvailable(deviceId)) {
+                Device device = deviceService.getDevice(deviceId);
+                if (device.is(DeviceDescriptionDiscovery.class)) {
+                        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                                device.as(DeviceDescriptionDiscovery.class);
+                        DeviceDescription updatedDeviceDescription =
+                                deviceDescriptionDiscovery.discoverDeviceDetails();
+                        if (updatedDeviceDescription != null &&
+                                !descriptionEquals(device, updatedDeviceDescription)) {
+                            providerService.deviceConnected(
+                                    deviceId,
+                                    new DefaultDeviceDescription(
+                                            updatedDeviceDescription, true,
+                                            updatedDeviceDescription.annotations()));
+                        //if ports are not discovered, retry the discovery
+                        if (deviceService.getPorts(deviceId).isEmpty()) {
+                            discoverPorts(deviceId);
+                        }
+                    }
+                } else {
+                    log.warn("No DeviceDescriptionDiscovery behaviour for device {}", deviceId);
+                }
+            } else if (!isReachable && deviceService.isAvailable(deviceId)) {
+                providerService.deviceDisconnected(deviceId);
+            }
+        }
+    }
+
+    private boolean descriptionEquals(Device device, DeviceDescription updatedDeviceDescription) {
+        return Objects.equal(device.id(), updatedDeviceDescription.deviceUri())
+                && Objects.equal(device.type(), updatedDeviceDescription.type())
+                && Objects.equal(device.manufacturer(), updatedDeviceDescription.manufacturer())
+                && Objects.equal(device.hwVersion(), updatedDeviceDescription.hwVersion())
+                && Objects.equal(device.swVersion(), updatedDeviceDescription.swVersion())
+                && Objects.equal(device.serialNumber(), updatedDeviceDescription.serialNumber())
+                && Objects.equal(device.chassisId(), updatedDeviceDescription.chassisId())
+                && Objects.equal(device.annotations(), updatedDeviceDescription.annotations());
     }
 
     private void deviceRemoved(DeviceId deviceId) {
@@ -213,15 +261,12 @@ public class RestDeviceProvider extends AbstractProvider
                         });
                 //Removing devices not wanted anymore
                 toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
-
             }
         } catch (ConfigException e) {
             log.error("Configuration error {}", e);
         }
         log.debug("REST Devices {}", controller.getDevices());
-        addedDevices.forEach(this::discoverPorts);
         addedDevices.clear();
-
     }
 
     private void discoverPorts(DeviceId deviceId) {
@@ -229,20 +274,17 @@ public class RestDeviceProvider extends AbstractProvider
         //TODO remove when PortDiscovery is removed from master
         if (device.is(PortDiscovery.class)) {
             PortDiscovery portConfig = device.as(PortDiscovery.class);
-            providerService.updatePorts(deviceId,
-                                        portConfig.getPorts());
-        } else if (device.is(DeviceDescriptionDiscovery.class)) {
+            providerService.updatePorts(deviceId, portConfig.getPorts());
+        } else {
             DeviceDescriptionDiscovery deviceDescriptionDiscovery =
                     device.as(DeviceDescriptionDiscovery.class);
             providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
-        } else {
-            log.warn("No portGetter behaviour for device {}", deviceId);
         }
     }
 
     private boolean testDeviceConnection(RestSBDevice device) {
         try {
-            return controller.get(device.deviceId(), "", "json") != null;
+            return controller.get(device.deviceId(), "", JSON) != null;
         } catch (ProcessingException e) {
             log.warn("Cannot connect to device {}", device, e);
         }
@@ -250,8 +292,6 @@ public class RestDeviceProvider extends AbstractProvider
     }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
-
-
         @Override
         public void event(NetworkConfigEvent event) {
             executor.execute(RestDeviceProvider.this::connectDevices);

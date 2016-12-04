@@ -1,0 +1,23 @@
+module bool {
+
+    yang-version 1;
+
+    namespace "ydt.boolean";
+
+    prefix "bool";
+
+    organization "ON-LAB";
+
+    description "This module defines for bool classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list booleanList {
+        key boolean;
+        leaf boolean {
+              type boolean;
+        }
+    }
+}

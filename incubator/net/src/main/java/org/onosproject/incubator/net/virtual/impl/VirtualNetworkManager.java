@@ -45,6 +45,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -52,6 +53,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
@@ -76,9 +78,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 @Service
 public class VirtualNetworkManager
-        extends AbstractListenerProviderRegistry<VirtualNetworkEvent, VirtualNetworkListener,
-        VirtualNetworkProvider, VirtualNetworkProviderService>
-        implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
+        extends AbstractListenerProviderRegistry<VirtualNetworkEvent,
+        VirtualNetworkListener, VirtualNetworkProvider, VirtualNetworkProviderService>
+        implements VirtualNetworkService, VirtualNetworkAdminService,
+        VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -93,7 +96,8 @@ public class VirtualNetworkManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
 
-    private final InternalVirtualIntentListener intentListener = new InternalVirtualIntentListener();
+    private final InternalVirtualIntentListener intentListener =
+            new InternalVirtualIntentListener();
 
     private VirtualNetworkStoreDelegate delegate = this::post;
 
@@ -178,8 +182,9 @@ public class VirtualNetworkManager
     }
 
     @Override
-    public VirtualHost createVirtualHost(NetworkId networkId, HostId hostId, MacAddress mac,
-                                         VlanId vlan, HostLocation location, Set<IpAddress> ips) {
+    public VirtualHost createVirtualHost(NetworkId networkId, HostId hostId,
+                                         MacAddress mac, VlanId vlan,
+                                         HostLocation location, Set<IpAddress> ips) {
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(hostId, DEVICE_NULL);
         return store.addHost(networkId, hostId, mac, vlan, location, ips);
@@ -251,7 +256,8 @@ public class VirtualNetworkManager
     }
 
     @Override
-    public void removeVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
+    public void removeVirtualLink(NetworkId networkId, ConnectPoint src,
+                                  ConnectPoint dst) {
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(src, LINK_POINT_NULL);
         checkNotNull(dst, LINK_POINT_NULL);
@@ -279,7 +285,8 @@ public class VirtualNetworkManager
     }
 
     @Override
-    public void removeVirtualPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
+    public void removeVirtualPort(NetworkId networkId, DeviceId deviceId,
+                                  PortNumber portNumber) {
         checkNotNull(networkId, NETWORK_NULL);
         checkNotNull(deviceId, DEVICE_NULL);
         checkNotNull(portNumber, "Port number cannot be null");
@@ -374,17 +381,20 @@ public class VirtualNetworkManager
         checkNotNull(network, NETWORK_NULL);
         VnetService service;
         if (serviceKey.serviceClass.equals(DeviceService.class)) {
-            service = new VirtualNetworkDeviceService(this, network);
+            service = new VirtualNetworkDeviceManager(this, network);
         } else if (serviceKey.serviceClass.equals(LinkService.class)) {
-            service = new VirtualNetworkLinkService(this, network);
+            service = new VirtualNetworkLinkManager(this, network);
         } else if (serviceKey.serviceClass.equals(TopologyService.class)) {
-            service = new VirtualNetworkTopologyService(this, network);
+            service = new VirtualNetworkTopologyManager(this, network);
         } else if (serviceKey.serviceClass.equals(IntentService.class)) {
-            service = new VirtualNetworkIntentService(this, network, new DefaultServiceDirectory());
+            service = new VirtualNetworkIntentManager(
+                    this, network, new DefaultServiceDirectory());
         } else if (serviceKey.serviceClass.equals(HostService.class)) {
-            service = new VirtualNetworkHostService(this, network);
+            service = new VirtualNetworkHostManager(this, network);
         } else if (serviceKey.serviceClass.equals(PathService.class)) {
-            service = new VirtualNetworkPathService(this, network);
+            service = new VirtualNetworkPathManager(this, network);
+        } else if (serviceKey.serviceClass.equals(FlowRuleService.class)) {
+            service = new VirtualNetworkFlowRuleManager(this, network);
         } else {
             return null;
         }
@@ -406,6 +416,7 @@ public class VirtualNetworkManager
          * @param serviceClass service class
          */
         public ServiceKey(NetworkId networkId, Class serviceClass) {
+
             checkNotNull(networkId, NETWORK_NULL);
             this.networkId = networkId;
             this.serviceClass = serviceClass;
@@ -434,6 +445,7 @@ public class VirtualNetworkManager
      * Internal intent event listener.
      */
     private class InternalVirtualIntentListener implements IntentListener {
+
         @Override
         public void event(IntentEvent event) {
 
@@ -481,7 +493,8 @@ public class VirtualNetworkManager
 
 
     @Override
-    protected VirtualNetworkProviderService createProviderService(VirtualNetworkProvider provider) {
+    protected VirtualNetworkProviderService
+    createProviderService(VirtualNetworkProvider provider) {
         return new InternalVirtualNetworkProviderService(provider);
     }
 
@@ -502,7 +515,6 @@ public class VirtualNetworkManager
 
         @Override
         public void topologyChanged(Set<Set<ConnectPoint>> clusters) {
-
             Set<TenantId> tenantIds = getTenantIds();
             tenantIds.forEach(tenantId -> {
                 Set<VirtualNetwork> virtualNetworks = getVirtualNetworks(tenantId);
@@ -511,10 +523,13 @@ public class VirtualNetworkManager
                     Set<VirtualLink> virtualLinks = getVirtualLinks(virtualNetwork.id());
 
                     virtualLinks.forEach(virtualLink -> {
-                        if (isVirtualLinkInCluster(virtualNetwork.id(), virtualLink, clusters)) {
-                            store.updateLink(virtualLink, virtualLink.tunnelId(), Link.State.ACTIVE);
+                        if (isVirtualLinkInCluster(virtualNetwork.id(),
+                                                   virtualLink, clusters)) {
+                            store.updateLink(virtualLink, virtualLink.tunnelId(),
+                                             Link.State.ACTIVE);
                         } else {
-                            store.updateLink(virtualLink, virtualLink.tunnelId(), Link.State.INACTIVE);
+                            store.updateLink(virtualLink, virtualLink.tunnelId(),
+                                             Link.State.INACTIVE);
                         }
                     });
                 });
@@ -522,7 +537,8 @@ public class VirtualNetworkManager
         }
 
         /**
-         * Determines if the virtual link (both source and destination connect point) is in a cluster.
+         * Determines if the virtual link (both source and destination connect point)
+         * is in a cluster.
          *
          * @param networkId   virtual network identifier
          * @param virtualLink virtual link
@@ -531,8 +547,10 @@ public class VirtualNetworkManager
          */
         private boolean isVirtualLinkInCluster(NetworkId networkId, VirtualLink virtualLink,
                                                Set<Set<ConnectPoint>> clusters) {
-            ConnectPoint srcPhysicalCp = mapVirtualToPhysicalPort(networkId, virtualLink.src());
-            ConnectPoint dstPhysicalCp = mapVirtualToPhysicalPort(networkId, virtualLink.dst());
+            ConnectPoint srcPhysicalCp =
+                    mapVirtualToPhysicalPort(networkId, virtualLink.src());
+            ConnectPoint dstPhysicalCp =
+                    mapVirtualToPhysicalPort(networkId, virtualLink.dst());
 
             final boolean[] foundSrc = {false};
             final boolean[] foundDst = {false};
@@ -552,8 +570,8 @@ public class VirtualNetworkManager
         }
 
         @Override
-        public void tunnelUp(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
-
+        public void tunnelUp(NetworkId networkId, ConnectPoint src,
+                             ConnectPoint dst, TunnelId tunnelId) {
             ConnectPoint srcVirtualCp = mapPhysicalToVirtualToPort(networkId, src);
             ConnectPoint dstVirtualCp = mapPhysicalToVirtualToPort(networkId, dst);
             if ((srcVirtualCp == null) || (dstVirtualCp == null)) {
@@ -567,7 +585,8 @@ public class VirtualNetworkManager
         }
 
         @Override
-        public void tunnelDown(NetworkId networkId, ConnectPoint src, ConnectPoint dst, TunnelId tunnelId) {
+        public void tunnelDown(NetworkId networkId, ConnectPoint src,
+                               ConnectPoint dst, TunnelId tunnelId) {
             ConnectPoint srcVirtualCp = mapPhysicalToVirtualToPort(networkId, src);
             ConnectPoint dstVirtualCp = mapPhysicalToVirtualToPort(networkId, dst);
             if ((srcVirtualCp == null) || (dstVirtualCp == null)) {

@@ -24,8 +24,9 @@ import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressReader;
+import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressWriter;
 import org.onosproject.lisp.msg.types.LispNatLcafAddress;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,12 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
     private static final Logger log = LoggerFactory.getLogger(DefaultLispInfoReply.class);
 
     private final LispNatLcafAddress natLcafAddress;
+
+    static final InfoReplyWriter WRITER;
+
+    static {
+        WRITER = new InfoReplyWriter();
+    }
 
     /**
      * A private constructor that protects object instantiation from external.
@@ -66,6 +73,11 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
     @Override
     public LispNatLcafAddress getNatLcafAddress() {
         return natLcafAddress;
+    }
+
+    @Override
+    public void writeTo(ByteBuf byteBuf) throws LispWriterException {
+        WRITER.writeTo(byteBuf, this);
     }
 
     @Override
@@ -128,7 +140,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
 
 
         @Override
-        public InfoReplyBuilder withInfoReply(boolean infoReply) {
+        public InfoReplyBuilder withIsInfoReply(boolean infoReply) {
             this.infoReply = infoReply;
             return this;
         }
@@ -233,10 +245,12 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
         @Override
         public LispInfoReply readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
             LispInfo lispInfo = DefaultLispInfo.deserialize(byteBuf);
-            LispNatLcafAddress natLcafAddress = new LispNatLcafAddress.NatLcafAddressReader().readFrom(byteBuf);
+
+            LispNatLcafAddress natLcafAddress = (LispNatLcafAddress)
+                    new LcafAddressReader().readFrom(byteBuf);
 
             return new DefaultInfoReplyBuilder()
-                    .withInfoReply(lispInfo.isInfoReply())
+                    .withIsInfoReply(lispInfo.isInfoReply())
                     .withNonce(lispInfo.getNonce())
                     .withKeyId(lispInfo.getKeyId())
                     .withAuthDataLength(lispInfo.getAuthDataLength())
@@ -254,9 +268,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
         public void writeTo(ByteBuf byteBuf, LispInfoReply message) throws LispWriterException {
             DefaultLispInfo.serialize(byteBuf, message);
 
-            // NAT LCAF address
-            NatLcafAddressWriter writer = new NatLcafAddressWriter();
-            writer.writeTo(byteBuf, message.getNatLcafAddress());
+            new LcafAddressWriter().writeTo(byteBuf, message.getNatLcafAddress());
         }
     }
 }

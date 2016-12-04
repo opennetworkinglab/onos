@@ -1,0 +1,24 @@
+BUNDLES = [
+    '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
+    '//apps/yms/api:onos-apps-yms-api',
+    '//apps/tenbi/utils:onos-apps-tenbi-utils',
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel',
+    '//lib:httpclient-osgi',
+    '//lib:httpcore-osgi',
+    '//protocols/rest/api:onos-protocols-rest-api',
+    '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
+    '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
+    '//providers/ietfte/utils:onos-providers-ietfte-utils',
+    '//providers/ietfte/topology:onos-providers-ietfte-topology',
+    '//providers/ietfte/tunnel:onos-providers-ietfte-tunnel',
+]
+
+onos_app (
+    title = 'IETF TE Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'IETF TE southbound providers.',
+    required_apps = [ 'org.onosproject.tetunnel', 'org.onosproject.tetopology',
+    'org.onosproject.yms'],
+)

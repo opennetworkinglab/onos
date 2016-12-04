@@ -1,0 +1,107 @@
+module bit {
+
+    yang-version 1;
+
+    namespace "ydt.bit";
+
+    prefix "bit";
+
+    organization "ON-LAB";
+
+    description "This module defines for bit classifier.";
+
+    revision "2016-05-24" {
+        description "Initial revision.";
+    }
+
+    list bitList {
+        config false;
+        leaf bit {
+            type bits {
+                bit disable-nagle {
+                position 0;
+                }
+                bit auto-sense-speed {
+                position 1;
+                }
+                bit ten-Mb-only {
+                position 2;
+                }
+            }
+        }
+    }
+
+    typedef percent {
+        type bits {
+            bit bit3 {
+                position 3;
+            }
+            bit bit4 {
+                position 4;
+            }
+            bit bit5 {
+                position 5;
+            }
+        }
+    }
+
+    leaf name {
+        type percent;
+    }
+
+    grouping greeting {
+        leaf surname {
+            type bits {
+                bit bit6 {
+                    position 6;
+                }
+                bit bit7 {
+                    position 7;
+                }
+                bit bit8 {
+                    position 8;
+                }
+            }
+        }
+    }
+
+    container cont1 {
+        uses greeting;
+    }
+
+    augment "/cont1" {
+        leaf lastname {
+            type bits {
+                bit bit9 {
+                    position 9;
+                }
+                bit bit10 {
+                    position 10;
+                }
+                bit bit11 {
+                    position 11;
+                }
+            }
+        }
+    }
+
+    container food {
+        choice snack {
+           case sportsarena {
+               leaf pretzel {
+                   type bits {
+                       bit bit12 {
+                          position 12;
+                       }
+                       bit bit13 {
+                          position 13;
+                       }
+                       bit bit14 {
+                          position 14;
+                       }
+                   }
+               }
+           }
+        }
+    }
+}
