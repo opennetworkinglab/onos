@@ -45,8 +45,17 @@ public class IntentDetailsCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        if (idsStr != null) {
-            ids = idsStr.stream()
+        detailIntents(idsStr);
+    }
+
+    /**
+     * Print detailed data for intents, given a list of IDs.
+     *
+     * @param intentsIds List of intent IDs
+     */
+    public void detailIntents(List<String> intentsIds) {
+        if (intentsIds != null) {
+            ids = intentsIds.stream()
                     .map(IntentId::valueOf)
                     .collect(Collectors.toSet());
         }
@@ -54,8 +63,8 @@ public class IntentDetailsCommand extends AbstractShellCommand {
         IntentService service = get(IntentService.class);
 
         Tools.stream(service.getIntentData())
-            .filter(this::filter)
-            .forEach(this::printIntentData);
+                .filter(this::filter)
+                .forEach(this::printIntentData);
     }
 
     private boolean filter(IntentData data) {

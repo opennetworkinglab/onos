@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -22,12 +23,15 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentState;
-import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -70,8 +74,72 @@ public class IntentRemoveCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         IntentService intentService = get(IntentService.class);
-        CoreService coreService = get(CoreService.class);
+        removeIntent(intentService.getIntents(),
+             applicationIdString, keyString,
+             purgeAfterRemove, sync);
+    }
 
+    /**
+     * Purges the intents passed as argument.
+     *
+     * @param intents list of intents to purge
+     */
+    private void purgeIntents(Iterable<Intent> intents) {
+        IntentService intentService = get(IntentService.class);
+        this.purgeAfterRemove = true;
+        removeIntentsByAppId(intentService, intents, null);
+    }
+
+    /**
+     * Purges the intents passed as argument after confirmation is provided
+     * for each of them.
+     * If no explicit confirmation is provided, the intent is not purged.
+     *
+     * @param intents list of intents to purge
+     */
+    public void purgeIntentsInteractive(Iterable<Intent> intents) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        intents.forEach(intent -> {
+            System.out.print(String.format("Id=%s, Key=%s, AppId=%s. Remove? [y/N]: ",
+                                           intent.id(), intent.key(), intent.appId().name()));
+            String response;
+            try {
+                response = br.readLine();
+                response = response.trim().replace("\n", "");
+                if (response.equals("y")) {
+                    this.purgeIntents(ImmutableList.of(intent));
+                }
+            } catch (IOException e) {
+                response = "";
+            }
+            print(response);
+        });
+    }
+
+    /**
+     * Removes the intents passed as argument, assuming these
+     * belong to the application's ID provided (if any) and
+     * contain a key string.
+     *
+     * If an application ID is provided, it will be used to further
+     * filter the intents to be removed.
+     *
+     * @param intents list of intents to remove
+     * @param applicationIdString application ID to filter intents
+     * @param keyString string to filter intents
+     * @param purgeAfterRemove states whether the intents should be also purged
+     * @param sync states whether the cli should wait for the operation to finish
+     *             before returning
+     */
+    private void removeIntent(Iterable<Intent> intents,
+                             String applicationIdString, String keyString,
+                             boolean purgeAfterRemove, boolean sync) {
+        IntentService intentService = get(IntentService.class);
+        CoreService coreService = get(CoreService.class);
+        this.applicationIdString = applicationIdString;
+        this.keyString = keyString;
+        this.purgeAfterRemove = purgeAfterRemove;
+        this.sync = sync;
         if (purgeAfterRemove || sync) {
             print("Using \"sync\" to remove/purge intents - this may take a while...");
             print("Check \"summary\" to see remove/purge progress.");
@@ -87,11 +155,7 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         }
 
         if (isNullOrEmpty(keyString)) {
-            for (Intent intent : intentService.getIntents()) {
-                if (intent.appId().equals(appId)) {
-                    removeIntent(intentService, intent);
-                }
-            }
+            removeIntentsByAppId(intentService, intents, appId);
 
         } else {
             final Key key;
@@ -111,6 +175,32 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         }
     }
 
+    /**
+     * Removes the intents passed as argument.
+     *
+     * If an application ID is provided, it will be used to further
+     * filter the intents to be removed.
+     *
+     * @param intentService IntentService object
+     * @param intents intents to remove
+     * @param appId application ID to filter intents
+     */
+    private void removeIntentsByAppId(IntentService intentService,
+                                     Iterable<Intent> intents,
+                                     ApplicationId appId) {
+        for (Intent intent : intents) {
+            if (appId == null || intent.appId().equals(appId)) {
+                removeIntent(intentService, intent);
+            }
+        }
+    }
+
+    /**
+     * Removes the intent passed as argument.
+     *
+     * @param intentService IntentService object
+     * @param intent intent to remove
+     */
     private void removeIntent(IntentService intentService, Intent intent) {
         IntentListener listener = null;
         Key key = intent.key();
