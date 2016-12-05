@@ -106,9 +106,9 @@ public class LispMappingDatabaseTest {
         builder3.withRecordTtl(60);
         LispMapRecord mapRecord3 = builder3.build();
 
-        mapDb.putMapRecord(eidRecord1, mapRecord1);
-        mapDb.putMapRecord(eidRecord2, mapRecord2);
-        mapDb.putMapRecord(eidRecord3, mapRecord3);
+        mapDb.putMapRecord(eidRecord1, mapRecord1, true);
+        mapDb.putMapRecord(eidRecord2, mapRecord2, true);
+        mapDb.putMapRecord(eidRecord3, mapRecord3, true);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
         LispEidRecord record = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord = mapDb.getMapRecordByEidRecord(record);
+        LispMapRecord mapRecord = mapDb.getMapRecordByEidRecord(record, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord.getLocatorCount(), is(3));
@@ -127,12 +127,12 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.2.1"));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32);
+        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.1.2.0"));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24);
+        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord32.getLocatorCount(), is(2));
@@ -145,17 +145,17 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.2.1.1"));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32);
+        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.2.1.0"));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24);
+        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
 
         byte cidr16 = (byte) 16;
         LispIpv4Address eid16 = new LispIpv4Address(IpAddress.valueOf("10.2.0.0"));
         LispEidRecord record16 = new LispEidRecord(cidr16, eid16);
-        LispMapRecord mapRecord16 = mapDb.getMapRecordByEidRecord(record16);
+        LispMapRecord mapRecord16 = mapDb.getMapRecordByEidRecord(record16, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
                     mapRecord32.getLocatorCount(), is(1));

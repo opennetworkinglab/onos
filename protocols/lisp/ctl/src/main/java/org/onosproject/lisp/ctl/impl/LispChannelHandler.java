@@ -30,6 +30,8 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * Channel handler deals with the xTR connection and dispatches xTR messages
  * to the appropriate locations.
@@ -42,18 +44,22 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
         try {
-            // first we need to check whether this is an ECM
+
+            // process map-request message that is encapsulated in ECM
             if (msg instanceof LispEncapsulatedControl) {
                 LispMessage innerMsg = extractLispMessage((LispEncapsulatedControl) msg);
                 if (innerMsg instanceof LispMapRequest) {
                     LispMapResolver mapResolver = LispMapResolver.getInstance();
-                    LispMessage lispMessage =
+                    List<LispMessage> lispMessages =
                             mapResolver.processMapRequest((LispEncapsulatedControl) msg);
 
-                    ctx.writeAndFlush(lispMessage);
+                    if (lispMessages != null) {
+                        lispMessages.forEach(ctx::writeAndFlush);
+                    }
                 }
             }
 
+            // process map-register message
             if (msg instanceof LispMapRegister) {
                 LispMapServer mapServer = LispMapServer.getInstance();
                 LispMapNotify mapNotify =
@@ -64,11 +70,14 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
+            // process info-request message
             if (msg instanceof LispInfoRequest) {
                 LispMapServer mapServer = LispMapServer.getInstance();
                 LispInfoReply infoReply = mapServer.processInfoRequest((LispInfoRequest) msg);
 
-                ctx.writeAndFlush(infoReply);
+                if (infoReply != null) {
+                    ctx.writeAndFlush(infoReply);
+                }
             }
         } finally {
             // try to remove the received message form the buffer

@@ -44,6 +44,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
+import static org.onlab.packet.IpAddress.valueOf;
 import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.valueOf;
 
 /**
@@ -52,10 +53,16 @@ import static org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum.
  */
 public final class LispMapServer {
 
+    private static final Logger log = LoggerFactory.getLogger(LispMapServer.class);
+
     private static final int MAP_NOTIFY_PORT = 4342;
     private static final int INFO_REPLY_PORT = 4342;
 
-    private static final Logger log = LoggerFactory.getLogger(LispMapServer.class);
+    private static final String INVALID_AUTHENTICATION_DATA_MSG =
+                                "Unmatched authentication data of {}.";
+    private static final String FAILED_TO_FORMULATE_NAT_MSG =
+                                "Fails during formulate NAT address.";
+
 
     private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
     private LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
@@ -64,7 +71,7 @@ public final class LispMapServer {
     private LispMapServer() {
     }
 
-    public static LispMapServer getInstance() {
+    static LispMapServer getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
@@ -74,21 +81,21 @@ public final class LispMapServer {
      * @param message map-register message
      * @return map-notify message
      */
-    public LispMapNotify processMapRegister(LispMessage message) {
+    LispMapNotify processMapRegister(LispMessage message) {
 
         LispMapRegister register = (LispMapRegister) message;
 
         if (!checkMapRegisterAuthData(register)) {
-            log.warn("Unmatched authentication data of Map-Register");
+            log.warn(INVALID_AUTHENTICATION_DATA_MSG, "Map-Register");
             return null;
         }
 
         register.getMapRecords().forEach(mapRecord -> {
             LispEidRecord eidRecord =
-                    new LispEidRecord(mapRecord.getMaskLength(),
-                                      mapRecord.getEidPrefixAfi());
+                                new LispEidRecord(mapRecord.getMaskLength(),
+                                                  mapRecord.getEidPrefixAfi());
 
-            mapDb.putMapRecord(eidRecord, mapRecord);
+            mapDb.putMapRecord(eidRecord, mapRecord, register.isProxyMapReply());
         });
 
         // we only acknowledge back to ETR when want-map-notify bit is set to true
@@ -119,23 +126,23 @@ public final class LispMapServer {
      * @param message info-request message
      * @return info-reply message
      */
-    public LispInfoReply processInfoRequest(LispMessage message) {
+    LispInfoReply processInfoRequest(LispMessage message) {
         LispInfoRequest request = (LispInfoRequest) message;
 
         if (!checkInfoRequestAuthData(request)) {
-            log.warn("Unmatched authentication data of Info-Request");
+            log.warn(INVALID_AUTHENTICATION_DATA_MSG, "Info-Request");
             return null;
         }
 
         NatAddressBuilder natBuilder = new NatAddressBuilder();
         try {
             LispAfiAddress msAddress =
-                    new LispIpv4Address(IpAddress.valueOf(InetAddress.getLocalHost()));
+                        new LispIpv4Address(valueOf(InetAddress.getLocalHost()));
             natBuilder.withMsRlocAddress(msAddress);
             natBuilder.withMsUdpPortNumber((short) INFO_REPLY_PORT);
 
             // try to extract global ETR RLOC address from info-request
-            IpAddress globalRlocIp = IpAddress.valueOf(request.getSender().getAddress());
+            IpAddress globalRlocIp = valueOf(request.getSender().getAddress());
             LispAfiAddress globalRlocAddress;
             if (globalRlocIp.isIp4()) {
                 globalRlocAddress = new LispIpv4Address(globalRlocIp);
@@ -149,7 +156,7 @@ public final class LispMapServer {
             // TODO: need to specify RTR addresses
 
         } catch (UnknownHostException e) {
-            log.warn("Fails during formulate NAT address", e);
+            log.warn(FAILED_TO_FORMULATE_NAT_MSG, e);
         }
 
         InfoReplyBuilder replyBuilder = new DefaultInfoReplyBuilder();

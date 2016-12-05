@@ -20,8 +20,10 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.lisp.ctl.impl.map.ExpireMap;
 import org.onosproject.lisp.ctl.impl.map.ExpireHashMap;
+import org.onosproject.lisp.msg.protocols.DefaultLispProxyMapRecord.DefaultMapWithProxyBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
+import org.onosproject.lisp.msg.protocols.LispProxyMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public final class LispMappingDatabase {
 
     private static final long MINUTE_TO_MS_UNIT = 60 * 1000;
 
-    private ExpireMap<LispEidRecord, LispMapRecord> map = new ExpireHashMap<>();
+    private ExpireMap<LispEidRecord, LispProxyMapRecord> map = new ExpireHashMap<>();
 
     /**
      * Prevents object instantiation from external.
@@ -54,11 +56,17 @@ public final class LispMappingDatabase {
     /**
      * Inserts a new EID-RLOC mapping record.
      *
-     * @param eid  endpoint identifier
-     * @param rloc route locator record
+     * @param eid           endpoint identifier
+     * @param rloc          route locator record
+     * @param proxyMapReply proxy map reply flag
      */
-    public void putMapRecord(LispEidRecord eid, LispMapRecord rloc) {
-        map.put(eid, rloc, rloc.getRecordTtl() * MINUTE_TO_MS_UNIT);
+    public void putMapRecord(LispEidRecord eid, LispMapRecord rloc,
+                             boolean proxyMapReply) {
+        LispProxyMapRecord mapWithProxy = new DefaultMapWithProxyBuilder()
+                .withMapRecord(rloc)
+                .withIsProxyMapReply(proxyMapReply)
+                .build();
+        map.put(eid, mapWithProxy, rloc.getRecordTtl() * MINUTE_TO_MS_UNIT);
     }
 
     /**
@@ -81,16 +89,19 @@ public final class LispMappingDatabase {
     }
 
     /**
-     * Obtains an EID-RLOC mapping record with given EID record.
+     * Obtains an EID-RLOC mapping record in accordance with the proxy map reply
+     * flag bit and EID record.
      *
-     * @param eid endpoint identifier record
+     * @param eid           endpoint identifier record
+     * @param proxyMapReply proxy map reply flag
      * @return an EID-RLOC mapping record
      */
-    public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid) {
+    public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid, boolean proxyMapReply) {
 
         for (LispEidRecord key : map.keySet()) {
-            if (isInRange(key, eid)) {
-                return map.get(key);
+            if (isInRange(key, eid) && map.get(key) != null
+                    && map.get(key).isProxyMapReply() == proxyMapReply) {
+                return map.get(key).getMapRecord();
             }
         }
 
@@ -98,15 +109,18 @@ public final class LispMappingDatabase {
     }
 
     /**
-     * Obtains a collection of EID-RLOC mapping records with given EID records.
+     * Obtains a collection of EID-RLOC mapping record in accordance with the
+     * proxy map reply flag bit and EID record.
      *
-     * @param eids endpoint identifier records
+     * @param eids          endpoint identifier records
+     * @param proxyMapReply proxy map reply flag
      * @return a collection of EID-RLOC mapping records
      */
-    public List<LispMapRecord> getMapRecordByEidRecords(List<LispEidRecord> eids) {
+    public List<LispMapRecord> getMapRecordByEidRecords(List<LispEidRecord> eids,
+                                                        boolean proxyMapReply) {
         List<LispMapRecord> mapRecords = Lists.newArrayList();
         eids.forEach(eidRecord -> {
-            LispMapRecord mapRecord = getMapRecordByEidRecord(eidRecord);
+            LispMapRecord mapRecord = getMapRecordByEidRecord(eidRecord, proxyMapReply);
             if (mapRecord != null) {
                 mapRecords.add(mapRecord);
             }
@@ -123,7 +137,8 @@ public final class LispMappingDatabase {
     public LispMapRecord getMapRecordByEidAddress(LispAfiAddress address) {
         Optional<LispEidRecord> eidRecord =
                 map.keySet().stream().filter(k -> k.getPrefix().equals(address)).findFirst();
-        return eidRecord.map(lispEidRecord -> map.get(lispEidRecord)).orElse(null);
+        return eidRecord.map(lispEidRecord ->
+                map.get(lispEidRecord).getMapRecord()).orElse(null);
     }
 
     /**

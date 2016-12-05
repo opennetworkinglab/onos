@@ -15,14 +15,19 @@
  */
 package org.onosproject.lisp.ctl.impl;
 
+import com.google.common.collect.Lists;
+import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.DefaultEcmBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
+import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl.EcmBuilder;
+import org.onosproject.lisp.msg.protocols.LispLocatorRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
-import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMapReply.ReplyBuilder;
-import org.onosproject.lisp.msg.protocols.LispMessage;
-import org.onosproject.lisp.msg.types.LispIpAddress;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
+import org.onosproject.lisp.msg.protocols.LispMapReply;
+import org.onosproject.lisp.msg.protocols.LispMessage;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispIpAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +43,20 @@ public final class LispMapResolver {
 
     private static final Logger log = LoggerFactory.getLogger(LispMapResolver.class);
 
+    private static final int ECM_DST_PORT = 4342;
+    private static final String NO_ITR_RLOCS_MSG =
+                                "No ITR RLOC is found, cannot respond to ITR.";
+    private static final String NO_ETR_RLOCS_MSG =
+                                "No ETR RLOC is found, cannot relay to ETR.";
+    private static final String NO_MAP_INFO_MSG  = "Map information is not found.";
+
     private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
 
     // non-instantiable (except for our Singleton)
     private LispMapResolver() {
     }
 
-    public static LispMapResolver getInstance() {
+    static LispMapResolver getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
@@ -54,38 +66,145 @@ public final class LispMapResolver {
      * @param message encapsulated control message
      * @return map-reply message
      */
-    public LispMessage processMapRequest(LispMessage message) {
+    List<LispMessage> processMapRequest(LispMessage message) {
 
         LispEncapsulatedControl ecm = (LispEncapsulatedControl) message;
         LispMapRequest request = (LispMapRequest) ecm.getControlMessage();
 
-        // build map-reply message
+        List<LispMapRecord> mapReplyRecords =
+                mapDb.getMapRecordByEidRecords(request.getEids(), true);
+
+        List<LispMapRecord> mapRequestRecords =
+                mapDb.getMapRecordByEidRecords(request.getEids(), false);
+
+        if (mapReplyRecords.size() + mapRequestRecords.size() == 0) {
+
+            // TODO: need to generate map-reply with configured native-forward action
+            log.warn(NO_MAP_INFO_MSG);
+
+        } else {
+
+            if (mapReplyRecords.size() > 0) {
+
+                List<LispMessage> mapReplies = Lists.newArrayList();
+
+                // build map-reply message based on map-request from ITR
+                ReplyBuilder replyBuilder = initMapReplyBuilder(request);
+                replyBuilder.withMapRecords(mapReplyRecords);
+
+                List<InetSocketAddress> addresses =
+                                        getItrAddresses(request.getItrRlocs(),
+                                                ecm.innerUdp().getSourcePort());
+
+                addresses.forEach(address -> {
+                    if (address != null) {
+                        LispMapReply reply = replyBuilder.build();
+                        reply.configSender(address);
+                        mapReplies.add(reply);
+                    } else {
+                        log.warn(NO_ITR_RLOCS_MSG);
+                    }
+                });
+
+                return mapReplies;
+            }
+
+            if (mapRequestRecords.size() > 0) {
+
+                List<LispMessage> ecms = Lists.newArrayList();
+
+                // re-encapsulate encapsulated control message from ITR
+                List<InetSocketAddress> addresses =
+                                getEtrAddresses(mapRequestRecords, ECM_DST_PORT);
+
+                addresses.forEach(address -> {
+                    if (address != null) {
+                        LispEncapsulatedControl reencapEcm = cloneEcm(ecm);
+                        reencapEcm.configSender(address);
+                        ecms.add(reencapEcm);
+                    } else {
+                        log.warn(NO_ETR_RLOCS_MSG);
+                    }
+                });
+
+                return ecms;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Initializes MapReply builder without specifying map records.
+     *
+     * @param request received map request from ITR
+     * @return initialized MapReply builder
+     */
+    private ReplyBuilder initMapReplyBuilder(LispMapRequest request) {
         ReplyBuilder replyBuilder = new DefaultReplyBuilder();
         replyBuilder.withNonce(request.getNonce());
         replyBuilder.withIsEtr(false);
         replyBuilder.withIsSecurity(false);
         replyBuilder.withIsProbe(request.isProbe());
 
-        List<LispMapRecord> mapRecords = mapDb.getMapRecordByEidRecords(request.getEids());
+        return replyBuilder;
+    }
 
-        if (mapRecords.size() == 0) {
-            log.warn("Map information is not found.");
-        } else {
-            replyBuilder.withMapRecords(mapRecords);
+    /**
+     * Clones ECM from original ECM.
+     *
+     * @param ecm original ECM
+     * @return cloned ECM
+     */
+    private LispEncapsulatedControl cloneEcm(LispEncapsulatedControl ecm) {
+        EcmBuilder ecmBuilder = new DefaultEcmBuilder();
+        ecmBuilder.innerLispMessage(ecm.getControlMessage());
+        ecmBuilder.isSecurity(ecm.isSecurity());
+        ecmBuilder.innerIpHeader(ecm.innerIpHeader());
+        ecmBuilder.innerUdpHeader(ecm.innerUdp());
+
+        return ecmBuilder.build();
+    }
+
+    /**
+     * Obtains a collection of valid ITR addresses with a port number specified.
+     * These addresses will be used to acknowledge map-reply to ITR.
+     *
+     * @param itrRlocs a collection of ITR RLOCs
+     * @param port     port number
+     * @return a collection of valid ITR addresses with a port number specified
+     */
+    private List<InetSocketAddress> getItrAddresses(List<LispAfiAddress> itrRlocs,
+                                                    int port) {
+        List<InetSocketAddress> addresses = Lists.newArrayList();
+        for (LispAfiAddress itrRloc : itrRlocs) {
+            addresses.add(new InetSocketAddress(((LispIpAddress)
+                    itrRloc).getAddress().toInetAddress(), port));
         }
+        return addresses;
+    }
 
-        LispMapReply reply = replyBuilder.build();
+    /**
+     * Obtains a collection of valid ETR addresses with a port number specified.
+     * These addresses will be used to relay map-request to ETR.
+     *
+     * @param mapRecords a collection of map records
+     * @param port       port number
+     * @return a collection of valid ETR addresses with a port number specified
+     */
+    private List<InetSocketAddress> getEtrAddresses(List<LispMapRecord> mapRecords,
+                                                    int port) {
+        List<InetSocketAddress> addresses = Lists.newArrayList();
+        for (LispMapRecord mapRecord : mapRecords) {
 
-        if (request.getItrRlocs() != null && request.getItrRlocs().size() > 0) {
-            LispIpAddress itr = (LispIpAddress) request.getItrRlocs().get(0);
-            InetSocketAddress address = new InetSocketAddress(itr.getAddress().toInetAddress(),
-                    ecm.innerUdp().getSourcePort());
-            reply.configSender(address);
-        } else {
-            log.warn("No ITR RLOC is found, cannot respond back to ITR.");
+            // we only select the first locator record in all cases...
+            LispLocatorRecord locatorRecord = mapRecord.getLocators().get(0);
+            if (locatorRecord != null) {
+                addresses.add(new InetSocketAddress(((LispIpAddress)
+                                locatorRecord.getLocatorAfi()).getAddress()
+                                                    .toInetAddress(), port));
+            }
         }
-
-        return reply;
+        return addresses;
     }
 
     /**
