@@ -189,7 +189,7 @@ public final class OpenstackSecurityGroupRule {
             return true;
         }
 
-        if (this instanceof OpenstackSecurityGroupRule) {
+        if (o instanceof OpenstackSecurityGroupRule) {
             OpenstackSecurityGroupRule that = (OpenstackSecurityGroupRule) o;
             return this.direction.equals(that.direction) &&
                     this.ethertype.equals(that.ethertype) &&

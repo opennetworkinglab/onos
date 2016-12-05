@@ -353,7 +353,7 @@ public final class OpenstackPort {
          */
         public OpenstackPort build() {
             return new OpenstackPort(status, name, allowedAddressPairs, adminStateUp,
-                                     networkId, networkId, deviceOwner, macAddress, fixedIps,
+                                     networkId, tenantId, deviceOwner, macAddress, fixedIps,
                                      id, securityGroups, deviceId);
         }
     }
