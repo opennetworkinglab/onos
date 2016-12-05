@@ -70,6 +70,7 @@ public final class DefaultLispMapRequestTest {
                         .withItrRlocs(rlocs1)
                         .withEidRecords(records1)
                         .withNonce(1L)
+                        .withReplyRecord(1)
                         .build();
 
         RequestBuilder builder2 = new DefaultRequestBuilder();
@@ -86,6 +87,7 @@ public final class DefaultLispMapRequestTest {
                         .withItrRlocs(rlocs1)
                         .withEidRecords(records2)
                         .withNonce(1L)
+                        .withReplyRecord(1)
                         .build();
 
         RequestBuilder builder3 = new DefaultRequestBuilder();
@@ -107,6 +109,7 @@ public final class DefaultLispMapRequestTest {
                         .withSourceEid(ipv4Eid2)
                         .withItrRlocs(rlocs2)
                         .withNonce(2L)
+                        .withReplyRecord(2)
                         .build();
     }
 
@@ -134,6 +137,7 @@ public final class DefaultLispMapRequestTest {
         assertThat(request.isSmrInvoked(), is(false));
         assertThat(request.getNonce(), is(1L));
         assertThat(request.getRecordCount(), is(2));
+        assertThat(request.getReplyRecord(), is(1));
     }
 
     @Test

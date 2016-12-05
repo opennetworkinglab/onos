@@ -50,6 +50,7 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
     private final boolean smr;
     private final boolean pitr;
     private final boolean smrInvoked;
+    private final int replyRecord;
 
     static final RequestWriter WRITER;
     static {
@@ -69,11 +70,14 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
      * @param smr            smr flag
      * @param pitr           pitr flag
      * @param smrInvoked     smrInvoked flag
+     * @param replyReocrd    size of map-reply record
      */
     private DefaultLispMapRequest(long nonce, LispAfiAddress sourceEid,
-                                  List<LispAfiAddress> itrRlocs, List<LispEidRecord> eidRecords,
-                                  boolean authoritative, boolean mapDataPresent, boolean probe,
-                                  boolean smr, boolean pitr, boolean smrInvoked) {
+                                  List<LispAfiAddress> itrRlocs,
+                                  List<LispEidRecord> eidRecords,
+                                  boolean authoritative, boolean mapDataPresent,
+                                  boolean probe, boolean smr, boolean pitr,
+                                  boolean smrInvoked, int replyReocrd) {
         this.nonce = nonce;
         this.sourceEid = sourceEid;
         this.itrRlocs = itrRlocs;
@@ -84,6 +88,7 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
         this.smr = smr;
         this.pitr = pitr;
         this.smrInvoked = smrInvoked;
+        this.replyRecord = replyReocrd;
     }
 
     @Override
@@ -157,6 +162,11 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
     }
 
     @Override
+    public int getReplyRecord() {
+        return replyRecord;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("type", getType())
@@ -169,7 +179,8 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
                 .add("probe", probe)
                 .add("SMR", smr)
                 .add("Proxy ITR", pitr)
-                .add("SMR Invoked", smrInvoked).toString();
+                .add("SMR Invoked", smrInvoked)
+                .add("Size of reply record", replyRecord).toString();
     }
 
     @Override
@@ -188,13 +199,14 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
                 Objects.equal(probe, that.probe) &&
                 Objects.equal(smr, that.smr) &&
                 Objects.equal(pitr, that.pitr) &&
-                Objects.equal(smrInvoked, that.smrInvoked);
+                Objects.equal(smrInvoked, that.smrInvoked) &&
+                Objects.equal(replyRecord, that.replyRecord);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(nonce, sourceEid, authoritative,
-                mapDataPresent, probe, smr, pitr, smrInvoked);
+                mapDataPresent, probe, smr, pitr, smrInvoked, replyRecord);
     }
 
     public static final class DefaultRequestBuilder implements RequestBuilder {
@@ -209,6 +221,7 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
         private boolean smr;
         private boolean pitr;
         private boolean smrInvoked;
+        private int replyRecord;
 
         @Override
         public LispType getType() {
@@ -280,12 +293,18 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
         }
 
         @Override
+        public RequestBuilder withReplyRecord(int replyRecord) {
+            this.replyRecord = replyRecord;
+            return this;
+        }
+
+        @Override
         public LispMapRequest build() {
 
             checkArgument((itrRlocs != null) && (itrRlocs.size() > 0), "Must have an ITR RLOC entry");
 
             return new DefaultLispMapRequest(nonce, sourceEid, itrRlocs, eidRecords,
-                    authoritative, mapDataPresent, probe, smr, pitr, smrInvoked);
+                    authoritative, mapDataPresent, probe, smr, pitr, smrInvoked, replyRecord);
         }
     }
 
@@ -355,6 +374,9 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
                 eidRecords.add(new EidRecordReader().readFrom(byteBuf));
             }
 
+            // reply record -> 32 bits
+            int replyRecord = byteBuf.readInt();
+
             return new DefaultRequestBuilder()
                         .withIsAuthoritative(authoritative)
                         .withIsMapDataPresent(mapDataPresent)
@@ -366,6 +388,7 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
                         .withSourceEid(sourceEid)
                         .withEidRecords(eidRecords)
                         .withItrRlocs(itrRlocs)
+                        .withReplyRecord(replyRecord)
                         .build();
         }
     }
@@ -460,7 +483,8 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
                 recordWriter.writeTo(byteBuf, records.get(i));
             }
 
-            // TODO: handle Map-Reply record
+            // reply record
+            byteBuf.writeInt(message.getReplyRecord());
         }
     }
 }

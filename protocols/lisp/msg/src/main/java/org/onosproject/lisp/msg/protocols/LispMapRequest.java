@@ -133,6 +133,13 @@ public interface LispMapRequest extends LispMessage {
     List<LispEidRecord> getEids();
 
     /**
+     * Obtains the size of map-reply record.
+     *
+     * @return the size of map-reply record
+     */
+    int getReplyRecord();
+
+    /**
      * A builder of LISP map request message.
      */
     interface RequestBuilder extends Builder {
@@ -216,6 +223,14 @@ public interface LispMapRequest extends LispMessage {
          * @return RequestBuilder object
          */
         RequestBuilder withEidRecords(List<LispEidRecord> records);
+
+        /**
+         * Sets the size of map-reply record.
+         *
+         * @param replyRecord the size of map-reply record
+         * @return RequestBuilder object
+         */
+        RequestBuilder withReplyRecord(int replyRecord);
 
         /**
          * Builds LISP map request message.
