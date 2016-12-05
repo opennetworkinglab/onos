@@ -17,12 +17,16 @@ package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.Lists;
 import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.DefaultEcmBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilder;
+import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl.EcmBuilder;
 import org.onosproject.lisp.msg.protocols.LispLocatorRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
+import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapReply.ReplyBuilder;
+import org.onosproject.lisp.msg.protocols.LispMapReplyAction;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
@@ -44,6 +48,9 @@ public final class LispMapResolver {
     private static final Logger log = LoggerFactory.getLogger(LispMapResolver.class);
 
     private static final int ECM_DST_PORT = 4342;
+    private static final int NEGATIVE_REPLY_DST_PORT = 4342;
+    private static final int MAP_REPLY_RECORD_TTL = 15;
+    private static final short MAP_VERSION_NUMBER = 0;
     private static final String NO_ITR_RLOCS_MSG =
                                 "No ITR RLOC is found, cannot respond to ITR.";
     private static final String NO_ETR_RLOCS_MSG =
@@ -79,7 +86,16 @@ public final class LispMapResolver {
 
         if (mapReplyRecords.size() + mapRequestRecords.size() == 0) {
 
-            // TODO: need to generate map-reply with configured native-forward action
+            List<LispMessage> mapReplies = Lists.newArrayList();
+
+            // build natively-forward map reply messages based on map-request from ITR
+            ReplyBuilder replyBuilder = initMapReplyBuilder(request);
+            replyBuilder.withMapRecords(getNegativeMapRecords(request.getEids()));
+            LispMessage mapReply = replyBuilder.build();
+            mapReply.configSender(new InetSocketAddress(ecm.getSender().getAddress(),
+                                                        NEGATIVE_REPLY_DST_PORT));
+            mapReplies.add(mapReply);
+
             log.warn(NO_MAP_INFO_MSG);
 
         } else {
@@ -163,6 +179,31 @@ public final class LispMapResolver {
         ecmBuilder.innerUdpHeader(ecm.innerUdp());
 
         return ecmBuilder.build();
+    }
+
+    /**
+     * Obtains a collection of map records with natively-forward action.
+     *
+     * @param eids endpoint identifier records
+     * @return a collection of map records with natively-forward action
+     */
+    private List<LispMapRecord> getNegativeMapRecords(List<LispEidRecord> eids) {
+        List<LispMapRecord> mapRecords = Lists.newArrayList();
+
+        MapRecordBuilder recordBuilder = new DefaultMapRecordBuilder();
+        recordBuilder.withRecordTtl(MAP_REPLY_RECORD_TTL);
+        recordBuilder.withLocators(Lists.newArrayList());
+        recordBuilder.withAuthoritative(false);
+        recordBuilder.withMapVersionNumber(MAP_VERSION_NUMBER);
+        recordBuilder.withAction(LispMapReplyAction.NativelyForward);
+
+        eids.forEach(eid -> {
+            recordBuilder.withEidPrefixAfi(eid.getPrefix());
+            recordBuilder.withMaskLength(eid.getMaskLength());
+            mapRecords.add(recordBuilder.build());
+        });
+
+        return mapRecords;
     }
 
     /**
