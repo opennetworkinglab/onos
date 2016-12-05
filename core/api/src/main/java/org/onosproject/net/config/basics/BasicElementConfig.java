@@ -22,20 +22,46 @@ package org.onosproject.net.config.basics;
  */
 public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
-    protected static final String NAME = "name";
-    protected static final String UI_TYPE = "uiType";
+    /**
+     * Key for friendly name.
+     */
+    public static final String NAME = "name";
 
-    protected static final String LATITUDE = "latitude";
-    protected static final String LONGITUDE = "longitude";
+    /**
+     * Key for UI type (glyph identifier).
+     */
+    public static final String UI_TYPE = "uiType";
 
+    /**
+     * Key for latitude.
+     */
+    public static final String LATITUDE = "latitude";
+
+    /**
+     * Key for longitude.
+     */
+    public static final String LONGITUDE = "longitude";
+
+    /**
+     * Key for rack address.
+     */
     protected static final String RACK_ADDRESS = "rackAddress";
+
+    /**
+     * Key for owner.
+     */
     protected static final String OWNER = "owner";
 
+    /**
+     * Threshold for detecting double value is zero.
+     */
     protected static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
+
     private static final double DEFAULT_COORD = 0.0;
 
     /**
-     * Returns friendly label for the element.
+     * Returns friendly label for the element. If not set, returns the
+     * element identifier.
      *
      * @return friendly label or element identifier itself if not set
      */
@@ -55,7 +81,7 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
     /**
      * Returns the UI type (glyph image to be used) for the element in
-     * the Topology View.
+     * the Topology View. If not set, null is returned.
      *
      * @return the UI type
      */
@@ -65,7 +91,8 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
     /**
      * Sets the UI type (glyph image to be used) for the element in
-     * the Topology View.
+     * the Topology View. Setting this to null will indicate that the
+     * default glyph image should be used for the element type.
      *
      * @param uiType the UI type; null for default
      * @return self

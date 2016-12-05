@@ -37,6 +37,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStore;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.net.region.RegionStore;
@@ -374,6 +375,7 @@ public class MastershipManagerTest {
     private class TestRegionManager extends RegionManager {
         TestRegionManager() {
             eventDispatcher = new TestEventDispatcher();
+            networkConfigService = new NetworkConfigServiceAdapter();
         }
     }
 }

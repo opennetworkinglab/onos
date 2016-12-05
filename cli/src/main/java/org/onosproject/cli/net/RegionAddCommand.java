@@ -23,6 +23,8 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicRegionConfig;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.net.region.RegionId;
@@ -37,7 +39,10 @@ import java.util.Set;
         description = "Adds a new region.")
 public class RegionAddCommand extends AbstractShellCommand {
 
-    private static final BiMap<String, Region.Type> REGION_TYPE_MAP = HashBiMap.create();
+    private static final String SLASH = "/";
+
+    private static final BiMap<String, Region.Type> REGION_TYPE_MAP
+            = HashBiMap.create();
 
     static {
         for (Region.Type t : Region.Type.values()) {
@@ -54,11 +59,19 @@ public class RegionAddCommand extends AbstractShellCommand {
     String name = null;
 
     @Argument(index = 2, name = "type", description = "Region Type (CONTINENT|" +
-            "COUNTRY|METRO|CAMPUS|BUILDING|FLOOR|ROOM|RACK|LOGICAL_GROUP)",
+            "COUNTRY|METRO|CAMPUS|BUILDING|DATA_CENTER|FLOOR|ROOM|RACK|LOGICAL_GROUP)",
             required = true, multiValued = false)
     String type = null;
 
-    @Argument(index = 3, name = "masters", description = "Region Master, a set " +
+    @Argument(index = 3, name = "latitude", description = "Geo latitude",
+            required = true, multiValued = false)
+    Double latitude = null;
+
+    @Argument(index = 4, name = "longitude", description = "Geo longitude",
+            required = true, multiValued = false)
+    Double longitude = null;
+
+    @Argument(index = 5, name = "masters", description = "Region Master, a set " +
             "of nodeIds should be split with '/' delimiter (e.g., 1 2 3 / 4 5 6)",
             required = true, multiValued = true)
     List<String> masterArgs = null;
@@ -71,7 +84,7 @@ public class RegionAddCommand extends AbstractShellCommand {
         List<Set<NodeId>> masters = Lists.newArrayList();
         Set<NodeId> nodeIds = Sets.newHashSet();
         for (String masterArg : masterArgs) {
-            if (masterArg.equals("/")) {
+            if (masterArg.equals(SLASH)) {
                 masters.add(nodeIds);
                 nodeIds = Sets.newHashSet();
             } else {
@@ -79,6 +92,13 @@ public class RegionAddCommand extends AbstractShellCommand {
             }
         }
         masters.add(nodeIds);
+
+        NetworkConfigService cfgService = get(NetworkConfigService.class);
+        BasicRegionConfig cfg = cfgService.addConfig(regionId, BasicRegionConfig.class);
+        cfg.name(name)
+                .latitude(latitude)
+                .longitude(longitude)
+                .apply();
 
         service.createRegion(regionId, name, REGION_TYPE_MAP.get(type), masters);
         print("Region successfully added.");

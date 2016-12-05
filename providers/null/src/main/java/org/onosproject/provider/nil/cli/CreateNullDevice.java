@@ -67,12 +67,10 @@ public class CreateNullDevice extends AbstractShellCommand {
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
         DeviceId deviceId = sim.nextDeviceId();
         BasicDeviceConfig cfg = cfgService.addConfig(deviceId, BasicDeviceConfig.class);
-        cfg.name(name);
-        if (latitude != 0 || longitude != 0) {
-            cfg.latitude(latitude);
-            cfg.longitude(longitude);
-        }
-        cfg.apply();
+        cfg.name(name)
+                .latitude(latitude)
+                .longitude(longitude)
+                .apply();
 
         sim.createDevice(deviceId, name, Device.Type.valueOf(type.toUpperCase()), portCount);
     }

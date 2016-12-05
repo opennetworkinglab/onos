@@ -54,25 +54,34 @@
             link.createLink();
         });
 
+
+        // TODO: replace with an algorithm that computes appropriate transition
+        //        based on the location of the "region node" on the parent map
+
         // TEMP Map Zoom
         var regionPanZooms = {
             "(root)": {
-                scale: 0.8,
-                translate: [-384.5881010374517, -512.2527728775849]
+                scale: 4.21,
+                translate: [-2066.3049871603093, -2130.190726668792]
             },
-            rBrg: {
-                scale: 2.75,
-                translate: [-2929.288248714413, -3498.849169115524]
+            c01: {
+                scale: 19.8855,
+                translate: [-10375.91165337411, -10862.217941271818]
             },
-            rLon: {
-                scale: 2.75,
-                translate: [-2873.682762707102, -3320.483337006704]
+            c02: {
+                scale: 24.25,
+                translate: [-14169.70851936781, -15649.174761455488]
             },
-            rTha: {
-                scale: 7.5,
-                translate: [-8751.376289753565, -9950.962850877779]
+            c03: {
+                scale: 22.72,
+                translate: [-14950.92246589002, -15390.955326616648]
+            },
+            c04: {
+                scale: 26.24,
+                translate: [-16664.006814209282, -16217.021478816077]
             }
         };
+
 
         setTimeout(function () {
             var reigionPZ = regionPanZooms[region.get('id')];

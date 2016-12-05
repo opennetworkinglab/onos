@@ -73,9 +73,9 @@ public class CreateNullHost extends AbstractShellCommand {
         HostId id = sim.nextHostId();
         HostLocation location = findAvailablePort(deviceId);
         BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
-        cfg.latitude(latitude);
-        cfg.longitude(longitude);
-        cfg.apply();
+        cfg.latitude(latitude)
+                .longitude(longitude)
+                .apply();
 
         sim.createHost(id, location, IpAddress.valueOf(hostIp));
     }

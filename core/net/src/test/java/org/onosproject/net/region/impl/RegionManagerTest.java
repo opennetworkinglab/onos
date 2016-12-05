@@ -27,6 +27,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.net.region.RegionEvent;
@@ -175,6 +176,7 @@ public class RegionManagerTest {
     private class TestManager extends RegionManager {
         TestManager() {
             eventDispatcher = new TestEventDispatcher();
+            networkConfigService = new NetworkConfigServiceAdapter();
         }
     }
 

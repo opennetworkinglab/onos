@@ -18,7 +18,6 @@ package org.onosproject.net.config.basics;
 
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.Config;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 
@@ -28,43 +27,27 @@ import java.util.Set;
 /**
  * Basic configuration for network regions.
  */
-public final class BasicRegionConfig extends Config<RegionId> {
+public final class BasicRegionConfig extends BasicElementConfig<RegionId> {
 
-    private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String DEVICES = "devices";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(NAME, TYPE, DEVICES);
+        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
+                RACK_ADDRESS, OWNER, TYPE, DEVICES);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("name", name())
-                .add("type", type())
-                .add("devices", devices())
+                .add(NAME, name())
+                .add(TYPE, type())
+                .add(UI_TYPE, uiType())
+                .add(LATITUDE, latitude())
+                .add(LONGITUDE, longitude())
+                .add(DEVICES, devices())
                 .toString();
-    }
-
-    /**
-     * Returns the region name.
-     *
-     * @return the region name
-     */
-    public String name() {
-        return get(NAME, null);
-    }
-
-    /**
-     * Sets the name of this region.
-     *
-     * @param name name of region, or null to unset
-     * @return the config of the region
-     */
-    public BasicRegionConfig name(String name) {
-        return (BasicRegionConfig) setOrClear(NAME, name);
     }
 
     /**

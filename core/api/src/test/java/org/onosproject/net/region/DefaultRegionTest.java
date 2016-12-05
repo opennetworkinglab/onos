@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 
 import java.util.Set;
 
@@ -34,13 +36,16 @@ import static org.onosproject.net.region.Region.Type.METRO;
 public class DefaultRegionTest {
 
     private static final RegionId ID1 = RegionId.regionId("r1");
+    private static final Annotations NO_ANNOTS = DefaultAnnotations.EMPTY;
 
     @Test
     public void basics() {
-        ImmutableList<Set<NodeId>> masters = ImmutableList
-                .of(ImmutableSet.of(nodeId("n1"), nodeId("n2")),
-                    ImmutableSet.of(nodeId("n3"), nodeId("n4")));
-        Region r = new DefaultRegion(ID1, "R1", METRO, masters);
+        ImmutableList<Set<NodeId>> masters =
+                ImmutableList.of(
+                        ImmutableSet.of(nodeId("n1"), nodeId("n2")),
+                        ImmutableSet.of(nodeId("n3"), nodeId("n4"))
+                );
+        Region r = new DefaultRegion(ID1, "R1", METRO, NO_ANNOTS, masters);
         assertEquals("incorrect id", ID1, r.id());
         assertEquals("incorrect name", "R1", r.name());
         assertEquals("incorrect type", METRO, r.type());
@@ -49,9 +54,9 @@ public class DefaultRegionTest {
 
     @Test
     public void equality() {
-        Region a = new DefaultRegion(ID1, "R1", METRO, null);
-        Region b = new DefaultRegion(ID1, "R1", METRO, null);
-        Region c = new DefaultRegion(ID1, "R2", METRO, null);
+        Region a = new DefaultRegion(ID1, "R1", METRO, NO_ANNOTS, null);
+        Region b = new DefaultRegion(ID1, "R1", METRO, NO_ANNOTS, null);
+        Region c = new DefaultRegion(ID1, "R2", METRO, NO_ANNOTS, null);
 
         new EqualsTester().addEqualityGroup(a, b).addEqualityGroup(c).testEquals();
     }

@@ -17,6 +17,8 @@
 package org.onosproject.ui.model.topo;
 
 import org.junit.Test;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
@@ -44,10 +46,11 @@ public class UiTopoLayoutTest {
 
     private static final double DELTA = Double.MIN_VALUE * 2.0;
 
+    private static final Annotations NO_ANNOTS = DefaultAnnotations.EMPTY;
     private static final UiTopoLayoutId OTHER_ID = layoutId("other-id");
     private static final RegionId REGION_ID = regionId("some-region");
     private static final Region REGION =
-            new DefaultRegion(REGION_ID, "Region-1", CAMPUS, null);
+            new DefaultRegion(REGION_ID, "Region-1", CAMPUS, NO_ANNOTS, null);
     private static final String GEOMAP = "geo1";
     private static final String SPRITE = "spr1";
 

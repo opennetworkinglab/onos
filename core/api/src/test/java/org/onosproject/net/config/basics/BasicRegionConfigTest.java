@@ -115,7 +115,7 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
     @Test
     public void region3Config() {
         loadRegion(R3);
-        checkRegion(null, null, R3_DEVS);
+        checkRegion(R3, null, R3_DEVS);
     }
 
     @Test
@@ -128,8 +128,10 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
     @Test
     public void clearName() {
         loadRegion(R1);
+        checkRegion(EUROPE, Region.Type.CONTINENT, R1_DEVS);
         cfg.name(null);
-        checkRegion(null, Region.Type.CONTINENT, R1_DEVS);
+        // if the friendly name is cleared, name() returns the identifier
+        checkRegion(R1, Region.Type.CONTINENT, R1_DEVS);
     }
 
     @Test
@@ -150,14 +152,14 @@ public class BasicRegionConfigTest extends AbstractConfigTest {
     public void modifyDevices() {
         loadRegion(R3);
         cfg.devices(ALT_DEVICES);
-        checkRegion(null, null, ALT_DEVICES);
+        checkRegion(R3, null, ALT_DEVICES);
     }
 
     @Test
     public void clearDevices() {
         loadRegion(R3);
         cfg.devices(null);
-        checkRegion(null, null, null);
+        checkRegion(R3, null, null);
     }
 
 

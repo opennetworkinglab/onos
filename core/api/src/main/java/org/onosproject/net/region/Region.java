@@ -17,6 +17,7 @@
 package org.onosproject.net.region;
 
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.Annotated;
 
 import java.util.List;
 import java.util.Set;
@@ -26,7 +27,7 @@ import java.util.Set;
  * logical region. Optionally, devices in the region can share the same
  * cluster nodes mastership affinities.
  */
-public interface Region {
+public interface Region extends Annotated {
 
     /**
      * Coarse representation of the type of the region.
@@ -56,6 +57,11 @@ public interface Region {
          * Region represents a building.
          */
         BUILDING,
+
+        /**
+         * Region represents a data center.
+         */
+        DATA_CENTER,
 
         /**
          * Region represents a building floor.

@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
@@ -75,8 +77,9 @@ public class RegionCodecTest {
         RegionId regionId = RegionId.regionId("1");
         String name = "foo";
         Region.Type type = Region.Type.ROOM;
+        Annotations noAnnots = DefaultAnnotations.EMPTY;
 
-        Region region = new DefaultRegion(regionId, name, type, masters);
+        Region region = new DefaultRegion(regionId, name, type, noAnnots, masters);
 
         ObjectNode regionJson = regionCodec.encode(region, context);
         assertThat(regionJson, matchesRegion(region));

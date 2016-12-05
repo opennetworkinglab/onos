@@ -32,6 +32,8 @@ import org.onlab.rest.BaseResource;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionAdminService;
@@ -120,6 +122,11 @@ public class RegionsResourceTest extends ResourceTest {
         @Override
         public List<Set<NodeId>> masters() {
             return this.masters;
+        }
+
+        @Override
+        public Annotations annotations() {
+            return DefaultAnnotations.EMPTY;
         }
     }
 

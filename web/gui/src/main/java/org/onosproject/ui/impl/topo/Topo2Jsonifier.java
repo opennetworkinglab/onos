@@ -36,6 +36,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
@@ -292,8 +293,8 @@ class Topo2Jsonifier {
         return node;
     }
 
-    private void addProps(ObjectNode node, Device dev) {
-        Annotations annot = dev.annotations();
+    private void addProps(ObjectNode node, Annotated a) {
+        Annotations annot = a.annotations();
         ObjectNode props = objectNode();
         if (annot != null) {
             annot.keys().forEach(k -> props.put(k, annot.value(k)));
@@ -404,7 +405,10 @@ class Topo2Jsonifier {
                 .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount())
                 .put("nHosts", region.hostCount());
-        // TODO: complete closed-region details
+
+        Region r = region.backingRegion();
+        addGeoLocation(node, r);
+        addProps(node, r);
 
         addMetaUi(node, region.idAsString());
         return node;

@@ -19,6 +19,7 @@ package org.onosproject.ui.impl.topo;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
@@ -41,7 +42,8 @@ public class UiTopoLayoutManagerTest {
     }
 
     private static Region region(String id, String name, Region.Type type) {
-        return new DefaultRegion(regionId(id), name, type, null);
+        return new DefaultRegion(regionId(id), name, type,
+                DefaultAnnotations.EMPTY, null);
     }
 
     private static UiTopoLayout layout(String id, Region region, String parentId) {

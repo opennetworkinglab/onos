@@ -23,7 +23,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Sets;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
@@ -39,7 +39,7 @@ import static org.onlab.util.Tools.nullIsIllegal;
 /**
  * Codec for the Region class.
  */
-public class RegionCodec extends JsonCodec<Region> {
+public class RegionCodec extends AnnotatedCodec<Region> {
 
     // JSON field names
     private static final String REGION_ID = "id";
@@ -77,7 +77,7 @@ public class RegionCodec extends JsonCodec<Region> {
             masters.add(setsJson);
         });
         result.set(MASTERS, masters);
-        return result;
+        return annotate(result, region, context);
     }
 
     @Override
@@ -108,8 +108,9 @@ public class RegionCodec extends JsonCodec<Region> {
         RegionId regionId = RegionId.regionId(extractMember(REGION_ID, json));
         String name = extractMember(NAME, json);
         Region.Type type = REGION_TYPE_MAP.get(extractMember(TYPE, json));
+        Annotations annots = extractAnnotations(json, context);
 
-        return new DefaultRegion(regionId, name, type, masters);
+        return new DefaultRegion(regionId, name, type, annots, masters);
     }
 
     private String extractMember(String key, ObjectNode json) {
