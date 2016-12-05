@@ -113,13 +113,8 @@ public class DirectHostManager {
     @Activate
     public void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
-        modified(context);
-
         appId = coreService.registerApplication(APP_NAME);
-
-        if (enabled) {
-            enable();
-        }
+        modified(context);
     }
 
     @Modified
@@ -156,7 +151,9 @@ public class DirectHostManager {
 
     @Deactivate
     public void deactivate() {
-        disable();
+        if (enabled) {
+            disable();
+        }
 
         componentConfigService.unregisterProperties(getClass(), false);
     }

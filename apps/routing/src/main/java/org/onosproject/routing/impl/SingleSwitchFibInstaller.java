@@ -178,6 +178,8 @@ public class SingleSwitchFibInstaller {
 
         updateConfig();
 
+        // FIXME: There can be an issue when this component is deactivated before vRouter.
+        //        This will be addressed in CORD-710.
         applicationService.registerDeactivateHook(vrouterAppId, () -> cleanUp());
 
         log.info("Started");
@@ -185,7 +187,10 @@ public class SingleSwitchFibInstaller {
 
     @Deactivate
     protected void deactivate() {
-        routeService.removeListener(routeListener);
+         // FIXME: This will also remove flows when an instance goes down.
+         //        This is a temporary solution and should be addressed in CORD-710.
+        cleanUp();
+
         deviceService.removeListener(deviceListener);
         interfaceService.removeListener(internalInterfaceList);
         networkConfigService.removeListener(configListener);
@@ -292,11 +297,10 @@ public class SingleSwitchFibInstaller {
     }
 
     private Set<Interface> filterInterfaces(List<String> interfaces) {
-        Set<Interface> intfs = interfaceService.getInterfaces().stream()
+        return interfaceService.getInterfaces().stream()
                 .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
                 .filter(intf -> interfaces.contains(intf.name()))
                 .collect(Collectors.toSet());
-        return intfs;
     }
 
     private void updateRoute(ResolvedRoute route) {

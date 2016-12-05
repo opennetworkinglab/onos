@@ -136,6 +136,8 @@ public class ControlPlaneRedirectManager {
         interfaceService.addListener(interfaceListener);
 
         readConfig();
+
+        // FIXME There can be an issue when this component is deactivated before vRouter
         applicationService.registerDeactivateHook(this.appId, () -> provisionDevice(false));
     }
 
