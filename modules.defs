@@ -54,6 +54,8 @@ CORE = UTILS + API + [
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//protocols/tl1/api:onos-protocols-tl1-api',
     '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
+    '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
+    '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
 
     '//drivers/utilities:onos-drivers-utilities',
 
@@ -117,6 +119,7 @@ ONOS_PROVIDERS = [
     '//providers/link:onos-providers-link-oar',
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
+    '//providers/ietfte:onos-providers-ietfte-oar',
 ]
 
 ONOS_APPS = [
@@ -177,8 +180,12 @@ ONOS_APPS = [
     '//apps/ofagent:onos-apps-ofagent-oar',
     '//apps/mappingmanagement:onos-apps-mappingmanagement-oar',
     '//apps/config:onos-apps-config-oar',
-    '//apps/netconf:onos-apps-netconf-oar'
-
+    '//apps/netconf:onos-apps-netconf-oar',
+    '//apps/tetopology:onos-apps-tetopology-oar',
+    '//apps/tetunnel:onos-apps-tetunnel-oar',
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature',
+    '//apps/tenbi:onos-apps-tenbi-oar',
+    '//protocols/restconf/server:onos-protocols-restconf-server-oar',
 ]
 
 APP_JARS = [

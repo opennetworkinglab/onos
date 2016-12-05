@@ -6,6 +6,7 @@ BUNDLES = [
 ]
 
 onos_app (
+  app_name = 'org.onosproject.protocols.restconfserver',
   title = 'RESTCONF Server Module',
   category = 'Utility',
   url = 'http://onosproject.org',

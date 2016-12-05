@@ -1,5 +1,5 @@
 COMPILE_DEPS = [
-  '//lib:CORE_DEPS'
+  '//lib:CORE_DEPS',
 ]
 
 yang_osgi_jar(
@@ -7,4 +7,15 @@ yang_osgi_jar(
   name = 'onos-apps-tenbi-yangmodel',
   srcs = glob(['src/main/**/*.yang']),
   visibility = [ 'PUBLIC' ],
+)
+
+osgi_feature (
+  name='onos-apps-tenbi-yangmodel',
+  title='ONOS TE YANG model',
+  included_bundles = [
+    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel',
+  ],
+  generate_file = True,
+  visibility = [ 'PUBLIC' ],
+  stage_repo = False,
 )
