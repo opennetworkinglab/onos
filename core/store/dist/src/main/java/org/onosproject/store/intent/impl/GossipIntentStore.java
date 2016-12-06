@@ -20,10 +20,13 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -32,29 +35,35 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onosproject.net.intent.IntentState.PURGE_REQ;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -72,11 +81,16 @@ public class GossipIntentStore
 
     private final Logger log = getLogger(getClass());
 
+    private static final boolean PERSIST = false;
+
     // Map of intent key => current intent state
     private EventuallyConsistentMap<Key, IntentData> currentMap;
 
     // Map of intent key => pending intent operation
     private EventuallyConsistentMap<Key, IntentData> pendingMap;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -95,8 +109,26 @@ public class GossipIntentStore
     private EventuallyConsistentMapListener<Key, IntentData>
             mapPendingListener = new InternalPendingListener();
 
+    //Denotes the initial persistence value for this structure
+    private boolean initiallyPersistent = false;
+
+    //TODO this is currently an experimental feature used for performance
+    // evalutaion, enabling persistence with persist the intents but they will
+    // not be reinstalled and network state will not be consistent with the
+    // intents on cluster restart
+    @Property(name = "persistenceEnabled", boolValue = PERSIST,
+            label = "EXPERIMENTAL: Enable intent persistence")
+    private boolean persistenceEnabled;
+
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        configService.registerProperties(getClass());
+        modified(context);
+        //TODO persistent intents must be reevaluated and the appropriate
+        //processing done here, current implementation is not functional
+        //and is for performance evaluation only
+        initiallyPersistent = persistenceEnabled;
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(IntentData.class)
@@ -104,23 +136,31 @@ public class GossipIntentStore
                 .register(NetworkId.class)
                 .register(MultiValuedTimestamp.class);
 
-        currentMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
+        EventuallyConsistentMapBuilder currentECMapBuilder =
+                storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-current")
                 .withSerializer(intentSerializer)
                 .withTimestampProvider((key, intentData) ->
-                                               new MultiValuedTimestamp<>(intentData.version(),
+                                               new MultiValuedTimestamp<>(
+                                                       intentData == null ? new WallClockTimestamp() :
+                                                               intentData.version(),
                                                                           sequenceNumber.getAndIncrement()))
-                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
-                .build();
+                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData));
 
-        pendingMap = storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
+        EventuallyConsistentMapBuilder pendingECMapBuilder =
+                storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-pending")
                 .withSerializer(intentSerializer)
                 .withTimestampProvider((key, intentData) -> intentData == null ?
                         new MultiValuedTimestamp<>(new WallClockTimestamp(), System.nanoTime()) :
                         new MultiValuedTimestamp<>(intentData.version(), System.nanoTime()))
-                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData))
-                .build();
+                .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData));
+        if (initiallyPersistent) {
+            currentECMapBuilder = currentECMapBuilder.withPersistence();
+            pendingECMapBuilder = pendingECMapBuilder.withPersistence();
+        }
+        currentMap = currentECMapBuilder.build();
+        pendingMap = pendingECMapBuilder.build();
 
         currentMap.addListener(mapCurrentListener);
         pendingMap.addListener(mapPendingListener);
@@ -130,12 +170,59 @@ public class GossipIntentStore
 
     @Deactivate
     public void deactivate() {
+        if (initiallyPersistent && !persistenceEnabled) {
+            pendingMap.clear();
+            currentMap.clear();
+            log.debug("Persistent state has been purged");
+        }
         currentMap.removeListener(mapCurrentListener);
         pendingMap.removeListener(mapPendingListener);
         currentMap.destroy();
         pendingMap.destroy();
 
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context != null ? context.getProperties()
+                : new Properties();
+        try {
+            String s = get(properties, "persistenceEnabled");
+            persistenceEnabled =  isNullOrEmpty(s) ? PERSIST :
+                    Boolean.parseBoolean(s.trim());
+        } catch (Exception e) {
+            persistenceEnabled = initiallyPersistent;
+            log.error("Failed to retrieve the property value for persist," +
+                              "defaulting to the initial setting of \"{}\"" +
+                              "any persistent state will not be purged, if " +
+                              "this occurred at startup changes made in this" +
+                              "session will not be persisted to disk",
+                      initiallyPersistent);
+        }
+        if (persistenceEnabled) {
+            //FIXME persistence is an experimental feature, warnings can be removed
+            //when the feature is completed
+            log.warn("Persistence is an experimental feature, it is not fully " +
+                             "functional and is intended only for " +
+                             "performance evaluation");
+        }
+        if (!initiallyPersistent && !persistenceEnabled) {
+            log.info("Persistence is set to \"false\", this was the initial" +
+                             " setting so no state will be purged or " +
+                             "persisted");
+        } else if (!initiallyPersistent && persistenceEnabled) {
+            log.info("Persistence is set to \"true\", entries will be begin " +
+                             "to be persisted after restart");
+        } else if (initiallyPersistent && !persistenceEnabled) {
+            log.info("Persistence is set to \"false\", all persistent state " +
+                             "will be purged on next shutdown");
+        } else {
+            log.info("Persistence is set to \"true\", entries from this and" +
+                             " subsequent sessions will be persisted");
+        }
+
+
     }
 
     @Override

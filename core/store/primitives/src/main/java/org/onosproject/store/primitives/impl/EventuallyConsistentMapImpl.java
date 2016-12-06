@@ -125,9 +125,6 @@ public class EventuallyConsistentMapImpl<K, V>
 
     private final boolean persistent;
 
-    private static final String PERSISTENT_LOCAL_MAP_NAME = "itemsMap";
-
-
     /**
      * Creates a new eventually consistent map shared amongst multiple instances.
      * <p>
@@ -178,7 +175,7 @@ public class EventuallyConsistentMapImpl<K, V>
                 persistent;
         if (persistent) {
             items = this.persistenceService.<K, MapValue<V>>persistentMapBuilder()
-                    .withName(PERSISTENT_LOCAL_MAP_NAME)
+                    .withName(mapName)
                     .withSerializer(this.serializer)
                     .build();
         } else {

@@ -17,11 +17,14 @@ package org.onosproject.store.intent.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -61,7 +64,8 @@ public class GossipIntentStoreTest {
                         .one(hid("12:34:56:78:91:ab/1"))
                         .two(hid("12:34:56:78:91:ac/1"))
                         .appId(APP_ID);
-        intentStore.activate();
+        intentStore.configService = new MockComponentConfigService();
+        intentStore.activate(null);
     }
 
     @After
@@ -230,5 +234,47 @@ public class GossipIntentStoreTest {
         pendingDataIteratorSelected.forEach(
                 data -> assertThat(data, is(installed))
         );
+    }
+
+    private class MockComponentConfigService implements ComponentConfigService {
+
+        public MockComponentConfigService() {
+
+        }
+
+        @Override
+        public Set<String> getComponentNames() {
+            return null;
+        }
+
+        @Override
+        public void registerProperties(Class<?> componentClass) {
+
+        }
+
+        @Override
+        public void unregisterProperties(Class<?> componentClass, boolean clear) {
+
+        }
+
+        @Override
+        public Set<ConfigProperty> getProperties(String componentName) {
+            return null;
+        }
+
+        @Override
+        public void setProperty(String componentName, String name, String value) {
+
+        }
+
+        @Override
+        public void preSetProperty(String componentName, String name, String value) {
+
+        }
+
+        @Override
+        public void unsetProperty(String componentName, String name) {
+
+        }
     }
 }
