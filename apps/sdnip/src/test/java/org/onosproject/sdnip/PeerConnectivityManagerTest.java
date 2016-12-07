@@ -33,6 +33,7 @@ import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -47,6 +48,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.config.BgpConfig;
+import org.onosproject.sdnip.config.SdnIpConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,6 +85,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     private Map<String, Interface> interfaces;
 
     private BgpConfig bgpConfig;
+
+    private SdnIpConfig sdnIpConfig;
 
     private List<PointToPointIntent> intentList;
 
@@ -125,6 +129,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         networkConfigService.addListener(anyObject(NetworkConfigListener.class));
         expectLastCall().anyTimes();
         bgpConfig = createMock(BgpConfig.class);
+        sdnIpConfig = createMock(SdnIpConfig.class);
 
         // These will set expectations on routingConfig and interfaceService
         bgpSpeakers = setUpBgpSpeakers();
@@ -168,7 +173,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     /**
      * Sets up logical interfaces, which emulate the configured interfaces
-     * in SDN-IP application.
+     * in the SDN-IP application.
      *
      * @return configured interfaces as a map from interface name to Interface
      */
@@ -581,6 +586,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         replay(bgpConfig);
         expect(networkConfigService.getConfig(APPID, BgpConfig.class))
                 .andReturn(bgpConfig).anyTimes();
+
+        expect(sdnIpConfig.encap()).andReturn(EncapsulationType.NONE).anyTimes();
+        replay(sdnIpConfig);
+        expect(networkConfigService.getConfig(APPID, SdnIpConfig.class))
+                .andReturn(sdnIpConfig).anyTimes();
+
         replay(networkConfigService);
         replay(interfaceService);
 
@@ -669,6 +680,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         reset(bgpConfig);
         expect(bgpConfig.bgpSpeakers()).andReturn(Collections.emptySet()).anyTimes();
         replay(bgpConfig);
+
+        reset(sdnIpConfig);
+        expect(sdnIpConfig.encap()).andReturn(EncapsulationType.NONE).anyTimes();
+        replay(sdnIpConfig);
 
         // We don't expect any intents in this case
         reset(intentSynchronizer);

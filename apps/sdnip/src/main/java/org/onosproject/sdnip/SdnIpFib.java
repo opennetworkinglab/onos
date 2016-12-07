@@ -39,22 +39,33 @@ import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.sdnip.config.SdnIpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onosproject.net.EncapsulationType.NONE;
 
 /**
  * FIB component of SDN-IP.
@@ -73,10 +84,15 @@ public class SdnIpFib {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteService routeService;
 
     private final InternalRouteListener routeListener = new InternalRouteListener();
     private final InternalInterfaceListener interfaceListener = new InternalInterfaceListener();
+    private final InternalNetworkConfigListener networkConfigListener =
+            new InternalNetworkConfigListener();
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
@@ -91,9 +107,8 @@ public class SdnIpFib {
     @Activate
     public void activate() {
         appId = coreService.getAppId(SdnIp.SDN_IP_APP);
-
         interfaceService.addListener(interfaceListener);
-
+        networkConfigService.addListener(networkConfigListener);
         routeService.addListener(routeListener);
     }
 
@@ -106,11 +121,15 @@ public class SdnIpFib {
     private void update(ResolvedRoute route) {
         synchronized (this) {
             IpPrefix prefix = route.prefix();
+            EncapsulationType encap = encap();
             MultiPointToSinglePointIntent intent =
-                    generateRouteIntent(prefix, route.nextHop(), route.nextHopMac());
+                    generateRouteIntent(prefix,
+                                        route.nextHop(),
+                                        route.nextHopMac(),
+                                        encap);
 
             if (intent == null) {
-                log.debug("SDN-IP no interface found for route {}", route);
+                log.debug("No interface found for route {}", route);
                 return;
             }
 
@@ -124,8 +143,8 @@ public class SdnIpFib {
             IpPrefix prefix = route.prefix();
             MultiPointToSinglePointIntent intent = routeIntents.remove(prefix);
             if (intent == null) {
-                log.trace("SDN-IP no intent in routeIntents to delete " +
-                        "for prefix: {}", prefix);
+                log.trace("No intent in routeIntents to delete for prefix: {}",
+                          prefix);
                 return;
             }
             intentSynchronizer.withdraw(intent);
@@ -140,15 +159,17 @@ public class SdnIpFib {
      * Intent will match dst IP prefix and rewrite dst MAC address at all other
      * border switches, then forward packets according to dst MAC address.
      *
-     * @param prefix            IP prefix of the route to add
-     * @param nextHopIpAddress  IP address of the next hop
-     * @param nextHopMacAddress MAC address of the next hop
+     * @param prefix            the IP prefix of the route to add
+     * @param nextHopIpAddress  the IP address of the next hop
+     * @param nextHopMacAddress the MAC address of the next hop
+     * @param encap             the encapsulation type in use
      * @return the generated intent, or null if no intent should be submitted
      */
     private MultiPointToSinglePointIntent generateRouteIntent(
             IpPrefix prefix,
             IpAddress nextHopIpAddress,
-            MacAddress nextHopMacAddress) {
+            MacAddress nextHopMacAddress,
+            EncapsulationType encap) {
 
         // Find the attachment point (egress interface) of the next hop
         Interface egressInterface =
@@ -194,15 +215,19 @@ public class SdnIpFib {
         // Set key
         Key key = Key.of(prefix.toString(), appId);
 
-        return MultiPointToSinglePointIntent.builder()
-                .appId(appId)
-                .key(key)
-                .filteredIngressPoints(ingressFilteredCPs)
-                .filteredEgressPoint(egressFilteredCP)
-                .treatment(treatment.build())
-                .priority(priority)
-                .constraints(CONSTRAINTS)
-                .build();
+        MultiPointToSinglePointIntent.Builder intentBuilder =
+                MultiPointToSinglePointIntent.builder()
+                                             .appId(appId)
+                                             .key(key)
+                                             .filteredIngressPoints(ingressFilteredCPs)
+                                             .filteredEgressPoint(egressFilteredCP)
+                                             .treatment(treatment.build())
+                                             .priority(priority)
+                                             .constraints(CONSTRAINTS);
+
+        setEncap(intentBuilder, CONSTRAINTS, encap);
+
+        return intentBuilder.build();
     }
 
     private void addInterface(Interface intf) {
@@ -350,6 +375,87 @@ public class SdnIpFib {
         return false;
     }
 
+    /*
+     * Triggered when the network configuration configuration is modified.
+     * It checks if the encapsulation type has changed from last time, and in
+     * case modifies all intents.
+     */
+    private void encapUpdate() {
+        synchronized (this) {
+            // Get the encapsulation type just set from the configuration
+            EncapsulationType encap = encap();
+
+
+            for (Map.Entry<IpPrefix, MultiPointToSinglePointIntent> entry : routeIntents.entrySet()) {
+                // Get each intent currently registered by SDN-IP
+                MultiPointToSinglePointIntent intent = entry.getValue();
+
+                // Make sure the same constraint is not already part of the
+                // intent constraints
+                List<Constraint> constraints = intent.constraints();
+                if (!constraints.stream()
+                                .filter(c -> c instanceof EncapsulationConstraint &&
+                                        new EncapsulationConstraint(encap).equals(c))
+                                .findAny()
+                                .isPresent()) {
+                    MultiPointToSinglePointIntent.Builder intentBuilder =
+                            MultiPointToSinglePointIntent.builder(intent);
+
+                    // Set the new encapsulation constraint
+                    setEncap(intentBuilder, constraints, encap);
+
+                    // Build and submit the new intent
+                    MultiPointToSinglePointIntent newIntent =
+                            intentBuilder.build();
+
+                    routeIntents.put(entry.getKey(), newIntent);
+                    intentSynchronizer.submit(newIntent);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets an encapsulation constraint to the intent builder given.
+     *
+     * @param builder the intent builder
+     * @param constraints the existing intent constraints
+     * @param encap the encapsulation type to be set
+     */
+    private static void setEncap(ConnectivityIntent.Builder builder,
+                                 List<Constraint> constraints,
+                                 EncapsulationType encap) {
+        // Constraints might be an immutable list, so a new modifiable list
+        // is created
+        List<Constraint> newConstraints = new ArrayList<>(constraints);
+
+        // Remove any encapsulation constraint if already in the list
+        constraints.stream()
+                .filter(c -> c instanceof EncapsulationConstraint)
+                .forEach(c -> newConstraints.remove(c));
+
+        // if the new encapsulation is different from NONE, a new encapsulation
+        // constraint should be added to the list
+        if (!encap.equals(NONE)) {
+            newConstraints.add(new EncapsulationConstraint(encap));
+        }
+
+        // Submit new constraint list as immutable list
+        builder.constraints(ImmutableList.copyOf(newConstraints));
+    }
+
+    private EncapsulationType encap() {
+        SdnIpConfig sdnIpConfig =
+                networkConfigService.getConfig(appId, SdnIpConfig.class);
+
+        if (sdnIpConfig == null) {
+            log.debug("No SDN-IP config available");
+            return EncapsulationType.NONE;
+        } else {
+            return sdnIpConfig.encap();
+        }
+    }
+
     private class InternalRouteListener implements RouteListener {
         @Override
         public void event(RouteEvent event) {
@@ -367,8 +473,28 @@ public class SdnIpFib {
         }
     }
 
-    private class InternalInterfaceListener implements InterfaceListener {
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+                case CONFIG_REGISTERED:
+                    break;
+                case CONFIG_UNREGISTERED:
+                    break;
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                case CONFIG_REMOVED:
+                    if (event.configClass() == SdnIpConfig.class) {
+                        encapUpdate();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
+    private class InternalInterfaceListener implements InterfaceListener {
         @Override
         public void event(InterfaceEvent event) {
             switch (event.type()) {

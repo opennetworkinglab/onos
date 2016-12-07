@@ -15,6 +15,7 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
@@ -28,6 +29,8 @@ import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -36,12 +39,15 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
+import org.onosproject.sdnip.config.SdnIpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.EncapsulationType.NONE;
 
 /**
  * Manages the connectivity requirements between peers.
@@ -130,15 +137,24 @@ public class PeerConnectivityManager {
      * BGP speakers and external BGP peers.
      */
     private void setUpConnectivity() {
-        BgpConfig config = configService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
+        BgpConfig bgpConfig = configService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
+        SdnIpConfig sdnIpConfig = configService.getConfig(appId, SdnIpConfig.class);
 
         Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers;
+        EncapsulationType encap;
 
-        if (config == null) {
-            log.warn("No BGP config available");
+        if (bgpConfig == null) {
+            log.debug("No BGP config available");
             bgpSpeakers = Collections.emptySet();
         } else {
-            bgpSpeakers = config.bgpSpeakers();
+            bgpSpeakers = bgpConfig.bgpSpeakers();
+        }
+
+        if (sdnIpConfig == null) {
+            log.debug("No SDN-IP config available");
+            encap = EncapsulationType.NONE;
+        } else {
+            encap = sdnIpConfig.encap();
         }
 
         Map<Key, PointToPointIntent> existingIntents = new HashMap<>(peerIntents);
@@ -147,7 +163,7 @@ public class PeerConnectivityManager {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
                     bgpSpeaker);
 
-            buildSpeakerIntents(bgpSpeaker).forEach(i -> {
+            buildSpeakerIntents(bgpSpeaker, encap).forEach(i -> {
                 PointToPointIntent intent = existingIntents.remove(i.key());
                 if (intent == null || !IntentUtils.intentsAreEqual(i, intent)) {
                     peerIntents.put(i.key(), i);
@@ -164,7 +180,8 @@ public class PeerConnectivityManager {
         });
     }
 
-    private Collection<PointToPointIntent> buildSpeakerIntents(BgpConfig.BgpSpeakerConfig speaker) {
+    private Collection<PointToPointIntent> buildSpeakerIntents(BgpConfig.BgpSpeakerConfig speaker,
+                                                               EncapsulationType encap) {
         List<PointToPointIntent> intents = new ArrayList<>();
 
         // Get the BGP Speaker VLAN Id
@@ -195,7 +212,8 @@ public class PeerConnectivityManager {
                                         bgpSpeakerAddress,
                                         peeringInterface.connectPoint(),
                                         peerVlanId,
-                                        peerAddress));
+                                        peerAddress,
+                                        encap));
         }
 
         return intents;
@@ -210,6 +228,7 @@ public class PeerConnectivityManager {
      * @param portTwo the external BGP peer connect point
      * @param vlanTwo the external BGP peer VLAN
      * @param ipTwo the external BGP peer IP address
+     * @param encap the encapsulation type
      * @return the intents to install
      */
     private Collection<PointToPointIntent> buildIntents(ConnectPoint portOne,
@@ -217,12 +236,15 @@ public class PeerConnectivityManager {
                                                         IpAddress ipOne,
                                                         ConnectPoint portTwo,
                                                         VlanId vlanTwo,
-                                                        IpAddress ipTwo) {
+                                                        IpAddress ipTwo,
+                                                        EncapsulationType encap) {
 
         List<PointToPointIntent> intents = new ArrayList<>();
 
         TrafficTreatment.Builder treatmentToPeer = DefaultTrafficTreatment.builder();
         TrafficTreatment.Builder treatmentToSpeaker = DefaultTrafficTreatment.builder();
+
+        PointToPointIntent.Builder intentBuilder;
 
         TrafficSelector selector;
         Key key;
@@ -251,15 +273,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipOne, ipTwo, SUFFIX_DST);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                 .appId(appId)
                 .key(key)
+                .filteredIngressPoint(new FilteredConnectPoint(portOne))
+                .filteredEgressPoint(new FilteredConnectPoint(portTwo))
                 .selector(selector)
                 .treatment(treatmentToPeer.build())
-                .ingressPoint(portOne)
-                .egressPoint(portTwo)
-                .priority(PRIORITY_OFFSET)
-                .build());
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         // Path from BGP speaker to BGP peer matching source TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -271,15 +296,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipOne, ipTwo, SUFFIX_SRC);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                 .appId(appId)
                 .key(key)
+                .filteredIngressPoint(new FilteredConnectPoint(portOne))
+                .filteredEgressPoint(new FilteredConnectPoint(portTwo))
                 .selector(selector)
                 .treatment(treatmentToPeer.build())
-                .ingressPoint(portOne)
-                .egressPoint(portTwo)
-                .priority(PRIORITY_OFFSET)
-                .build());
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         // ICMP path from BGP speaker to BGP peer
         selector = buildSelector(icmpProtocol,
@@ -291,15 +319,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipOne, ipTwo, SUFFIX_ICMP);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                             .appId(appId)
                             .key(key)
+                            .filteredIngressPoint(new FilteredConnectPoint(portOne))
+                            .filteredEgressPoint(new FilteredConnectPoint(portTwo))
                             .selector(selector)
                             .treatment(treatmentToPeer.build())
-                            .ingressPoint(portOne)
-                            .egressPoint(portTwo)
-                            .priority(PRIORITY_OFFSET)
-                            .build());
+                            .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         // Add VLAN treatment for traffic going from BGP peer to BGP speaker
         treatmentToSpeaker = applyVlanTreatment(vlanTwo, vlanOne, treatmentToSpeaker);
@@ -314,15 +345,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipTwo, ipOne, SUFFIX_DST);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                 .appId(appId)
                 .key(key)
+                .filteredIngressPoint(new FilteredConnectPoint(portTwo))
+                .filteredEgressPoint(new FilteredConnectPoint(portOne))
                 .selector(selector)
                 .treatment(treatmentToSpeaker.build())
-                .ingressPoint(portTwo)
-                .egressPoint(portOne)
-                .priority(PRIORITY_OFFSET)
-                .build());
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         // Path from BGP peer to BGP speaker matching source TCP port 179
         selector = buildSelector(tcpProtocol,
@@ -334,15 +368,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipTwo, ipOne, SUFFIX_SRC);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                 .appId(appId)
                 .key(key)
+                .filteredIngressPoint(new FilteredConnectPoint(portTwo))
+                .filteredEgressPoint(new FilteredConnectPoint(portOne))
                 .selector(selector)
                 .treatment(treatmentToSpeaker.build())
-                .ingressPoint(portTwo)
-                .egressPoint(portOne)
-                .priority(PRIORITY_OFFSET)
-                .build());
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         // ICMP path from BGP peer to BGP speaker
         selector = buildSelector(icmpProtocol,
@@ -354,15 +391,18 @@ public class PeerConnectivityManager {
 
         key = buildKey(ipTwo, ipOne, SUFFIX_ICMP);
 
-        intents.add(PointToPointIntent.builder()
+        intentBuilder = PointToPointIntent.builder()
                 .appId(appId)
                 .key(key)
+                .filteredIngressPoint(new FilteredConnectPoint(portTwo))
+                .filteredEgressPoint(new FilteredConnectPoint(portOne))
                 .selector(selector)
                 .treatment(treatmentToSpeaker.build())
-                .ingressPoint(portTwo)
-                .egressPoint(portOne)
-                .priority(PRIORITY_OFFSET)
-                .build());
+                .priority(PRIORITY_OFFSET);
+
+        encap(intentBuilder, encap);
+
+        intents.add(intentBuilder.build());
 
         return intents;
     }
@@ -390,12 +430,12 @@ public class PeerConnectivityManager {
 
         if (dstIp.isIp4()) {
             builder.matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPSrc(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET_MASK_LENGTH))
-                    .matchIPDst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET_MASK_LENGTH));
+                   .matchIPSrc(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET_MASK_LENGTH))
+                   .matchIPDst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET_MASK_LENGTH));
         } else {
             builder.matchEthType(Ethernet.TYPE_IPV6)
-                    .matchIPv6Src(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET6_MASK_LENGTH))
-                    .matchIPv6Dst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET6_MASK_LENGTH));
+                   .matchIPv6Src(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET6_MASK_LENGTH))
+                   .matchIPv6Dst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET6_MASK_LENGTH));
         }
 
         if (srcTcpPort != null) {
@@ -457,6 +497,21 @@ public class PeerConnectivityManager {
         return Key.of(keyString, appId);
     }
 
+    /**
+     * Adds an encapsulation constraint to the builder given, if encap is not
+     * equal to NONE.
+     *
+     * @param builder the intent builder
+     * @param encap the encapsulation type
+     */
+    private static void encap(ConnectivityIntent.Builder builder,
+                              EncapsulationType encap) {
+        if (!encap.equals(NONE)) {
+            builder.constraints(ImmutableList.of(
+                    new EncapsulationConstraint(encap)));
+        }
+    }
+
     private class InternalNetworkConfigListener implements NetworkConfigListener {
 
         @Override
@@ -469,7 +524,8 @@ public class PeerConnectivityManager {
             case CONFIG_ADDED:
             case CONFIG_UPDATED:
             case CONFIG_REMOVED:
-                if (event.configClass() == RoutingService.CONFIG_CLASS) {
+                if (event.configClass() == RoutingService.CONFIG_CLASS ||
+                    event.configClass() == SdnIpConfig.class) {
                     setUpConnectivity();
                 }
                 break;

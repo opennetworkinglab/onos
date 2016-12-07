@@ -26,9 +26,13 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.component.ComponentService;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.sdnip.config.SdnIpConfig;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -60,6 +64,9 @@ public class SdnIp {
     protected IntentSynchronizationService intentSynchronizer;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry cfgRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentService componentService;
 
     private PeerConnectivityManager peerConnectivity;
@@ -72,11 +79,22 @@ public class SdnIp {
             org.onosproject.sdnip.SdnIpFib.class.getName()
     );
 
+    private final List<ConfigFactory<?, ?>> factories = ImmutableList.of(
+            new ConfigFactory<ApplicationId, SdnIpConfig>(SubjectFactories.APP_SUBJECT_FACTORY,
+                                                          SdnIpConfig.class, SdnIpConfig.CONFIG_KEY) {
+                @Override
+                public SdnIpConfig createConfig() {
+                    return new SdnIpConfig();
+                }
+            });
+
     @Activate
     protected void activate() {
-        components.forEach(name -> componentService.activate(appId, name));
-
         appId = coreService.registerApplication(SDN_IP_APP);
+
+        factories.forEach(cfgRegistry::registerConfigFactory);
+
+        components.forEach(name -> componentService.activate(appId, name));
 
         peerConnectivity = new PeerConnectivityManager(appId,
                                                        intentSynchronizer,
@@ -94,6 +112,8 @@ public class SdnIp {
     @Deactivate
     protected void deactivate() {
         components.forEach(name -> componentService.deactivate(appId, name));
+
+        factories.forEach(cfgRegistry::unregisterConfigFactory);
 
         peerConnectivity.stop();
 

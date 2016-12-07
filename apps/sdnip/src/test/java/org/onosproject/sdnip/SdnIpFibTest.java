@@ -16,6 +16,8 @@
 
 package org.onosproject.sdnip;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -41,8 +43,13 @@ import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -52,6 +59,9 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.BgpConfig;
+import org.onosproject.sdnip.config.SdnIpConfig;
 
 import java.util.Collections;
 import java.util.List;
@@ -142,6 +152,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         sdnipFib = new SdnIpFib();
         sdnipFib.routeService = new TestRouteService();
         sdnipFib.coreService = new TestCoreService();
+        sdnipFib.networkConfigService = new TestNetworkConfigService();
         sdnipFib.interfaceService = interfaceService;
         sdnipFib.intentSynchronizer = intentSynchronizer;
 
@@ -636,10 +647,41 @@ public class SdnIpFibTest extends AbstractIntentTest {
         }
     }
 
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
+        /**
+         * Returns an empty BGP network configuration to be able to correctly
+         * return the encapsulation parameter when needed.
+         *
+         * @return an empty BGP network configuration object
+         */
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            ApplicationId appId =
+                    new TestApplicationId(SdnIp.SDN_IP_APP);
+
+            ObjectMapper mapper = new ObjectMapper();
+            ConfigApplyDelegate delegate = new MockCfgDelegate();
+            JsonNode emptyTree = new ObjectMapper().createObjectNode();
+
+            SdnIpConfig sdnIpConfig = new SdnIpConfig();
+
+            sdnIpConfig.init(appId, "sdnip-test", emptyTree, mapper, delegate);
+
+            return (C) sdnIpConfig;
+        }
+    }
+
     private class InterfaceServiceDelegate extends InterfaceServiceAdapter {
         @Override
         public void addListener(InterfaceListener listener) {
             SdnIpFibTest.this.interfaceListener = listener;
+        }
+    }
+
+    private class MockCfgDelegate implements ConfigApplyDelegate {
+        @Override
+        public void onApply(@SuppressWarnings("rawtypes") Config config) {
+            config.apply();
         }
     }
 }
