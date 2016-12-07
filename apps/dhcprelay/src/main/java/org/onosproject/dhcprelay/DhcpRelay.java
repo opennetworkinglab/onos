@@ -287,12 +287,11 @@ public class DhcpRelay {
 
         //process the dhcp packet before sending to server
         private void processDhcpPacket(PacketContext context, DHCP dhcpPayload) {
-
-            Set<Interface> clientServerInterfaces = interfaceService.
-                    getInterfacesByPort(context.inPacket().receivedFrom());
+            ConnectPoint inPort = context.inPacket().receivedFrom();
+            Set<Interface> clientServerInterfaces = interfaceService.getInterfacesByPort(inPort);
             //ignore the packets if dhcp client interface is not configured on onos.
             if (clientServerInterfaces.isEmpty()) {
-                log.warn("client virtual interface not configured");
+                log.warn("Virtual interface is not configured on {}", inPort);
                 return;
             }
 
