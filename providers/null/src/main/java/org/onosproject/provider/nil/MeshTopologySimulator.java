@@ -15,6 +15,8 @@
  */
 package org.onosproject.provider.nil;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Full mesh topology with hosts at each device.
  */
@@ -23,22 +25,31 @@ public class MeshTopologySimulator extends TopologySimulator {
     @Override
     protected void processTopoShape(String shape) {
         super.processTopoShape(shape);
-        // FIXME: implement this
+        deviceCount = (topoShape.length > 1) ? Integer.parseInt(topoShape[1]) : deviceCount;
+        hostCount = (topoShape.length > 2) ? Integer.parseInt(topoShape[2]) : hostCount;
     }
 
     @Override
     public void setUpTopology() {
-        // FIXME: implement this
-        // checkArgument(FIXME, "There must be at least ...");
+        checkArgument(deviceCount > 1, "There must be at least 2 devices");
+        checkArgument(hostCount > 0, "There must be at least 1 host");
         super.setUpTopology();
     }
 
     @Override
     protected void createLinks() {
+        for (int i = 0, n = deviceCount - 1; i < n; i++) {
+            for (int j = 0; j < n - i; j++) {
+                createLink(i, i + j + 1, i + j + 1, i + 1);
+            }
+        }
     }
 
     @Override
     protected void createHosts() {
+        for (int i = 0, n = deviceCount; i < n; i++) {
+            createHosts(deviceIds.get(i), deviceCount - 1);
+        }
     }
 
 }
