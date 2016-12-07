@@ -217,12 +217,10 @@ public final class DefaultBuilder {
                                           Long cost, Long delay, List<Long> srlgs, String odu) {
         //NetworkLink
         KeyId linkId = TeMgrUtil.toNetworkLinkId(teLinkKey);
-        NodeTpKey source = new NodeTpKey(KeyId.keyId(Long.toString(teLinkKey.teNodeId())),
-                                         KeyId.keyId(Long.toString(teLinkKey.teLinkTpId())));
+        NodeTpKey source = TeMgrUtil.nodeTpKey(teLinkKey);
         NodeTpKey destination = null;
         if (peerTeLinkKey != null) {
-            destination = new NodeTpKey(KeyId.keyId(Long.toString(peerTeLinkKey.teNodeId())),
-                                        KeyId.keyId(Long.toString(peerTeLinkKey.teLinkTpId())));
+            destination = TeMgrUtil.nodeTpKey(peerTeLinkKey);
         }
         List<NetworkLinkKey> supportingLinkIds = null;
         if (supportTeLinkId != null) {

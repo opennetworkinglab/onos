@@ -26,6 +26,7 @@ import org.onosproject.net.config.Config;
 public class TeTopologyConfig extends Config<ApplicationId>  {
     private static final String CONFIG_VALUE_ERROR = "Error parsing config value";
     private static final String PROVIDER_ID = "provider-id";
+    private static final String MDSC = "mdsc";
     private static final String TENODE_ID_START = "tenode-id-start";
     private static final String TENODE_ID_END = "tenode-id-end";
 
@@ -51,27 +52,42 @@ public class TeTopologyConfig extends Config<ApplicationId>  {
      * @throws ConfigException if the parameters are not correctly configured
      * or conversion of the parameters fails
      */
-   public Ip4Address teNodeIpStart() throws ConfigException {
+    public Ip4Address teNodeIpStart() throws ConfigException {
        try {
            return Ip4Address.valueOf(object.path(TENODE_ID_START).asText());
        } catch (IllegalArgumentException e) {
            throw new ConfigException(CONFIG_VALUE_ERROR, e);
        }
-   }
+    }
 
-   /**
-    * Retrieves TE node end IPv4 address.
-    *
-    * @return the IPv4 address
-    * @throws ConfigException if the parameters are not correctly configured
-    * or conversion of the parameters fails
-    */
-  public Ip4Address teNodeIpEnd() throws ConfigException {
-      try {
-          return Ip4Address.valueOf(object.path(TENODE_ID_END).asText());
-      } catch (IllegalArgumentException e) {
-          throw new ConfigException(CONFIG_VALUE_ERROR, e);
-      }
-  }
+    /**
+     * Retrieves TE node end IPv4 address.
+     *
+     * @return the IPv4 address
+     * @throws ConfigException if the parameters are not correctly configured or
+     *             conversion of the parameters fails
+     */
+    public Ip4Address teNodeIpEnd() throws ConfigException {
+        try {
+            return Ip4Address.valueOf(object.path(TENODE_ID_END).asText());
+        } catch (IllegalArgumentException e) {
+            throw new ConfigException(CONFIG_VALUE_ERROR, e);
+        }
+    }
+
+    /**
+     * Retrieves if this is a MDSC(Multi-Domain Super Controller).
+     *
+     * @return MDSC value
+     * @throws ConfigException if the parameters are not correctly configured or
+     *             conversion of the parameters fails
+     */
+    public String mdsc() throws ConfigException {
+        try {
+            return object.path(MDSC).asText();
+        } catch (IllegalArgumentException e) {
+            throw new ConfigException(CONFIG_VALUE_ERROR, e);
+        }
+    }
 
 }

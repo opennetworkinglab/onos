@@ -77,7 +77,6 @@ import org.onosproject.tetopology.management.impl.InternalTeNode;
 import org.onosproject.tetopology.management.impl.InternalTeTopology;
 import org.onosproject.tetopology.management.impl.InternalTerminationPoint;
 import org.onosproject.tetopology.management.impl.TeMgrUtil;
-import org.onosproject.tetopology.management.impl.TeTopologyManager;
 import org.onosproject.tetopology.management.impl.TeTopologyMapEvent;
 import org.onosproject.tetopology.management.impl.TeTopologyStore;
 import org.onosproject.tetopology.management.impl.TeTopologyStoreDelegate;
@@ -125,6 +124,7 @@ public class SimpleTeTopologyStore
     // Track termination point keys by TE termination point Key
     private Map<TeLinkTpGlobalKey, TerminationPointKey> tpKeyMap = Maps
             .newConcurrentMap();
+    private long providerId;
 
     @Activate
     public void activate() {
@@ -404,8 +404,7 @@ public class SimpleTeTopologyStore
             intTopo.setTeLinkKeys(teLinkKeys);
             BitSet flags = new BitSet(TeConstants.FLAG_MAX_BITS);
             flags.set(TeTopology.BIT_LEARNT);
-            if (network.teTopologyId()
-                    .clientId() == TeTopologyManager.DEFAULT_PROVIDER_ID) {
+            if (network.teTopologyId().clientId() == providerId) {
                 // Hard rule for now
                 flags.set(TeTopology.BIT_CUSTOMIZED);
             }
@@ -1028,6 +1027,11 @@ public class SimpleTeTopologyStore
 
     @Override
     public void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue) {
+    }
+
+    @Override
+    public void setProviderId(long providerId) {
+        this.providerId = providerId;
     }
 }
 

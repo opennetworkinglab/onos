@@ -280,4 +280,11 @@ public interface TeTopologyStore
      */
     void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue);
 
+    /**
+     * Sets the provider ID.
+     *
+     * @param providerId value of provider Id
+     */
+    void setProviderId(long providerId);
+
 }

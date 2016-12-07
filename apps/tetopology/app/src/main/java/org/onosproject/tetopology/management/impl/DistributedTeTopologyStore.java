@@ -80,6 +80,7 @@ import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeUtils;
 import org.onosproject.tetopology.management.api.link.AsNumber;
 import org.onosproject.tetopology.management.api.link.CommonLinkData;
+import org.onosproject.tetopology.management.api.link.ConnectivityMatrixId;
 import org.onosproject.tetopology.management.api.link.DefaultNetworkLink;
 import org.onosproject.tetopology.management.api.link.DefaultTeLink;
 import org.onosproject.tetopology.management.api.link.ElementType;
@@ -93,6 +94,7 @@ import org.onosproject.tetopology.management.api.link.PathElement;
 import org.onosproject.tetopology.management.api.link.TeIpv4;
 import org.onosproject.tetopology.management.api.link.TeIpv6;
 import org.onosproject.tetopology.management.api.link.TeLink;
+import org.onosproject.tetopology.management.api.link.TeLinkId;
 import org.onosproject.tetopology.management.api.link.TeLinkTpGlobalKey;
 import org.onosproject.tetopology.management.api.link.TeLinkTpKey;
 import org.onosproject.tetopology.management.api.link.TePathAttributes;
@@ -198,6 +200,7 @@ public class DistributedTeTopologyStore
     private ConsistentMap<TeLinkTpGlobalKey, TerminationPointKey> tpKeyConsistentMap;
     private Map<TeLinkTpGlobalKey, TerminationPointKey> tpKeyMap;
     private BlockingQueue<TeTopologyMapEvent> mapEventQueue;
+    private long providerId;
     private static final Serializer TETOPOLOGY_SERIALIZER = Serializer
             .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
                     .register(TeTopologyKey.class)
@@ -225,6 +228,8 @@ public class DistributedTeTopologyStore
                     .register(AsNumber.class)
                     .register(Label.class)
                     .register(UnnumberedLink.class)
+                    .register(TeLinkId.class)
+                    .register(ConnectivityMatrixId.class)
                     .register(InternalTeLink.class)
                     .register(InternalNetworkLink.class)
                     .register(TeLinkTpKey.class)
@@ -855,7 +860,7 @@ public class DistributedTeTopologyStore
             intTopo.setTeLinkKeys(teLinkKeys);
             BitSet flags = new BitSet(TeConstants.FLAG_MAX_BITS);
             flags.set(TeTopology.BIT_LEARNT);
-            if (network.teTopologyId().clientId() == TeTopologyManager.DEFAULT_PROVIDER_ID) {
+            if (network.teTopologyId().clientId() == providerId) {
                 // Hard rule for now
                 flags.set(TeTopology.BIT_CUSTOMIZED);
             }
@@ -1387,17 +1392,21 @@ public class DistributedTeTopologyStore
 
     @Override
     public KeyId networkId(TeTopologyKey teTopologyKey) {
-        return teTopologyMap.get(teTopologyKey).topologyData().networkId();
+        return teTopologyMap.get(teTopologyKey) == null ||
+               teTopologyMap.get(teTopologyKey).topologyData() == null ? null :
+                    teTopologyMap.get(teTopologyKey).topologyData().networkId();
     }
 
     @Override
     public NetworkNodeKey nodeKey(TeNodeKey teNodeKey) {
-        return teNodeMap.get(teNodeKey).networkNodeKey();
+        return teNodeMap.get(teNodeKey) == null ? null :
+               teNodeMap.get(teNodeKey).networkNodeKey();
     }
 
     @Override
     public NetworkLinkKey linkKey(TeLinkTpGlobalKey teLinkKey) {
-        return teLinkMap.get(teLinkKey).networkLinkKey();
+        return teLinkMap.get(teLinkKey) == null ? null :
+               teLinkMap.get(teLinkKey).networkLinkKey();
     }
 
     @Override
@@ -1408,6 +1417,11 @@ public class DistributedTeTopologyStore
     @Override
     public void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue) {
         mapEventQueue = queue;
+    }
+
+    @Override
+    public void setProviderId(long providerId) {
+        this.providerId = providerId;
     }
 }
 

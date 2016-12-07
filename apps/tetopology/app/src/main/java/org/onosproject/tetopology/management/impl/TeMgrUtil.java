@@ -112,7 +112,9 @@ public final class TeMgrUtil {
      */
     public static NetworkNodeKey networkNodeKey(TeNodeKey teNodeKey) {
         return new NetworkNodeKey(toNetworkId(teNodeKey.teTopologyKey()),
-                                  KeyId.keyId(Long.toString(teNodeKey.teNodeId())));
+                                  KeyId.keyId(Ip4Address
+                                          .valueOf((int) teNodeKey.teNodeId())
+                                          .toString()));
     }
 
     /**
@@ -174,7 +176,8 @@ public final class TeMgrUtil {
      * @return value of network node termination point key
      */
     public static NodeTpKey nodeTpKey(TeLinkTpKey teLinkKey) {
-        return new NodeTpKey(KeyId.keyId(Long.toString(teLinkKey.teNodeId())),
+        return new NodeTpKey(KeyId.keyId(Ip4Address
+                .valueOf((int) teLinkKey.teNodeId()).toString()),
                              KeyId.keyId(Long.toString(teLinkKey.teLinkTpId())));
     }
 
@@ -211,7 +214,8 @@ public final class TeMgrUtil {
         if (MapUtils.isNotEmpty(teTopology.teNodes())) {
             nodes = Maps.newHashMap();
             for (TeNode tenode : teTopology.teNodes().values()) {
-                KeyId key = KeyId.keyId(Long.toString(tenode.teNodeId()));
+                KeyId key = KeyId.keyId(Ip4Address
+                        .valueOf((int) tenode.teNodeId()).toString());
                 nodes.put(key, nodeBuilder(key, tenode));
             }
         }
@@ -219,7 +223,7 @@ public final class TeMgrUtil {
         if (MapUtils.isNotEmpty(teTopology.teLinks())) {
             links = Maps.newHashMap();
             for (TeLink telink : teTopology.teLinks().values()) {
-                KeyId key = TeMgrUtil.toNetworkLinkId(telink.teLinkKey());
+                KeyId key = toNetworkLinkId(telink.teLinkKey());
                 links.put(key, linkBuilder(key, telink));
 
             }
