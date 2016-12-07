@@ -43,9 +43,9 @@ public class RoutesListCommand extends AbstractShellCommand {
     private static final String FORMAT_SUMMARY =
             "Number of routes in table %s: %s";
     private static final String FORMAT_HEADER =
-        "   Network            Next Hop";
+        "   Network            Next Hop        Source";
     private static final String FORMAT_ROUTE =
-        "   %-18s %-15s";
+        "   %-18s %-15s %-10s";
 
     private static final String FORMAT_TABLE = "Table: %s";
     private static final String FORMAT_TOTAL = "   Total: %d";
@@ -80,7 +80,7 @@ public class RoutesListCommand extends AbstractShellCommand {
             allRoutes.forEach((id, routes) -> {
                 print(FORMAT_TABLE, id);
                 print(FORMAT_HEADER);
-                routes.forEach(r -> print(FORMAT_ROUTE, r.prefix(), r.nextHop()));
+                routes.forEach(r -> print(FORMAT_ROUTE, r.prefix(), r.nextHop(), r.source()));
                 print(FORMAT_TOTAL, routes.size());
                 print("");
             });
