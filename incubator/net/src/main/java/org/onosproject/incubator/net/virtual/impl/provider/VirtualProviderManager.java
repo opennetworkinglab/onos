@@ -110,13 +110,14 @@ public class VirtualProviderManager
     }
 
     @Override
-    public Set<ProviderId> getProvidersByService(VirtualProviderService virtualProviderService) {
+    public Set<ProviderId> getProvidersByService(VirtualProviderService
+                                                             virtualProviderService) {
         Class clazz = getProviderClass(virtualProviderService);
 
         return ImmutableSet.copyOf(providers.values().stream()
-                                           .filter(p -> p.getClass()
-                                                   .isAssignableFrom(clazz))
-                                           .map(p -> p.id()).collect(Collectors.toSet()));
+                                           .filter(clazz::isInstance)
+                                           .map(VirtualProvider::id)
+                                           .collect(Collectors.toSet()));
     }
 
     @Override
@@ -144,8 +145,7 @@ public class VirtualProviderManager
         }
 
         return services.stream()
-                .filter(s -> virtualProvider.getClass()
-                        .isAssignableFrom(getProviderClass(s)))
+                .filter(s -> getProviderClass(s).isInstance(virtualProvider))
                 .findFirst().get();
     }
 

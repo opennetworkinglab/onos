@@ -49,7 +49,9 @@ import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleOperation;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +66,8 @@ import java.util.concurrent.Executors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 
 /**
  * Flow rule service implementation built on the virtual network service.
@@ -98,6 +102,8 @@ public class VirtualNetworkFlowRuleManager
     private VirtualProviderRegistryService providerRegistryService = null;
     private InternalFlowRuleProviderService innerProviderService = null;
 
+    private final FlowRuleStoreDelegate storeDelegate;
+
     /**
      * Creates a new VirtualNetworkFlowRuleService object.
      *
@@ -109,6 +115,7 @@ public class VirtualNetworkFlowRuleManager
         super(virtualNetworkManager, networkId);
 
         store = serviceDirectory.get(VirtualNetworkFlowRuleStore.class);
+
         idGenerator = serviceDirectory.get(CoreService.class)
                 .getIdGenerator(VIRTUAL_FLOW_OP_TOPIC + networkId().toString());
         providerRegistryService =
@@ -116,7 +123,9 @@ public class VirtualNetworkFlowRuleManager
         innerProviderService = new InternalFlowRuleProviderService();
         providerRegistryService.registerProviderService(networkId(), innerProviderService);
 
-        this.deviceService = manager.get(networkId(), DeviceService.class);
+        this.deviceService = manager.get(networkId, DeviceService.class);
+        this.storeDelegate = new InternalStoreDelegate();
+        store.setDelegate(networkId, this.storeDelegate);
     }
 
     @Override
@@ -288,12 +297,22 @@ public class VirtualNetworkFlowRuleManager
         }
     }
 
-    private class InternalFlowRuleProviderService
+    private final class InternalFlowRuleProviderService
             extends AbstractVirtualProviderService<VirtualFlowRuleProvider>
             implements VirtualFlowRuleProviderService {
 
         final Map<FlowEntry, Long> firstSeen = Maps.newConcurrentMap();
         final Map<FlowEntry, Long> lastSeen = Maps.newConcurrentMap();
+
+        private InternalFlowRuleProviderService() {
+            //TODO: find a proper virtual provider.
+            Set<ProviderId> providerIds =
+                    providerRegistryService.getProvidersByService(this);
+            ProviderId providerId = providerIds.stream().findFirst().get();
+            VirtualFlowRuleProvider provider = (VirtualFlowRuleProvider)
+                    providerRegistryService.getProvider(providerId);
+            setProvider(provider);
+        }
 
         @Override
         public void flowRemoved(FlowEntry flowEntry) {
@@ -310,7 +329,6 @@ public class VirtualNetworkFlowRuleManager
             if (flowEntry.reason() == FlowEntry.FlowRemoveReason.HARD_TIMEOUT) {
                 ((DefaultFlowEntry) stored).setState(FlowEntry.FlowEntryState.REMOVED);
             }
-            Device device = deviceService.getDevice(flowEntry.deviceId());
 
             //FIXME: obtains provider from devices providerId()
             FlowRuleEvent event = null;
@@ -333,7 +351,6 @@ public class VirtualNetworkFlowRuleManager
             }
         }
 
-
         private void flowMissing(FlowEntry flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
             checkValidity();
@@ -347,6 +364,7 @@ public class VirtualNetworkFlowRuleManager
                 case ADDED:
                 case PENDING_ADD:
                     event = store.pendingFlowRule(networkId(), flowRule);
+
                     try {
                         provider().applyFlowRule(networkId(), flowRule);
                     } catch (UnsupportedOperationException e) {
@@ -492,6 +510,55 @@ public class VirtualNetworkFlowRuleManager
         public void pushTableStatistics(DeviceId deviceId,
                                         List<TableStatisticsEntry> tableStats) {
             store.updateTableStatistics(networkId(), deviceId, tableStats);
+        }
+    }
+
+    // Store delegate to re-post events emitted from the store.
+    private class InternalStoreDelegate implements FlowRuleStoreDelegate {
+
+        // TODO: Right now we only dispatch events at individual flowEntry level.
+        // It may be more efficient for also dispatch events as a batch.
+        @Override
+        public void notify(FlowRuleBatchEvent event) {
+            final FlowRuleBatchRequest request = event.subject();
+            switch (event.type()) {
+                case BATCH_OPERATION_REQUESTED:
+                    // Request has been forwarded to MASTER Node, and was
+                    request.ops().forEach(
+                            op -> {
+                                switch (op.operator()) {
+                                    case ADD:
+                                        post(new FlowRuleEvent(RULE_ADD_REQUESTED, op.target()));
+                                        break;
+                                    case REMOVE:
+                                        post(new FlowRuleEvent(RULE_REMOVE_REQUESTED, op.target()));
+                                        break;
+                                    case MODIFY:
+                                        //TODO: do something here when the time comes.
+                                        break;
+                                    default:
+                                        log.warn("Unknown flow operation operator: {}", op.operator());
+                                }
+                            }
+                    );
+
+                    DeviceId deviceId = event.deviceId();
+                    FlowRuleBatchOperation batchOperation = request.asBatchOperation(deviceId);
+
+                    VirtualFlowRuleProvider provider = innerProviderService.provider();
+                    if (provider != null) {
+                        provider.executeBatch(networkId, batchOperation);
+                    }
+
+                    break;
+
+                case BATCH_OPERATION_COMPLETED:
+                    //TODO: do post-processing for batch operations.
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }
