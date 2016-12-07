@@ -38,14 +38,14 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
-import org.onosproject.incubator.net.virtual.VirtualNetworkProvider;
-import org.onosproject.incubator.net.virtual.VirtualNetworkProviderRegistry;
-import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProvider;
+import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderRegistry;
+import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -394,7 +394,8 @@ public class VirtualNetworkManager
         } else if (serviceKey.serviceClass.equals(PathService.class)) {
             service = new VirtualNetworkPathManager(this, network);
         } else if (serviceKey.serviceClass.equals(FlowRuleService.class)) {
-            service = new VirtualNetworkFlowRuleManager(this, network);
+            service = new VirtualNetworkFlowRuleManager(this, network,
+                                                        new DefaultServiceDirectory());
         } else {
             return null;
         }
@@ -498,6 +499,7 @@ public class VirtualNetworkManager
         return new InternalVirtualNetworkProviderService(provider);
     }
 
+
     /**
      * Service issued to registered virtual network providers so that they
      * can interact with the core.
@@ -599,5 +601,4 @@ public class VirtualNetworkManager
             }
         }
     }
-
 }

@@ -15,8 +15,8 @@
  */
 package org.onosproject.incubator.net.virtual.provider;
 
-import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TableStatisticsEntry;
 
@@ -32,42 +32,44 @@ public interface VirtualFlowRuleProviderService
     /**
      * Signals that a flow rule that was previously installed has been removed.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param flowEntry removed flow entry
      */
-    void flowRemoved(NetworkId networkId, FlowEntry flowEntry);
+    void flowRemoved(FlowEntry flowEntry);
 
     /**
      * Pushes the collection of flow entries currently applied on the given
      * virtual device.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId device identifier
      * @param flowEntries collection of flow rules
      */
-    void pushFlowMetrics(NetworkId networkId, DeviceId deviceId,
-                         Iterable<FlowEntry> flowEntries);
+    void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
 
     /**
      * Pushes the collection of flow entries currently applied on the given
      * device without flowMissing process.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId device identifier
      * @param flowEntries collection of flow rules
      */
-    void pushFlowMetricsWithoutFlowMissing(NetworkId networkId, DeviceId deviceId,
-                                           Iterable<FlowEntry> flowEntries);
+    void pushFlowMetricsWithoutFlowMissing(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
 
     /**
      * Pushes the collection of table statistics entries currently extracted
      * from the given virtual device.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId device identifier
      * @param tableStatsEntries collection of flow table statistics entries
      */
-    void pushTableStatistics(NetworkId networkId, DeviceId deviceId,
-                             List<TableStatisticsEntry> tableStatsEntries);
+    void pushTableStatistics(DeviceId deviceId, List<TableStatisticsEntry> tableStatsEntries);
+
+    /**
+     * Indicates to the core that the requested batch operation has
+     * been completed.
+     *
+     * @param batchId the batch which was processed
+     * @param operation the resulting outcome of the operation
+     */
+    void batchOperationCompleted(long batchId, CompletedBatchOperation operation);
 
 }

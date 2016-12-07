@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @param <P> type of the information provider
  */
 public abstract class AbstractVirtualProviderService<P extends VirtualProvider>
-        implements VirtualProviderService {
+        implements VirtualProviderService<P> {
 
     private boolean isValid = true;
     private P provider = null;

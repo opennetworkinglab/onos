@@ -176,5 +176,4 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * @throws org.onlab.util.ItemNotFoundException if no such network or port found
      */
     void removeVirtualPort(NetworkId networkId, DeviceId deviceId, PortNumber portNumber);
-
 }

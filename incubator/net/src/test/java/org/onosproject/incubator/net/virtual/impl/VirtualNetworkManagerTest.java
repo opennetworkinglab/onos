@@ -38,7 +38,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
-import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
+import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.impl.provider.DefaultVirtualNetworkProvider;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;

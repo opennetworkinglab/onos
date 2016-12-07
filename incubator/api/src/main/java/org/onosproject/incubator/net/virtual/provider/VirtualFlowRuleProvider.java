@@ -17,6 +17,7 @@ package org.onosproject.incubator.net.virtual.provider;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
 
 /**
  * Abstraction of a virtual flow rule provider.
@@ -42,4 +43,13 @@ public interface VirtualFlowRuleProvider extends VirtualProvider {
      * @param flowRules one or more flow rules
      */
     void removeFlowRule(NetworkId networkId, FlowRule... flowRules);
+
+    /**
+     * Installs a batch of flow rules. Each flowrule is associated to an
+     * operation which results in either addition, removal or modification.
+     *
+     * @param networkId the identity of the virtual network where this rule applies
+     * @param batch a batch of flow rules
+     */
+    void executeBatch(NetworkId networkId, FlowRuleBatchOperation batch);
 }
