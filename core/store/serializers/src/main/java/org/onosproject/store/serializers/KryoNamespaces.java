@@ -357,6 +357,7 @@ public final class KryoNamespaces {
                     DefaultPacketRequest.class,
                     PacketPriority.class,
                     FlowEntry.FlowEntryState.class,
+                    FlowEntry.FlowLiveType.class,
                     FlowId.class,
                     DefaultTrafficSelector.class,
                     PortCriterion.class,
