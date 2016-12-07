@@ -17,25 +17,13 @@
 <scenario name="ha-cluster-restart"
           description="ONOS cluster restart and recovery">
     <group name="Cluster-Restart" if="${OC2}">
-        <group name="Fail">
-            <parallel var="${OC#}">
-                <step name="Node-Stop-${#}" exec="onos-service ${OC#} stop"/>
-                <step name="Wait-for-Stop-${#}" requires="~Node-Stop-${#}"
-                      exec="onos-wait-for-stop ${OC#} ${ONOS_KILL_OPTION}"/>
-            </parallel>
-        </group>
+        <import file="${ONOS_SCENARIOS}/shutdown.xml" namespace="Cluster-Fail"/>
+        <import file="${ONOS_SCENARIOS}/startup.xml" namespace="Cluster-Recover"/>
 
-        <step name="Breathe" exec="sleep 5" requires="Fail"/>
+        <step name="Breathe" exec="sleep 5" requires="Cluster-Fail.Shutdown"/>
+        <dependency name="Cluster-Recover.Startup" requires="Breathe"/>
 
-        <group name="Recover" requires="~Breathe,Fail">
-            <parallel var="${OC#}">
-                <step name="Node-Start-${#}" exec="onos-service ${OC#} start"/>
-                <step name="Wait-for-Start-${#}" requires="~Node-Start-${#}"
-                      exec="onos-wait-for-start ${OC#}"/>
-            </parallel>
-        </group>
-
-        <group name="Validate-Recovery" requires="Recover">
+        <group name="Validate-Recovery" requires="Cluster-Recover.Startup">
             <parallel var="${OC#}">
                 <step name="Check-Nodes-${#}"
                       exec="onos-check-nodes ${OC#}"/>

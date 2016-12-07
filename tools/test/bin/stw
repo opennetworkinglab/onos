@@ -32,16 +32,17 @@ while [ $count -le 0 -o $run -le $count ]; do
     [ "$ONOS_CELL" = "borrow" ] && onos-cell $ONOS_CELL 120 >/dev/null
 
     # Iterate over all listed scenarios
+    let status=0
     for scenario in "${@:-smoke}"; do
         if [[ $scenario =~ ^[0-9]*$ ]]; then
             printf "Waiting %d seconds...\n" $scenario
             sleep $scenario
         else
             printf "Running scenario %s...\n" $scenario
-            stc $scenario
+            stc $scenario || let status=status+$?
         fi
+        [ $status -ne 0 ] && break
     done
-    status=$?
 
     printf "Finished run %d...\n" $run
     [ $status -ne 0 ] && exit $status

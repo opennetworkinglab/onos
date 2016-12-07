@@ -19,7 +19,7 @@
             <step name="Start-Service-${#}" exec="onos-service ${OC#} start"/>
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Start-Service-${#}"/>
-            <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
+            <step name="Check-Logs-${#}" exec="onos-check-logs --ignore-store-exceptions ${OC#}"
                   requires="~Wait-for-Start-${#}"/>
         </parallel>
     </group>
