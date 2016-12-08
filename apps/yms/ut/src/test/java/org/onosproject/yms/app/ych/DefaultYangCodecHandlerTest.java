@@ -91,9 +91,8 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String customsXml() {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<customssupervisor xmlns=\"ydt.customs-supervisor\">" +
-                "<supervisor>Customssupervisor</supervisor>" +
-                "</customssupervisor>" +
+                "<supervisor xmlns=\"ydt.customs-supervisor\">" +
+                "Customssupervisor</supervisor>" +
                 "</filter>";
     }
 
@@ -104,10 +103,8 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String merchandXml() {
         return "<config xmlns=\"ydt.root\">" +
-                "<merchandisersupervisor xmlns=\"ydt.Merchandiser-" +
-                "supervisor\">" +
-                "<supervisor>Merchandisersupervisor</supervisor>" +
-                "</merchandisersupervisor>" +
+                "<supervisor xmlns=\"ydt.Merchandiser-supervisor\">" +
+                "Merchandisersupervisor</supervisor>" +
                 "</config>";
     }
 
@@ -118,9 +115,8 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String tradingXml() {
         return "<config xmlns=\"ydt.root\">" +
-                "<tradingsupervisor xmlns=\"ydt.trading-supervisor\">" +
-                "<supervisor>Tradingsupervisor</supervisor>" +
-                "</tradingsupervisor>" +
+                "<supervisor xmlns=\"ydt.trading-supervisor\">" +
+                "Tradingsupervisor</supervisor>" +
                 "</config>";
     }
 
@@ -130,10 +126,9 @@ public class DefaultYangCodecHandlerTest {
      * @return the xml string for customssupervisor module
      */
     private static String customsCompositeXml() {
-        return "<filter xmlns=\"ydt.filter-type\"><customssupervisor " +
-                "xmlns=\"ydt.customs-supervisor\">" +
-                "<supervisor>Customssupervisor</supervisor>" +
-                "</customssupervisor></filter>";
+        return "<filter xmlns=\"ydt.filter-type\">" +
+                "<supervisor xmlns=\"ydt.customs-supervisor\">" +
+                "Customssupervisor</supervisor></filter>";
     }
 
     /**
@@ -143,7 +138,6 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String customsEmptyXml() {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<customssupervisor xmlns=\"ydt.customs-supervisor\"/>" +
                 "</filter>";
     }
 
@@ -154,19 +148,21 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String materialXml() {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<materialsupervisor xmlns=\"ydt.material-supervisor\">" +
-                "<supervisor>" +
+                "<supervisor xmlns=\"ydt.material-supervisor\">" +
                 "<name>abc1</name><departmentId>xyz1</departmentId>" +
                 "</supervisor>" +
-                "<supervisor><name>abc2</name><departmentId>xyz2</departmentId>" +
+                "<supervisor xmlns=\"ydt.material-supervisor\"" +
+                "><name>abc2</name><departmentId>xyz2</departmentId>" +
                 "</supervisor>" +
-                "<supervisor><name>abc3</name><departmentId>xyz3</departmentId>" +
+                "<supervisor xmlns=\"ydt.material-supervisor\"" +
+                "><name>abc3</name><departmentId>xyz3</departmentId>" +
                 "</supervisor>" +
-                "<supervisor><name>abc4</name><departmentId>xyz4</departmentId>" +
+                "<supervisor xmlns=\"ydt.material-supervisor\"" +
+                "><name>abc4</name><departmentId>xyz4</departmentId>" +
                 "</supervisor>" +
-                "<supervisor><name>abc5</name><departmentId>xyz5</departmentId>" +
+                "<supervisor xmlns=\"ydt.material-supervisor\"" +
+                "><name>abc5</name><departmentId>xyz5</departmentId>" +
                 "</supervisor>" +
-                "</materialsupervisor>" +
                 "</filter>";
     }
 
@@ -177,7 +173,6 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String containerEmptyXml() {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<EmptyContainer xmlns=\"ych.Empty.Container\"/>" +
                 "</filter>";
     }
 
@@ -188,7 +183,7 @@ public class DefaultYangCodecHandlerTest {
      */
     private static String listTestXml() {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<Combined xmlns=\"ych:combined\"><attributes>" +
+                "<attributes xmlns=\"ych:combined\">" +
                 "<origin><value>123</value></origin>" +
                 "<multi-exit-disc><med>456</med></multi-exit-disc>" +
                 "<local-pref><pref>23</pref></local-pref>" +
@@ -225,7 +220,7 @@ public class DefaultYangCodecHandlerTest {
                 "<optional-capabilities><c-parameters><as4-bytes-capability>" +
                 "<as-number>33</as-number></as4-bytes-capability>" +
                 "</c-parameters></optional-capabilities>" +
-                "</bgp-parameters></attributes></Combined></filter>";
+                "</bgp-parameters></attributes></filter>";
     }
 
     /**
@@ -339,6 +334,27 @@ public class DefaultYangCodecHandlerTest {
                 "<employeeid>Employ5</employeeid>" +
                 "</employeeid>" +
                 "</config>";
+    }
+
+    /**
+     * Returns the xml string for more than one module.
+     *
+     * @return the xml string for more than one module
+     */
+    private String multipleAppxml() {
+        return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\"><supervisor" +
+                " xmlns=\"ydt.customs-supervisor\">Customssupervisor" +
+                "</supervisor><supervisor xmlns=\"ydt.material-supervisor\"" +
+                "><name>abc1</name><departmentId>xyz1</departmentId" +
+                "></supervisor><supervisor xmlns=\"ydt.material-supervisor\">" +
+                "<name>abc2</name><departmentId>xyz2</departmentId>" +
+                "</supervisor><supervisor xmlns=\"ydt" +
+                ".material-supervisor\"><name>abc3</name><departmentId>xyz3" +
+                "</departmentId></supervisor><supervisor xmlns=\"ydt" +
+                ".material-supervisor\"><name>abc4</name><departmentId>xyz4" +
+                "</departmentId></supervisor><supervisor xmlns=\"ydt" +
+                ".material-supervisor\"><name>abc5</name><departmentId>xyz5" +
+                "</departmentId></supervisor></filter>";
     }
 
     /**
@@ -484,6 +500,57 @@ public class DefaultYangCodecHandlerTest {
 
         assertEquals(AM_XML + "customs-super: leaf is not empty",
                      customsEmptyXml(), xml);
+    }
+
+    /**
+     * Unit test case in which verifying xml string for more than one module
+     * object.
+     */
+    @Test
+    public void proceessCodecHandlerForMultipleApp() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry = testYangSchemaNodeProvider
+                .getDefaultYangSchemaRegistry();
+        List<Object> yangModuleList = new ArrayList<>();
+
+        // Creating the object
+        Object object = CustomssupervisorOpParam.builder()
+                .supervisor("Customssupervisor").build();
+        yangModuleList.add(object);
+
+        // Creating the object
+        Supervisor supervisor1 = new DefaultSupervisor.SupervisorBuilder()
+                .name("abc1").departmentId("xyz1").build();
+        Supervisor supervisor2 = new DefaultSupervisor.SupervisorBuilder()
+                .name("abc2").departmentId("xyz2").build();
+        Supervisor supervisor3 = new DefaultSupervisor.SupervisorBuilder()
+                .name("abc3").departmentId("xyz3").build();
+        Supervisor supervisor4 = new DefaultSupervisor.SupervisorBuilder()
+                .name("abc4").departmentId("xyz4").build();
+        Supervisor supervisor5 = new DefaultSupervisor.SupervisorBuilder()
+                .name("abc5").departmentId("xyz5").build();
+
+        Object object1 = MaterialsupervisorOpParam.builder()
+                .addToSupervisor(supervisor1)
+                .addToSupervisor(supervisor2)
+                .addToSupervisor(supervisor3)
+                .addToSupervisor(supervisor4)
+                .addToSupervisor(supervisor5).build();
+        yangModuleList.add(object1);
+
+        // Get the xml string and compare
+        Map<String, String> tagAttr = new HashMap<String, String>();
+        tagAttr.put("type", "subtree");
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler codecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+        String xml = codecHandler.encodeOperation("filter", "ydt.filter-type",
+                                                  tagAttr, yangModuleList,
+                                                  XML, null);
+
+        assertEquals(AM_XML + "for multiple applications",
+                     multipleAppxml(), xml);
     }
 
     /**

@@ -345,9 +345,27 @@ public class YdtBuilderFromYo {
                 }
                 curTraversal = PARENT;
                 traverseToParent(curNode);
-                curNode = curNode.getParent();
+                curNode = getParentSchemaNode(curNode);
             }
         }
+    }
+
+    /**
+     * Returns parent schema node of current node.
+     *
+     * @param curNode current schema node
+     * @return parent schema node
+     */
+    private YangNode getParentSchemaNode(YangNode curNode) {
+        if (curNode instanceof YangAugment) {
+            /*
+             * If curNode is augment, either next augment or augmented node
+             * has to be processed. So traversal type is changed to parent,
+             * but node is not changed.
+             */
+            return curNode;
+        }
+        return curNode.getParent();
     }
 
     /**
@@ -372,7 +390,8 @@ public class YdtBuilderFromYo {
      * @param curNode current YANG node
      */
     private void traverseToParent(YangNode curNode) {
-        if (curNode instanceof YangCase || curNode instanceof YangChoice) {
+        if (curNode instanceof YangCase || curNode instanceof YangChoice
+                || curNode instanceof YangAugment) {
             return;
         }
         extBuilder.traverseToParentWithoutValidation();

@@ -50,6 +50,11 @@ class XmlCodecYdtListener implements YdtExtendedListener {
     private YdtExtendedContext rootYdtNode;
 
     /**
+     * Module YDT node.
+     */
+    private YdtExtendedContext currentModule;
+
+    /**
      * Creates a new codec listener.
      *
      * @param format   protocol data format
@@ -59,6 +64,7 @@ class XmlCodecYdtListener implements YdtExtendedListener {
                         YdtExtendedContext rootNode) {
         dataFormat = format;
         rootYdtNode = rootNode;
+        currentModule = ((YdtExtendedContext) rootNode.getFirstChild());
     }
 
     /**
@@ -70,10 +76,29 @@ class XmlCodecYdtListener implements YdtExtendedListener {
         return elementStack;
     }
 
+    /**
+     * Returns true, if YDT node is module node; false otherwise.
+     *
+     * @param ydtContext YDT node
+     * @return true if YDT node is module; false otherwise
+     */
+    private boolean isModuleNode(YdtExtendedContext ydtContext,
+                                 boolean isExit) {
+        if (Objects.equals(currentModule, ydtContext)) {
+            if (isExit) {
+                currentModule = (YdtExtendedContext) currentModule
+                        .getNextSibling();
+            }
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void enterYdtNode(YdtExtendedContext ydtContext) {
 
-        if (!Objects.equals(rootYdtNode, ydtContext)) {
+        if (!Objects.equals(rootYdtNode, ydtContext) &&
+                !isModuleNode(ydtContext, false)) {
 
             CodecHandlerFactory factory = CodecHandlerFactory.instance();
             XmlCodecHandler handler =
@@ -94,7 +119,8 @@ class XmlCodecYdtListener implements YdtExtendedListener {
 
     @Override
     public void exitYdtNode(YdtExtendedContext ydtExtendedContext) {
-        if (!Objects.equals(rootYdtNode, ydtExtendedContext)) {
+        if (!Objects.equals(rootYdtNode, ydtExtendedContext) &&
+                !isModuleNode(ydtExtendedContext, true)) {
             elementStack.pop();
         }
     }
