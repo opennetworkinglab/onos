@@ -408,11 +408,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         @Override
         public void switchRemoved(Dpid dpid) {
+            stopCollectorIfNeeded(collectors.remove(dpid));
             if (providerService == null) {
                 return;
             }
             providerService.deviceDisconnected(deviceId(uri(dpid)));
-            stopCollectorIfNeeded(collectors.remove(dpid));
         }
 
         @Override
