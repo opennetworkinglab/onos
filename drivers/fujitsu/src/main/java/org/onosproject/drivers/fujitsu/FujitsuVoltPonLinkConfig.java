@@ -54,6 +54,7 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
             put(ONU_DISCOVERY_MODE, null);
             put(PM_ENABLE, null);
             put(ADMIN_STATE, null);
+            put(LOOPBACK_ENABLE, null);
         }
     };
     private static final String VOLT_PORTS = "volt-ports";
@@ -62,11 +63,14 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
     private static final String ADMIN_STATE = "admin-state";
     private static final String ONU_DISCOVERY_MODE = "onu-discovery-mode";
     private static final String PM_ENABLE = "pm-enable";
+    private static final String LOOPBACK_ENABLE = "loopback-enable";
     private static final Set<String> ADMINSTATES =
             ImmutableSet.of("enable", "disable");
     private static final Set<String> ONUDISCOVERYMODES =
             ImmutableSet.of("auto", "manual", "disabled");
     private static final Set<String> PMENABLES =
+            ImmutableSet.of("true", "false");
+    private static final Set<String> LOOPBACKENABLES =
             ImmutableSet.of("true", "false");
 
     private static final int ONU_DISCOVERY_INTERVAL_MIN = 1;
@@ -235,8 +239,13 @@ public class FujitsuVoltPonLinkConfig extends AbstractHandlerBehaviour
                         return null;
                     }
                     break;
-                default:
+                case PM_ENABLE:
                     if (!validState(PMENABLES, paramName, paramValue)) {
+                        return null;
+                    }
+                    break;
+                default:
+                    if (!validState(LOOPBACKENABLES, paramName, paramValue)) {
                         return null;
                     }
                     break;

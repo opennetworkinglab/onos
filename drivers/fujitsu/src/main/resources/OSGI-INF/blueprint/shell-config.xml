@@ -89,6 +89,18 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltGetNniLinksCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.drivers.fujitsu.cli.VoltSetNniLinkCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
