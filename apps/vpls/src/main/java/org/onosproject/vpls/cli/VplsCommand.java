@@ -22,7 +22,6 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.vpls.config.VplsConfigService;
 
@@ -60,6 +59,21 @@ public class VplsCommand extends AbstractShellCommand {
                     " already associated to VPLS " + BOLD + "%s" + RESET +
                     COLOR_ERROR + "" + RESET;
 
+    private static final String INSERT_VPLS_NAME =
+            COLOR_ERROR + "Missing the " + BOLD + "VPLS name." + RESET +
+                    COLOR_ERROR + " Specifying a VPLS name is mandatory." +
+                    RESET;
+
+    private static final String INSERT_ENCAP_TYPE =
+            COLOR_ERROR + "Missing the " + BOLD + "encapsulation type." +
+                    RESET + COLOR_ERROR + " Encapsulation type is mandatory." +
+                    RESET;
+
+    private static final String INSERT_INTERFACE =
+            COLOR_ERROR + "Missing the " + BOLD + "interface name." +
+                    RESET + COLOR_ERROR + " Specifying an interface name is" +
+                    " mandatory." + RESET;
+
     private static final String SEPARATOR = "----------------";
 
     private static final String VPLS_ALREADY_EXISTS =
@@ -73,9 +87,6 @@ public class VplsCommand extends AbstractShellCommand {
     private static final String VPLS_DISPLAY = "VPLS name: " + BOLD +
             "%s" + RESET + "\nAssociated interfaces: %s\nEncapsulation: %s";
 
-    private static final String VPLS_LIST_TITLE =
-            BOLD + "Configured VPLSs" + RESET;
-
     private static final String VPLS_NOT_FOUND =
             COLOR_ERROR + "VPLS " + BOLD + "%s" + RESET + COLOR_ERROR +
                     " not found" + RESET;
@@ -88,11 +99,9 @@ public class VplsCommand extends AbstractShellCommand {
 
     private static VplsConfigService vplsConfigService =
             get(VplsConfigService.class);
-    private static InterfaceService interfaceService =
-            get(InterfaceService.class);
 
-    @Argument(index = 0, name = "command", description = "Command name (add|" +
-            "clean|create|delete|list|removeIface|set-encap|show)",
+    @Argument(index = 0, name = "command", description = "Command name (add-if|" +
+            "clean|create|delete|list|rem-if|set-encap|show)",
             required = true, multiValued = false)
     String command = null;
 
@@ -100,8 +109,8 @@ public class VplsCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String vplsName = null;
 
-    @Argument(index = 2, name = "optArg", description = "The interface name for" +
-            "all commands; the encapsulation type for set-encap",
+    @Argument(index = 2, name = "optArg", description = "The interface name or" +
+            " the encapsulation type for set-encap",
             required = false, multiValued = false)
     String optArg = null;
 
@@ -137,6 +146,8 @@ public class VplsCommand extends AbstractShellCommand {
                 default:
                     print(VPLS_COMMAND_NOT_FOUND, command);
             }
+        } else {
+            print(VPLS_COMMAND_NOT_FOUND, command);
         }
     }
 
@@ -147,17 +158,22 @@ public class VplsCommand extends AbstractShellCommand {
      * @param ifaceName the name of the interface to add
      */
     private void addIface(String vplsName, String ifaceName) {
-        // Check if the VPLS exists
+        if (vplsName == null) {
+            print(INSERT_VPLS_NAME);
+            return;
+        }
+        if (ifaceName == null) {
+            print(INSERT_INTERFACE);
+            return;
+        }
         if (!vplsExists(vplsName)) {
             print(VPLS_NOT_FOUND, vplsName);
             return;
         }
-        // Check if the interface exists
         if (!ifaceExists(ifaceName)) {
             print(IFACE_NOT_FOUND, ifaceName);
             return;
         }
-        // Check if the interface is already associated to a VPLS
         if (isIfaceAssociated(ifaceName)) {
             print(IFACE_ALREADY_ASSOCIATED,
                   ifaceName, vplsNameFromIfaceName(ifaceName));
@@ -180,6 +196,10 @@ public class VplsCommand extends AbstractShellCommand {
      * @param vplsName the name of the VLPS
      */
     private void create(String vplsName) {
+        if (vplsName == null || vplsName.isEmpty()) {
+            print(INSERT_VPLS_NAME);
+            return;
+        }
         if (vplsExists(vplsName)) {
             print(VPLS_ALREADY_EXISTS, vplsName);
             return;
@@ -193,6 +213,10 @@ public class VplsCommand extends AbstractShellCommand {
      * @param vplsName the name of the VLPS
      */
     private void delete(String vplsName) {
+        if (vplsName == null) {
+            print(INSERT_VPLS_NAME);
+            return;
+        }
         if (!vplsExists(vplsName)) {
             print(VPLS_NOT_FOUND, vplsName);
             return;
@@ -207,8 +231,6 @@ public class VplsCommand extends AbstractShellCommand {
         List<String> vplsNames = Lists.newArrayList(vplsConfigService.vplsNames());
         Collections.sort(vplsNames);
 
-        print(VPLS_LIST_TITLE);
-        print(SEPARATOR);
         vplsNames.forEach(vpls -> {
             print(vpls);
         });
@@ -221,6 +243,14 @@ public class VplsCommand extends AbstractShellCommand {
      * @param ifaceName the name of the interface to remove
      */
     private void removeIface(String vplsName, String ifaceName) {
+        if (vplsName == null) {
+            print(INSERT_VPLS_NAME);
+            return;
+        }
+        if (ifaceName == null) {
+            print(INSERT_INTERFACE);
+            return;
+        }
         if (!vplsExists(vplsName)) {
             print(VPLS_NOT_FOUND, vplsName);
             return;
@@ -244,6 +274,14 @@ public class VplsCommand extends AbstractShellCommand {
      * @param encap the encapsulation type
      */
     private void setEncap(String vplsName, String encap) {
+        if (vplsName == null) {
+            print(INSERT_VPLS_NAME);
+            return;
+        }
+        if (encap == null) {
+            print(INSERT_ENCAP_TYPE);
+            return;
+        }
         if (!vplsExists(vplsName)) {
             print(VPLS_NOT_FOUND, vplsName);
             return;
@@ -269,8 +307,6 @@ public class VplsCommand extends AbstractShellCommand {
         Map<String, EncapsulationType> encapByVplsName =
                 vplsConfigService.encapByVplsName();
 
-        print(VPLS_LIST_TITLE);
-        print(SEPARATOR);
         if (!isNullOrEmpty(vplsName)) {
             // A VPLS name is provided. Check first if the VPLS exists
             if (vplsExists(vplsName)) {
@@ -283,6 +319,7 @@ public class VplsCommand extends AbstractShellCommand {
             }
         } else {
             // No VPLS names are provided. Display all VPLSs configured
+            print(SEPARATOR);
             vplsNames.forEach(v -> {
                 print(VPLS_DISPLAY,
                       v,
