@@ -15,6 +15,7 @@
  */
 package org.onosproject.lisp.ctl.impl.map;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -123,6 +124,23 @@ public interface ExpireMap<K, V> {
      * @return a set view of the keys contained in this map
      */
     Set<K> keySet();
+
+    /**
+     * Returns a {@link Collection} view of the values contained in this map.
+     * The collection is backed by the map, so changes to the map are
+     * reflected in the collection, and vice-versa.  If the map is
+     * modified while an iteration over the collection is in progress
+     * (except through the iterator's own <tt>remove</tt> operation),
+     * the results of the iteration are undefined.  The collection
+     * supports element removal, which removes the corresponding
+     * mapping from the map, via the <tt>Iterator.remove</tt>,
+     * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
+     * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
+     * support the <tt>add</tt> or <tt>addAll</tt> operations.
+     *
+     * @return a collection view of the values contained in this map
+     */
+    Collection<V> values();
 
     /**
      * Returns <tt>true</tt> if this map contains no key-value mappings.

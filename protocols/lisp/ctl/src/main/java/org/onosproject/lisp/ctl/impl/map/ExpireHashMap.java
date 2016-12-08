@@ -18,6 +18,8 @@ package org.onosproject.lisp.ctl.impl.map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -154,6 +156,13 @@ public class ExpireHashMap<K, V> implements ExpireMap<K, V> {
     @Override
     public Set<K> keySet() {
         return map.keySet();
+    }
+
+    @Override
+    public Collection<V> values() {
+        Collection<V> values = Collections.emptyList();
+        map.values().forEach(v -> values.add(v.getValue()));
+        return values;
     }
 
     @Override

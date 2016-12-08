@@ -89,6 +89,20 @@ public final class LispMappingDatabase {
     }
 
     /**
+     * Obtains all of the EID-RLOC mapping records.
+     *
+     * @return all of the EID-RLOC mapping records
+     */
+    public List<LispMapRecord> getAllMapRecords() {
+
+        List<LispMapRecord> mapRecords = Lists.newArrayList();
+
+        map.values().forEach(value -> mapRecords.add(value.getMapRecord()));
+
+        return mapRecords;
+    }
+
+    /**
      * Obtains an EID-RLOC mapping record in accordance with the proxy map reply
      * flag bit and EID record.
      *
