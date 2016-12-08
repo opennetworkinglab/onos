@@ -1,5 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:netty-transport',
+    '//protocols/lisp/msg:onos-protocols-lisp-msg',
 ]
 
 osgi_jar_with_tests (

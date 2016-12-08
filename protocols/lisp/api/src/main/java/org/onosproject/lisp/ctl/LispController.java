@@ -21,4 +21,47 @@ package org.onosproject.lisp.ctl;
  */
 public interface LispController {
 
+    /**
+     * Obtains all LISP routers known to this LISP controller.
+     *
+     * @return Iterable of LISP router elements
+     */
+    Iterable<LispRouter> getRouters();
+
+    /**
+     * Obtains the actual router for the given LispRouterId.
+     *
+     * @param routerId the router to fetch
+     * @return the interface to this router
+     */
+    LispRouter getRouter(LispRouterId routerId);
+
+    /**
+     * Registers a router listener to track router status.
+     * (e.g., router add and removal)
+     *
+     * @param listener the listener to notify
+     */
+    void addRouterListener(LispRouterListener listener);
+
+    /**
+     * Unregisters a router listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeRouterListener(LispRouterListener listener);
+
+    /**
+     * Registers a listener for all LISP message types.
+     *
+     * @param listener the listener to notify
+     */
+    void addMessageListener(LispMessageListener listener);
+
+    /**
+     * Unregisters a listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeMessageListener(LispMessageListener listener);
 }

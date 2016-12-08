@@ -45,6 +45,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <version>${netty4.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>

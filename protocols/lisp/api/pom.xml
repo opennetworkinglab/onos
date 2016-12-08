@@ -40,9 +40,9 @@
             <artifactId>netty-transport</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-            <version>${netty4.version}</version>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-lisp-msg</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

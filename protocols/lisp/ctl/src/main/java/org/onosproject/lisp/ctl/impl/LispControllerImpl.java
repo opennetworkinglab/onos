@@ -27,6 +27,10 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.lisp.ctl.LispController;
+import org.onosproject.lisp.ctl.LispMessageListener;
+import org.onosproject.lisp.ctl.LispRouter;
+import org.onosproject.lisp.ctl.LispRouterId;
+import org.onosproject.lisp.ctl.LispRouterListener;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationConfig;
 import org.onosproject.net.device.DeviceService;
 import org.osgi.service.component.ComponentContext;
@@ -130,5 +134,35 @@ public class LispControllerImpl implements LispController {
             log.info("Configured. LISP authentication method is configured to {}", lispAuthKeyId);
         }
         authConfig.updateLispAuthKeyId(lispAuthKeyId);
+    }
+
+    @Override
+    public Iterable<LispRouter> getRouters() {
+        return null;
+    }
+
+    @Override
+    public LispRouter getRouter(LispRouterId routerId) {
+        return null;
+    }
+
+    @Override
+    public void addRouterListener(LispRouterListener listener) {
+
+    }
+
+    @Override
+    public void removeRouterListener(LispRouterListener listener) {
+
+    }
+
+    @Override
+    public void addMessageListener(LispMessageListener listener) {
+
+    }
+
+    @Override
+    public void removeMessageListener(LispMessageListener listener) {
+
     }
 }
