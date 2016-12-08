@@ -27,6 +27,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.SubjectFactory;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Manages network configuration.
@@ -34,6 +35,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Command(scope = "onos", name = "netcfg",
         description = "Manages network configuration")
 public class NetworkConfigCommand extends AbstractShellCommand {
+
+    private static final String E_CLASSKEY_NOT_REGISTERED = " is not a registered SubjectClassKey";
 
     @Argument(index = 0, name = "subjectClassKey", description = "Subject class key",
             required = false, multiValued = false)
@@ -57,7 +60,8 @@ public class NetworkConfigCommand extends AbstractShellCommand {
         if (isNullOrEmpty(subjectClassKey)) {
             addAll((ObjectNode) root);
         } else {
-            SubjectFactory subjectFactory = service.getSubjectFactory(subjectClassKey);
+            SubjectFactory subjectFactory = nullIsIllegal(service.getSubjectFactory(subjectClassKey),
+                                subjectClassKey + E_CLASSKEY_NOT_REGISTERED);
             if (isNullOrEmpty(subjectKey)) {
                 addSubjectClass((ObjectNode) root, subjectFactory);
             } else {
