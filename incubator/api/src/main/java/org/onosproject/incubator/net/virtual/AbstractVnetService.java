@@ -16,7 +16,6 @@
 
 package org.onosproject.incubator.net.virtual;
 
-import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,7 +37,7 @@ public abstract class AbstractVnetService
         checkNotNull(networkId, NETWORK_NULL);
         this.manager = manager;
         this.networkId = networkId;
-        this.serviceDirectory = new DefaultServiceDirectory();
+        this.serviceDirectory = manager.getServiceDirectory();
     }
 
     @Override

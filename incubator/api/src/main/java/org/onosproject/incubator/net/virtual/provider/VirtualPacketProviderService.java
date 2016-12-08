@@ -15,7 +15,6 @@
  */
 package org.onosproject.incubator.net.virtual.provider;
 
-import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.packet.PacketContext;
 
 /**
@@ -29,9 +28,8 @@ public interface VirtualPacketProviderService
      * This processing will be done synchronously, i.e. run-to-completion.
      * This context is translated with virtual concepts.
      *
-     * @param networkId the virtual network ID which will handle the packet context
      * @param context inbound packet context
      */
-    void processPacket(NetworkId networkId, PacketContext context);
+    void processPacket(PacketContext context);
 
 }

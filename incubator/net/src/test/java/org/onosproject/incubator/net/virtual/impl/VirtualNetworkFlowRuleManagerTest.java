@@ -33,9 +33,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.TenantId;
-import org.onosproject.incubator.net.virtual.VirtualDevice;
-import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
@@ -48,12 +45,8 @@ import org.onosproject.incubator.net.virtual.provider.VirtualFlowRuleProviderSer
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowRuleStore;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.TestDeviceParams;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowEntry;
@@ -83,7 +76,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.*;
 
-public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
+public class VirtualNetworkFlowRuleManagerTest extends VirtualNetworkTestUtil {
     private static final int TIMEOUT = 10;
 
     private VirtualNetworkManager manager;
@@ -106,9 +99,6 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
 
     protected TestFlowRuleListener listener1 = new TestFlowRuleListener();
     protected TestFlowRuleListener listener2 = new TestFlowRuleListener();
-
-    private final TenantId tid1 = TenantId.tenantId("tid1");
-    private final TenantId tid2 = TenantId.tenantId("tid2");
 
     private VirtualNetwork vnet1;
     private VirtualNetwork vnet2;
@@ -150,8 +140,8 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
 
         manager.activate();
 
-        vnet1 = setupVirtualNetworkTopology(tid1);
-        vnet2 = setupVirtualNetworkTopology(tid2);
+        vnet1 = setupVirtualNetworkTopology(manager, TID1);
+        vnet2 = setupVirtualNetworkTopology(manager, TID2);
 
         vnetFlowRuleService1 = new VirtualNetworkFlowRuleManager(manager, vnet1.id());
         vnetFlowRuleService2 = new VirtualNetworkFlowRuleManager(manager, vnet2.id());
@@ -175,60 +165,8 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         virtualNetworkManagerStore.deactivate();
     }
 
-    /**
-     * Method to create the virtual network for further testing.
-     *
-     * @return virtual network
-     */
-    private VirtualNetwork setupVirtualNetworkTopology(TenantId tenantId) {
-        manager.registerTenantId(tenantId);
-        VirtualNetwork virtualNetwork = manager.createVirtualNetwork(tenantId);
-
-        VirtualDevice virtualDevice1 =
-                manager.createVirtualDevice(virtualNetwork.id(), DID1);
-        VirtualDevice virtualDevice2 =
-                manager.createVirtualDevice(virtualNetwork.id(), DID2);
-        VirtualDevice virtualDevice3 =
-                manager.createVirtualDevice(virtualNetwork.id(), DID3);
-        VirtualDevice virtualDevice4 =
-                manager.createVirtualDevice(virtualNetwork.id(), DID4);
-
-        ConnectPoint cp1 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1));
-        manager.createVirtualPort(virtualNetwork.id(), cp1.deviceId(), cp1.port(), cp1);
-
-        ConnectPoint cp2 = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(2));
-        manager.createVirtualPort(virtualNetwork.id(), cp2.deviceId(), cp2.port(), cp2);
-
-        ConnectPoint cp3 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(3));
-        manager.createVirtualPort(virtualNetwork.id(), cp3.deviceId(), cp3.port(), cp3);
-
-        ConnectPoint cp4 = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(4));
-        manager.createVirtualPort(virtualNetwork.id(), cp4.deviceId(), cp4.port(), cp4);
-
-        ConnectPoint cp5 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(5));
-        manager.createVirtualPort(virtualNetwork.id(), cp5.deviceId(), cp5.port(), cp5);
-
-        ConnectPoint cp6 = new ConnectPoint(virtualDevice3.id(), PortNumber.portNumber(6));
-        manager.createVirtualPort(virtualNetwork.id(), cp6.deviceId(), cp6.port(), cp6);
-
-        VirtualLink link1 = manager.createVirtualLink(virtualNetwork.id(), cp1, cp3);
-        virtualNetworkManagerStore.updateLink(link1, link1.tunnelId(), Link.State.ACTIVE);
-        VirtualLink link2 = manager.createVirtualLink(virtualNetwork.id(), cp3, cp1);
-        virtualNetworkManagerStore.updateLink(link2, link2.tunnelId(), Link.State.ACTIVE);
-        VirtualLink link3 = manager.createVirtualLink(virtualNetwork.id(), cp4, cp5);
-        virtualNetworkManagerStore.updateLink(link3, link3.tunnelId(), Link.State.ACTIVE);
-        VirtualLink link4 = manager.createVirtualLink(virtualNetwork.id(), cp5, cp4);
-        virtualNetworkManagerStore.updateLink(link4, link4.tunnelId(), Link.State.ACTIVE);
-        VirtualLink link5 = manager.createVirtualLink(virtualNetwork.id(), cp2, cp6);
-        virtualNetworkManagerStore.updateLink(link5, link5.tunnelId(), Link.State.ACTIVE);
-        VirtualLink link6 = manager.createVirtualLink(virtualNetwork.id(), cp6, cp2);
-        virtualNetworkManagerStore.updateLink(link6, link6.tunnelId(), Link.State.ACTIVE);
-
-        return virtualNetwork;
-    }
-
     private FlowRule flowRule(int tsval, int trval) {
-        return flowRule(DID1, tsval, trval);
+        return flowRule(VDID1, tsval, trval);
     }
 
     private FlowRule flowRule(DeviceId did, int tsval, int trval) {
@@ -248,22 +186,22 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         FlowRule rule = flowRule(hval, hval);
         vnetFlowRuleService1.applyFlowRules(rule);
 
-        assertNotNull("rule should be found", vnetFlowRuleService1.getFlowEntries(DID1));
+        assertNotNull("rule should be found", vnetFlowRuleService1.getFlowEntries(VDID1));
         return rule;
     }
 
     private int flowCount(FlowRuleService service) {
         List<FlowEntry> entries = Lists.newArrayList();
-        service.getFlowEntries(DID1).forEach(entries::add);
+        service.getFlowEntries(VDID1).forEach(entries::add);
         return entries.size();
     }
 
     @Test
     public void getFlowEntries() {
         assertTrue("store should be empty",
-                   Sets.newHashSet(vnetFlowRuleService1.getFlowEntries(DID1)).isEmpty());
+                   Sets.newHashSet(vnetFlowRuleService1.getFlowEntries(VDID1)).isEmpty());
         assertTrue("store should be empty",
-                   Sets.newHashSet(vnetFlowRuleService2.getFlowEntries(DID1)).isEmpty());
+                   Sets.newHashSet(vnetFlowRuleService2.getFlowEntries(VDID1)).isEmpty());
 
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
@@ -274,7 +212,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         assertEquals("2 rules should exist", 2, flowCount(vnetFlowRuleService1));
         assertEquals("0 rules should exist", 0, flowCount(vnetFlowRuleService2));
 
-        providerService1.pushFlowMetrics(DID1, ImmutableList.of(fe1, fe2));
+        providerService1.pushFlowMetrics(VDID1, ImmutableList.of(fe1, fe2));
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
                        RULE_ADDED, RULE_ADDED);
 
@@ -283,7 +221,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         System.err.println("events :" + listener1.events);
         assertEquals("0 rules should exist", 0, flowCount(vnetFlowRuleService2));
 
-        providerService1.pushFlowMetrics(DID1, ImmutableList.of(fe1));
+        providerService1.pushFlowMetrics(VDID1, ImmutableList.of(fe1));
         validateEvents(listener1, RULE_UPDATED, RULE_UPDATED);
     }
 
@@ -313,10 +251,10 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         FlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
         FlowEntry fe3 = new DefaultFlowEntry(f3);
-        providerService1.pushFlowMetrics(DID1, ImmutableList.of(fe1, fe2, fe3));
+        providerService1.pushFlowMetrics(VDID1, ImmutableList.of(fe1, fe2, fe3));
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
                        RULE_ADDED, RULE_ADDED, RULE_ADDED);
-        vnetFlowRuleService1.purgeFlowRules(DID1);
+        vnetFlowRuleService1.purgeFlowRules(VDID1);
         assertEquals("0 rule should exist", 0, flowCount(vnetFlowRuleService1));
     }
 
@@ -330,7 +268,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         FlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
         FlowEntry fe3 = new DefaultFlowEntry(f3);
-        providerService1.pushFlowMetrics(DID1, ImmutableList.of(fe1, fe2, fe3));
+        providerService1.pushFlowMetrics(VDID1, ImmutableList.of(fe1, fe2, fe3));
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
                        RULE_ADDED, RULE_ADDED, RULE_ADDED);
 
@@ -355,7 +293,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         StoredFlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
 
-        providerService1.pushFlowMetrics(DID1, ImmutableList.of(fe1, fe2));
+        providerService1.pushFlowMetrics(VDID1, ImmutableList.of(fe1, fe2));
         vnetFlowRuleService1.removeFlowRules(f1);
 
         //FIXME modification of "stored" flow entry outside of store
@@ -373,7 +311,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         FlowEntry fe3 = new DefaultFlowEntry(f3);
         vnetFlowRuleService1.applyFlowRules(f3);
 
-        providerService1.pushFlowMetrics(DID1, Collections.singletonList(fe3));
+        providerService1.pushFlowMetrics(VDID1, Collections.singletonList(fe3));
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADDED, RULE_UPDATED);
 
         providerService1.flowRemoved(fe3);
@@ -392,7 +330,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         FlowEntry fe3 = new DefaultFlowEntry(f3);
 
 
-        providerService1.pushFlowMetrics(DID1, Lists.newArrayList(fe1, fe2, fe3));
+        providerService1.pushFlowMetrics(VDID1, Lists.newArrayList(fe1, fe2, fe3));
 
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
                        RULE_ADDED, RULE_ADDED);
@@ -414,7 +352,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
 
         vnetFlowRuleService1.removeFlowRules(f3);
 
-        providerService1.pushFlowMetrics(DID1, Lists.newArrayList(fe1, fe2));
+        providerService1.pushFlowMetrics(VDID1, Lists.newArrayList(fe1, fe2));
 
         validateEvents(listener1, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADD_REQUESTED,
                        RULE_REMOVE_REQUESTED, RULE_ADDED, RULE_ADDED, RULE_REMOVED);
@@ -439,7 +377,7 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
 
     private boolean validateState(Map<FlowRule, FlowEntry.FlowEntryState> expected) {
         Map<FlowRule, FlowEntry.FlowEntryState> expectedToCheck = new HashMap<>(expected);
-        Iterable<FlowEntry> rules = vnetFlowRuleService1.getFlowEntries(DID1);
+        Iterable<FlowEntry> rules = vnetFlowRuleService1.getFlowEntries(VDID1);
         for (FlowEntry f : rules) {
             assertTrue("Unexpected FlowRule " + f, expectedToCheck.containsKey(f));
             assertEquals("FlowEntry" + f, expectedToCheck.get(f), f.state());

@@ -111,6 +111,7 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
         virtualNetworkManagerStore.activate();
 
         manager = new VirtualNetworkManager();
+        TestUtils.setField(manager, "coreService", coreService);
         TestUtils.setField(manager, "store", virtualNetworkManagerStore);
         TestUtils.setField(manager, "intentService", intentService);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());

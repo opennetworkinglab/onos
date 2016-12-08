@@ -104,6 +104,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         manager.store = virtualNetworkManagerStore;
         manager.addListener(listener);
         manager.intentService = intentService;
+        manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 
         testDirectory = new TestServiceDirectory();

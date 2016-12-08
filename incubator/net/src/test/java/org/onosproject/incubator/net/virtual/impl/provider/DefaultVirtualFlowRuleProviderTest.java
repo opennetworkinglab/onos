@@ -26,10 +26,9 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
+import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.core.Version;
 import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
@@ -49,7 +48,6 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.DisjointPath;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
@@ -63,26 +61,20 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleListener;
-import org.onosproject.net.flow.FlowRuleOperations;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.FlowRuleServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.topology.ClusterId;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyCluster;
-import org.onosproject.net.topology.TopologyGraph;
-import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -308,27 +300,7 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
     }
 
-    private static class TestCoreService implements CoreService {
-
-        @Override
-        public Version version() {
-            return null;
-        }
-
-        @Override
-        public Set<ApplicationId> getAppIds() {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(Short id) {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(String name) {
-            return null;
-        }
+    private static class TestCoreService extends CoreServiceAdapter {
 
         @Override
         public ApplicationId registerApplication(String name) {
@@ -336,14 +308,15 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
 
         @Override
-        public ApplicationId registerApplication(String name,
-                                                 Runnable preDeactivate) {
-            return null;
-        }
-
-        @Override
         public IdGenerator getIdGenerator(String topic) {
-            return null;
+            return new IdGenerator() {
+                private AtomicLong counter = new AtomicLong(0);
+
+                @Override
+                public long getNewId() {
+                    return counter.getAndIncrement();
+                }
+            };
         }
     }
 
@@ -389,6 +362,11 @@ public class DefaultVirtualFlowRuleProviderTest {
 
         @Override
         public ServiceDirectory getServiceDirectory() {
+            return null;
+        }
+
+        @Override
+        public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
             return null;
         }
 
@@ -479,53 +457,6 @@ public class DefaultVirtualFlowRuleProviderTest {
     private static class TestTopologyService extends TopologyServiceAdapter {
 
         @Override
-        public void addListener(TopologyListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(TopologyListener listener) {
-
-        }
-
-        @Override
-        public Topology currentTopology() {
-            return null;
-        }
-
-        @Override
-        public boolean isLatest(Topology topology) {
-            return false;
-        }
-
-        @Override
-        public TopologyGraph getGraph(Topology topology) {
-            return null;
-        }
-
-        @Override
-        public Set<TopologyCluster> getClusters(Topology topology) {
-            return null;
-        }
-
-        @Override
-        public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
-            return null;
-        }
-
-        @Override
-        public Set<DeviceId> getClusterDevices(Topology topology,
-                                               TopologyCluster cluster) {
-            return null;
-        }
-
-        @Override
-        public Set<Link> getClusterLinks(Topology topology,
-                                         TopologyCluster cluster) {
-            return null;
-        }
-
-        @Override
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
             DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
                                                100, ANNOTATIONS);
@@ -541,56 +472,17 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
 
         @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology,
-                                                  DeviceId src, DeviceId dst) {
-            return null;
+        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
+                                  LinkWeigher weigher) {
+            DefaultPath path = new DefaultPath(PID, ImmutableList.of(LINK1),
+                                               100, ANNOTATIONS);
+            return ImmutableSet.of(path);
         }
 
-        @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
-                                                  DeviceId dst, LinkWeight weight) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
-                                                  DeviceId dst,
-                                                  Map<Link, Object> riskProfile) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
-                                                  DeviceId dst, LinkWeight weight,
-                                                  Map<Link, Object> riskProfile) {
-            return null;
-        }
-
-        @Override
-        public boolean isInfrastructure(Topology topology,
-                                        ConnectPoint connectPoint) {
-            return false;
-        }
-
-        @Override
-        public boolean isBroadcastPoint(Topology topology,
-                                        ConnectPoint connectPoint) {
-            return false;
-        }
     }
 
-    private static class TestFlowRuleService implements FlowRuleService {
+    private static class TestFlowRuleService extends FlowRuleServiceAdapter {
         static Set<FlowRule> ruleCollection = new HashSet<>();
-
-        @Override
-        public void addListener(FlowRuleListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(FlowRuleListener listener) {
-
-        }
 
         @Override
         public int getFlowRuleCount() {
@@ -613,11 +505,6 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
 
         @Override
-        public void purgeFlowRules(DeviceId deviceId) {
-
-        }
-
-        @Override
         public void removeFlowRules(FlowRule... flowRules) {
             Set<FlowRule> candidates = new HashSet<>();
             for (FlowRule rule : flowRules) {
@@ -626,38 +513,6 @@ public class DefaultVirtualFlowRuleProviderTest {
                         .forEach(candidates::add);
             }
             ruleCollection.removeAll(candidates);
-        }
-
-        @Override
-        public void removeFlowRulesById(ApplicationId appId) {
-
-        }
-
-        @Override
-        public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-            return null;
-        }
-
-        @Override
-        public Iterable<FlowEntry> getFlowEntriesById(ApplicationId id) {
-            return null;
-        }
-
-        @Override
-        public Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId,
-                                                        short groupId) {
-            return null;
-        }
-
-        @Override
-        public void apply(FlowRuleOperations ops) {
-
-        }
-
-        @Override
-        public Iterable<TableStatisticsEntry>
-        getFlowTableStatistics(DeviceId deviceId) {
-            return null;
         }
     }
 }

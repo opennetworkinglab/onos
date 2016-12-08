@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
@@ -294,6 +295,11 @@ public class AbstractVirtualListenerManagerTest {
         @Override
         public ServiceDirectory getServiceDirectory() {
             return serviceDirectory;
+        }
+
+        @Override
+        public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
+            return null;
         }
     }
 

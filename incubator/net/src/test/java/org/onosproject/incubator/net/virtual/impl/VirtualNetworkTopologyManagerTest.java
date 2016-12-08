@@ -23,8 +23,10 @@ import org.onlab.junit.TestUtils;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -82,6 +84,7 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.intentService = intentService;
+        manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 
         testDirectory = new TestServiceDirectory();
@@ -613,6 +616,8 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
      */
     private class TestCoreService extends CoreServiceAdapter {
 
+        ApplicationId appId;
+
         @Override
         public IdGenerator getIdGenerator(String topic) {
             return new IdGenerator() {
@@ -624,5 +629,17 @@ public class VirtualNetworkTopologyManagerTest extends TestDeviceParams {
                 }
             };
         }
+
+        @Override
+        public ApplicationId registerApplication(String name) {
+            appId = new DefaultApplicationId(1, name);
+            return appId;
+        }
+
+            @Override
+        public ApplicationId getAppId(String name) {
+            return appId;
+        }
     }
+
 }

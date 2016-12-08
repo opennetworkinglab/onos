@@ -71,6 +71,7 @@ public class VirtualNetworkPathManagerTest extends TestDeviceParams {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.intentService = intentService;
+        manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 
         testDirectory = new TestServiceDirectory();
