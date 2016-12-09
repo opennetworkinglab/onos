@@ -70,8 +70,12 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
     </driver>
+
+    <!--  Driver for OFDPA i12_1.7.
+       ~  TODO: version number in i12_1.7 is 2.0. Change it back when we can distinguish 3.0.
+      -->
     <driver name="ofdpa" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
+            manufacturer="Broadcom Corp." hwVersion="OF-DPA i12_1.7" swVersion="OF-DPA i12_1.7">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.Ofdpa2Pipeline"/>
         <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
@@ -83,8 +87,12 @@
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
     </driver>
+
+    <!--  Driver for OFDPA 3.0 EA0.
+       ~  TODO: version number in 3.0 EA0 is still 2.0. Update to 3.0 when OFDPA releases.
+      -->
     <driver name="ofdpa3" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA 3.0" swVersion="OF-DPA 3.0">
+            manufacturer="Broadcom Corp." hwVersion="OF-DPA 2.0" swVersion="OF-DPA 2.0">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.Ofdpa3Pipeline"/>
         <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
@@ -96,6 +104,7 @@
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
     </driver>
+
     <driver name="znyx-ofdpa" extends="default"
             manufacturer="ZNYX Networks" hwVersion=".*" swVersion=".*OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"

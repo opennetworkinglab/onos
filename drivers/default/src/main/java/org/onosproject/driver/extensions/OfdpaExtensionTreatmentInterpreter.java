@@ -33,7 +33,7 @@ import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 /**
  * Interpreter for OFDPA OpenFlow treatment extensions.
  */
-public class OfdpaExtensionTreatmentInterpreter  extends AbstractHandlerBehaviour
+public class OfdpaExtensionTreatmentInterpreter extends AbstractHandlerBehaviour
         implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {
     @Override
     public boolean supported(ExtensionTreatmentType extensionTreatmentType) {
