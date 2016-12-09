@@ -386,17 +386,21 @@ public class DeviceConfiguration implements DeviceProperties {
      * @return router ip address
      */
     public Ip4Address getRouterIpAddressForASubnetHost(Ip4Address destIpAddress) {
-        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
-                    deviceConfigMap.entrySet()) {
-            for (Ip4Prefix prefix : entry.getValue().subnets.values()) {
-                if (prefix.contains(destIpAddress)) {
-                    return entry.getValue().ip;
-                }
-            }
+        Interface matchIntf = srManager.interfaceService.getMatchingInterface(destIpAddress);
+
+        if (matchIntf == null) {
+            log.debug("No router was found for {}", destIpAddress);
+            return null;
         }
 
-        log.debug("No router was found for {}", destIpAddress);
-        return null;
+        DeviceId routerDeviceId = matchIntf.connectPoint().deviceId();
+        SegmentRouterInfo srInfo = deviceConfigMap.get(routerDeviceId);
+        if (srInfo == null) {
+            log.debug("No device config was found for {}", routerDeviceId);
+            return null;
+        }
+
+        return srInfo.ip;
     }
 
     /**
