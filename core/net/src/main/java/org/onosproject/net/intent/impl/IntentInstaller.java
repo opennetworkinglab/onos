@@ -53,7 +53,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 class IntentInstaller {
 
-    private static final Logger log = getLogger(IntentManager.class);
+    private static final Logger log = getLogger(IntentInstaller.class);
 
     private IntentStore store;
     private ObjectiveTrackerService trackerService;

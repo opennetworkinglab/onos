@@ -131,6 +131,15 @@ public interface IntentStore extends Store<IntentEvent, IntentStoreDelegate> {
     Iterable<IntentData> getPendingData();
 
     /**
+     * Returns the intent data object that are pending processing for a specfied
+     * key.
+     *
+     * @param intentKey key to look up
+     * @return pending intent data object
+     */
+    IntentData getPendingData(Key intentKey);
+
+    /**
      * Returns the intent data objects that are pending processing for longer
      * than the specified duration.
      *

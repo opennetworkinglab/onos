@@ -89,6 +89,29 @@ public class IntentData { //FIXME need to make this "immutable"
     }
 
     /**
+     * Creates a new intent data object.
+     *
+     * @param intent intent this metadata references
+     * @param state intent state
+     * @param request intent request
+     * @param version version of the intent for this key
+     * @param origin ID of the node where the data was originally created
+     */
+    public IntentData(Intent intent, IntentState state, IntentState request, Timestamp version, NodeId origin) {
+        checkNotNull(intent);
+        checkNotNull(state);
+        checkNotNull(request);
+        checkNotNull(version);
+        checkNotNull(origin);
+
+        this.intent = intent;
+        this.state = state;
+        this.request = request;
+        this.version = version;
+        this.origin = origin;
+    }
+
+    /**
      * Copy constructor.
      *
      * @param intentData intent data to copy
