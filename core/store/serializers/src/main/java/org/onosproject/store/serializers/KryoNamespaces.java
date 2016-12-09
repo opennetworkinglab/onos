@@ -182,6 +182,7 @@ import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.ProtectedTransportIntent;
 import org.onosproject.net.intent.ProtectionEndpointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.AnnotationConstraint;
@@ -559,6 +560,7 @@ public final class KryoNamespaces {
             .register(ProtectionConstraint.class)
             .register(ProtectedTransportEndpointDescription.class)
             .register(ProtectionEndpointIntent.class)
+            .register(ProtectedTransportIntent.class)
             .build("API");
 
     /**
