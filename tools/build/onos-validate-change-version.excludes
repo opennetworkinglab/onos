@@ -8,6 +8,7 @@
 \./lib/deps.json
 \./bucklets/maven_jar\.bucklet
 \./tools/build/libgen
+\./tools/build/onos-build-release
 \./utils/osgiwrap/
 \./tools/build/onos-validate-change-version
 \./tools/build/onos-change-version
