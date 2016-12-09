@@ -107,6 +107,7 @@ public class TeTopologyNbiManager
         ymsService.unRegisterService(this, IetfNetworkTopologyService.class);
         ymsService.unRegisterService(this, IetfTeTopologyService.class);
 
+        teTopologyService.removeListener(new InternalTeTopologyListener());
         log.info("Stopped");
     }
 
@@ -117,8 +118,14 @@ public class TeTopologyNbiManager
         // Get the entire data tree from TE Subsystem core.
         org.onosproject.tetopology.management.api.Networks teNetworks = teTopologyService.networks();
 
+        // Build the sample networks for RESTCONF/YMS integration test
+//        org.onosproject.tetopology.management.api.Networks teNetworks = new DefaultNetworks(DefaultBuilder
+//                .sampleDomain1Networks());
+
         // Convert the TE Subsystem core data into YANG Objects.
-        Networks networks = NetworkConverter.teSubsystem2YangNetworks(teNetworks, OperationType.QUERY);
+        Networks networks = NetworkConverter
+                .teSubsystem2YangNetworks(teNetworks, OperationType.QUERY,
+                                          teTopologyService);
         NetworksState networkStates = NetworkConverter.teSubsystem2YangNetworkStates(teNetworks, OperationType.QUERY);
 
         IetfNetworkOpParam.IetfNetworkBuilder builder = new IetfNetworkOpParam.IetfNetworkBuilder();
@@ -132,6 +139,7 @@ public class TeTopologyNbiManager
         IetfNetwork result = ietfNetwork.processSubtreeFiltering(
                 (IetfNetworkOpParam) newNetwork,
                 false);
+        log.debug("result is: {}", result);
         return result;
     }
 

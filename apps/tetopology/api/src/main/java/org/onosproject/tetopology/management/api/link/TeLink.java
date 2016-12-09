@@ -165,14 +165,14 @@ public interface TeLink {
      *
      * @return the cost
      */
-    long cost();
+    Long cost();
 
     /**
      * Returns the link delay.
      *
      * @return the delay
      */
-    long delay();
+    Long delay();
 
     /**
      * Returns the link SRLG values.

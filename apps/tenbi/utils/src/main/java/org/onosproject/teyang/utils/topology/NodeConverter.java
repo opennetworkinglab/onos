@@ -17,11 +17,11 @@ package org.onosproject.teyang.utils.topology;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.MapUtils;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.tetopology.management.api.EncodingType;
 import org.onosproject.tetopology.management.api.KeyId;
@@ -30,7 +30,10 @@ import org.onosproject.tetopology.management.api.TeStatus;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.tetopology.management.api.link.ElementType;
+import org.onosproject.tetopology.management.api.link.NetworkLink;
+import org.onosproject.tetopology.management.api.link.NetworkLinkKey;
 import org.onosproject.tetopology.management.api.link.TeLinkId;
+import org.onosproject.tetopology.management.api.link.TeLinkTpGlobalKey;
 import org.onosproject.tetopology.management.api.link.TePathAttributes;
 import org.onosproject.tetopology.management.api.link.UnderlayAbstractPath;
 import org.onosproject.tetopology.management.api.node.CommonNodeData;
@@ -39,6 +42,7 @@ import org.onosproject.tetopology.management.api.node.DefaultNetworkNode;
 import org.onosproject.tetopology.management.api.node.DefaultTeNode;
 import org.onosproject.tetopology.management.api.node.LocalLinkConnectivity;
 import org.onosproject.tetopology.management.api.node.NetworkNode;
+import org.onosproject.tetopology.management.api.node.NetworkNodeEventSubject;
 import org.onosproject.tetopology.management.api.node.NetworkNodeKey;
 import org.onosproject.tetopology.management.api.node.TeNode;
 import org.onosproject.tetopology.management.api.node.TeNodeKey;
@@ -55,8 +59,7 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev2
                .ietfnetwork.networks.network.node.DefaultSupportingNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208
                .ietfnetwork.networks.network.node.SupportingNode;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.networks.network.AugmentedNdNetwork;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.networks.network.augmentedndnetwork.Link;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.TpId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208
                .ietfnetworktopology.networks.network.node.AugmentedNdNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208
@@ -71,6 +74,7 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
                .ietftetopology.networks.network.node.AugmentedNwNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
                .ietftetopology.networks.network.node.DefaultAugmentedNwNode;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tenodeaugment.DefaultTe;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tenodeaugment.DefaultTe.TeBuilder;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tenodeaugment.Te;
@@ -97,6 +101,7 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTopologyEventType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTopologyId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev20130715.ietfyangtypes.DottedQuad;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -123,9 +128,10 @@ public final class NodeConverter {
      * TE Node Config object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsystemTeNode TE node object
+     * @param teTopologyService teTopolog core service
      * @return TE Node Config YANG object
      */
-    private static Config teNode2YangConfig(TeNode teSubsystemTeNode) {
+    private static Config teNode2YangConfig(TeNode teSubsystemTeNode, TeTopologyService teTopologyService) {
         checkNotNull(teSubsystemTeNode, E_NULL_TE_SUBSYSTEM_TE_NODE);
 
         TeNodeAttributes.TeNodeAttributesBuilder teNodeAttributesConfigBuilder = DefaultTeNodeAttributes
@@ -147,7 +153,7 @@ public final class NodeConverter {
         if (teSubsystemTeNode.underlayTeTopologyId() != null) {
             teNodeAttributesConfigBuilder = teNodeAttributesConfigBuilder
                     .underlayTopology(teNode2YangUnderlay(teSubsystemTeNode
-                            .underlayTeTopologyId()));
+                            .underlayTeTopologyId(), teTopologyService));
         }
 
         // TODO: should we ignore this from te to yang? as we've already set yang supportingNode
@@ -178,11 +184,11 @@ public final class NodeConverter {
                                .get(ConnectivityMatrix.BIT_DISALLOWED))
                     .from(new DefaultFrom.FromBuilder() // TODO: for now, assuming that there is
                                                         // only one 'from', and mergingList is empty
-                          .tpRef(teCmEntry.getValue().from())
+                          .tpRef(((TeLinkId) teCmEntry.getValue().from()).value())
                                          .build())
                     .to(new DefaultTo.ToBuilder() // TODO: for now, assuming that there is only
                                                   // one item in constrainingElements list
-                          .tpRef(teCmEntry.getValue().constrainingElements().get(0))
+                          .tpRef(((TeLinkId) teCmEntry.getValue().constrainingElements().get(0)).value())
                                          .build());
             teNodeAttributesConfigBuilder = teNodeAttributesConfigBuilder
                     .addToConnectivityMatrix(connectivityMatrixConfigBuilder
@@ -191,15 +197,17 @@ public final class NodeConverter {
         return teNodeAttributesConfigBuilder;
     }
 
-    private static UnderlayTopology teNode2YangUnderlay(TeTopologyKey underlayTopology) {
+    private static UnderlayTopology teNode2YangUnderlay(TeTopologyKey underlayTopology,
+                                                        TeTopologyService teTopologyService) {
         UnderlayTopology.UnderlayTopologyBuilder underlayBuilder = DefaultUnderlayTopology
                 .builder()
                 .teTopologyIdRef(TeTopologyId
                         .fromString(String.valueOf(underlayTopology.topologyId())))
                 .clientIdRef(underlayTopology.clientId())
                 .providerIdRef(underlayTopology.providerId());
-        // TODO: find networkId from the service
-//                .networkIdRef(networkIdRef)
+
+        underlayBuilder = underlayBuilder.networkIdRef(teTopologyService.networkId(underlayTopology));
+
         return underlayBuilder.build();
     }
 
@@ -207,9 +215,10 @@ public final class NodeConverter {
      * TE Node State object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsystemTeNode TE node object
+     * @param teTopologyService teTopology core service
      * @return TE Node State YANG object
      */
-    private static State teNode2YangState(TeNode teSubsystemTeNode) {
+    private static State teNode2YangState(TeNode teSubsystemTeNode, TeTopologyService teTopologyService) {
         checkNotNull(teSubsystemTeNode, E_NULL_TE_SUBSYSTEM_TE_NODE);
 
         TeNodeAttributes
@@ -231,7 +240,7 @@ public final class NodeConverter {
         if (teSubsystemTeNode.underlayTeTopologyId() != null) {
             teNodeAttributesStateBuilder = teNodeAttributesStateBuilder
                     .underlayTopology(teNode2YangUnderlay(teSubsystemTeNode
-                            .underlayTeTopologyId()));
+                            .underlayTeTopologyId(), teTopologyService));
         }
 
         if (teSubsystemTeNode.connectivityMatrices() != null) {
@@ -269,17 +278,25 @@ public final class NodeConverter {
     }
 
     private static class ByteUtils {
-        private static ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
 
         public static byte[] longToBytes(long x) {
-            buffer.putLong(0, x);
-            return buffer.array();
+            long temp = x;
+            byte[] b = new byte[8];
+            for (int i = 0; i < b.length; i++) {
+                b[i] = new Long(temp & 0xff).byteValue();
+                temp = temp >> 8;
+            }
+            return b;
         }
 
         public static long bytesToLong(byte[] bytes) {
-            buffer.put(bytes, 0, bytes.length);
-            buffer.flip(); // need flip
-            return buffer.getLong();
+            return ((long) bytes[7] & 255L) << 56
+                    | ((long) bytes[6] & 255L) << 48
+                    | ((long) bytes[5] & 255L) << 40
+                    | ((long) bytes[4] & 255L) << 32
+                    | ((long) bytes[3] & 255L) << 24
+                    | ((long) bytes[2] & 255L) << 16
+                    | ((long) bytes[1] & 255L) << 8 | (long) bytes[0] & 255L;
         }
     }
 
@@ -287,11 +304,16 @@ public final class NodeConverter {
      * TE Node TunnelTerminationPoint object conversion from TE Topology subsystem to YANG.
      *
      * @param teTunnelTp TE TunnelTerminationPoint object
+     * @param teTpId
+     * @param teTopologyService
+     * @param teNodeKey
      * @return TunnelTerminationPoint YANG object
      */
     private static TunnelTerminationPoint teSubsystem2YangTtp(
                            org.onosproject.tetopology.management.api.node
-                           .TunnelTerminationPoint teTunnelTp, Long teTpId) {
+                           .TunnelTerminationPoint teTunnelTp, Long teTpId,
+                           TeTopologyService teTopologyService,
+                           TeNodeKey teNodeKey) {
         checkNotNull(teTunnelTp, E_NULL_TE_SUBSYSTEM_TE_TUNNEL_TP);
 
         TunnelTerminationPoint.TunnelTerminationPointBuilder tunnelTpBuilder =
@@ -317,13 +339,38 @@ public final class NodeConverter {
         // TODO: retrieve more attributes from teTunnelTp and assign to tcapConfigBuilder.
         // For which ones we can do the conversion?
         // FIXME: once new yang model is used, we can make llc from teTunnelTp.localLinkConnectivityList()
-        ttpConfigBuilder = ttpConfigBuilder.addToTerminationCapability(tcapConfigBuilder.build());
+        if (teTunnelTp.localLinkConnectivityList() != null && !teTunnelTp.localLinkConnectivityList().isEmpty()) {
+            for (LocalLinkConnectivity llcn : teTunnelTp.localLinkConnectivityList()) {
+                TeLinkId telinkId = (TeLinkId) llcn.constrainingElements().get(0);
+                TeLinkTpGlobalKey globalKey = new TeLinkTpGlobalKey(teNodeKey, telinkId.value());
+                NetworkLinkKey netLinkKey = teTopologyService.linkKey(globalKey);
+                NetworkLink networkLink = teTopologyService
+                        .network(netLinkKey.networkId()).links().get(netLinkKey.linkId());
+                tcapConfigBuilder = tcapConfigBuilder
+                        .linkTp(TpId.fromString(networkLink.source().tpId()
+                                .toString()));
+                // convert teLinkId to networkLinkKey
+                ttpConfigBuilder = ttpConfigBuilder.addToTerminationCapability(tcapConfigBuilder.build());
+            }
 
-        TerminationCapability.TerminationCapabilityBuilder tcapStateBuilder =
-                DefaultTerminationCapability.builder();
-        // TODO: retrieve more attributes from teTunnelTp and assign to tcapStateBuilder
-        // For which ones we can do the conversion?
-        ttpStateBuilder = ttpStateBuilder.addToTerminationCapability(tcapStateBuilder.build());
+            // TODO: retrieve teTunnelTp.switchingLayer() and set it to  ttpConfigBuilder
+
+            TerminationCapability.TerminationCapabilityBuilder tcapStateBuilder =
+                    DefaultTerminationCapability.builder();
+            // TODO: retrieve more attributes from teTunnelTp and assign to tcapStateBuilder
+            // For which ones we can do the conversion?
+            for (LocalLinkConnectivity llcn : teTunnelTp.localLinkConnectivityList()) {
+                TeLinkId telinkId = (TeLinkId) llcn.constrainingElements().get(0);
+                TeLinkTpGlobalKey globalKey = new TeLinkTpGlobalKey(teNodeKey, telinkId.value());
+                NetworkLinkKey netLinkKey = teTopologyService.linkKey(globalKey);
+                NetworkLink networkLink = teTopologyService
+                        .network(netLinkKey.networkId()).links().get(netLinkKey.linkId());
+                tcapStateBuilder = tcapStateBuilder
+                        .linkTp(TpId.fromString(networkLink.source().tpId()
+                                .toString()));
+                ttpStateBuilder = ttpStateBuilder.addToTerminationCapability(tcapStateBuilder.build());
+            }
+        }
 
         tunnelTpBuilder = tunnelTpBuilder.config(ttpConfigBuilder.build())
                                          .state(ttpStateBuilder.build());
@@ -335,12 +382,17 @@ public final class NodeConverter {
      * Node object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsystem TE subsystem node
+     * @param teTopologyService teTopology core service
+     * @param teTopologyKey teTopologyKey
      * @return YANG node
      */
-    public static Node teSubsystem2YangNode(org.onosproject.tetopology.management.api.node.NetworkNode teSubsystem) {
+    public static Node teSubsystem2YangNode(org.onosproject.tetopology.management.api.node.NetworkNode teSubsystem,
+                                            TeTopologyService teTopologyService,
+                                            TeTopologyKey teTopologyKey) {
         checkNotNull(teSubsystem, E_NULL_TE_SUBSYSTEM_NODE);
 
         NodeId nodeId = NodeId.fromString(teSubsystem.nodeId().toString());
+
         Node.NodeBuilder builder = DefaultNode.builder().nodeId(nodeId);
 
         if (teSubsystem.supportingNodeIds() != null) {
@@ -379,20 +431,22 @@ public final class NodeConverter {
 
             TeBuilder yangTeBuilder = DefaultTe.builder();
 
-            yangTeBuilder = yangTeBuilder.teNodeId(TeNodeId
-                    .fromString(String.valueOf(teSubsystemTeNode.teNodeId())));
+            yangTeBuilder = yangTeBuilder.teNodeId(TeNodeId.of(DottedQuad
+                    .of(Ip4Address.valueOf((int) teSubsystemTeNode.teNodeId())
+                            .toString())));
 
             // Set configuration data
             // Set state data
-            yangTeBuilder = yangTeBuilder.config(teNode2YangConfig(teSubsystemTeNode))
-                                         .state(teNode2YangState(teSubsystemTeNode));
+            yangTeBuilder = yangTeBuilder.config(teNode2YangConfig(teSubsystemTeNode, teTopologyService))
+                                         .state(teNode2YangState(teSubsystemTeNode, teTopologyService));
 
             if (teSubsystemTeNode.tunnelTerminationPoints() != null) {
                 for (Map.Entry<Long, org.onosproject.tetopology.management.api.node.TunnelTerminationPoint> entry :
                         teSubsystemTeNode.tunnelTerminationPoints().entrySet()) {
                     yangTeBuilder = yangTeBuilder
                             .addToTunnelTerminationPoint(teSubsystem2YangTtp(entry
-                                    .getValue(), entry.getKey()));
+                                    .getValue(), entry.getKey(), teTopologyService,
+                                    new TeNodeKey(teTopologyKey, teSubsystemTeNode.teNodeId())));
                 }
             }
 
@@ -469,14 +523,14 @@ public final class NodeConverter {
                 .topology.rev20160708.ietftetopology.tenodeconnectivitymatrix.
                 ConnectivityMatrix cmYang : yangMatrix) {
 
-            ElementType from = new TeLinkId((long) cmYang.from().tpRef()); // is this correct?
+            ElementType from = new TeLinkId(Long.valueOf(((String) cmYang.from().tpRef()))); // is this correct?
 
             UnderlayAbstractPath underlayPath = null; // ignore
 
             List<ElementType> mergingList = Lists.newArrayList(); // empty merging list for now
 
             List<ElementType> constrainingElements = Lists.newArrayList();
-            ElementType to = new TeLinkId((long) cmYang.to().tpRef()); // is this correct?
+            ElementType to = new TeLinkId(Long.valueOf(((String) cmYang.to().tpRef()))); // is this correct?
             constrainingElements.add(to);
 
             BitSet flags = new BitSet(); // what are the flags in cmYang?
@@ -489,7 +543,9 @@ public final class NodeConverter {
             }
             TePathAttributes teAttributes = new
                     TePathAttributes(cmYang.teDefaultMetric(),
-                                     cmYang.performanceMetric().measurement().unidirectionalDelay(),
+                                     cmYang.performanceMetric() == null ? null :
+                                         (cmYang.performanceMetric().measurement() == null ? null :
+                                             cmYang.performanceMetric().measurement().unidirectionalDelay()),
                                      srlgs);
             ConnectivityMatrix coreCm = new ConnectivityMatrix(cmYang.id(),
                                                                from,
@@ -508,13 +564,13 @@ public final class NodeConverter {
     private static TeTopologyKey yang2TeSubsystemNodeUnderlayTopology(UnderlayTopology ut) {
         TeTopologyKey tetopokey = new TeTopologyKey((Long) ut.providerIdRef(),
                                                     (Long) ut.clientIdRef(),
-                                                    (Long) ut.teTopologyIdRef());
+                                                    Long.valueOf((String) ut.teTopologyIdRef()));
         return tetopokey;
     }
 
     // TODO: retrieve the details of tunnel termiantion points from yang to te
     private static Map<Long, org.onosproject.tetopology.management.api.node.
-                      TunnelTerminationPoint> yang2TeSubsystemTtp(List<TunnelTerminationPoint> ttps) {
+                      TunnelTerminationPoint> yang2TeSubsystemTtp(List<TunnelTerminationPoint> ttps, Node yangNode) {
         Map<Long, org.onosproject.tetopology.management.api.node.TunnelTerminationPoint> ttpsMap = Maps
                 .newHashMap();
         for (TunnelTerminationPoint ttpYang : ttps) {
@@ -523,14 +579,57 @@ public final class NodeConverter {
             EncodingType encodingLayer = null; // TODO: find proper encoding type from ttpYang.config().encoding();
             BitSet flags = new BitSet(); // how to set flags?
             List<Long> interLayerLockList = Lists.newArrayList();
-            interLayerLockList.add(ttpYang.config().interLayerLockId()); // interLayerLock in yang is not a list
+
+            if (ttpYang.config() != null) {
+                interLayerLockList.add(ttpYang.config().interLayerLockId()); // interLayerLock in yang is not a list
+            }
 
             List<LocalLinkConnectivity> localLinkConnectivityList = Lists.newArrayList();
             // FIXME: once new yang model is used, we can make llc
-//            LocalLinkConnectivity llc = new LocalLinkConnectivity(constrainingElements,
-//                                                                  flags,
-//                                                                  teAttributes,
-//                                                                  underlayPath)
+            ElementType elt = null;
+            List<ElementType> eltList = Lists.newArrayList();
+
+            if (ttpYang.config() != null
+                    && ttpYang.config().terminationCapability() != null
+                    && !ttpYang.config().terminationCapability().isEmpty()) {
+                for (TerminationCapability tercap : ttpYang.config()
+                        .terminationCapability()) {
+
+                    if (yangNode.yangAugmentedInfoMap() != null
+                            && !yangNode.yangAugmentedInfoMap().isEmpty()) {
+
+                        AugmentedNdNode yangTpNodeAugment = (AugmentedNdNode) yangNode
+                                .yangAugmentedInfo(AugmentedNdNode.class);
+                        for (org.onosproject.yang.gen.v1.urn.ietf.params.xml
+                                .ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology
+                                .networks.network.node.augmentedndnode
+                                .TerminationPoint tpItem : yangTpNodeAugment.terminationPoint()) {
+                            if (tpItem.tpId().uri().string().equals(tercap.linkTp().toString())) {
+                                if (tpItem.yangAugmentedInfoMap() != null
+                                        && !tpItem.yangAugmentedInfoMap().isEmpty()) {
+                                    AugmentedNtTerminationPoint yangTpAugment =
+                                            (AugmentedNtTerminationPoint) tpItem
+                                            .yangAugmentedInfo(AugmentedNtTerminationPoint.class);
+                                    if (yangTpAugment.te() != null && yangTpAugment.te().teTpId() != null) {
+                                        elt = new TeLinkId(Long.valueOf(yangTpAugment.te().teTpId().toString()));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    eltList.add(elt);
+//                    tercap.linkTp().toString() //tpId -> tp -> te-tp-id (long)
+                }
+            }
+            TePathAttributes teAttributes = null; // how to find these
+                                                  // attributes from ttpYang?
+            UnderlayAbstractPath underlayPath = null; // how to find underlayAbstractPath from ttpYang?
+            LocalLinkConnectivity llc = new LocalLinkConnectivity(eltList,
+                                                                  flags,
+                                                                  teAttributes,
+                                                                  underlayPath);
+            localLinkConnectivityList.add(llc);
 
             float[] availAdaptBandwidth = null; // how to find availableBandwidth?
 
@@ -554,7 +653,7 @@ public final class NodeConverter {
     private static TeNode yang2TeSubsystemNodeAugment(Te yangNodeAugTe,
                                                       Network yangNetwork,
                                                       Node yangNode,
-                                                      Map<KeyId, TerminationPoint> yangTps) {
+                                                      Map<KeyId, TerminationPoint> teTps) {
 
 
         NodeId yangNodeId = yangNode.nodeId();
@@ -580,12 +679,10 @@ public final class NodeConverter {
         List<Long> teTpIds = Lists.newArrayList();
 
         // ********************************************** to find teLinkIds
-        if (yangNetwork.yangAugmentedInfo(AugmentedNdNetwork.class) != null) {
-            AugmentedNdNetwork augmentLink =
-                    (AugmentedNdNetwork) yangNetwork.yangAugmentedInfo(AugmentedNdNetwork.class);
-            for (Link link : augmentLink.link()) {
-                if (link.source().sourceNode().equals(yangNodeAugTe.teNodeId())) {
-                    teLinkIds.add(Long.valueOf(link.linkId().uri().string()));
+        if (MapUtils.isNotEmpty(teTps)) {
+            for (Map.Entry<KeyId, TerminationPoint> entry : teTps.entrySet()) {
+                if (entry.getValue().teTpId() != null) {
+                    teTpIds.add(entry.getValue().teTpId());
                 }
             }
         }
@@ -622,7 +719,7 @@ public final class NodeConverter {
                     flags.set(TeNode.BIT_ABSTRACT);
                 }
                 teData = new CommonNodeData(
-                                            teNodeAttr.name().string(),
+                                            null, // teNodeAttr.name().string(),
                                             EnumConverter.yang2TeSubsystemAdminStatus(teNodeAttr.adminStatus()),
                                             EnumConverter.yang2TeSubsystemOpStatus(yangNodeAugTe.state().operStatus()),
                                             flags);
@@ -637,7 +734,7 @@ public final class NodeConverter {
         }
 
         if (yangNodeAugTe.tunnelTerminationPoint() != null) {
-            ttps = yang2TeSubsystemTtp(yangNodeAugTe.tunnelTerminationPoint());
+            ttps = yang2TeSubsystemTtp(yangNodeAugTe.tunnelTerminationPoint(), yangNode);
         }
 
         TeNode teNode = new DefaultTeNode(teNodeId,
@@ -668,26 +765,30 @@ public final class NodeConverter {
     }
 
     /**
-     * Converts a TE Topology node event from the data format used in
-     * the core to its corresponding YANG Object (YO) format.
+     * Converts a TE Topology node event from the data format used in the core
+     * to its corresponding YANG Object (YO) format.
      *
      * @param eventType Node event type
-     * @param nodeData  TE Topology node event data
+     * @param eventData  TE Topology node event data
      * @return YANG Object converted from nodeData
      */
     public static TeNodeEvent teNetworkNode2yangTeNodeEvent(TeTopologyEventTypeEnum eventType,
-                                                            NetworkNode nodeData) {
+                                                            NetworkNodeEventSubject eventData) {
         TeNodeEvent.TeNodeEventBuilder builder = new DefaultTeNodeEvent.TeNodeEventBuilder();
 
         TeTopologyEventType yangEventType = new TeTopologyEventType(eventType);
         builder.eventType(yangEventType);
 
-        NodeId nodeId = NodeId.fromString(nodeData.nodeId().toString());
+        NetworkId newtorkId = NetworkId.fromString(eventData.key().networkId().toString());
+        builder.networkRef(newtorkId);
+        NodeId nodeId = NodeId.fromString(eventData.key().nodeId().toString());
         builder.nodeRef(nodeId);
 
+        NetworkNode node = eventData.neworkNode();
         org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
                 rev20160708.ietftetopology.tenodeconfigattributesnotification.
-                TeNodeAttributes teNodeAttributes = teNode2YangTeNodeAttributes(nodeData.teNode());
+                TeNodeAttributes teNodeAttributes = node == null ? null
+                                                                 : teNode2YangTeNodeAttributes(node.teNode());
         builder.teNodeAttributes(teNodeAttributes);
 
         return builder.build();
@@ -744,10 +845,8 @@ public final class NodeConverter {
     }
 
     public static NetworkNodeKey yangNodeEvent2NetworkNodeKey(TeNodeEvent yangNodeEvent) {
-        //TODO: implementation to be submitted as separate review
-
-        NetworkId networkRef = (NetworkId) (yangNodeEvent.networkRef());
-        NodeId nodeRef = (NodeId) (yangNodeEvent.nodeRef());
+        NetworkId networkRef = NetworkId.fromString(yangNodeEvent.networkRef().toString());
+        NodeId nodeRef = NodeId.fromString(yangNodeEvent.nodeRef().toString());
         KeyId networkId = KeyId.keyId(networkRef.uri().toString());
         KeyId nodeId = KeyId.keyId(nodeRef.uri().toString());
 
@@ -756,10 +855,15 @@ public final class NodeConverter {
         return networkNodeKey;
     }
 
+    /**
+     * Converts YangNode event to NetworkNode.
+     *
+     * @param yangNodeEvent yangNodeEvent
+     * @param teTopologyService teTopologyService
+     * @return NetworkNode
+     */
     public static NetworkNode yangNodeEvent2NetworkNode(TeNodeEvent yangNodeEvent,
                                                         TeTopologyService teTopologyService) {
-        //TODO: implementation to be submitted as separate review
-
         KeyId networkNodeId = yangNodeEvent2NetworkNodeKey(yangNodeEvent).nodeId();
 
         org.onosproject.tetopology.management.api.Network network = teTopologyService.network(

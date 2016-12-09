@@ -78,6 +78,7 @@ public final class TerminationPointConverter {
         checkNotNull(teSubsystem, E_NULL_TE_SUBSYSTEM_TP);
 
         TpId tpId = TpId.fromString(teSubsystem.tpId().toString());
+//        TpId tpId = TpId.fromString("0");
         TerminationPoint.TerminationPointBuilder builder =
                 new DefaultTerminationPoint.TerminationPointBuilder().tpId(tpId);
 
@@ -102,11 +103,11 @@ public final class TerminationPointConverter {
 
             yangTeBuilder = yangTeBuilder.teTpId(TeTpId.fromString((String.valueOf(teSubsystem.teTpId()))));
 
-            Config yConfig = teSubsystem2YangTeAugConfig(teSubsystem);
-            yangTeBuilder = yangTeBuilder.config(yConfig);
-
-            State yState = teSubsystem2YangTeAugState(teSubsystem);
-            yangTeBuilder = yangTeBuilder.state(yState);
+//            Config yConfig = teSubsystem2YangTeAugConfig(teSubsystem);
+//            yangTeBuilder = yangTeBuilder.config(yConfig);
+//
+//            State yState = teSubsystem2YangTeAugState(teSubsystem);
+//            yangTeBuilder = yangTeBuilder.state(yState);
 
             tpAugmentBuilder = tpAugmentBuilder.te(yangTeBuilder.build());
             builder.addYangAugmentedInfo(tpAugmentBuilder.build(), AugmentedNtTerminationPoint.class);
@@ -184,7 +185,8 @@ public final class TerminationPointConverter {
         tp = new org.onosproject.tetopology.management.api.node
                 .DefaultTerminationPoint(KeyId.keyId(yangTp.tpId().uri().string()),
                                          spTps,
-                                         Long.valueOf(teTpId.toString()));
+                                         teTpId == null ? null : Long.valueOf(teTpId.toString()));
+
         return tp;
     }
 

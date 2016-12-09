@@ -60,7 +60,7 @@ public class TePathAttributes {
      *
      * @return the cost
      */
-    public long cost() {
+    public Long cost() {
         return cost;
     }
 
@@ -69,7 +69,7 @@ public class TePathAttributes {
      *
      * @return the delay
      */
-    public long delay() {
+    public Long delay() {
         return delay;
     }
 

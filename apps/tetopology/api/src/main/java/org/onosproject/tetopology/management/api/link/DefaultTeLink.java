@@ -167,7 +167,7 @@ public class DefaultTeLink implements TeLink {
     }
 
     @Override
-    public long cost() {
+    public Long cost() {
         if (teData == null || teData.teAttributes() == null) {
             return TeConstants.NIL_LONG_VALUE;
         }
@@ -175,7 +175,7 @@ public class DefaultTeLink implements TeLink {
     }
 
     @Override
-    public long delay() {
+    public Long delay() {
         if (teData == null || teData.teAttributes() == null) {
             return TeConstants.NIL_LONG_VALUE;
         }

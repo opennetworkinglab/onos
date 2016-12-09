@@ -20,8 +20,12 @@ import com.google.common.collect.Maps;
 import org.onosproject.net.DeviceId;
 import org.onosproject.tetopology.management.api.KeyId;
 import org.onosproject.tetopology.management.api.TeTopologyEvent;
+import org.onosproject.tetopology.management.api.TeTopologyKey;
+import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.tetopology.management.api.link.NetworkLink;
+import org.onosproject.tetopology.management.api.link.NetworkLinkEventSubject;
 import org.onosproject.tetopology.management.api.node.NetworkNode;
+import org.onosproject.tetopology.management.api.node.NetworkNodeEventSubject;
 import org.onosproject.teyang.api.OperationType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork.OnosYangOpType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.DefaultNetworks;
@@ -150,12 +154,14 @@ public final class NetworkConverter {
      * Networks object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsystem TE Topology subsystem networks object
-     * @param operation   operation type
+     * @param operation operation type
+     * @param teTopologyService teTopology core service
      * @return Networks YANG object
      */
     public static Networks teSubsystem2YangNetworks(
             org.onosproject.tetopology.management.api.Networks teSubsystem,
-            OperationType operation) {
+                                                    OperationType operation,
+                                                    TeTopologyService teTopologyService) {
         checkNotNull(teSubsystem, E_NULL_TE_NETWORKS);
         checkNotNull(teSubsystem.networks(), E_NULL_TE_NETWORK_LIST);
         Networks.NetworksBuilder builder =
@@ -163,7 +169,8 @@ public final class NetworkConverter {
                         .yangNetworksOpType(toNetworksOperationType(operation));
         List<Network> networks = Lists.newArrayList();
         for (org.onosproject.tetopology.management.api.Network teNetwork : teSubsystem.networks()) {
-            networks.add(teSubsystem2YangNetwork(teNetwork, operation));
+            networks.add(teSubsystem2YangNetwork(teNetwork, operation,
+                                                 teTopologyService));
         }
         builder.network(networks);
         return builder.build();
@@ -258,11 +265,15 @@ public final class NetworkConverter {
     }
 
     private static NetworkBuilder te2YangNodes(NetworkBuilder builder,
-                                               Map<KeyId, NetworkNode> teNodes) {
+                                               Map<KeyId, NetworkNode> teNodes,
+                                               TeTopologyService teTopologyService,
+                                               TeTopologyKey teTopologyKey) {
         List<Node> nodeList = Lists.newArrayList();
 
         for (org.onosproject.tetopology.management.api.node.NetworkNode node : teNodes.values()) {
-            nodeList.add(NodeConverter.teSubsystem2YangNode(node));
+            nodeList.add(NodeConverter.teSubsystem2YangNode(node,
+                                                            teTopologyService,
+                                                            teTopologyKey));
         }
         return builder.node(nodeList);
     }
@@ -317,12 +328,14 @@ public final class NetworkConverter {
      * Network object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsystem TE Topology subsystem network object
-     * @param operation   operation type
+     * @param operation operation type
+     * @param teTopologyService teTopology core service
      * @return Network YANG object
      */
     public static Network teSubsystem2YangNetwork(
             org.onosproject.tetopology.management.api.Network teSubsystem,
-            OperationType operation) {
+                                                  OperationType operation,
+                                                  TeTopologyService teTopologyService) {
         checkNotNull(teSubsystem, E_NULL_TE_NETWORK);
         checkNotNull(teSubsystem.networkId(), E_NULL_TE_NETWORKID);
 
@@ -340,7 +353,13 @@ public final class NetworkConverter {
 
         // Nodes
         if (teSubsystem.nodes() != null) {
-            builder = te2YangNodes(builder, teSubsystem.nodes());
+            org.onosproject.tetopology.management.api.Network nt = teTopologyService.network(teSubsystem.networkId());
+            TeTopologyKey teTopoKey = new TeTopologyKey(nt.teTopologyId().providerId(),
+                                                        nt.teTopologyId().clientId(),
+                                                        Long.valueOf(nt.teTopologyId().topologyId()));
+            builder = te2YangNodes(builder, teSubsystem.nodes(),
+                                   teTopologyService,
+                                   teTopoKey);
         }
 
         // Network types
@@ -452,8 +471,8 @@ public final class NetworkConverter {
                     (AugmentedNwNetwork) yangNetwork.yangAugmentedInfo(AugmentedNwNetwork.class);
             teTopologyId =
                     new org.onosproject.tetopology.management.api.TeTopologyId(
-                            augmentTeIds.te().clientId().uint32(),
                             augmentTeIds.te().providerId().uint32(),
+                            augmentTeIds.te().clientId().uint32(),
                             augmentTeIds.te().teTopologyId().string());
         }
 
@@ -517,13 +536,13 @@ public final class NetworkConverter {
 
         IetfTeTopologyEvent.Type yangEventType = teTopoEventType2YangIetfTopoEventType(event.type());
         if (yangEventType == IetfTeTopologyEvent.Type.TE_LINK_EVENT) {
-            NetworkLink eventData = (NetworkLink) event.subject();
+            NetworkLinkEventSubject eventData = (NetworkLinkEventSubject) event.subject();
             TeTopologyEventTypeEnum linkEventType = teTopoEventType2YangTeTopoEventType(event.type());
             TeLinkEvent yangLinkEvent = LinkConverter.teNetworkLink2yangTeLinkEvent(linkEventType, eventData);
             eventSubject.teLinkEvent(yangLinkEvent);
             yangEvent = new IetfTeTopologyEvent(IetfTeTopologyEvent.Type.TE_LINK_EVENT, eventSubject);
         } else if (yangEventType == IetfTeTopologyEvent.Type.TE_NODE_EVENT) {
-            NetworkNode eventData = (NetworkNode) event.subject();
+            NetworkNodeEventSubject eventData = (NetworkNodeEventSubject) event.subject();
             TeTopologyEventTypeEnum nodeEventType = teTopoEventType2YangTeTopoEventType(event.type());
             TeNodeEvent yangNodeEvent = NodeConverter.teNetworkNode2yangTeNodeEvent(nodeEventType, eventData);
             eventSubject.teNodeEvent(yangNodeEvent);
@@ -571,7 +590,10 @@ public final class NetworkConverter {
                 returnType = TeTopologyEventTypeEnum.UPDATE;
                 break;
             default:
-                log.error("teTopoEventType2YangTeTopoEventType: unknown type: {}", type);
+                // log.warn("teTopoEventType2YangIetfTopoEventType: unsupported
+                // type: {}",
+                // type);
+            break;
         }
 
         return returnType;
