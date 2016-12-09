@@ -49,6 +49,7 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.impl.compiler.PointToPointIntentCompiler;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
+import org.onosproject.net.intent.impl.phase.Skipped;
 import org.osgi.service.component.ComponentContext;
 import org.onosproject.net.resource.ResourceService;
 import org.slf4j.Logger;
@@ -428,7 +429,8 @@ public class IntentManager
                                     //FIXME
                                     log.warn("Future failed: {}", e);
                                     return null;
-                                })).collect(Collectors.toList());
+                                }))
+                        .collect(Collectors.toList());
 
                 // write multiple data to store in order
                 store.batchWrite(Tools.allOf(futures).join().stream()
@@ -449,6 +451,16 @@ public class IntentManager
     }
 
     private IntentProcessPhase createInitialPhase(IntentData data) {
+        IntentData pending = store.getPendingData(data.key());
+        if (pending == null || pending.version().isNewerThan(data.version())) {
+            /*
+                If the pending map is null, then this intent was compiled by a
+                previous batch iteration, so we can skip it.
+                If the pending map has a newer request, it will get compiled as
+                part of the next batch, so we can skip it.
+             */
+            return Skipped.getPhase();
+        }
         IntentData current = store.getIntentData(data.key());
         return newInitialPhase(processor, data, current);
     }

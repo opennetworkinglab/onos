@@ -210,6 +210,13 @@ public class IntentCleanup implements Runnable, IntentListener {
     private void cleanup() {
         int corruptCount = 0, failedCount = 0, stuckCount = 0, pendingCount = 0;
 
+        // Check the pending map first, because the check of the current map
+        // will add items to the pending map.
+        for (IntentData intentData : store.getPendingData(true, periodMs)) {
+            resubmitPendingRequest(intentData);
+            pendingCount++;
+        }
+
         for (IntentData intentData : store.getIntentData(true, periodMs)) {
             switch (intentData.state()) {
                 case FAILED:
@@ -229,11 +236,6 @@ public class IntentCleanup implements Runnable, IntentListener {
                     //NOOP
                     break;
             }
-        }
-
-        for (IntentData intentData : store.getPendingData(true, periodMs)) {
-            resubmitPendingRequest(intentData);
-            pendingCount++;
         }
 
         if (corruptCount + failedCount + stuckCount + pendingCount > 0) {

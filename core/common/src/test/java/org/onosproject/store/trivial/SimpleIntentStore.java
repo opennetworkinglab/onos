@@ -195,6 +195,11 @@ public class SimpleIntentStore
     }
 
     @Override
+    public IntentData getPendingData(Key intentKey) {
+        return pending.get(intentKey);
+    }
+
+    @Override
     public Iterable<IntentData> getPendingData(boolean localOnly, long olderThan) {
         long older = System.nanoTime() - olderThan * 1_000_000; //convert ms to ns
         final SystemClockTimestamp time = new SystemClockTimestamp(older);

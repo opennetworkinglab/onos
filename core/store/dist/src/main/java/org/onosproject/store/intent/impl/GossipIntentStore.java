@@ -35,11 +35,11 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -141,19 +141,26 @@ public class GossipIntentStore
                 .withName("intent-current")
                 .withSerializer(intentSerializer)
                 .withTimestampProvider((key, intentData) ->
-                                               new MultiValuedTimestamp<>(
-                                                       intentData == null ? new WallClockTimestamp() :
-                                                               intentData.version(),
-                                                                          sequenceNumber.getAndIncrement()))
+                        new MultiValuedTimestamp<>(intentData == null ?
+                            new WallClockTimestamp() : intentData.version(),
+                                                   sequenceNumber.getAndIncrement()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData));
 
         EventuallyConsistentMapBuilder pendingECMapBuilder =
                 storageService.<Key, IntentData>eventuallyConsistentMapBuilder()
                 .withName("intent-pending")
                 .withSerializer(intentSerializer)
-                .withTimestampProvider((key, intentData) -> intentData == null ?
-                        new MultiValuedTimestamp<>(new WallClockTimestamp(), System.nanoTime()) :
-                        new MultiValuedTimestamp<>(intentData.version(), System.nanoTime()))
+                .withTimestampProvider((key, intentData) ->
+                        /*
+                            We always want to accept new values in the pending map,
+                            so we should use a high performance logical clock.
+                        */
+                        /*
+                            TODO We use the wall clock for the time being, but
+                            this could result in issues if there is clock skew
+                            across instances.
+                         */
+                        new MultiValuedTimestamp<>(new WallClockTimestamp(), System.nanoTime()))
                 .withPeerUpdateFunction((key, intentData) -> getPeerNodes(key, intentData));
         if (initiallyPersistent) {
             currentECMapBuilder = currentECMapBuilder.withPersistence();
@@ -285,17 +292,19 @@ public class GossipIntentStore
             } else {
                 currentMap.put(newData.key(), new IntentData(newData));
             }
-
-            // Remove the intent data from the pending map if the newData is more
-            // recent or equal to the existing entry.
-            pendingMap.compute(newData.key(), (key, existingValue) -> {
-                if (existingValue == null || !existingValue.version().isNewerThan(newData.version())) {
-                    return null;
-                } else {
-                    return existingValue;
-                }
-            });
         }
+        /*
+         * Remove the intent data from the pending map if the newData is more
+         * recent or equal to the existing entry. No matter if it is an acceptable
+         * update or not.
+         */
+        pendingMap.compute(newData.key(), (key, existingValue) -> {
+            if (existingValue == null || !existingValue.version().isNewerThan(newData.version())) {
+                return null;
+            } else {
+                return existingValue;
+            }
+        });
     }
 
     private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
@@ -363,7 +372,12 @@ public class GossipIntentStore
         Timestamp version = data.version() != null ? data.version() : new WallClockTimestamp();
         pendingMap.compute(data.key(), (key, existingValue) -> {
             if (existingValue == null || existingValue.version().isOlderThan(version)) {
-                return new IntentData(data.intent(), data.state(),
+                /*
+                 * This avoids to create Intent with state == request, which can
+                 * be problematic if the Intent state is different from *REQ
+                 * {INSTALL_, WITHDRAW_ and PURGE_}.
+                 */
+                return new IntentData(data.intent(), data.state(), data.request(),
                                       version, clusterService.getLocalNode().id());
             } else {
                 return existingValue;
@@ -389,6 +403,11 @@ public class GossipIntentStore
     }
 
     @Override
+    public IntentData getPendingData(Key intentKey) {
+        return pendingMap.get(intentKey);
+    }
+
+    @Override
     public Iterable<IntentData> getPendingData(boolean localOnly, long olderThan) {
         long now = System.currentTimeMillis();
         final WallClockTimestamp time = new WallClockTimestamp(now - olderThan);
@@ -403,7 +422,6 @@ public class GossipIntentStore
         @Override
         public void event(EventuallyConsistentMapEvent<Key, IntentData> event) {
             IntentData intentData = event.value();
-
             if (event.type() == EventuallyConsistentMapEvent.Type.PUT) {
                 // The current intents map has been updated. If we are master for
                 // this intent's partition, notify the Manager that it should
