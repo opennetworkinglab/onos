@@ -25,6 +25,7 @@ def osgi_feature(
         generate_file = False,
         visibility = [ 'PUBLIC' ],
         stage_repo = True,
+        maven_coords = None,
     ):
 
     if not feature_coords:
@@ -47,6 +48,7 @@ def osgi_feature(
             bash = cmd,
             out = 'features.xml',
             visibility = visibility,
+            maven_coords = maven_coords,
     )
 
     if stage_repo:
@@ -95,6 +97,7 @@ def osgi_feature_group(
         version = ONOS_VERSION,
         exported_deps = [],
         visibility = ['PUBLIC'],
+        maven_coords = None,
         **kwargs
     ):
     java_library(
@@ -112,6 +115,7 @@ def osgi_feature_group(
             included_bundles = exported_deps,
             generate_file = False,
             visibility = visibility,
+            maven_coords = maven_coords,
     )
 
 
@@ -140,6 +144,7 @@ def onos_app(
         app_name = _get_app_name()
 
     maven_coords = '%s:%s:oar:%s' % ( ONOS_GROUP_ID, name, ONOS_VERSION )
+    feature_xml_coords = '%s:%s:xml:features:%s' % ( ONOS_GROUP_ID, name, ONOS_VERSION )
 
     if title is None:
         print "Missing title for %s" % _get_name()
@@ -186,6 +191,7 @@ def onos_app(
         generate_file = True,
         visibility = [],
         stage_repo = False,
+        maven_coords = feature_xml_coords,
     )
 
     cmd = '$(exe //buck-tools:onos-app-writer) -A ' + ' '.join(args) + ' > $OUT'
