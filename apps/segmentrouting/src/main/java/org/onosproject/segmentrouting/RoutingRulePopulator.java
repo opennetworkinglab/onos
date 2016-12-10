@@ -188,9 +188,7 @@ public class RoutingRulePopulator {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
 
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
-        sbuilder.matchIPDst(prefix);
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
         TrafficSelector selector = sbuilder.build();
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
@@ -202,7 +200,7 @@ public class RoutingRulePopulator {
 
         // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
         // for switch pipelines that need it, provide outgoing vlan as metadata
-        VlanId outvlan = null;
+        VlanId outvlan;
         Ip4Prefix subnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, outPort);
         if (subnet == null) {
             outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
@@ -349,9 +347,7 @@ public class RoutingRulePopulator {
      * @return true if all rules are removed successfully, false otherwise
      */
     public boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchIPDst(ipPrefix);
-        sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(ipPrefix);
         TrafficSelector selector = sbuilder.build();
         TrafficTreatment dummyTreatment = DefaultTrafficTreatment.builder().build();
 
@@ -790,10 +786,14 @@ public class RoutingRulePopulator {
      */
     public void populateSubnetBroadcastRule(DeviceId deviceId) {
         config.getSubnets(deviceId).forEach(subnet -> {
-            if (subnet.prefixLength() == 0 ||
-                    subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH ||
-                    subnet.prefixLength() == IpPrefix.MAX_INET6_MASK_LENGTH) {
-                return;
+            if (subnet.isIp4()) {
+                if (subnet.prefixLength() == 0 || subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
+                    return;
+                }
+            } else {
+                if (subnet.prefixLength() == 0 || subnet.prefixLength() == IpPrefix.MAX_INET6_MASK_LENGTH) {
+                    return;
+                }
             }
             int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);
             VlanId vlanId = srManager.getSubnetAssignedVlanId(deviceId, subnet);

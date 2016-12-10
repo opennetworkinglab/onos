@@ -59,8 +59,8 @@ public class RouteHandler {
         MacAddress nextHopMac = route.nextHopMac();
         ConnectPoint location = route.location();
 
-        srManager.deviceConfiguration.addSubnet(location, prefix.getIp4Prefix());
-        srManager.defaultRoutingHandler.populateSubnet(location, ImmutableSet.of(prefix.getIp4Prefix()));
+        srManager.deviceConfiguration.addSubnet(location, prefix);
+        srManager.defaultRoutingHandler.populateSubnet(location, ImmutableSet.of(prefix));
         srManager.routingRulePopulator.populateRoute(location.deviceId(), prefix,
                 nextHopMac, location.port());
     }

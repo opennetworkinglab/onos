@@ -656,6 +656,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn("{} - we are still receiving ARP packets from {}",
                          context.inPacket().receivedFrom());
                 log.debug("{}", ethernet);
+                return;
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 ipv4Packet = (IPv4) ethernet.getPayload();
                 //ipHandler.addToPacketBuffer(ipv4Packet);
@@ -664,7 +665,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 } else {
                     // NOTE: We don't support IP learning at this moment so this
                     //       is not necessary. Also it causes duplication of DHCP packets.
-                    // ipHandler.processPacketIn(pkt);
+                    // ipHandler.processPacketIn(ipv4Packet, pkt.receivedFrom());
                 }
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6Packet = (IPv6) ethernet.getPayload();

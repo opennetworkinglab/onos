@@ -82,15 +82,17 @@ public class SegmentRoutingNeighbourHandler {
         byte[] senderIpAddress;
         try {
             senderMacAddress = config.getDeviceMac(deviceId).toBytes();
-            senderIpAddress = config.getRouterIpAddressForASubnetHost(targetAddress.getIp4Address())
-                    .toOctets();
+            if (targetAddress.isIp4()) {
+                senderIpAddress = config.getRouterIpAddressForASubnetHost(targetAddress.getIp4Address())
+                        .toOctets();
+            } else {
+                senderIpAddress = config.getRouterIpAddressForASubnetHost(targetAddress.getIp6Address())
+                        .toOctets();
+            }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting sendArpRequest.");
             return;
         }
-        /*
-         * FIXME understand how to manage IPv4/IPv6 together.
-         */
         System.arraycopy(senderMacAddress, 0, mac, 0, senderMacAddress.length);
         System.arraycopy(senderIpAddress, 0, ip, 0, senderIpAddress.length);
     }

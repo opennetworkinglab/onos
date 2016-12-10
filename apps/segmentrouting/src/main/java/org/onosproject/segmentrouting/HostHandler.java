@@ -103,7 +103,7 @@ public class HostHandler {
 
             ips.forEach(ip -> {
                 // Populate IP table entry
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(location, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             deviceId, ip.toIpPrefix(), mac, port);
                 }
@@ -140,7 +140,7 @@ public class HostHandler {
 
             // Revoke IP table entry
             ips.forEach(ip -> {
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(location, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             deviceId, ip.toIpPrefix(), mac, port);
                 }
@@ -178,7 +178,7 @@ public class HostHandler {
 
             // Revoke previous IP table entry
             prevIps.forEach(ip -> {
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
@@ -201,7 +201,7 @@ public class HostHandler {
 
             // Populate new IP table entry
             newIps.forEach(ip -> {
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
@@ -225,7 +225,7 @@ public class HostHandler {
         if (accepted(event.prevSubject())) {
             // Revoke previous IP table entry
             prevIps.forEach(ip -> {
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
                             prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
@@ -235,7 +235,7 @@ public class HostHandler {
         if (accepted(event.subject())) {
             // Populate new IP table entry
             newIps.forEach(ip -> {
-                if (ip.isIp4() && srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
+                if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     srManager.routingRulePopulator.populateRoute(
                             newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }
