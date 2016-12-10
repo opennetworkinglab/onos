@@ -113,14 +113,29 @@ public class ProtectedTransportEndpointDescription {
      * Creates a {@link ProtectedTransportEndpointDescription}.
      *
      * @param paths {@link TransportEndpointDescription}s forming protection
-     * @param did DeviceId of remote peer of this endpoint.
+     * @param peer DeviceId of remote peer of this endpoint.
+     * @param fingerprint opaque fingerprint object. must be serializable.
+     * @return {@link TransportEndpointDescription}
+     */
+    public static final ProtectedTransportEndpointDescription
+            buildDescription(List<TransportEndpointDescription> paths,
+                             DeviceId peer,
+                             String fingerprint) {
+        return new ProtectedTransportEndpointDescription(paths, peer, fingerprint);
+    }
+
+    /**
+     * Creates a {@link ProtectedTransportEndpointDescription}.
+     *
+     * @param paths {@link TransportEndpointDescription}s forming protection
+     * @param peer DeviceId of remote peer of this endpoint.
      * @param fingerprint opaque fingerprint object. must be serializable.
      * @return {@link TransportEndpointDescription}
      */
     public static final ProtectedTransportEndpointDescription
                             of(List<TransportEndpointDescription> paths,
-                               DeviceId did,
+                               DeviceId peer,
                                String fingerprint) {
-        return new ProtectedTransportEndpointDescription(paths, did, fingerprint);
+        return new ProtectedTransportEndpointDescription(paths, peer, fingerprint);
     }
 }

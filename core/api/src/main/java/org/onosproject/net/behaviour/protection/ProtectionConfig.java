@@ -16,6 +16,7 @@
 package org.onosproject.net.behaviour.protection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription.buildDescription;
 
 import java.util.List;
 
@@ -127,7 +128,7 @@ public class ProtectionConfig
      * @return {@link ProtectedTransportEndpointDescription}
      */
     public ProtectedTransportEndpointDescription asDescription() {
-        return ProtectedTransportEndpointDescription.of(paths(), peer(), fingerprint());
+        return buildDescription(paths(), peer(), fingerprint());
     }
 
     @Override
