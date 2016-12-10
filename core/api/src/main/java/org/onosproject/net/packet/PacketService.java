@@ -69,6 +69,22 @@ public interface PacketService {
     void requestPackets(TrafficSelector selector, PacketPriority priority,
                         ApplicationId appId);
 
+    /**
+     * Requests that packets matching the given selector are punted from the
+     * dataplane to the controller.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId    the application ID of the requester
+     * @param copy     request a copy of the matching packet to be punted to the controller.
+     *                 <p>
+     *                 If false, the original packet is always sent to the controller.
+     *                 If true, a copy of the packet is sent to the controller,
+     *                 as long as the packet can be duplicated.
+     *                 If duplication is not supported, the original packet will be sent to the controller.
+     */
+    void requestPackets(TrafficSelector selector, PacketPriority priority,
+                        ApplicationId appId, boolean copy);
 
     /**
      * Requests that packets matching the given selector are punted from the
@@ -94,6 +110,23 @@ public interface PacketService {
      */
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId);
+
+    /**
+     * Cancels previous packet requests for packets matching the given
+     * selector to be punted from the dataplane to the controller.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId    the application ID of the requester
+     * @param copy     request a copy of the matching packet to be punted to the controller.
+     *                 <p>
+     *                 If false, the original packet is always sent to the controller.
+     *                 If true, a copy of the packet is sent to the controller,
+     *                 as long as the packet can be duplicated.
+     *                 If duplication is not supported, the original packet will be sent to the controller.
+     */
+    void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                       ApplicationId appId, boolean copy);
 
     /**
      * Cancels previous packet requests for packets matching the given

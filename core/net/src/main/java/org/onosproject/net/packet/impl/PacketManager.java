@@ -34,6 +34,7 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -180,12 +181,19 @@ public class PacketManager
     @Override
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId) {
+        this.requestPackets(selector, priority, appId, false);
+    }
+
+    @Override
+    public void requestPackets(TrafficSelector selector, PacketPriority priority,
+                               ApplicationId appId, boolean copy) {
         checkPermission(PACKET_READ);
         checkNotNull(selector, ERROR_NULL_SELECTOR);
         checkNotNull(appId, ERROR_NULL_APP_ID);
 
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
-                                                         localNodeId, Optional.empty());
+                localNodeId, Optional.empty(), copy);
+
         store.requestPackets(request);
     }
 
@@ -202,19 +210,23 @@ public class PacketManager
                                          localNodeId, deviceId);
 
         store.requestPackets(request);
-
     }
 
     @Override
     public void cancelPackets(TrafficSelector selector, PacketPriority priority,
                               ApplicationId appId) {
+        this.cancelPackets(selector, priority, appId, false);
+    }
+
+    @Override
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                              ApplicationId appId, boolean copy) {
         checkPermission(PACKET_READ);
         checkNotNull(selector, ERROR_NULL_SELECTOR);
         checkNotNull(appId, ERROR_NULL_APP_ID);
 
-
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId,
-                                                         localNodeId, Optional.empty());
+                localNodeId, Optional.empty(), copy);
         store.cancelPackets(request);
     }
 
@@ -321,12 +333,18 @@ public class PacketManager
     }
 
     private DefaultForwardingObjective.Builder createBuilder(PacketRequest request) {
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.punt();
+        if (!request.copy()) {
+            tBuilder.wipeDeferred();
+        }
+
         return DefaultForwardingObjective.builder()
                 .withPriority(request.priority().priorityValue())
                 .withSelector(request.selector())
                 .fromApp(appId)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withTreatment(DefaultTrafficTreatment.builder().punt().build())
+                .withTreatment(tBuilder.build())
                 .makePermanent();
     }
 
