@@ -32,8 +32,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * List type LCAF address class.
  * <p>
- * List type is defined in draft-ietf-lisp-lcaf-20
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-22
+ * List type is defined in draft-ietf-lisp-lcaf-22
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-22
  *
  * <pre>
  * {@literal

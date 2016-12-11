@@ -32,8 +32,8 @@ import static org.onosproject.lisp.msg.types.LispLcafAddress.COMMON_HEADER_SIZE;
 /**
  * Traffic Engineering (TE) type LCAF address class.
  * <p>
- * Traffic Engineering type is defined in draft-ietf-lisp-lcaf-20
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-16
+ * Traffic Engineering type is defined in draft-ietf-lisp-lcaf-22
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-16
  *
  * <pre>
  * {@literal

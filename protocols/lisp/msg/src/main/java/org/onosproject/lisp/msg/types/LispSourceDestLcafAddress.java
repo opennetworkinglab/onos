@@ -30,8 +30,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Source/Dest key type LCAF address class.
  * <p>
- * Source destination key type is defined in draft-ietf-lisp-lcaf-20
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-19
+ * Source destination key type is defined in draft-ietf-lisp-lcaf-22
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-19
  *
  * <pre>
  * {@literal

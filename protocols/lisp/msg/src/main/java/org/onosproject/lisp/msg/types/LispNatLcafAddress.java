@@ -30,8 +30,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Network Address Translation (NAT) address class.
  * <p>
- * Instance ID type is defined in draft-ietf-lisp-lcaf-20
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-20#page-12
+ * Instance ID type is defined in draft-ietf-lisp-lcaf-22
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-12
  *
  * <pre>
  * {@literal
