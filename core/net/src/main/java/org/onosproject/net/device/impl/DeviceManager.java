@@ -332,6 +332,21 @@ public class DeviceManager
                     } catch (ExecutionException e) {
                         log.error("Exception thrown while relinquishing role for {}", deviceId, e);
                     }
+                } else {
+                    // check if the device has master, if not, mark it offline
+                    NodeId masterId = mastershipService.getMasterFor(deviceId);
+                    // only the nodes which has mastership role can mark any device offline.
+                    CompletableFuture<MastershipRole> roleFuture = mastershipService.requestRoleFor(deviceId);
+                    roleFuture.thenAccept(role -> {
+                        MastershipTerm term = termService.getMastershipTerm(deviceId);
+                        if (term != null && localNodeId.equals(term.master())) {
+                            log.info("Marking unreachable device {} offline", deviceId);
+                            post(store.markOffline(deviceId));
+                        } else {
+                            log.info("Failed marking {} offline. {}", deviceId, role);
+                        }
+                        mastershipService.relinquishMastership(deviceId);
+                    });
                 }
                 continue;
             }
