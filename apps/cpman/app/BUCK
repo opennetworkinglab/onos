@@ -27,6 +27,10 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/cpman',
+    api_title = 'Control Plane Manager App API',
+    api_version = '1.0',
+    api_description = 'REST API for Control Plane Manager App',
+    api_package = 'org.onosproject.cpman.rest',
 )
 
 onos_app (
