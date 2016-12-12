@@ -3,21 +3,36 @@
 # Validates the specified ONOS release bits using STC and a borrowed cell.
 # -----------------------------------------------------------------------------
 
-export DOWNLOAD_URL=http://downloads.onosproject.org/release
+set -e
+
 export ONOS_VERSION=$1
+RELEASE=$2
 
-[ -z "$ONOS_VERSION" ] && echo "usage: $(basename $0) <version>" >&2 && exit 1
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+[ -z "$ONOS_VERSION" -o -z "$ONOS_VERSION" ] && echo "usage: $(basename $0) <version> <release,nightly>" >&2 && exit 1
 
-# Temporary: Check-out the version tag using existing ONOS_ROOT
-# TODO: Download the test bits from the download site and use that for ONOS_ROOT
-git checkout $ONOS_VERSION
+DIR=$(mktemp -d /tmp/onos-test.XXXXX) &&
+  echo "Created tempdir for release: $DIR" ||
+  { echo "Failed to create temp file"; exit 1; }
 
-# Download the ONOS bits from the download site
-rm /tmp/onos-$ONOS_VERSION.tar.gz
+cd $DIR
+
+export DOWNLOAD_URL=http://downloads.onosproject.org/${RELEASE}
+
+# Download the ONOS release bits from the download site
+rm -f /tmp/onos-$ONOS_VERSION.tar.gz
 curl -LsS --fail $DOWNLOAD_URL/onos-$ONOS_VERSION.tar.gz > /tmp/onos-$ONOS_VERSION.tar.gz
 
+# Download the ONOS test bits from the download site
+rm -f /tmp/onos-test-$ONOS_VERSION.tar.gz
+curl -LsS --fail $DOWNLOAD_URL/onos-test-$ONOS_VERSION.tar.gz > /tmp/onos-test-$ONOS_VERSION.tar.gz
+
+# unroll the test release
+tar xvf /tmp/onos-test-$ONOS_VERSION.tar.gz
+
+# set up environment
+export ONOS_ROOT=${DIR}/onos-test-${ONOS_VERSION}
+cd ${ONOS_ROOT}
+. ${ONOS_ROOT}/tools/dev/bash_profile
+
 # Borrow a test cell and run STC
-. $ONOS_ROOT/tools/dev/bash_profile
-cell borrow
-stc
+ ( export PATH=${ONOS_ROOT}/tools/test/bin:${ONOS_ROOT}/tools/dev/bin:${PATH} && cell borrow && stc )
