@@ -50,8 +50,6 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final Logger log = LoggerFactory
             .getLogger(NetconfSessionImpl.class);
 
-
-    private static final int CONNECTION_TIMEOUT = 0;
     private static final String ENDPATTERN = "]]>]]>";
     private static final String MESSAGE_ID_STRING = "message-id";
     private static final String HELLO = "<hello";
@@ -111,8 +109,10 @@ public class NetconfSessionImpl implements NetconfSession {
     private void startConnection() throws NetconfException {
         if (!connectionActive) {
             netconfConnection = new Connection(deviceInfo.ip().toString(), deviceInfo.port());
+            int connectTimeout = NetconfControllerImpl.netconfConnectTimeout;
+
             try {
-                netconfConnection.connect(null, CONNECTION_TIMEOUT, 5000);
+                netconfConnection.connect(null, 1000 * connectTimeout, 1000 * connectTimeout);
             } catch (IOException e) {
                 throw new NetconfException("Cannot open a connection with device" + deviceInfo, e);
             }

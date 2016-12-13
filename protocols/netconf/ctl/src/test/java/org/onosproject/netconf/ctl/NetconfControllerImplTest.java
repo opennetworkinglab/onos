@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.netconf.ctl;
 
 import org.easymock.EasyMock;
@@ -138,21 +137,28 @@ public class NetconfControllerImplTest {
      */
     @Test
     public void testActivate() {
-        assertEquals("Incorrect NetConf session timeout, should be default",
-                     5, ctrl.netconfReplyTimeout);
+        assertEquals("Incorrect NetConf connect timeout, should be default",
+                     5, ctrl.netconfConnectTimeout);
+        assertEquals("Incorrect NetConf reply timeout, should be default",
+                5, ctrl.netconfReplyTimeout);
         ctrl.activate(null);
-        assertEquals("Incorrect NetConf session timeout, should be default",
-                     5, ctrl.netconfReplyTimeout);
-    }
+        assertEquals("Incorrect NetConf connect timeout, should be default",
+                     5, ctrl.netconfConnectTimeout);
+        assertEquals("Incorrect NetConf reply timeout, should be default",
+                5, ctrl.netconfReplyTimeout);    }
 
     /**
      * Test modification of component configuration.
      */
     @Test
     public void testModified() {
+        assertEquals("Incorrect NetConf connect timeout, should be default",
+                    5, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf session timeout, should be default",
                      5, ctrl.netconfReplyTimeout);
         ctrl.modified(context);
+        assertEquals("Incorrect NetConf connect timeout, should be default",
+                    2, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf session timeout",
                      1, ctrl.netconfReplyTimeout);
     }
@@ -388,7 +394,9 @@ public class NetconfControllerImplTest {
 
         @Override
         public Object get(Object key) {
-            if (key.equals("netconfReplyTimeout")) {
+            if (key.equals("netconfConnectTimeout")) {
+                return "2";
+            } else if (key.equals("netconfReplyTimeout")) {
                 return "1";
             }
             return null;

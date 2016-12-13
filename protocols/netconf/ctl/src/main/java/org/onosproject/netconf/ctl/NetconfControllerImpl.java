@@ -60,6 +60,12 @@ import static org.onlab.util.Tools.get;
 @Component(immediate = true)
 @Service
 public class NetconfControllerImpl implements NetconfController {
+    private static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
+    private static final String PROP_NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
+    @Property(name = PROP_NETCONF_CONNECT_TIMEOUT, intValue = DEFAULT_CONNECT_TIMEOUT_SECONDS,
+            label = "Time (in seconds) to wait for a NETCONF connect.")
+    protected static int netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
+
     private static final String PROP_NETCONF_REPLY_TIMEOUT = "netconfReplyTimeout";
     private static final int DEFAULT_REPLY_TIMEOUT_SECONDS = 5;
     @Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
@@ -103,6 +109,7 @@ public class NetconfControllerImpl implements NetconfController {
     public void modified(ComponentContext context) {
         if (context == null) {
             netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
+            netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
             log.info("No component configuration");
             return;
         }
@@ -110,17 +117,33 @@ public class NetconfControllerImpl implements NetconfController {
         Dictionary<?, ?> properties = context.getProperties();
 
         int newNetconfReplyTimeout;
+        int newNetconfConnectTimeout;
         try {
             String s = get(properties, PROP_NETCONF_REPLY_TIMEOUT);
             newNetconfReplyTimeout = isNullOrEmpty(s) ?
                     netconfReplyTimeout : Integer.parseInt(s.trim());
+
+            s = get(properties, PROP_NETCONF_CONNECT_TIMEOUT);
+            newNetconfConnectTimeout = isNullOrEmpty(s) ?
+                    netconfConnectTimeout : Integer.parseInt(s.trim());
+
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid value", e);
             return;
         }
 
+        if (newNetconfConnectTimeout < 0) {
+            log.warn("netconfConnectTimeout is invalid - less than 0");
+            return;
+        } else if (newNetconfReplyTimeout <= 0) {
+            log.warn("netconfReplyTimeout is invalid - 0 or less.");
+            return;
+        }
+
         netconfReplyTimeout = newNetconfReplyTimeout;
-        log.info("Settings: {} = {}", PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout);
+        netconfConnectTimeout = newNetconfConnectTimeout;
+        log.info("Settings: {} = {}, {} = {}",
+                PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout, PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout);
     }
 
     @Override
