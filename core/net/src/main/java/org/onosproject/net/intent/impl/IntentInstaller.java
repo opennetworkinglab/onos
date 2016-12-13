@@ -433,11 +433,11 @@ class IntentInstaller {
 
         @Override
         void apply() {
-            contexts.forEach(objectiveContext -> {
-                pendingContexts.add(objectiveContext);
+            pendingContexts.addAll(contexts);
+            contexts.forEach(objectiveContext ->
                 flowObjectiveService.apply(objectiveContext.deviceId,
-                                           objectiveContext.objective);
-            });
+                                           objectiveContext.objective)
+            );
         }
 
         @Override
