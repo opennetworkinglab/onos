@@ -48,6 +48,7 @@ public class LispControllerBootstrap {
 
     private EventLoopGroup eventLoopGroup;
     private Class<? extends AbstractChannel> channelClass;
+    private List<ChannelFuture> channelFutures = Lists.newArrayList();
 
     /**
      * Stitches all channel handlers into server bootstrap.
@@ -58,8 +59,6 @@ public class LispControllerBootstrap {
             final Bootstrap bootstrap = createServerBootstrap();
 
             configBootstrapOptions(bootstrap);
-
-            List<ChannelFuture> channelFutures = Lists.newArrayList();
 
             lispPorts.forEach(p -> {
                 InetSocketAddress sa = new InetSocketAddress(p);
@@ -152,6 +151,7 @@ public class LispControllerBootstrap {
         try {
             // try to shutdown all open event groups
             eventLoopGroup.shutdownGracefully().sync();
+            closeChannels(channelFutures);
         } catch (InterruptedException e) {
             log.warn("Failed to stop LISP controller. Reasons: {}.", e.getMessage());
         }

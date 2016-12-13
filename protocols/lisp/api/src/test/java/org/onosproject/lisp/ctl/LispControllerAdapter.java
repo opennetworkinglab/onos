@@ -25,6 +25,11 @@ public class LispControllerAdapter implements LispController {
     }
 
     @Override
+    public Iterable<LispRouter> getSubscribedRouters() {
+        return null;
+    }
+
+    @Override
     public LispRouter getRouter(LispRouterId routerId) {
         return null;
     }

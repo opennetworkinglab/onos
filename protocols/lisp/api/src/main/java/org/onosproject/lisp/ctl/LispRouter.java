@@ -80,4 +80,47 @@ public interface LispRouter {
      * @return whether the router is connected
      */
     boolean isConnected();
+
+    /**
+     * Sets whether the router is connected.
+     *
+     * @param connected whether the router is connected
+     */
+    void setConnected(boolean connected);
+
+    /**
+     * Checks if the router is subscribed.
+     * As long as a router sends Map-Request message,
+     * we treat the router is subscribed.
+     *
+     * @return whether the router is subscribed
+     */
+    boolean isSubscribed();
+
+    /**
+     * Sets whether the router is subscribed.
+     *
+     * @param subscribed whether the router is subscribed
+     */
+    void setSubscribed(boolean subscribed);
+
+    /**
+     * Sets the LISP agent to be used. This method can only be invoked once.
+     *
+     * @param agent the agent to set
+     */
+    void setAgent(LispRouterAgent agent);
+
+    /**
+     * Announces to the LISP agent that this router has connected.
+     *
+     * @return true if successful, false if duplicate router
+     */
+    boolean connectRouter();
+
+    /**
+     * Disconnects the router by closing UDP connection.
+     * Results in a call to the channel handler's close method for cleanup.
+     */
+    void disconnectRouter();
 }

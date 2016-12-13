@@ -29,6 +29,13 @@ public interface LispController {
     Iterable<LispRouter> getRouters();
 
     /**
+     * Obtains all subscribed LISP routers known to this LISP controllers.
+     *
+     * @return Iterable of LISP router elements
+     */
+    Iterable<LispRouter> getSubscribedRouters();
+
+    /**
      * Obtains the actual router for the given LispRouterId.
      *
      * @param routerId the router to fetch

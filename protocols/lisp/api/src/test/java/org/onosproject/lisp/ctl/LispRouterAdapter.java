@@ -63,4 +63,34 @@ public class LispRouterAdapter implements LispRouter {
     public boolean isConnected() {
         return false;
     }
+
+    @Override
+    public void setConnected(boolean connected) {
+
+    }
+
+    @Override
+    public boolean isSubscribed() {
+        return false;
+    }
+
+    @Override
+    public void setSubscribed(boolean subscribed) {
+
+    }
+
+    @Override
+    public void setAgent(LispRouterAgent agent) {
+
+    }
+
+    @Override
+    public boolean connectRouter() {
+        return false;
+    }
+
+    @Override
+    public void disconnectRouter() {
+
+    }
 }
