@@ -25,7 +25,7 @@
     var $log, wss, sus, t2rs, t2d3, t2vs, t2ss;
 
     var linkG, linkLabelG, nodeG;
-    var link, node;
+    var link, node, zoomer;
 
     // default settings for force layout
     var defaultSettings = {
@@ -73,12 +73,14 @@
     };
 
     // internal state
-    var settings,   // merged default settings and options
-        force,      // force layout object
-        drag,       // drag behavior handler
+    var settings,               // merged default settings and options
+        force,                  // force layout object
+        drag,                   // drag behavior handler
+        previousNearestLink,    // previous link to mouse position
         nodeLock = false;       // whether nodes can be dragged or not (locked)
 
-    function init(_svg_, forceG, _uplink_, _dim_, opts) {
+
+    function init(_svg_, forceG, _uplink_, _dim_, _zoomer_, opts) {
 
         $log.debug("Initialising Topology Layout");
         settings = angular.extend({}, defaultSettings, opts);
@@ -92,6 +94,10 @@
         link = linkG.selectAll('.link');
         linkLabelG.selectAll('.linkLabel');
         node = nodeG.selectAll('.node');
+
+        zoomer = _zoomer_;
+        _svg_.on('mousemove', mouseMoveHandler);
+        _svg_.on('click', mouseClickHandler);
     }
 
     function getDeviceChargeForType(node) {
@@ -323,6 +329,121 @@
 
     function start() {
         force.start();
+    }
+
+    function mouseClickHandler() {
+
+        if (!d3.event.shiftKey) {
+            t2rs.deselectLink();
+        }
+
+        if (!t2ss.clickConsumed()) {
+            if (previousNearestLink) {
+                previousNearestLink.select();
+            }
+        }
+
+    }
+
+    // Select Links
+    function mouseMoveHandler() {
+        var mp = getLogicalMousePosition(this),
+            link = computeNearestLink(mp);
+
+        // link.enhance();
+        if (link) {
+            if (previousNearestLink && previousNearestLink != link) {
+                previousNearestLink.unenhance();
+            }
+            link.enhance();
+        } else {
+            if (previousNearestLink) {
+                previousNearestLink.unenhance();
+            }
+        }
+
+        previousNearestLink = link;
+    }
+
+
+    function getLogicalMousePosition(container) {
+        var m = d3.mouse(container),
+            sc = zoomer.scale(),
+            tr = zoomer.translate(),
+            mx = (m[0] - tr[0]) / sc,
+            my = (m[1] - tr[1]) / sc;
+        return {x: mx, y: my};
+    }
+
+    function sq(x) { return x * x; }
+
+    function mdist(p, m) {
+        return Math.sqrt(sq(p.x - m.x) + sq(p.y - m.y));
+    }
+
+    function prox(dist) {
+        return dist / zoomer.scale();
+    }
+
+    function computeNearestLink(mouse) {
+        var proximity = prox(30),
+            nearest = null,
+            minDist;
+
+        function pdrop(line, mouse) {
+            var x1 = line.x1,
+                y1 = line.y1,
+                x2 = line.x2,
+                y2 = line.y2,
+                x3 = mouse.x,
+                y3 = mouse.y,
+                k = ((y2-y1) * (x3-x1) - (x2-x1) * (y3-y1)) /
+                    (sq(y2-y1) + sq(x2-x1)),
+                x4 = x3 - k * (y2-y1),
+                y4 = y3 + k * (x2-x1);
+            return {x:x4, y:y4};
+        }
+
+        function lineHit(line, p, m) {
+            if (p.x < line.x1 && p.x < line.x2) return false;
+            if (p.x > line.x1 && p.x > line.x2) return false;
+            if (p.y < line.y1 && p.y < line.y2) return false;
+            if (p.y > line.y1 && p.y > line.y2) return false;
+            // line intersects, but are we close enough?
+            return mdist(p, m) <= proximity;
+        }
+
+        var links = t2rs.regionLinks();
+
+        if (links.length) {
+            minDist = proximity * 2;
+
+            links.forEach(function (d) {
+                var line = d.get('position'),
+                    point,
+                    hit,
+                    dist;
+
+                // TODO: Reinstate when showHost() is implemented
+                // if (!api.showHosts() && d.type() === 'hostLink') {
+                //     return; // skip hidden host links
+                // }
+
+                if (line) {
+                    point = pdrop(line, mouse);
+                    hit = lineHit(line, point, mouse);
+                    if (hit) {
+                        dist = mdist(point, mouse);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearest = d;
+                        }
+                    }
+                }
+            });
+        }
+
+        return nearest;
     }
 
     angular.module('ovTopo2')

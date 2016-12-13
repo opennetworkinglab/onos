@@ -23,11 +23,11 @@
     'use strict';
 
     // Injected Services
-    var $log, t2sr, t2ds, t2hs, t2ls, t2zs;
+    var $log, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps;
     var Model;
 
     // Internal
-    var region;
+    var region
 
     function init() {}
 
@@ -84,8 +84,8 @@
 
 
         setTimeout(function () {
-            var reigionPZ = regionPanZooms[region.get('id')];
-            t2zs.panAndZoom(reigionPZ.translate, reigionPZ.scale);
+            var regionPZ = regionPanZooms[region.get('id')];
+            t2zs.panAndZoom(regionPZ.translate, regionPZ.scale);
         }, 10);
 
         $log.debug('Region: ', region);
@@ -127,13 +127,53 @@
         return (region) ? region.get('links').models : [];
     }
 
+    function deselectAllNodes() {
+
+        var selected = filterRegionNodes(function (node) {
+            return node.get('selected', true);
+        });
+
+        if (selected.length) {
+
+            selected.forEach(function (node) {
+                node.deselect();
+            });
+
+            t2dps().el.hide();
+            return true;
+        }
+
+        // TODO: close details panel
+
+        return false;
+    }
+
+    function deselectLink() {
+
+        var selected = _.filter(regionLinks(), function (link) {
+            return link.get('selected', true);
+        });
+
+        if (selected.length) {
+
+            selected.forEach(function (link) {
+                link.deselect();
+            });
+
+            t2dps().el.hide();
+            return true;
+        }
+
+        return false;
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2RegionService',
         ['$log', 'Topo2Model',
         'Topo2SubRegionService', 'Topo2DeviceService',
-        'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService',
+        'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
 
-        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_) {
+        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_, _t2dps_) {
 
             $log = _$log_;
             Model = _Model_;
@@ -142,6 +182,7 @@
             t2hs = _t2hs_;
             t2ls = _t2ls_;
             t2zs = _t2zs_;
+            t2dps = _t2dps_;
 
             return {
                 init: init,
@@ -150,6 +191,9 @@
                 regionNodes: regionNodes,
                 regionLinks: regionLinks,
                 filterRegionNodes: filterRegionNodes,
+
+                deselectAllNodes: deselectAllNodes,
+                deselectLink: deselectLink,
 
                 getSubRegions: t2sr.getSubRegions
             };

@@ -27,21 +27,22 @@
         wss;
 
     var t2is, t2rs, t2ls, t2vs, t2bcs;
-    var svg, forceG, uplink, dim, opts;
+    var svg, forceG, uplink, dim, opts, zoomer;
 
     // D3 Selections
     var node;
 
     // ========================== Helper Functions
 
-    function init(_svg_, _forceG_, _uplink_, _dim_, _opts_) {
+    function init(_svg_, _forceG_, _uplink_, _dim_, _zoomer_, _opts_) {
         svg = _svg_;
         forceG = _forceG_;
         uplink = _uplink_;
         dim = _dim_;
         opts = _opts_;
+        zoomer = _zoomer_;
 
-        t2ls.init(svg, forceG, uplink, dim, opts);
+        t2ls.init(svg, forceG, uplink, dim, zoomer, opts);
     }
 
     function destroy() {

@@ -79,7 +79,7 @@
                 nodeType: 'host',
                 icon: function () {
                     var type = this.get('type');
-                    return remappedDeviceTypes[type] || type || 'endstation';
+                    return remappedDeviceTypes[type] || type || 'm_endstation';
                 },
                 label: function () {
                     var labelText = this.get('id'),

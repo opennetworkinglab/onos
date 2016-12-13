@@ -17,9 +17,7 @@
 (function () {
 
     // Injected Services
-    var ks, flash, wss, t2ps, t2ms, ps, t2is, t2sp, t2vs;
-
-    var t2fs;
+    var ks, flash, wss, t2ps, t2ms, ps, t2is, t2sp, t2vs, t2rs, t2fs;
 
     // Commmands
     var actionMap = {
@@ -56,13 +54,24 @@
     }
 
     function handleEscape() {
-        if (t2ddp.isVisible()) {
-            t2ddp.toggle();
-        } else if (t2sp.isVisible()) {
-            t2sp.toggle();
+
+        if (false) {
+            // TODO: Cancel show mastership
+            // TODO: Cancel Active overlay
+
+        } else if (t2rs.deselectAllNodes()) {
+            // else if we have node selections, deselect them all
+            // (work already done)
+        } else if (t2rs.deselectLink()) {
+            // else if we have a link selection, deselect it
+            // (work already done)
         } else if (t2is.isVisible()) {
-            t2is.toggle(); 
-        }  
+            // If the instance panel is visible, close it
+            t2is.toggle();
+        } else if (t2sp.isVisible()) {
+            // If the summary panel is visible, close it
+            t2sp.toggle();
+        }
     }
 
     var prefsState = {};
@@ -135,7 +144,9 @@
     ['KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
     'Topo2MapService', 'PrefsService', 'Topo2InstanceService',
     'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ViewService',
-        function (_ks_, _flash_, _wss_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_, _t2ddp_, _t2vs_) {
+    'Topo2RegionService',
+        function (_ks_, _flash_, _wss_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_,
+                  _t2ddp_, _t2vs_, _t2rs_) {
 
             ks = _ks_;
             flash = _flash_;
@@ -147,6 +158,7 @@
             t2sp = _t2sp_;
             t2ddp = _t2ddp_;
             t2vs = _t2vs_;
+            t2rs = _t2rs_;
 
             return {
                 init: init,

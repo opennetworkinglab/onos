@@ -101,6 +101,9 @@
 
                     return selected;
                 },
+                deselect: function () {
+                    this.set('selected', false);
+                },
                 createNode: function () {
                     this.set('svgClass', this.svgClassName());
                     t2nps.positionNode(this);

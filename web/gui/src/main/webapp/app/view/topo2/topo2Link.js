@@ -157,9 +157,9 @@
                 var data = [],
                     point;
 
-                angular.forEach(this.collection.models, function (link) {
-                    link.unenhance();
-                });
+                // angular.forEach(this.collection.models, function (link) {
+                //     link.unenhance();
+                // });
 
                 this.set('enhanced', true);
 
@@ -212,7 +212,13 @@
                 this.set('enhanced', false);
                 d3.select('#topo-portLabels').selectAll('.portLabel').remove();
             },
+            getSelected: function () {
+                return this.collection.filter(function (m) {
+                    return m.get('selected');
+                });
+            },
             select: function () {
+
                 var ev = d3.event;
 
                 // TODO: if single selection clear selected devices, hosts, sub-regions
@@ -223,15 +229,16 @@
                 });
 
                 this.set('selected', !s);
+                this.showDetails();
 
-                var selected = this.collection.filter(function (m) {
-                    return m.get('selected');
-                });
-
-                return selected;
+                return this.getSelected();
+            },
+            deselect: function () {
+                this.set('selected', false);
+                this.set('enhanced', false);
             },
             showDetails: function () {
-                var selected = this.select(d3.event);
+                var selected = this.getSelected();
 
                 if (selected) {
                     t2lps.displayLink(this);
@@ -297,12 +304,6 @@
 
                 this.el = link;
                 this.restyleLinkElement();
-
-                // TODO: Needs improving - originally this was calculated
-                // from mouse position.
-                this.el.on('mouseover', this.enhance.bind(this));
-                this.el.on('mouseout', this.unenhance.bind(this));
-                this.el.on('click', this.showDetails.bind(this));
 
                 if (this.get('type') === 'hostLink') {
                     // sus.visible(link, api.showHosts());
