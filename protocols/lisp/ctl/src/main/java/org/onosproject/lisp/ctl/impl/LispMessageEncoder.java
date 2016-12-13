@@ -46,7 +46,7 @@ public class LispMessageEncoder extends MessageToMessageEncoder {
             if (message != null) {
                 ByteBuf byteBuf = Unpooled.buffer();
                 message.writeTo(byteBuf);
-                out.add(new DatagramPacket(byteBuf, ((LispMessage) msg).getSender()));
+                out.add(new DatagramPacket(byteBuf, message.getSender()));
             }
         }
     }

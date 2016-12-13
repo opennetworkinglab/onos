@@ -66,7 +66,7 @@ public class LispMessageEncoderTest {
         assertThat(returned, is(expected));
     }
 
-    //@Test
+    @Test
     public void testEncode() throws Exception {
         LispMessageEncoder encoder = new LispMessageEncoder();
         MockLispMessage request = new MockLispMessage(LispType.LISP_MAP_REQUEST);
@@ -75,8 +75,15 @@ public class LispMessageEncoderTest {
         MockLispMessage notify = new MockLispMessage(LispType.LISP_MAP_NOTIFY);
 
         ByteBuf buff = Unpooled.buffer();
+        List<DatagramPacket> list = Lists.newArrayList();
         List<MockLispMessage> messages = ImmutableList.of(request, reply, register, notify);
-        encoder.encode(null, messages, Lists.newArrayList());
+        encoder.encode(null, messages, list);
+
+        list.forEach(p -> {
+            byte[] tmp = new byte[p.content().writerIndex()];
+            p.content().readBytes(tmp);
+            buff.writeBytes(tmp);
+        });
 
         assertThat(buff, notNullValue());
 
