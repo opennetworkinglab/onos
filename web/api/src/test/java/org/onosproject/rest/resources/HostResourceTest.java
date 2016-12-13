@@ -38,6 +38,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
@@ -75,7 +76,7 @@ import static org.onosproject.net.PortNumber.portNumber;
  * A base class should/will be created to provide further assistance for testing.
  */
 public class HostResourceTest extends ResourceTest {
-    final HostService mockHostService = createMock(HostService.class);
+    final HostAdminService mockHostService = createMock(HostAdminService.class);
     final HostProviderRegistry mockHostProviderRegistry = createMock(HostProviderRegistry.class);
     final HostProviderService mockHostProviderService = createMock(HostProviderService.class);
     final HashSet<Host> hosts = new HashSet<>();
@@ -93,6 +94,7 @@ public class HostResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(HostService.class, mockHostService)
+                        .add(HostAdminService.class, mockHostService)
                         .add(CodecService.class, codecService)
                         .add(HostProviderRegistry.class, mockHostProviderRegistry);
         BaseResource.setServiceDirectory(testDirectory);
@@ -391,6 +393,23 @@ public class HostResourceTest extends ResourceTest {
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/hosts/11:22:33:44:55:66/None"));
+    }
+
+    /**
+     * Tests administrative removal of a host.
+     */
+    @Test
+    public void testDelete() {
+        HostId hostId = HostId.hostId("11:22:33:44:55:66/None");
+        mockHostService.removeHost(hostId);
+        expectLastCall();
+        replay(mockHostService);
+
+        WebTarget wt = target();
+        Response response = wt.path("hosts/11:22:33:44:55:66/None")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 }
 
