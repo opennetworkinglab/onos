@@ -28,6 +28,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
@@ -36,6 +37,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -158,6 +160,25 @@ public class HostsWebResource extends AbstractWebResource {
         return Response
                 .created(location)
                 .build();
+    }
+
+    /**
+     * Removes infrastructure device.
+     * Administratively deletes the specified device from the inventory of
+     * known devices.
+     *
+     * @param mac  host MAC address
+     * @param vlan host VLAN identifier
+     * @return 204 OK
+     * @onos.rsModel Host
+     */
+    @DELETE
+    @Path("{mac}/{vlan}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeHost(@PathParam("mac") String mac,
+                               @PathParam("vlan") String vlan) {
+        get(HostAdminService.class).removeHost(hostId(mac + "/" + vlan));
+        return Response.noContent().build();
     }
 
     /**
