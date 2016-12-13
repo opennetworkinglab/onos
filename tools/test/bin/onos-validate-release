@@ -8,7 +8,7 @@ set -e
 export ONOS_VERSION=$1
 RELEASE=$2
 
-[ -z "$ONOS_VERSION" -o -z "$ONOS_VERSION" ] && echo "usage: $(basename $0) <version> <release,nightly>" >&2 && exit 1
+[ -z "$ONOS_VERSION" -o -z "$RELEASE" ] && echo "usage: $(basename $0) <version> <release,nightly>" >&2 && exit 1
 
 DIR=$(mktemp -d /tmp/onos-test.XXXXX) &&
   echo "Created tempdir for release: $DIR" ||
