@@ -19,11 +19,6 @@ package org.onosproject.ui.model.topo;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.DeviceId;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
@@ -36,7 +31,6 @@ public class UiClusterMember extends UiElement {
     private final ControllerNode cnode;
 
     private ControllerNode.State state = INACTIVE;
-    private final Set<DeviceId> mastership = new HashSet<>();
 
     /**
      * Constructs a UI cluster member, with a reference to the parent
@@ -55,7 +49,6 @@ public class UiClusterMember extends UiElement {
         return "UiClusterMember{" + cnode +
                 ", online=" + isOnline() +
                 ", ready=" + isReady() +
-                ", #devices=" + deviceCount() +
                 "}";
     }
 
@@ -80,17 +73,6 @@ public class UiClusterMember extends UiElement {
      */
     public void setState(ControllerNode.State state) {
         this.state = state;
-    }
-
-    /**
-     * Sets the collection of identities of devices for which this
-     * controller node is master.
-     *
-     * @param mastership device IDs
-     */
-    public void setMastership(Set<DeviceId> mastership) {
-        this.mastership.clear();
-        this.mastership.addAll(mastership);
     }
 
     /**
@@ -127,34 +109,5 @@ public class UiClusterMember extends UiElement {
      */
     public boolean isReady() {
         return state.isReady();
-    }
-
-    /**
-     * Returns the number of devices for which this cluster member is master.
-     *
-     * @return number of devices for which this member is master
-     */
-    public int deviceCount() {
-        return mastership.size();
-    }
-
-    /**
-     * Returns the list of devices for which this cluster member is master.
-     *
-     * @return list of devices for which this member is master
-     */
-    public Set<DeviceId> masterOf() {
-        return Collections.unmodifiableSet(mastership);
-    }
-
-    /**
-     * Returns true if the specified device is one for which this cluster
-     * member is master.
-     *
-     * @param deviceId device ID
-     * @return true if this cluster member is master for the given device
-     */
-    public boolean masterOf(DeviceId deviceId) {
-        return mastership.contains(deviceId);
     }
 }

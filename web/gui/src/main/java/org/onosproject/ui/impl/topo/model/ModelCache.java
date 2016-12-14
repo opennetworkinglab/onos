@@ -119,9 +119,6 @@ class ModelCache {
     private void updateClusterMember(UiClusterMember member) {
         ControllerNode.State state = services.cluster().getState(member.id());
         member.setState(state);
-        member.setMastership(services.mastership().getDevicesOf(member.id()));
-        // NOTE: 'UI-attached' is session-based data, not global, so will
-        //       be set elsewhere
     }
 
     private void loadClusterMembers() {

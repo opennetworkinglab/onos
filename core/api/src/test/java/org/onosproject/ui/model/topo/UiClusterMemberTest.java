@@ -55,6 +55,5 @@ public class UiClusterMemberTest extends AbstractUiModelTest {
         assertEquals("wrong IP", NODE_IP, member.ip());
         assertEquals("unex. online", false, member.isOnline());
         assertEquals("unex. ready", false, member.isReady());
-        assertEquals("unex. device count", 0, member.deviceCount());
     }
 }

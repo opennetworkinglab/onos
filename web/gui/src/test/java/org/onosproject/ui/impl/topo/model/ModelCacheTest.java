@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -157,24 +156,8 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         // see AbstractUiImplTest Mock Environment for expected values...
         assertEquals("wrong id str", C1, member.idAsString());
         assertEquals("wrong id", nodeId(C1), member.id());
-        assertEquals("wrong dev count", 3, member.deviceCount());
         assertEquals("not online", true, member.isOnline());
         assertEquals("not ready", true, member.isReady());
-
-        assertMasterOf(member, DEVID_1, DEVID_2, DEVID_3);
-        assertNotMasterOf(member, DEVID_4, DEVID_6, DEVID_9);
-    }
-
-    private void assertMasterOf(UiClusterMember member, DeviceId... ids) {
-        for (DeviceId id : ids) {
-            assertTrue("not master of " + id, member.masterOf(id));
-        }
-    }
-
-    private void assertNotMasterOf(UiClusterMember member, DeviceId... ids) {
-        for (DeviceId id : ids) {
-            assertFalse("? master of " + id, member.masterOf(id));
-        }
     }
 
 

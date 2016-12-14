@@ -30,6 +30,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -162,13 +163,14 @@ class Topo2Jsonifier {
     }
 
     private ObjectNode json(UiClusterMember member, boolean isUiAttached) {
+        int switchCount = mastershipService.getDevicesOf(member.id()).size();
         return objectNode()
                 .put("id", member.id().toString())
                 .put("ip", member.ip().toString())
                 .put("online", member.isOnline())
                 .put("ready", member.isReady())
                 .put("uiAttached", isUiAttached)
-                .put("switches", member.deviceCount());
+                .put("switches", switchCount);
     }
 
     /**
@@ -261,6 +263,11 @@ class Topo2Jsonifier {
         return result;
     }
 
+    // Returns the name of the master node for the specified device id.
+    private String master(DeviceId deviceId) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        return master != null ? master.toString() : "";
+    }
 
     private ObjectNode json(UiNode node) {
         if (node instanceof UiRegion) {
@@ -281,7 +288,7 @@ class Topo2Jsonifier {
                 .put("nodeType", DEVICE)
                 .put("type", device.type())
                 .put("online", deviceService.isAvailable(device.id()))
-                .put("master", nullIsEmpty(device.master()))
+                .put("master", master(device.id()))
                 .put("layer", device.layer());
 
         Device d = device.backingDevice();
