@@ -43,7 +43,7 @@ public final class TopoConstants {
         public static final String VENDOR = "Vendor";
         public static final String HW_VERSION = "H/W Version";
         public static final String SW_VERSION = "S/W Version";
-        public static final String SERIAL_NUMBER = "Serial Number";
+        public static final String SERIAL_NUMBER = "Serial #";
         public static final String PROTOCOL = "Protocol";
         public static final String LATITUDE = "Latitude";
         public static final String LONGITUDE = "Longitude";
