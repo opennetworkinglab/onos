@@ -118,6 +118,22 @@
         addBtnFooter();
     }
 
+    function addProp(tbody, label, value) {
+        var tr = tbody.append('tr'),
+            lab;
+        if (typeof label === 'string') {
+            lab = label.replace(/_/g, ' ');
+        } else {
+            lab = label;
+        }
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
+        }
+        addCell('label', lab + ' :');
+        addCell('value', value);
+    }
+
     function renderMulti(nodes) {
         detailsPanel.emptyRegions();
 
