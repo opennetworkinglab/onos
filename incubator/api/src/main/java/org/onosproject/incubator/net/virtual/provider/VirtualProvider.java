@@ -23,4 +23,17 @@ package org.onosproject.incubator.net.virtual.provider;
  */
 public interface VirtualProvider {
 
+    /**
+     * Returns the device URI scheme to which this provider is bound.
+     *
+     * @return device URI scheme
+     */
+    String scheme();
+
+    /**
+     * Returns the device URI scheme specific id portion.
+     *
+     * @return id
+     */
+    String id();
 }
