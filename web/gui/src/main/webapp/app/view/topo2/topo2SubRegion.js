@@ -85,6 +85,8 @@
                             dir: 'down',
                             rid: this.get('id')
                         });
+
+                        _t2srp_.hide();
                     }
                 });
 
