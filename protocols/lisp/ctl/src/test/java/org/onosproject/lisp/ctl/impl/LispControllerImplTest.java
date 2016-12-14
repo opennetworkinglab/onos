@@ -18,7 +18,6 @@ package org.onosproject.lisp.ctl.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +57,7 @@ import java.util.stream.StreamSupport;
 
 import static junit.framework.TestCase.fail;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -136,7 +136,7 @@ public class LispControllerImplTest {
             }
         }
 
-        public void waitUntilUpdateIsCalled() throws InterruptedException {
+        void waitUntilUpdateIsCalled() throws InterruptedException {
             incomingLatch.await();
             outgoingLatch.await();
         }
@@ -169,10 +169,10 @@ public class LispControllerImplTest {
         messageListener = new TestMessageListener();
         controller.addMessageListener(messageListener);
 
-        controller.coreService = EasyMock.createMock(CoreService.class);
+        controller.coreService = createMock(CoreService.class);
 
         ComponentConfigService mockConfigService =
-                                EasyMock.createMock(ComponentConfigService.class);
+                                createMock(ComponentConfigService.class);
         expect(mockConfigService.getProperties(anyObject())).andReturn(ImmutableSet.of());
         mockConfigService.registerProperties(controller.getClass());
         expectLastCall();
@@ -182,20 +182,34 @@ public class LispControllerImplTest {
         controller.cfgService = mockConfigService;
         replay(mockConfigService);
 
-        ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
+        ComponentContext mockContext = createMock(ComponentContext.class);
         Dictionary<String, Object> properties = new Hashtable<>();
         properties.put("lispAuthKey", "onos");
         properties.put("lispAuthKeyId", 1);
         expect(mockContext.getProperties()).andReturn(properties);
         replay(mockContext);
+
+        LispControllerBootstrap bootstrap = createMock(LispControllerBootstrap.class);
+        bootstrap.start();
+        expectLastCall();
+        controller.bootstrap = bootstrap;
+        replay(bootstrap);
+
         controller.activate(mockContext);
     }
 
     @After
     public void tearDown() {
 
+        LispControllerBootstrap bootstrap = createMock(LispControllerBootstrap.class);
+        bootstrap.stop();
+        expectLastCall();
+        controller.bootstrap = bootstrap;
+        replay(bootstrap);
+
         controller.removeRouterListener(routerListener);
         controller.removeMessageListener(messageListener);
+
         controller.deactivate();
     }
 
@@ -249,6 +263,26 @@ public class LispControllerImplTest {
         // Test querying the removed switch
         LispRouter queriedRouterAfterRemoval = controller.getRouter(routerId2);
         assertThat(queriedRouterAfterRemoval, nullValue());
+    }
+
+    /**
+     * Tests adding and removing subscribed routers.
+     */
+    @Test
+    public void testAddRemoveSubscribedRouter() {
+        router1.setSubscribed(true);
+        router2.setSubscribed(true);
+
+        // Test adding connected routers into agent
+        boolean addRouter1 = agent.addConnectedRouter(routerId1, router1);
+        assertThat(addRouter1, is(true));
+        boolean addRouter2 = agent.addConnectedRouter(routerId2, router2);
+        assertThat(addRouter2, is(true));
+
+        assertThat(Lists.newArrayList(
+                controller.getSubscribedRouters()), hasSize(2));
+        assertThat(Lists.newArrayList(
+                controller.getSubscribedRouters()), hasItems(router1, router2));
     }
 
     /**

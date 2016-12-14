@@ -93,11 +93,11 @@ public class LispControllerImpl implements LispController {
 
     ConcurrentMap<LispRouterId, LispRouter> connectedRouters = Maps.newConcurrentMap();
 
+    final LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
+    LispControllerBootstrap bootstrap = new LispControllerBootstrap();
+
     private Set<LispRouterListener> lispRouterListeners = new CopyOnWriteArraySet<>();
     private Set<LispMessageListener> lispMessageListeners = new CopyOnWriteArraySet<>();
-
-    private final LispControllerBootstrap bootstrap = new LispControllerBootstrap();
-    private final LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
 
     @Activate
     public void activate(ComponentContext context) {

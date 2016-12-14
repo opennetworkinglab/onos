@@ -24,6 +24,9 @@ import org.onosproject.net.Device;
  * Test adapter for the LISP router interface.
  */
 public class LispRouterAdapter implements LispRouter {
+
+    private boolean subscribed;
+
     @Override
     public void sendMessage(LispMessage msg) {
 
@@ -71,12 +74,12 @@ public class LispRouterAdapter implements LispRouter {
 
     @Override
     public boolean isSubscribed() {
-        return false;
+        return subscribed;
     }
 
     @Override
     public void setSubscribed(boolean subscribed) {
-
+        this.subscribed = subscribed;
     }
 
     @Override
