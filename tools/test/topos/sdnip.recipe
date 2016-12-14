@@ -1,0 +1,4 @@
+# SDN-IP topology recipe
+export OTD=10 # ONOS Topology Devices
+export OTL=38 # ONOS Topology Links
+export OTH=9 # ONOS Topology Hosts

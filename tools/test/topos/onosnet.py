@@ -208,19 +208,22 @@ def do_gratuitousArp( self, line ):
 CLI.do_bgIperf = do_bgIperf
 CLI.do_gratuitousArp = do_gratuitousArp
 
-def run( topo, controllers=None, link=TCLink, autoSetMacs=True):
-    if not topo:
-        print 'Need to provide a topology'
-        exit(1)
-
-    parser = ArgumentParser(description='ONOS Mininet ' + type(topo).__name__)
+def parse_args():
+    parser = ArgumentParser(description='ONOS Mininet')
     parser.add_argument('--cluster-size', help='Starts an ONOS cluster with the given number of instances',
                         type=int, action='store', dest='clusterSize', required=False, default=0)
     parser.add_argument('--netcfg', help='Relative path of the JSON file to be used with netcfg',
                         type=str, action='store', dest='netcfgJson', required=False, default='')
     parser.add_argument('ipAddrs', metavar='IP', type=str, nargs='*',
                         help='List of controller IP addresses', default=[])
-    args = parser.parse_args()
+    return parser.parse_args()
+
+def run( topo, controllers=None, link=TCLink, autoSetMacs=True):
+    if not topo:
+        print 'Need to provide a topology'
+        exit(1)
+
+    args = parse_args()
 
     if not controllers and len(args.ipAddrs) > 0:
         controllers = args.ipAddrs
