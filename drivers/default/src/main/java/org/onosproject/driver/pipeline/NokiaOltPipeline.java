@@ -95,6 +95,7 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
     private static final Integer QQ_TABLE = 1;
     private static final short MCAST_VLAN = 4000;
     private static final String OLTCOOKIES = "olt-cookies-must-be-unique";
+    private static final int EAPOL_FLOW_PRIORITY = 1200;
     private final Logger log = getLogger(getClass());
 
     private ServiceDirectory serviceDirectory;
@@ -606,7 +607,7 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
 
         TrafficSelector selector = buildSelector(filter.key(), ethType);
         TrafficTreatment treatment = buildTreatment(output);
-        buildAndApplyRule(filter, selector, treatment);
+        buildAndApplyRule(filter, selector, treatment, EAPOL_FLOW_PRIORITY);
 
     }
 
@@ -620,6 +621,11 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
                                    TrafficTreatment treatment) {
+        buildAndApplyRule(filter, selector, treatment, filter.priority());
+    }
+
+    private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
+                                   TrafficTreatment treatment, int priority) {
         FlowRule rule = DefaultFlowRule.builder()
                 .fromApp(filter.appId())
                 .forDevice(deviceId)
@@ -627,7 +633,7 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .makePermanent()
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .withPriority(filter.priority())
+                .withPriority(priority)
                 .build();
 
         FlowRuleOperations.Builder opsBuilder = FlowRuleOperations.builder();
