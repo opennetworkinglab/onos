@@ -1,0 +1,129 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Creates a replica of the GEANT topology using ONOS null provider
+# -----------------------------------------------------------------------------
+
+onos ${1:-localhost} <<-EOF
+
+null-simulation start custom
+
+null-create-device switch ATH 24 37.984149 23.7279843
+null-create-device switch LIS 24 38.707792 -9.1365069
+null-create-device switch LON 24 51.507321 -0.1276473
+null-create-device switch BRU 24 50.846556 4.351697
+null-create-device switch PAR 24 48.856610 2.3514992
+null-create-device switch DUB 24 53.349764 -8.2602731
+null-create-device switch MAD 24 40.416704 -3.7035824
+null-create-device switch GEN 24 46.201755 6.1466014
+null-create-device switch MIL 24 45.466797 9.1904984
+null-create-device switch SOF 24 42.697721 23.3225964
+null-create-device switch BUC 24 44.436141 26.1027443
+null-create-device switch VIE 24 48.208353 15.3725042
+null-create-device switch FRA 24 50.110652 8.6820934
+null-create-device switch COP 24 55.686724 9.5700724
+null-create-device switch TLN 24 59.437215 24.7453688
+null-create-device switch RIG 24 56.949397 24.1051846
+null-create-device switch KAU 24 54.898106 23.9117515
+null-create-device switch POZ 24 52.408266 16.9335199
+null-create-device switch PRA 24 50.087465 14.4212503
+null-create-device switch BRA 24 48.135908 18.1597440
+null-create-device switch ZAG 24 45.813154 15.9770298
+null-create-device switch LJU 24 46.049865 14.5068921
+null-create-device switch BUD 24 47.498381 19.0404707
+null-create-device switch MLT 24 35.898754 14.5134889
+null-create-device switch LUX 24 49.815868 6.1296751
+null-create-device switch MAR 24 43.296174 5.3699525
+null-create-device switch HAM 24 50.699641 10.6301627
+null-create-device switch AMS 24 50.828525 -4.546936
+null-create-device switch STO 24 43.296174 5.3699525
+null-create-device switch OSL 24 53.550341 10.000654
+null-create-device switch HEL 24 52.374436 4.89799560
+
+null-create-link direct ATH MIL
+null-create-link direct MIL ATH
+null-create-link direct MIL VIE
+null-create-link direct MIL MAR
+null-create-link direct MIL GEN
+null-create-link direct GEN MIL
+null-create-link direct MIL MLT
+null-create-link direct GEN FRA
+null-create-link direct FRA GEN
+null-create-link direct GEN PAR
+null-create-link direct PAR GEN
+null-create-link direct GEN PAR
+null-create-link direct FRA POZ
+null-create-link direct GEN MAR
+null-create-link direct MAR MAD
+null-create-link direct MAD PAR
+null-create-link direct MAD LIS
+null-create-link direct LIS LON
+null-create-link direct LON LIS
+null-create-link direct LON PAR
+null-create-link direct LON DUB
+null-create-link direct DUB LON
+null-create-link direct LON BRU
+null-create-link direct BRU AMS
+null-create-link direct AMS LUX
+null-create-link direct LUX FRA
+null-create-link direct AMS HAM
+null-create-link direct HAM FRA
+null-create-link direct HAM COP
+null-create-link direct COP AMS
+null-create-link direct FRA POZ
+null-create-link direct FRA PRA
+null-create-link direct FRA BUD
+null-create-link direct FRA VIE
+null-create-link direct POZ PRA
+null-create-link direct POZ KAU
+null-create-link direct KAU RIG
+null-create-link direct ZAG VIE
+null-create-link direct ZAG BUD
+null-create-link direct BUD PRA
+null-create-link direct BUD BRA
+null-create-link direct BUD BUC
+null-create-link direct BUD SOF
+null-create-link direct BUD LJU
+null-create-link direct BUC SOF
+null-create-link direct BUC VIE
+null-create-link direct VIE BRA
+null-create-link direct RIG TLN
+null-create-link direct TLN HAM
+null-create-link direct OSL STO
+null-create-link direct STO HEL
+null-create-link direct STO COP
+null-create-link direct OSL COP
+null-create-link direct TLN HEL
+
+null-create-host ATH 192.168.1.1   34.984149  24.7279843
+null-create-host LIS 192.168.1.2   37.707792  -7.1365069
+null-create-host LON 192.168.1.3   53.507321  -1.1276473
+null-create-host BRU 192.168.1.4   49.046556  4.351697
+null-create-host PAR 192.168.1.5   46.856610  2.3514992
+null-create-host DUB 192.168.1.6   54.349764  -8.2602731
+null-create-host MAD 192.168.1.7   37.416704  -3.7035824
+null-create-host GEN 192.168.1.8   45.001755  4.1466014
+null-create-host MIL 192.168.1.9   45.466797  6.6904984
+null-create-host SOF 192.168.1.10  42.697721  27.9225964
+null-create-host BUC 192.168.1.11  47.436141  26.1027443
+null-create-host VIE 192.168.1.12  48.208353  13.3725042
+null-create-host FRA 192.168.1.13  48.110652  9.2820934
+null-create-host COP 192.168.1.14  57.186724  9.5700724
+null-create-host TLN 192.168.1.15  59.437215  26.7453688
+null-create-host RIG 192.168.1.16  56.949397  26.1051846
+null-create-host KAU 192.168.1.17  52.898106  24.9117515
+null-create-host POZ 192.168.1.18  50.408266  19.3335199
+null-create-host PRA 192.168.1.19  50.087465  16.4212503
+null-create-host BRA 192.168.1.20  48.835908  19.1597440
+null-create-host ZAG 192.168.1.21  43.213154  16.4770298
+null-create-host LJU 192.168.1.22  46.049865  13.2068921
+null-create-host BUD 192.168.1.23  47.898381  20.2404707
+null-create-host MLT 192.168.1.24  32.898754  14.5134889
+null-create-host LUX 192.168.1.25  48.815868  6.5296751
+null-create-host MAR 192.168.1.26  43.296174  5.3699525
+null-create-host HAM 192.168.1.27  50.828525  -4.546936
+null-create-host AMS 192.168.1.28  43.374436  3.3699525
+null-create-host STO 192.168.1.29  52.699641  11.6301627
+null-create-host OSL 192.168.1.30  51.374436  7.39799560
+null-create-host HEL 192.168.1.31  61.325117  16.0710935
+
+EOF
