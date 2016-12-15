@@ -1,0 +1,18 @@
+ONOS "service" configuration files
+
+In order to run ONOS as a "service," whose execution is managed
+by the OS, you can install an appropriate configuration/startup file.
+
+onos.initd:     startup file for SysV/init.d-based systems
+                usually installed as /etc/init.d/onos
+
+onos.conf:      configuration for upstart-based systems
+                usually installed as /etc/init/onos.conf
+
+onos.service:   configuration for systemd-based systems
+                currently calls /etc/init.d/onos start
+                usually installed as /etc/systemd/system/onos.service
+
+The reason why onos.service currently calls /etc/init.d/onos
+is because the init.d script fixes permissions that are required
+by onos-service (such as /opt/onos/apps.)

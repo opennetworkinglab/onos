@@ -2,10 +2,9 @@
 # -----------------------------------------------------------------------------
 # init.d script to run ONOS
 #
-# This provides the core for an ONOS service in a variety of environments,
-# including init.d, upstart, and systemd. It can also be invoked directly.
-# If it is invoked by a boot system, environment variables will usually be
-# empty and the default values will be used.
+# This provides the core for an ONOS service in a variety of System V/init.d
+# compatible environments. It can also be invoked directly.
+# It reads configuration options from $ONOS_HOME/options
 # -----------------------------------------------------------------------------
 ### BEGIN INIT INFO
 # Provides:          onos
@@ -22,16 +21,19 @@ ONOS_HOME=${ONOS_HOME:-/opt/onos}
 [ -f $ONOS_HOME/options ] && . $ONOS_HOME/options
 ONOS_USER=${ONOS_USER:-root}
 ONOS_GROUP=${ONOS_GROUP:-$ONOS_USER}
-ONOS_OPTS=${ONOS_OPTS:-""}
+ONOS_OPTS=${ONOS_OPTS:-server}
 
 start () {
+    # Fix permissions and symlinks
     mkdir -p $ONOS_HOME/var 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/var
     mkdir -p $ONOS_HOME/config 2>/dev/null && chown $ONOS_USER:$ONOS_GROUP $ONOS_HOME/config
-    [ ! -h $ONOS_HOME/log ]  && ln -s $ONOS_HOME/karaf/data/log $ONOS_HOME/log || :
+    mkdir -p $ONOS_HOME/apps 2>/dev/null && chown -R $ONOS_USER:$ONOS_GROUP $ONOS_HOME/apps
+    [ ! -h $ONOS_OME/karaf ] && ln -s /opt/onos/apache-karaf* $ONOS_HOME/karaf || :
+    [ ! -h $ONOS_HOME/log ] && ln -s $ONOS_HOME/karaf/data/log $ONOS_HOME/log || :
     # Start ONOS if it's not already running
     if ! status >/dev/null; then
         echo "Starting ONOS"
-        startonos $ONOS_HOME/bin/onos-service server $ONOS_OPTS
+        startonos $ONOS_HOME/bin/onos-service $ONOS_OPTS
     else
         echo "ONOS/karaf is already running"
     fi
@@ -47,21 +49,22 @@ startonos () {
         . /etc/init.d/functions && true
     fi
 
-    if type daemon | grep -i function >/dev/null 2>&1; then
+    if type daemon 2>/dev/null| grep -i function >/dev/null 2>&1; then
         # Use 'daemon' function if available
         # Shell metacharacters are passed as arguments to daemon
         daemon --user $ONOS_USER $cmd $* \
             \>$ONOS_HOME/var/stdout.log 2\>$ONOS_HOME/var/stderr.log \&
     elif type start-stop-daemon >/dev/null 2>&1; then
         # Use start-stop-daemon if available
-        # Warning! running as root can overwrite any linked log file
+        # Warning! Running as root can overwrite any linked log file.
         start-stop-daemon --signal INT --start --chuid $ONOS_USER \
             --background --exec $cmd -- $* \
             >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
     else
         # Fall back to using sudo
-        # Warning! running as root can overwrite any linked log file
-        sudo -E -n -u -b $ONOS_USER $cmd $* \
+        # Warning! Running as root can overwrite any linked log file.
+        # preserve Env, background, non-interactive, user $ONOS_USER
+        sudo -E -b -n -u $ONOS_USER $cmd $* \
             >$ONOS_HOME/var/stdout.log 2>$ONOS_HOME/var/stderr.log
     fi
 }
@@ -96,7 +99,7 @@ status () {
 case $1 in
     start)
         start
-	;;
+        ;;
     stop | force-stop)
         stop
         ;;
