@@ -21,6 +21,12 @@
                 <ref component-id="ConnectPointCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.patchpanel.cli.PatchRemoveCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.patchpanel.cli.PatchListCommand"/>
+        </command>
     </command-bundle>
     <bean id="ConnectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
 </blueprint>

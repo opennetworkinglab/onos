@@ -16,27 +16,37 @@
 
 package org.onosproject.patchpanel.impl;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.ConnectPoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class acts as a software patch panel application.
@@ -46,6 +56,8 @@ import java.util.List;
 @Component(immediate = true)
 @Service
 public class PatchPanel implements PatchPanelService {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     // OSGI: help bundle plugin discover runtime package dependency.
     @SuppressWarnings("unused")
@@ -57,14 +69,17 @@ public class PatchPanel implements PatchPanelService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private List<ConnectPoint> previous = new ArrayList<>();
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private Map<PatchId, Patch> patches;
+
     private ApplicationId appId;
-    private ConnectPoint cp1, cp2;
+
+    private AtomicInteger ids = new AtomicInteger();
 
 
     @Activate
     protected void activate() throws NullPointerException {
+        patches = new HashMap<>();
+
         appId = coreService.registerApplication("org.onosproject.patchpanel");
         log.info("Started");
     }
@@ -75,25 +90,60 @@ public class PatchPanel implements PatchPanelService {
     }
 
     @Override
-    public boolean addPatch(ConnectPoint num, ConnectPoint num2) {
-        cp1 = num;
-        cp2 = num2;
-        if ((cp1.port().equals(cp2.port())) || (previous.contains(cp1) || previous.contains(cp2))) {
+    public boolean addPatch(ConnectPoint cp1, ConnectPoint cp2) {
+        checkNotNull(cp1);
+        checkNotNull(cp2);
+
+        checkArgument(cp1.deviceId().equals(cp2.deviceId()), "Ports must be on the same device");
+        checkArgument(!cp1.equals(cp2), "Ports cannot be the same");
+
+        if (patches.values().stream()
+                .filter(patch -> patch.port1().equals(cp1) || patch.port1().equals(cp2)
+                        || patch.port2().equals(cp1) || patch.port2().equals(cp2))
+                .findAny().isPresent()) {
             log.info("One or both of these ports are already in use, NO FLOW");
             return false;
-        } else {
-            previous.add(cp1);
-            previous.add(cp2);
-            setFlowRuleService();
-            return true;
         }
+
+        Patch patch = new Patch(PatchId.patchId(ids.incrementAndGet()), cp1, cp2);
+
+        patches.put(patch.id(), patch);
+
+        setFlowRuleService(patch);
+
+        return true;
     }
 
-    public void setFlowRuleService() {
-        PortNumber outPort = cp2.port();
-        PortNumber inPort = cp1.port();
+    @Override
+    public boolean removePatch(PatchId id) {
+        Patch patch = patches.remove(id);
+        if (patch == null) {
+            return false;
+        }
+
+        removePatchFlows(patch);
+        return true;
+    }
+
+    @Override
+    public Set<Patch> getPatches() {
+        return ImmutableSet.copyOf(patches.values());
+    }
+
+    public void setFlowRuleService(Patch patch) {
+        createFlowRules(patch).forEach(flowRuleService::applyFlowRules);
+    }
+
+    private void removePatchFlows(Patch patch) {
+        createFlowRules(patch).forEach(flowRuleService::removeFlowRules);
+    }
+
+    private Collection<FlowRule> createFlowRules(Patch patch) {
+        DeviceId deviceId = patch.port1().deviceId();
+        PortNumber outPort = patch.port2().port();
+        PortNumber inPort = patch.port1().port();
         FlowRule fr = DefaultFlowRule.builder()
-                .forDevice(cp1.deviceId())
+                .forDevice(deviceId)
                 .withSelector(DefaultTrafficSelector.builder().matchInPort(inPort).build())
                 .withTreatment(DefaultTrafficTreatment.builder().setOutput(outPort).build())
                 .withPriority(PacketPriority.REACTIVE.priorityValue())
@@ -101,15 +151,13 @@ public class PatchPanel implements PatchPanelService {
                 .fromApp(appId).build();
 
         FlowRule fr2 = DefaultFlowRule.builder()
-                .forDevice(cp1.deviceId())
+                .forDevice(deviceId)
                 .withSelector(DefaultTrafficSelector.builder().matchInPort(outPort).build())
                 .withTreatment(DefaultTrafficTreatment.builder().setOutput(inPort).build())
                 .withPriority(PacketPriority.REACTIVE.priorityValue())
                 .makePermanent()
                 .fromApp(appId).build();
 
-        flowRuleService.applyFlowRules(fr, fr2);
-
+        return ImmutableList.of(fr, fr2);
     }
-
 }

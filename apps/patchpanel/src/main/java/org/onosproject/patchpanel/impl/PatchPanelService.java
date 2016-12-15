@@ -15,7 +15,10 @@
  */
 
 package org.onosproject.patchpanel.impl;
+
 import org.onosproject.net.ConnectPoint;
+
+import java.util.Set;
 
 /**
  * A service for the patch panel application to export and use with the cli.
@@ -30,4 +33,19 @@ public interface PatchPanelService {
      * @return      true if the patch was created, false otherwise
      */
     boolean addPatch(ConnectPoint cp, ConnectPoint cp2);
+
+    /**
+     * Removes an existing patch.
+     *
+     * @param id patch ID
+     * @return true if the patch was removed, otherwise false.
+     */
+    boolean removePatch(PatchId id);
+
+    /**
+     * Gets the set of patches in the system.
+     *
+     * @return set of patches
+     */
+    Set<Patch> getPatches();
 }
