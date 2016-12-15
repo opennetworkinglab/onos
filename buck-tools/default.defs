@@ -11,5 +11,3 @@ BASE_DEPS = [
     '//lib:slf4j-api',
     '//lib:guava-testlib',
 ]
-
-

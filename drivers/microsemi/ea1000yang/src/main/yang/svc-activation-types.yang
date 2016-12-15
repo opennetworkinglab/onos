@@ -1,0 +1,190 @@
+module svc-activation-types {
+
+    /*** NAMESPACE / PREFIX DEFINITION ***/
+
+    namespace "http://www.microsemi.com/svc-activation-types";
+    prefix "sa";
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    import msea-cfm {
+        prefix msea-cfm;
+        revision-date 2016-02-29;
+    }
+    /*** META INFORMATION ***/
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module defines common types that 
+    are used in both RFC 2544 and ITU-T Y.1564
+
+    Copyright 2015 Microsemi Inc.
+    All rights reserved.";
+
+    revision "2015-10-27" {
+        description
+        "Initial version - Sean Condon, Microsemi";
+        reference "Initial revision";
+    }
+
+    /*
+     * Typedefs
+     */
+    typedef test-status {
+        type enumeration {
+            enum disabled {
+                value 0;
+                description "Test is disabled";
+            }
+            enum running {
+                value 1;
+                description "Test is running";
+            }
+            enum pending {
+                value 2;
+                description "Test is pending";
+            }
+            enum stopped {
+                value 3;
+                description "Test is stopped";
+            }
+            enum completed {
+                value 4;
+                description "Test is completed";
+            }
+            enum failed {
+                value 5;
+                description "Test is failed";
+            }
+        }
+        description "Enumerated values for the status of a test";
+    }
+
+    typedef frame-size-type {
+        type uint16 {
+            range 64..9600;
+        }
+        description "Frame size in bytes data type";
+    }
+
+    grouping mep-config-attribs {
+        description 
+        "Attributes related to the configuration of a MEP";
+
+        leaf maintenance-domain {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:id";
+//                msea:xref-module "msea-cfm";
+            }
+            description
+            "A reference to a specific Maintenance Domain.";
+        }
+
+        leaf maintenance-association {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id=current()/../maintenance-domain]/msea-cfm:maintenance-association/msea-cfm:id";
+//                msea:xref-module "msea-cfm";
+            }
+            description
+            "A reference to a specific Maintenance Association.";
+        }
+
+        leaf maintenance-association-end-point {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id=current()/../maintenance-domain]/msea-cfm:maintenance-association[msea-cfm:id=current()/../maintenance-association]/msea-cfm:maintenance-association-end-point/msea-cfm:mep-identifier";
+//                msea:xref-module "msea-cfm";
+            }
+            description
+            "A reference to a specific Maintenance association End Point.";
+        }
+
+
+        leaf remote-mep-id {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id=current()/../maintenance-domain]/msea-cfm:maintenance-association[msea-cfm:id=current()/../maintenance-association]/msea-cfm:remote-meps";
+//                msea:xref-module "msea-cfm";
+            }
+
+            must "current()/../maintenance-association-end-point != current()" {
+                error-message "Remote MEP Id must not be the same as Local MEP Id";
+                error-app-tag "msea-svc-must-01";
+            }
+
+            //mandatory true; //Should not be mandatory in a top level container 
+            description "The Id of the remote MEP";
+        }
+    }
+
+    grouping overwrite-pcp-attribs {
+        leaf overwrite-priority {
+            type msea:priority-type;
+            default 0;
+            description 
+            "The priority in the MEP's TAG is replaced 
+            with this priority if overwrite-pcp is present";
+        }
+    }
+
+    grouping results-header-group {
+        description
+        "Common attributes of a result set.";
+
+        leaf start-time {
+            type yang:date-and-time;
+            mandatory true;
+            description "Time at which the test was started.";
+        }
+
+        leaf end-time {
+            type yang:date-and-time;
+            description "Time at which the test ended. 
+                Not specified if test has ended.";
+        }
+
+        leaf test-status {
+            type test-status;
+            mandatory true;
+            description "The status of the test";
+        }
+    }
+
+    grouping notification-group {
+        description "Attributes related to notifications";
+        leaf new-status {
+          type sa:test-status;
+          mandatory true;
+          description "The new status of the test";
+        }
+        
+        leaf old-status {
+          type sa:test-status;
+          description "The old status of the test";
+        }
+
+        leaf test-type {
+            type string;
+            mandatory true;
+            description "Name of the test currently being performed";
+        }
+    }
+}

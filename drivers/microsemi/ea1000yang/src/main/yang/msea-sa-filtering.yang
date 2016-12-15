@@ -1,0 +1,149 @@
+module msea-sa-filtering {
+
+    /*** NAMESPACE / PREFIX DEFINITION ***/
+
+    namespace "http://www.microsemi.com/microsemi-edge-assure/msea-sa-filtering";
+    prefix "msea-saf";
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    /*** META INFORMATION ***/
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module add Source Address Filtering for IPv4 packets to
+    the Optics(eth0) port (only) of the Edge Assure device.
+
+    Copyright 2016 Microsemi Inc.
+    All rights reserved.";
+
+    revision "2016-04-12" {
+        description
+        "Initial version - Sean Condon, Microsemi";
+    }
+
+
+    container source-ipaddress-filtering {
+        presence "Supports IPv4 Source Address Filtering";
+
+        container interface-eth0 {
+
+            leaf filter-admin-state {
+                type enumeration {
+                    enum inactive {
+                        description "Source address filtering is inactive";
+                    }
+                    enum whitelist {
+                        description "Only IPv4 packets from the source
+                        address ranges are allowed in to the device on the
+                        Optics(eth0) port. All non IPv4 packets are not
+                        filtered by this whitelist";
+                    }
+                    enum blacklist {
+                        description "All IPv4 packets from the source 
+                        address ranges are blocked from entering the device 
+                        on the Optics(eth0) port. All other packets are not
+                        filtered by this blacklist";
+                    }
+                }
+                default inactive;
+                description "This attribute sets the address range to be used as
+                either a whitelist or a blacklist of IPv4 packets.
+                When activating the filter the user should be careful not to
+                block or exclude the management IP address of the manager";
+            }
+
+            list source-address-range {
+                key range-id;
+                max-elements 10;
+                unique ipv4-address-prefix;
+                unique name;
+
+                leaf range-id {
+                    type uint8 {
+                        range "1..10";
+                    }
+                }
+
+                leaf name {
+                    type string{
+                        length "1..45";
+                    }
+                    description "An optional name for the filter range";
+                }
+
+                leaf ipv4-address-prefix {
+                    type string {
+                      pattern
+                         '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
+                       +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
+                       + '/(([1-9])|(1[0-9])|(2[0-7]))';
+                    }
+
+                    mandatory true;
+//                    msea:not-changeable;
+
+                    description
+                     "The ipv4-address-prefix type represents an IPv4 address prefix
+                      in CIDR notation format. e.g. a.b.c.d/n
+
+                      It consists of an address part and a mask length part.
+                      The address part is only used up to the number of bits
+                      specified in the length (1-27, given after the slash).
+
+                      For example the value 10.10.159.211/20 will mean an
+                      effective range from 10.10.144.0 - 10.10.159.255 and
+                      a count of 2^12 = 4096. The last 12 bits (32-20=12)
+                      of the address is ignored because it is not within the
+                      mask length.";
+                }
+
+
+                container effective-address-range {
+                    config false;
+
+                    leaf start-of-range {
+                        type inet:ipv4-address-no-zone;
+                        description "The calculated start of the address range";
+                    }
+
+                    leaf end-of-range {
+                        type inet:ipv4-address-no-zone;
+                        description "The calculated end of the address range";
+                    }
+
+                    leaf count {
+                        type uint32;
+                        description "The number of IPv4 addresses that match the filter";
+                    }
+
+                    description "The effective start and end addresses calculated
+                    from the ipv4-address-prefix";
+                }
+
+                description "A set of address ranges to be either blacklisted or
+                whitelisted on ingress to the eth0(Optics) port of the device";
+            }
+        }
+    }
+}

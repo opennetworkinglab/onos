@@ -1,0 +1,527 @@
+module ietf-system-microsemi {
+
+    namespace "http://www.microsemi.com/microsemi-edge-assure/msea-system";
+    prefix "sys-ms";
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    import ietf-system {
+        prefix sys;
+        revision-date 2014-08-06;
+    }
+
+    import ietf-netconf-acm {
+        prefix nacm;
+        revision-date 2012-02-22;
+    }
+
+    /*** META INFORMATION ***/
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module extends the IETF System objects with some extra configuration attributes
+
+    Copyright 2015 Microsemi Inc.
+    All rights reserved.";
+
+    reference "RFC 7317: A YANG Data Model for System Management";
+
+    revision "2016-05-05" {
+        description
+        "Updated for ZTP support - Sean Condon, Microsemi";
+    }
+
+    revision "2015-10-01" {
+        description
+        "Initial version to augment IETF-SYSTEM YANG module - Sean Condon, Microsemi";
+    }
+
+    typedef identifier {
+        type string {
+            length "1..255";
+            pattern "[a-zA-Z0-9\-._]*";
+        }
+        description
+        "A simple string with only alphabetic or numeric and dash, dot and underscore";
+    }
+
+    grouping upgrade-file-attributes {
+        leaf file-name {
+            type string;
+            description "The name of the update TAR file as found on the device";
+        }
+
+        leaf file-date {
+            type yang:date-and-time;
+            description "The date of the update TAR file as found on the device";
+        }
+
+        leaf file-size {
+            type uint32;
+            description "The size of the update TAR file as found on the device";
+        }
+    }
+
+
+    grouping upgrade-attributes {
+        description "Attributes from the /update.tar file";
+
+        leaf version {
+            type uint32;
+            description "The version of this portion of the /update.tar";
+        }
+
+        leaf crc32 {
+            type uint32;
+            description "The CRC32 value of this portion of the /update.tar";
+        }
+
+        leaf length {
+            type uint32;
+            description "The length of this portion of the /update.tar";
+        }
+    }
+
+    grouping ddm-attributes {
+
+        leaf high-alarm-thresh {
+            description "The high alarm threshold value";
+            type decimal64 {
+                fraction-digits 6;
+            }
+        }
+
+        leaf high-warn-thresh {
+            description "The high warn threshold value";
+            type decimal64 {
+                fraction-digits 6;
+            }
+        }
+
+        leaf low-warn-thresh {
+            description "The low warn threshold value";
+            type decimal64 {
+                fraction-digits 6;
+            }
+        }
+
+        leaf low-alarm-thresh {
+            description "The low alarm threshold value";
+            type decimal64 {
+                fraction-digits 6;
+            }
+        }
+    }
+
+    feature serial-number {
+        description "Set of readonly attributes that identify the hardware";
+    }
+
+    feature remote-upgrade {
+        description
+        "Indicates that the device supports upgrade of fabric, linux and fabric header.
+        This expects a file /update.tar on the device -
+        put there through SFTP or some other file transfer method";
+    }
+
+
+    augment "/sys:system" {
+        description
+        "Extends the SYSTEM with some extra configuration attributes required for setup.";
+
+        leaf asset-tag { //Microsemi specific configuration attribute
+            type identifier;
+            description
+            "An asset tag field for the device.";
+        }
+
+        leaf description { //Microsemi specific configuration attribute
+            type string {
+                length "0..256";
+                pattern "[a-zA-Z0-9\\-_. ,]*";
+            }
+            description "A description for the device.";
+        }
+
+        leaf longitude { //Microsemi specific configuration attribute
+            type decimal64 {
+                fraction-digits 7;
+                range "-180..180";
+            }
+            description
+            "Longitude for the device expressed in decimal degrees.
+            Positive values represent East and negative values represent West";
+        }
+
+        leaf latitude { //Microsemi specific configuration attribute
+            type decimal64 {
+                fraction-digits 7;
+                range "-90..90";
+            }
+            description
+            "Latitude for the device expressed in decimal degrees
+            Positive values represent North and negative values represent South";
+        }
+    }
+
+
+    augment "/sys:system-state" {
+        description
+        "Extends the SYSTEM-STATE with some extra configuration attributes required for setup.
+
+        All attributes are automatically config=false because they extend system-state";
+
+        container remote-upgrade {
+            description "Details of the /update.tar file present on the system.
+                    These are all read-only because they are under system-state";
+
+            choice file-present-choice {
+                case not-present {
+                    leaf file-not-found {
+                        type string;
+                        description "Gives the name of the expected file. Usually /update.tar";
+                    }
+                }
+
+                case file-present {
+                    uses upgrade-file-attributes;
+
+                    leaf file-validity {
+                        type string;
+                        description "Gives an indication if the file is valid, or if not, the reason why";
+                    }
+
+                    container fabric-image {
+                        uses upgrade-attributes;
+                    }
+
+                    container linux-image {
+                        uses upgrade-attributes;
+                    }
+                }
+            }
+        }
+
+        leaf hostname {
+            type string;
+            description "The hostname of the system. When DHCP or ZTP
+                  is active the hostname will not be configured through NETCONF";
+        }
+
+        container ntp {
+          if-feature sys:ntp;
+          description "The list of NTP servers active on the system. When DHCP or ZTP
+                  is active the NTP servers will not be configured through NETCONF";
+
+          leaf-list server {
+              type string;
+              description "An NTP server active on the system";
+          }
+        }
+
+        container dns-resolver {
+          description "The list of DNS servers active on the system. When DHCP or ZTP
+                  is active the DNS servers will not be configured through NETCONF";
+
+          leaf-list server {
+              type string;
+              description "A DNS server active on the system";
+          }
+
+          leaf-list search {
+              type string;
+              description "A DNS search domain active on the system";
+          }
+
+        }
+
+        container diagnostic-monitoring {
+
+            container temperature {
+                description "The temperature and thresholds of the device";
+
+                leaf measured {
+                    description "The measured transceiver temperature at the current time";
+                    type decimal64 {
+                        fraction-digits 6;
+                    }
+                    units "°C";
+                    reference
+                    "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical 
+                    Transceivers Rev 12.1 September 12, 2014 Section 9.1";
+                }
+
+                uses ddm-attributes;
+            }
+
+            container voltage {
+                description "The core voltage and thresholds of the device";
+
+                leaf measured {
+                    description "The measured voltage at the current time";
+                    type decimal64 {
+                        fraction-digits 6;
+                    }
+                    units "V";
+                    reference
+                    "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical 
+                    Transceivers Rev 12.1 September 12, 2014 Section 9.1";
+                }
+                
+                uses ddm-attributes;
+            }
+
+            container tx-bias {
+                description "The transmit (Tx) bias and thresholds of the device";
+
+                leaf measured {
+                    description "The measured transmit (Tx) bias at the current time";
+                    type decimal64 {
+                        fraction-digits 6;
+                    }
+                    units "mA";
+                    reference
+                    "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical 
+                    Transceivers Rev 12.1 September 12, 2014 Section 9.1";
+                }
+
+                uses ddm-attributes;
+            }
+
+            container tx-power {
+                description "The transmit (Tx) power and thresholds of the device";
+
+                leaf measured {
+                    description "The measured transmit (Tx) power at the current time";
+                    type decimal64 {
+                        fraction-digits 6;
+                    }
+                    units "mV";
+                    reference
+                    "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical 
+                    Transceivers Rev 12.1 September 12, 2014 Section 9.1";
+                }
+
+                uses ddm-attributes;
+            }
+            
+            container rx-power {
+                description "The receive (Rx) power and thresholds of the device";
+
+                leaf measured {
+                    description "The measured receive (Rx) power at the current time";
+                    type decimal64 {
+                        fraction-digits 6;
+                    }
+                    units "mV";
+                    reference
+                    "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical 
+                    Transceivers Rev 12.1 September 12, 2014 Section 9.1";
+                }
+
+                uses ddm-attributes;
+            }
+        }
+    }
+
+    augment "/sys:system-state/sys:platform" {
+        description
+        "Extends the SYSTEM-STATE with some extra configuration attributes required for setup.
+
+        All attributes are automatically config=false because they extend system-state";
+
+        container device-identification {
+            if-feature serial-number;
+            config false;
+
+            leaf vendor-name {
+                type string;
+                description
+                "Device Vendor Name";
+                reference
+                "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical
+                Transceivers Rev 12.1 September 12, 2014 Table 4-1 Address A0H Bytes 20-35";
+            }
+
+            leaf vendor-part-number {
+                type string;
+                description
+                "Device Vendor Part Number";
+                reference
+                "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical
+                Transceivers Rev 12.1 September 12, 2014 Table 4-1 Address A0H Bytes 40-55";
+            }
+
+            leaf vendor-revision {
+                type string;
+                description
+                "Device Vendor Revision";
+                reference
+                "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical
+                Transceivers Rev 12.1 September 12, 2014 Table 4-1 Address A0H Bytes 56-59";
+            }
+
+            leaf serial-number {
+                type string;
+                description
+                "Device Serial Number";
+                reference
+                "SFF-8472 Specification for Diagnostic Monitoring Interface for Optical
+                Transceivers Rev 12.1 September 12, 2014 Table 4-1 Address A0H Bytes 68-83";
+            }
+
+            container processor {
+                description "Details of the processor hardware in the device";
+
+                leaf serialnumber {
+                    type yang:hex-string;
+                    description "The serial number of the processor";
+                }
+
+                leaf x509-device-certificate-pem {
+                    type string;
+                    description "X509 Device certificate in PEM (Base 64 format)";
+                }
+            }
+        }
+    }
+
+    rpc do-upgrade-and-reboot {
+//        nacm:default-deny-all;
+        if-feature remote-upgrade;
+
+        description "Method to perform an upgrade of the device. This
+        expects a file /update.tar to have be present on the device.
+        The system-state/remote-upgrade attributes can be used to
+        verify the contents of the file before calling this action.
+        If there is a problem performing the upgrade
+        these will be described in any error thrown";
+
+        input {
+            leaf reset-option {
+                type enumeration {
+                    enum nuclear {
+                        description "Erases all configuration and resets the device to
+                                factory defaults.";
+                    }
+                    enum allnetconf {
+                        description "Reset all NETCONF data - leaves only logs and SSH keys.
+                            If a lesser reset is required use system-restart with a
+                            suitable reset-option";
+                    }
+                }
+                description "Optionally specify a parameter that can be
+                    used to reset the device to factory defaults";
+            }
+        }
+
+        output {
+            anyxml data {
+                description "A message describing the result.
+                    The result might not be seen as it schedules a reboot of the device";
+            }
+        }
+    }
+
+
+    rpc pull-update-tar-from-tftp {
+//        nacm:default-deny-all;
+        if-feature remote-upgrade;
+
+        description "Pulls a specified file from the specifed host and copies it
+                to the local device (usually at /update.tar
+                It also expects the file to be signed with GnuPG and the signature
+                file to exist on the TFTP server at <tftp-file>.asc";
+
+        input {
+            leaf tftp-file {
+                type msea:file-name;
+                mandatory true;
+                description "The name of a file to pull from the TFTP server at the host name specified";
+            }
+
+            leaf tftp-host {
+                type inet:host;
+                mandatory true;
+                description "The hostname of a TFTP server where an update TAR file can be pulled from";
+            }
+        }
+    }
+
+    rpc read-from-syslog {
+        description "A method of reading the entries from syslog. If no
+                argument is given will read the last 100 lines";
+
+        input {
+            leaf start-line {
+                type int16 {
+                    range -10000..-1;
+                }
+                default -100;
+                description "The number of lines to read from the end of syslog.";
+            }
+        }
+
+        output {
+            anyxml data {
+                description "Syslog entries represented as XML";
+            }
+        }
+    }
+
+//    notification upgrade-notification {
+//        description
+//            "Generated when a remote upgrade is in progress.";
+//
+//        leaf upgrade-stage {
+//            type enumeration {
+//                enum "check" {
+//                    description
+//                    "Checking the upgrade file is valid";
+//                }
+//                enum "erase" {
+//                    description    "Erasing old image";
+//                }
+//                enum "write" {
+//                    description "Writing new image";
+//                }
+//                enum "complete" {
+//                    description "Upgrade complete";
+//                }
+//            }
+//            mandatory true;
+//        }
+//
+//        leaf upgrade-detail {
+//            description "Textual description of the stage of upgrade";
+//            type string {
+//                length 0..100;
+//            }
+//        }
+//    } // upgrade-notification
+}

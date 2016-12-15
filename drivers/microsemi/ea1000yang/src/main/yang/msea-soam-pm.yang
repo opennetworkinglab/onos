@@ -1,0 +1,1479 @@
+module msea-soam-pm {
+
+	namespace "http://www.microsemi.com/microsemi-edge-assure/msea-soam-pm";
+	prefix "msea-soam-pm"; //MicroSemi EdgeAssure (msea)
+
+	import ietf-yang-types {
+		prefix yang;
+		revision-date 2013-07-15;
+	}
+
+	import msea-cfm {
+		prefix msea-cfm;
+	}
+
+	import msea-types {
+		prefix msea;
+	}
+
+	organization
+	"Microsemi Inc., FTD Division";
+
+	contact
+	"Web URL: http://www.microsemi.com/
+	E-mail: info@microsemi.com
+	Postal: Microsemi Corporation Corporate Headquarters
+	One Enterprise Aliso Viejo,
+	CA 92656
+	U.S.A.
+	Phone: +1 949 380 6100
+	Fax: +1 949 215-4996";
+
+	description
+	"This YANG module is a fork of the original mef-soam-pm YANG Module defined in MEF 39
+	for the management of Ethernet Services Operations, Administration and
+	Maintenance for Performance Monitoring and extends the Connectivity Fault
+	Management (CFM) YANG modules.
+	This fork is done specifically to suit the EdgeAssure which has some extra
+	constraints that are not handled by the original YANG.
+
+	Copyright 2016 Microsemi Inc.
+	All rights reserved.";
+
+	revision "2016-02-29" {
+		description
+		"Initial EdgeAssure version forked from mef-soam-pm@2012-04-16 - Sean Condon, Microsemi";
+		reference
+		"Service OAM Fault Management YANG Modules (MEF 39), April 2012";
+	}
+
+	//
+	// Type definitions related to MEF SOAM PM
+	//
+
+	typedef suspect-status-type {
+		type boolean;
+		description
+		"This boolean data type indicates whether the measurement interval
+		has been marked as suspect.
+
+		The object is set to false at the start of a measurement
+		interval. It is set to true when there is a discontinuity in the
+		performance measurements during the measurement interval.
+		Conditions for a discontinuity include, but are not limited to
+		the following:
+
+		1 - The local time-of-day clock is adjusted by at least 10
+		seconds
+		2 - The conducting of a performance measurement is halted before
+		the current measurement interval is completed
+		3 - A local test, failure, or reconfiguration that disrupts
+		service";
+		reference
+		"[MEF SOAM PM IA] R39, R40, 41 and R42";
+	}
+
+	typedef performance-monitoring-interval-type {
+		type uint32 {
+			range "3..3600000";
+		}
+		units ms;
+		description
+		"This integer data type indicates the transmission time between the
+		SOAM PM frames for session, in ms.";
+	}
+
+
+	typedef session-status-type {
+		type enumeration {
+			enum active {
+				description
+				"Indicates the measurement instance is active.";
+			}
+			enum not-active {
+				description
+				"Indicates the measurement instance is not active.";
+			}
+		}
+
+		description
+		"This enumeration data type defines the status of PM session of a MEP.";
+		reference
+		"MEF-SOAM-TC-MIB.MefSoamTcStatusType";
+	}
+
+
+	typedef measurement-bin-type {
+		type enumeration {
+			enum two-way-frame-delay {
+				description
+				"Indicates a measurement bin for two-way Frame Delay.";
+			}
+
+			enum two-way-inter-frame-delay-variation {
+				description
+				"Indicates a measurement bin for two-way Inter-frame Delay
+				Variation.";
+			}
+		}
+
+		description
+		"This enumeration data type indicates whether the bin number is for Frame
+		Delay and Inter-Frame Delay Variation.";
+		reference
+		"MEF-SOAM-TC-MIB.MefSoamTcDelayMeasurementBinType";
+	}
+
+	//
+	// Groupings related to MEF SOAM PM
+	//
+
+	grouping remote-mep-group {
+		description
+		"This grouping includes objects which identify a remote MEP.";
+		choice remote-mep {
+			mandatory true;
+			description
+			"The remote MEP can be identified by either a MAC address or a MEP ID";
+
+			case mac-address {
+				leaf mac-address {
+					type yang:mac-address;
+//					msea:not-changeable;
+
+					description
+					"The Target MAC Address Field to be transmitted: A unicast
+					destination MAC address.
+
+					This object is only valid for the entity transmitting the
+					SOAM Loss and Delay Measurement frames and is ignored by
+					the entity receiving SOAM Loss and Delay Measurement
+					frames.";
+				}
+			}
+			case mep-id {
+				leaf mep-id {
+					type leafref {
+						path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:remote-meps";
+					}
+//					msea:not-changeable;
+					
+					description
+					"The Maintenance Association End Point Identifier of another MEP in
+					the same Maintenance Association to which the SOAM Loss or Delay
+					Measurement frame is to be sent.
+
+					This object is only valid for the entity transmitting the
+					SOAM Loss Measurement or Delay Measurement frames and is
+					ignored by the entity receiving SOAM Loss Measurement or
+					Delay Measurement frames.";
+				}
+			}
+		}
+	}
+
+	grouping measurement-timing-group {
+		description
+		"This grouping includes objects used for proactive and on-demand
+		scheduling of PM measurement sessions.";
+
+		container start-time {
+			description
+			"This container defines the session start time";
+
+			choice start-time {
+				default immediate;
+				description
+				"Measurement session start time can be immediate, relative or
+				absolute.";
+
+				container immediate {
+					presence "Start the measurement session immediately.";
+
+					description
+					"This object specifies the start time to be immediately at the time
+					of session creation.";
+				}
+			}
+		}
+
+		container stop-time {
+			description
+			"This container defines the session stop time";
+
+			choice stop-time {
+				default none;
+				description
+				"Measurement session stop time can be none, relative or
+				absolute.";
+
+				container none {
+					presence "Never end the measurement session.";
+
+					description
+					"This object specifies the measurement session to never end.";
+				}
+			}
+		}
+	}
+
+	grouping loss-measurement-stats-group {
+		description
+		"This grouping includes statistics objects for a SOAM Loss Measurement
+		session.";
+
+		leaf suspect-status {
+			type suspect-status-type;
+
+			description
+			"Whether the Measurement Interval has been marked as suspect.
+
+			The object is set to false at the start of a measurement
+			interval. It is set to true when there is a discontinuity in
+			the performance measurements during the Measurement Interval.
+			Conditions for a discontinuity include, but are not limited to
+			the following:
+
+			1 - The local time-of-day clock is adjusted by at least 10 seconds
+			2 - The conducting of a performance measurement is halted before the
+			current Measurement Interval is completed
+			3 - A local test, failure, or reconfiguration that disrupts service";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsSuspect";
+		}
+
+		leaf forward-transmitted-frames {
+			type yang:gauge32;
+			mandatory true;
+
+			description
+			"This object contains the number of frames transmitted in the forward
+			direction by this MEP.
+
+			For a PM Session of types lmm or ccm this includes Ethernet
+			Service Frames and SOAM PDUs that are in a higher MEG level
+			only.
+
+			For a PM Session of type slm this includes the count of SOAM
+			ETH-SLM frames only.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsForwardTransmittedFrames";
+		}
+
+		leaf forward-received-frames {
+			type yang:gauge32;
+			mandatory true;
+
+			description
+			"This object contains the number of frames received in the forward
+			direction by this MEP.
+
+			For a PM Session of types lmm or ccm this includes Ethernet
+			Service Frames and SOAM PDUs that are in a higher MEG level only.
+
+			For a PM Session of type slm this includes the count of SOAM
+			ETH-SLM frames only.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsForwardReceivedFrames";
+		}
+
+		leaf forward-average-frame-loss-ratio {
+			type uint32 {
+				range "0..100000";
+			}
+			units milli-percent;
+
+			description
+			"This object contains the average one-way frame loss ratio in the
+			forward direction calculated by this MEP for this Measurement
+			Interval. The FLR value is a ratio that is expressed as a
+			percent with a value of 0 (ratio 0.00) through 100000 (ratio
+					1.00).
+
+			Units are in milli-percent, where 1 indicates 0.001 percent.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsForwardAvgFlr";
+		}
+
+		leaf backward-transmitted-frames {
+			type yang:gauge32;
+			mandatory true;
+
+			description
+			"This object contains the number of frames transmitted in the backward
+			direction by this MEP.
+
+			For a PM Session of type lmm or ccm this includes Ethernet
+			Service Frames and SOAM PDUs that are in a higher MEG level
+			only.
+
+			For a PM Session of type slm this includes the count of SOAM
+			ETH-SLM frames only.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsBackwardTransmittedFrames";
+		}
+
+		leaf backward-received-frames {
+			type yang:gauge32;
+			mandatory true;
+
+			description
+			"This object contains the number of frames received in the backward
+			direction by this MEP.
+
+			For a PM Session of type lmm this includes Ethernet Service
+			Frames and SOAM PDUs that are in a higher MEG level only.
+
+			For a PM Session of type slm this includes the count of SOAM
+			ETH-SLM frames only.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsBackwardReceivedFrames";
+		}
+
+		leaf backward-average-frame-loss-ratio {
+			type uint32 {
+				range "0..100000";
+			}
+			units milli-percent;
+
+			description
+			"This object contains the average one-way frame loss ratio in the
+			backward direction calculated by this MEP for this Measurement
+			Interval. The FLR value is a ratio that is expressed as a
+			percent with a value of 0 (ratio 0.00) through 100000 (ratio
+					1.00).
+
+			Units are in milli-percent, where 1 indicates 0.001 percent.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsBackwardAvgFlr";
+		}
+
+		leaf soam-pdus-sent {
+			type yang:gauge32;
+			description
+			"This object contains the count of the number of SOAM PDUs sent during
+			this Measurement Interval.
+
+			This object applies when type is lmm, slm or ccm. It indicates
+			the number of LMM, CCM, or SLM SOAM frames transmitted.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsSoamPdusSent";
+		}
+
+		leaf soam-pdus-received {
+			type yang:gauge32;
+
+			description
+			"This object contains the count of the number of SOAM PDUs PDUs received
+			in this Measurement Interval.
+
+			This object applies when type is lmm, slm, or ccm. This object
+			indicates the number of LMR, CCM, or SLR SOAM frames received.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamLmCurrentStatsSoamPdusReceived";
+		}
+	}
+
+	grouping delay-measurement-stats-group {
+		description
+		"This grouping includes statistics objects for a SOAM Delay Measurement
+		session.";
+
+		leaf suspect-status {
+			type suspect-status-type;
+			description
+			"Whether the Measurement Interval has been marked as suspect.
+
+			The object is to be set to false at the start of a measurement
+			interval. It is set to true when there is a discontinuity in
+			the performance measurements during the Measurement Interval.
+			Conditions for a discontinuity include, but are not limited to
+			the following:
+
+			1 - The local time-of-day clock is adjusted by at least 10 seconds
+			2 - The conducting of a performance measurement is halted before the
+			current Measurement Interval is completed
+			3 - A local test, failure, or reconfiguration that disrupts service";
+		}
+
+		leaf frame-delay-two-way-min {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the minimum two-way frame delay calculated by this
+			MEP for this Measurement Interval.
+
+			This object is undefined if measurement-type is dm1-transmitted
+			or dm1-received.";
+		}
+
+		leaf frame-delay-two-way-max {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the maximum two-way frame delay calculated by this
+			MEP for this Measurement Interval.
+
+			This object is undefined if measurement-type is dm1DmTx or
+			dm1-received.";
+		}
+
+		leaf frame-delay-two-way-average {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the average two-way frame delay calculated by this
+			MEP for this Measurement Interval.
+
+			This object is undefined if measurement-type is dm1-transmitted or
+			dm1-received.";
+		}
+
+		leaf inter-frame-delay-variation-two-way-min {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the minimum two-way inter-frame delay interval
+			calculated by this MEP for this Measurement Interval.
+
+			The value of this object is undefined when measurement-type is
+			dm1-transmitted or dm1-received.";
+		}
+
+		leaf inter-frame-delay-variation-two-way-max {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the maximum two-way inter-frame delay interval
+			calculated by this MEP for this Measurement Interval.
+
+			The value of this object is undefined when measurement-type is
+			dm1-transmitted or dm1-received.";
+		}
+
+		leaf inter-frame-delay-variation-two-way-average {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object contains the average two-way inter-frame delay interval
+			calculated by this MEP for this Measurement Interval.
+
+			The value of this object is undefined when measurement-type is
+			dm1-transmitted or dm1-received.";
+		}
+
+		leaf soam-pdus-received {
+			type yang:gauge32;
+			description
+			"This object contains the count of the number of SOAM PDUs received in
+			this Measurement Interval.
+
+			This object indicates the number of DMR and 1DM SOAM frames
+			received. This object applies when measurement-type is dmm or
+			dm1-received and is undefined if measurement-type is
+			dm1-transmitted.";
+		}
+	}
+
+	grouping delay-measurement-bins-content-group {
+		description
+		"This grouping contains result measurement bin objects for a SOAM Delay
+		Measurement session.";
+
+		leaf type {
+			type measurement-bin-type;
+
+			description
+			"This object specifies whether the bin number is for Frame Delay and
+			Inter-Frame Delay Variation.";
+		}
+
+		leaf number {
+			type uint8 {
+				range "1..4";
+			}
+
+			description
+			"This object specifies the bin number for the configured boundary.  The
+			first bin has bin number 1.";
+		}
+
+		leaf lower-bound {
+			type yang:gauge32;
+			units "μs";
+
+			description
+			"This object specifies the lower boundary for a measurement bin. The
+			upper boundary is defined by the next bin value or infinite for
+			the last bin defined. The measurement boundary for each
+			measurement bin is to be larger than the measurement boundary
+			of the preceding measurement bin. By default, the next bin is
+			set to 5000us larger than the lower bin boundary.
+
+			The values in a bin boundary object represents the time range
+			used to segregate delay data into the appropriate statistical
+			data bin. For five bins with default values, each bin has the
+			following time range:
+
+			bin 1 = 0, range is 0us
+			bin 2 = 5000, range is 5,000us
+			bin 3 = 10000, range is 10,000us
+			bin 4 = 15000, range is 15,000us
+			bin 5 = 20000, range is 20,000us
+
+			The first bin boundary (number set to 1) always contains the
+			value of 0. Attempting to write a non-zero value to this bin
+			will result in an error.";
+		}
+
+		leaf counter {
+			type yang:gauge32;
+			config false;
+
+			description
+			"This object contains the count of the number of completed measurements
+			initiated in this Measurement Interval whose value falls within
+			the range specified for this bin (that is, greater than or
+					equal to the measurement boundary for the bin, and (unless the
+							bin is the last bin) less than the measurement boundary for the
+					following bin.";
+			reference
+			"MEF-SOAM-PM-MIB.mefSoamDmCurrentStatsBinsCounter";
+		}
+	}
+
+	grouping delay-measurement-bins-group {
+		description
+		"This grouping contains the top-level structure for the three types of
+		measurements (frame delay and inter frame delay variation)";
+
+		container bins {
+			description
+			"This container defines the bins content for FD, IFDR, and FDR
+			sessions.";
+
+			list frame-delay {
+				key "type number";
+				uses delay-measurement-bins-content-group;
+
+				description
+				"Data definitions related to frame delay bins content.";
+			}
+
+			list inter-frame-delay-variation {
+				key "type number";
+				uses delay-measurement-bins-content-group;
+
+				description
+				"Data definitions related to inter frame delay bins content.";
+			}
+
+		}
+	}
+	
+	
+	grouping bin-lower-limit-override-attribs {
+		
+		description 
+		"Bin 1 of each type will always be 0.
+		The upper limit of each bin will be defined by the lower
+		limit of the next bin. The upper limit of the last bin 
+		is unbounded.";
+		
+		leaf bin2-lower-limit {
+			type uint32 {
+				range "10..max";
+			}
+			units "μs";
+			must "current() < ../bin3-lower-limit" {
+				error-message "Bin 2 must be between 0 and bin 3 lower limit";
+				error-app-tag "msea-soampm-must-01";
+			}
+			description "The lower limit of the bin 2 in microseconds";
+		}
+
+		leaf bin3-lower-limit {
+			type uint32 {
+				range "10..max";
+			}
+			units "μs";
+			must "current() > ../bin2-lower-limit and current() < ../bin4-lower-limit" {
+				error-message "Bin 3 must be between bin 2 and bin 4 lower limits";
+				error-app-tag "msea-soampm-must-02";
+			}
+			description "The lower limit of the bin 3 in microseconds";
+		}
+
+		leaf bin4-lower-limit {
+			type uint32 {
+				range "10..max";
+			}
+			units "μs";
+			must "current() > ../bin3-lower-limit" {
+				error-message "Bin 4 must be greater than 3 lower limit";
+				error-app-tag "msea-soampm-must-03";
+			}
+			description "The lower limit of the bin 4 in microseconds";
+		}
+	}
+
+	//
+	// Augments into CFM related to MEF SOAM PM
+	//
+	
+	augment "/msea-cfm:mef-cfm/msea-cfm:pm-global" {
+		
+		description "High level attributes that apply to the whole device generally
+				or that apply equally across all instances of a child entity.
+				Delay measurement services should be stopped before changing 
+				these values, including the limit overrides";
+		
+		leaf dm-bins-per-fd-interval {
+			type uint16 {
+				range "4";
+			}
+			default 4;
+
+			description
+			"This object specifies the number of measurement bins per Measurement
+			Interval for Frame Delay measurements.
+
+			Fixed at 4.";
+		}
+
+		leaf dm-bins-per-ifdv-interval {
+			type uint16 {
+				range "4";
+			}
+			default 4;
+
+			description
+			"This object specifies the number of measurement bins per Measurement
+			Interval for Inter-Frame Delay Variation measurements.
+
+			Fixed at 4.";
+		}
+		
+			
+		container bin-lower-limit-override-two-way-frame-delay {
+
+			uses bin-lower-limit-override-attribs {
+				refine bin2-lower-limit {
+					default 10000;
+				}
+				refine bin3-lower-limit {
+					default 20000;
+				}
+				refine bin4-lower-limit {
+					default 37000;
+				}
+			}
+
+			description "Override of the default Measurement Bin default 
+					lower limits for Two Way Frame Delay.";
+
+		}
+
+		container bin-lower-limit-override-two-way-ifdv {
+
+			uses bin-lower-limit-override-attribs {
+				refine bin2-lower-limit {
+					default 3000;
+				}
+				refine bin3-lower-limit {
+					default 8000;
+				}
+				refine bin4-lower-limit {
+					default 100000;
+				}
+			}
+
+			description "Override of the default Measurement Bin default 
+					lower limits for Two Way Interframe Delay Variation.";
+		}
+	}
+	
+
+	augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association" +
+	"/msea-cfm:maintenance-association-end-point" {
+		description
+		"This set of data definitions extends the MEG End Point (as described
+		Y.1731) or Maintenance End Point (as described in 802.1q) defined
+		in the MEF CFM module (MEF-CFM), specifically with regards to
+		Loss Measurement and Delay Measurement.";
+
+		container loss-measurements {
+			description
+			"This container contains a collection of data definitions related to
+			Loss Measurements.";
+
+			list loss-measurement {
+				key lm-id;
+				max-elements 16;
+
+				description
+				"A list of Loss Measurement PM Sessions where each instance is uniquely
+				identified by an id attribute.
+				This grouping includes configuration objects for the Frame Loss
+				Measurement function defined in [Y.1731] and [MEF SOAM PM IA].";
+				reference
+				"MEF-SOAM-PM-MIB.mefSoamLmCfgTable, [Y.1731] and [MEF SOAM PM IA]";
+
+				leaf lm-id {
+					type uint8 {
+						range 1..16;
+					}
+
+					description
+					"This object uniquely identifies a scheduled loss measurement.";
+				}
+				
+				must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-soam-pm:loss-measurement) <= 128" {
+					error-message "The maximum number of LMs on the whole device must not exceed 128";
+					error-app-tag "msea-soampm-must-04";
+				}
+
+				uses remote-mep-group;
+				uses measurement-timing-group;
+				
+				leaf administrative-state {
+					type boolean;
+					default false;
+
+					description
+					"The administrative state of the MEP. Setting to true starts this Loss Measurement";
+				}
+
+				leaf measurement-type {
+					type enumeration {
+						enum slm {
+							description
+							"SLM SOAM PDU generated and received SLR responses tracked.";
+						}
+					}
+					default slm;
+
+					description
+					"This object specifies what type of Loss Measurement will be
+					performed.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgType";
+				}
+
+				leaf version {
+					type enumeration {
+						enum Y.1731-2008 {
+							description
+							"Indicates the PDU formats defined in Y.1731-2008";
+						}
+					}
+					default Y.1731-2008;
+
+					description
+					"This object indicates the version of the PDUs used to perform Loss
+					Measurement.
+					The exact PDUs to use are specified by this object in
+					combination with measurement-type.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgVersion";
+				}
+
+				leaf enabled-counters {
+					type bits {
+						bit forward-transmitted-frames {description "Count the number of frames transmitted in the forward direction by this MEP";}
+						bit forward-received-frames {description "Count the number of frames received in the forward direction by this MEP";}
+						bit forward-average-flr {description "Calculate the average one-way frame loss ratio in the forward direction calculated by this MEP";}
+						bit backward-transmitted-frames {description "Count the number of frames transmitted in the backward direction by this MEP";}
+						bit backward-received-frames {description "Count the number of frames received in the backward direction by this MEP";}
+						bit backward-average-flr {description "Calculate the average one-way frame loss ratio in the backward direction calculated by this MEP";}
+						bit soam-pdus-sent {description "Count of the number of SOAM PDUs sent during this Measurement Interval";}
+						bit soam-pdus-received {description "Count of the number of SOAM PDUs received during this Measurement Interval";}
+				        bit measured-stats-forward-measured-flr {description "Measure the Frame Loss Ratio in the forward direction calculated by this MEP from the last received SOAM PDU";}
+				        bit measured-stats-backward-measured-flr {description "Measure the Frame Loss Ratio in the backward direction calculated by this MEP from the last received SOAM PDU";}
+
+					}
+					default "";
+
+//					msea:not-changeable;
+					
+					description
+					"A vector of bits that indicates the type of SOAM LM counters found in
+					the current-stats and history-stats that are enabled.
+
+					A present bit enables the specific SOAM LM counter. A not present
+					bit disables the SOAM LM counter.
+
+					If a particular SOAM LM counter is not supported the BIT value
+					is not present.
+
+					Not all SOAM LM counters are supported for all SOAM LM types. ";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgMeasurementEnable";
+				}
+
+				leaf message-period {
+					type enumeration {
+						enum 1000ms {
+							description "The default 1000ms message period for LM";
+						}
+						enum 100ms {
+							description "100ms message period for LM";
+						}
+						enum 10ms {
+							description "10ms message period for LM";
+						}
+						enum 3ms {
+							description "3ms message period for LM";
+						}
+					}
+					default 1000ms;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the interval between Loss Measurement OAM message
+					transmission. For Loss Measurement monitoring applications the
+					default value is 1 sec.
+
+					This object is not applicable if measurement-type is set to
+					'ccm' and is ignored for that Loss Measurement Type.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgMessagePeriod";
+				}
+
+				leaf priority {
+					type msea:priority-type;
+					mandatory true;
+//					msea:not-changeable;
+
+					must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../../../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:id = current()/../../../../msea-cfm:id]/msea-cfm:maintenance-association-end-point[msea-cfm:mep-identifier=current()/../../../msea-cfm:mep-identifier]/msea-soam-pm:loss-measurements/msea-soam-pm:loss-measurement[msea-soam-pm:priority=current()]) <= 1" {
+						error-message "The priority of a Loss Measurement must be unique within its MEP";
+						error-app-tag "msea-soampm-must-05";
+					}
+
+					description
+					"This object specifies the priority of frames with Performance
+					Monitoring OAM message information.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgPriority";
+				}
+
+				leaf frame-size {
+					type uint32 {
+						range "64 .. 9600";
+					}
+					units bytes;
+					default 64;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the Loss Measurement frame size between 64 bytes
+					and the maximum transmission unit of the EVC.
+
+					The range of frame sizes from 64 through 2000 octets need to be
+					supported, and the range of frame sizes from 2001 through 9600
+					octets is suggested be supported.
+
+					The adjustment to the frame size of the standard frame size is
+					accomplished by the addition of a Data or Test TLV. A Data or
+					Test TLV is only added to the frame if the frame size is greater
+					than 64 bytes.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgFrameSize";
+				}
+
+				leaf measurement-interval {
+					type uint32 {
+						range "1..525600";
+					}
+					units minutes;
+					default 15;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the Measurement Interval for FLR statistics, in
+					minutes.
+
+					A Measurement Interval of 15 minutes needs to be supported,
+					other intervals may be supported.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmCfgMeasurementInterval";
+				}
+				
+			    leaf number-intervals-stored {
+			      type uint32 {
+			        range "32";
+			      }
+			      default 32;
+			      
+			      description 
+			        "This object specifies the number of completed measurement intervals to
+			         store in the history statistic table.
+			                 
+			         At least 32 completed measurement intervals are to be
+			         stored.";
+			      reference
+			        "MEF-SOAM-PM-MIB.mefSoamLmCfgNumIntervalsStored";
+			    }
+
+				leaf number-intervals-returned {
+					type uint32 {
+						range "2..32";
+					}
+					default 32;
+
+					description
+					"This object specifies the number of completed measurement intervals to
+					return from the history statistic table.
+					The number stored on the device is fixed at 32";
+				}
+
+				leaf session-status {
+					type session-status-type;
+					config false;
+
+					description
+					"This object indicates the current status of the LM session. A value
+					of 'active' indicates the current LM session is active,
+					i.e. the current time lies between the start time and the
+					stop time, and enabled is true. A value of 'not-active'
+					indicates the current LM session is not active, i.e. it has
+					not started yet, has stopped upon reaching the stop time,
+					or is disabled.";
+				}
+
+				leaf measured-forward-flr {
+					type yang:gauge32 {
+						range "0..100000";
+					}
+					units milli-percent;
+					config false;
+
+					description
+					"This object contains the Frame Loss Ratio in the forward direction
+					calculated by this MEP from the last received SOAM PDU. The
+					FLR value is a ratio that is expressed as a percent with a
+					value of 0 (ratio 0.00) through 100000 (ratio 1.00).
+
+					Units are in milli-percent, where 1 indicates 0.001
+					per-cent.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmMeasuredStatsForwardFlr";
+				}
+
+				leaf measured-backward-flr {
+					type yang:gauge32 {
+						range "0..100000";
+					}
+					units milli-percent;
+					config false;
+
+					description
+					"This object contains the Frame Loss Ratio in the backward direction
+					calculated by this MEP from the last received SOAM PDU. The
+					FLR value is a ratio that is expressed as a percent with a
+					value of 0 (ratio 0.00) through 100000 (ratio 1.00).
+
+					Units are in milli-percent, where 1 indicates 0.001
+					percent.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamLmMeasuredStatsBackwardFlr";
+				}
+
+				container current-measurement-stats {
+					config false;
+
+					description
+					"This container contains the results for the current Measurement
+					Interval in a SOAM Loss Measurement session gathered during
+					the interval indicated by measurement-interval.";
+
+					leaf id {
+						type uint32;
+
+						description
+						"The index for the current Measurement Interval for this PM
+						session. This value will become the value for id of the
+						history-measurement-stats list once the Measurement
+						Interval is completed.";
+					}
+
+					leaf start-time {
+						type yang:date-and-time;
+						mandatory true;
+
+						description
+						"The time that the current Measurement Interval started.";
+					}
+
+					leaf elapsed-time {
+						type uint32 {
+							range "0..2147483647";
+						}
+						units "0.01s";
+						mandatory true;
+
+						description
+						"The time that the current Measurement Interval has been running,
+						in 0.01 seconds.";
+					}
+
+					uses loss-measurement-stats-group;
+				}
+
+				list history-measurement-stats {
+					key id;
+					config false;
+					description
+					"This list contains the results for history Measurement
+					Intervals in a SOAM Loss Measurement session.";
+
+					leaf id {
+						type uint32;
+
+						description
+						"The index for the Measurement Interval within this
+						PM session.";
+					}
+
+					leaf end-time {
+						type yang:date-and-time;
+						mandatory true;
+
+						description
+						"The time that the Measurement Interval ended.";
+					}
+
+					leaf elapsed-time {
+						type uint32 {
+							range "0..2147483647";
+						}
+						mandatory true;
+
+						description
+						"The length of time that the Measurement Interval ran for,
+						in 0.01 seconds.";
+					}
+
+					uses loss-measurement-stats-group;
+				}
+			}
+		}
+
+		container delay-measurements {
+			description
+			"This container contains a collection of data definitions related to
+			Delay Measurements. The measurements are persisted as config data
+			with results being retrieved from the device as needed";
+
+			list delay-measurement {
+				key dm-id;
+				max-elements 16;
+
+				description
+				"A list of Delay Measurements where each instance is
+				uniquely identified by an id attribute.
+				This includes configuration objects for the Delay Measurement
+				function defined in [Y.1731] and [MEF SOAM PM IA].";
+				reference
+				"MEF-SOAM-PM-MIB.mefSoamDmCfgTable, [Y.1731], and [MEF SOAM PM IA].";
+
+				leaf dm-id {
+					type uint8 {
+						range 1..16;
+					}
+
+					description
+					"This object uniquely identifies a scheduled delay measurement.";
+				}
+				
+				must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-soam-pm:delay-measurement) <= 128" {
+					error-message "The maximum number of DMs on the whole device must not exceed 128";
+					error-app-tag "msea-soampm-must-06";
+				}
+
+				uses remote-mep-group;
+				uses measurement-timing-group;
+
+				leaf administrative-state {
+					type boolean;
+					default false;
+
+					description
+					"The administrative state of the MEP. Setting to true starts this Delay Measurement";
+				}
+
+				leaf measurement-type {
+					type enumeration {
+						enum dmm {
+							description
+							"DMM SOAM PDU generated, DMR responses received (one-way or two-way
+							measurements).";
+						}
+					}
+					default dmm;
+
+					description
+					"This object indicates what type of Delay Measurement is to be
+					performed.
+
+					The exact PDUs to use are specified by this object in
+					combination with version.";
+				}
+
+				leaf version {
+					type enumeration {
+						enum Y.1731-2011 {
+							description
+							"Indicates the PDU formats defined in Y.1731-2011.";
+						}
+					}
+					default Y.1731-2011;
+
+					description
+					"This object indicates the version of the PDUs used to perform Delay
+					Measurement.
+
+					The exact PDUs to use are specified by this object in
+					combination with measurement-type.";
+					reference
+					"[Y.1731]";
+				}
+
+				leaf measurement-enable {
+					type bits {
+						bit soam-pdus-received {description "Count of the number of SOAM PDUs received";}
+						bit frame-delay-two-way-bins {description "Capture the two-way frame delay in bins";}
+						bit frame-delay-two-way-min {description "Capture the minimum two-way frame delay";}
+						bit frame-delay-two-way-max {description "Capture the maximum two-way frame delay";}
+						bit frame-delay-two-way-average {description "Calculate the average two-way frame delay";}
+						bit inter-frame-delay-variation-two-way-bins {description "Capture the two-way inter-frame-delay-variation in bins";}
+						bit inter-frame-delay-variation-two-way-min {description "Capture the minimum inter-frame-delay-variation frame delay";}
+						bit inter-frame-delay-variation-two-way-max {description "Capture the maximum inter-frame-delay-variation frame delay";}
+						bit inter-frame-delay-variation-two-way-average {description "Calculate the average inter-frame-delay-variation frame delay";}
+					}
+					default "";
+//					msea:not-changeable;
+
+					description
+					"A vector of bits that indicates the type of SOAM DM counters that
+					are enabled.
+
+					A present bit enables the specific SOAM DM counter.
+
+					A not present bit disables the SOAM DM counter.
+
+					If a particular SOAM DM counter is not supported the BIT value
+					is not present.
+
+					Not all SOAM DM counters are supported for all SOAM DM types.";
+				}
+
+				leaf message-period {
+					type enumeration {
+						enum 1000ms {
+							description "1000ms message period for DM";
+						}
+						enum 100ms {
+							description "100ms message period for DM";
+						}
+						enum 10ms {
+							description "10ms message period for DM";
+						}
+						enum 3ms {
+							description "3ms message period for DM";
+						}
+					}
+					default 100ms;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the interval between Delay Measurement OAM
+					message transmission. For Delay Measurement monitoring applications,
+					the default value is 100ms.";
+				}
+
+				leaf priority {
+					type msea:priority-type;
+					mandatory true;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the priority of frames with Performance
+					Monitoring OAM message information.";
+				}
+
+				leaf frame-size {
+					type uint32 {
+						range "64 .. 9600";
+					}
+					default 64;
+//					msea:not-changeable;
+
+					description
+					"This object specifies the Delay Measurement frame size between 64 bytes
+					and the maximum transmission unit of the EVC.
+
+					The range of frame sizes from 64 through 2000 octets need to be
+					supported, and the range of frame sizes from 2001 through 9600
+					octets is suggested to be supported.
+
+					The adjustment to the frame size of the standard frame size is
+					accomplished by the addition of a Data or Test TLV. A Data or
+					Test TLV is only added to the frame if the frame size is
+					greater than 64 bytes.";
+				}
+
+				leaf measurement-interval {
+					type uint32 {
+						range "1..1440";
+					}
+					units minutes;
+					default 15;
+//					msea:not-changeable;
+
+					description
+					"This object specifies a Measurement Interval in minutes.
+
+					A Measurement Interval 15 minutes needs to be supported, other
+					intervals may be supported.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamDmCfgMeasurementInterval";
+				}
+
+			    leaf number-intervals-stored {
+			      type uint32 {
+			        range "32";
+			      }
+			      default 32;
+			      description 
+			        "This object specifies the number of completed measurement intervals to
+			         store in the history statistic table.
+			                 
+			         At least 32 completed measurement intervals are to be
+			         stored.";
+			      reference
+			        "MEF-SOAM-PM-MIB.mefSoamLmCfgNumIntervalsStored";
+			    }
+
+				leaf number-intervals-returned {
+					type uint32 {
+						range "2..32";
+					}
+					default 32;
+
+					description
+					"This object specifies the number of completed measurement intervals to
+					return from the history statistic table.
+					The number of intervals stored is fixed at 32 on the device";
+
+				}
+
+				leaf session-status {
+					type session-status-type;
+					config false;
+
+					description
+					"This object indicates the current status of the DM session. A value
+					of 'active' indicates the current DM session is active,
+					i.e. the current time lies between the start time and the
+					stop time, and enabled is true. A value of 'not-active'
+					indicates the current DM session is not active, i.e. it has
+					not started yet, has stopped upon reaching the stop time,
+					or is disabled.";
+				}
+
+				leaf frame-delay-two-way {
+					type yang:gauge32;
+					units microseconds;
+					config false;
+
+					description
+					"This object contains the two-way frame delay calculated by this MEP
+					from the last received SOAM PDU.
+
+					This object is undefined is measurement-type is
+					dm1-transmitted or dm1-received.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamDmMeasuredStatsFrameDelayTwoWay";
+				}
+
+				leaf inter-frame-delay-variation-two-way {
+					type yang:gauge32;
+					units microseconds;
+					config false;
+
+					description
+					"This object contains the last two-way inter-frame delay interval
+					calculated by this MEP.
+
+					The value of this object is undefined when measurement-type
+					is dm1-transmitted or dm1-received.";
+					reference
+					"MEF-SOAM-PM-MIB.mefSoamDmMeasuredStatsIfdvTwoWay";
+				}
+
+				container current-stats {
+					config false;
+
+					description
+					"This container contains the results for the current Measurement
+					Interval in a SOAM Delay Measurement session gathered
+					during the interval indicated by measurement-interval.";
+
+					leaf id {
+						type uint32;
+
+						description
+						"The index for the current Measurement Interval for this PM
+						session. This value will become the value for id of the
+						history-measurement-stats list once the Measurement
+						Interval is completed.";
+					}
+					
+					leaf start-time {
+						type yang:date-and-time;
+						mandatory true;
+
+						description
+						"The time that the current Measurement Interval started.";
+					}
+
+					leaf elapsed-time {
+						type uint32 {
+							range "0..2147483647";
+						}
+						mandatory true;
+
+						description
+						"The time that the current Measurement Interval has been running,
+						in 0.01 seconds.";
+					}
+
+					uses delay-measurement-stats-group;
+					uses delay-measurement-bins-group;
+				}
+
+				list history-stats {
+					key id;
+					config false;
+					description
+					"This list contains the results for history Measurement Intervals in
+					a SOAM Delay Measurement session.";
+
+					leaf id {
+						type uint32;
+
+						description
+						"The identifier for the Measurement Interval within this
+						PM session.";
+					}
+
+					leaf end-time {
+						type yang:date-and-time;
+						mandatory true;
+
+						description
+						"The time that the Measurement Interval ended.";
+					}
+
+					leaf elapsed-time {
+						type uint32 {
+							range "0..2147483647";
+						}
+						mandatory true;
+
+						description
+						"The length of time that the Measurement Interval ran for, in 0.01
+						seconds.";
+					}
+
+					uses delay-measurement-stats-group;
+					uses delay-measurement-bins-group;
+				}
+			}
+		}
+	}
+
+	//
+	// RPCs related to MEF SOAM PM
+	//
+	
+  rpc clear-loss-history-stats {
+	description 
+	  "Clear the Loss Measurement history list (history-availability-stats and
+	   history-measurement-stats) for a specific session. All instance
+	   data is deleted.";
+
+	input {
+	  uses msea-cfm:maintenance-association-end-point-reference {
+		  refine maintenance-domain { 
+			  mandatory true; 
+		  }
+		  refine maintenance-association { 
+			  mandatory true; 
+		  }
+		  refine maintenance-association-end-point { 
+			  mandatory true; 
+		  }
+	  }
+
+	  leaf lm-id {
+		type leafref {
+			path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-soam-pm:loss-measurements/msea-soam-pm:loss-measurement/msea-soam-pm:lm-id";
+		}
+		mandatory true;
+
+		description
+		  "The LM ID of the loss measurement session of which the loss
+		   measurement history should be cleared";
+	  }
+	}
+  }
+
+	
+	
+	
+  rpc clear-delay-history-stats {
+	description 
+	  "Clear the Delay Measurement history list (history-stats) for a specific
+	   session. All instance data is deleted.";
+
+	input {
+		uses msea-cfm:maintenance-association-end-point-reference { //Added to specify the MEP SC 10-Dec-15
+		  refine maintenance-domain { 
+			  mandatory true; 
+		  }
+		  refine maintenance-association { 
+			  mandatory true; 
+		  }
+		  refine maintenance-association-end-point { 
+			  mandatory true; 
+		  }
+		}
+
+
+	  leaf dm-id {
+		type leafref {
+			path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-soam-pm:delay-measurements/msea-soam-pm:delay-measurement/msea-soam-pm:dm-id";
+		}
+		mandatory true;
+
+		description
+		  "The DM ID of the loss measurement session of which the loss
+		   measurement history should be cleared";
+	  }
+	}
+  }
+
+	//
+	// Notifications related to MEF SOAM PM
+	//
+
+}
+

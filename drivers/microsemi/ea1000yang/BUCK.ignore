@@ -1,0 +1,36 @@
+YANG_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:onos-yang-datamodel',
+  '//lib:onos-yang-utils-generator',
+]
+
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//apps/yms/api:onos-apps-yms-api',
+  '//protocols/netconf/api:onos-protocols-netconf-api',
+  '//lib:onos-yang-datamodel',
+  '//lib:onos-yang-utils-generator',
+  '//lib:org.apache.servicemix.bundles.dom4j',
+  '//drivers/microsemi/ea1000yang:onos-drivers-microsemi-ea1000yang-gen',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_ADAPTERS',
+  '//apps/yms/app:onos-apps-yms-app',
+  '//drivers/netconf:onos-drivers-netconf-tests',
+  '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
+]
+
+yang_osgi_jar(
+  deps = YANG_DEPS,
+  name = 'onos-drivers-microsemi-ea1000yang-gen',
+  srcs = glob(['src/main/yang/**/*.yang']),
+  visibility = [ 'PUBLIC' ],
+)
+
+osgi_jar_with_tests(
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+  visibility = [ 'PUBLIC' ],
+  srcs = glob(['src/main/**/*.java'])
+)

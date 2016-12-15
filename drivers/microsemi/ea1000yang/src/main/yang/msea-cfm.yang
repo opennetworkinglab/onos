@@ -1,0 +1,2065 @@
+module msea-cfm {
+
+    namespace "http://www.microsemi.com/microsemi-edge-assure/msea-cfm";
+    prefix "msea-cfm"; //MicroSemi EdgeAssure (msea)
+
+    import ietf-yang-types {
+        prefix yang;
+        revision-date 2013-07-15;
+    }
+    import ietf-inet-types {
+        prefix inet;
+        revision-date 2013-07-15;
+    }
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module is a fork of the original mef-cfm YANG Module defined in MEF 38
+    This fork is done specifically to suit the EdgeAssure SFP which has some extra
+    constraints that are not handled by the original YANG.
+
+    Consideration was given to using 'deviations' in a separate YANG file as an
+    alternative to forking, but due to lack of full support for deviations in
+    Cisco/Tail-f NSO 4.1.1 (Jan 2016) this was not feasible.
+
+    This YANG is meant to mirror exactly the initial behaviour of the EdgeAssure
+    and present that to Client systems at the interface level (the alternative
+    being to raise exceptions when a constraint is broken). This is mostly
+    implemented through 'must' statements.
+
+    Copyright 2016 Microsemi Inc.
+    All rights reserved.";
+
+    revision "2016-02-29" {
+        description
+        "Initial EdgeAssure version forked from mef-cfm 2012-04-16 - Sean Condon, Microsemi";
+        reference
+        "Service OAM Fault Management YANG Modules (MEF 38), April 2012";
+    }
+
+    //
+    // Type definitions related to CFM
+    //
+
+    typedef lbm-transaction-id-type {
+        type uint32;
+
+        description
+        "A loopback transaction identifier";
+        reference
+        "[802.1q] 21.7.3";
+    }
+
+    typedef fault-alarm-defect-type {
+        type enumeration {
+            enum remote-rdi {
+                description "Indicates the aggregate health of the remote MEPs.";
+            }
+            enum remote-mac-error {
+                description "Indicates that one or more of the remote MEPs is
+                reporting a failure in its Port Status TLV or
+                Interface Status TLV.";
+            }
+            enum remote-invalid-ccm {
+                description "Indicates that at least one of the Remote MEP
+                state machines is not receiving valid CCMs
+                from its remote MEP.";
+            }
+            enum invalid-ccm {
+                description "Indicates that one or more invalid CCMs has been
+                received and that 3.5 times that CCMs transmission
+                interval has not yet expired.";
+            }
+            enum cross-connect-ccm {
+                description "Indicates that one or more cross connect CCMs has been
+                received and that 3.5 times of at least one of those
+                CCMs transmission interval has not yet expired.";
+            }
+            enum none {
+                description "Indicates that all defects of all types should
+                        be ignored.";
+            }
+        }
+
+        description
+        "An enumerated value indicating the highest priority defect.";
+        reference
+        "[802.1q] 20.33.9";
+    }
+
+    typedef fault-alarm-defect-bits-type {
+        type bits {
+            bit remote-rdi {
+                description "Indicates that at least one of the Remote MEP state machines is
+                receiving valid CCMs from its remote MEP that has the RDI bit set.";
+            }
+            bit remote-mac-error {
+                description "One or more of the remote MEPs is reporting a failure
+                in its Port Status TLV or Interface Status";
+            }
+            bit remote-invalid-ccm {
+                description "At least one of the Remote MEP state machines is not
+                receiving valid CCMs from its remote MEP";
+            }
+            bit invalid-ccm {
+                description "One or more invalid CCMs has been received";
+            }
+            bit cross-connect-ccm {
+                description "One or more cross connect CCMs has been received";
+            }
+        }
+
+        description
+        "A set of bits indicating the the current defects";
+        reference
+        "[802.1q] 20.33.9";
+    }
+
+    typedef remote-mep-state-type {
+        type enumeration {
+            enum idle {
+                description
+                "Indicates momentary state during reset.";
+            }
+            enum start {
+                description
+                "Indicates the timer has not expired since the state machine was
+                reset, and no valid CCM has yet been received.";
+            }
+            enum failed {
+                description
+                "Indicates The timer has expired, both since the state machine
+                was reset, and since a valid CCM was received.";
+            }
+            enum ok {
+                description
+                "Indicates The timer has not expired since a valid CCM was
+                received.";
+            }
+        }
+        description
+        "An enumerated value indicating the operational state of a Remote
+        MEP state machine for a remote MEP.";
+        reference
+        "[802.1q] 12.14.7.6.3:b
+        IEEE8021-CFM-MIB.Dot1agCfmRemoteMepState";
+    }
+
+    typedef ltm-transaction-id-type {
+        type uint32;
+
+        description
+        "A linktrace transaction identifier";
+        reference
+        "[802.1q] 21.8.3";
+    }
+
+    //
+    // Groupings related to CFM
+    //
+
+    grouping target-address-group {
+        description
+        "An indication of a destination MEP, either:
+        1) The MEPID of a MEP; or
+        2) An Individual destination MAC address";
+
+        reference "[802.1q] 12.14.7.3.2:b";
+
+        choice address-type {
+            description "Either a mac address or a MEP id for the target";
+            case mac-address {
+                leaf mac-address {
+                    type yang:mac-address;
+                    description
+                    "Target MAC address";
+                }
+            }
+            case mep-id {
+                leaf mep-id {
+                    type msea:mep-id-type;
+                    description
+                    "Target MEP ID";
+                }
+            }
+        }
+    }
+
+    grouping maintenance-domain-reference {
+        description
+        "This grouping uniquely identifies a maintenance domain.";
+
+        leaf maintenance-domain {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:id";
+            }
+            description
+            "A reference to a specific Maintenance Domain.";
+        }
+    }
+
+    grouping maintenance-association-reference {
+        description
+        "This grouping uniquely identifies a maintenance association. It consists
+        of a maintence-domain-reference and a maintenance-association leafref";
+
+        uses maintenance-domain-reference;
+
+        leaf maintenance-association {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id=current()/../maintenance-domain]/msea-cfm:maintenance-association/msea-cfm:id";
+            }
+            description
+            "A reference to a specific Maintenance Association.";
+        }
+    }
+
+    grouping maintenance-association-end-point-reference {
+        description
+        "This grouping uniquely identifies a maintenance association. It consists
+        of a maintence-association-reference and a maintenance-association-end-point
+        leafref";
+
+        uses maintenance-association-reference;
+
+        leaf maintenance-association-end-point {
+            type leafref {
+                path "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id=current()/../maintenance-domain]/msea-cfm:maintenance-association[msea-cfm:id=current()/../maintenance-association]/msea-cfm:maintenance-association-end-point/msea-cfm:mep-identifier";
+            }
+            description
+            "A reference to a specific Maintenance association End Point.";
+        }
+    }
+
+    grouping mep-notification-reference {
+
+        description "A simple MEP reference that can be used in notifications";
+        leaf maintenance-domain {
+            type uint8;
+            description
+            "A reference to a specific Maintenance Domain.";
+        }
+
+        leaf maintenance-association {
+            type uint8;
+            description
+            "A reference to a specific Maintenance Association.";
+        }
+
+        leaf maintenance-association-end-point {
+            type msea:mep-id-type;
+            description
+            "A reference to a specific Maintenance association End Point.";
+        }
+
+    }
+
+    grouping linktrace-parameters-group {
+        description
+        "This is the group of parameters associated with linktrace sessions. It is
+        used for linktrace RPC input as well as linktrace database entries.";
+
+        container target-address {
+            description
+            "Target MAC address or MEP ID for the Linktrace session.";
+            uses target-address-group;
+        }
+
+        leaf transmit-ltm-flags {
+            type bits {
+                bit use-fdb-only {
+                    description
+                    "If set, indicates that only MAC addresses learned in a
+                    Bridge’s FDB, and not information saved in the MIP CCM
+                    Database, is to be used to determine the Egress Port.";
+                    reference "[802.1q] 21.8.1";
+                }
+            }
+
+            description
+            "The Flags field for LTMs transmitted by the MEP";
+            reference
+            "[802.1q] 12.14.7.4.2:b";
+        }
+
+        leaf default-ttl {
+            type uint8;
+            default 64;
+
+            description
+            "An initial value for the LTM TTL field";
+            reference
+            "[802.1q] 12.14.7.4.2:d";
+        }
+    } //End of linktrace-parameters-group
+
+
+    grouping port-id-tlv-group {
+        description
+        "Data definitions associated with the Port ID TLV";
+
+        reference
+        "[802.1AB] 9.5.3";
+
+        choice port-id-subtype {
+            leaf interface-alias {
+                type string {
+                    length "0..64";
+                }
+                description
+                "The ifAlias field from the Interfaces Group MIB";
+                reference
+                "[RFC2863]";
+            }
+
+            leaf port-component {
+                type string {
+                    length "0..32";
+                }
+                description
+                "EntPhysicalAlias when entPhysClass has a value of port(10) or
+                backplane(4)";
+                reference
+                "[RFC2737]";
+            }
+            leaf mac-address {
+                type yang:mac-address;
+                description
+                "A MAC address";
+            }
+            leaf network-address {
+                type string;
+                description
+                "network-address is an octet string that identifies a particular network
+                address family and an associated network address that are
+                encoded in network octet order. An IP address, for example,
+                would be encoded with the first octet containing the IANA
+                Address Family Numbers enumeration value for the specific
+                address type and octets 2 through n containing the address
+                value";
+                reference
+                "[802.1AB] Table 9.2";
+            }
+
+            leaf interface-name {
+                type string {
+                    length "0..64";
+                }
+                description
+                "The ifName field from the Interfaces Group MIB";
+                reference
+                "[RFC2863]";
+            }
+            leaf agent-circuit-id {
+                type string;
+                description
+                "Agent circuit ID";
+                reference
+                "[RFC3046]";
+            }
+            leaf local {
+                type string;
+                description
+                "A locally defined identifier";
+                reference
+                "[802.1AB] Table 9.3";
+            }
+        }
+    }  //End of port-id-tlv-group
+
+
+    grouping sender-id-tlv-group {
+        description
+        "Data definitions associated with the Sender ID TLV";
+
+        reference
+        "[802.1q] 21.5.3";
+
+        choice chassis-id-subtype {
+            description
+            "The chassis-id-subtype contains the chassis ID entity that is listed in
+            the chassis ID field. This is a combination of the 'Chassis ID Subtype'
+            and 'chsssis ID' fields";
+
+            reference
+            "[802.1AB] 9.5.2.2";
+
+            leaf chassis-component {
+                type string {
+                    length "0..32";
+                }
+                description
+                "This leaf contains the content of EntPhysicalAlias when entPhysClass has
+                a value of chassis(3)'";
+                reference
+                "[RFC2737]";
+            }
+
+            leaf interface-alias {
+                type string {
+                    length "0..64";
+                }
+                description
+                "The IfAlias field from the Interfaces Group MIB";
+                reference
+                "[RFC2863]";
+            }
+
+            leaf port-component {
+                type string {
+                    length "0..32";
+                }
+                description
+                "The EntPhysicalAlias from the Interfaces Group MIB when entPhysClass has
+                a value of port(10) or backplane(4)";
+                reference
+                "[RFC2737]";
+            }
+
+            leaf mac-address-type {
+                type yang:mac-address;
+
+                description
+                "An IEEE 802-2001 Ethernet MAC Address";
+                reference
+                "[802-2001]";
+            }
+
+            leaf network-address {
+                type string;
+                description
+                "network-address is an octet string that identifies a particular network
+                address family and an associated network address that are encoded in
+                network octet order. An IP address, for example, would be encoded with
+                the first octet containing the IANA Address Family Numbers enumeration
+                value for the specific address type and octets 2 through n containing
+                the address value";
+                reference
+                "[802.1AB] Table 9.2";
+            }
+
+            leaf interface-name {
+                type string {
+                    length "0..64";
+                }
+                description
+                "IfName";
+                reference
+                "[RFC2863]";
+            }
+
+            leaf local {
+                type string;
+                description
+                "A locally assigned alpha-numeric string.";
+                reference
+                "[802.1AB] Table 9.2";
+            }
+        }
+
+        container management-address {
+            description
+            "Data definitions related to the management address fields defined
+            in a Sender ID TLV";
+            reference
+            "[802.1Q] Section 21.5.3";
+            choice management-address-choice {
+                case udp-ipv4 {
+                    description
+                    "Represents an IPv4 UDP transport address consisting of an IPv4 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainUdpIpv4";
+                    leaf udp-ipv4-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf udp-ipv4-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case udp-ipv6 {
+                    description
+                    "Represents an IPv6 UDP transport address consisting of an IPv6 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainUdpIpv6";
+                    leaf udp-ipv6-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf udp-ipv6-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case udp-ipv4z {
+                    description
+                    "Represents a UDP transport address consisting of an IPv4 address, a zone
+                    index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainUdpIpv4z";
+                    leaf udp-ipv4z-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf udp-ipv4z-index {
+                        type uint32;
+                    }
+                    leaf udp-ipv4z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case udp-ipv6z {
+                    description
+                    "Represents a UDP transport address consisting of an IPv6 address, a zone
+                    index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainUdpIpv6z";
+                    leaf udp-ipv6z-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf udp-ipv6z-index {
+                        type uint32;
+                    }
+                    leaf udp-ipv6z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case tcp-ipv4 {
+                    description
+                    "Represents an IPv4 TCP transport address consisting of an IPv4 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainTcpIpv4";
+                    leaf tcp-ipv4-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf tcp-ipv4-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case tcp-ipv6 {
+                    description
+                    "Represents an IPv6 TCP transport address consisting of an IPv6 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainTcpIpv6";
+                    leaf tcp-ipv6-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf tcp-ipv6-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case tcp-ipv4z {
+                    description
+                    "Represents a TCP IPv4 transport address consisting of an IPv4 address, a
+                    zone index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainTcpIpv4z";
+                    leaf tcp-ipv4z-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf tcp-ipv4z-index {
+                        type uint32;
+                    }
+                    leaf tcp-ipv4z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case tcp-ipv6z {
+                    description
+                    "Represents a TCP IPv6 transport address consisting of an IPv6 address,
+                    a zone index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainTcpIpv6z";
+                    leaf tcp-ipv6z-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf tcp-ipv6z-index {
+                        type uint32;
+                    }
+                    leaf tcp-ipv6z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case sctp-ipv4 {
+                    description
+                    "Represents an IPv4 SCTP transport address consisting of an IPv4 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainSctpIpv4";
+                    leaf sctp-ipv4-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf sctp-ipv4-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case sctp-ipv6 {
+                    description
+                    "Represents an IPv6 SCTP transport address consisting of an IPv6 address,
+                    and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainSctpIpv6";
+                    leaf sctp-ipv6-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf sctp-ipv6-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case sctp-ipv4z {
+                    description
+                    "Represents an SCTP IPv4 transport address consisting of an IPv4
+                    address, a zone index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainSctpIpv4z";
+                    leaf sctp-ipv4z-address {
+                        type inet:ipv4-address;
+                    }
+                    leaf sctp-ipv4z-index {
+                        type uint32;
+                    }
+                    leaf sctp-ipv4z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case sctp-ipv6z {
+                    description
+                    "Represents an SCTP IPv6 transport address consisting of an IPv6
+                    address, a zone index and a port number.";
+                    reference
+                    "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainSctpIpv6z";
+                    leaf sctp-ipv6z-address {
+                        type inet:ipv6-address;
+                    }
+                    leaf sctp-ipv6z-index {
+                        type uint32;
+                    }
+                    leaf sctp-ipv6z-port {
+                        type inet:port-number;
+                    }
+                }
+
+                case local {
+                    leaf local-address {
+                        type string {
+                            length "1..255";
+                        }
+                        description
+                        "Represents a POSIX Local IPC transport address.";
+                    }
+                }
+
+                case udp-dns {
+                    leaf udp-dns-address {
+                        type string {
+                            length "1..255";
+                        }
+                        description
+                        "The UDP transport domain using fully qualified domain names. Represents
+                        a DNS domain name followed by a colon ':' (ASCII character
+                        0x3A) and a port number in ASCII. The name SHOULD be fully
+                        qualified whenever possible.";
+                        reference
+                        "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainUdpDns";
+                    }
+                }
+                case tcp-dns {
+                    leaf tcp-dns-address {
+                        type string {
+                            length "1..255";
+                        }
+                        description
+                        "The TCP transport domain using fully qualified domain names. Represents
+                        a DNS domain name followed by a colon ':' (ASCII character
+                        0x3A) and a port number in ASCII. The name SHOULD be fully
+                        qualified whenever possible.";
+                        reference
+                        "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainTcpDns";
+                    }
+                }
+                case sctp-dns {
+                    leaf sctp-dns-address {
+                        type string {
+                            length "1..255";
+                        }
+                        description
+                        "The SCTP transport domain using fully qualified domain names.
+                        Represents a DNS domain name followed by a colon ':' (ASCII
+                        character 0x3A) and a port number in ASCII. The name SHOULD be
+                        fully qualified whenever possible.";
+                        reference
+                        "[RFC3419] TRANSPORT-ADDRESS-MIB.transportDomainSctpDns";
+                    }
+                }
+                case unidentified {
+                    leaf management-domain-binary {
+                        type binary;
+                        description "The management address domain found in the
+                            Sender ID TLV encoded to base 64";
+                        reference
+                        "[802.1Q] Section 21.5.3";
+                    }
+
+                    leaf management-address-binary {
+                        type binary;
+                        description "The management address found in the
+                            Sender ID TLV encoded to base 64";
+                        reference
+                        "[802.1Q] Section 21.5.3";
+                    }
+                }
+            }
+        }
+    } //End of sender-id-tlv-group
+
+
+    grouping linktrace-reply-grouping {
+
+        description
+        "The attributes of a Linktrace reply.";
+
+        leaf transaction-id {
+            type ltm-transaction-id-type;
+
+            description
+            "The LTM Transaction Identifier to which the LTR entries will be
+            attached";
+            reference
+            "[802.1q] 12.14.7.5.2:b";
+        }
+
+        uses linktrace-parameters-group;
+
+        list reply {
+            key reply-order;
+
+            description
+            "The list of LTRs associated with a specific Linktrace
+            transaction.";
+            leaf reply-order {
+                type uint32;
+
+                description
+                "An index to distinguish among multiple LTRs with the same LTR
+                transaction-id field value. reply-order are
+                assigned sequentially from 1, in the order that the
+                Linktrace Initiator received the LTR";
+                reference "[802.1q] 12.14.7.5.2:c";
+            }
+
+            leaf reply-ttl {
+                type uint32;
+
+                description
+                "The integer Reply TTL field value returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:b";
+            }
+
+            leaf forwarded {
+                type boolean;
+
+                description
+                "A Boolean value stating whether an LTM was forwarded by
+                the responding MP.";
+                reference
+                "[802.1q] 12.14.7.5.3:c";
+            }
+
+            leaf terminal-mep {
+                type boolean;
+
+                description
+                "A Boolean value stating whether the forwarded LTM reached
+                a MEP for its MA.";
+                reference
+                "[802.1q] 12.14.7.5.3:d";
+            }
+
+            leaf last-egress-identifier {
+                type binary {
+                    length 8;
+                }
+
+                description
+                "An octet string holding the Last Egress Identifier field
+                returned in the LTR Egress Identifier TLV of the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:e";
+            }
+
+            leaf next-egress-identifier {
+                type binary {
+                    length 8;
+                }
+
+                description
+                "An octet string holding the Next Egress Identifier field
+                returned in the LTR Egress Identifier TLV of the LTR";
+                reference
+                "[802.1q] 12.14.7.5.3:f";
+            }
+
+            leaf ltr-relay {
+                type enumeration {
+                    enum hit {
+                        description "Indicates the LTM reached an MP whose MAC
+                        address matches the target MAC address.";
+                    }
+                    enum filtering-database {
+                        description "Indicates the Egress Port was determined by
+                        consulting the Filtering Database.";
+                    }
+                    enum mip-ccm-database {
+                        description "Indicates the Egress Port was determined by
+                        consulting the MIP CCM Database.";
+                    }
+                }
+
+                description
+                "An enumerated value indicating the value returned in the
+                Relay Action field.";
+                reference
+                "[802.1q] 12.14.7.5.3:g, Table 21-27
+                IEEE8021-CFM-MIB.Dot1agCfmRelayActionFieldValue";
+            }
+
+            uses sender-id-tlv-group;
+
+            leaf ingress-action {
+                type enumeration {
+                    enum ok {
+                        description "Indicates the target data frame would be
+                        passed through to the MAC Relay Entity.";
+                    }
+                    enum down {
+                        description "Indicates the Bridge Ports MAC Operational
+                        parameter is false.";
+                    }
+                    enum blocked {
+                        description "Indicates the target data frame would not
+                        be forwarded if received on this Port due
+                        to active topology enforement.";
+                    }
+                    enum vid {
+                        description "Indicates the ingress port is not in the
+                        member set of the LTMs VID, and ingress
+                        filtering is enabled, so the target data
+                        frame would be filtered by ingress filtering.";
+                    }
+                }
+
+                description
+                "An enumerated value indicating the value returned in the
+                Ingress Action field. This leaf is not present if no value
+                is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:k, Table 21-30
+                IEEE8021-CFM-MIB.Dot1agCfmIngressActionFieldValue";
+            }
+
+            leaf ingress-mac {
+                type yang:mac-address;
+
+                description
+                "The MAC address returned in the Ingress MAC Address field.
+                This leaf is not present if no value is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:l";
+            }
+
+            container ingress-port-id {
+                uses port-id-tlv-group;
+
+                description
+                "The Ingress Port ID field and the corresponding port ID value.
+                This leaf is not present if no value is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:m";
+            }
+
+            leaf egress-action {
+                type enumeration {
+                    enum ok {
+                        description "Indicates the targeted data frame would be
+                        forwarded.";
+                    }
+                    enum down {
+                        description "Indicates the Egress Port can be identified,
+                        but that Bridge Ports MAC Operational
+                        parameter is false.";
+                    }
+                    enum blocked {
+                        description "Indicates the Egress Port can be identified,
+                        but the data frame would not pass through the
+                        the Egress Port due to active topology
+                        management, i.e., the Bridge Port is not in the
+                        Forwarding state.";
+                    }
+                    enum vid {
+                        description "Indicates the Egress Port can be identified,
+                        but the Bridge Port is not in the LTMs VIDs
+                        member set, so would be filtered by egress
+                        filtering.";
+                    }
+                }
+
+                description
+                "An enumerated value indicating the value returned in the
+                Egress Action field. This leaf is not present if no value
+                is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:o, Table 21-32
+                IEEE8021-CFM-MIB.Dot1agCfmIngressActionFieldValue";
+            }
+
+            leaf egress-mac {
+                type yang:mac-address;
+
+                description
+                "The MAC address returned in the Egress MAC Address field.
+                This leaf is not present if no value is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:p";
+            }
+
+            container egress-port-id {
+                uses port-id-tlv-group;
+
+                description
+                "The Egress Port ID field and the corresponding port ID value.
+                This leaf is not present if no value is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:p, 12.14.7.5.3:q";
+            }
+
+            leaf organization-specific-tlv {
+                type binary {
+                    length "0|4 .. 1500";
+                }
+                description
+                "The OUI and contents of any Organization-Specific TLVs. This
+                leaf is not present if no value is returned in the LTR.";
+                reference
+                "[802.1q] 12.14.7.5.3:s";
+            }
+        }
+    }    //End of linktrace-reply-grouping
+
+
+    //
+    // Data definitions related to CFM
+    //
+
+    container mef-cfm {
+        description "The top level container to group the  
+        maintenance-domain(s)";
+
+        reference "RFC 6087 Section 4.9 ";
+
+        must "not(contains('/y1564:y1564-test/y1564:service-config/y1564:mep-config/y1564:maintenance-domain | /y1564:y1564-test/y1564:service-config/y1564:mep-config/y1564:maintenance-association | /y1564:y1564-test/y1564:service-config/y1564:mep-config/y1564:maintenance-association-end-point | /y1564:y1564-test/y1564:service-config/y1564:mep-config/y1564:remote-mep-id','msea-internal-optional'))" {
+            error-app-tag "msea-cfm-must-01";
+            error-message "A MEP cannot be deleted while it is still referenced from a Y1564 service config";
+//            msea:xref-module "y-1564";
+        }
+
+        must "not(contains('/rfc2544:rfc2544-test/rfc2544:mep-config/rfc2544:maintenance-domain | /rfc2544:rfc2544-test/rfc2544:mep-config/rfc2544:maintenance-association | /rfc2544:rfc2544-test/rfc2544:mep-config/rfc2544:maintenance-association-end-point | /rfc2544:rfc2544-test/rfc2544:mep-config/rfc2544:remote-mep-id','msea-internal-optional'))" {
+            error-app-tag "msea-cfm-must-02";
+            error-message "A MEP cannot be deleted while it is still referenced from an RFC2544 config";
+//            msea:xref-module "rfc-2544";
+        }
+
+        container pm-global {
+//            presence "Global level attributes for PM related measurements can be specified if present";
+            description "A placeholder for global level Performance Measurement PM related attributes";
+        }
+
+        container cfm-role {
+            presence "When present defines the role of this device in a Maintenance Domain";
+            description "Optional attributes that help to describe this devices role in a CFM configuration";
+
+            leaf role { //Microsemi specific configuration attribute
+                description "The role that this device will play in a Maitenance Domain";
+                type enumeration {
+                    enum customer {
+                        description "The customer role";
+                    }
+                    enum provider{
+                        description "The provider role";
+                    }
+                    enum operator {
+                        description "The operator role";
+                    }
+                    enum physical {
+                        description "The physical role";
+                    }
+                }
+                mandatory true;
+                reference "IEEE 802.1Q-2014 Clause 18";
+            }
+
+            leaf side { //Microsemi specific configuration attribute
+                description "An optional attribute to indicate which end of the Maintenance Domain ";
+                type enumeration {
+                    enum left {
+                        description "The device plays its role on the left side of the Maintenance Domain";
+                    }
+                    enum right {
+                        description "The device plays its role on the right side of the Maintenance Domain";
+                    }
+                }
+                default left;
+                reference "IEEE 802.1Q-2014 Clause 18";
+            }
+
+            leaf name { //Microsemi specific configuration attribute
+                description "An identifier relating to the cfm-role that device plays in CFM.
+                        This could be the name of a customer or an operator for example";
+                type string {
+                    length "1..40";
+                    pattern "[a-zA-Z0-9\\-_. ,]*";
+                }
+                mandatory true;
+                reference "IEEE 802.1Q-2014 Clause 18";
+            }
+        }
+
+
+        list maintenance-domain {
+            key id;
+
+            max-elements 64;
+
+            description
+            "A Maintenance Domain managed object is required in order to create an MA
+            with a MAID that includes that Maintenance Domain's Name. From
+            this Maintenance Domain managed object, all Maintenance
+            Association managed objects associated with that Maintenance
+            Domain managed object can be accessed, and thus controlled.";
+            reference
+            "[802.1q] 12.14.5";
+
+            leaf id {
+                type uint8 {
+                    range 1..64;
+                }
+                description
+                "A unique identifier of a Maintenance Domain. Changed to uint8 from string";
+                reference
+                "[802.1q] 12.14.5";
+            }
+
+            choice md-name-and-type-combo {
+                description
+                "The value Maintenance Domain Name depends on name-type.
+                Since the name-type defines the format for name they are
+                combined together here";
+
+                mandatory true;
+
+                case name-none {
+                    leaf name-type-none {
+                        type empty;
+                        description "Indicates that name-type is none.
+                            When name-type is 'none' then the
+                            MA name can be up to 45 chars, because len
+                            of MD is not used";
+                        reference
+                        "[802.1q] 21.6.5.1 (Table 21-19), 12.14.5.3.2:a";
+//                        msea:not-changeable;
+                    }
+                }
+
+
+                case name-character-string {
+                    leaf name { //Keep the old name
+                        type msea:identifier45 {length 1..43;}
+
+                        description
+                        "When the name-type is 'character-string' then the name must be of
+                        type string (restricted to 43 chars - 48 bytes are allowed overall
+                        for the MD+MA incl 1 byte for type and 1 byte for len on each.
+                        Leaving 1 char for MA name, the max MD name is 43 chars)";
+                        reference
+                        "[802.1q] 21.6.5.1 (Table 21-19), 12.14.5.3.2:a";
+
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:name = current()]) <= 1" { 
+                            error-message "The MD 'name' (if specified) must be unique across all character string names of MDs on the device";
+                            error-app-tag "msea-cfm-must-05";
+                        }
+
+//                        msea:not-changeable;
+                    }
+                }
+
+                case name-domain-name {
+                    leaf name-domain-name {
+                        type union {
+                          type inet:ip-address;
+                          type inet:domain-name { length 1..43;    }
+                        }
+
+                        description "When the name-type is 'domain-name' then the name
+                                must be of type inet:host";
+                        reference
+                        "[802.1q] 21.6.5.1 (Table 21-19), 12.14.5.3.2:a";
+
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:name-domain-name = current()]) <= 1" { 
+                            error-message "The MD 'name-domain-name' (if specified) must be unique across all name-domain-names of MDs on the device";
+                            error-app-tag "msea-cfm-must-06";
+                        }
+//                        msea:not-changeable;
+                    }
+                }
+
+                case mac-address-and-uint {
+                    leaf name-mac-address-and-uint {
+                        type msea:mac-address-and-uint-str;
+                        description "When the name-type is 'mac-address-and-uint'
+                                then the name must be a colon separated mac
+                                address followed by a number between 0 and 65536
+                                e.g. AA:BB:CC:DD:EE:FF:65536
+                                The effective length when encoded is 8 bytes";
+                        reference
+                        "[802.1q] 21.6.5.1 (Table 21-19), 12.14.5.3.2:a";
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:name-mac-address-and-uint = current()]) <= 1" { 
+                            error-message "The MD 'name-mac-address-and-uint' (if specified) must be unique across all name-mac-address-and-uints of MDs on the device";
+                            error-app-tag "msea-cfm-must-07";
+                        }
+//                        msea:not-changeable;
+                    }
+                }
+            }
+
+            leaf md-level {
+                type msea:md-level-type;
+                mandatory true;
+
+//                msea:not-changeable;
+
+                description
+                "Integer identifying the Maintenance Domain Level (MD Level).  Higher
+                numbers correspond to higher Maintenance Domains, those with the
+                greatest physical reach, with the highest values for customers'
+                CFM PDUs. Lower numbers correspond to lower Maintenance
+                Domains, those with more limited physical reach, with the lowest
+                values for CFM PDUs protecting single bridges or physical links.
+                Changed to mandatory";
+
+                reference
+                "[802.1q] 12.14.5.1.3:b";
+            }
+
+            list maintenance-association {
+                key id;
+                max-elements 64;
+
+                description
+                "This list represents Maintenance Entity Groups (Y.1731) or
+                Maintenance Associations (802.1ag). MEGs/MAs are sets of
+                MEPs, each configured to the same service inside a common
+                OAM domain.";
+
+                leaf id {
+                    type uint8 {
+                        range 1..64;
+                    }
+                    description
+                    "A unique identifier of a Maintenance Association. Changed to uint8 from string";
+                    reference
+                    "[802.1q] 12.14.6";
+                }
+
+                choice ma-name-and-type-combo {
+                    description
+                    "The value Maintenance Association Name depends on name-type.
+                    Since the name-type defines the format for name, they are
+                    combined together here";
+
+                    mandatory true;
+
+                    case name-character-string {
+                        leaf name {
+                            type msea:identifier45;
+
+                            must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:name = current()]) <= 1" { 
+                                error-message "The MA 'name' (if specified) must be unique across all MAs within this MD";
+                                error-app-tag "msea-cfm-must-10";
+                            }
+
+                            must "string-length(current()/../../msea-cfm:name) + string-length(current()/../../msea-cfm:name-domain-name) + 8 * boolean(current()/../../msea-cfm:name-mac-address-and-uint) -1 * boolean(current()/../../msea-cfm:name-type-none) + string-length(current()) <= 44" {
+                                error-message "The MA 'name' and MD 'name' length together must not exceed 44 chars when MD is not name-type-none or 45 chars for MA name when MD is name-type-none";
+                                error-app-tag "msea-cfm-must-11";
+                            }
+
+//                            msea:not-changeable;
+
+                            description
+                            "When the name-type is 'character-string' then the name must be of
+                            type string. Length can be 45 when MD name-type is none (as 1 byte
+                            is used on each for type, and 1 byte used on MA for len out of an 
+                            allowed 48 bytes). When MD name-type is not 'none' then the 
+                            combined length of both is 44 chars)";
+                            reference
+                            "[802.1q] 12.14.5.3.2:b, 21.6.5.4 Table 21-20";
+                        }
+                    }
+
+                    case name-primary-vid {
+                        leaf name-primary-vid {
+                            type union {
+                                type enumeration {
+                                    enum 0 {description "0 to use the MA's VID";}
+                                }
+                                type msea:vlan-id-type;
+                            }
+//                            msea:not-changeable;
+
+                            must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:name-primary-vid = current()]) <= 1" {
+                                error-message "The MA 'name-primary-vid' (if specified) must be unique across all MAs within this MD";
+                                error-app-tag "msea-cfm-must-12";
+                            }
+
+                            must "string-length(current()/../../msea-cfm:name) + string-length(current()/../../msea-cfm:name-domain-name) + 2 <= 44" {
+                                error-message "The MA 'primary-vid' (2 octets) and MD 'name' length together must not exceed 44 bytes.";
+                                error-app-tag "msea-cfm-must-13";
+                            }
+
+                            description
+                            "When the name-type is 'primary-vid' then the name must be of type
+                            vlan-id-type";
+                            reference
+                            "[802.1q] 12.14.5.3.2:b, 21.6.5.4 Table 21-20";
+                        }
+                    }
+
+                    case name-uint16 {
+                        leaf name-uint16 {
+                            type uint16;
+//                            msea:not-changeable;
+
+                            must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:name-uint16 = current()]) <= 1" {
+                                error-message "The MA 'name-uint16' (if specified) must be unique across all MAs within this MD";
+                                error-app-tag "msea-cfm-must-14";
+                            }
+
+                            must "string-length(current()/../../msea-cfm:name) + string-length(current()/../../msea-cfm:name-domain-name) + 2 <= 44" {
+                                error-message "The MA 'name-uint16' (2 octets) and MD 'name' or 'name'domain-name' length together must not exceed 44 bytes";
+                                error-app-tag "msea-cfm-must-15";
+                            }
+
+                            description
+                            "When the name-type is 'uint16' then the name must be 0-65535";
+                            reference
+                            "[802.1q] 12.14.5.3.2:b, 21.6.5.4 Table 21-20";
+                        }
+                    }
+
+                    case name-rfc2685-vpn-id {
+                        leaf name-rfc2685-vpn-id {
+                            type binary {
+                                length 7;
+                            }
+//                            msea:not-changeable;
+
+                            must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:name-rfc2685-vpn-id = current()]) <= 1" { 
+                                error-message "The MA 'name-rfc2685-vpn-id' (if specified) must be unique across all MAs within this MD";
+                                error-app-tag "msea-cfm-must-16";
+                            }
+
+                            must "string-length(current()/../../msea-cfm:name) + string-length(current()/../../msea-cfm:name-domain-name) + 7 <= 44" {
+                                error-message "The MA 'name-rfc2685-vpn-id' (7 octets) and MD 'name' or 'name'domain-name' length together must not exceed 44 bytes";
+                                error-app-tag "msea-cfm-must-17";
+                            }
+
+
+                            description
+                            "When the name-type is 'rfc2685-vpn-id' then the name 
+                            must be of 7 bytes encoded as base64";
+                            reference
+                            "[802.1q] 12.14.5.3.2:b, 21.6.5.4 Table 21-20";
+                        }
+                    }
+
+                    case name-y1731-icc {
+                        leaf name-y1731-icc {
+                            type yang:yang-identifier {
+                                length 8..13;
+                            }
+
+//                            msea:not-changeable;
+
+                            must "boolean(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association/msea-cfm:y1731-compliant)" {
+                                error-message "The MA 'name-y1731-icc' can only be specified if y1731-compliant is present";
+                                error-app-tag "msea-cfm-must-18";
+                            }
+
+                            must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:name-y1731-icc = current()]) <= 1" {
+                                error-message "The MA 'name-y1731-icc' (if specified) must be unique across all MAs within this MD";
+                                error-app-tag "msea-cfm-must-19";
+                            }
+
+                            must "boolean(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:name-type-none)" {
+                                error-message "name-y1731-icc can only be specified when MD name type is name-type-none";
+                                error-app-tag "msea-cfm-must-20";
+                            }
+
+                            description
+                            "ICC-based MEG ID Format, thirteen octet field. It consists of two
+                            subfields: the ITU Carrier Code (ICC) followed by a unique MEG
+                            ID code (UMC). The ITU Carrier Code consists of 1-6
+                            left-justified characters, alphabetic, or leading alphabetic
+                            with trailing numeric. The UMC code immediately follows the ICC
+                            and shall consist of 7-12 characters, with trailing NULLs,
+                            completing the 13-character MEG ID Value. Changed type to yang-identifier";
+                            reference
+                            "[Y.1731] Annex A";
+                        }
+                    }
+
+                }
+
+                container y1731-compliant {
+                  presence "When present indicates compliance with Y-1731";
+//                  msea:not-changeable;
+
+                  must "boolean(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:name-type-none)" {
+                      error-message "Parent MD must have a name-type-none when y1731-compilant is present";
+                      error-app-tag "msea-cfm-must-21";
+                  }
+
+                  description
+                    "A boolean flag to indicate whether the MEG ID/MAID for this MEG operates
+                     in conformance with 802.1q (if false) or Y.1731 (if true).
+                     When set to false:
+                      - The format of the MAID (Maintenance Association ID) is controlled
+                        by the name-type and name in the maintenance-association instance,
+                        and the name-type and name in the maintenance-domain instance.
+                      - The meg-id-format and meg-level leafs are ignored.
+                      - The level is controlled by the md-level leaf.
+                     When set to true:
+                      - The MEG shall be in a maintenance-domain where name-type has the value
+                        none(1).
+                      - The format of the MEG ID is as defined by meg-id-format.
+                      - The name-type in the maintenance-association is ignored.
+                      - The name leaf contains the MEG ID value unless the meg-id-format
+                        is set to 'icc-based' in which case it contains the value of the
+                        'icc-name-value' leaf
+                      - The md-level leaf is ignored, and the level is controlled
+                        by the meg-level leaf.";
+                  reference
+                    "[MEF31], MEF-SOAM-FM-MIB.mefSoamNetCfgY1731Compliant";
+                }
+
+                container component-list {
+
+                    description
+                    "A list of components each of which can be managed in a manner
+                    essentially equivalent to an 802.1Q bridge.
+                    Only one is allowed for Edge Assure, so changed to a container";
+                    reference
+                    "[802.1q] IEEE8021-CFM-V2-MIB.ieee8021CfmMaCompTable";
+
+                    leaf-list vid {
+                        type msea:vlan-id-type;
+//                        msea:not-changeable;
+
+                        must "current()/../tag-type != 'vlan-none'" {
+                            error-message "No VID should be specified when Tag Type is 'vlan-none'";
+                            error-app-tag "msea-cfm-must-25";
+                        }
+
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../../id]/msea-cfm:maintenance-association/msea-cfm:component-list[msea-cfm:vid = current()]) <= 1" {
+                            error-message "The 'vid' (VLan ID) in a Maintenance Association must be unique in a Maintenance Domain";
+                            error-app-tag "msea-cfm-must-26";
+                        }
+
+                        max-elements 1;
+                        ordered-by user;
+
+                        description
+                        "The VID(s) monitored by this MA, or 0, if the MA is not attached to any
+                        VID. The first VID returned is the MA's Primary VID";
+                        reference
+                        "[802.1q] 12.14.5.3.2:b";
+                    }
+
+                    leaf tag-type {
+                        type enumeration {
+                            enum vlan-none {
+                                description "No tag applied";
+                            }
+                            enum vlan-ctag {
+                                description "Ctags applied";
+                            }
+                            enum vlan-stag {
+                                description "Stags applied";
+                            }
+                        }
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:component-list[msea-cfm:tag-type = 'vlan-none']) <= 1" {
+                            error-message "A maximum of 1 MA with tag-type = vlan_none can be specified across all MAs in the device";
+                            error-app-tag "msea-cfm-must-27";
+                        }
+
+                        must "(current() != 'vlan-none' and count(current()/../vid) = 1) or (current() = 'vlan-none' and count(current()/../vid) = 0)" {
+                            error-message "A 'vid' must exist when tag-type is vlan-ctag or vlan-stag and must not exist when tag-type is vlan-none";
+                            error-app-tag "msea-cfm-must-28";
+                        }
+
+                        mandatory true;
+//                        msea:not-changeable;
+                        description "The type of tag to apply to packets in this VLAN";
+                    }
+
+                } // end of component-list
+
+                leaf ccm-interval {
+                    type enumeration {
+                        enum 3.3ms {
+                            description "CCMs are sent every 3 1/3 milliseconds (300Hz).";
+                        }
+                        enum 10ms {
+                            description "CCMs are sent every 10 milliseconds.";
+                        }
+                        enum 100ms {
+                            description "CCMs are sent every 100 milliseconds.";
+                        }
+                        enum 1s {
+                            description "CCMs are sent every 1 second.";
+                        }
+                    }
+                    mandatory true;
+
+                    description
+                    "The interval between CCM transmissions to be used by all MEPs in the MA";
+                    reference
+                    "[802.1q] 12.14.6.1.3:e
+                    IEEE8021-CFM-MIB.Dot1agCfmCcmInterval";
+                }
+
+                leaf-list remote-meps {
+                    type msea:mep-id-type;
+                    max-elements 9; //The local MEP and up to 8 remote meps
+
+                    must "(count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:remote-meps) - count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association)) <= 64" {
+                        error-message "The maximum number of remote MEPs on the device across all MDs and MAs must not exceed 64";
+                        error-app-tag "msea-cfm-must-29";
+                    }
+
+                    description
+                    "A list of the MEPIDs of the MEPs in the MA. The list
+                        consists of the ids of the local MEP (defined below)
+                        and up to 8 remote meps. A maximum of 64 remote MEPs
+                        can be configured on all MAs on the device";
+                    reference
+                    "[802.1q] 12.14.6.1.3:g";
+                }
+
+                list maintenance-association-end-point {
+                    must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point) <= 64" {
+                        error-message "The maximum number of MEPs on the whole device must not exceed 64";
+                        error-app-tag "msea-cfm-must-30";
+                    }
+
+                    key "mep-identifier";
+
+                    max-elements 1; //Only one local MEP is allowed per MA
+
+                    description
+                    "The list of Maintenance association End Points in a specific Maintance Association.";
+
+                    leaf mep-identifier {
+                        type msea:mep-id-type;
+
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../../msea-cfm:id]/msea-cfm:maintenance-association[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:remote-meps[text() = current()]) = 1" {
+                            error-message "The MEP ID must be listed in the 'remote-meps' list for this MA";
+                            error-app-tag "msea-cfm-must-31";
+                        }
+
+                        description
+                        "Integer that is unique among all the MEPs in the same MA. Other
+                        definition is: a small integer, unique over a given
+                        Maintenance Association, identifying a specific Maintenance
+                        association End Point.";
+                        reference
+                        "[802.1q] 12.14.6.3.2:b";
+                    }
+
+                    leaf interface {
+                        type enumeration {
+                            enum eth0 {
+                                description "Optics/eth0/WAN - commonly the Carrier port.";
+                            }
+                            enum eth1 {
+                                description "Host/eth1/LAN  - commonly the System port.";
+                            }
+                        }
+
+                        must "count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:md-level = current()/../../../md-level]/msea-cfm:maintenance-association[msea-cfm:component-list/msea-cfm:vid = current()/../../component-list/vid]/msea-cfm:maintenance-association-end-point[msea-cfm:interface = current()]) <= 1" {
+                            error-message "The combination of 'md-level', 'vid', 'direction' and 'interface' must be unique for all MEPs on the system";
+                            error-app-tag "msea-cfm-must-32";
+                            description "Check that this interface is unique for all MEPs in this Maintenance Association. 
+                            The Maintanance Association already checks that the VID is unique for the Maintenance Domain.";
+                        }
+
+                        mandatory true;
+//                        msea:not-changeable;
+
+                        description
+                        "An interface, either a Bridge Port or an aggregated IEEE 802.3 port
+                        within a Bridge Port, to which the MEP is attached. Each interface in
+                        the system is uniquely identified by an interface-name. The structure
+                        and content of the name is outside the scope of this specification.
+
+                        Added restriction for Edge Assure that the interface name can only be eth0 or eth1";
+                        reference
+                        "[802.1q] 12.14.7.1.3:b";
+                    }
+
+                    leaf direction {
+                        type enumeration {
+                            enum down {
+                                description "Indicates when CFM frames are transmitted towards and 
+                                received from the wire.";
+                            }
+                        }
+                        default down;
+//                        msea:not-changeable;
+
+                        description
+                        "A value indicating the direction in which the MEP faces on the 
+                        interface. For EdgeAssure can only be 'down' Changed from
+                        mandatory to default = down";
+
+                        reference
+                        "[802.1q] 12.14.7.1.3:c";
+                    }
+
+                    leaf primary-vid {
+                        type union {
+                            type enumeration {
+                                enum 0 {description "0 to use the MA's VID";}
+                            }
+                            type msea:vlan-id-type;
+                        }
+
+                        must "current() = 0 or count(/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../../id]/msea-cfm:maintenance-association[msea-cfm:id = current()/../../id]/msea-cfm:component-list/msea-cfm:vid[text() = current()]) = 1" {
+                            error-message "PrimaryVID of MEP must be either 0 or from the range of VIDs in component-list of the MA";
+                            error-app-tag "msea-cfm-must-33";
+                        }
+
+                        default 0;
+
+                        description
+                        "The Primary VID of the MEP. The value 0 indicates that either the
+                        Primary VID is that of the MEP's MA or that the MEP's MA is
+                        associated with no VID. Must be either 0 or from the range of VIDs in the
+                        component-list of this MA. Changed to default=0 from mandatory";
+                        reference
+                        "[802.1q] 12.14.7.1.3:d";
+                    }
+
+                    leaf administrative-state {
+                        type boolean;
+                        mandatory true;
+
+                        description
+                        "The administrative state of the MEP";
+                        reference
+                        "[802.1q] 12.14.7.1.3:e";
+                    }
+
+                    leaf mac-address {
+                        type yang:mac-address;
+                        config false;
+
+                        description
+                        "The MAC address of the MEP";
+                        reference
+                        "[802.1q] 12.14.7.1.3:i";
+                    }
+
+                    leaf ccm-ltm-priority {
+                        type msea:priority-type;
+                        mandatory true;
+
+                        description
+                        "The priority parameter for CCMs and LTMs transmitted by the MEP.";
+                        reference
+                        "[802.1q] 12.14.7.1.3:h";
+                    }
+
+                    container continuity-check {
+                        description
+                        "Data definitions related to the Continuity Check function.";
+
+                        leaf cci-enabled {
+                            type boolean;
+                            default false;
+
+                            description
+                            "Configuration of whether the MEP is or is not to generate CCMs";
+                            reference
+                            "[802.1q] 12.14.7.1.3:g";
+                        }
+
+                        leaf fng-state {
+                            type enumeration {
+                                enum reset {
+                                    description "No defect has been present since the
+                                    fng-reset-time timer expired, or since
+                                    the state machine was last reset.";
+                                }
+                                enum defect {
+                                    description "A defect is present, but not for a long enough 
+                                    time to be reported (fng-alarm-time).";
+                                }
+                                enum report-defect {
+                                    description "A momentary state during which the defect is 
+                                    reported by sending a fault-alarm notification,
+                                    if that action is enabled.";
+                                }
+                                enum defect-reported {
+                                    description "A defect is present, and some defect has been 
+                                    reported.";
+                                }
+                                enum defect-clearing {
+                                    description "No defect is present, but the fng-reset-time timer has
+                                    not yet expired.";
+                                }
+                            }
+                            default reset;
+                            config false;
+
+                            description
+                            "A value indicating the current state of the MEP Fault Notification
+                            Generator state machine";
+                            reference
+                            "[802.1q] 12.14.7.1.3:f, 20.35
+                            IEEE8021-CFM-MIB.Dot1agCfmFngState";
+                        }
+
+                        leaf lowest-fault-priority-defect {
+                            type fault-alarm-defect-type;
+
+                            description
+                            "The lowest priority defect that is allowed to generate a Fault
+                            Alarm.";
+
+                            default remote-mac-error;
+
+                            reference
+                            "[802.1q] 12.14.7.1.3:k";
+                        }
+
+                        leaf highest-priority-defect-found {
+                            type fault-alarm-defect-type;
+                            config false;
+
+                            description
+                            "Value indicating the highest-priority defect that has been 
+                            present since the MEP Fault Notification Generator state machine
+                            was last in the FNG_RESET state The non-existence of this
+                            leaf represents that no defect has been present since the
+                            last FNG_RESET state";
+                            reference
+                            "[802.1q] 12.14.7.1.3:n";
+                        }
+
+                        leaf fng-alarm-time {
+                            type yang:timeticks {
+                                range 250..1000;
+                            }
+                            default 250;
+
+                            description
+                            "The time that defects must be present before a Fault Alarm is 
+                            issued in hundredths of seconds";
+                            reference
+                            "[802.1q] 12.14.7.1.3:l, 20.33.3";
+                        }
+
+                        leaf fng-reset-time {
+                            type yang:timeticks {
+                                range 250..1000;
+                            }
+                            default 1000;
+
+                            description
+                            "The time that defects must be absent before resetting a Fault Alarm 
+                            in hundredths of seconds";
+                            reference
+                            "[802.1q] 12.14.7.1.3:m, 20.33.4";
+                        }
+
+                        leaf active-defects {
+                            type fault-alarm-defect-bits-type;
+                            config false;
+
+                            description
+                            "A bit field of potential active defects. The values are the same as the
+                            content of the fault-alarm-defect-type (except if it is 'none' then 
+                            nothing will be listed).";
+                            reference
+                            "[802.1q] 12.14.7.1.3:o, p, q, r, s";
+                        }
+
+                        leaf last-error-ccm {
+                            type binary {
+                                length "1..1522";
+                            }
+                            config false;
+
+                            description
+                            "The last-received CCM that triggered an invalid-ccm fault";
+                            reference
+                            "[802.1q] 12.14.7.1.3:t";
+                        }
+
+                        leaf last-cross-connect-ccm {
+                            type binary {
+                                length "1..1522";
+                            }
+                            config false;
+
+                            description
+                            "The last-received CCM that triggered a cross-connect-ccm fault";
+                            reference
+                            "[802.1q] 12.14.7.1.3:u";
+                        }
+
+                        leaf ccm-sequence-error-count {
+                            type yang:counter32;
+                            config false;
+                            mandatory true;
+
+                            description
+                            "The total number of out-of-sequence CCMs received from all remote
+                            MEPs.";
+                            reference
+                            "[802.1q] 12.14.7.1.3:v";
+                        }
+
+                        leaf sent-ccms {
+                            type yang:counter32;
+                            config false;
+                            mandatory true;
+
+                            description
+                            "The total number of CCMs transmitted.";
+                            reference
+                            "[802.1q] 12.14.7.1.3:w";
+                        }
+                    }
+
+                    container loopback {
+                        description
+                        "Data definitions related to the Loopback function.";
+
+                        //config false; Commented out to let config attribs on mef-soam-pm work 08Dec15 SC Microsemi 
+
+                        leaf replies-received {
+                            type yang:counter32;
+                            config false;
+                            mandatory true;
+
+                            description
+                            "The total number of valid, in-order LBRs received.";
+                            reference
+                            "[802.1q] 12.14.7.1.3:y";
+                        }
+
+                        leaf replies-transmitted {
+                            type yang:counter32;
+                            config false;
+                            mandatory true;
+
+                            description
+                            "The total number of LBRs transmitted.";
+                            reference
+                            "[802.1q] 12.14.7.1.3:ad";
+                        }
+                    } //End of loopback
+
+                    container remote-mep-database {
+                        config false;
+                        description
+                        "The MEP CCM database";
+
+                        list remote-mep {
+                            key remote-mep-id;
+                            description
+                            "The list of remote MEPs in the MEP CCM database";
+                            reference
+                            "[802.1q] 12.14.7.6";
+
+                            leaf remote-mep-id {
+                                type msea:mep-id-type;
+
+                                description
+                                "The MEPID of a remote MEP";
+                                reference
+                                "[802.1q] 12.14.7.6.2";
+                            }
+
+                            leaf remote-mep-state {
+                                type remote-mep-state-type;
+
+                                description
+                                "An enumerated value indicating the operational state of the 
+                                Remote MEP state machine for this remote MEP.";
+                                reference
+                                "[802.1q] 12.14.7.6.3:b
+                                IEEE8021-CFM-MIB.Dot1agCfmRemoteMepState";
+                            }
+
+                            leaf failed-ok-time {
+                                type yang:timeticks;
+
+                                description
+                                "The time (SysUpTime, IETF RFC 3418) at which the Remote MEP state
+                                machine last entered either the RMEP_FAILED or RMEP_OK
+                                state, or 0 if it has not yet entered either of those
+                                states";
+                                reference
+                                "[802.1q] 12.14.7.6.3:c";
+                            }
+
+                            leaf mac-address {
+                                type yang:mac-address;
+
+                                description
+                                "The MAC address of the remote MEP.";
+                                reference
+                                "[802.1q] 12.14.7.6.3:d";
+                            }
+
+                            leaf rdi {
+                                type boolean;
+
+                                description
+                                "An indication of the state of the RDI bit in the last received CCM,
+                                true for RDI = 1, or false for RDI = 0 or if none has been
+                                received.";
+                                reference
+                                "[802.1q] 12.14.7.6.3:e";
+                            }
+
+                            leaf port-status-tlv {
+                                type msea:port-status-type;
+
+                                description
+                                "The enumerated value from the Port Status TLV from the last 
+                                CCM received from the remote MEP.";
+                                reference
+                                "[802.1q] 12.14.7.6.3:f";
+                            }
+
+                            leaf interface-status-tlv {
+                                type msea:interface-status-type;
+
+                                description
+                                "The enumerated value from the Interface Status TLV from the 
+                                last CCM received from the remote MEP";
+                                reference
+                                "[802.1q] 12.14.7.6.3:g";
+                            }
+                        }
+                    } //end remote-mep-database
+
+
+                    container linktrace {
+                        config false;
+                        description
+                        "Data definitions related to the Linktrace function.";
+
+                        leaf unexpected-replies-received {
+                            type yang:counter32;
+
+                            description
+                            "The total number of unexpected LTRs received.";
+                            reference
+                            "[802.1q] 12.14.7.1.3:ac";
+                        }
+
+                        container linktrace-database {
+                            description
+                            "Data definitions related to the Linktrace database for a specific MEP";
+
+                            list linktrace {
+                                key "transaction-id";
+
+                                description
+                                "The list of entries in a Linktrace database.";
+
+                                uses linktrace-reply-grouping;
+                            }
+                        }
+                    } //End linktrace
+                }
+            }
+        }
+    }
+    //
+    // RPCs related to CFM
+    //
+
+    rpc transmit-loopback {
+        description
+        "Start a loopback session on a specific MEP
+
+        The counters in the loopback container of the associated MEP will be updated
+        with the result of the loopback session until the configured number of messages
+        have been sent.";
+//    reference --Removed as Tail-f NSO 4.1 can't handle references on RPCs. Also cannot remove using a deviate statement since reference is not a valid deviate sub-statement
+//      "[802.1q] 12.14.7.3";
+
+        input {
+            uses maintenance-association-end-point-reference; //Added 08Dec15 SC Microsemi
+
+            container target-address {
+                description
+                "Target MAC address or MEP ID for the Loopback session.";
+                uses target-address-group;
+            }
+
+            leaf number-of-messages {
+                type uint32 {
+                    range "1..1024";
+                }
+                default 1;
+
+                description
+                "The number of LBM transmissions in a session.";
+                reference
+                "[802.1q] 12.14.7.3.2:c, [MEF30] R39";
+            }
+
+            leaf data-tlv {
+                type binary;
+
+                description
+                "An arbitrary amount of data to be included in a Data TLV.";
+                reference
+                "[802.1q] 12.14.7.3.d, IEEE8021-CFM-MIB.dot1agCfmMepTransmitLbmDataTlv";
+            }
+
+            leaf vlan-priority {
+                type msea:priority-type;
+
+                description
+                "The priority parameter to be used in the transmitted LBMs";
+                reference
+                "[802.1q] 12.14.7.3.2:e";
+            }
+
+            leaf vlan-drop-eligible {
+                type boolean;
+                default true;
+
+                description
+                "The drop eligible parameter to be used in the transmitted LBMs";
+                reference
+                "[802.1q] 12.14.7.3.2:e";
+            }
+        }
+    }
+
+    rpc abort-loopback {
+        description
+        "Administratively abort a loopback session in progress on a specific MEP";
+//    reference --Removed as Tail-f NSO 4.1 can't handle references on RPCs. Also cannot remove using a deviate statement since reference is not a valid deviate sub-statement
+//      "[MEF30] 8.2, R28";
+
+        input {
+            uses maintenance-association-end-point-reference; //Added 08Dec15 SC Microsemi
+
+        }
+    }
+
+    rpc transmit-linktrace {
+        description
+        "Start a linktrace session on a specific remote MEP associated
+        with a local MEP.
+
+        This RPC will wait 6 seconds for the linktrace replies to be
+        gathered from remote MEP and any intermediate MIPs and will
+        display them in line. The information about the last linktrace
+        transaction will also be visible in the state data beneath the
+        local MEP until the next linktrace is run. Only one
+        instance of linktrace can be run at a time";
+        // reference
+        //      "[802.1q] 12.14.7.4";
+
+        input {
+            uses maintenance-association-end-point-reference; //Added 08Dec15 SC Microsemi
+
+            uses linktrace-parameters-group;
+        }
+
+        output {
+            anyxml data {
+                description "The complete response from the Linktrace
+                including the individual replies from remote MEPs
+                and any intermediate MIPs";
+            }
+        }
+    }
+
+
+    //
+    // Notifications related to CFM
+    //
+
+    notification fault-alarm {
+        description
+        "A notification that a specific MEP has a persistent defect condition.";
+        reference
+        "[802.1q] 12.14.7.7";
+
+        container alarm {
+            description
+            "Data definitions related to a persistent defect on a specific MEP.";
+
+            uses mep-notification-reference;
+
+            leaf remote-mep {
+                type msea:mep-id-type;
+                description "Remote MEP identifier";
+            }
+
+            leaf highest-defect {
+                type fault-alarm-defect-type;
+                description "The highest priority defect currently asserted when the alarm occurs on the MEP.";
+            }
+        }
+    }
+}
+

@@ -1,0 +1,385 @@
+module msea-types {
+    
+  namespace "http://www.microsemi.com/microsemi-edge-assure/msea-types";
+  prefix "msea-types"; //MicroSemi EdgeAssure (msea)
+
+  organization
+   "Microsemi Inc., FTD Division";
+
+  contact           
+   "Web URL: http://www.microsemi.com/
+    E-mail:  info@microsemi.com
+    Postal:  Microsemi Corporation Corporate Headquarters
+             One Enterprise Aliso Viejo, 
+             CA 92656
+             U.S.A.
+    Phone:   +1 949 380 6100
+    Fax:     +1 949 215-4996";
+
+  description       
+   "This module contains a collection of generally useful derived
+    YANG data types for VLans and Meps and such.
+	
+    Copyright 2016 Microsemi Inc.
+    All rights reserved.";
+
+  revision "2016-02-29" {
+    description     
+     "Initial version - Sean Condon, Microsemi";
+    reference
+	 "Eagle EANTC Tail-f Inter-operation Summary Revision 1.0 16th Feb 2016";
+  }
+
+  //
+  // Extensions related to Edge Assure
+  //
+  extension not-changeable {
+	description
+	  "Marks the leaf as being settable at creation time 
+	   only and not writable thereafter";
+  }
+  
+  extension xref-module {
+	description
+	  "For leaf items that have type leafref, this attribute defines
+	  the netopeer module that supports that reference if it is outside
+	  the current module";
+	argument module-name;
+  }
+  
+  extension deprecated {
+	  description 
+	  "For leaf items that have become obsolete. This should generate a 
+	  warning to the user that they are using a deprected attribute";
+  }
+    
+  //
+  // Type definitions related to Edge Assure
+  //
+  typedef mep-id-type {
+    type uint16 {
+      range "1..8191";
+    }
+
+    description
+      "Maintenance association End Point Identifier (MEPID): A small integer,
+       unique over a given Maintenance Association, identifying a
+       specific MEP.";
+    reference
+      "[802.1q] 3.19 and 19.2.1";
+  }
+
+  typedef vlan-id-type {
+    type uint16 {
+      range "1..4094";
+    }
+
+    description
+      "The VLAN-ID that uniquely identifies a VLAN.  This is the 12-bit VLAN-ID
+       used in the VLAN Tag header.";
+
+    reference
+      "[802.1q] 9.6";
+  }
+
+  typedef port-status-type {
+    type enumeration {
+      enum no-status-tlv {
+          description "Indicates either that no CCM has been received or that 
+                       no port status TLV was present in the last CCM received.";
+      }
+      enum blocked {
+          description "Ordinary data cannot pass freely through the port on 
+                       which the remote MEP resides. Value of enableRmepDefect 
+                       is equal to false.";
+      }
+      enum up {
+          description "Ordinary data can pass freely through the port on which
+                       the remote MEP resides. Value of enableRmepDefect is 
+                       equal to true.";
+      }
+    }    
+
+    description
+      "The set of values available from the Port Status TLV in CCM PDUs
+       including the default no-status-tlv";
+
+    reference
+      "[802.1q] 20.19.3, 12.14.7.6.3:f
+       IEEE8021-CFM-MIB.Dot1agCfmPortStatus";
+  }
+
+  typedef interface-status-type {
+    type enumeration {
+      enum no-status-tlv {
+          description "Indicates either that no CCM has been received or that
+                       no interface status TLV was present in the last CCM received.";
+      }
+      enum up {
+          description "The interface is ready to pass packets.";
+      }
+      enum down {
+          description "The interface cannot pass packets.";
+      }
+      enum testing {
+          description "The interface is in some test mode.";
+      }
+      enum unknown {
+          description "The interface status cannot be determined for some reason.";
+      }
+      enum dormant {
+          description "The interface is not in a state to pass		  	  packets but is in a pending state, waiting			  for some external event.";
+      }
+      enum not-present {
+          description "Some component of the interface is missing.";
+      }
+      enum lower-layer-down {
+          description "The interface is down due to state of the lower layer 
+                       interfaces.";
+      }
+    }
+
+    description
+      "The set of values available from the Interface Status TLV in CCM PDUs
+       including the default no-status-tlv";
+    reference
+      "[802.1q] 20.19.4, 12.14.7.6.3:g
+       IEEE8021-CFM-MIB.Dot1agCfmInterfaceStatus";
+  }
+  
+  typedef mac-address-and-uint-type {
+    type binary {
+      length "8";
+    } 
+    description
+      "A MAC address and a two-octet unsigned integer";
+    reference
+      "[802.1q] IEEE8021-CFM-MIB.Dot1agCfmMaintDomainNameType";
+  }
+  
+  typedef mac-address-and-uint-str {
+    type string {
+      pattern '([0-9a-fA-F]{2}[:-]){6}([0-9]|[1-9][0-9]|[1-9][0-9][0-9]|[1-9][0-9][0-9][0-9]|[1-5][0-9][0-9][0-9][0-9]|6[0-4][0-9][0-9][0-9]|65[0-4][0-9][0-9]|655[0-2][0-9]|6553[0-5])';
+    }
+    description
+     "The mac-address type represents an IEEE 802 MAC address.
+      The canonical representation uses lowercase characters.
+
+      In the value set and its semantics, this type is equivalent
+      to the MacAddress textual convention of the SMIv2.";
+    reference
+     "IEEE 802: IEEE Standard for Local and Metropolitan Area
+                Networks: Overview and Architecture
+      RFC 2579: Textual Conventions for SMIv2";
+  }
+  
+
+  typedef md-level-type {
+    type uint8 {
+      range "0..7";
+    }
+
+    description
+      "Maintenance Domain Level (MD Level) identifier.  Higher numbers
+       correspond to higher Maintenance Domains, those with the greatest
+       physical reach, with the highest values for customers' CFM PDUs.
+       Lower numbers correspond to lower Maintenance Domains, those with
+       more limited physical reach, with the lowest values for CFM PDUs
+       protecting single bridges or physical links.";
+
+    reference
+      "[802.1q] 18.3, 21.4.1, IEEE8021-CFM-MIB.Dot1agCfmMDLevel";
+  }
+
+  typedef priority-type {
+    type uint8 {
+      range "0..7";
+    }
+
+    description
+      "A 3 bit priority value to be used in the VLAN tag, if present
+       in the transmitted frame.";
+    reference
+      "[802.1q] 12.14.7.3.2:e";
+  }
+  
+  typedef cos-color-type {
+    type enumeration {
+      enum "green" {
+    	  description "Change color to green";
+      }
+      enum "yellow" {
+    	  description "Change color to yellow";
+      }
+      enum "drop" {
+    	  description "Delete color information";
+      }
+    }
+    description
+      "TBD";
+    reference "[MEF23.1].";
+  }
+  
+  typedef service-list-type {
+    type string {
+      length "0..255";
+      pattern "\d*([,:]\d*)*";
+    }
+    description     
+     "An octet string containing a list of item values.
+      
+      An item value is an arbitrary string of octets from
+      ASCII character 0x30 - 0x39, but may not contain 
+      a delimiter character. Delimiter characters are 
+      defined to be one of the following:
+      
+          -  An ASCII comma character (0x2C)
+          -  An ASCII colon character (0x3A)
+      
+      Delimiter characters are used to separate item values
+      in a item list.  Only a single delimiter character may
+      occur between two item values.  A item value may not
+      have a zero length.  These constraints imply certain
+      restrictions on the contents of this object:
+      
+          - There cannot be a leading or trailing delimiter
+            character.
+      
+          - There cannot be multiple adjacent delimiter
+            characters.
+      
+      The 'comma' delimiter separates individual items or a
+      sequence of items. The 'colon' delimiter indicates a range
+      of items from the first item before the colon through the
+      last item after the colon. Individual ranges in the same
+      item list need to be separated by a 'comma'.
+      
+      Some examples of valid item lists are:
+      
+          - ''            -- an empty list
+          - '1234'        -- list of one item
+          - '10,11,12'    -- list of several items
+          - '10:20'       -- a list containing all the valid values from
+                             10 through 20
+      
+      Note that although an item value may not have a length of
+      zero, an empty string is still valid.  This indicates
+      an empty list (i.e. there are no tag values in the list).
+      
+      The use of the item list is to select one or more items at
+      one time with a single object instead of having separate row
+      entries in a table for each individual item.";
+  }
+  
+  
+  typedef service-preservation-type {
+    type enumeration {
+      enum preserve   { 
+		description "The type of service is preserved, either CE-VLAN ID or 
+			CE-VLAN CoS as indicated by the specific object";
+		}
+      enum noPreserve { 
+		description "The type of service is not preserved, either CE-VLAN ID
+			or CE-VLAN CoS as indicated by the specific object.";
+		}
+    }
+    description     
+     "Configures the EVC preservation attributes.";
+    reference       
+     "[MEF 6.1] 6.1; [MEF 7.2] 6.2.1.3";
+  }
+
+  typedef service-delivery-type {
+    type enumeration {
+      enum discard { 
+	description "Service Frames are discarded";
+	}
+      enum unconditional { 
+	description "Service Frames are unconditionally delivered no matter the 
+		content of the Service Frame. An example of this is a 
+		Point-to-Point EVC";
+	}
+      enum conditional { 
+	description "Service Frame are conditionally delivered to the 
+		destination UNI. The condition is specified, for example via a
+		bandwidth profile or unicast MAC address learning.";
+	}
+    }
+    description    
+     "A MEF service can have one of three different delivery types.";
+    reference       
+     "[MEF 6.1] 6.0";
+  }
+
+  
+  typedef identifier45 {
+    type string {
+      length "min..45";
+    }
+    description
+      "This type definition accepts any visible ASCII character " +
+      "plus the <space> character.The string must be RFC 2579 " +
+      "Display " +
+      "String but not contain the characters 0.00 through 0.1f " +
+      "It does not accept the <delete> character despite the " +
+      "current MEF specification.";
+    reference "MEF 10.3 [R8], [R9]";
+  }
+  
+  typedef file-name {
+    type string {
+      length "1..45";
+      pattern '[a-zA-Z0-9\-_.]*';
+    }
+    description "Valid file names only";
+  }
+  
+  typedef reset-config-options {
+	  type enumeration {
+		  enum operational {
+			  description "Reset any operational data on the device. Configuration 
+					  for CFM, Y-1564, RFC-2544 and UNI";
+		  }
+		  enum safiltering {
+			  description "Reset only safiltering data on the device.";
+		  }
+		  enum permissions {
+			  description "Reset only permissions data on the device.";
+		  }
+		  enum allnetconf {
+			  description "Reset all NETCONF data - leaves only logs and SSH keys.";
+		  }
+		  enum nuclear {
+			  description "Remove all configuration and history on the device.
+					  Deletes SSH keys. Resets device to factory defaults";
+		  }
+	  }
+  }
+  
+  	grouping mep-config-attribs-noref {
+		description 
+		"Attributes related to the configuration of a MEP";
+	
+		leaf maintenance-domain {
+                type uint8 {
+                   range 1..64;
+                }
+		  description
+		  "A reference to a specific Maintenance Domain.";
+		}
+		
+		leaf maintenance-association {
+                type uint8 {
+                   range 1..64;
+                }
+			description
+			"A reference to a specific Maintenance Association.";
+		}
+		
+		leaf maintenance-association-end-point {
+			type mep-id-type;
+			description
+			"A reference to a specific Maintenance association End Point.";
+		}
+	}
+}

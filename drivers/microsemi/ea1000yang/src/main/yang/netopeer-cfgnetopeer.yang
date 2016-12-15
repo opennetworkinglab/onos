@@ -1,0 +1,72 @@
+module netopeer-cfgnetopeer {
+  namespace "urn:cesnet:tmc:netopeer:1.0";
+  prefix cfgnetopeer;
+
+  organization "CESNET, z.s.p.o.";
+  contact
+    "dkupka@cesnet.cz";
+  description
+    "Module specifying Netopeer module data model and RPC operation.";
+
+  revision 2013-02-14 {
+    description
+      "Modules are now configurable. Except implemented-rpcs which depends on module data model.";
+  }
+  revision 2012-11-13 {
+    description
+      "Removed parts implemented by library (RFC6022).";
+  }
+  revision 2011-10-20 {
+    description
+      "Initial revision";
+  }
+
+  container netopeer {
+    container modules {
+      list module {
+        key "name";
+        leaf name {
+          type string;
+          description
+            "Name of module";
+        }
+        leaf enabled {
+          type boolean;
+          default false;
+          description
+            "Specify whether or not the module is allowed to be managed over server.";
+        }
+      }
+    }
+  }
+  rpc netopeer-reboot {
+    description
+      "Operation allowing privileged user to restart netopeer-server.";
+    input {
+      leaf type {
+        type enumeration {
+          enum "soft";
+          enum "hard";
+        }
+        default "soft";
+        description
+          "Soft restart only unplugs all device modules and reloads configuration.
+           Hard restart also abort all connections and reload the binary.";
+      }
+    }
+  }
+  rpc reload-module {
+    description
+      "Unload and load any loaded module." ;
+    input {
+      leaf module {
+        type leafref {
+          path "/netopeer/modules/module/name";
+        }
+        mandatory true;
+        description
+          "Name of module to reload.";
+      }
+    }
+  }
+}

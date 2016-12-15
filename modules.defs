@@ -96,6 +96,8 @@ ONOS_DRIVERS = [
     '//drivers/lisp:onos-drivers-lisp-oar',
     '//drivers/flowspec:onos-drivers-flowspec-oar',
     '//drivers/huawei:onos-drivers-huawei-oar',
+#   Removed until we can handle v1.12 of onos-yang-tools - in the mean time build manually with Maven
+#   '//drivers/microsemi/ea1000driver:onos-drivers-microsemi-ea1000driver-oar',
 ]
 
 ONOS_PROVIDERS = [

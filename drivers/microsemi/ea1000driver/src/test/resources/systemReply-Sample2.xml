@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="2">
+  <data>
+    <system-state xmlns="urn:ietf:params:xml:ns:yang:ietf-system">
+      <platform/>
+    </system-state>
+  </data>
+</rpc-reply>

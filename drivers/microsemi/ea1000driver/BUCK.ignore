@@ -1,0 +1,41 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//drivers/utilities:onos-drivers-utilities',
+    '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
+    '//drivers/microsemi/ea1000yang:onos-drivers-microsemi-ea1000yang',
+    '//drivers/microsemi/ea1000yang:onos-drivers-microsemi-ea1000yang-gen',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//incubator/api:onos-incubator-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//drivers/netconf:onos-drivers-netconf-tests',
+    '//drivers/microsemi/ea1000yang:onos-drivers-microsemi-ea1000yang-tests',
+]
+
+BUNDLES = [
+    '//drivers/utilities:onos-drivers-utilities',
+    '//drivers/microsemi/ea1000yang:onos-drivers-microsemi-ea1000yang',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    srcs = glob(['src/main/java/**/*.java']),
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.microsemi',
+    title = 'Microsemi device drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS Microsemi device drivers application.',
+    included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.netconf', 'org.onosproject.yms' ],
+)

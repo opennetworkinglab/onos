@@ -1,0 +1,79 @@
+   module ieee-types {
+
+       // XXX namespace to be allocated by IANA
+
+       namespace "urn:ietf:params:xml:ns:yang:ieee-types";
+       prefix "ieee";
+
+       import ietf-yang-types {
+           prefix yang;
+       }
+
+       organization
+           "YANG Language Design Team";
+
+       contact
+           "Juergen Schoenwaelder (Editor)
+            <j.schoenwaelder@jacobs-university.de>";
+
+       description
+           "This module contains standard derived YANG types
+            for IEEE 802 addresses and related things.";
+
+       revision 2008-05-22 {
+           description "Initial revision.";
+       }
+
+       /*
+        * collection of IEEE address type definitions
+        */
+
+       typedef mac-address {
+           type yang:phys-address {
+               pattern '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}';
+           }
+           description
+              "The mac-address type represents an 802 MAC address
+               represented in the `canonical' order defined by
+               IEEE 802.1a, i.e., as if it were transmitted least
+               significant bit first, even though 802.5 (in contrast
+               to other 802.x protocols) requires MAC addresses to
+               be transmitted most significant bit first.";
+           reference
+              "RFC 2579 STD 58";
+       }
+
+       /*
+        * collection of IEEE 802 related identifier types
+        */
+
+       typedef bridgeid {
+           type string {
+               pattern '[0-9a-fA-F]{4}:'
+                     + '([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}';
+           }
+           description
+              "The bridgeid type represents identifers that uniquely
+               identify a bridge.  Its first four hexadecimal digits
+               contain a priority value followed by a colon. The
+               remaining characters contain the MAC address used to
+               refer to a bridge in a unique fashion (typically, the
+               numerically smallest MAC address of all ports on the
+               bridge).";
+           reference
+              "RFC 4188";
+       }
+
+       typedef vlanid {
+           type uint16 {
+               range "1..4094";
+           }
+           description
+              "The vlanid type uniquely identifies a VLAN. This is
+               the 12-bit VLAN-ID used in the VLAN Tag header. The
+               range is defined by the referenced specification.";
+           reference
+              "IEEE Std 802.1Q 2003 Edition, Virtual Bridged Local
+               Area Networks.";
+       }
+   }

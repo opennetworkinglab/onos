@@ -1,0 +1,11 @@
+<rpc message-id="101"
+     xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <get-config>
+        <source>
+            <running/>
+        </source>
+        <filter type="subtree">
+            <source-ipaddress-filtering xmlns="http://www.microsemi.com/microsemi-edge-assure/msea-sa-filtering"/>
+        </filter>
+    </get-config>
+</rpc>

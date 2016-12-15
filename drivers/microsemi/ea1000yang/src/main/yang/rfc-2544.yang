@@ -1,0 +1,509 @@
+module rfc-2544 {
+
+    /*** NAMESPACE / PREFIX DEFINITION ***/
+
+    namespace "http://www.microsemi.com/rfc2544";
+    prefix "rfc2544";
+
+    import svc-activation-types {
+        prefix sa;
+    }
+
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    /*** META INFORMATION ***/
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module defines the interface for RFC 2544 Benchmarking Methodology for Network Interconnect Devices
+
+    Copyright 2015 Microsemi Inc.
+    All rights reserved.";
+
+    revision "2015-10-20" {
+        description
+        "Initial version - Sean Condon, Microsemi";
+    }
+
+    /*
+     * Typedefs
+     */
+
+
+    /*
+     * Groupings
+     */
+    grouping frame-size-group {
+
+        description "Frame sizes to use in the test";
+
+        leaf-list frame-size {
+            type sa:frame-size-type;
+            max-elements 8;
+            units "byte";
+            ordered-by user;
+            description "A range of frame sizes to use. 512 bytes will be used if nothing is specified";
+        }
+
+        reference "RFC 2544 Section 9 
+            All of the described tests SHOULD be performed at a number of frame
+            sizes. Specifically, the sizes SHOULD include the maximum and minimum
+            legitimate sizes for the protocol under test on the media under test
+            and enough sizes in between to be able to get a full characterization
+            of the DUT performance. Except where noted, at least five frame
+            sizes SHOULD be tested for each test condition.";
+    }
+
+    grouping throughput-group {
+        description
+        "Configuration parameters for throughput test.";
+
+        leaf step-size {
+            type uint8 {
+                range 1..10|20|25|30|40|50|100;
+            }
+            must "current() <= ((../max-rate) - (../min-rate))" {
+                error-app-tag "msea-2544-must-1";
+                error-message "step-size must be less than or equal to the difference between min- and max-rate";
+            }
+            units "Mb/s";
+            default 10;
+            description "The throughput rate step size from 1Mb/s to 1,000Mb/s (1 Gbps)";
+        }
+
+        leaf min-rate {
+            type uint16 {
+                range 1..999;
+            }
+            must "current() < ../max-rate" {
+                error-app-tag "msea-2544-must-2";
+                error-message "min-rate must not equal or exceed max-rate";
+            }
+            units "Mb/s";
+            default 10;
+            description "The minimum throughput rate from 1Mb/s to 1,000Mb/s (1Gbps)
+                    The test starts at the max-rate and reduces by step-size on each
+                    iteration until it drops below min-rate. For example with 
+                    max-rate=10, step-size=2 and min-rate=1, tests will be
+                    performed at 10,8,6,4 and 2 Mb/s";
+        }
+
+        leaf max-rate {
+            type uint16 {
+                range 2..1000;
+            }
+            units "Mb/s";
+            default 1000;
+            description "The maximum throughput rate from 1Mb/s to 1,000Mb/s (1Gbps)";
+        }
+
+        leaf trial-duration {
+            type uint32 {
+                range 1..max;
+            }
+            default 60;
+            units "s";
+            description "Trial duration";
+            reference "RFC 2544 Section 24 
+            The duration of the test portion of each trial SHOULD be
+            at least 60 seconds.";
+        }
+    }
+
+    grouping afl-group {
+        description
+        "Extra configuration parameters for throughput and latency test.";
+
+        leaf accepted-frame-loss {
+            type uint32 {
+                range min..100000;
+            }
+            units "m%";
+            default 0;
+            description "The acceptable Frame Loss ratio in units of 0.001%";
+        }
+    }
+
+    grouping result-common-group {
+        description
+        "Common attributes of by-frame-size result set.";
+        
+        leaf test-status {
+            type sa:test-status;
+            mandatory true;
+            description "The current status of the subset of tests";
+        }
+
+        leaf frame-size {
+            type sa:frame-size-type;
+            units "bytes";
+            description "The frame size used";
+        }
+
+        leaf elapsed-time {
+            type uint16;
+            units "s";
+            description "The number of seconds the test has been running";
+        }
+    }
+
+    /*
+     * Features
+     */
+    feature throughput {
+        description
+        "This feature indicates that the device supports throughput tests";
+        reference
+        "RFC 2544: Section 26.1";
+    }
+
+    feature latency {
+        description
+        "This feature indicates that the device supports Latency tests";
+        reference
+        "RFC 2544: Section 26.2";
+    }
+
+    feature frame-loss-rate {
+        description
+        "This feature indicates that the device supports Frame Loss Rate tests";
+        reference
+        "RFC 2544: Section 26.3";
+    }
+
+    feature back-to-back {
+        description
+        "This feature indicates that the device supports Back-to-Back (burst mode) tests";
+        reference
+        "RFC 2544: Section 26.4";
+    }
+
+    container rfc2544-test {
+        description
+        "A configured set of parameters for an RFC 2544 test";
+
+        container mep-config {
+            presence "Presence indicates that a MEP has been configured";
+
+            uses msea:mep-config-attribs-noref;
+
+            leaf remote-mep-id {
+                      type msea:mep-id-type;    
+                must "current()/../maintenance-association-end-point != current()" {
+                    error-message "Remote MEP Id must not be the same as Local MEP Id";
+                    error-app-tag "msea-svc-must-01";
+                }
+
+                //mandatory true; //Should not be mandatory in a top level container 
+                description "The Id of the remote MEP";
+            }
+
+            container overwrite-pcp {
+                presence "Enables PCP Overwrite";
+                description "If present allows attributes to be
+                    specified for the PCP overwrite";
+
+                    uses sa:overwrite-pcp-attribs;
+                    
+                    leaf overwrite-drop-eligible {
+                        type boolean;
+                        default false;
+                        description 
+                        "The Drop Eligible flag in the MEP's TAG is replaced 
+                        with this value if overwrite-pcp is present.";
+                    }
+            }
+        }
+
+        leaf binary-search-step-duration {
+            type uint16 {
+                range 1..10;
+            }
+            default 2;
+            units "s";
+            description
+                "The time in seconds for each step in the Throughput binary search. Range 1 to 10, default 2.";
+            reference "RFC 2544 Section 24";
+        }
+
+
+        container throughput {
+            if-feature throughput;
+            description "Configuration parameters for the Throughput part of the test";
+
+            uses throughput-group;
+            uses frame-size-group;
+            uses afl-group;
+        }
+
+        container latency {
+            if-feature latency;
+            description "Configuration parameters for the Latency part of the test";
+
+            uses throughput-group {
+                refine trial-duration {
+                    default 120;
+                }
+            }
+            uses frame-size-group;
+            uses afl-group;
+        }
+
+        container frame-loss {
+            if-feature frame-loss-rate;
+            description "Configuration parameters for the Frame Loss part of the test";
+
+            uses throughput-group;
+            uses frame-size-group;
+        }
+
+        container back-to-back {
+            if-feature back-to-back;
+            description "Configuration parameters for the Back-to-Back part of the test";
+
+            leaf trial-duration {
+                type uint32 {
+                    range 1..10000;
+                }
+                units "ms";
+                default 2000;
+                description "The duration of the Back-to-Back test in milliseconds";
+            }
+            
+            leaf iterations {
+                type uint16 {
+                    range 1..max;
+                }
+                default 50;
+                description "The number of times to run the test";
+            }
+            
+            uses frame-size-group;
+        }
+    }
+
+    container rfc2544-result {
+        config false;
+
+        description "A collection of the results from the RFC 2544 tests";
+
+        container throughput {
+            if-feature throughput;
+
+            description "Results for the Throughput test";
+
+            uses sa:results-header-group;
+
+            list result-item {
+                key frame-size;
+
+                description "The list of results by frame size";
+
+                reference "RFC 2544: Section 26.1";
+
+                uses result-common-group;
+
+                leaf frame-rate {
+                    type uint32;
+                    units "Mb/s";
+                    description "The throughput rate achieved for this packet size";
+                }
+            }
+        }
+
+        container latency {
+            if-feature latency;
+
+            description "Results for the Latency test";
+
+            uses sa:results-header-group;
+
+            list result-item {
+                key frame-size;
+
+                uses result-common-group;
+
+                leaf frame-rate {
+                    type uint32;
+                    units "Mb/s";
+                    description "The throughput rate achieved for this frame size";
+                }
+
+                leaf frame-delay-min {
+                    type uint32;
+                    units "μs";
+                    description "The Minimum Frame Delay measured at the throughput rate";
+                }
+
+                leaf frame-delay-max {
+                    type uint32;
+                    units "μs";
+                    description "The Maximum Frame Delay measured at the throughput rate";
+                }
+
+                leaf frame-delay-avg {
+                    type uint32;
+                    units "μs";
+                    description "The Average Frame Delay measured at the throughput rate";
+                }
+
+                leaf frame-delay-var-min {
+                    type uint32;
+                    units "μs";
+                    description "The Minimum Frame Delay Variation measured at the throughput rate";
+                }
+
+                leaf frame-delay-var-max {
+                    type uint32;
+                    units "μs";
+                    description "The Maximum Frame Delay Variation measured at the throughput rate";
+                }
+
+                leaf frame-delay-var-avg {
+                    type uint32;
+                    units "μs";
+                    description "The Average Frame Delay Variation measured at the throughput rate";
+                }
+            }
+        }
+
+        container frame-loss {
+            if-feature frame-loss-rate;
+
+            description "Results for the Frame Loss test";
+            reference "RFC-2544 Section 26.3";
+
+            uses sa:results-header-group;
+
+            list result-item {
+                key frame-size;
+
+                description "The frame-loss result set for this frame-size";
+
+                uses result-common-group;
+
+                leaf frame-steps {
+                    type uint8;
+                    description "The number of steps recorded during Frame Loss test. Maximum is 8";
+                }
+
+                list frame-rate {
+                    key rate;
+                    description "A list of the losses at each rate step. This shows up to the 8 most recent steps";
+
+                    leaf rate {
+                        type uint32;
+                        units "Mb/s";
+                        description "The test rate used for this step";
+                    }
+
+                    leaf frame-loss {
+                        type uint32;
+                        units "m%";
+                        description "The percentage frames lost for this rate step (in 0.001% units)";
+                    }
+                }
+            }
+        }
+
+        container back-to-back {
+            if-feature back-to-back;
+
+            description "Results for the Back-to-Back (burst mode) test";
+
+            uses sa:results-header-group;
+
+            list result-item {
+                key frame-size;
+
+                leaf test-status {
+                    type sa:test-status;
+                    mandatory true;
+                    description "The current status of the subset of tests";
+                }
+
+                leaf frame-size {
+                    type sa:frame-size-type;
+                    units "bytes";
+                    description "The frame size used";
+                }
+
+                leaf burst-duration {
+                    type uint16;
+                    units "ms";
+                    description "The duration of the burst in milliseconds";
+                }
+
+                leaf average-burst-frame-count {
+                    type uint32;
+                    description "An average of the count of received frames for the test for this frame size";
+                }
+            }
+
+        }
+
+    }
+
+
+
+    rpc run-rfc2544-test {
+
+        description
+        "Run the configured RFC 2544 test";
+
+        input {
+            leaf tests-enabled {
+                type bits {
+                    bit throughput;
+                    bit latency;
+                    bit frameLoss;
+                    bit backToBack;
+                }
+                default "throughput latency frameLoss backToBack";
+                description "Choose the test components to run - by default all are selected";
+            }
+            
+
+            leaf send-subtest-event {
+                type boolean;
+                default true;
+                description "If true then send events for all of the state changes of tests at the 'frame size' level.
+                        If false events are sent only for state changes in the top level tests e.g. throughput";
+            }
+        }
+    }
+
+    rpc stop-rfc2544-test {
+        description
+        "Stop the running RFC 2544 test";
+    }
+
+    notification rfc2544-test-updated {
+        description 
+          "A rfc2544-test-updated notification is sent when the state of a test changes.";
+
+        uses sa:notification-group;
+
+        leaf frame-size {
+            type sa:frame-size-type;
+            units "bytes";
+            description "The frame size that is being tested. If not present then 
+                    the notification pertains to the overall test type";
+        }
+    }
+}

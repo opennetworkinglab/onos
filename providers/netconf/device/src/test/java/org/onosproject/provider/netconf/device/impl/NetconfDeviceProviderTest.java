@@ -132,7 +132,7 @@ public class NetconfDeviceProviderTest {
     private static final int PORT = 830;
     private static final String TEST = "test";
     private static final int DELAY_DISCOVERY = 500;
-    private static final int DELAY_DURATION_DISCOVERY = 1500;
+    private static final int DELAY_DURATION_DISCOVERY = 3000;
 
     //Testing Files
     InputStream jsonStream = NetconfDeviceProviderTest.class

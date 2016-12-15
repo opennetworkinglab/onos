@@ -1,0 +1,545 @@
+module msea-soam-fm {
+    
+  namespace "http://www.microsemi.com/microsemi-edge-assure/msea-soam-fm";
+  prefix "msea-soam-fm"; //MicroSemi EdgeAssure (msea)
+  
+  import ietf-yang-types {
+    prefix yang;
+    revision-date 2013-07-15;
+  }
+  
+  import msea-cfm {
+    prefix msea-cfm;
+  }
+  
+  import msea-types {
+    prefix msea;
+  }
+
+  organization
+   "Microsemi Inc., FTD Division";
+
+  contact           
+   "Web URL: http://www.microsemi.com/
+    E-mail:  info@microsemi.com
+    Postal:  Microsemi Corporation Corporate Headquarters
+             One Enterprise Aliso Viejo, 
+             CA 92656
+             U.S.A.
+    Phone:   +1 949 380 6100
+    Fax:     +1 949 215-4996";
+
+  description       
+   "This YANG module is a fork of the original mef-soam-fm YANG Module defined in MEF 38
+    for the management of Ethernet Services Operations, Administration and
+    Maintenance for Fault Management and extends the Connectivity Fault
+    Management (CFM) YANG modules.
+    This fork is done specifically to suit the EdgeAssure which has some extra
+    constraints that are not handled by the original YANG.
+    
+    Copyright 2016 Microsemi Inc.
+    All rights reserved.";
+
+  revision "2016-02-29" {
+    description     
+     "Initial EdgeAssure version forked from mef-soam-fm@2012-04-16 - Sean Condon, Microsemi";
+    reference
+      "Service OAM Fault Management YANG Modules (MEF 38), April 2012";
+  }
+    
+  //
+  // Type definitions related to MEF SOAM FM
+  //
+
+  typedef operational-state-type {
+    type enumeration {
+      enum enabled {
+        description
+          "The MEP is able to provide OAM capabilities and has been set to
+           active via the 'administrative-state' leaf.";
+      }
+      enum disabled {
+        description
+          "The MEP is not able to provide OAM capabilities, for example
+           because it has been disabled via the administrative-state leaf,
+           has detected an operational failure condition, or has failed an
+           internal test.";
+      }
+      enum testing {
+        description
+          "The MEP has been placed into a test mode, either a troubleshooting
+           mode or ETH-Test 'Out-of-service' mode.";
+      }
+      enum unknown {
+        description
+          "The MEP is unable to report the operational state.";
+      }
+    }
+    description
+      "This attribute indicates the operational state (current capability) of
+       a MEP.";
+    reference
+      "[MEF7.1] 9.2.5";
+  }
+
+ 
+
+  //
+  // Augments into CFM related to MEF SOAM FM
+  //
+  augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association" {
+    description
+      "This set of data definitions represents the Maintenance Entity Group (Y.1731) 
+       configuration that is unique from the Maintenance Association.";
+
+    leaf meg-level {
+      type msea:md-level-type;
+      
+//      msea:not-changeable;
+      
+      must "../msea-cfm:y1731-compliant" {
+    	  error-message "meg-level can only be set when y1731-compliant is present";
+		  error-app-tag "msea-soam-fm-must-04";
+      }
+      
+      must "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain[msea-cfm:id = current()/../../msea-cfm:id]/msea-cfm:md-level = current()" {
+    	  error-message "meg-level must be the same as its parent MD md-level";
+		  error-app-tag "msea-soam-fm-must-05";
+      }
+      
+      description
+        "This attribute indicates the MEG Level of the MEG. It has to be the same as the
+        MDs level, which is a way of ensuring that all MEG under this MD have the same level";
+      
+      reference
+        "[MEF31] MEF-SOAM-FM-MIB.mefSoamNetCfgMegLevel";      
+    }
+  }
+  
+  
+  
+  
+
+  augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:component-list" {
+    description
+      "This set of data definitions extends the component list of the Maintenance
+       Entity Group (as defined in Y.1731) or Maintenance Association (as defined
+       in 802.1q)";
+    reference
+      "[MEF7.1] 9.2.2";
+
+    leaf mep-port-status-tlv-included {
+      type boolean;
+      default true;
+
+      description
+        "Indicates whether a Port Status TLV is included in CCM frame
+         transmission. A value of 'true' indicates that the Port Status
+         TLV is to be included. A value of 'false' indicates that the
+         Port Status TLV is not to be included.";
+      reference
+        "[MEF7.1] 9.2.2";
+    }
+
+    leaf mep-interface-status-tlv-included {
+      type boolean;
+      default true;
+
+      description
+        "Indicates whether a Interface Status TLV is included in CCM frame
+         transmission. A value of 'true' indicates that the Interface Status TLV
+         is to be included. A value of 'false' indicates that the Interface
+         Status TLV is not to be included.";
+      reference
+        "[MEF7.1] 9.2.2";
+    }
+  }
+  
+  
+  
+
+  augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point" {
+    description
+      "This set of data definitions extends the MEG End Point (as described in
+       Y.1731) or Maintenance association End Point (as described in 802.1q)
+       defined in the MEF CFM module (MEF-CFM)";
+    reference
+      "[MEF7.1] 9.2.2";
+
+    leaf operational-state {
+      type operational-state-type;
+
+      config false;
+
+      description
+        "This attribute indicates the operational state (current capability) of
+         the MEP.";
+      reference
+        "[MEF7.1] 9.2.5";
+    }
+
+    leaf connectivity-status {
+      type enumeration {
+        enum active {
+        description
+          "Refers to the ability to exchange SOAM PDU frames among all the UNIs 
+           of an EVC.";
+        }
+        enum partially-active {
+        description
+          "Refers to the ability to exchange SOAM PDU frames among some but not
+           all the UNIs of an EVC.";
+        }
+        enum inactive {
+        description
+          "Refers to the ability to exchange SOAM PDU frames among any of the UNIs
+           of an EVC.";
+        }
+      }
+      config false;
+
+      description
+        "This attribute indicates the connectivity status for a MEP in an EVC
+         MEs. An 'active' MEP Connectivity Status refers to the ability
+         to exchange SOAM PDU frames among all the UNIs of an EVC. A
+         'partially-active' MEP Connectivity Status refers to the
+         ability to exchange SOAM PDU frames among some but not all the
+         UNIs of an EVC. An 'inactive' MEP Connectivity Status refers to
+         the inability to exchange SOAM PDU frames among any of the UNIs
+         of an EVC.";
+      reference
+        "[MEF7.1] 9.2.5";
+    }
+
+    leaf port-status {
+      type msea:port-status-type;
+      config false;
+
+      description
+        "An enumerated value of the Port status TLV sent in the last CCM from the
+         local MEP or the default value psNoPortStateTLV indicating no
+         CCM has been sent or no Port Status TLV has been sent.";
+      reference
+        "[802.1q] 17.5";
+    }
+
+    leaf interface-status {
+      type msea:interface-status-type;
+      config false;
+
+      description
+        "An enumerated value of the Interface status TLV sent in the last CCM
+         from the local MEP or the default value no-status-tlv
+         indicating no CCM has been sent or no Interface Status TLV has
+         been sent.";
+      reference
+        "[802.1q] 17.5";
+    }
+
+    leaf last-defect-sent {
+      type msea-cfm:fault-alarm-defect-bits-type;
+      config false;
+
+      description
+        "This attribute indicates the state of the previous MEP defects,
+         that was sent with the previous
+         mep-defect-alarm notification. It is always some *previous*
+         value of cfm:active-defects. Once an mep-defect-alarm is sent
+         the mep-defect-alarm that was sent in the notification
+         updates the contents of this leaf.
+
+         If no mep-defect-alarm notification has been sent the value of
+         this leaf is '0'.";
+      reference
+        "[MEF31] MEF-SOAM-FM-MIB.mefSoamMepStatusLastDefectSentStatus";
+    }
+
+    leaf rdi-transmit-status {
+      type boolean;
+      config false;
+
+      description
+        "Indicates whether the local MEP is generating a RDI bit in the CCM that
+         it transmits. A value of 'true' indicates that a RDI bit was
+         set in the last CCM that the MEP transmitted. A value of
+         'false' indicates that the last CCM transmitted by the MEP did
+         not set the RDI bit or that a CCM has never been transmitted by
+         the MEP.";
+      reference
+        "[MEF7.1] 9.2.2";
+    }
+
+  } //end of MEP augmentation
+
+
+  augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-cfm:loopback" {
+    description
+      "This set of data definitions extends on-demand Ethernet OAM Fault
+       Management Loopback function (ETH-LB) as defined in Y.1731 and
+       802.1q and defined in MEF-CFM";
+    reference
+      "[MEF7.1] 9.3.2";
+
+    leaf multicast-enabled {
+      type boolean;
+      default false;
+
+      description
+        "This attribute specifies whether a MEP uses unicast or multicast
+         to send the ETH-LB messages (LBM). The 802.1ag standard only allows
+         unicast LBM. ITU-T Y.1731 allows LBM to be multicast. This attribute
+         allows the MEP to send either multicast or unicast LBM on a per MEP
+         basis.
+
+         The value 'true' indicates multicast is enabled.
+
+         The value 'false' indicates unicast is enabled.";
+      reference
+        "[MEF7.1] 9.3.2.1";
+    }
+
+    leaf interval {
+      type uint16 {
+        range "0..2096";
+      }
+      units milliseconds;
+      default 1000;
+
+      description
+        "This attribute specifies the period between LBM transmissions in an LB
+         Session. For an LB Session, the period for LBM transmission
+         is configurable in the range 0 and 2096 milliseconds . Granularity is 1 ms.
+         The transmission of the next LBM is not dependent upon the
+         reception the first LBR. The next LBM is sent out based upon
+         the interval count.
+
+         An interval count of '0' indicates that the subsequent LBM is sent
+         out with the minimum possible delay.";
+      reference
+        "[MEF7.1] 9.3.2.1";
+    }
+
+    leaf frame-size {
+      type uint16 {
+        range "64..9600";
+      }
+      units "bytes";
+
+      description
+        "This attribute specifies the LBM frame size. For an LB Session, the size
+         of the LBM frame is configurable to any Ethernet frame size
+         between 64 Bytes and the maximum transmission unit of the EVC.
+
+         The range of frame sizes from 64 through 2000 octets, in 4 octet increments,
+         MUST be supported, and the range of frame sizes from 2004 through 9600
+         octets, in 4 octet increments, SHOULD be supported.
+
+         The adjustment to the frame size of the standard LBM PDU size is accomplished
+         by the addition of a Data TLV or a Test TLV.";
+      reference
+        "[MEF7.1] 9.3.2.1";
+    }
+
+
+    leaf timeout {
+      type yang:gauge32 {
+        range "5000";
+      }
+      default 5000;
+
+      description
+        "This attribute specifies the maximum amount of time to receive an LBR in
+         response to a LBM. If a LBR is not received within the timeout
+         value it is considered lost.";
+      reference
+        "[MEF31] MEF-SOAM-FM-MIB.mefSoamLbCfgTimeout";
+    }
+
+    list responses {
+      key "receive-order";
+      config false;
+
+      description
+        "A list of responses from a Multicast Loopback Message. This are shown only when multicast is enabled";
+      reference
+        "[MEF31] MEF-SOAM-FM-MIB.mefSoamLbrMulticastTable";
+
+      leaf receive-order {
+        type int8;
+
+        description
+          "Loopback transaction identifier returned by a previous loopback message
+           command, indicating which loopback request is returned.";
+        reference
+          "[MEF31] MEF-SOAM-FM-MIB.mefSoamLbrMulticastTransId";
+      }
+      
+      leaf multicast-reply-mac {
+        type yang:mac-address;
+          
+        description
+          "Source MAC address returned in the LBR Ethernet frame";
+        reference
+          "[802.1q] 21.7, [Y.1731] 7.2,
+           [MEF31] MEF-SOAM-FM-MIB.mefSoamLbrMulticastReplyMac";
+      }
+    }
+  }
+  
+  
+  
+  augment "/msea-cfm:mef-cfm/msea-cfm:maintenance-domain/msea-cfm:maintenance-association/msea-cfm:maintenance-association-end-point/msea-cfm:linktrace" {
+		description
+		"Augments to support the enhanced CFM Linktrace functionality";
+		reference
+		"[MEF30] 8.4";
+
+		leaf ltm-msgs-transmitted {
+			type yang:zero-based-counter32;
+			config false;
+
+			description
+			"This attribute contains the count of the total number of LTM messages
+			transmitted by the MEP";
+			reference
+			"[MEF31] MEF-SOAM-FM-MIB.mefSoamLtLtmTransmitted";
+		}
+
+		leaf ltr-msgs-received {
+			type yang:zero-based-counter32;
+			config false;
+
+			description
+			"This attribute contains the count of the total number of LTR messages
+			received by the MEP";
+			reference
+			"[MEF31] MEF-SOAM-FM-MIB.mefSoamLtLtrReceived";
+		}
+
+		leaf ltm-msgs-received {
+			type yang:zero-based-counter32;
+			config false;
+
+			description
+			"This attribute contains the count of the total number of LTM messages
+			received by the MEP";
+			reference
+			"[MEF31] MEF-SOAM-FM-MIB.mefSoamLtLtmReceived";
+		}
+
+		leaf ltr-msgs-transmitted {
+			type yang:zero-based-counter32;
+			config false;
+
+			description
+			"This attribute contains the count of the total number of LTR messages
+			transmitted by the MEP";
+			reference
+			"[MEF31] MEF-SOAM-FM-MIB.mefSoamLtLtrTransmitted";
+		}
+	}
+
+
+  //
+  // Data definitions related to MEF SOAM FM
+  //
+  augment "/msea-cfm:mef-cfm" {
+	description 
+      "A set of data definitions related to FM event notifications.";
+    reference
+      "[MEF31] MEF-SOAM-FM-MIB.mefSoamFmNotificationCfg";
+	  
+	  container notification-configuration {
+		description
+		  "A set of data definitions related to FM event notifications.";
+		reference
+		  "[MEF31] MEF-SOAM-FM-MIB.mefSoamFmNotificationCfg";
+		
+		leaf active-alarms {
+			type bits {
+			  bit fault-alarm { 
+				  description "Send notifications when a specific MEP has a persistent defect condition";
+			  }
+
+			  bit mep-defect-alarm { 
+				  description "Send notifications when the value of mep-defects changes";
+			  }
+			  
+			  bit mep-operational-state-changed { 
+				  description "Send notifications when the value of a MEP's operational-state changes";
+			  }
+			}
+			description "Configure the fault notification generator to enable the alarms given in 
+				the bitmask list.";
+		}
+	  }
+  }
+
+  //
+  // Notifications related to MEF SOAM FM
+  //
+
+  notification mep-defect-alarm {
+    description
+      "A mep-defect-alarm notification is generated when the value of
+       mep-defects changes. It indicates a persistent defect in
+       the MEP. This notification is sent whenever the
+       cfm:active-defects of the MEP changes, regardless of the
+       cfm:highest-priority-defect-found leaf.
+
+       The inclusion of the cfm:remote-mep-state leaf is
+       optional. It shall not be included if the defect is not based
+       upon a specific MEP instance, e.g.. bDefErrorCCM.";
+
+    reference
+      "[MEF31] MEF-SOAM-FM-MIB.mefSoamMepDefectAlarm";
+
+	uses msea-cfm:mep-notification-reference;
+	
+	leaf remote-mep {
+		type msea:mep-id-type;
+		description "Remote MEP identifier";
+	}
+
+    leaf last-defect-sent {
+      type msea-cfm:fault-alarm-defect-type;
+
+      description
+        "The last defect sent on the specific MEP";
+    }
+    leaf active-defects {
+      type msea-cfm:fault-alarm-defect-bits-type;
+      description
+        "The currently active defects on the specific MEP.";
+    }
+    
+    leaf remote-mep-state {
+      type msea-cfm:remote-mep-state-type;
+
+      description
+        "The value of the remote MEP state on a specific MEP";      
+      reference
+        "[802.1q] 12.14.7.6.3:b";
+    }
+  }
+  
+  notification mep-operational-state-changed {
+    description
+      "A mep-operational-state-changed notification is sent when the value of a
+       MEP's operational-state changes. It indicates an operational
+       state change in the MEP. This notification is sent whenever the
+       operational status of the MEP changes.";
+    reference
+      "[MEF31] MEF-SOAM-FM-MIB.mefSoamMepOperStatusAlarm";
+
+	uses msea-cfm:mep-notification-reference;
+
+    leaf operational-state {
+      type operational-state-type;
+
+      description
+        "The operational-state leaf of the affected MEP";
+    }
+  }
+}
+

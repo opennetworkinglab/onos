@@ -1,0 +1,266 @@
+module fpga-internal {
+
+	/*** NAMESPACE / PREFIX DEFINITION ***/
+
+	namespace "http://www.microsemi.com/fpga-int";
+	prefix "fpga-int";
+
+	/*** META INFORMATION ***/
+
+	organization
+	"Microsemi Inc., FTD Division";
+
+	contact
+	"Web URL: http://www.microsemi.com/
+	E-mail: info@microsemi.com
+	Postal: Microsemi Corporation Corporate Headquarters
+	One Enterprise Aliso Viejo,
+	CA 92656
+	U.S.A.
+	Phone: +1 949 380 6100
+	Fax: +1 949 215-4996";
+
+	description
+	"This YANG module add internal procedures to access FPAA hardware
+
+	Copyright 2015 Microsemi Inc.
+	All rights reserved.";
+
+	revision "2015-11-30" {
+		description
+		"Initial version - Sean Condon, Microsemi";
+	}
+
+	typedef sixteen-bit-hex {
+		type string {
+			pattern '0x[0-9a-fA-F]{4}';
+		}
+
+		description
+		"A 16-bit address represented as a hexadecimal number";
+	}
+
+	typedef thirtytwo-bit-hex {
+		type string {
+			pattern '0x[0-9a-fA-F]{8}';
+		}
+
+		description
+		"A 32-bit address represented as a hexadecimal number";
+	}
+	
+	typedef thirtytwobit-data {
+		type string {
+			pattern '([0-9a-fA-F]{8}(:[0-9a-fA-F]{8})*)?';
+		}
+
+		description
+		"A set of 32 bit data values represented as colon separated 
+		hex strings e.g. 'A1B2C3D4:B2C3D4F5:C3D4E5F6'";
+	}
+
+	typedef select-ram-enum {
+		type enumeration {
+			enum pkt-store-sel {value 0;}
+			enum probe-store-sel {value 1;}
+			enum xconn-store-sel {value 2;}
+			enum rmep-err-store-sel {value 3;}
+			enum rx-lmep-map-sel {value 4;}
+			enum cpu-sys-capt-fifo-sel {value 5;}
+			enum rmep-ram-sel {value 6;}
+			enum xconn-ram-sel {value 7;}
+			enum rmep-err-ram-sel {value 8;}
+			enum tx-lmep-map-sel {value 9;}
+			enum ext-sram-sel {value 10;}
+			enum car-rmac-sel {value 11;}
+			enum sys-mac-sel {value 12;}
+			enum rx-carr-data-fifo-sel {value 13;}
+			enum line-stats-ram-sel {value 14;}
+			enum cpu-sys-capt-info-fifo-sel {value 15;}
+			enum vlan-info-ram-sel {value 16;}
+			enum lbm-store-sel {value 17;}
+			enum lbr-ram-sel {value 18;}
+			enum mc-lbr-store-sel {value 19;}
+			enum port-mac-ram-sel {value 20;}
+			enum pm-db-ram-sel {value 22;}
+			enum tx-lb-ram-sel {value 24;}
+			enum tlv-ram-sel {value 25;}
+			enum cpu-capt-fifo-sel {value 26;}
+			enum cpu-capt-info-fifo-sel {value 27;}
+			enum policer-cfg-ram-sel {value 28;}
+			enum policer-ctxt-ram-sel {value 29;}
+			enum cpu-sys-tx-ram-sel {value 30;}
+			enum policer-stats-ram-sel {value 31;}
+		}
+	}
+	
+	
+	container fpga-internal {
+		presence "Supports FPGA direct access";
+	}
+	
+	rpc read-registers {
+
+		description "Method to read directly from hardware registers";
+		input {
+			choice hex-or-dec {
+				
+				description "Enter the starting address in either decimal (0-65535) 
+						or hexadecimal (preceeded with 0x)";
+				mandatory true;
+
+				case hex {
+					leaf start-address-hex {
+						type sixteen-bit-hex;
+					}
+				}
+
+				case decimal {
+					leaf start-address-dec {
+						type uint16;
+					}
+				}
+			}
+
+			leaf num-locations {
+				type uint8 {
+					range 1..max;
+				}
+				description "The number of following locations (addresses) to read from";
+				default 1;
+			}
+		}
+
+		output {
+            anyxml data {
+				description "A set of 32 bit data values represented 
+						as colon separated 8 character hexadecimal values";
+			}
+		}
+	}
+	
+
+	rpc write-registers {
+
+		description "Method to write directly to hardware registers.
+				If a number of data values are given then subsequent
+				locations are written to";
+		input {
+			choice hex-or-dec {
+				
+				description "Enter the starting address in either decimal (0-65535) 
+						or hexadecimal (preceeded with 0x)";
+				
+				case hex {
+					leaf start-address-hex {
+						type sixteen-bit-hex;
+					}
+				}
+
+				case decimal {
+					leaf start-address-dec {
+						type uint16;
+					}
+				}
+			}
+
+			leaf value-hex-32 {
+				type thirtytwobit-data;
+				description "A set of 32 bit data values represented 
+						as colon separated 8 character hexadecimal values
+						e.g. ffffffff:ffffffff:ffffffff
+						The number of locations written to will be 
+						determinted by the number of such values given";
+			}
+		}
+	}
+
+	rpc read-ram {
+
+		description "Method to read directly from hardware RAM";
+		input {
+			leaf ram {
+				type select-ram-enum;
+				mandatory true;
+				description "The type of RAM to read from";
+			}
+			
+			choice hex-or-dec {
+				
+				description "Enter the starting address in either decimal (0-65535) 
+						or hexadecimal (preceeded with 0x)";
+				mandatory true;
+
+				case hex {
+					leaf start-address-hex {
+						type thirtytwo-bit-hex;
+					}
+				}
+
+				case decimal {
+					leaf start-address-dec {
+						type uint32;
+					}
+				}
+			}
+			
+			leaf num-locations {
+				type uint8 {
+					range 1..max;
+				}
+				description "The number of following locations (addresses) to read from";
+				default 1;
+			}
+		}
+
+		output {
+            anyxml data {
+				description "A set of 32 bit data values represented 
+						as colon separated 8 character hexadecimal values";
+			}
+		}
+	}
+
+	rpc write-ram {
+
+		description "Method to write directly to RAM registers.
+				If a number of data values are given then subsequent
+				locations are written to";
+		input {
+			leaf ram {
+				type select-ram-enum;
+				mandatory true;
+				description "The type of RAM to read from";
+			}
+
+			choice hex-or-dec {
+				
+				description "Enter the starting address in either decimal (0-65535) 
+						or hexadecimal (preceeded with 0x)";
+				mandatory true;
+				
+				case hex {
+					leaf start-address-hex {
+						type thirtytwo-bit-hex;
+					}
+				}
+
+				case decimal {
+					leaf start-address-dec {
+						type uint32;
+					}
+				}
+			}
+
+			leaf value-hex-32 {
+				type thirtytwobit-data;
+				description "A set of 32 bit data values represented 
+						as colon separated 8 character hexadecimal values
+						e.g. ffffffff:ffffffff:ffffffff
+						The number of locations written to will be 
+						determinted by the number of such values given";
+			}
+		}
+	}
+
+}

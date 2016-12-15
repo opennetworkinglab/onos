@@ -1,0 +1,1208 @@
+module msea-uni-evc-interface {
+
+	namespace "http://www.microsemi.com/microsemi-edge-assure/msea-uni-evc-interface";
+	prefix "msea-if"; //MicroSemi EdgeAssure (msea)
+
+	import ietf-yang-types {
+		prefix yang;
+		revision-date 2013-07-15;
+	}
+
+	import msea-types {
+		prefix msea;
+		revision-date 2016-02-29;
+	}
+
+	import ietf-interfaces {
+		prefix "if";
+	}
+
+	import ietf-inet-types {
+		prefix inet;
+	}
+
+	import iana-if-type {
+		prefix "ianaift";
+	}
+	
+	import ietf-netconf-acm {
+		prefix nacm;
+	}
+
+	organization
+	"Microsemi Inc., FTD Division";
+
+	contact
+	"Web URL: http://www.microsemi.com/
+	E-mail: info@microsemi.com
+	Postal: Microsemi Corporation Corporate Headquarters
+	One Enterprise Aliso Viejo,
+	CA 92656
+	U.S.A.
+	Phone: +1 949 380 6100
+	Fax: +1 949 215-4996";
+
+	description
+	"This YANG module is based on the MEF 40 SNMP model, for the management 
+	objects for the management of User Network Interfaces (UNIs).
+	It has been converted to YANG and modified slightly to suit the
+	EdgeAssure SFP which has some extra constraints that are not handled by
+	the original model
+
+	Copyright 2016 Microsemi Inc.
+	All rights reserved.";
+
+	reference
+	"***************************************************************************
+	Reference Overview
+
+	A number of base documents have been used to create this MIB. The following
+	are the abbreviations for the baseline documents:
+	[MEF 40] refers to SNMP MIB
+	[MEF6.1] refers to MEF 6.1 'Ethernet Services Definitions - Phase 2',
+	April 2008
+	[MEF 6.1.1] refers to MEF 6.1.1 'Layer 2 Control Protocol Handling Amendment
+	to MEF 6.1', January 2012
+	[MEF 7.2] refers to MEF 7.2 'Carrier Ethernet Management Information Model',
+	January 2013
+	[MEF 10.2] refers to MEF 10.2 'Ethernet Services Attributes Phase 2',
+	October 2009
+	[MEF 26.1] refers to MEF 26.1 'External Network Network Interface (ENNI) -
+	Phase 2', January 2012
+	[Q.840.1] refers to 'ITU-T Requirements and analysis for NMS-EMS
+	management interface of Ethernet over Transport and Metro Ethernet
+	Network (EoT/MEN)', March 2007
+	****************************************************************************";
+
+	revision "2016-03-17" {
+		description
+		"Initial Version. Sean Condon - Microsemi";
+		reference "MEF 6.2";
+	}
+
+	typedef MefServiceInterfaceType {
+		type bits {
+//      bit bUni1d1;
+//      bit bUni1d2;
+			bit bUni2d1 {description "Only bUni2d1 is supported by EdgeAssure 1000";}
+//      bit bUni2d2;
+//      bit bEnni;
+//      bit bEnniVuni;
+		}
+
+		default "bUni2d1";
+		description
+		"A MEF Interface can be one of several types:
+
+		bUni1d1 UNI Type 1.1 See MEF 13. Non-multiplexed UNI for services such as EPL,
+		bUni1d2 UNI Type 1.2 See MEF 13. Multiplexed UNI for services such as EVPL,
+		bUni2d1 UNI Type 2.1 See MEF 20 section 7
+		bUni2d2 UNI Type 2.2 See MEF 20 section 7
+		bEnni ENNI
+		bEnniVuni VUNI on an ENNI";
+		reference
+		"[MEF 6.1] 6.0";
+	}
+
+	typedef l2cp-dest-mac-address {
+		type string {
+			pattern '01-80-[cC]2-(00-){2}[02][0-9a-fA-F]|01:80:[cC]2:(00:){2}[02][0-9a-fA-F]';
+		}
+		description
+		"The L2CP Destination MAC address for CoS 
+		Identifier type of 'l2cp' and is ignored for other types.
+
+		Valid values are 01-80-C2-00-00-00 through 01-80-C2-00-00-0F and
+		01-80-C2-00-00-20 through 01-80-C2-00-00-2F
+
+		Values can be upper or lower case and can be separated by hyphen or colon (but not both)";
+	}
+
+	typedef l2cp-destination-address {
+		type enumeration {
+			enum destinationAddressOnly {
+				description "L2CP selection is determined by
+				MAC Destination Address only";
+			}
+
+//						enum daPlusProtocol {
+//							description "L2CP selection is determined by
+//								MAC Destination Address plus
+//								Ethernet protocol";
+//						}
+//						
+//						enum daPlusProtocolPlusSubtype {
+//							description "L2CP selection is determined by
+//							MAC Destination Address plus
+//							Ethernet protocol plus subtype";
+//						}
+		}
+	}
+	
+    typedef ip-address-origin {
+      type enumeration {
+        enum "other" {
+          value 0;
+          description
+            "None of the following.";
+        }
+        enum "static" {
+          value 1;
+          description
+            "Indicates that the address has been statically
+          configured - for example, using NETCONF or a Command Line
+          Interface.";
+        }
+        enum "dhcp" {
+          value 2;
+          description
+            "Indicates an address that has been assigned to this
+          system by a DHCP server.";
+        }
+        enum "link-layer" {
+          value 3;
+          description
+            "Indicates an address created by IPv6 stateless
+          autoconfiguration that embeds a link-layer address in its
+          interface identifier.";
+        }
+        enum "random" {
+          value 4;
+          description
+            "Indicates an address chosen by the system at
+
+          random, e.g., an IPv4 address within 169.254/16, an
+          RFC 4941 temporary address, or an RFC 7217 semantically
+          opaque address.";
+          reference
+            "RFC 4941: Privacy Extensions for Stateless Address
+            	  Autoconfiguration in IPv6
+             RFC 7217: A Method for Generating Semantically Opaque
+            	  Interface Identifiers with IPv6 Stateless
+            	  Address Autoconfiguration (SLAAC)";
+
+        }
+      }
+      description
+        "The origin of an address.";
+    }
+
+    typedef neighbor-origin {
+      type enumeration {
+        enum "other" {
+          value 0;
+          description
+            "None of the following.";
+        }
+        enum "static" {
+          value 1;
+          description
+            "Indicates that the mapping has been statically
+          configured - for example, using NETCONF or a Command Line
+          Interface.";
+        }
+        enum "dynamic" {
+          value 2;
+          description
+            "Indicates that the mapping has been dynamically resolved
+          using, e.g., IPv4 ARP or the IPv6 Neighbor Discovery
+          protocol.";
+        }
+      }
+      description
+        "The origin of a neighbor entry.";
+    }
+	
+    feature ipv4-non-contiguous-netmasks {
+      description
+        "Indicates support for configuring non-contiguous
+      subnet masks.";
+    }
+
+	/*** OBJECT DEFINITIONS ***/
+	augment "/if:interfaces" {
+		leaf l2cp-group-index { //aka mefServiceInterfaceCfgL2cpGrpIndex
+			type leafref {
+				path "/if:interfaces/msea-if:interface-profiles/msea-if:l2cp-group/msea-if:group-index";
+			}
+			description
+			"This object is the index of the L2CP profile group
+			(mefServiceL2cpGrpCfgIndex) associated with the current interface. A
+			value of 0 indicates that no interface L2CP profile group is associated
+			with the interface. The L2CP group must be the same for both interfaces";
+			reference
+			"[MEF 6.1] 6.0; [MEF 6.1.1] 8.0; [MEF 7.2] 6.2.1.2";
+
+//        must "count(//if:interfaces/if:interface[msea-if:l2cp-group-index = current()]) = 2" {
+//        	  error-app-tag "msea-if-must-01";
+//        	  error-message "The same L2CP Group must be used on both interfaces of this device";
+//          }
+		}
+
+		leaf mef-service-type { //aka mefServiceInterfaceCfgType
+			type MefServiceInterfaceType;
+			description
+			"This object indicates the configured interface type. One
+			bit in the vector can be set at one time based upon the
+			possible values indicated by mefServiceInterfaceStatusType.";
+			//default bUni1d1; --These defaults break the validation - not using them in Eagle
+			reference
+			"[MEF 6.1] 6.0; [MEF 7.2] 6.2.1.1, 6.2.1.2, 6.2.1.3";
+		}
+
+		leaf dhcp-timeout {
+			type uint16 {range 0..max;}
+			units seconds;
+			default 0;
+			description "The DHCP timeout in seconds, after which it will use fixed IP addreses
+			A zero value specifies it should never timeout"; 
+		}
+
+		container zero-touch-provisioning {
+			presence "When present sets this device to be configured through Zero Touch Provisioning";
+
+			description "Setting Zero Touch Provisioning (ZTP) configures the setting up 
+			of the management interface through an LLDP server
+			When ZTP is active any DHCP or fixed IP address settings must not be specified.
+			
+			If this attribute is set during a NETCONF session it will have no effect until the
+			next time the device is rebooted.";
+
+			must "count(/if:interfaces/if:interface/msea-if:ipv4/msea-if:address) = 0" {
+				error-app-tag "msea-if-must-01";
+				error-message "When ZTP is specified there must not be a manually specified IP address for either interface";
+			}
+
+			must "not(/if:interfaces/if:interface[msea-if:dhcp-addressing = 'true']) " {
+				error-app-tag "msea-if-must-02";
+				error-message "When ZTP is specified there must not be a DHCP Specification for either interface";
+			}
+
+		}
+
+		container interface-profiles {
+
+			list interface-bwp-group { //aka mefServiceBwpGrpCfgEntry
+
+				key "group-index";
+				max-elements 64;
+				description
+				"Bandwidth profile group settings table entry.";
+
+				leaf group-index { //aka mefServiceBwpGrpCfgIndex
+					type uint8;
+					description
+					"Bandwidth profile group index number";
+				}
+
+				list interface-bwp { //aka mefServiceBwpCfgEntry
+					key "cos-index";//Changed to cos-index (from bwp-index) based on MEP 40 6.4.2 
+					unique name;
+					max-elements 64;
+
+					description
+					"Bandwidth profile. This maps 1:1 with a COS instance. This object is 
+					maintained here to keep the traditional layout of BWPGroup-BWP-COS, but does
+					not have any other purpose in the current implementation";
+
+					leaf cos-index { //aka mefServiceBwpCfgCosIndex
+						type leafref {
+							path "/if:interfaces/msea-if:interface-profiles/msea-if:interface-cos/msea-if:cos-index";
+						}
+						description
+						"This object is the index number of the CoS ID profile
+						associated with the current bandwidth profile. A value of 0 indicates
+						that no CoS ID profile is associated with the bandwidth profile and the
+						bandwidth profile applies to all CoS IDs.
+
+						This index indicates a specific CoS ID profile previously configured via
+						mefServiceCosCfgTable as indicated by the mefServiceCosCfgIndex object.";
+						reference
+						"[MEF 6.1] 6.1; [MEF 7.2] 6.2.1.3";
+
+						must "current()/../../msea-if:group-index > 0" {
+							error-app-tag "msea-if-must-10";
+							error-message "No BWP's can be added to the Bandwidth Profile Group 0, as this index represents a special case";
+						}
+					}
+
+					leaf name { //mefServiceBwpCfgIdentifier
+						type string {
+							length "1..45";
+						}
+						mandatory true;
+						description
+						"This object indicates the bandwidth profile identifier for the
+						associated bandwidth profile index and is an arbitrary
+						text string that is used to identify a bandwidth profile. Unique
+						string values are chosen to uniquely identify the bandwidth
+						profile.
+
+						Octet values of 0x00 through 0x1f are illegal.
+
+						MEF 26.1 restricts the maximum size identifiers to 45 octets.";
+						reference
+						"[MEF 6.1] 6.0, 6.1, 6.2, 6.3; [MEF 7.2] 6.2.1.2, 6.2.1.3";
+					}
+
+
+				} //End bwp
+
+			} //End bwp-group
+
+			list interface-cos { //aka mefServiceCosCfgEntry
+				key "cos-index";
+				unique name;
+				max-elements 64;
+				description
+				"Class of Service Identifier settings table entry.";
+
+				leaf cos-index { //aka mefServiceCosCfgIndex
+					type uint32 {
+						range 1..max;
+					}
+					description
+					"Class of Service Identifier profile index number.";
+				}
+
+				leaf name { //aka mefServiceCosCfgIdentifier
+					type string {
+						length 1..45;
+					}
+
+					description
+					"This object indicates the Class of Service Name for the
+					associated CoS profile index and is an arbitrary text string that is
+					used to identify a CoS ID profile. Unique string values are chosen to
+					uniquely identify the profile.
+
+					Octet values of 0x00 through 0x1f are illegal.
+
+					MEF 26.1 restricts the maximum size identifiers to 45 octets.";
+					reference
+					"[MEF 6.1] 6.0, 6.1, 6.2, 6.3; [MEF 7.2] 6.2.1.2, 6.2.1.3";
+				}
+
+				container dscp-cos-type {
+					description "Indicates that the CoS profile is associated
+					with the incoming frame's DSCP field if it is an IP frame.
+					If it is not an IP frame no action is taken on it";
+
+					choice dscp-id-choice {
+						case dscp-bits-list {
+							leaf dscp-group-bit-list {
+								type bits {
+									bit dscp-0-7 {
+										description "The set of DSCP identifiers from 0-7";
+									}
+									bit dscp-8-15 {
+										description "The set of DSCP identifiers from 8-15";
+									}
+									bit dscp-16-23 {
+										description "The set of DSCP identifiers from 16-23";
+									}
+									bit dscp-24-31 {
+										description "The set of DSCP identifiers from 24-31";
+									}
+									bit dscp-32-39 {
+										description "The set of DSCP identifiers from 32-39";
+									}
+									bit dscp-40-47 {
+										description "The set of DSCP identifiers from 40-47";
+									}
+									bit dscp-48-55 {
+										description "The set of DSCP identifiers from 48-55";
+									}
+									bit dscp-56-63 {
+										description "The set of DSCP identifiers from 56-63";
+									}
+								}
+							}
+						}
+
+						case dscp-0-63 {
+							container dscp-0-63 {
+								presence "The full set of DSCP identifiers from 0-63";
+							}
+						}
+
+						case specific-values {
+							leaf-list dscp-id {
+								type uint16 {
+									range 0..64;
+								}
+								ordered-by system;
+								description "The set of DSCP identifiers handled by this COS";
+							}
+						}
+						mandatory true;
+//						msea:not-changeable;
+					}
+
+					choice color-specification {
+						case all-green {
+							container color-all-green {
+								presence "Color for all specified DSCPs mapped to green";
+							}
+						}
+						case all-yellow {
+							container color-all-yellow {
+								presence "Color for all specified DSCPs mapped to yellow";
+							}
+						}
+						case all-dropped {
+							container color-all-dropped {
+								presence "Color for all specified DSCPs mapped to dropped";
+							}
+						}
+
+						case dscp-to-color-map {
+							list dscp-color {
+								key dscp-id;
+								ordered-by system;
+								description "A list of DSCP values that apply to this COS.
+								When the COS type is DSCP a subset of the values can
+								be specified. Other DSCP values can be specified in
+								additional COS profiles. In total the same priority
+								cannot be repeated in a BWP Group";
+
+								leaf dscp-id {
+									type uint16 {
+										range 0..64;
+									}
+								}
+
+								leaf color {
+									description "Color to apply to incoming IP frames
+									with this DSCP id";
+
+									type msea:cos-color-type;
+								}
+							}
+						}
+						default all-green;
+//						msea:not-changeable;
+					}
+				}
+
+				leaf outgoing-cos-value {
+					type msea:priority-type;
+					mandatory true;
+//					msea:not-changeable;
+
+					description
+					"Used to set the egress COS to use for all ingress COS explicitly listed";
+					reference
+					"Edge Assure internal API";
+				}
+			}
+
+			list l2cp-group { //aka mefServiceL2cpGrpCfgEntry
+				key "group-index";
+				max-elements 64;
+				description
+				"L2CP profile group settings table entry on an interface.";
+
+				leaf group-index { //aka mefServiceL2cpGrpCfgIndex
+					type uint32;
+					description
+					"L2CP profile group index number, indicating the specific L2CP profile 
+					group";
+				}
+
+				list l2cp { //aka mefServiceL2cpCfgEntry
+					key "index";
+					max-elements 64;
+					description
+					"L2CP settings table entry on an interface or a service.";
+
+					leaf index { //aka mefServiceL2cpCfgIndex
+						type uint32;
+						description
+						"This object configures the L2CP index number on an interface or a 
+						Service and is used to create/access a L2CP profile within a L2CP
+						group.";
+
+						must "current()/../../msea-if:group-index > 0" {
+							error-app-tag "msea-if-must-11";
+							error-message "No L2CP's can be added to the L2CP Group 0, as this index represents a special case";
+						}
+					}
+
+					leaf handling { //aka mefServiceL2cpCfgType
+						type enumeration {
+							enum discard {description "The indicated L2CP is discarded";}
+
+							enum tunnel {description "The indicated L2CP is tunneled (passed)";}
+
+							enum peer {description "The indicated L2CP is peered with the NE";}
+
+							//						enum passToEvc {description "the indicated L2CP is passed to the EVC for
+							//							EVC processing of the L2CP. Final L2CP
+							//							disposition is based the L2CP profile for
+							//							the EVC to be tunneled, discarded, or peered.
+							//							This value is not valid for EVC based L2CP";
+							//						}
+						}
+						default tunnel;
+//						msea:not-changeable;
+
+						description
+						"This object configures the handling of matching L2CP frames.";
+						reference
+						"[MEF 6.1] 6.0, 8.0; [MEF 6.1.1] 8.0; [MEF 7.2] 6.2.1.2";
+					}
+
+					leaf match-scope { //aka mefServiceL2cpCfgMatchScope
+						type l2cp-destination-address;
+						default destinationAddressOnly;
+//						msea:not-changeable;
+
+						description
+						"This object configures the L2CP selection matching scope.";
+						reference
+						"[MEF 6.1] 6.0, 8.0; [MEF 6.1.1] 8.0; [MEF 7.2] 6.2.1.2";
+
+					}
+
+					leaf mac-address { //aka mefServiceL2cpCfgMacAddress
+						type l2cp-dest-mac-address;
+						mandatory true;
+//						msea:not-changeable;
+
+						description
+						"This object configures the L2CP Destination MAC address.
+
+						Valid values are 01-80-C2-00-00-00 through 01-80-C2-00-00-0F and
+						01-80-C2-00-00-20 through 01-80-C2-00-00-2F";
+
+						must "count(current()/../../msea-if:l2cp[msea-if:mac-address = current()]) <= 1" {
+							error-app-tag "msea-if-must-12";
+							error-message "A destination address can only appear once in an L2CP Group";
+						}
+					}
+				} //End l2cp
+
+			} //End l2cp-group
+
+		} //End profiles
+	} //end augment interfaces
+
+	//
+	// Augments ietf-interfaces (only of type ethernetCsmacd) with MEF Services
+	//
+	augment "/if:interfaces/if:interface" {
+		
+		//Copied IPV4 over from ietf-ip because 
+		//  i) We do not want to have to include IPv6
+		// ii) libnetconf only supports augmenting any container 
+		//      from one file (i.e. cannot augment interface here and 
+		//		also in ietf-ip.yang
+		
+		
+	      container ipv4 {
+	        presence
+	          "Enables IPv4 unless the 'enabled' leaf
+	        (which defaults to 'true') is set to 'false'";
+	        description
+	          "Parameters for the IPv4 address family.";
+	        
+	        leaf enabled {
+	          type boolean;
+	          default true;
+
+	          description
+	            "Controls whether IPv4 is enabled or disabled on this
+	             interface.  When IPv4 is enabled, this interface is
+	             connected to an IPv4 stack, and the interface can send
+	             and receive IPv4 packets. When ZTP is configured it
+				 will treat both interfaces as enabled and will ignore
+				 what this value is set to";
+
+				must "count(/if:interfaces/if:interface[if:name='eth0' or if:name='eth1']/msea-if:ipv4[msea-if:enabled = 'true']) >= 1" {
+					error-app-tag "msea-if-must-20";
+					error-message "At least one of the interfaces eth0 and eth1 must be enabled";
+				}
+	        }
+
+	        leaf forwarding {
+	          type boolean;
+	          default false;
+	          description
+	            "Controls IPv4 packet forwarding of datagrams received by,
+	          but not addressed to, this interface.  IPv4 routers
+	          forward datagrams.  IPv4 hosts do not (except those
+	          source-routed via the host).";
+	        }
+
+	        leaf mtu {
+	          type uint16 {
+	            range "68..max";
+	          }
+	          units "octets";
+	          description
+	            "The size, in octets, of the largest IPv4 packet that the
+	          interface will send and receive.
+
+	          The server may restrict the allowed values for this leaf,
+	          depending on the interface's type.
+
+	          If this leaf is not configured, the operationally used MTU
+	          depends on the interface's type.";
+	          reference
+	            "RFC 791: Internet Protocol";
+
+	        }
+
+	        container address { 
+	          when "not (../../msea-if:dhcp-addressing = 'true')";
+	          presence "This address being present indicates the interface has been configured";
+	        
+	          description
+	            "The configured IPv4 addresses on the interface.";
+	          leaf ip {
+	            type inet:ipv4-address-no-zone;
+	            description
+	              "The IPv4 address on the interface.";
+	          }
+
+	          choice subnet {
+	            mandatory true;
+	            description
+	              "The subnet can be specified as a prefix-length, or,
+	            if the server supports non-contiguous netmasks, as
+	            a netmask.";
+	            leaf prefix-length {
+	              type uint8 {
+	                range "0..32";
+	              }
+	              description
+	                "The length of the subnet prefix.";
+	            }
+	            leaf netmask {
+	              if-feature ipv4-non-contiguous-netmasks;
+	              type yang:dotted-quad;
+	              description
+	                "The subnet specified as a netmask.";
+	            }
+	          }  // choice subnet
+	          
+	          leaf gateway {
+				type inet:ipv4-address-no-zone;
+
+				description "This will be ignored if ZTP or DHCP are configured 
+				for management addressing. If unspecified then 0.0.0.0 will be used.";
+
+	          }
+	        }  // container address
+	      }  // container ipv4
+
+		
+
+		leaf frame-format { //aka mefServiceInterfaceCfgFrameFormat
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type enumeration {
+				enum noTag {
+					description "Indicates that all data on the interface 
+					is regarded as untagged, regardless of it ingress type";
+				}
+				enum ctag {
+					description "Ingress frames with CTAG(vlan>0) will be 
+					regared as 'VLAN tagged'; with CTAG(vlan=0) as Priority; otherwise untagged";
+				}
+				enum stag {
+					description "Ingress frames with STAG(vlan>0) will be 
+					regared as 'VLAN tagged'; with STAG(vlan=0) as Priority; otherwise untagged";
+				}
+//          enum stagCtag { description "Indicates that service traffic identified 
+//				with both an S-TAG (outer tag) and a C-TAG 
+//				(inner tag)"; }
+				//default noTag; --These defaults break the validation - not using them in Eagle
+			}
+			description
+			"This object indicates the interface frame format type that the
+			interface can recognize. Default is noTag";
+			reference
+			"[MEF 6.1] 6.0";
+		} //end frame-format
+
+		leaf interface-ingress-bwp-group-index { //aka mefServiceInterfaceCfgIngressBwpGrpIndex
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type leafref {
+				path "/if:interfaces/msea-if:interface-profiles/msea-if:interface-bwp-group/msea-if:group-index";
+			}
+			description
+			"This object is the index number of the ingress bandwidth profile group
+			associated with the current interface. A value of 0 indicates that no
+			interface ingress bandwidth profile group is associated with the
+			interface.
+
+			This index indicates the specific bandwidth profile group previously
+			configured via mefServiceBwpGrpCfgTable and mefServiceBwpCfgTable
+			using this value for mefServiceBwpGrpCfgIndex. There may be multiple
+			entries in mefServiceBwpCfgTable using this index, each containing
+			bandwidth parameters for a different Class of Service Identifier.";
+			reference
+			"[MEF 6.1] 6.0; [MEF 7.2] 6.2.1.2";
+		}
+
+		leaf ce-vid-untagged { //aka mefServiceUniCfgCeVidUntagged
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type msea:vlan-id-type;
+
+//			mandatory true;
+			description
+			"Configures the CE VLAN ID associated with untagged and priority
+			Service Frames. It allows the identification of untagged and
+			priority tagged traffic with a specific CE-VLAN ID. This object
+			is ignored for all to one bundling at the UNI.
+			This attribute has been placed on the interface (rather than the UNI)
+			as it can be defined regardless of whether a UNI exists or not";
+			reference
+			"[MEF 6.1] 6.0, [MEF 7.2] 6.2.1.2";
+		}
+
+		leaf ce-priority-untagged { //aka mefServiceUniCfgCePriorityUntagged
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type msea:priority-type;
+//			mandatory true;
+
+			description
+			"Configures the CE VLAN Priority associated with untagged Service
+			Frames. It allows the assignment of a specific VLAN priority to
+			untagged traffic. This object is ignored for all to one bundling
+			at the UNI.
+			This attribute has been placed on the interface (rather than the UNI)
+			as it can be defined regardless of whether a UNI exists or not";
+			reference
+			"[MEF 7.2] 6.2.1.2";
+		}
+
+		leaf admittance-criteria {
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type enumeration {
+				enum admitAll {
+					description "Admit all frames";
+				}
+//					enum admitPrioUntaggedOnly {description "Admit only frames that are not Priority tagged";}
+//					enum admitVlanOnly {description "Admit only frames that are VLAN tagged";}
+			}
+
+//				default admitAll; 
+
+			description "Criteria for admitting packets to this interface. 
+			The Frame Format attribute to determintes how frames are tagged";
+		}
+		
+		leaf color-aware {
+		  type boolean;
+		  default true;
+
+		  description
+		    "Defines whether the interface should handle color mappings. 
+		    If true the color is extracted from the packet tag (DEI bit) 
+		  	or for IPv4 packets, the DSCP field.
+			If false the packet is always assumed to be green.";
+	      reference   
+			 "Edge Assure internal API";
+		}
+		
+		leaf color-forward {
+		  type boolean;
+		  default true;
+
+		  description
+		    "Defines whether the interface should handle color mappings. 
+		    If true color mappings defined in the interface-cos
+			associated with the active interface-ingress-bwp-group will be applied";
+	      reference   
+			 "Edge Assure internal API";
+		}
+		
+		leaf dhcp-addressing {
+			when "../if:type='ianaift:ethernetCsmacd' and (../if:name='eth0' or ../if:name='eth1')";
+			type boolean;
+
+			description "This element can only be specified when ZTP 
+			is not specified.
+
+			If this element is not present and ZTP is not
+			present then the fixed IP addresses specified at
+			/if:interfaces/if:interface/msea-if:ipv4
+			will be used
+
+			This element is specified per interface";
+			
+			must "(not(/if:interfaces/if:interface[if:name = current()/../if:name]/msea-if:ipv4/msea-if:address) and not(/if:interfaces/msea-if:zero-touch-provisioning) and current() = 'true') or ((boolean(/if:interfaces/if:interface[if:name = current()/../if:name]/msea-if:ipv4/msea-if:address) or boolean(/if:interfaces/if:interface[if:name = current()/../if:name]/msea-if:ipv4[msea-if:enabled='false']) or (/if:interfaces/msea-if:zero-touch-provisioning)) and current() = 'false')" {
+				error-app-tag "msea-if-must-21";
+				error-message "When DHCP is 'true' there must be neither a fixed IP address for that interface NOR a ZTP node. When DHCP is 'false' there must be either a fixed IP address for that interface, a disabled interface OR a ZTP node";
+			}
+
+		}
+	} //End augment "/if:interfaces/if:interface
+
+		augment "/if:interfaces-state" {
+			leaf mef-service-type-options { //aka mefServiceInterfaceStatusType
+				type MefServiceInterfaceType;
+				description
+				"This object is a vector of bits that indicates the possible
+				interface types that an interface can be configured to. An interface,
+				for instance, can be configured to be a UNI type 1 or 2, or an ENNI.
+
+				All the possible capabilities of an interface are indicated, one bit
+				per possible type. At least one bit must be set for MEF compliant NEs.";
+				reference
+				"[MEF 6.1] 6.0";
+			}
+
+			leaf zero-touch-provisioning-state {
+				type enumeration {
+					enum complete {
+						description "The device was configured through ZTP at last reboot";
+					}
+					enum incomplete {
+						description "The device was configured through ZTP at last reboot but is not yet complete";
+					}
+					enum dhcp-failed {
+						description "Communication with DHCP server found through ZTP failed 
+								and default values were used instead.";
+					}
+					enum needs-reboot {
+						description "ZTP was added to the configuration since last reboot";
+					}
+				}
+				description "A read only set of attributes indicating the status of
+				Zero Touch Provisioning. This only appears when ZTP is configured";
+			}
+		} //End augment "/if:interfaces-state
+
+		
+		augment "/if:interfaces-state/if:interface" {
+			
+		  container ipv4 {
+			presence
+			  "Present if IPv4 is enabled on this interface";
+			config false;
+			description
+			  "Interface-specific parameters for the IPv4 address family.";
+			leaf forwarding {
+			  type boolean;
+			  description
+				"Indicates whether IPv4 packet forwarding is enabled or
+			  disabled on this interface.";
+			}
+
+			leaf mtu {
+			  type uint16 {
+				range "68..max";
+			  }
+			  units "octets";
+			  description
+				"The size, in octets, of the largest IPv4 packet that the
+			  interface will send and receive.";
+			  reference
+				"RFC 791: Internet Protocol";
+
+			}
+
+			container address {
+			  description
+				"The list of IPv4 addresses on the interface.";
+			  leaf ip {
+				type inet:ipv4-address-no-zone;
+				description
+				  "The IPv4 address on the interface.";
+			  }
+
+			  choice subnet {
+				description
+				  "The subnet can be specified as a prefix-length, or,
+				if the server supports non-contiguous netmasks, as
+				a netmask.";
+				leaf prefix-length {
+				  type uint8 {
+					range "0..32";
+				  }
+				  description
+					"The length of the subnet prefix.";
+				}
+				leaf netmask {
+				  if-feature ipv4-non-contiguous-netmasks;
+				  type yang:dotted-quad;
+				  description
+					"The subnet specified as a netmask.";
+				}
+			  }  // choice subnet
+
+			  leaf origin {
+				type ip-address-origin;
+				description
+				  "The origin of this address.";
+			  }
+			}  // list address
+
+			leaf gateway {
+				type inet:ipv4-address;
+				description "The gateway IP address assigned through ZTP";
+			}
+
+			list neighbor {
+			  key "ip";
+			  description
+				"A list of mappings from IPv4 addresses to
+			  link-layer addresses.
+
+			  This list represents the ARP Cache.";
+			  reference
+				"RFC 826: An Ethernet Address Resolution Protocol";
+
+			  leaf ip {
+				type inet:ipv4-address-no-zone;
+				description
+				  "The IPv4 address of the neighbor node.";
+			  }
+
+			  leaf link-layer-address {
+				type yang:phys-address;
+				description
+				  "The link-layer address of the neighbor node.";
+			  }
+
+			  leaf origin {
+				type neighbor-origin;
+				description
+				  "The origin of this neighbor entry.";
+			  }
+			}  // list neighbor
+		  }  // container ipv4
+		      
+			leaf max-vc { //aka mefServiceInterfaceStatusMaxVc
+				type uint32 {
+					range "1..4095";
+				}
+				description
+				"This object indicates the maximum number of EVCs that the
+				interface can support.";
+				reference
+				"[MEF 6.1] 6.0; [MEF 7.2] 6.2.1.2";
+			}
+
+			  leaf configured-by {
+				type enumeration {
+					enum zero-touch-provisioning {
+						description "ZTP is active and has configured this interface";
+					}
+					enum dhcp {
+						description "Interface has been configured by a DHCP server without ZTP";
+					}
+					enum fixed-ipv4 {
+						description "Interface has been configured manually";
+					}
+				}
+			  }
+		} //End augment "/if:interfaces-state/if:interface"
+
+
+		augment "/if:interfaces-state/if:interface/if:statistics" {
+
+			leaf ingress-undersized { //aka mefServiceInterfaceStatisticsIngressUndersized
+				type yang:counter32;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each frame received
+				on a NE interface that was smaller than 64 octets.
+
+				This object defaults to '0'. ";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-oversized { //aka mefServiceInterfaceStatisticsIngressOversized
+				type yang:counter32;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each frame received
+				on a NE interface that was larger than the maximum MTU size.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-fragments { //aka mefServiceInterfaceStatisticsIngressFragments
+				type yang:counter32;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each frame received
+				on a NE interface that was less than 64 octets in length
+				(excluding framing bits but including FCS octets) and had
+				either a bad Frame Check Sequence (FCS) with an integral
+				number of octets (FCS Error) or a bad FCS with a non-integral
+				number of octets (Alignment Error).
+
+				Note that it is entirely normal for this counter to
+				increment. This is because it counts both runts (which are
+						normal occurrences due to collisions) and noise hits.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-crc-alignment { //aka mefServiceInterfaceStatisticsIngressCrcAlignment
+				type yang:counter32;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each frame received
+				on a NE interface that was from 64 octets to the maximum MTU
+				size in length, but had either a bad Frame Check Sequence (FCS)
+				with an integral number of octets (FCS Error) or a bad FCS with
+				a non-integral number of octets (Alignment Error).
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-invalid-vid { //aka mefServiceInterfaceStatisticsIngressInvalidVid
+				type yang:counter32;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each frame received
+				on a NE interface with an invalid VLAN ID.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-octets { //aka mefServiceInterfaceStatisticsIngressOctets
+				type yang:counter64;
+				units "octets";
+				description
+				"This object is incremented by the number of octets in a
+				valid frame received on a NE interface.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-unicast { //aka mefServiceInterfaceStatisticsIngressUnicast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each valid unicast frame received
+				on a NE interface.
+
+				NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-multicast { //aka mefServiceInterfaceStatisticsIngressMulticast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each valid multicast frame received
+				on a NE interface.
+
+				ME-NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf ingress-broadcast { //aka mefServiceInterfaceStatisticsIngressBroadcast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each valid broadcast frame received
+				on a NE interface.
+
+				ME-NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf egress-octets { //aka mefServiceInterfaceStatisticsEgressOctets
+				type yang:counter64;
+				units "octets";
+				description
+				"This object is incremented by the number of octets in a frame 
+				transmitted on a NE interface.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf egress-unicast { //aka mefServiceInterfaceStatisticsEgressUnicast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each unicast frame transmitted on a
+				NE interface.
+
+				ME-NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf egress-multicast { //aka mefServiceInterfaceStatisticsEgressMulticast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each multicast frame transmitted on a
+				NE interface.
+
+				ME-NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+
+			leaf egress-broadcast { //aka mefServiceInterfaceStatisticsEgressBroadcast
+				type yang:counter64;
+				units "Ethernet frames";
+				description
+				"This object is incremented for each broadcast frame transmitted on a
+				NE interface.
+
+				ME-NEs that do not support 64 bit counters can return the
+				upper half of the counter as all zeros.
+
+				This object defaults to '0'.";
+				reference
+				"[MEF 15] 8.2; [Q.840.1] 6.2.4";
+			}
+		} //End augment "/if:interfaces-state/if:interface/if:statistics
+
+
+		
+		rpc ztp-reset-and-reboot {
+//			nacm:default-deny-all;
+			description
+			"Request that the ZTP system should be reset and the system rebooted. 
+			This can only be run when the zero-touch-provisioning element 
+			already exists on the interfaces element
+			
+			If the zero-touch-provisioning element has been added since the last
+			reboot then the reset will be pending already and will be brought
+			in to effect by this reboot.";
+		}
+		
+	} /* end of module msea-uni-evc-interface */

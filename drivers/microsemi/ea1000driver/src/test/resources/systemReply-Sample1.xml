@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="2">
+    <data>
+        <system xmlns="urn:ietf:params:xml:ns:yang:ietf-system">
+            <longitude xmlns="http://www.microsemi.com/microsemi-edge-assure/msea-system">-8.4683990</longitude>
+            <latitude xmlns="http://www.microsemi.com/microsemi-edge-assure/msea-system">51.9036140</latitude>
+        </system>
+        <system-state xmlns="urn:ietf:params:xml:ns:yang:ietf-system" xmlns:sysms="http://www.microsemi.com/microsemi-edge-assure/msea-system">
+            <platform>
+                <os-release>2.6.33-arm1-MSEA1000--00326-g643be76.x.0.0.212</os-release>
+                <sysms:device-identification>
+                    <sysms:serial-number>Eagle Simulator.</sysms:serial-number>
+                </sysms:device-identification>
+            </platform>
+        </system-state>
+    </data>
+</rpc-reply>

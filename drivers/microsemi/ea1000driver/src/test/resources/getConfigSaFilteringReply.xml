@@ -1,0 +1,14 @@
+<rpc-reply xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="7">
+    <data>
+        <source-ipaddress-filtering xmlns="http://www.microsemi.com/microsemi-edge-assure/msea-sa-filtering">
+            <interface-eth0>
+                <source-address-range>
+                    <range-id>1</range-id>
+                    <ipv4-address-prefix>10.10.10.10/16</ipv4-address-prefix>
+                    <name>Filter1</name>
+                </source-address-range>
+                <filter-admin-state>inactive</filter-admin-state>
+            </interface-eth0>
+        </source-ipaddress-filtering>
+    </data>
+</rpc-reply>

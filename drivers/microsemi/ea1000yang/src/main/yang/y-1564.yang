@@ -1,0 +1,667 @@
+module y-1564 {
+
+    /*** NAMESPACE / PREFIX DEFINITION ***/
+
+    namespace "http://www.microsemi.com/y1564";
+    prefix "y1564";
+
+    import svc-activation-types {
+        prefix sa;
+    }
+
+    import msea-types {
+        prefix msea;
+        revision-date 2016-02-29;
+    }
+
+    /*** META INFORMATION ***/
+
+    organization
+    "Microsemi Inc., FTD Division";
+
+    contact
+    "Web URL: http://www.microsemi.com/
+    E-mail: info@microsemi.com
+    Postal: Microsemi Corporation Corporate Headquarters
+    One Enterprise Aliso Viejo,
+    CA 92656
+    U.S.A.
+    Phone: +1 949 380 6100
+    Fax: +1 949 215-4996";
+
+    description
+    "This YANG module defines the interface for Rec. ITU-T Y.1564
+    (03/2011) Ethernet service activation test methodology
+
+    Copyright 2015 Microsemi Inc.
+    All rights reserved.";
+
+    revision "2015-10-29" {
+        description
+        "Initial version - Sean Condon, Microsemi
+        This version does not cover frame reordering (Section 7.2.5)";
+        reference "Initial implementation";
+    }
+
+    /*
+     * Typedefs
+     */
+
+    /*
+     * Groupings
+     */
+    grouping service-attributes-group {
+        description
+        "Attributes for service definition";
+        leaf service-id {
+            type uint8 {
+                range 1..8;
+            }
+            mandatory true;
+            description "The unique ID of the Service";
+        }
+    }
+    grouping result-attributes-group {
+        description "Common attributes in result";
+
+        leaf status {
+            type sa:test-status;
+            mandatory true;
+            description "Status of the test - Values are disabled,
+                    running, pending, stopped, completed or failed";
+        }
+
+    }
+
+
+    grouping pass-fail-group {
+        leaf passed {
+            type boolean;
+            description
+            "Flag that indicates whether the test component
+            sucessfully met the test criteria.";
+        }
+
+        leaf fail-reason {
+            type enumeration {
+                enum notFailed {
+                    value 0;
+                    description "Test did not fail";
+                }
+                enum zeroTxCount {
+                    value 1;
+                    description "The test resulted in no transmitted packets";
+                }
+                enum zeroRxCount {
+                    value 2;
+                    description "No packets were received";
+                }
+                enum exceedFdvThreshold {
+                    value 3;
+                    description "The measured maximum Frame Delay Variation value exceeded the allowable threshold";
+                }
+                enum exceedFtdThreshold {
+                    value 4;
+                    description "The measured maximum Frame Transfer Delay value exceeded the allowable threshold";
+                }
+                enum exceedLossThreshold {
+                    value 5;
+                    description "The measured Frame Loss value exceeded the allowable threshold";
+                }
+                enum exceedAvailThreshold {
+                    value 6;
+                    description "The measured maximum Availability value exceeded the allowable threshold";
+                }
+                enum irAvgTooHigh {
+                    value 7;
+                    description "The measured Information Rate is above the maximum allowable rate";
+                }
+                enum irAvgTooLow {
+                    value 8;
+                    description "The measured Information Rate is below the maximum allowable rate";
+                }
+                enum targetUnknown {
+                    value 9;
+                    description "The MAC address of the target MEP was not known";
+                }
+            }
+        }
+    }
+
+    grouping y1564-test-result-group {
+        description "Common attributes in test result";
+        leaf tf {
+            type uint64;
+            description
+            "Count of the frames transmitted during the test period.";
+        }
+
+        leaf rf {
+            type uint64;
+            description
+            "Count of the frames received during the test period.";
+        }
+
+        leaf fl {
+            type uint64;
+            description
+            "Count of the frames lost during the test period.";
+        }
+
+        leaf flr {
+            type uint32;
+            units "m%";
+            description "The Frame Loss Ratio achieved. Units are 0.001%";
+        }
+
+        leaf elapsed {
+            type uint16;
+            units "s";
+            description
+            "The number of number of seconds the test has been running";
+        }
+
+        leaf fs {
+            type uint16;
+            units byte;
+            description "The Frame Size for which these results apply";
+        }
+
+        leaf ulr-min {
+            type uint32;
+            units "bit/s";
+            description "The minimum Utilised Line Rate achieved";
+        }
+
+        leaf ulr-max {
+            type uint32;
+            units "bit/s";
+            description "The maximum Utilised Line Rate achieved";
+        }
+
+        leaf ulr-avg {
+            type uint32;
+            units "bit/s";
+            description "The average Utilised Line Rate achieved";
+        }
+
+        leaf ulr-meas {
+            type uint32;
+            units "bit/s";
+            description
+            "The instantaneous Utilised Line Rate measured 
+            at the time of this result set";
+        }
+
+        leaf ftd-min {
+            type uint32;
+            units "μs";
+            description "The minimum Frame Transfer Delay achieved";
+        }
+
+        leaf ftd-max {
+            type uint32;
+            units "μs";
+            description "The maximum Frame Transfer Delay achieved";
+        }
+
+        leaf ftd-avg {
+            type uint32;
+            units "μs";
+            description "The average Frame Transfer Delay achieved";
+        }
+
+        leaf ftd-meas {
+            type uint32;
+            units "μs";
+            description
+            "The instantaneous Frame Transfer Delay
+            measured at the time of this result set";
+        }
+
+        leaf fdv-min {
+            type uint32;
+            units "μs";
+            description "The minimum Frame Delay Variation achieved";
+        }
+
+        leaf fdv-max {
+            type uint32;
+            units "μs";
+            description "The maximum Frame Delay Variation achieved";
+        }
+
+        leaf fdv-avg {
+            type uint32;
+            units "μs";
+            description "The average Frame Delay Variation achieved";
+        }
+
+        leaf fdv-meas {
+            type uint32;
+            units "μs";
+            description
+            "The instantaneous Frame Delay Variation measured
+            at the time of this result set";
+        }
+    }
+
+
+
+    /*
+     * Features
+     */
+    feature emix {
+        description
+        "This feature indicates that the device supports
+        EMIX style of repeating frame rates patterns";
+        reference
+        "Rec. ITU-T Y.1564 (03/2011) Section 8.1.1";
+    }
+
+    /*
+     * Configuration
+     */
+    container y1564-test {
+        description "The overall configuration of the Y.1564
+                tests are done through the 'service' entities";
+
+        leaf config-step-duration {
+            type uint16 {
+                range 1..60;
+            }
+            units second;
+            default 60;
+            description "The duration of each step when
+                    performing Configuration tests";
+            reference "Rec. ITU-T Y.1564 (03/2011) Section 8.3";
+        }
+
+        choice performance-duration-choice {
+            description
+            "Duration can be chosen from enumerated values or
+            specified as a duration in minutes";
+            reference "Rec. ITU-T Y.1564 (03/2011) Section 8.2.1";
+
+            case fixed-durations-renamed {
+                leaf performance-duration-fixed {
+                    type enumeration {
+                        enum Test15m {
+                            value 15;
+                            description "15 minute test duration";
+                        }
+                        enum Test2h {
+                            value 120;
+                            description "2 hour test duration";
+                        }
+                        enum Test24h {
+                            value 1440;
+                            description "24 hour test duration";
+                        }
+                        enum Unbounded {
+                            description "Unbounded test duration";
+                        }
+                    }
+                    default Test15m;
+                    description "Fixed durations set";
+                }
+            }
+
+
+            case test-duration-minutes {
+                leaf performance-duration {
+                    type uint16 {
+                        range 1..max;
+                    }
+                    units min;
+                    description
+                    "The duration of Performance tests specified in minutes";
+                    reference "Rec. ITU-T Y.1564 (03/2011) Section 8.2.1";
+                }
+            }
+        }
+
+        leaf performance-frame-size {
+            type sa:frame-size-type;
+            units octet;
+            default 512;
+            description
+            "The frame size used for the performance test.
+            Frame sizes for configuration are configured at a
+            the service level. This is a constant value per service (
+            frame size repeating emix values are not supported)";
+            reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.1";
+        }
+
+        list service-config {
+            key service-id;
+            description "The services can be configured on this device";
+
+            uses service-attributes-group;
+
+            leaf enabled {
+                type boolean;
+                default true;
+                description "Toggles whether the service is enabled in tests";
+            }
+
+
+            container mep-config {
+                presence "Presence indicates that a MEP has been configured";
+
+                uses msea:mep-config-attribs-noref;
+
+                leaf remote-mep-id {
+                          type msea:mep-id-type;    
+                    must "current()/../maintenance-association-end-point != current()" {
+                        error-message "Remote MEP Id must not be the same as Local MEP Id";
+                        error-app-tag "msea-svc-must-01";
+                    }
+
+                    //mandatory true; //Should not be mandatory in a top level container 
+                    description "The Id of the remote MEP";
+                }
+
+                container overwrite-pcp {
+                    presence "Enables PCP Overwrite";
+                    description "If present allows attributes to be
+                        specified for the PCP overwrite";
+
+                        uses sa:overwrite-pcp-attribs;
+
+                }
+            }
+
+            leaf config-frame-size {
+                type sa:frame-size-type;
+                units octet;
+                default 512;
+                description
+                "The frame size used for the service configuration test.
+                Frame sizes for performance test is configured at a
+                higher level. This is a constant value per service (
+                frame size repeating emix values are not supported)";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.1";
+            }
+
+            leaf cir {
+                type uint16 {
+                    range min..1000;
+                }
+                units "Mb/s";
+                default 1;
+                description "Committed Information Rate. If 0 then will return zeros";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1";
+            }
+
+            leaf eir {
+                type uint16 {
+                    range min..1000;
+                }
+                units "Mb/s";
+                description "Excess Information Rate. If 0 then this test is disabled";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1";
+            }
+
+            leaf colour-aware {
+                type boolean;
+                default true;
+                description "Indicates if the service is colour aware or not";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 6.2.1";
+            }
+
+            leaf m-factor {
+                type uint16;
+                units "kb/s";
+                description "The M factor is added to allow for the effect of 
+                the traffic policer's CBS and EBS settings, and test time.
+                Experience will determine the values for M.
+                Additional guidance on M is for further study.";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.2 C.2";
+            }
+
+            container enable-step-test {
+                presence "Enables step test";
+                description "If this item is present then a step load test of
+                CIR will be performed.
+                Otherwise simple validation of CIR will be performed.";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.2";
+
+                leaf step-load-size-override {
+                    type uint16 {
+                        range 1..1000;
+                    }
+                    units "Mb/s";
+                    description "A manually specified Step Load size in Mb/s.
+                    A maximum of 4 steps will be taken. If not specified
+                    the default behaviour means the CIR rate divided by
+                    4 rounded up to nearest Mb/s. When CIR rate is below 4Mb/s
+                    then a corresponding nuumber of steps will be used";
+                    reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1";
+                }
+            }
+
+            container enable-policing-test {
+                presence "Enables Policing test";
+                description "If this item is present then a Policing
+                test will be performed.
+                Otherwise no Policing will be performed.";
+                reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.2";
+            }
+
+            container service-acceptance-criteria {
+                description "Attributes that tune the Service Acceptance
+                Criteria per service.";
+
+                leaf accepted-flr {
+                    type uint32 {
+                        range min..100000;
+                    }
+                    units "m%";
+                    description "A measured Frame Loss Ratio greater than
+                    or equal to this value will result in test fail.
+                    Units are 0.001%. Default is 0";
+                    reference "Rec. ITU-T Y.1564 (03/2011) Section 8.3";
+                }
+
+                leaf accepted-ftd {
+                    type uint32;
+                    units "μs";
+                    mandatory true;
+                    description "A measured Frame Transfer Delay greater than
+                    or equal to this value will result in test fail.";
+                    reference "Rec. ITU-T Y.1564 (03/2011) Section 8.3";
+                }
+
+                leaf accepted-fdv {
+                    type uint32;
+                    units "μs";
+                    mandatory true;
+                    description "A measured Frame Delay Variation greater than
+                    or equal to this value will result in test fail.";
+                    reference "Rec. ITU-T Y.1564 (03/2011) Section 8.3";
+                }
+                
+                leaf accepted-availability {
+                    type uint32 {
+                        range min..100000;
+                    }
+                    units "m%";
+                    default 100000;
+                    description "A measured Availability for a performance
+                    test must meet or exceed this value. Values are in
+                    milli-percent. Default is 100%";
+                }
+            }
+        }
+    }
+
+    container y1564-results {
+        config false;
+        description "Top level container for results from the tests";
+        container configuration {
+            description
+            "The results of the Y.1564 Configuration tests on each
+            service which was enabled when the test was run";
+            reference "Rec. ITU-T Y.1564 (03/2011) Section 8.1.3";
+
+            list service {
+                key service-id;
+                description "The results for the services configured on this device";
+
+                uses service-attributes-group;
+
+                uses sa:results-header-group;
+
+                container cir-results {
+                    description "Results for Committed Information Rate 
+                            part of the test";
+
+                    leaf steps {
+                        type uint8;
+                        description "Indicates the number if steps taken so far.";
+                    }
+
+                    list step {
+                        key step-id;
+
+                        description "A list of results for each of the steps for
+                                the CIR test";
+
+                        leaf step-id {
+                            type uint8;
+                            mandatory true;
+                            description "The index of the step";
+                        }
+
+                        uses result-attributes-group;
+                        uses pass-fail-group;
+
+                        container green-frames {
+                            uses y1564-test-result-group;
+                            description "The details of frames marked green during 
+                                    the step of the CIR test";
+                        }
+                    }
+
+                }
+
+                container eir-results {
+                    description "Results for Excess Information Rate 
+                            part of the test";
+                    uses result-attributes-group;
+                    uses pass-fail-group;
+
+                    container green-frames {
+                        uses y1564-test-result-group;
+                        description
+                        "The details of frames marked green of the EIR test";
+                    }
+
+                    container yellow-frames {
+                        uses y1564-test-result-group;
+                        description
+                        "The details of frames marked yellow of the EIR test";
+                    }
+                }
+
+                container policer-results {
+                    presence "Can be omitted if policer test is
+                            not enabled on this service";
+                    description "Container for the policer results";
+                    uses result-attributes-group;
+                    uses pass-fail-group;
+                    
+                    container green-frames {
+                        uses y1564-test-result-group;
+                        description
+                        "The details of frames marked green of the Policer test";
+                    }
+
+                    container yellow-frames {
+                        uses y1564-test-result-group;
+                        description
+                        "The details of frames marked yellow of the Policer test";
+                    }
+                }
+
+            }
+        }
+
+        container performance {
+            description
+            "The results of the Y.1564 Performance tests on each 
+            service was 'enabled'";
+            reference "Rec. ITU-T Y.1564 (03/2011) Section 8.2.2";
+
+            uses sa:results-header-group;
+
+            list service {
+                key service-id;
+                description "The services can be configured on this device";
+
+                uses service-attributes-group;
+
+                uses pass-fail-group;
+
+                uses y1564-test-result-group;
+
+                leaf avail-sec {
+                    type uint32;
+                    units "s";
+                    description
+                    "The count of seconds during the test period for which
+                    service was Available";
+                }
+            }
+        }
+    }
+
+    /*
+     * RPCs
+     */
+    rpc run-y1564-test {
+        description
+        "Run the configured Y.1564 test on each service 
+        that has been marked 'enabled'";
+
+        input {
+            leaf tests-enabled {
+                type bits {
+                    bit configuration {
+                        description "Runs the configuration tests";
+                    }
+                    bit performance {
+                        description "Runs the performance tests";
+                    }
+                }
+                default "configuration performance";
+                description
+                "Bit mask to define which parts of the test are run.
+                Specify as a set of space separated string values";
+            }
+        }
+    }
+
+    rpc stop-y1564-test {
+        description
+        "Stop the running Y.1564 test on all services";
+    }
+
+    /*
+     * Notifications
+     */
+    notification y1564-test-updated {
+        description 
+          "A y1564-test-updated notification is sent
+          when the state of a test changes.";
+
+        uses sa:notification-group;
+
+        leaf service-id {
+            type uint16;
+            mandatory true;
+            description "The ID of the Service that is being tested";
+        }
+    }
+}
