@@ -39,6 +39,8 @@ ssh -tt $remote "
     # Remove onos directory and init file
     [ -d $ONOS_INSTALL_DIR ] && sudo rm -fr $ONOS_INSTALL_DIR
     [ -f /etc/init/onos.conf ] && sudo rm -f /etc/init/onos.conf
+    [ -f /etc/init.d/onos ] && sudo rm -f /etc/init.d/onos
+    [ -f /etc/systemd/system/onos.service ] && sudo rm -f /etc/systemd/system/onos.service
 
     exit \${status:-0};
 "

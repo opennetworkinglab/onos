@@ -12,6 +12,7 @@ flags:
 - -f            : forces uninstall of currently installed ONOS
 - -u            : don't install onos.conf upstart configuration file
 - -i            : don't install /etc/init.d/onos script (also used by onos.conf)
+- -s            : don't install onos.service systemd configuration file
 - -n            : don't try to start ONOS
 - -m <settings> : pass <settings> XML file to remote maven installation
 
@@ -38,8 +39,9 @@ onos-check-bits
 while getopts fnm: o; do
     case "$o" in
         f) uninstall=true;;
-        u) noupstart=true; noinitd=true;;
-        i) noinitd=true;;
+        u) noupstart=true; noinitd=true; nosysd=true;;
+        i) noinitd=true; nosysd=true;;
+        s) nosysd=true;;
         n) nostart=true;;
         m) mvn_settings=$OPTARG;;
     esac
@@ -73,6 +75,7 @@ ssh -tt $remote "
     # Install the configuration file(s) and set up options for debugging
     [ -n $noupstart ] && sudo cp $ONOS_INSTALL_DIR/init/onos.conf /etc/init/onos.conf
     [ -n $noinitd ] && sudo cp $ONOS_INSTALL_DIR/init/onos.initd /etc/init.d/onos
+    [ -n $nosysd ] && sudo cp $ONOS_INSTALL_DIR/init/onos.service /etc/systemd/system/onos.service
     echo 'export ONOS_OPTS=debug' > $ONOS_INSTALL_DIR/options
 
     # Set up correct user to run onos-service

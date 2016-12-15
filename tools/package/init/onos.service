@@ -1,0 +1,13 @@
+[Unit]
+Description=Open Network Operating System
+After=network-online.target
+After=local-fs.target
+
+[Service]
+Type=forking
+ExecStart=/etc/init.d/onos start
+ExecStop=/etc/init.d/onos stop
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
