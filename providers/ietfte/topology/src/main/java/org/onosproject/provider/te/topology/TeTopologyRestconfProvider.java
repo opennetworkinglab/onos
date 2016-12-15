@@ -53,6 +53,8 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev2
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.networks.Network;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.IetfNetworkTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
+        .IetfTeTopologyEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
 import org.onosproject.yms.ych.YangCodecHandler;
@@ -84,7 +86,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class TeTopologyRestconfProvider extends AbstractProvider
         implements TeTopologyProvider {
-    private static final String APP_NAME = "org.onosproject.teprovider.topology";
+    private static final String APP_NAME = "org.onosproject.teprovider";
     private static final String RESTCONF = "restconf";
     private static final String PROVIDER =
             "org.onosproject.teprovider.restconf.domain";
@@ -341,49 +343,96 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         }
 
         private void handleRestconfLinkNotification(String linkString) {
-            YangCompositeEncodingImpl yce =
-                    new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
-                                                  "ietf-te-topology:te-link-event",
-                                                  linkString);
-            Object yo = codecHandler.decode(yce,
-                                            YangProtocolEncodingFormat.JSON,
-                                            YmsOperationType.NOTIFICATION);
 
-            if (yo == null) {
-                log.error("YMS decoder error");
+            IetfTeTopologyEvent event = convertJson2IetfTeTopologyEvent(
+                    "ietf-te-topology:te-link-event",
+                    linkString);
+            if (event == null) {
+                log.error("ERROR: json to YO conversion failure");
                 return;
             }
 
+            if (event.type() != IetfTeTopologyEvent.Type.TE_LINK_EVENT) {
+                log.error("ERROR: wrong YO event type: {}", event.type());
+                return;
+            }
+
+            TeLinkEvent teLinkEvent = event.subject().teLinkEvent();
+
+            log.debug("TeLinkEvent: {}", teLinkEvent);
+
             NetworkLinkKey linkKey = LinkConverter.yangLinkEvent2NetworkLinkKey(
-                    (TeLinkEvent) yo);
+                    teLinkEvent);
 
             NetworkLink networkLink = LinkConverter.yangLinkEvent2NetworkLink(
-                    (TeLinkEvent) yo,
+                    teLinkEvent,
                     teTopologyService);
+
+            if (networkLink == null) {
+                log.error("ERROR: yangLinkEvent2NetworkLink returns null");
+                return;
+            }
+
+            log.debug("networkLink: {}", networkLink);
 
             topologyProviderService.linkUpdated(linkKey, networkLink);
         }
 
-        private void handleRestconfNodeNotification(String nodeString) {
+        private IetfTeTopologyEvent convertJson2IetfTeTopologyEvent(String uriString,
+                                                                    String jsonBody) {
+
             YangCompositeEncodingImpl yce =
                     new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
-                                                  "ietf-te-topology:te-node-event",
-                                                  nodeString);
+                                                  uriString,
+                                                  jsonBody);
             Object yo = codecHandler.decode(yce,
                                             YangProtocolEncodingFormat.JSON,
                                             YmsOperationType.NOTIFICATION);
 
             if (yo == null) {
                 log.error("YMS decoder error");
+                return null;
+            }
+
+            if (!(yo instanceof IetfTeTopologyEvent)) {
+                log.error("ERROR: YO is not IetfTeTopologyEvent");
+                return null;
+            }
+
+            return (IetfTeTopologyEvent) yo;
+        }
+
+        private void handleRestconfNodeNotification(String nodeString) {
+
+            IetfTeTopologyEvent event = convertJson2IetfTeTopologyEvent(
+                    "ietf-te-topology:te-node-event",
+                    nodeString);
+
+            if (event == null) {
+                log.error("ERROR: json to YO conversion failure");
                 return;
             }
 
+            if (event.type() != IetfTeTopologyEvent.Type.TE_NODE_EVENT) {
+                log.error("ERROR: wrong YO event type: {}", event.type());
+                return;
+            }
+
+            TeNodeEvent teNodeEvent = event.subject().teNodeEvent();
+
+            log.debug("TeNodeEvent: {}", teNodeEvent);
+
             NetworkNodeKey nodeKey = NodeConverter.yangNodeEvent2NetworkNodeKey(
-                    (TeNodeEvent) yo);
+                    teNodeEvent);
 
             NetworkNode networkNode = NodeConverter.yangNodeEvent2NetworkNode(
-                    (TeNodeEvent) yo,
+                    teNodeEvent,
                     teTopologyService);
+
+            if (networkNode == null) {
+                log.error("ERROR: yangNodeEvent2NetworkNode returns null");
+                return;
+            }
 
             topologyProviderService.nodeUpdated(nodeKey, networkNode);
         }

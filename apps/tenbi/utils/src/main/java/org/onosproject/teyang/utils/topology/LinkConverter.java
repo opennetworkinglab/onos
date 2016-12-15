@@ -936,21 +936,30 @@ public final class LinkConverter {
      */
     public static TeLinkEvent teNetworkLink2yangTeLinkEvent(TeTopologyEventTypeEnum eventType,
                                                             NetworkLinkEventSubject linkData) {
-        TeLinkEvent.TeLinkEventBuilder builder = new DefaultTeLinkEvent.TeLinkEventBuilder();
+        TeLinkEvent.TeLinkEventBuilder teLinkEventBuilder = new DefaultTeLinkEvent.TeLinkEventBuilder();
 
         TeTopologyEventType yangEventType = new TeTopologyEventType(eventType);
-        builder.eventType(yangEventType);
-        NetworkId newtorkId = NetworkId.fromString(linkData.key().networkId().toString());
-        builder.networkRef(newtorkId);
+        teLinkEventBuilder.eventType(yangEventType);
+        NetworkId networkId = NetworkId.fromString(linkData.key().networkId().toString());
+        teLinkEventBuilder.networkRef(networkId);
         LinkId linkId = LinkId.fromString(linkData.key().linkId().toString());
-        builder.linkRef(linkId);
+        teLinkEventBuilder.linkRef(linkId);
 
-        NetworkLink link = linkData.networkLink();
-        TeLinkAttributes teLinkAttributes = link == null ? null
-                                                         : teLink2YangConfig(link.teLink()).teLinkAttributes();
-        builder.teLinkAttributes(teLinkAttributes);
+        if (linkData != null && linkData.networkLink() != null) {
+            NetworkLink link = linkData.networkLink();
+            State yangTeLinkState = teLink2YangState(link.teLink());
 
-        return builder.build();
+            teLinkEventBuilder.operStatus(yangTeLinkState.operStatus());
+            teLinkEventBuilder.informationSource(yangTeLinkState.informationSource());
+            teLinkEventBuilder.informationSourceEntry(yangTeLinkState.informationSourceEntry());
+            teLinkEventBuilder.informationSourceState(yangTeLinkState.informationSourceState());
+            teLinkEventBuilder.isTransitional(yangTeLinkState.isTransitional());
+            teLinkEventBuilder.recovery(yangTeLinkState.recovery());
+            teLinkEventBuilder.teLinkAttributes(yangTeLinkState.teLinkAttributes());
+            teLinkEventBuilder.underlay(yangTeLinkState.underlay());
+        }
+
+        return teLinkEventBuilder.build();
     }
 
     public static NetworkLinkKey yangLinkEvent2NetworkLinkKey(TeLinkEvent yangLinkEvent) {
@@ -983,6 +992,9 @@ public final class LinkConverter {
         }
 
         NodeTpKey sourceTp = networkLink.source();
+        if (sourceTp == null) {
+            return null;
+        }
         NodeTpKey destTp = networkLink.destination();
 
         List<NetworkLinkKey> supportingLinkIds = networkLink.supportingLinkIds();
@@ -1011,13 +1023,13 @@ public final class LinkConverter {
 
         TeLinkTpKey teLinkKey = oldTeLink.teLinkKey();
 
+        long teNodeIdDest = 0;
+        long teNodeIdSrc = 0;
 
-        long teNodeIdDest = oldTeLink.peerTeLinkKey().teNodeId();
-        long teNodeId = oldTeLink.teLinkKey().teNodeId();
         TeLinkTpGlobalKey supportTeLinkId = oldTeLink.supportingTeLinkId();
         TeLinkTpKey peerTeLinkKey = oldTeLink.peerTeLinkKey();
 
-        TeLink updatedTeLink = yangLinkAttr2TeLinkAttributes(yangTeLinkAttrs, opStatus, teNodeId, teNodeIdDest,
+        TeLink updatedTeLink = yangLinkAttr2TeLinkAttributes(yangTeLinkAttrs, opStatus, teNodeIdSrc, teNodeIdDest,
                                                              teLinkKey, peerTeLinkKey, supportTeLinkId);
 
         return updatedTeLink;
