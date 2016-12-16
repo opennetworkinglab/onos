@@ -141,4 +141,19 @@ public interface YangSchemaRegistry {
      */
     void processModuleLibrary(String serviceName, YangModuleLibrary library);
 
+    /**
+     * Returns YANG schema node for a given namespace while xml decoding.
+     * <p>
+     * According to rfc 6020 Xml should not have module name in it but when
+     * decoder wants to convert xml to YANG object it will need module schema
+     * which it can get only by using module name from YSR. So if YCH sends
+     * namespace of a module we can given it the schema node of module. In
+     * this case namespace should be unique.
+     * </p>
+     *
+     * @param nameSpace name space of module
+     * @return module schema node
+     */
+    YangSchemaNode getSchemaWrtNameSpace(String nameSpace);
+
 }

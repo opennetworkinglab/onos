@@ -78,7 +78,7 @@
             <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-yang-maven-plugin</artifactId>
-                <version>1.10</version>
+                <version>1.11</version>
                 <configuration>
                     <yangFilesDir>src/test/resources/</yangFilesDir>
                 </configuration>

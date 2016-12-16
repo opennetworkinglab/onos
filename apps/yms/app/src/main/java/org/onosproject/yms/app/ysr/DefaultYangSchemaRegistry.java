@@ -112,6 +112,11 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
      */
     private final ConcurrentMap<YangModuleIdentifier, String> yangFileStore;
 
+    /**
+     * Map for storing schema nodes with respect to namespace.
+     */
+    private final ConcurrentMap<String, YangSchemaNode> nameSpaceSchemaStore;
+
     private final ConcurrentMap<Object, Boolean> ynhRegistrationStore;
     private final ConcurrentMap<String, String> jarPathStore;
 
@@ -129,6 +134,7 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
         appNameKeyStore = new ConcurrentHashMap<>();
         ynhRegistrationStore = new ConcurrentHashMap<>();
         jarPathStore = new ConcurrentHashMap<>();
+        nameSpaceSchemaStore = new ConcurrentHashMap<>();
     }
 
 
@@ -188,6 +194,8 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
                 opParamNameKeyStore.remove(getOpParamClassName(curNode));
                 yangFileStore.remove(getModuleIdentifier(curNode));
                 appNameKeyStore.remove(serviceName);
+                nameSpaceSchemaStore.remove(curNode.getNameSpace()
+                                                    .getModuleNamespace());
                 removeYsrGeneratedTemporaryResources(jarPathStore.get(serviceName),
                                                      serviceName);
                 log.info(" service {} is unregistered.",
@@ -267,6 +275,16 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
     }
 
     @Override
+    public YangSchemaNode getSchemaWrtNameSpace(String nameSpace) {
+
+        YangSchemaNode node = nameSpaceSchemaStore.get(nameSpace);
+        if (node == null) {
+            log.error("node with {} namespace not found.", nameSpace);
+        }
+        return node;
+    }
+
+    @Override
     public String getYangFile(YangModuleIdentifier moduleIdentifier) {
         String file = yangFileStore.get(moduleIdentifier);
         if (file == null) {
@@ -312,6 +330,7 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
         interfaceNameKeyStore.clear();
         registerClassStore.clear();
         yangFileStore.clear();
+        nameSpaceSchemaStore.clear();
     }
 
     @Override
@@ -494,6 +513,10 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
 
         //update op param store.
         opParamNameKeyStore.put(getOpParamClassName(appNode), appNode);
+
+        //update namespaceSchema store.
+        nameSpaceSchemaStore.put(appNode.getNameSpace().getModuleNamespace(), appNode);
+
         //Checks if notification is present then update notification store map.
         String eventSubject = null;
         try {

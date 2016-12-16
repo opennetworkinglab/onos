@@ -21,8 +21,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network1.rev20151208.IetfNetwork1Service;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network2.rev20151208.IetfNetwork2Service;
+import org.onosproject.yang.gen.v1.ydt.test.rev20160524.TestService;
 import org.onosproject.yangutils.datamodel.YangNode;
+import org.onosproject.yangutils.datamodel.YangRevision;
 import org.onosproject.yangutils.datamodel.YangSchemaNode;
+import org.onosproject.yms.app.yab.TestManager;
 
 import java.io.IOException;
 
@@ -156,6 +159,10 @@ public class DefaultYangSchemaRegistryTest {
     private static final String UN_REG_OP_PARAM_NAME = "IetfRoutingOpParam";
     private static final String UN_REG_SERVICE_NAME = "IetfRoutingService";
     private static final String UN_REG_EVENT_NAME = "IetfRoutingEvent";
+    private static final String CHECK = "check";
+    private static final String DATE_NAMESPACE = "2015-00-08";
+    private static final String NAMESPACE =
+            "urn:ietf:params:xml:ns:yang:ietf-network4:check:namespace";
 
     private final TestYangSchemaNodeProvider testYangSchemaNodeProvider =
             new TestYangSchemaNodeProvider();
@@ -668,10 +675,30 @@ public class DefaultYangSchemaRegistryTest {
                 .getDefaultYangSchemaRegistry()
                 .verifyNotificationObject(manager, IetfNetwork2Service.class);
         assertThat(false, is(isRegWithNotification));
-        //TODO fix with YAB
-//        isRegWithNotification = testYangSchemaNodeProvider
-//                .getDefaultYangSchemaRegistry()
-//                .verifyNotificationObject(new TestManager(), TestService.class);
-//        assertThat(false, is(isRegWithNotification));
+        isRegWithNotification = testYangSchemaNodeProvider
+                .getDefaultYangSchemaRegistry()
+                .verifyNotificationObject(new TestManager(), TestService.class);
+        assertThat(false, is(isRegWithNotification));
+    }
+
+    /**
+     * get schema for namespace in decode test.
+     */
+    @Test
+    public void testGetNodeWrtNamespace() {
+        MockIetfManager manager = new MockIetfManager();
+        testYangSchemaNodeProvider.processSchemaRegistry(manager);
+        DefaultYangSchemaRegistry registry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+
+        YangSchemaNode yangNode =
+                registry.getSchemaWrtNameSpace(NAMESPACE);
+        assertThat(true, is(CHECK.equals(yangNode.getName())));
+
+        YangRevision rev = ((YangNode) yangNode).getRevision();
+        assertThat(true, is(rev != null));
+
+        String date = registry.getDateInStringFormat(yangNode);
+        assertThat(true, is(DATE_NAMESPACE.equals(date)));
     }
 }
