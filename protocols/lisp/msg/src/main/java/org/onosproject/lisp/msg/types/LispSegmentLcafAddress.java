@@ -59,7 +59,8 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
      * @param instanceId   instance id
      * @param address      address
      */
-    private LispSegmentLcafAddress(byte idMaskLength, int instanceId, LispAfiAddress address) {
+    private LispSegmentLcafAddress(byte idMaskLength, int instanceId,
+                                   LispAfiAddress address) {
         super(LispCanonicalAddressFormatEnum.SEGMENT, idMaskLength);
         this.address = address;
         this.instanceId = instanceId;
@@ -75,9 +76,11 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
      * @param instanceId   instance id
      * @param address      address
      */
-    private LispSegmentLcafAddress(byte reserved1, byte idMaskLength, byte flag, short length,
-                                   int instanceId, LispAfiAddress address) {
-        super(LispCanonicalAddressFormatEnum.SEGMENT, reserved1, idMaskLength, flag, length);
+    private LispSegmentLcafAddress(byte reserved1, byte idMaskLength, byte flag,
+                                   short length, int instanceId,
+                                   LispAfiAddress address) {
+        super(LispCanonicalAddressFormatEnum.SEGMENT, reserved1,
+                                                    idMaskLength, flag, length);
         this.address = address;
         this.instanceId = instanceId;
     }
@@ -209,9 +212,6 @@ public final class LispSegmentLcafAddress extends LispLcafAddress {
             LispAfiAddress address = new AfiAddressReader().readFrom(byteBuf);
 
             return new SegmentAddressBuilder()
-                    .withReserved1(lcafAddress.getReserved1())
-                    .withFlag(lcafAddress.getFlag())
-                    .withLength(lcafAddress.getLength())
                     .withIdMaskLength(idMaskLength)
                     .withInstanceId(instanceId)
                     .withAddress(address)

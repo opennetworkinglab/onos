@@ -96,7 +96,8 @@ public class LispMacAddress extends LispAfiAddress {
     public static class MacAddressWriter implements LispAddressWriter<LispMacAddress> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispMacAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispMacAddress address)
+                                                throws LispWriterException {
             byte[] macByte = address.getAddress().toBytes();
             byteBuf.writeBytes(macByte);
         }

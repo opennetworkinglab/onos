@@ -327,7 +327,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
         @Override
         public LispAppDataLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
 
-            LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
+            LispLcafAddress.deserializeCommon(byteBuf);
 
             byte[] ipTosByte = new byte[3];
             byteBuf.readBytes(ipTosByte);
@@ -342,10 +342,6 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
             LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new AppDataAddressBuilder()
-                    .withReserved1(lcafAddress.getReserved1())
-                    .withReserved2(lcafAddress.getReserved2())
-                    .withFlag(lcafAddress.getFlag())
-                    .withLength(lcafAddress.getLength())
                     .withProtocol(protocol)
                     .withIpTos(ipTos)
                     .withLocalPortLow(localPortLow)

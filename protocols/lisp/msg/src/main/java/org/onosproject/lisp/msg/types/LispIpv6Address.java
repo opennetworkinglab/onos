@@ -82,7 +82,8 @@ public class LispIpv6Address extends LispIpAddress {
     public static class Ipv6AddressWriter implements LispAddressWriter<LispIpv6Address> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispIpv6Address address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispIpv6Address address)
+                                                throws LispWriterException {
             byte[] ipByte = address.getAddress().getIp6Address().toOctets();
             byteBuf.writeBytes(ipByte);
         }

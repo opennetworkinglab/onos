@@ -160,10 +160,12 @@ public final class LispListLcafAddress extends LispLcafAddress {
     /**
      * List LCAF address reader class.
      */
-    public static class ListLcafAddressReader implements LispAddressReader<LispListLcafAddress> {
+    public static class ListLcafAddressReader
+                        implements LispAddressReader<LispListLcafAddress> {
 
         @Override
-        public LispListLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispListLcafAddress readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
 
             LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
@@ -172,21 +174,25 @@ public final class LispListLcafAddress extends LispLcafAddress {
             LispAfiAddress ipv4 = reader.readFrom(byteBuf);
             LispAfiAddress ipv6 = reader.readFrom(byteBuf);
 
-            return new LispListLcafAddress(lcafAddress.getReserved1(), lcafAddress.getReserved2(),
-                    lcafAddress.getFlag(), ImmutableList.of(ipv4, ipv6));
+            return new LispListLcafAddress(lcafAddress.getReserved1(),
+                                            lcafAddress.getReserved2(),
+                                            lcafAddress.getFlag(),
+                                            ImmutableList.of(ipv4, ipv6));
         }
     }
 
     /**
      * List LCAF address writer class.
      */
-    public static class ListLcafAddressWriter implements LispAddressWriter<LispListLcafAddress> {
+    public static class ListLcafAddressWriter
+                        implements LispAddressWriter<LispListLcafAddress> {
 
         private static final int IPV4_ADDRESS_INDEX = 0;
         private static final int IPV6_ADDRESS_INDEX = 1;
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispListLcafAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispListLcafAddress address)
+                                                    throws LispWriterException {
 
             int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);

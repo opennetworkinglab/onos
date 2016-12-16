@@ -80,7 +80,7 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
     }
 
     /**
-     * Initializes source/dest key type LCAF address.
+     * Initializes source/destination key type LCAF address.
      *
      * @param reserved1     reserved1
      * @param reserved2     reserved2
@@ -92,11 +92,13 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
      * @param srcPrefix     source address prefix
      * @param dstPrefix     destination address prefix
      */
-    private LispSourceDestLcafAddress(byte reserved1, byte reserved2, byte flag, short length,
-                                      short reserved, byte srcMaskLength,
-                                      byte dstMaskLength, LispAfiAddress srcPrefix,
+    private LispSourceDestLcafAddress(byte reserved1, byte reserved2, byte flag,
+                                      short length, short reserved,
+                                      byte srcMaskLength, byte dstMaskLength,
+                                      LispAfiAddress srcPrefix,
                                       LispAfiAddress dstPrefix) {
-        super(LispCanonicalAddressFormatEnum.SOURCE_DEST, reserved1, reserved2, flag, length);
+        super(LispCanonicalAddressFormatEnum.SOURCE_DEST, reserved1,
+                                                        reserved2, flag, length);
         this.reserved = reserved;
         this.srcMaskLength = srcMaskLength;
         this.dstMaskLength = dstMaskLength;
@@ -267,9 +269,10 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
             implements LispAddressReader<LispSourceDestLcafAddress> {
 
         @Override
-        public LispSourceDestLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispSourceDestLcafAddress readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
 
-            LispLcafAddress lcafAddress = deserializeCommon(byteBuf);
+            deserializeCommon(byteBuf);
 
             short reserved = byteBuf.readShort();
             byte srcMaskLength = (byte) byteBuf.readUnsignedByte();
@@ -279,10 +282,6 @@ public final class LispSourceDestLcafAddress extends LispLcafAddress {
             LispAfiAddress dstPrefix = new AfiAddressReader().readFrom(byteBuf);
 
             return new SourceDestAddressBuilder()
-                    .withReserved1(lcafAddress.getReserved1())
-                    .withReserved2(lcafAddress.getReserved2())
-                    .withFlag(lcafAddress.getFlag())
-                    .withLength(lcafAddress.getLength())
                     .withReserved(reserved)
                     .withSrcMaskLength(srcMaskLength)
                     .withDstMaskLength(dstMaskLength)

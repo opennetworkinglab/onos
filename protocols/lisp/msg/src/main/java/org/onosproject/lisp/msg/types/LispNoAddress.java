@@ -48,7 +48,8 @@ public class LispNoAddress extends LispAfiAddress {
     public static class NoAddressWriter implements LispAddressWriter<LispNoAddress> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispNoAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispNoAddress address)
+                                                    throws LispWriterException {
             // since there is nothing to write to channel, we just leave it empty
         }
     }

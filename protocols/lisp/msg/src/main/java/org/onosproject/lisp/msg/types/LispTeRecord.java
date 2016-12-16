@@ -193,7 +193,8 @@ public class LispTeRecord {
         private static final int LOOKUP_INDEX = 3;
 
         @Override
-        public LispTeRecord readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispTeRecord readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
 
             // let's skip reserved 3
             byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
@@ -232,7 +233,8 @@ public class LispTeRecord {
         private static final int UNUSED_ZERO = 0;
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispTeRecord record) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispTeRecord record)
+                                                    throws LispWriterException {
 
             byteBuf.writeByte(UNUSED_ZERO);
 

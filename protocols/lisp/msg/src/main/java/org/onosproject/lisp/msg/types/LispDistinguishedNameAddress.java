@@ -81,7 +81,8 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
                         implements LispAddressReader<LispDistinguishedNameAddress> {
 
         @Override
-        public LispDistinguishedNameAddress readFrom(ByteBuf byteBuf) throws LispParseError {
+        public LispDistinguishedNameAddress readFrom(ByteBuf byteBuf)
+                                                        throws LispParseError {
 
             StringBuilder sb = new StringBuilder();
             byte character;
@@ -101,7 +102,8 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
                         implements LispAddressWriter<LispDistinguishedNameAddress> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispDistinguishedNameAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispDistinguishedNameAddress address)
+                                                    throws LispWriterException {
             String distinguishedName = address.getDistinguishedName();
             byte[] nameBytes = distinguishedName.getBytes();
             for (int i = 0; i < nameBytes.length; i++) {

@@ -293,16 +293,13 @@ public final class LispNatLcafAddress extends LispLcafAddress {
             }
 
             return new NatAddressBuilder()
-                    .withReserved1(lcafAddress.getReserved1())
-                    .withReserved2(lcafAddress.getReserved2())
-                    .withFlag(lcafAddress.getFlag())
-                    .withLength(lcafAddress.getLength())
-                    .withMsUdpPortNumber(msUdpPortNumber)
-                    .withEtrUdpPortNumber(etrUdpPortNumber)
-                    .withGlobalEtrRlocAddress(globalEtrRlocAddress)
-                    .withMsRlocAddress(msRlocAddress)
-                    .withPrivateEtrRlocAddress(privateEtrRlocAddress)
-                    .withRtrRlocAddresses(rtrRlocAddresses).build();
+                            .withMsUdpPortNumber(msUdpPortNumber)
+                            .withEtrUdpPortNumber(etrUdpPortNumber)
+                            .withGlobalEtrRlocAddress(globalEtrRlocAddress)
+                            .withMsRlocAddress(msRlocAddress)
+                            .withPrivateEtrRlocAddress(privateEtrRlocAddress)
+                            .withRtrRlocAddresses(rtrRlocAddresses)
+                            .build();
         }
     }
 

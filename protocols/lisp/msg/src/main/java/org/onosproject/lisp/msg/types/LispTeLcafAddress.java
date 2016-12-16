@@ -101,7 +101,8 @@ public final class LispTeLcafAddress extends LispLcafAddress {
                 .add("TE records", records).toString();
     }
 
-    public static final class TeAddressBuilder extends LcafAddressBuilder<TeAddressBuilder> {
+    public static final class TeAddressBuilder
+                                extends LcafAddressBuilder<TeAddressBuilder> {
         private List<LispTeRecord> records;
 
         /**
@@ -127,10 +128,12 @@ public final class LispTeLcafAddress extends LispLcafAddress {
     /**
      * TE LCAF address reader class.
      */
-    public static class TeLcafAddressReader implements LispAddressReader<LispTeLcafAddress> {
+    public static class TeLcafAddressReader
+                        implements LispAddressReader<LispTeLcafAddress> {
 
         @Override
-        public LispTeLcafAddress readFrom(ByteBuf byteBuf) throws LispParseError, LispReaderException {
+        public LispTeLcafAddress readFrom(ByteBuf byteBuf)
+                                    throws LispParseError, LispReaderException {
 
             LispLcafAddress lcafAddress = LispLcafAddress.deserializeCommon(byteBuf);
 
@@ -148,10 +151,12 @@ public final class LispTeLcafAddress extends LispLcafAddress {
     /**
      * TE LCAF address writer class.
      */
-    public static class TeLcafAddressWriter implements LispAddressWriter<LispTeLcafAddress> {
+    public static class TeLcafAddressWriter
+                            implements LispAddressWriter<LispTeLcafAddress> {
 
         @Override
-        public void writeTo(ByteBuf byteBuf, LispTeLcafAddress address) throws LispWriterException {
+        public void writeTo(ByteBuf byteBuf, LispTeLcafAddress address)
+                                                    throws LispWriterException {
 
             int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
