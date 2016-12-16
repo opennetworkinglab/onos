@@ -56,8 +56,6 @@ function build_stage_dir() {
     # Patch-in proper Karaf version into the startup script
     sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
         $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
-    sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
-        $ONOS_ROOT/tools/package/bin/onos-client > bin/onos
     chmod a+x bin/onos-service bin/onos
 
     if [ -d $ONOS_ROOT/tools/package/karaf-assembly/target/repo ]; then

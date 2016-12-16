@@ -27,9 +27,7 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
 
 # Patch-in proper Karaf version into the startup script
 sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-service
-sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-client
 rm -f bin/*.bk
-mv bin/onos-client bin/onos
 chmod a+x bin/onos-service bin/onos
 
 export BOOT_FEATURES="standard,ssh,scr,war,webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"

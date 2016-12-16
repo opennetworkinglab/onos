@@ -1,6 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Adds or removes a user key for managing passwordless loging to ONOS console.
+# Adds or removes a user key for managing passwordless login to ONOS console.
 # -----------------------------------------------------------------------------
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1

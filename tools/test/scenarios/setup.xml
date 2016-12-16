@@ -30,8 +30,7 @@
                   requires="Kill-${#},Push-Bits-${#},Push-Bits"/>
 
             <step name="Secure-SSH-${#}" requires="Install-${#}"
-                  exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"
-                  if="${ONOS_USE_SSH}"/>
+                  exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"/>
 
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Install-${#},~Secure-SSH-${#}"/>

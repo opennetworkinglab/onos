@@ -10,11 +10,11 @@ aux=/tmp/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
 for attempt in {1..30}; do
-    onos ${1:-$OCI} "onos:apps -s -a" | grep -v /bin/client > $aux
+    onos ${1:-$OCI} "onos:apps -s -a" > $aux
     cat $aux
 
     # Normalize the installed apps
-    cut -c7- $aux | grep -v '/bin/client' | cut -d\  -f1 | sort > $aux.1
+    cut -c7- $aux | cut -d\  -f1 | sort > $aux.1
 
     # Normalize the expected apps
     apps=${2:-$ONOS_APPS}

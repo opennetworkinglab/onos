@@ -17,8 +17,6 @@
     <group name="Prerequisites">
         <step name="Check-Environment"
               exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1}"/>
-        <step name="Check-Secure-SSH"
-              exec="test '${ONOS_USE_SSH}' == 'true' -o '${ONOS_USE_SSH}' == ''"/>
         <step name="Check-ONOS-Bits" exec="onos-check-bits"/>
         <parallel var="${OC#}">
             <step name="Check-Passwordless-Login-${#}"

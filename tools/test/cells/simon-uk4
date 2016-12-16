@@ -22,7 +22,6 @@ export OCVM=192.168.56.98
 # onos4  RUNNING  10.0.3.14   -     YES
 #============================================
 
-export ONOS_USE_SSH=true
 export ONOS_NIC="10.0.3.*"
 
 ## ONOS instances (LXC containers)

@@ -1,20 +1,28 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Adds or removes a user key for managing passwordless loging to ONOS console.
+# Adds or removes a user key for managing passwordless login to ONOS console.
 # -----------------------------------------------------------------------------
 
-[ $# -lt 2 ] && echo "usage: $(basename $0) user {key|remove}" && exit 1
+usage="usage: $(basename $0) user {key|key-file|--remove}"
+
+[ $# -lt 2 ] && echo "$usage" >&2 && exit 1
 
 set -e
 
 user=$1
 [ -f $2 ] && key=$(cut -d\  -f2 $2) || key=$2
 
+[ -z "$user" -o -z "$key" ] && echo "$usage" >&2 && exit 1
+
 cd $(dirname $0)/../apache-karaf-*/etc
 KEYS=keys.properties
 
 # Remove the user key first, in case one was already present
-egrep -v "^$user[ ]*=" $KEYS > $KEYS.new && mv $KEYS.new $KEYS
-if [ $key != "remove" ]; then
+egrep -v "^($user|karaf)[ ]*=" $KEYS > $KEYS.new && mv $KEYS.new $KEYS
+if [ $key != "--remove" ]; then
     echo "$user=$key,_g_:admingroup" >> $KEYS
 fi
+
+# Also, remove any previous known keys for the localhost.
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
+

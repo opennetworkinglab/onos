@@ -16,7 +16,7 @@
 <scenario name="tar-setup" description="ONOS cluster setup via onos.tar.gz">
     <group name="Setup-Instances">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
-        <step name="Secure-SSH" exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS}" if="${ONOS_USE_SSH}"/>
+        <step name="Secure-SSH" exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS}"/>
 
         <parallel var="${OC#}">
             <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}" unless="${OCT}"/>

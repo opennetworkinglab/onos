@@ -3,4 +3,4 @@
 # ONOS command-line client that uses raw ssh.
 # -----------------------------------------------------------------------------
 
-ssh -p 8101 localhost "$@"
+ssh -p 8101 -o StrictHostKeyChecking=no localhost "$@"

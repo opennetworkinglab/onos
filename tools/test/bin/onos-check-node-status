@@ -7,7 +7,7 @@ aux=/tmp/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 for attempt in {1..10}; do
-    onos ${1:-$OCI} "onos:nodes" | grep -v /bin/client > $aux
+    onos ${1:-$OCI} "onos:nodes" > $aux
     cat $aux
 
     # Normalize the node status

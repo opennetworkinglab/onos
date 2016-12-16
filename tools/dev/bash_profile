@@ -35,9 +35,6 @@ export ONOS_CELL=${ONOS_CELL:-local}
 export ONOS_WEB_USER=onos
 export ONOS_WEB_PASS=rocks
 
-# Use raw SSH client for CLI console access by default
-export ONOS_USE_SSH=true
-
 # Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
