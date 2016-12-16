@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -558,6 +559,8 @@ public class DistributedVirtualNetworkStore
                                                          portNumber, realizedBy);
         virtualPortSet.add(virtualPort);
         networkIdVirtualPortSetMap.put(networkId, virtualPortSet);
+        notifyDelegate(new VirtualNetworkEvent(VirtualNetworkEvent.Type.VIRTUAL_PORT_ADDED,
+                                               networkId, virtualPort));
         return virtualPort;
     }
 
@@ -581,6 +584,8 @@ public class DistributedVirtualNetworkStore
         vPort = new DefaultVirtualPort(networkId, device, portNumber, realizedBy);
         virtualPortSet.add(vPort);
         networkIdVirtualPortSetMap.put(networkId, virtualPortSet);
+        notifyDelegate(new VirtualNetworkEvent(VirtualNetworkEvent.Type.VIRTUAL_PORT_UPDATED,
+                                               networkId, vPort));
     }
 
     @Override
@@ -594,14 +599,22 @@ public class DistributedVirtualNetworkStore
             }
         });
 
-        if (virtualPortSet != null) {
+        if (!virtualPortSet.isEmpty()) {
+            AtomicBoolean portRemoved = new AtomicBoolean(false);
             networkIdVirtualPortSetMap.compute(networkId, (id, existingVirtualPorts) -> {
                 if (existingVirtualPorts == null || existingVirtualPorts.isEmpty()) {
                     return new HashSet<>();
                 } else {
+                    portRemoved.set(true);
                     return new HashSet<>(Sets.difference(existingVirtualPorts, virtualPortSet));
                 }
             });
+            if (portRemoved.get()) {
+                virtualPortSet.forEach(virtualPort -> notifyDelegate(
+                        new VirtualNetworkEvent(VirtualNetworkEvent.Type.VIRTUAL_PORT_REMOVED,
+                                                networkId, virtualPort)
+                ));
+            }
         }
     }
 

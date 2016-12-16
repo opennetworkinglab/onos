@@ -57,10 +57,23 @@ public class VirtualNetworkEvent extends AbstractEvent<VirtualNetworkEvent.Type,
         /**
          * Signifies that a virtual network device was removed.
          */
-        VIRTUAL_DEVICE_REMOVED
+        VIRTUAL_DEVICE_REMOVED,
+        /**
+         * Signifies that a new virtual network port was added.
+         */
+        VIRTUAL_PORT_ADDED,
+        /**
+         * Signifies that a virtual network port was updated.
+         */
+        VIRTUAL_PORT_UPDATED,
+        /**
+         * Signifies that a virtual network port was removed.
+         */
+        VIRTUAL_PORT_REMOVED
     }
 
     private final VirtualDevice virtualDevice;
+    private final VirtualPort virtualPort;
 
     /**
      * Creates an event of a given type and for the specified subject.
@@ -69,7 +82,7 @@ public class VirtualNetworkEvent extends AbstractEvent<VirtualNetworkEvent.Type,
      * @param subject     event subject
      */
     public VirtualNetworkEvent(Type type, NetworkId subject) {
-        this(type, subject, null);
+        this(type, subject, null, null);
     }
 
     /**
@@ -81,41 +94,108 @@ public class VirtualNetworkEvent extends AbstractEvent<VirtualNetworkEvent.Type,
      * @param virtualDevice virtual device
      */
     public VirtualNetworkEvent(Type type, NetworkId subject, VirtualDevice virtualDevice) {
+        this(type, subject, virtualDevice, null);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified subject and the
+     * virtual port.
+     *
+     * @param type          event type
+     * @param subject       event subject
+     * @param virtualPort   virtual port
+     */
+    public VirtualNetworkEvent(Type type, NetworkId subject, VirtualPort virtualPort) {
+        this(type, subject, null, virtualPort);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified subject, virtual device and
+     * virtual port.
+     *
+     * @param type          event type
+     * @param subject       event subject
+     * @param virtualDevice virtual device
+     * @param virtualPort   virtual port
+     */
+    private VirtualNetworkEvent(Type type, NetworkId subject, VirtualDevice virtualDevice,
+                                VirtualPort virtualPort) {
         super(type, subject);
         this.virtualDevice = virtualDevice;
+        this.virtualPort = virtualPort;
     }
 
     /**
      * Creates an event of a given type and for the specified subject and time.
      *
-     * @param type        device event type
+     * @param type        event type
      * @param subject     event subject
      * @param time        occurrence time
      */
     public VirtualNetworkEvent(Type type, NetworkId subject, long time) {
-        this(type, subject, null, time);
+        this(type, subject, null, null, time);
     }
 
     /**
      * Creates an event of a given type and for the specified subject, virtual device and time.
      *
-     * @param type          device event type
+     * @param type          event type
      * @param subject       event subject
      * @param virtualDevice virtual device
      * @param time          occurrence time
      */
-    public VirtualNetworkEvent(Type type, NetworkId subject, VirtualDevice virtualDevice, long time) {
+    public VirtualNetworkEvent(Type type, NetworkId subject, VirtualDevice virtualDevice,
+                               long time) {
+        this(type, subject, virtualDevice, null, time);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified subject, virtual port and time.
+     *
+     * @param type          device event type
+     * @param subject       event subject
+     * @param virtualPort   virtual port
+     * @param time          occurrence time
+     */
+    public VirtualNetworkEvent(Type type, NetworkId subject, VirtualPort virtualPort,
+                               long time) {
+        this(type, subject, null, virtualPort, time);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified subject, virtual device,
+     * virtual port and time.
+     *
+     * @param type          device event type
+     * @param subject       event subject
+     * @param virtualDevice virtual device
+     * @param virtualPort   virtual port
+     * @param time          occurrence time
+     */
+    private VirtualNetworkEvent(Type type, NetworkId subject, VirtualDevice virtualDevice,
+                                VirtualPort virtualPort, long time) {
         super(type, subject, time);
         this.virtualDevice = virtualDevice;
+        this.virtualPort = virtualPort;
     }
 
     /**
      * Returns virtual device affected by event - may be null (for events relating to
-     * tenants and virtual networks).
+     * tenants, virtual networks and virtual ports).
      *
      * @return virtual device
      */
     public VirtualDevice virtualDevice() {
         return virtualDevice;
+    }
+
+    /**
+     * Returns virtual port affected by event - may be null (for events relating to
+     * tenants, virtual networks and virtual devices).
+     *
+     * @return virtual port
+     */
+    public VirtualPort virtualPort() {
+        return virtualPort;
     }
 }

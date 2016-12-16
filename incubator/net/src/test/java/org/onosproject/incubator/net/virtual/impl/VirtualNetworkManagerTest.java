@@ -400,21 +400,28 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
     }
 
     /**
-     * Tests add and remove of virtual ports.
+     * Tests add, bind and remove of virtual ports.
      */
     @Test
     public void testAddRemoveVirtualPort() {
+        List<VirtualNetworkEvent.Type> expectedEventTypes = new ArrayList<>();
+
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        expectedEventTypes.add(VirtualNetworkEvent.Type.TENANT_REGISTERED);
         VirtualNetwork virtualNetwork1 =
                 manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        expectedEventTypes.add(VirtualNetworkEvent.Type.NETWORK_ADDED);
         VirtualDevice virtualDevice =
                 manager.createVirtualDevice(virtualNetwork1.id(), DID1);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_DEVICE_ADDED);
         ConnectPoint cp = new ConnectPoint(virtualDevice.id(), PortNumber.portNumber(1));
 
         manager.createVirtualPort(virtualNetwork1.id(),
                                   virtualDevice.id(), PortNumber.portNumber(1), cp);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_ADDED);
         manager.createVirtualPort(virtualNetwork1.id(),
                                   virtualDevice.id(), PortNumber.portNumber(2), cp);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_ADDED);
 
         Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertNotNull("The virtual port set should not be null", virtualPorts);
@@ -423,6 +430,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         for (VirtualPort virtualPort : virtualPorts) {
             manager.removeVirtualPort(virtualNetwork1.id(),
                                       (DeviceId) virtualPort.element().id(), virtualPort.number());
+            expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_REMOVED);
             // attempt to remove the same virtual port again.
             manager.removeVirtualPort(virtualNetwork1.id(),
                                       (DeviceId) virtualPort.element().id(), virtualPort.number());
@@ -434,10 +442,22 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
         VirtualPort virtualPort =
                 manager.createVirtualPort(virtualNetwork1.id(), virtualDevice.id(),
                                                             PortNumber.portNumber(1), cp);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_ADDED);
+
+        ConnectPoint newCp = new ConnectPoint(DID2, PortNumber.portNumber(2));
+        manager.bindVirtualPort(virtualNetwork1.id(), virtualDevice.id(),
+                                PortNumber.portNumber(1), newCp);
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_UPDATED);
+
         manager.removeVirtualPort(virtualNetwork1.id(),
                                   (DeviceId) virtualPort.element().id(), virtualPort.number());
+        expectedEventTypes.add(VirtualNetworkEvent.Type.VIRTUAL_PORT_REMOVED);
         virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), virtualDevice.id());
         assertTrue("The virtual port set should be empty.", virtualPorts.isEmpty());
+
+        // Validate that the events were all received in the correct order.
+        validateEvents((Enum[]) expectedEventTypes.toArray(
+                new VirtualNetworkEvent.Type[expectedEventTypes.size()]));
     }
 
     /**
