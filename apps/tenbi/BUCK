@@ -11,8 +11,8 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'TE YANG NBI.',
-    required_apps = [ 'org.onosproject.onos-app-tetopology',
-                      'org.onosproject.onos-app-tetunnel',
-                      'org.onosproject.onos-app-yms' ],
+    required_apps = [ 'org.onosproject.tetopology',
+                      'org.onosproject.tetunnel',
+                      'org.onosproject.yms' ],
 )
 

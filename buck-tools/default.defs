@@ -2,6 +2,7 @@ include_defs('//onos.defs')
 include_defs('//bucklets/maven_jar.bucklet')
 include_defs('//bucklets/onos.bucklet')
 include_defs('//bucklets/onos_app.bucklet')
+include_defs('//bucklets/yang.bucklet')
 include_defs('//bucklets/remote_jar.bucklet')
 
 BASE_DEPS = [

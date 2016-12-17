@@ -2,7 +2,7 @@ COMPILE_DEPS = [
   '//lib:CORE_DEPS'
 ]
 
-yang_library(
+yang_osgi_jar(
   deps = COMPILE_DEPS,
   name = 'onos-apps-tenbi-yangmodel',
   srcs = glob(['src/main/**/*.yang']),
