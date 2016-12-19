@@ -139,6 +139,19 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a thread factory that produces threads with MAX_PRIORITY.
+     *
+     * @param factory backing ThreadFactory
+     * @return thread factory
+     */
+    public static ThreadFactory maxPriority(ThreadFactory factory) {
+        return new ThreadFactoryBuilder()
+                .setThreadFactory(factory)
+                .setPriority(Thread.MAX_PRIORITY)
+                .build();
+    }
+
+    /**
      * Returns true if the collection is null or is empty.
      *
      * @param collection collection to test
