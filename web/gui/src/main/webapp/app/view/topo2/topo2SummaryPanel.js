@@ -79,11 +79,19 @@
     function toggle() {
         var on = summaryPanel.el.toggle(),
             verb = on ? 'Show' : 'Hide';
+
         flash.flash(verb + ' Summary Panel');
+
+        if (on) {
+            wss.sendEvent('requestSummary');
+        } else {
+            wss.sendEvent('cancelSummary');
+        }
     }
 
     function destroy() {
         wss.unbindHandlers(handlerMap);
+        wss.sendEvent('cancelSummary');
         summaryPanel.destroy();
     }
 
