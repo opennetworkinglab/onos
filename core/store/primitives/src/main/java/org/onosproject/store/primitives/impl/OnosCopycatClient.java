@@ -17,6 +17,7 @@ package org.onosproject.store.primitives.impl;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.maxPriority;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.ConnectException;
@@ -63,7 +64,7 @@ public class OnosCopycatClient extends DelegatingCopycatClient {
         super(client);
         this.maxRetries = maxRetries;
         this.delayBetweenRetriesMillis = delayBetweenRetriesMillis;
-        this.executor = newSingleThreadScheduledExecutor(groupedThreads("OnosCopycat", "client", log));
+        this.executor = newSingleThreadScheduledExecutor(maxPriority(groupedThreads("OnosCopycat", "client", log)));
     }
 
     @Override
@@ -78,7 +79,7 @@ public class OnosCopycatClient extends DelegatingCopycatClient {
             return Tools.exceptionalFuture(new StorageException.Unavailable());
         }
         CompletableFuture<T> future = new CompletableFuture<>();
-        executor.submit(() -> submit(query, 1, future));
+        executor.execute(() -> submit(query, 1, future));
         return future;
     }
 
