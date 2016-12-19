@@ -5,9 +5,7 @@
             <running/>
         </source>
         <filter type="subtree">
-            <merchandisersupervisor xmlns="ydt.Merchandiser-supervisor">
-                <supervisor>abc</supervisor>
-            </merchandisersupervisor>
+            <supervisor xmlns="ydt.Merchandiser-supervisor">abc</supervisor>
         </filter>
     </get-config>
 </rpc>

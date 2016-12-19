@@ -317,6 +317,20 @@ public class YangRequestWorkBench implements YdtExtendedBuilder {
         boolean contextSwitch = false;
         YangSchemaNode augmentingSchema = null;
         YangSchemaNodeIdentifier id = getNodeIdentifier(name, namespace);
+        if (name == null) {
+            if (!curNode.equals(rootNode)) {
+                throw new YdtException("Name is null for node other than module");
+            }
+
+            /*
+             * Since XML will not have module name, id.name will be null. In
+             * that case get schema node by using namespace. In NBI flow,
+             * name will never be null.
+             */
+            YangSchemaNode node = registry
+                    .getSchemaWrtNameSpace(id.getNameSpace().getModuleNamespace());
+            id.setName(node.getName());
+        }
 
         try {
             // Module/sub-module node handler.

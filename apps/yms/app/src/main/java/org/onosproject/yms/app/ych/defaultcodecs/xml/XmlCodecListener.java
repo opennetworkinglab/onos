@@ -37,6 +37,8 @@ class XmlCodecListener implements XmlListener {
      */
     private YdtExtendedBuilder ydtExtBuilder;
 
+    private String prevNodeNamespace;
+
     /**
      * Sets the YANG data tree builder object.
      *
@@ -69,20 +71,41 @@ class XmlCodecListener implements XmlListener {
             nameSpace = element.getNamespace().getURI();
         }
 
+        /*
+         * When new module has to be added, and if curnode has reference of
+         * previous module, then we need to traverse back to parent(logical root
+         * node).
+         */
+        if (ydtExtBuilder.getRootNode() == ydtExtBuilder.getCurNode()
+                .getParent() && prevNodeNamespace != null &&
+                !prevNodeNamespace.equals(nameSpace)) {
+            ydtExtBuilder.traverseToParent();
+        }
+
         if (nodeType == OBJECT_NODE && element.content() == null || element
                 .content().isEmpty()) {
             nodeType = TEXT_NODE;
         }
         if (nodeType == OBJECT_NODE) {
             if (ydtExtBuilder != null) {
+                if (ydtExtBuilder.getCurNode() == ydtExtBuilder.getRootNode()) {
+                    ydtExtBuilder.addChild(null, nameSpace, opType);
+                }
                 ydtExtBuilder.addChild(element.getName(), nameSpace, opType);
             }
         } else if (nodeType == TEXT_NODE) {
 
             if (ydtExtBuilder != null) {
+                if (ydtExtBuilder.getCurNode() == ydtExtBuilder.getRootNode()) {
+                    ydtExtBuilder.addChild(null, nameSpace, opType);
+                }
                 ydtExtBuilder.addLeaf(element.getName(), nameSpace,
                                       element.getText());
             }
+        }
+
+        if (nameSpace != null) {
+            prevNodeNamespace = nameSpace;
         }
     }
 

@@ -35,7 +35,10 @@ class DefaultXmlCodecWalker implements XmlWalker {
     public void walk(XmlListener listener, Element element,
                      Element rootElement) {
         try {
-            listener.enterXmlElement(element, getElementType(element),
+            Element newElement = element.createCopy();
+            newElement.remove(element.getNamespace());
+
+            listener.enterXmlElement(element, getElementType(newElement),
                                      rootElement);
 
             if (element.hasContent() && !element.isTextOnly()) {

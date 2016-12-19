@@ -973,54 +973,6 @@ public class DefaultYangCodecHandlerTest {
 
     /**
      * Unit test case in which verifying object for xml string with config as
-     * root name and empty container.
-     */
-    @Test
-    public void proceessCodecDecodeFunctionForEmptyContainer() {
-        String path = "src/test/resources/ychTestResourceFiles/getconfigemptycontainer.xml";
-        StringBuilder sb = new StringBuilder();
-        String sCurrentLine;
-        testYangSchemaNodeProvider.processSchemaRegistry(null);
-        DefaultYangSchemaRegistry schemaRegistry =
-                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
-
-        YangCodecRegistry.initializeDefaultCodec();
-        DefaultYangCodecHandler defaultYangCodecHandler =
-                new DefaultYangCodecHandler(schemaRegistry);
-
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-
-            while ((sCurrentLine = br.readLine()) != null) {
-                sb.append(sCurrentLine);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Verify the received object list
-        List<Object> objectList =
-                defaultYangCodecHandler.decode(sb.toString(),
-                                               XML, QUERY_CONFIG_REQUEST);
-        Iterator<Object> iterator = objectList.iterator();
-        while (iterator.hasNext()) {
-            Object object = iterator.next();
-            if (object.getClass().getSimpleName()
-                    .equals(EMPTY_CONTAINER)) {
-                EmptyContainerOpParam emptyContainerOpParam =
-                        (EmptyContainerOpParam) object;
-                assertNull(AM_OBJ + "empty-container: container value is not" +
-                                   "null",
-                           emptyContainerOpParam.emptyContainer());
-            } else {
-                assertEquals(AM_OBJ, EMPTY_CONTAINER, object
-                        .getClass().getSimpleName());
-            }
-        }
-    }
-
-
-    /**
-     * Unit test case in which verifying object for xml string with config as
      * root name and multiple module.
      */
     @Test

@@ -205,7 +205,6 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
         if (ydtBuilder != null) {
             return getObjectList(ydtBuilder.getRootNode());
         }
-
         return null;
     }
 
