@@ -13,6 +13,7 @@ COMPILE_DEPS = [
     '//protocols/rest/api:onos-protocols-rest-api',
     '//apps/yms/api:onos-apps-yms-api',
     '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
+    '//providers/ietfte/utils:onos-providers-ietfte-utils',
 ]
 
 osgi_jar_with_tests (

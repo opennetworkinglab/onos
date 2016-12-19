@@ -144,7 +144,7 @@ public class DefaultJsonBuilder implements JsonBuilder {
             case NUMBER:
             case POJO:
             case STRING:
-                log.debug("Unimplemented node type {}", nodeType);
+                log.trace("Unimplemented node type {}", nodeType);
                 break;
 
             default:

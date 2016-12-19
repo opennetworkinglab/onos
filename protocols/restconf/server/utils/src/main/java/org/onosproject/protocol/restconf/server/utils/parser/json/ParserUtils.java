@@ -22,6 +22,8 @@ import com.google.common.collect.Lists;
 import org.onosproject.protocol.restconf.server.utils.exceptions.JsonParseException;
 import org.onosproject.protocol.restconf.server.utils.parser.api.JsonBuilder;
 import org.onosproject.protocol.restconf.server.utils.parser.api.NormalizedYangNode;
+import org.onosproject.yms.app.ydt.YdtExtendedContext;
+import org.onosproject.yms.app.ydt.YdtSingleInstanceLeafNode;
 import org.onosproject.yms.ydt.YdtBuilder;
 import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YdtContextOperationType;
@@ -47,6 +49,7 @@ public final class ParserUtils {
     private static final String EQUAL = "=";
     private static final String COMMA = ",";
     private static final String COLON = ":";
+    private static final String SLASH = "/";
     private static final String URI_ENCODING_CHAR_SET = "ISO-8859-1";
     private static final String ERROR_LIST_MSG = "List/Leaf-list node should be " +
             "in format \"nodeName=key\"or \"nodeName=instance-value\"";
@@ -392,5 +395,188 @@ public final class ParserUtils {
         }
 
         return moduleName;
+    }
+
+    /**
+     * Extracts the URI from the given YANG Data Tree (YDT). The URI is
+     * presented in string format. If no URI is found in the YDT, an
+     * empty string is returned.
+     *
+     * @param ydtBuilder the YDT from which the URI is extracted
+     * @return URI
+     */
+    public static String getUriInCompositeYdt(YdtBuilder ydtBuilder) {
+        checkNotNull(ydtBuilder, "ydt cannot be null");
+
+        StringBuilder uriBuilder = new StringBuilder();
+        YdtContext ydtNode = ydtBuilder.getRootNode().getFirstChild();
+        String currModuleName = null;
+
+        boolean isLastNodeInUri = false;
+        int levelNum = 0;
+        while (((YdtExtendedContext) ydtNode).getYdtContextOperationType() == NONE ||
+                isLastNodeInUri) {
+            currModuleName = addNodeToUri(ydtNode, currModuleName,
+                                          levelNum, uriBuilder);
+
+            if (ydtNode.getYdtType() == YdtType.MULTI_INSTANCE_NODE) {
+                if (isLastNodeInUri) {
+                    addKeyNodeToUri(ydtNode, uriBuilder);
+                    break;
+                }
+
+                YdtContext firstChild = ydtNode.getFirstChild();
+                YdtContext lastChild = ydtNode.getLastChild();
+                if ((firstChild.getYdtType() == YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE) &&
+                        ((YdtSingleInstanceLeafNode) firstChild).isKeyLeaf()) {
+                    currModuleName = addNodeToUri(firstChild,
+                                                  currModuleName,
+                                                  levelNum,
+                                                  uriBuilder);
+                    ydtNode = lastChild;
+                } else {
+                    currModuleName = addNodeToUri(lastChild,
+                                                  currModuleName,
+                                                  levelNum,
+                                                  uriBuilder);
+                    ydtNode = firstChild;
+                }
+            } else {
+                ydtNode = ydtNode.getFirstChild();
+            }
+
+            if (isLastNodeInUri) {
+                break;
+            }
+
+            if (((YdtExtendedContext) ydtNode).getYdtContextOperationType() != NONE) {
+                isLastNodeInUri = true;
+            }
+
+            levelNum++;
+        }
+
+        return uriBuilder.toString();
+    }
+
+    /**
+     * Finds the key leaf node from the given multi-instance YDT node and
+     * appends the key value to the given URI string.
+     * <p>
+     * If no key leaf node is found, then the given URI is unchanged.
+     *
+     * @param ydtNode    YDT node under which the key leaf node is found
+     * @param uriBuilder URI
+     */
+    private static void addKeyNodeToUri(YdtContext ydtNode,
+                                        StringBuilder uriBuilder) {
+        YdtContext child = ydtNode.getFirstChild();
+
+        while (child != null) {
+            if (child.getYdtType() == YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+                if (((YdtSingleInstanceLeafNode) child).isKeyLeaf()) {
+                    uriBuilder.append(EQUAL).append(ydtNode.getValue());
+                    break;
+                }
+            }
+            child = child.getNextSibling();
+        }
+    }
+
+    /**
+     * Extracts the path segment from a given YANG Data Tree (YDT) node and
+     * appends it to the given URI string.
+     *
+     * @param ydtNode        YDT node from which the URI segment is extracted
+     * @param currModuleName current YANG module name in URI
+     * @param ydtNodeDepth   depth of the YDT node's position in the tree
+     * @param uriBuilder     URI to which the URI segment appends
+     * @return YANG module name extracted from the YDT node
+     */
+    private static String addNodeToUri(YdtContext ydtNode,
+                                       String currModuleName,
+                                       int ydtNodeDepth,
+                                       StringBuilder uriBuilder) {
+        YdtType nodeType = ydtNode.getYdtType();
+
+        /*
+         * The given YDT node is the root of the YDT. Only the module name
+         * needs to be extracted and added to URI.
+         */
+        if (ydtNodeDepth == 0) {
+            String moduleName = ydtNode.getModuleNameAsNameSpace();
+            uriBuilder.append(moduleName);
+            return moduleName;
+        }
+
+        if (ydtNodeDepth == 1) {
+            String moduleName = ydtNode.getModuleNameAsNameSpace();
+            uriBuilder.append(COLON);
+            uriBuilder.append(ydtNode.getName());
+            return moduleName;
+        }
+
+        if (nodeType == YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE &&
+                ((YdtSingleInstanceLeafNode) ydtNode).isKeyLeaf()) {
+            uriBuilder.append(EQUAL).append(ydtNode.getValue());
+            return currModuleName;
+        } else {
+            uriBuilder.append(SLASH);
+        }
+
+        String moduleName = ydtNode.getModuleNameAsNameSpace();
+
+        if (currModuleName == null || !currModuleName.equals(moduleName)) {
+            uriBuilder.append(moduleName).append(COLON);
+        }
+
+        uriBuilder.append(ydtNode.getName());
+
+        return moduleName;
+    }
+
+    /**
+     * Retrieves the top data node of the subtree from the given composite
+     * YANG Data Tree (YDT) which contains both the URI path and the data
+     * subtree to which the URI points.
+     * <p>
+     * A null is returned if no data subtree is found.
+     *
+     * @param ydtBuilder the given YDT
+     * @return the top data node of the data subtree.
+     */
+    public static YdtContext findTopNodeInCompositeYdt(YdtBuilder ydtBuilder) {
+        checkNotNull(ydtBuilder, "ydt cannot be null");
+
+        YdtContext ydtNode = ydtBuilder.getRootNode().getFirstChild();
+        YdtContextOperationType opType = ((YdtExtendedContext) ydtNode).getYdtContextOperationType();
+        while (opType == NONE) {
+            if (ydtNode.getYdtType() == YdtType.MULTI_INSTANCE_NODE) {
+                YdtContext firstChild = ydtNode.getFirstChild();
+                YdtContext lastChild = ydtNode.getLastChild();
+                if (firstChild.getYdtType() == YdtType.SINGLE_INSTANCE_LEAF_VALUE_NODE &&
+                        ((YdtSingleInstanceLeafNode) firstChild).isKeyLeaf()) {
+                    ydtNode = lastChild;
+                } else {
+                    ydtNode = firstChild;
+                }
+            } else {
+                ydtNode = ydtNode.getFirstChild();
+            }
+
+            if (((YdtExtendedContext) ydtNode).getYdtContextOperationType() != NONE) {
+                // We found last node
+                break;
+            }
+
+            if (ydtNode == null) {
+                // There is no more node to find in YDT
+                return null;
+            }
+
+            opType = ((YdtExtendedContext) ydtNode).getYdtContextOperationType();
+        }
+
+        return ydtNode;
     }
 }

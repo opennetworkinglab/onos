@@ -19,9 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils;
+import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.yms.ych.YangCompositeEncoding;
 import org.onosproject.yms.ych.YangDataTreeCodec;
+import org.onosproject.yms.ych.YangResourceIdentifierType;
 import org.onosproject.yms.ydt.YdtBuilder;
+import org.onosproject.yms.ydt.YdtContext;
 import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
@@ -30,6 +33,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.convertYdtToJson;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.findTopNodeInCompositeYdt;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.getJsonNameFromYdtNode;
+import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.getUriInCompositeYdt;
 import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
 
 
@@ -38,6 +45,7 @@ import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
  */
 public class JsonYdtCodec implements YangDataTreeCodec {
     private static final String RESTCONF_ROOT = "restconf/data";
+    private static final String EMPTY_JSON_OBJECT = "{}";
 
     protected final YmsService ymsService;
 
@@ -48,23 +56,28 @@ public class JsonYdtCodec implements YangDataTreeCodec {
     }
 
     @Override
-    public String encodeYdtToProtocolFormat(YdtBuilder ydtBuilder) {
-        String json = ParserUtils.convertYdtToJson(ydtBuilder.getRootNode().getName(),
-                                                   ydtBuilder.getRootNode(),
-                                                   ymsService.getYdtWalker())
-                .textValue();
-        return json;
+    public String encodeYdtToProtocolFormat(YdtBuilder builder) {
+        return convertYdtToJson(getJsonNameFromYdtNode(builder.getRootNode()),
+                                builder.getRootNode(),
+                                ymsService.getYdtWalker()).textValue();
     }
 
     @Override
-    public YangCompositeEncoding encodeYdtToCompositeProtocolFormat(YdtBuilder ydtBuilder) {
-        // Mainly for POST/PUT operation.
-        // YdtBuilder/YdtContext has YdtContextType NONE for URI,
-        // YdtContextType CREATE/MERGE/REPLACE for Resource data.
+    public YangCompositeEncoding encodeYdtToCompositeProtocolFormat(YdtBuilder builder) {
+        String uriString = getUriInCompositeYdt(builder);
+        YdtContext topNode = findTopNodeInCompositeYdt(builder);
+        if (topNode != null) {
+            ObjectNode objectNode = convertYdtToJson(getJsonNameFromYdtNode(topNode),
+                                                     topNode,
+                                                     ymsService.getYdtWalker());
+            return new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                                 uriString,
+                                                 objectNode.toString());
+        }
 
-        // TODO: Implement this method in Release Ibis for TE Tunnel.
-
-        return null;
+        return new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                             uriString,
+                                             EMPTY_JSON_OBJECT);
     }
 
     @Override

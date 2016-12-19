@@ -81,6 +81,8 @@ public class YdtToJsonListener implements YdtListener {
             case MULTI_INSTANCE_LEAF_VALUE_NODE:
                 jsonBuilder.addNodeWithSetTopHalf(name, ydtContext.getValueSet());
                 break;
+            case LOGICAL_ROOT_NODE:
+                break;
             default:
                 throw new YdtParseException("unknown Ydt type " +
                                                     ydtContext.getYdtType());
@@ -115,6 +117,8 @@ public class YdtToJsonListener implements YdtListener {
                 break;
             case MULTI_INSTANCE_LEAF_VALUE_NODE:
                 jsonBuilder.addNodeBottomHalf(JsonNodeType.ARRAY);
+                break;
+            case LOGICAL_ROOT_NODE:
                 break;
             default:
                 throw new YdtParseException("Unknown Ydt type " +

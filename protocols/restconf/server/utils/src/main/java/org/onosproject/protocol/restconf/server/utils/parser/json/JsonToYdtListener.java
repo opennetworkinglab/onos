@@ -100,7 +100,7 @@ public class JsonToYdtListener implements JsonListener {
             case MISSING:
             case NULL:
             case POJO:
-                log.debug("Unimplemented node type {}", nodeType);
+                log.trace("Unimplemented node type {}", nodeType);
                 break;
 
             default:
