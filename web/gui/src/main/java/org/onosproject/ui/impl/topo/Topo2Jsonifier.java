@@ -41,6 +41,7 @@ import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
+import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiHost;
@@ -79,6 +80,8 @@ class Topo2Jsonifier {
     private static final String REGION = "region";
     private static final String DEVICE = "device";
     private static final String HOST = "host";
+    private static final String TYPE = "type";
+    private static final String SUBJECT = "subject";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -261,6 +264,18 @@ class Topo2Jsonifier {
             result.add(subset);
         });
         return result;
+    }
+
+    private ObjectNode jsonEvent(UiModelEvent modelEvent) {
+        ObjectNode payload = objectNode();
+        payload.put(TYPE, enumToString(modelEvent.type()));
+        payload.put(SUBJECT, modelEvent.subject().idAsString());
+        return payload;
+    }
+
+    // TODO: Investigate why we can't do this inline
+    private String enumToString(Enum<?> e) {
+        return e.toString();
     }
 
     // Returns the name of the master node for the specified device id.
