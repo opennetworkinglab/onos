@@ -81,12 +81,7 @@
             verb = on ? 'Show' : 'Hide';
 
         flash.flash(verb + ' Summary Panel');
-
-        if (on) {
-            wss.sendEvent('requestSummary');
-        } else {
-            wss.sendEvent('cancelSummary');
-        }
+        wss.sendEvent(on ? 'requestSummary' : 'cancelSummary');
     }
 
     function destroy() {
