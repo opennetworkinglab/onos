@@ -66,6 +66,15 @@
                 }
             };
 
+            Object.defineProperty($scope, "queryFilter", {
+                get: function() {
+                    var out = {};
+                    out[$scope.queryBy || "$"] = $scope.query;
+                    return out;
+                }
+            });
+
+
             $log.log('OvMeterCtrl has been created');
         }]);
 }());
