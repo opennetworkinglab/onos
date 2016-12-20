@@ -72,6 +72,15 @@
                 $scope.brief = !$scope.brief;
             };
 
+            Object.defineProperty($scope, "queryFilter", {
+                get: function() {
+                    var out = {};
+                    out[$scope.queryBy || "$"] = $scope.query;
+                    return out;
+                }
+            });
+
+
             $log.log('OvGroupCtrl has been created');
         }]);
 }());
