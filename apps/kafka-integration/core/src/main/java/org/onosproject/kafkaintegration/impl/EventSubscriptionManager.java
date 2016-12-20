@@ -16,8 +16,6 @@
 package org.onosproject.kafkaintegration.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.DEVICE;
-import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +40,6 @@ import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
-import org.onosproject.kafkaintegration.listener.OnosEventListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -200,44 +197,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     private enum ListenerAction {
         START, STOP;
     }
-
-    /**
-     * Applies the specified action on the Listener.
-     *
-     * @param eventType the ONOS Event type registered by the application
-     * @param onosListener ONOS event listener
-     * @param action to be performed on the listener
-     */
-    private void applyListenerAction(Type eventType,
-                                     OnosEventListener onosListener,
-                                     ListenerAction action) {
-        switch (eventType) {
-        case DEVICE:
-            if (action == ListenerAction.START) {
-                onosListener.startListener(DEVICE, deviceService);
-            } else {
-                onosListener.stopListener(DEVICE, deviceService);
-            }
-            break;
-        case LINK:
-            if (action == ListenerAction.START) {
-                onosListener.startListener(LINK, linkService);
-            } else {
-                onosListener.stopListener(LINK, linkService);
-            }
-            break;
-        default:
-            log.error("Cannot {} listener. Unsupported event type {} ",
-                      action.toString(), eventType.toString());
-        }
-    }
-
-    /**
-     * Returns the ONOS event listener corresponding to the ONOS Event type.
-     *
-     * @param eventType ONOS event type
-     * @return ONOS event listener
-     */
 
     /**
      * Checks if the group id is valid for this registered application.

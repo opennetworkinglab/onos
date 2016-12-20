@@ -30,7 +30,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.kafkaintegration.api.KafkaConfigService;
-import org.onosproject.kafkaintegration.api.KafkaProducerService;
+import org.onosproject.kafkaintegration.api.KafkaPublisherService;
 import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class KafkaConfigManager implements KafkaConfigService {
     protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected KafkaProducerService producer;
+    protected KafkaPublisherService producer;
 
     public static final String BOOTSTRAP_SERVERS = "localhost:9092";
     private String kafkaServerIp =

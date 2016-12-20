@@ -26,7 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.onosproject.kafkaintegration.api.KafkaProducerService;
+import org.onosproject.kafkaintegration.api.KafkaPublisherService;
 import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 @Component
 @Service
-public class Producer implements KafkaProducerService {
+public class EventPublisher implements KafkaPublisherService {
     private KafkaProducer<String, byte[]> kafkaProducer = null;
 
     private final Logger log = LoggerFactory.getLogger(getClass());

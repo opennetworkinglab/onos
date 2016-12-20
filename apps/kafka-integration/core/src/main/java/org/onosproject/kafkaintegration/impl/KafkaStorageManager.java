@@ -31,6 +31,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * TODO: This code is not being used at the moment.
+ * This will be modified to use Distributed Work Queue.
+ * Please see clustering section of
+ * https://wiki.onosproject.org/display/ONOS/Kafka+Integration
+ */
 @Component(immediate = false)
 public class KafkaStorageManager implements KafkaEventStorageService {
 

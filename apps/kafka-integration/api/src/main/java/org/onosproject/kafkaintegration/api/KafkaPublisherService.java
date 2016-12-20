@@ -13,24 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.kafkaintegration.api;
 
-import com.google.protobuf.GeneratedMessageV3;
+import java.util.concurrent.Future;
 
-import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
-
+import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 /**
- * API for dispatching ONOS events.
+ * APIs for controlling the Kafka Producer.
+ *
  */
 public interface KafkaPublisherService {
 
     /**
-     * Publish the ONOS Event to all listeners.
+     * Starts the Kafka Producer.
      *
-     * @param eventType the ONOS eventtype
-     * @param message generated Protocol buffer message from ONOS event data
+     * @param config the Kafka Server Config
      */
-    // FIXME reconsider message type, something similar to "OnosEvent"?
-    void publish(Type eventType, GeneratedMessageV3 message);
+    void start(KafkaServerConfig config);
+
+    /**
+     * Stops the Kafka Producer.
+     *
+     */
+    void stop();
+
+    /**
+     * Restarts the Kafka Producer.
+     *
+     * @param config the Kafka Server Config
+     */
+    void restart(KafkaServerConfig config);
+
+    /**
+     * Sends message to Kafka Server.
+     *
+     * @param record a message to be sent
+     * @return metadata for a record that as been acknowledged
+     */
+    public Future<RecordMetadata> send(ProducerRecord<String, byte[]> record);
 }

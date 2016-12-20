@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.onosproject.kafkaintegration.api.EventConversionService;
 import org.onosproject.kafkaintegration.api.EventSubscriptionService;
-import org.onosproject.kafkaintegration.api.KafkaProducerService;
+import org.onosproject.kafkaintegration.api.KafkaPublisherService;
 import org.onosproject.kafkaintegration.api.KafkaConfigService;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 import org.onosproject.net.device.DeviceEvent;
@@ -49,7 +49,7 @@ import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
  * Encapsulates the behavior of monitoring various ONOS events.
  * */
 @Component(immediate = true)
-public class EventMonitor {
+public class EventListener {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -59,7 +59,7 @@ public class EventMonitor {
     protected EventConversionService eventConversionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected KafkaProducerService kafkaProducer;
+    protected KafkaPublisherService kafkaProducer;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
