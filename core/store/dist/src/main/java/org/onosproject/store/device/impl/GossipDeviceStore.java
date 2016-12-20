@@ -520,6 +520,10 @@ public class GossipDeviceStore
             // accept off-line if given timestamp is newer than
             // the latest Timestamp from Primary provider
             DeviceDescriptions primDescs = getPrimaryDescriptions(providerDescs);
+            if (primDescs == null) {
+                return null;
+            }
+
             Timestamp lastTimestamp = primDescs.getLatestTimestamp();
             if (timestamp.compareTo(lastTimestamp) <= 0) {
                 // outdated event ignore
