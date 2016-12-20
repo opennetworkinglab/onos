@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.UiWebSocket;
@@ -51,10 +52,13 @@ import java.util.Set;
  */
 public class UiTopoSession implements UiModelListener {
 
+    private static final String TOPO2_UI_MODEL_EVENT = "topo2UiModelEvent";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final UiWebSocket webSocket;
     private final String username;
+    private final Topo2Jsonifier t2json;
 
     final UiSharedTopologyModel sharedModel;
 
@@ -65,17 +69,21 @@ public class UiTopoSession implements UiModelListener {
     private boolean messagesEnabled;
 
     /**
-     * Creates a new topology session for the specified web socket connection.
+     * Creates a new topology session for the specified web socket connection,
+     * and references to JSONifier, shared model, and layout service.
      *
      * @param webSocket     web socket
+     * @param jsonifier     JSONifier instance
      * @param model         share topology model
      * @param layoutService topology layout service
      */
     public UiTopoSession(UiWebSocket webSocket,
+                         Topo2Jsonifier jsonifier,
                          UiSharedTopologyModel model,
                          UiTopoLayoutService layoutService) {
         this.webSocket = webSocket;
         this.username = webSocket.userName();
+        this.t2json = jsonifier;
         this.sharedModel = model;
         this.layoutService = layoutService;
     }
@@ -84,6 +92,7 @@ public class UiTopoSession implements UiModelListener {
     UiTopoSession() {
         webSocket = null;
         username = null;
+        t2json = null;
         sharedModel = null;
     }
 
@@ -122,7 +131,15 @@ public class UiTopoSession implements UiModelListener {
     @Override
     public void event(UiModelEvent event) {
         log.debug("Event received: {}", event);
-        // TODO: handle model events from the cache...
+        ObjectNode payload = t2json.jsonEvent(event);
+
+        // TODO: add filtering for relevant objects only...
+        // TO Decide: Since the session holds the state of what is being
+        //   displayed on the client, we should filter out any model events
+        //   that are not relevant, and only send up events for objects that
+        //   are currently being viewed by the user.
+
+        webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, 0, payload);
     }
 
     /**

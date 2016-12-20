@@ -30,6 +30,7 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.UiTopoOverlayFactory;
+import org.onosproject.ui.impl.topo.Topo2Jsonifier;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiTopoLayout;
@@ -90,9 +91,11 @@ public class UiWebSocket
     public UiWebSocket(ServiceDirectory directory, String userName) {
         this.directory = directory;
         this.userName = userName;
-        this.topoSession =
-                new UiTopoSession(this, directory.get(UiSharedTopologyModel.class),
-                        directory.get(UiTopoLayoutService.class));
+
+        Topo2Jsonifier t2json = new Topo2Jsonifier(directory);
+        UiSharedTopologyModel sharedModel = directory.get(UiSharedTopologyModel.class);
+        UiTopoLayoutService layoutService = directory.get(UiTopoLayoutService.class);
+        this.topoSession = new UiTopoSession(this, t2json, sharedModel, layoutService);
     }
 
     @Override
@@ -252,6 +255,7 @@ public class UiWebSocket
                         handler.messageTypes().forEach(type -> handlers.put(type, handler));
 
                         // need to inject the overlay cache into topology message handler
+                        // TODO: code for Topo2ViewMessageHandler required here
                         if (handler instanceof TopologyViewMessageHandler) {
                             ((TopologyViewMessageHandler) handler).setOverlayCache(overlayCache);
                         }

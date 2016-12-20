@@ -70,7 +70,7 @@ import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
  * Facility for creating JSON messages to send to the topology view in the
  * Web client.
  */
-class Topo2Jsonifier {
+public class Topo2Jsonifier {
 
     private static final String E_DEF_NOT_LAST =
             "UiNode.LAYER_DEFAULT not last in layer list";
@@ -113,7 +113,7 @@ class Topo2Jsonifier {
      *
      * @param directory service directory
      */
-    Topo2Jsonifier(ServiceDirectory directory) {
+    public Topo2Jsonifier(ServiceDirectory directory) {
         this.directory = checkNotNull(directory, "Directory cannot be null");
 
         clusterService = directory.get(ClusterService.class);
@@ -266,7 +266,13 @@ class Topo2Jsonifier {
         return result;
     }
 
-    private ObjectNode jsonEvent(UiModelEvent modelEvent) {
+    /**
+     * Creates a JSON representation of a UI model event.
+     *
+     * @param modelEvent the source model event
+     * @return a JSON representation of that event
+     */
+    public ObjectNode jsonEvent(UiModelEvent modelEvent) {
         ObjectNode payload = objectNode();
         payload.put(TYPE, enumToString(modelEvent.type()));
         payload.put(SUBJECT, modelEvent.subject().idAsString());
