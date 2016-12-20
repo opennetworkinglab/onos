@@ -5,6 +5,7 @@
             Meters for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} total)
         </h2>
+
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="42" icon-id="refresh"
@@ -36,6 +37,18 @@
             <div class="current-view"
                  icon icon-id="meterTable" icon-size="42"></div>
         </div>
+
+        <div class="search">
+            <input type="text" ng-model="query" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Meter ID</option>
+                <option value="app_id">App ID</option>
+                <option value="state">State</option>
+            </select>
+        </div>
+
     </div>
 
     <div class="summary-list" onos-table-resize>
@@ -59,7 +72,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="meter in tableData track by $index"
+                <tr ng-repeat-start="meter in tableData | filter:queryFilter  track by $index"
                     ng-repeat-complete row-id="{{meter.id}}">
                     <td>{{meter.id}}</td>
                     <td>{{meter.app_id}}</td>

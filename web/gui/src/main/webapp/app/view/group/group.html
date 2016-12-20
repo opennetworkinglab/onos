@@ -5,6 +5,7 @@
             Groups for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} total)
         </h2>
+
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="42" icon-id="refresh"
@@ -52,6 +53,18 @@
                  tooltip tt-msg="meterTip"
                  ng-click="nav('meter')"></div>
         </div>
+
+        <div class="search">
+            <input type="text" ng-model="query" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Group ID</option>
+                <option value="app_id">App ID</option>
+                <option value="state">State</option>
+                <option value="type">Type</option>
+            </select>
+        </div>
     </div>
 
     <div class="summary-list" onos-table-resize>
@@ -76,7 +89,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="group in tableData track by $index"
+                <tr ng-repeat-start="group in tableData | filter:queryFilter track by $index"
                     ng-repeat-complete row-id="{{group.id}}">
                     <td>{{group.id}}</td>
                     <td>{{group.app_id}}</td>

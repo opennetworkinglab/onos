@@ -5,6 +5,7 @@
             Ports for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} Ports total)
         </h2>
+
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="42" icon-id="refresh"
@@ -36,6 +37,22 @@
                  tooltip tt-msg="meterTip"
                  ng-click="nav('meter')"></div>
         </div>
+
+        <div class="search">
+            <input type="text" ng-model="query" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Port ID </option>
+                <option value="pkt_rx">Pkts Received</option>
+                <option value="pkt_tx">Pkts Sent</option>
+                <option value="bytes_rx">Bytes Received</option>
+                <option value="bytes_tx">Bytes Sent</option>
+                <option value="pkt_rx_drp">Pkts RX Dropped</option>
+                <option value="pkt_rx_drp">Pkts TX Dropped</option>
+                <option value="duration">Duration (sec) </option>
+            </select>
+        </div>
     </div>
 
     <div class="summary-list" onos-table-resize>
@@ -47,8 +64,8 @@
                     <td class="right" colId="pkt_tx" sortable>Pkts Sent </td>
                     <td class="right" colId="bytes_rx" sortable>Bytes Received </td>
                     <td class="right" colId="bytes_tx" sortable>Bytes Sent </td>
-                    <td class="right" colId="pkt_rx_drp" sortable>Pkts Received Dropped </td>
-                    <td class="right" colId="pkt_tx_drp" sortable>Pkts Sent Dropped </td>
+                    <td class="right" colId="pkt_rx_drp" sortable>Pkts RX Dropped </td>
+                    <td class="right" colId="pkt_tx_drp" sortable>Pkts TX Dropped </td>
                     <td class="right" colId="duration" sortable>Duration (sec) </td>
                 </tr>
             </table>
@@ -62,7 +79,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat="port in tableData track by $index"
+                <tr ng-repeat="port in tableData | filter:queryFilter track by $index"
                     ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
                     <td class="right">{{port.pkt_rx}}</td>
