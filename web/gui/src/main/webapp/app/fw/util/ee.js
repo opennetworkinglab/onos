@@ -36,7 +36,8 @@
         'sevlr',
         'ias',
         'jweeidkpizn',
-        'fmfv'
+        'fmfv',
+        'hwdoc'
         // Add more beans...
     ];
 
