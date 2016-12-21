@@ -48,4 +48,9 @@ public class PartialFailureConstraint implements Constraint {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "PartialFailureConstraint";
+    }
 }
