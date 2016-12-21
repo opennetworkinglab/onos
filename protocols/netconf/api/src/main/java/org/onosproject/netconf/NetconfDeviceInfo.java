@@ -53,7 +53,7 @@ public class NetconfDeviceInfo {
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port) {
-        Preconditions.checkArgument(!name.equals(""), "Empty device name");
+        Preconditions.checkArgument(!name.equals(""), "Empty user name");
         Preconditions.checkNotNull(port > 0, "Negative port");
         Preconditions.checkNotNull(ipAddress, "Null ip address");
         this.name = name;
@@ -73,7 +73,7 @@ public class NetconfDeviceInfo {
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port, String keyString) {
-        Preconditions.checkArgument(!name.equals(""), "Empty device name");
+        Preconditions.checkArgument(!name.equals(""), "Empty user name");
         Preconditions.checkNotNull(port > 0, "Negative port");
         Preconditions.checkNotNull(ipAddress, "Null ip address");
         this.name = name;
