@@ -142,7 +142,12 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.execute(() -> adminService.register(Resources.discrete(device.id()).resource()));
+        executor.execute(() -> {
+            boolean success = adminService.register(Resources.discrete(device.id()).resource());
+            if (!success) {
+                log.warn("Failed to register Device: {}", device.id());
+            }
+        });
     }
 
     private void unregisterDeviceResource(Device device) {
@@ -170,33 +175,45 @@ final class ResourceDeviceListener implements DeviceListener {
             // for VLAN IDs
             Set<VlanId> vlans = queryVlanIds(device.id(), port.number());
             if (!vlans.isEmpty()) {
-                adminService.register(vlans.stream()
+                boolean success = adminService.register(vlans.stream()
                         .map(portPath::child)
                         .collect(Collectors.toList()));
+                if (!success) {
+                    log.warn("Failed to register VLAN IDs for {}", portPath.id());
+                }
             }
 
             // for MPLS labels
             Set<MplsLabel> mplsLabels = queryMplsLabels(device.id(), port.number());
             if (!mplsLabels.isEmpty()) {
-                adminService.register(mplsLabels.stream()
+                boolean success = adminService.register(mplsLabels.stream()
                         .map(portPath::child)
                         .collect(Collectors.toList()));
+                if (!success) {
+                    log.warn("Failed to register MPLS Labels for {}", portPath.id());
+                }
             }
 
             // for Lambdas
             Set<OchSignal> lambdas = queryLambdas(device.id(), port.number());
             if (!lambdas.isEmpty()) {
-                adminService.register(lambdas.stream()
+                boolean success = adminService.register(lambdas.stream()
                         .map(portPath::child)
                         .collect(Collectors.toList()));
+                if (!success) {
+                    log.warn("Failed to register lambdas for {}", portPath.id());
+                }
             }
 
             // for Tributary slots
             Set<TributarySlot> tSlots = queryTributarySlots(device.id(), port.number());
             if (!tSlots.isEmpty()) {
-                adminService.register(tSlots.stream()
+                boolean success = adminService.register(tSlots.stream()
                         .map(portPath::child)
                         .collect(Collectors.toList()));
+                if (!success) {
+                    log.warn("Failed to register tributary slots for {}", portPath.id());
+                }
             }
         });
     }
