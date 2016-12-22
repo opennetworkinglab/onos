@@ -54,11 +54,13 @@ public class ApiDocManager implements ApiDocService {
     @Override
     public void register(ApiDocProvider provider) {
         providers.put(provider.key(), provider);
+        log.info("{} registered at {}", provider.name(), provider.key());
     }
 
     @Override
     public void unregister(ApiDocProvider provider) {
         providers.remove(provider.name());
+        log.info("{} unregistered", provider.name());
     }
 
     @Override
