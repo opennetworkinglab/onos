@@ -223,6 +223,40 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             return OX + flow.id();
         }
 
+        private String decorateGroupId(FlowRule flow) {
+            return OX + flow.groupId().id();
+        }
+
+        private String getCriteriaString(FlowRule flow) {
+            Set<Criterion> criteria = flow.selector().criteria();
+            StringBuilder sb = new StringBuilder();
+            for (Criterion c : criteria) {
+                sb.append(c).append(COMMA);
+            }
+            int pos = sb.lastIndexOf(COMMA);
+            sb.delete(pos, sb.length());
+
+            return sb.toString();
+        }
+
+        private String getTreatmentString(FlowRule flow) {
+            List<Instruction> instructions = flow.treatment().allInstructions();
+            StringBuilder sb = new StringBuilder();
+            for (Instruction inst : instructions) {
+                sb.append(inst).append(COMMA);
+            }
+            if (flow.treatment().metered() != null) {
+                sb.append(flow.treatment().metered().toString()).append(COMMA);
+            }
+            if (flow.treatment().tableTransition() != null) {
+                sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
+            }
+            int pos = sb.lastIndexOf(COMMA);
+            sb.delete(pos, sb.length());
+
+            return sb.toString();
+        }
+
         @Override
         public void process(long sid, ObjectNode payload) {
 
@@ -232,8 +266,17 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             if (flow != null) {
                 ObjectNode data = objectNode();
 
+
                 data.put(FLOW_ID, decorateFlowId(flow));
                 data.put(FLOW_PRIORITY, flow.priority());
+                data.put(GROUP_ID, decorateGroupId(flow));
+                data.put(APP_ID, flow.appId());
+                data.put(TABLE_ID, flow.tableId());
+                data.put(TIMEOUT, flow.hardTimeout());
+                data.put(PERMANENT, Boolean.toString(flow.isPermanent()));
+                data.put(SELECTOR, getCriteriaString(flow));
+                data.put(TREATMENT, getTreatmentString(flow));
+
 
                 //TODO put more detail info to data
 

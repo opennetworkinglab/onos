@@ -30,6 +30,10 @@
         pHeight,
         top,
         topTable,
+        trmtDiv,
+        selDiv,
+        topSelTable,
+        topTrmtTable,
         bottom,
         iconDiv,
         nameDiv,
@@ -49,10 +53,12 @@
         detailsResp = 'flowDetailsResponse',
 
         propOrder = [
-            'flowId', 'priority'
+            'flowId', 'priority', 'groupId', 'appId', 'tableId',
+            'timeout', 'permanent'
         ],
         friendlyProps = [
-            'Flow ID', 'Flow Priority'
+            'Flow ID', 'Flow Priority', 'Group ID', 'Application ID',
+            'Table ID', 'Timeout', 'Permanent'
         ];
 
     function closePanel() {
@@ -78,8 +84,9 @@
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
-
         top = container.append('div').classed('top', true);
+        trmtDiv = container.append('div').classed('top', true);
+        selDiv = container.append('div').classed('top', true);
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
@@ -87,6 +94,14 @@
         topTable = top.append('div').classed('top-content', true)
             .append('table');
         top.append('hr');
+        trmtDiv.append('h2').html('Treatment');
+        topTrmtTable = trmtDiv.append('div').classed('top-content', true)
+            .append('table');
+        trmtDiv.append('hr');
+        selDiv.append('h2').html('Selector');
+        topSelTable = selDiv.append('div').classed('top-content', true)
+            .append('table');
+
 
         //ToDo add more details
     }
@@ -101,15 +116,44 @@
         addCell('value', value);
     }
 
+    function populateTable(tbody, label, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
+        }
+        addCell('label', label + ' :');
+        addCell('value', value);
+    }
+
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'flowTable', 40);
         top.select('h2').html(details.flowId);
 
         var tbody = topTable.append('tbody');
 
+        var topSelTablebody = topSelTable.append('tbody');
+        var selectorString = details['selector'];
+        var selectors = selectorString.split(',');
+
+        var topTrmtTablebody = topTrmtTable.append('tbody');
+        var treatmentString = details['treatment'];
+        var treatment = treatmentString.split(',');
+
         propOrder.forEach(function (prop, i) {
             addProp(tbody, i, details[prop]);
         });
+
+        selectors.forEach(function (sel) {
+            var selArray = sel.split(':');
+            populateTable(topSelTablebody, selArray[0], selArray[1]);
+        });
+
+        treatment.forEach(function (sel) {
+            var selArray = sel.split(':');
+            populateTable(topTrmtTable, selArray[0], selArray[1]);
+        });
+
     }
 
     function createDetailsPane() {
