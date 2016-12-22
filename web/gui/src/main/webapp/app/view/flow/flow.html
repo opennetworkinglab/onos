@@ -6,22 +6,6 @@
             ({{tableData.length}} total)
         </h2>
 
-        <div class="search">
-            <input type="text" ng-model="query" placeholder="Search"/>
-            <select ng-model="queryBy">
-                <option value="" disabled>Search By</option>
-                <option value="$">All</option>
-                <option value="id">Flow ID</option>
-                <option value="appId">App ID</option>
-                <option value="groupId">Group ID</option>
-                <option value="tableId">Table ID</option>
-                <option value="priority">Priority</option>
-                <option value="timeout">Timeout</option>
-                <option value="permanent">Permanent</option>
-                <option value="state">State</option>
-            </select>
-        </div>
-
         <div class="ctrl-btns">
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="42" icon-id="refresh"
@@ -70,6 +54,21 @@
                  ng-click="nav('meter')"></div>
 
         </div>
+
+        <div class="search">
+            <input type="text" ng-model="queryTxt" placeholder="Search Text"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Flow ID</option>
+                <option value="appId">App ID</option>
+                <option value="groupId">Group ID</option>
+                <option value="tableId">Table ID</option>
+                <option value="priority">Priority</option>
+                <option value="timeout">Timeout</option>
+            </select>
+        </div>
+
     </div>
 
     <div class="summary-list" onos-table-resize>

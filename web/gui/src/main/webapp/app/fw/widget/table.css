@@ -77,9 +77,14 @@ div.summary-list .table-body td {
     cursor: pointer;
 }
 
-/* Tabular view upper right control buttons */
+/* Tabular view controls */
 
-div.ctrl-btns {
+div.tabular-header .search {
+    margin: 0 0 10px 10px;
+}
+
+
+div.tabular-header div.ctrl-btns {
     display: inline-block;
     float: right;
     height: 44px;
@@ -87,12 +92,12 @@ div.ctrl-btns {
     margin-right: 20px;
 }
 
-div.ctrl-btns div {
+div.tabular-header div.ctrl-btns div {
     display: inline-block;
     cursor: pointer;
 }
 
-div.ctrl-btns div.separator  {
+div.tabular-header div.ctrl-btns div.separator  {
     width: 0;
     height: 40px;
     padding: 0;
