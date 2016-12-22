@@ -40,6 +40,7 @@
 
     // configuration
     var devIconDim = 36,
+        devColorDim = 32,
         labelPad = 4,
         hostRadius = 14,
         badgeConfig = {
@@ -60,11 +61,30 @@
     //       the server-side UiModel code.
     // {virtual -> cord} is for the E-CORD demo at ONS 2016
     var remappedDeviceTypes = {
-        virtual: 'cord'
+        virtual: 'cord',
+
+        // for now, map to the new glyphs via this lookup.
+        // may have to find a better way to do this...
+        'switch': 'm_switch',
+        roadm: 'm_roadm',
+        otn: 'm_otn',
+        roadm_otn: 'm_roadm_otn',
+        fiber_switch: 'm_fiberSwitch',
+        microwave: 'm_microwave',
+    };
+
+    var remappedHostTypes = {
+        router: 'm_router',
+        endstation: 'm_endstation',
+        bgpSpeaker: 'm_bgpSpeaker'
     };
 
     function mapDeviceTypeToGlyph(type) {
         return remappedDeviceTypes[type] || type || 'unknown';
+    }
+
+    function mapHostTypeToGlyph(type) {
+        return remappedHostTypes[type] || type || 'unknown';
     }
 
     function badgeStatus(badge) {
@@ -97,7 +117,8 @@
     }
 
     function setDeviceColor(d) {
-        d.el.select('use')
+        // want to color the square rectangle (no longer the 'use' glyph)
+        d.el.selectAll('rect').filter(function (d, i) {return i === 1;})
             .style('fill', devGlyphColor(d));
     }
 
@@ -241,11 +262,12 @@
         var node = d3.select(this),
             glyphId = mapDeviceTypeToGlyph(d.type),
             label = trimLabel(deviceLabel(d)),
-            rect, text, glyph, labelWidth;
+            rect, crect, text, glyph, labelWidth;
 
         d.el = node;
 
         rect = node.append('rect');
+        crect = node.append('rect');
 
         text = node.append('text').text(label)
             .attr('text-anchor', 'left')
@@ -257,6 +279,7 @@
         labelWidth = label ? computeLabelWidth(node) : 0;
 
         rect.attr(iconBox(devIconDim, labelWidth));
+        crect.attr(iconBox(devColorDim, 0));
         glyph.attr(iconBox(devIconDim, 0));
 
         node.attr('transform', sus.translate(-halfDevIcon, -halfDevIcon));
@@ -264,13 +287,13 @@
 
     function hostEnter(d) {
         var node = d3.select(this),
-            gid = d.type || 'unknown',
+            glyphId = mapHostTypeToGlyph(d.type),
             textDy = hostRadius + 10;
 
         d.el = node;
         sus.visible(node, api.showHosts());
 
-        is.addHostIcon(node, hostRadius, gid);
+        is.addHostIcon(node, hostRadius, glyphId);
 
         node.append('text')
             .text(hostLabel)

@@ -159,7 +159,7 @@
 }
 #ov-topo svg .node.device use {
     /*TODO: theme*/
-    fill: #777;
+    fill: #eee;
 }
 
 
@@ -170,8 +170,7 @@
     fill: #3c3a3a;
 }
 #ov-topo svg .node.device.online use {
-    /* NOTE: this gets overridden programatically */
-    fill: #454545;
+    fill: #fff;
 }
 
 
