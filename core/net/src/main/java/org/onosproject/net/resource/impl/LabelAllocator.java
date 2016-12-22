@@ -213,11 +213,9 @@ public final class LabelAllocator {
      */
     public Map<LinkKey, Identifier<?>> assignLabelToLinks(Set<Link> links, IntentId id, EncapsulationType type) {
 
-        Set<LinkKey> linkRequest = Sets.newHashSet();
-
-        links.forEach(link -> {
-            linkRequest.add(LinkKey.linkKey(link));
-        });
+        Set<LinkKey> linkRequest = links.stream()
+                .map(LinkKey::linkKey)
+                .collect(Collectors.toSet());
 
         Map<LinkKey, Identifier<?>> availableIds = findAvailableIDs(linkRequest, type);
         if (availableIds.isEmpty()) {
