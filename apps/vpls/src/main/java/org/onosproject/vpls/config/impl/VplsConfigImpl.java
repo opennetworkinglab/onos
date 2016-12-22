@@ -85,7 +85,7 @@ public class VplsConfigImpl implements VplsConfigService {
 
     private final Set<String> vplsAffectedByApi = new HashSet<>();
 
-    private VplsAppConfig vplsAppConfig = new VplsAppConfig();
+    private VplsAppConfig vplsAppConfig = null;
 
     private SetMultimap<String, String> ifacesOfVpls = HashMultimap.create();
     private SetMultimap<String, String> oldIfacesOfVpls = HashMultimap.create();
@@ -278,8 +278,7 @@ public class VplsConfigImpl implements VplsConfigService {
 
         if (vplsAppConfig == null) {
             log.warn(CONFIG_NULL);
-            configService.addConfig(vplsAppId, VplsAppConfig.class);
-            return;
+            vplsAppConfig = configService.addConfig(vplsAppId, VplsAppConfig.class);
         }
 
         oldIfacesOfVpls = ifacesOfVpls;
