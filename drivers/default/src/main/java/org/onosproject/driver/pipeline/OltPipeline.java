@@ -50,6 +50,7 @@ import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -184,12 +185,24 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
                 provisionIgmp(filter, ethType, ipProto, output);
+            } else if (ipProto.protocol() == IPv4.PROTOCOL_UDP) {
+                UdpPortCriterion udpSrcPort = (UdpPortCriterion)
+                        filterForCriterion(filter.conditions(), Criterion.Type.UDP_SRC);
+
+                UdpPortCriterion udpDstPort = (UdpPortCriterion)
+                        filterForCriterion(filter.conditions(), Criterion.Type.UDP_DST);
+
+                if (udpSrcPort.udpPort().toInt() != 68 || udpDstPort.udpPort().toInt() != 67) {
+                    log.error("OLT can only filte DHCP, wrong UDP Src or Dst Port");
+                    fail(filter, ObjectiveError.UNSUPPORTED);
+                }
+                provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
             } else {
-                log.error("OLT can only filter igmp");
+                log.error("OLT can only filter igmp and DHCP");
                 fail(filter, ObjectiveError.UNSUPPORTED);
             }
         } else {
-            log.error("OLT can only filter eapol and igmp");
+            log.error("OLT can only filter eapol igmp");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
 
@@ -540,6 +553,15 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         buildAndApplyRule(filter, selector, treatment);
     }
 
+    private void provisionDhcp(FilteringObjective filter, EthTypeCriterion ethType,
+                               IPProtocolCriterion ipProto,
+                               UdpPortCriterion udpSrcPort,
+                               UdpPortCriterion udpDstPort,
+                               Instructions.OutputInstruction output) {
+        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort);
+        TrafficTreatment treatment = buildTreatment(output);
+        buildAndApplyRule(filter, selector, treatment);
+    }
     private void buildAndApplyRule(FilteringObjective filter, TrafficSelector selector,
                                    TrafficTreatment treatment) {
         FlowRule rule = DefaultFlowRule.builder()
