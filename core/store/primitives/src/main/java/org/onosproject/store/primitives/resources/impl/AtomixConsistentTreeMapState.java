@@ -325,7 +325,7 @@ public class AtomixConsistentTreeMapState extends ResourceStateMachine implement
             Commit<? extends Unlisten> commit) {
         try {
             Commit<? extends AtomixConsistentTreeMapCommands.Listen> listener =
-                    listeners.remove(commit.session());
+                    listeners.remove(commit.session().id());
             if (listener != null) {
                 listener.close();
             }
