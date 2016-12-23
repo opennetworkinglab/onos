@@ -404,7 +404,7 @@ public class IntentsListCommand extends AbstractShellCommand {
             builder.append(String.format("    ingress=%s, egress=%s", pi.ingressPoint(), pi.egressPoints()));
         } else if (intent instanceof PathIntent) {
             PathIntent pi = (PathIntent) intent;
-            builder.append(String.format("    path=%s, cost=%d", pi.path().links(), pi.path().cost()));
+            builder.append(String.format("    path=%s, cost=%f", pi.path().links(), pi.path().cost()));
         } else if (intent instanceof LinkCollectionIntent) {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
             builder.append(String.format("    links=%s", li.links()));
