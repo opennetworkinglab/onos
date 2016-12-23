@@ -50,7 +50,6 @@ import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
-import org.onosproject.scalablegateway.api.GatewayNode;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -68,7 +67,6 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.Constants.*;
 import static org.onosproject.openstacknetworking.RulePopulatorUtil.buildExtension;
-import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
 
 
 @Service
@@ -395,17 +393,7 @@ public class OpenstackFloatingIpManager extends AbstractVmHandler implements Ope
 
             switch (event.type()) {
                 case COMPLETE:
-                    if (node.type() == GATEWAY) {
-                        log.info("GATEWAY node {} detected", node.hostname());
-                        eventExecutor.execute(() -> {
-                            GatewayNode gnode = GatewayNode.builder()
-                                    .gatewayDeviceId(node.intBridge())
-                                    .dataIpAddress(node.dataIp().getIp4Address())
-                                    .uplinkIntf(node.externalPortName().get())
-                                    .build();
-                            gatewayService.addGatewayNode(gnode);
-                        });
-                    }
+                    reinstallVmFlow(null);
                     break;
                 case INIT:
                 case DEVICE_CREATED:
