@@ -32,7 +32,7 @@
         middle,
         bottom,
         wSize = false,
-        activateImmediately;
+        activateImmediately = '';
 
     // constants
     var INSTALLED = 'INSTALLED',
