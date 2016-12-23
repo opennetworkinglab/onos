@@ -109,13 +109,9 @@ public class IpHandler {
 
         Ip4Address destIpAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
 
-        if (ipPacketQueue.get(destIpAddress) == null) {
-            ConcurrentLinkedQueue<IPv4> queue = new ConcurrentLinkedQueue<>();
-            queue.add(ipPacket);
-            ipPacketQueue.put(destIpAddress, queue);
-        } else {
-            ipPacketQueue.get(destIpAddress).add(ipPacket);
-        }
+        ipPacketQueue
+            .computeIfAbsent(destIpAddress, a -> new ConcurrentLinkedQueue<>())
+            .add(ipPacket);
     }
 
     /**
