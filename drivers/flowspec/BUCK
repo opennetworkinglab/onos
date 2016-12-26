@@ -1,0 +1,26 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//drivers/default:onos-drivers-default',
+    '//apps/flowspec-api/flowapi:onos-apps-flowspec-api-flowapi',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.flowspec',
+    title = 'Flow specification Device Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS flow specification device drivers application.',
+    required_apps = [ 'org.onosproject.drivers'],
+)

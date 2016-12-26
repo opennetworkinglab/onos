@@ -1,0 +1,11 @@
+BUNDLES = [
+    '//apps/flowspec-api/flowapi:onos-apps-flowspec-api-flowapi',
+
+]
+
+onos_app (
+  title = 'Flowspec API',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'ONOS framework applications',
+)

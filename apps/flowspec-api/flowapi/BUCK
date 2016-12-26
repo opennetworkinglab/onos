@@ -1,0 +1,18 @@
+COMPILE_DEPS = [
+    '//utils/osgi:onlab-osgi',
+    '//utils/misc:onlab-misc',
+    '//lib:commons-io',
+    '//lib:guava',
+    '//lib:kryo',
+    '//lib:slf4j-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    visibility = ['PUBLIC'],
+)

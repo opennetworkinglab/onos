@@ -94,6 +94,7 @@ ONOS_DRIVERS = [
     '//drivers/ovsdb:onos-drivers-ovsdb-oar',
     '//drivers/juniper:onos-drivers-juniper-oar',
     '//drivers/lisp:onos-drivers-lisp-oar',
+    '//drivers/flowspec:onos-drivers-flowspec-oar',
 ]
 
 ONOS_PROVIDERS = [
@@ -186,6 +187,7 @@ ONOS_APPS = [
     '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature',
     '//apps/tenbi:onos-apps-tenbi-oar',
     '//protocols/restconf/server:onos-protocols-restconf-server-oar',
+    '//apps/flowspec-api:onos-apps-flowspec-api-oar',
 ]
 
 APP_JARS = [

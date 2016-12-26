@@ -46,6 +46,7 @@
         <module>reactive-routing</module>
         <module>virtualbng</module>
         <module>bgprouter</module>
+        <module>flowspec-api</module>
         <module>test</module>
         <module>segmentrouting</module>
         <module>kafka-integration</module>
