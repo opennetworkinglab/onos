@@ -31,6 +31,7 @@ import org.onosproject.lisp.ctl.LispController;
 import org.onosproject.lisp.ctl.LispMessageListener;
 import org.onosproject.lisp.ctl.LispRouter;
 import org.onosproject.lisp.ctl.LispRouterAgent;
+import org.onosproject.lisp.ctl.LispRouterFactory;
 import org.onosproject.lisp.ctl.LispRouterId;
 import org.onosproject.lisp.ctl.LispRouterListener;
 import org.onosproject.lisp.msg.authentication.LispAuthenticationConfig;
@@ -99,11 +100,14 @@ public class LispControllerImpl implements LispController {
     private Set<LispRouterListener> lispRouterListeners = new CopyOnWriteArraySet<>();
     private Set<LispMessageListener> lispMessageListeners = new CopyOnWriteArraySet<>();
 
+    private LispRouterFactory routerFactory = LispRouterFactory.getInstance();
+
     @Activate
     public void activate(ComponentContext context) {
         coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         initAuthConfig(context.getProperties());
+        routerFactory.setAgent(agent);
         bootstrap.start();
         log.info("Started");
     }
@@ -114,6 +118,7 @@ public class LispControllerImpl implements LispController {
      */
     private void cleanup() {
         bootstrap.stop();
+        routerFactory.cleanAgent();
         connectedRouters.values().forEach(LispRouter::disconnectRouter);
         connectedRouters.clear();
     }

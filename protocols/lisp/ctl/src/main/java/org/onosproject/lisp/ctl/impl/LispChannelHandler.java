@@ -20,17 +20,22 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
+import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.ctl.LispRouter;
+import org.onosproject.lisp.ctl.LispRouterFactory;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
-import org.onosproject.lisp.msg.protocols.LispMapNotify;
-import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispInfoReply;
 import org.onosproject.lisp.msg.protocols.LispInfoRequest;
+import org.onosproject.lisp.msg.protocols.LispMapNotify;
+import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapRequest;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+
+import static org.onlab.packet.IpAddress.valueOf;
 
 /**
  * Channel handler deals with the xTR connection and dispatches xTR messages
@@ -39,6 +44,10 @@ import java.util.List;
 public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final LispRouterFactory routerFactory = LispRouterFactory.getInstance();
+
+    private LispRouter router;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -61,9 +70,16 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
 
             // process map-register message
             if (msg instanceof LispMapRegister) {
+
+                LispMapRegister register = (LispMapRegister) msg;
+                IpAddress xtrAddress = valueOf(register.getSender().getAddress());
+                router = routerFactory.getRouterInstance(xtrAddress);
+                router.setChannel(ctx.channel());
+                router.connectRouter();
+                router.handleMessage(register);
+
                 LispMapServer mapServer = LispMapServer.getInstance();
-                LispMapNotify mapNotify =
-                        mapServer.processMapRegister((LispMapRegister) msg);
+                LispMapNotify mapNotify = mapServer.processMapRegister(register);
 
                 if (mapNotify != null) {
                     ctx.writeAndFlush(mapNotify);

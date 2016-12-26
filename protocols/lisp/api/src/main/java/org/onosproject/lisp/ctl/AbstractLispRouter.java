@@ -15,6 +15,7 @@
  */
 package org.onosproject.lisp.ctl;
 
+import com.google.common.base.Objects;
 import io.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.protocols.LispMessage;
@@ -74,13 +75,7 @@ public abstract class AbstractLispRouter implements LispRouter {
         this.channel = channel;
         final SocketAddress address = channel.remoteAddress();
         if (address instanceof InetSocketAddress) {
-            final InetSocketAddress inetAddress = (InetSocketAddress) address;
-            final IpAddress ipAddress = IpAddress.valueOf(inetAddress.getAddress());
-            if (ipAddress.isIp4()) {
-                channelId = ipAddress.toString() + ':' + inetAddress.getPort();
-            } else {
-                channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
-            }
+            channelId = genChannelId((InetSocketAddress) address);
         }
     }
 
@@ -160,6 +155,52 @@ public abstract class AbstractLispRouter implements LispRouter {
         sb.append(routerId);
         sb.append("]]");
 
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractLispRouter that = (AbstractLispRouter) o;
+        return Objects.equal(channel, that.channel) &&
+                Objects.equal(channelId, that.channelId) &&
+                Objects.equal(connected, that.connected) &&
+                Objects.equal(subscribed, that.subscribed) &&
+                Objects.equal(routerId, that.routerId) &&
+                Objects.equal(agent, that.agent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(channel, channelId, connected,
+                                                    subscribed, routerId, agent);
+    }
+
+    /**
+     * Generates a string format of channel ID from the given InetSocketAddress.
+     *
+     * @param inetAddress InetAddress object
+     * @return string format of channel ID
+     */
+    private String genChannelId(InetSocketAddress inetAddress) {
+        StringBuilder sb = new StringBuilder();
+        final IpAddress ipAddress = IpAddress.valueOf(inetAddress.getAddress());
+        if (ipAddress.isIp4()) {
+            sb.append(ipAddress.toString());
+            sb.append(":");
+            sb.append(inetAddress.getPort());
+        } else {
+            sb.append("[");
+            sb.append(ipAddress.toString());
+            sb.append("]:");
+            sb.append(inetAddress.getPort());
+        }
         return sb.toString();
     }
 }
