@@ -94,7 +94,7 @@ public abstract class BasePacket implements IPacket {
         }
 
         final byte[] data = this.serialize();
-        pkt.deserialize(this.serialize(), 0, data.length);
+        pkt.deserialize(data, 0, data.length);
         pkt.setParent(this.parent);
         return pkt;
     }
