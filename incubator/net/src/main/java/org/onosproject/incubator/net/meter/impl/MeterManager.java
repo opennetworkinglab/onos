@@ -30,6 +30,7 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
+import org.onosproject.net.meter.MeterFeaturesKey;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterListener;
@@ -173,14 +174,26 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     }
 
     private MeterId allocateMeterId(DeviceId deviceId) {
+        long maxMeters = store.getMaxMeters(MeterFeaturesKey.key(deviceId));
+
+        if (maxMeters == 0L) {
+            throw new IllegalStateException("Meters not supported by device " + deviceId);
+        }
+
+        final long mmeters = maxMeters;
         long id = meterIdCounters.compute(deviceId, (k, v) -> {
             if (v == null) {
                 return allocateCounter(k);
             }
+            if (v.get() >= mmeters) {
+                throw new IllegalStateException("Maximum number of meters " +
+                        meterIdCounters.get(deviceId).get() +
+                        " reached for device " + deviceId);
+            }
             return v;
         }).incrementAndGet();
 
-        return MeterId.meterId((int) id);
+        return MeterId.meterId(id);
     }
 
     private AtomicCounter allocateCounter(DeviceId deviceId) {
