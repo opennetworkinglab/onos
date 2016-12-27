@@ -23,11 +23,14 @@
     'use strict';
 
     // Injected Services
-    var $log, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps;
+    var $log, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs;
     var Model;
 
     // Internal
     var region
+
+    // 'static' vars
+    var ROOT = '(root)';
 
     function init() {}
 
@@ -53,7 +56,6 @@
         angular.forEach(region.get('links').models, function (link) {
             link.createLink();
         });
-
 
         // TODO: replace with an algorithm that computes appropriate transition
         //        based on the location of the "region node" on the parent map
@@ -82,6 +84,11 @@
             }
         };
 
+
+        // Hide Breadcrumbs if there are no subregions configured in the root region
+        if (isRootRegion() && !region.get('subregions').models.length) {
+            t2bcs.hide();
+        }
 
         setTimeout(function () {
             var regionPZ = regionPanZooms[region.get('id')];
@@ -143,8 +150,6 @@
             return true;
         }
 
-        // TODO: close details panel
-
         return false;
     }
 
@@ -167,13 +172,18 @@
         return false;
     }
 
+    function isRootRegion() {
+        return region.get('id') === ROOT;
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2RegionService',
         ['$log', 'Topo2Model',
         'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
+        'Topo2BreadcrumbService',
 
-        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_, _t2dps_) {
+        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_, _t2dps_, _t2bcs_) {
 
             $log = _$log_;
             Model = _Model_;
@@ -183,6 +193,7 @@
             t2ls = _t2ls_;
             t2zs = _t2zs_;
             t2dps = _t2dps_;
+            t2bcs = _t2bcs_;
 
             return {
                 init: init,
@@ -194,8 +205,6 @@
 
                 deselectAllNodes: deselectAllNodes,
                 deselectLink: deselectLink,
-
-                getSubRegions: t2sr.getSubRegions
             };
         }]);
 

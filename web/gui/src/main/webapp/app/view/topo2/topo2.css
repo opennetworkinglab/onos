@@ -19,6 +19,11 @@
  ONOS GUI -- Topology View (layout) -- CSS file
  */
 
+#mast {
+    position: relative;
+    z-index: 1000;
+}
+
 /* --- Base SVG Layer --- */
 
 #ov-topo2 svg {
@@ -93,6 +98,9 @@
     top: 104px;
 }
 
+.breadcrumb--hidden #topo2-p-instance.floatpanel {
+    top: 64px;
+}
 
 /* -- Base Device Styles -- */
 #ov-topo2 svg .node {
