@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var $loc, ps, ms, sus, countryFilters;
+    var $loc, ps, ms, flash, sus, countryFilters;
 
     // Injected Classes
     var MapSelectionDialog;
@@ -66,6 +66,10 @@
             shading: ''
         });
 
+        if (!ps.getPrefs('topo_prefs').bg) {
+            toggle(false);
+        }
+
         return promise;
     }
 
@@ -103,15 +107,21 @@
     }
 
     function _togSvgLayer(x, G, tag, what) {
-        var on = (x === 'keyev') ? !sus.visible(G) : Boolean(x);
+        var on = (x === 'keyev') ? !sus.visible(G) : Boolean(x),
+            verb = on ? 'Show' : 'Hide';
         sus.visible(G, on);
         updatePrefsState(tag, on);
-        // flash.flash(verb + ' ' + what);
+
+        if (x === 'keyev') {
+            flash.flash(verb + ' ' + what);
+        }
+
+        return on;
     }
     // TODO: -- END -- Move to dedicated module
 
     function toggle(x) {
-        _togSvgLayer(x, mapG, 'bg', 'background map');
+        return _togSvgLayer(x, mapG, 'bg', 'background map');
     }
 
     function openMapSelection() {
@@ -132,13 +142,14 @@
 
     angular.module('ovTopo2')
     .factory('Topo2MapService',
-        ['$location', 'PrefsService', 'MapService',
+        ['$location', 'PrefsService', 'MapService', 'FlashService',
             'SvgUtilService', 'Topo2CountryFilters', 'Topo2MapDialog',
-            function (_$loc_, _ps_, _ms_, _sus_, _t2cf_, _t2md_) {
+            function (_$loc_, _ps_, _ms_, _flash_, _sus_, _t2cf_, _t2md_) {
 
                 $loc = _$loc_;
                 ps = _ps_;
                 ms = _ms_;
+                flash = _flash_;
                 sus = _sus_;
                 countryFilters = _t2cf_;
                 MapSelectionDialog = _t2md_;
