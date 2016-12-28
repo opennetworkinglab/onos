@@ -27,7 +27,8 @@
 
     // Internal
     var breadcrumbContainer,
-        breadcrumbs;
+        breadcrumbs,
+        layout;
 
     function init() {
         $log.debug("Topo2BreadcrumbService Initiated");
@@ -60,6 +61,9 @@
             dir: 'up',
             rid: data.id
         });
+
+        layout.createForceElements();
+        layout.transitionDownRegion();
 
         render();
     }
@@ -101,13 +105,15 @@
             .styleTween('transform', function (d) {
                 return translateInterpolator;
             });
+    }
 
+    function addLayout(_layout_) {
+        layout = _layout_;
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2BreadcrumbService',
-        ['$log', 'WebSocketService',
-
+    .factory('Topo2BreadcrumbService', [
+        '$log', 'WebSocketService',
         function (_$log_, _wss_) {
 
             $log = _$log_;
@@ -116,8 +122,9 @@
             return {
                 init: init,
                 addBreadcrumb: addBreadcrumb,
+                addLayout: addLayout,
                 hide: hide
             };
-        }]);
-
+        }
+    ]);
 })();

@@ -94,9 +94,10 @@
 
     function linkEndPoints(srcId, dstId) {
 
-        var allNodes = this.region.nodes();
-        var sourceNode = this.region.findNodeById(this, srcId);
-        var targetNode = this.region.findNodeById(this, dstId);
+        var findNodeById = this.region.model.findNodeById.bind(this.region),
+            allNodes = this.region.model.nodes(),
+            sourceNode = findNodeById(this, srcId),
+            targetNode = findNodeById(this, dstId);
 
         if (!sourceNode || !targetNode) {
             $log.error('Node(s) not on map for link:' + srcId + '~' + dstId);
@@ -157,13 +158,8 @@
                 var data = [],
                     point;
 
-                // angular.forEach(this.collection.models, function (link) {
-                //     link.unenhance();
-                // });
-
-                this.set('enhanced', true);
-
                 if (showPort()) {
+                    this.set('enhanced', true);
                     point = this.locatePortLabel();
                     angular.extend(point, {
                         id: 'topo-port-tgt',
@@ -185,7 +181,7 @@
                         .data(data)
                         .enter().append('g')
                         .classed('portLabel', true)
-                        .attr('id', function (d) { return d.id; })
+                        .attr('id', function (d) { return d.id; });
 
                     entering.each(function (d) {
                         var el = d3.select(this),
@@ -218,8 +214,6 @@
                 });
             },
             select: function () {
-
-                var ev = d3.event;
 
                 // TODO: if single selection clear selected devices, hosts, sub-regions
                 var s = Boolean(this.get('selected'));
@@ -340,27 +334,26 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2LinkService',
-        ['$log', 'Topo2Collection', 'Topo2Model',
+    .factory('Topo2LinkService', [
+        '$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
         'Topo2ViewService', 'Topo2LinkPanelService', 'FnService',
-            function (_$log_, _Collection_, _Model_, _ts_, _sus_,
-                _t2zs_, _t2vs_, _t2lps_, _fn_) {
+        function (_$log_, _c_, _Model_, _ts_, _sus_,
+            _t2zs_, _t2vs_, _t2lps_, _fn_) {
 
-                $log = _$log_;
-                ts = _ts_;
-                sus = _sus_;
-                t2zs = _t2zs_;
-                t2vs = _t2vs_;
-                Collection = _Collection_;
-                Model = _Model_;
-                t2lps = _t2lps_;
-                fn = _fn_;
+            $log = _$log_;
+            ts = _ts_;
+            sus = _sus_;
+            t2zs = _t2zs_;
+            t2vs = _t2vs_;
+            Collection = _c_;
+            Model = _Model_;
+            t2lps = _t2lps_;
+            fn = _fn_;
 
-                return {
-                    createLinkCollection: createLinkCollection
-                };
-            }
-        ]);
-
+            return {
+                createLinkCollection: createLinkCollection
+            };
+        }
+    ]);
 })();

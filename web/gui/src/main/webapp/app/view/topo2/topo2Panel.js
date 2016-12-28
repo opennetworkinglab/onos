@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var flash, ps;
+    var ps;
 
     var panel = {
         initialize: function (id, options) {
@@ -61,14 +61,13 @@
         isVisible: function () {
             return this.el.isVisible();
         }
-    }
+    };
 
     angular.module('ovTopo2')
-    .factory('Topo2PanelService',
-    ['Topo2UIView', 'FlashService', 'PanelService',
-        function (View, _flash_, _ps_) {
+    .factory('Topo2PanelService', [
+        'Topo2UIView', 'PanelService',
+        function (View, _ps_) {
 
-            flash = _flash_;
             ps = _ps_;
 
             return View.extend(panel);

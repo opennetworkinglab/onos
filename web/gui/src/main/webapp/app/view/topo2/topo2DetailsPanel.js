@@ -51,8 +51,8 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2DetailsPanelService',
-    ['Topo2PanelService',
+    .factory('Topo2DetailsPanelService', [
+        'Topo2PanelService',
         function (_ps_) {
 
             Panel = _ps_;

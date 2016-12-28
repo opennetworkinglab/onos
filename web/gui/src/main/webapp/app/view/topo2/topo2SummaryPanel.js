@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var Panel, gs, wss, flash, listProps;
+    var Panel, gs, wss, flash, ls;
 
     // Internal State
     var summaryPanel, summaryData;
@@ -64,7 +64,7 @@
 
         title.text(summaryData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, summaryData);
+        ls.listProps(tbody, summaryData);
     }
 
     function handleSummaryData(data) {
@@ -91,15 +91,15 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2SummaryPanelService',
-    ['Topo2PanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
-        function (_ps_, _gs_, _wss_, _flash_, _listService_) {
+    .factory('Topo2SummaryPanelService', [
+        'Topo2PanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
+        function (_ps_, _gs_, _wss_, _flash_, _ls_) {
 
             Panel = _ps_;
             gs = _gs_;
             wss = _wss_;
             flash = _flash_;
-            listProps = _listService_;
+            ls = _ls_;
 
             return {
                 init: init,

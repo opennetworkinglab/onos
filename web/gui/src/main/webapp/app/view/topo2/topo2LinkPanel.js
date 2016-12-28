@@ -23,13 +23,13 @@
     'use strict';
 
     // Injected Services
-    var Panel, gs, wss, flash, listProps;
+    var panel, gs, flash, ls;
 
     // Internal State
     var linkPanel, linkData;
 
     function init() {
-        linkPanel = Panel();
+        linkPanel = panel();
     }
 
     function formatLinkData(data) {
@@ -49,15 +49,15 @@
                 'Type': data.get('type'),
                 'A Type': source.get('nodeType'),
                 'A Id': source.get('id'),
-                'A Label': 'Label',
-                'A Port': data.get('portA') || '',
+                'A Label': source.get('props').name,
+                'A Port': data.get('portA') || 'N/A',
                 'B Type': target.get('nodeType'),
                 'B Id': target.get('id'),
-                'B Label': 'Label',
-                'B Port': data.get('portB') || '',
+                'B Label': target.get('props').name,
+                'B Port': data.get('portB') || 'N/A'
             }
-        }
-    };
+        };
+    }
 
     function displayLink(data) {
         init();
@@ -79,7 +79,7 @@
 
         title.text(linkData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, linkData);
+        ls.listProps(tbody, linkData);
     }
 
     function show() {
@@ -97,20 +97,18 @@
     }
 
     function destroy() {
-        wss.unbindHandlers(handlerMap);
         linkPanel.destroy();
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2LinkPanelService',
-    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
-        function (_ps_, _gs_, _wss_, _flash_, _listService_) {
+    .factory('Topo2LinkPanelService', [
+        'Topo2DetailsPanelService', 'GlyphService', 'FlashService', 'ListService',
+        function (_ps_, _gs_, _flash_, _ls_) {
 
-            Panel = _ps_;
+            panel = _ps_;
             gs = _gs_;
-            wss = _wss_;
             flash = _flash_;
-            listProps = _listService_;
+            ls = _ls_;
 
             return {
                 displayLink: displayLink,

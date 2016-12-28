@@ -79,9 +79,8 @@
     // === Controller Definition -----------------------------------------
 
     angular.module('ovTopo2', ['onosUtil', 'onosSvg', 'onosRemote'])
-    .controller('OvTopo2Ctrl',
-        ['$scope', '$log', '$location',
-        'FnService', 'MastService', 'KeyService',
+    .controller('OvTopo2Ctrl', [
+        '$scope', '$log', '$location', 'FnService', 'MastService', 'KeyService',
         'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
         'WebSocketService', 'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
@@ -192,9 +191,6 @@
                     t2es.start();
                 }
             );
-
-            // initialize the force layout, ready to render the topology
-            forceG = zoomLayer.append('g').attr('id', 'topo-force');
 
             t2fs.init(svg, forceG, uplink, dim, zoomer);
             t2bcs.init();

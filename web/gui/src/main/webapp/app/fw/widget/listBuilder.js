@@ -55,6 +55,8 @@
     angular.module('onosWidget')
     .factory('ListService', [
         function () {
-            return listProps;
+            return {
+                listProps: listProps
+            };
         }]);
 }());

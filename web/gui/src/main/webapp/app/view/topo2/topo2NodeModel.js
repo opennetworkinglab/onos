@@ -53,8 +53,8 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2NodeModel',
-        ['Topo2Model', 'FnService', 'Topo2PrefsService',
+    .factory('Topo2NodeModel', [
+        'Topo2Model', 'FnService', 'Topo2PrefsService',
         'SvgUtilService', 'IconService', 'ThemeService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2NodePositionService',
         function (Model, _fn_, _ps_, _sus_, _is_, _ts_,

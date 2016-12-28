@@ -31,8 +31,8 @@
     // ==========================
 
     angular.module('ovTopo2')
-    .factory('Topo2DialogService',
-        ['DialogService',
+    .factory('Topo2DialogService', [
+        'DialogService',
 
         function (ds) {
             return {

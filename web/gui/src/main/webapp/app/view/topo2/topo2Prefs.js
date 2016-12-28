@@ -50,9 +50,8 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2PrefsService',
-    ['PrefsService',
-
+    .factory('Topo2PrefsService', [
+        'PrefsService',
         function (_ps_) {
 
             ps = _ps_;

@@ -39,14 +39,16 @@ Module that contains the d3.force.layout logic
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2D3Service',
-    [function (_is_) {
-        return {
-            nodeEnter: nodeEnter,
-            nodeExit: nodeExit,
-            hostEnter: hostEnter,
-            linkEntering: linkEntering
-        };
-    }]
+    .factory('Topo2D3Service', [
+
+        function (_is_) {
+            return {
+                nodeEnter: nodeEnter,
+                nodeExit: nodeExit,
+                hostEnter: hostEnter,
+                linkEntering: linkEntering
+            };
+        }
+    ]
 );
 })();

@@ -32,8 +32,8 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2UIView',
-    ['FnService',
+    .factory('Topo2UIView', [
+        'FnService',
         function (fn) {
 
             _.extend(View.prototype, {

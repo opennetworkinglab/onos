@@ -23,189 +23,129 @@
     'use strict';
 
     // Injected Services
-    var $log, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs;
     var Model;
 
     // Internal
-    var region
+    var instance
 
     // 'static' vars
     var ROOT = '(root)';
 
-    function init() {}
-
-    function addRegion(data) {
-
-        var RegionModel = Model.extend({
-            findNodeById: findNodeById,
-            nodes: regionNodes
-        });
-
-        region = new RegionModel({
-            id: data.id,
-            layerOrder: data.layerOrder
-        });
-
-        region.set({
-            subregions: t2sr.createSubRegionCollection(data.subregions, region),
-            devices: t2ds.createDeviceCollection(data.devices, region),
-            hosts: t2hs.createHostCollection(data.hosts, region),
-            links: t2ls.createLinkCollection(data.links, region)
-        });
-
-        angular.forEach(region.get('links').models, function (link) {
-            link.createLink();
-        });
-
-        // TODO: replace with an algorithm that computes appropriate transition
-        //        based on the location of the "region node" on the parent map
-
-        // TEMP Map Zoom
-        var regionPanZooms = {
-            "(root)": {
-                scale: 4.21,
-                translate: [-2066.3049871603093, -2130.190726668792]
-            },
-            c01: {
-                scale: 19.8855,
-                translate: [-10375.91165337411, -10862.217941271818]
-            },
-            c02: {
-                scale: 24.25,
-                translate: [-14169.70851936781, -15649.174761455488]
-            },
-            c03: {
-                scale: 22.72,
-                translate: [-14950.92246589002, -15390.955326616648]
-            },
-            c04: {
-                scale: 26.24,
-                translate: [-16664.006814209282, -16217.021478816077]
-            }
-        };
-
-
-        // Hide Breadcrumbs if there are no subregions configured in the root region
-        if (isRootRegion() && !region.get('subregions').models.length) {
-            t2bcs.hide();
-        }
-
-        setTimeout(function () {
-            var regionPZ = regionPanZooms[region.get('id')];
-            t2zs.panAndZoom(regionPZ.translate, regionPZ.scale);
-        }, 10);
-
-        $log.debug('Region: ', region);
-    }
-
-    function findNodeById(link, id) {
-
-
-        if (link.get('type') !== 'UiEdgeLink') {
-            // Remove /{port} from id if needed
-            var regex = new RegExp('^[^/]*');
-            id = regex.exec(id)[0];
-        }
-
-        return region.get('devices').get(id) ||
-            region.get('hosts').get(id) ||
-            region.get('subregions').get(id);
-    }
-
-    function regionNodes() {
-
-        if (region) {
-            return [].concat(
-                region.get('devices').models,
-                region.get('hosts').models,
-                region.get('subregions').models
-            );
-        }
-
-        return [];
-    }
-
-    function filterRegionNodes(predicate) {
-        var nodes = regionNodes();
-        return _.filter(nodes, predicate);
-    }
-
-    function regionLinks() {
-        return (region) ? region.get('links').models : [];
-    }
-
-    function deselectAllNodes() {
-
-        var selected = filterRegionNodes(function (node) {
-            return node.get('selected', true);
-        });
-
-        if (selected.length) {
-
-            selected.forEach(function (node) {
-                node.deselect();
-            });
-
-            t2dps().el.hide();
-            return true;
-        }
-
-        return false;
-    }
-
-    function deselectLink() {
-
-        var selected = _.filter(regionLinks(), function (link) {
-            return link.get('selected', true);
-        });
-
-        if (selected.length) {
-
-            selected.forEach(function (link) {
-                link.deselect();
-            });
-
-            t2dps().el.hide();
-            return true;
-        }
-
-        return false;
-    }
-
-    function isRootRegion() {
-        return region.get('id') === ROOT;
-    }
-
     angular.module('ovTopo2')
-    .factory('Topo2RegionService',
-        ['$log', 'Topo2Model',
-        'Topo2SubRegionService', 'Topo2DeviceService',
+    .factory('Topo2RegionService', [
+        '$log', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
-        'Topo2BreadcrumbService',
+        'Topo2BreadcrumbService', 'Topo2ViewController',
+        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController) {
 
-        function (_$log_, _Model_, _t2sr_, _t2ds_, _t2hs_, _t2ls_, _t2zs_, _t2dps_, _t2bcs_) {
-
-            $log = _$log_;
             Model = _Model_;
-            t2sr = _t2sr_;
-            t2ds = _t2ds_;
-            t2hs = _t2hs_;
-            t2ls = _t2ls_;
-            t2zs = _t2zs_;
-            t2dps = _t2dps_;
-            t2bcs = _t2bcs_;
 
-            return {
-                init: init,
+            var Region = ViewController.extend({
+                initialize: function () {
+                    instance = this;
+                    this.model = null;
+                },
+                addRegion: function (data) {
 
-                addRegion: addRegion,
-                regionNodes: regionNodes,
-                regionLinks: regionLinks,
-                filterRegionNodes: filterRegionNodes,
+                    var RegionModel = Model.extend({
+                        findNodeById: this.findNodeById,
+                        nodes: this.regionNodes.bind(this)
+                    });
 
-                deselectAllNodes: deselectAllNodes,
-                deselectLink: deselectLink,
-            };
+                    this.model = new RegionModel({
+                        id: data.id,
+                        layerOrder: data.layerOrder
+                    });
+
+                    this.model.set({
+                        subregions: t2sr.createSubRegionCollection(data.subregions, this),
+                        devices: t2ds.createDeviceCollection(data.devices, this),
+                        hosts: t2hs.createHostCollection(data.hosts, this),
+                        links: t2ls.createLinkCollection(data.links, this)
+                    });
+
+                    angular.forEach(this.model.get('links').models, function (link) {
+                        link.createLink();
+                    });
+
+                    // Hide Breadcrumbs if there are no subregions configured in the root region
+                    if (this.isRootRegion() && !this.model.get('subregions').models.length) {
+                        t2bcs.hide();
+                    }
+                },
+                isRootRegion: function () {
+                    return this.model.get('id') === ROOT;
+                },
+                findNodeById: function (link, id) {
+                    if (link.get('type') !== 'UiEdgeLink') {
+                        // Remove /{port} from id if needed
+                        var regex = new RegExp('^[^/]*');
+                        id = regex.exec(id)[0];
+                    }
+                    return this.model.get('devices').get(id) ||
+                        this.model.get('hosts').get(id) ||
+                        this.model.get('subregions').get(id);
+                },
+                regionNodes: function () {
+
+                    if (this.model) {
+                        return [].concat(
+                            this.model.get('devices').models,
+                            this.model.get('hosts').models,
+                            this.model.get('subregions').models
+                        );
+                    }
+
+                    return [];
+                },
+                regionLinks: function () {
+                    return (this.model) ? this.model.get('links').models : [];
+                },
+                filterRegionNodes: function (predicate) {
+                    var nodes = this.regionNodes();
+                    return _.filter(nodes, predicate);
+                },
+                deselectAllNodes: function () {
+                    var selected = this.filterRegionNodes(function (node) {
+                        return node.get('selected', true);
+                    });
+
+                    if (selected.length) {
+
+                        selected.forEach(function (node) {
+                            node.deselect();
+                        });
+
+                        t2dps().el.hide();
+                        return true;
+                    }
+
+                    return false;
+                },
+                deselectLink: function () {
+                    var selected = _.filter(this.regionLinks(), function (link) {
+                        return link.get('selected', true);
+                    });
+
+                    if (selected.length) {
+
+                        selected.forEach(function (link) {
+                            link.deselect();
+                        });
+
+                        t2dps().el.hide();
+                        return true;
+                    }
+
+                    return false;
+                }
+            });
+
+            function getInstance() {
+                return instance || new Region();
+            }
+
+            return getInstance();
         }]);
 
 })();

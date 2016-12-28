@@ -28,6 +28,10 @@
     var zoomer,
         zoomEventListeners = [];
 
+    function getZoomer() {
+        return zoomer;
+    }
+
     function createZoomer(options) {
         var settings = angular.extend({}, options, {
             zoomCallback: zoomCallback
@@ -78,14 +82,15 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2ZoomService',
-        ['ZoomService', 'PrefsService',
+    .factory('Topo2ZoomService', [
+        'ZoomService', 'PrefsService',
         function (_zs_, _ps_) {
 
             zs = _zs_;
             ps = _ps_;
 
             return {
+                getZoomer: getZoomer,
                 createZoomer: createZoomer,
                 addZoomEventListener: addZoomEventListener,
                 removeZoomEventListener: removeZoomEventListener,

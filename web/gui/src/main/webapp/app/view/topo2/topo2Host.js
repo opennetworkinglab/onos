@@ -48,12 +48,12 @@
     angular.module('ovTopo2')
     .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
-        'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService', 
-        function (_Collection_, _NodeModel_, _t2vs_, is, zs, t2hds) {
+        'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService',
+        function (_c_, NodeModel, _t2vs_, is, zs, t2hds) {
 
-            Collection = _Collection_;
+            Collection = _c_;
 
-            Model = _NodeModel_.extend({
+            Model = NodeModel.extend({
                 initialize: function () {
                     this.super = this.constructor.__super__;
                     this.super.initialize.apply(this, arguments);

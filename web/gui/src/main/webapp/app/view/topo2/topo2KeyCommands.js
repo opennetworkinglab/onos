@@ -91,7 +91,7 @@
 
     function cycleDeviceLabels() {
         var deviceLabelIndex = t2ps.get('dlbls') + 1,
-            newDeviceLabelIndex =  deviceLabelIndex % 3;
+            newDeviceLabelIndex = deviceLabelIndex % 3;
 
         t2ps.set('dlbls', newDeviceLabelIndex);
         t2fs.updateNodes();
@@ -140,13 +140,12 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2KeyCommandService',
-    ['KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
-    'Topo2MapService', 'PrefsService', 'Topo2InstanceService',
-    'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ViewService',
-    'Topo2RegionService',
+    .factory('Topo2KeyCommandService', [
+        'KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
+        'Topo2MapService', 'PrefsService', 'Topo2InstanceService',
+        'Topo2SummaryPanelService', 'Topo2ViewService', 'Topo2RegionService',
         function (_ks_, _flash_, _wss_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_,
-                  _t2ddp_, _t2vs_, _t2rs_) {
+                  _t2vs_, _t2rs_) {
 
             ks = _ks_;
             flash = _flash_;
@@ -156,7 +155,6 @@
             t2is = _t2is_;
             ps = _ps_;
             t2sp = _t2sp_;
-            t2ddp = _t2ddp_;
             t2vs = _t2vs_;
             t2rs = _t2rs_;
 

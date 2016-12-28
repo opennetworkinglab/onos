@@ -31,7 +31,6 @@
         d3.select('#nav').style('visibility', vis);
     }
 
-
     function showNav() {
         navShown = true;
         updatePane();

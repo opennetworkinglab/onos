@@ -22,8 +22,7 @@
 (function () {
     'use strict';
 
-    var Model,
-        extend;
+    var Model;
 
     function Collection(models, options) {
 

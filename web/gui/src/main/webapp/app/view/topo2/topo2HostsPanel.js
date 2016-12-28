@@ -23,13 +23,13 @@
     'use strict';
 
     // Injected Services
-    var Panel, gs, wss, flash, listProps;
+    var panel, gs, flash, ls;
 
     // Internal State
     var hostPanel, hostData;
 
     function init() {
-        hostPanel = Panel();
+        hostPanel = panel();
     }
 
     function formatHostData(data) {
@@ -40,12 +40,12 @@
                 '-': '',
                 'MAC': data.get('id'),
                 'IP': data.get('ips')[0],
-                'VLAN': 'None', // TODO
+                'VLAN': 'None', // TODO: VLAN is not currently in the data received from backend
                 'Latitude': data.get('location').lat,
-                'Longitude': data.get('location').lng,
+                'Longitude': data.get('location').lng
             }
-        }
-    };
+        };
+    }
 
     function displayPanel(data) {
         init();
@@ -67,7 +67,7 @@
 
         title.text(hostData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, hostData);
+        ls.listProps(tbody, hostData);
     }
 
     function show() {
@@ -89,15 +89,14 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2HostsPanelService',
-    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
-        function (_ps_, _gs_, _wss_, _flash_, _listService_) {
+    .factory('Topo2HostsPanelService', [
+        'Topo2DetailsPanelService', 'GlyphService', 'FlashService', 'ListService',
+        function (_ps_, _gs_, _wss_, _flash_, _ls_) {
 
-            Panel = _ps_;
+            panel = _ps_;
             gs = _gs_;
-            wss = _wss_;
             flash = _flash_;
-            listProps = _listService_;
+            ls = _ls_;
 
             return {
                 displayPanel: displayPanel,

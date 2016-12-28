@@ -84,8 +84,8 @@
     // ========================== Main Service Definition
 
     angular.module('ovTopo2')
-    .factory('Topo2EventService',
-        ['$log', 'WebSocketService', 'Topo2ForceService',
+    .factory('Topo2EventService', [
+        '$log', 'WebSocketService', 'Topo2ForceService',
 
         function (_$log_, _wss_, _t2fs_) {
             $log = _$log_;

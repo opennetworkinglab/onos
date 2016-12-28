@@ -22,8 +22,6 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
 (function () {
     'use strict';
 
-    var extend;
-
     function Model(attributes) {
 
         var attrs = attributes || {};
@@ -125,7 +123,7 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
         'FnService',
         function (fn) {
             Model.extend = fn.extend;
-            
+
             return Model;
         }
     ]);

@@ -26,7 +26,7 @@
     var $log,
         wss;
 
-    var t2is, t2rs, t2ls, t2vs, t2bcs;
+    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss;
     var svg, forceG, uplink, dim, opts, zoomer;
 
     // D3 Selections
@@ -34,15 +34,17 @@
 
     // ========================== Helper Functions
 
-    function init(_svg_, _forceG_, _uplink_, _dim_, _zoomer_, _opts_) {
+    function init(_svg_, _forceG_, _uplink_, _dim_, zoomer, _opts_) {
         svg = _svg_;
         forceG = _forceG_;
         uplink = _uplink_;
         dim = _dim_;
         opts = _opts_;
-        zoomer = _zoomer_;
 
-        t2ls.init(svg, forceG, uplink, dim, zoomer, opts);
+        t2ls = t2ls(svg, forceG, uplink, dim, zoomer, opts);
+        t2bcs.addLayout(t2ls);
+        t2rs.layout = t2ls;
+        t2ss.init(svg, zoomer);
     }
 
     function destroy() {
@@ -233,12 +235,12 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2ForceService',
-        ['$log', 'WebSocketService', 'Topo2InstanceService',
+    .factory('Topo2ForceService', [
+        '$log', 'WebSocketService', 'Topo2InstanceService',
         'Topo2RegionService', 'Topo2LayoutService', 'Topo2ViewService',
-        'Topo2BreadcrumbService', 'Topo2ZoomService',
+        'Topo2BreadcrumbService', 'Topo2ZoomService', 'Topo2SelectService',
         function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_,
-            _t2vs_, _t2bcs_, zoomService) {
+            _t2vs_, _t2bcs_, zoomService, _t2ss_) {
 
             $log = _$log_;
             wss = _wss_;
@@ -247,6 +249,7 @@
             t2ls = _t2ls_;
             t2vs = _t2vs_;
             t2bcs = _t2bcs_;
+            t2ss = _t2ss_;
 
             var onZoom = function () {
                 var nodes = [].concat(

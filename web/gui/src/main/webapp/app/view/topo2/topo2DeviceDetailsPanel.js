@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var Panel, gs, wss, flash, bs, fs, ns, listProps;
+    var panel, gs, wss, flash, bs, fs, ns, ls;
 
     // Internal State
     var detailsPanel;
@@ -65,7 +65,7 @@
     function init() {
 
         bindHandlers();
-        detailsPanel = Panel();
+        detailsPanel = panel();
     }
 
     function addBtnFooter() {
@@ -114,7 +114,7 @@
         gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
 
-        listProps(tbody, data);
+        ls.listProps(tbody, data);
         addBtnFooter();
     }
 
@@ -187,19 +187,20 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2DeviceDetailsPanel',
-    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService',
-    'ButtonService', 'FnService', 'NavService', 'ListService', 
-        function (_ps_, _gs_, _wss_, _flash_, _bs_, _fs_, _ns_, _listService_) {
+    .factory('Topo2DeviceDetailsPanel', [
+        'Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService',
+        'ButtonService', 'FnService', 'NavService', 'ListService',
 
-            Panel = _ps_;
+        function (_ps_, _gs_, _wss_, _flash_, _bs_, _fs_, _ns_, _ls_) {
+
+            panel = _ps_;
             gs = _gs_;
             wss = _wss_;
             flash = _flash_;
             bs = _bs_;
             fs = _fs_;
             ns = _ns_;
-            listProps = _listService_;
+            ls = _ls_;
 
             return {
                 init: init,

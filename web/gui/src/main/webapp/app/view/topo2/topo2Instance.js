@@ -269,25 +269,26 @@
     }
 
     angular.module('ovTopo2')
-        .factory('Topo2InstanceService',
-        ['$log', 'PanelService', 'SvgUtilService', 'GlyphService', 'FlashService',
-        'ThemeService',
+        .factory('Topo2InstanceService', [
+            '$log', 'PanelService', 'SvgUtilService', 'GlyphService',
+            'FlashService', 'ThemeService',
 
-        function (_$log_, _ps_, _sus_, _gs_, _flash_, _ts_) {
-            $log = _$log_;
-            ps = _ps_;
-            sus = _sus_;
-            gs = _gs_;
-            flash = _flash_;
-            ts = _ts_;
+            function (_$log_, _ps_, _sus_, _gs_, _flash_, _ts_) {
+                $log = _$log_;
+                ps = _ps_;
+                sus = _sus_;
+                gs = _gs_;
+                flash = _flash_;
+                ts = _ts_;
 
-            return {
-                initInst: initInst,
-                allInstances: allInstances,
-                destroy: destroy,
-                toggle: toggle,
-                isVisible: function () { return oiBox.isVisible(); }
-            };
-        }]);
+                return {
+                    initInst: initInst,
+                    allInstances: allInstances,
+                    destroy: destroy,
+                    toggle: toggle,
+                    isVisible: function () { return oiBox.isVisible(); }
+                };
+            }
+        ]);
 
 })();

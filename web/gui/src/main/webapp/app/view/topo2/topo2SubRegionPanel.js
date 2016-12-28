@@ -23,13 +23,13 @@
     'use strict';
 
     // Injected Services
-    var Panel, gs, wss, flash, listProps;
+    var panel, gs, flash, ls;
 
     // Internal State
     var subRegionPanel, subRegionData;
 
     function init() {
-        subRegionPanel = Panel();
+        subRegionPanel = panel();
     }
 
     function formatSubRegionData(data) {
@@ -43,8 +43,8 @@
                 'Number of Devices': data.get('nDevs'),
                 'Number of Hosts': data.get('nHosts')
             }
-        }
-    };
+        };
+    }
 
     function displayPanel(data) {
         init();
@@ -65,7 +65,7 @@
 
         title.text(subRegionData.title);
         gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
-        listProps(tbody, subRegionData);
+        ls.listProps(tbody, subRegionData);
     }
 
     function show() {
@@ -87,15 +87,14 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2SubRegionPanelService',
-    ['Topo2DetailsPanelService', 'GlyphService', 'WebSocketService', 'FlashService', 'ListService',
-        function (_ps_, _gs_, _wss_, _flash_, _listService_) {
+    .factory('Topo2SubRegionPanelService', [
+        'Topo2DetailsPanelService', 'GlyphService', 'FlashService', 'ListService',
+        function (_ps_, _gs_, _flash_, _ls_) {
 
-            Panel = _ps_;
+            panel = _ps_;
             gs = _gs_;
-            wss = _wss_;
             flash = _flash_;
-            listProps = _listService_;
+            ls = _ls_;
 
             return {
                 displayPanel: displayPanel,
