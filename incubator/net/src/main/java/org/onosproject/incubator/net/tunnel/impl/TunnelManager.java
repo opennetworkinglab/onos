@@ -247,9 +247,10 @@ public class TunnelManager
         TunnelId tunnelId = store.createOrUpdateTunnel(tunnel, State.INIT);
         if (tunnelId != null) {
             Set<ProviderId> ids = getProviders();
+            Tunnel newT = queryTunnel(tunnelId);
             for (ProviderId providerId : ids) {
                 TunnelProvider provider = getProvider(providerId);
-                provider.setupTunnel(srcElementId, tunnel, path);
+                provider.setupTunnel(srcElementId, newT, path);
             }
         }
         return tunnelId;
