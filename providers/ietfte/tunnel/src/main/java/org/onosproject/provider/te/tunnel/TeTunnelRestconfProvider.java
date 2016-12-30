@@ -54,7 +54,6 @@ import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
@@ -95,6 +94,7 @@ public class TeTunnelRestconfProvider extends AbstractProvider
     private static final String SHOULD_IN_ONE = "Tunnel should be setup in one topo";
     private static final String PROVIDER_ID = "org.onosproject.provider.ietf";
     private static final String RESTCONF_ROOT = "/onos/restconf";
+    private static final String TE_TUNNEL_KEY = "TeTunnelKey";
 
     private final RestConfNotificationEventListener listener =
             new InternalTunnelNotificationListener();
@@ -192,9 +192,24 @@ public class TeTunnelRestconfProvider extends AbstractProvider
 
     @Override
     public void setupTunnel(ElementId srcElement, Tunnel tunnel, Path path) {
-        TeTunnel teTunnel = tunnelService.getTeTunnel(tunnel.tunnelId());
+        if (!tunnel.annotations().keys().contains(TE_TUNNEL_KEY)) {
+            log.warn("No tunnel key info in tunnel {}", tunnel);
+            return;
+        }
 
-        IetfTe ietfTe = buildIetfTe(teTunnel);
+        String teTunnelKey = tunnel.annotations().value(TE_TUNNEL_KEY);
+
+        Optional<TeTunnel> optTunnel = tunnelService.getTeTunnels()
+                .stream()
+                .filter(t -> t.teTunnelKey().toString().equals(teTunnelKey))
+                .findFirst();
+
+        if (!optTunnel.isPresent()) {
+            log.warn("No te tunnel map to tunnel {}", tunnel);
+            return;
+        }
+
+        IetfTe ietfTe = buildIetfTe(optTunnel.get());
 
         YangCompositeEncoding encoding = codecHandler.
                 encodeCompositeOperation(RESTCONF_ROOT, null, ietfTe,
@@ -208,7 +223,7 @@ public class TeTunnelRestconfProvider extends AbstractProvider
         }
         controller.post((DeviceId) srcElement, identifier,
                         new ByteArrayInputStream(resourceInformation.getBytes()),
-                        MediaType.APPLICATION_JSON, ObjectNode.class);
+                        MEDIA_TYPE_JSON, ObjectNode.class);
     }
 
     @Override
