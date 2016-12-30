@@ -90,6 +90,8 @@ div.tabular-header div.ctrl-btns {
     height: 44px;
     margin-top: 24px;
     margin-right: 20px;
+    position: absolute;
+    right: 0px;
 }
 
 div.tabular-header div.ctrl-btns div {
