@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * Test Adapter for OvsdbController.
@@ -70,6 +71,11 @@ public class OvsdbControllerAdapter implements OvsdbController {
 
     @Override
     public void connect(IpAddress ip, TpPort port) {
+
+    }
+
+    @Override
+    public void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler) {
 
     }
 }

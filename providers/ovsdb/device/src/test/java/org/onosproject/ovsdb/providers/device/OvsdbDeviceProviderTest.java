@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -198,6 +199,12 @@ public class OvsdbDeviceProviderTest {
         public void connect(IpAddress ip, TpPort port) {
 
         }
+
+        @Override
+        public void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler) {
+
+        }
+
     }
 
 }

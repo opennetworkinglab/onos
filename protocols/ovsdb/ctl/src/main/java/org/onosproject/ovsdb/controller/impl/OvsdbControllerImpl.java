@@ -67,6 +67,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -145,6 +146,11 @@ public class OvsdbControllerImpl implements OvsdbController {
     @Override
     public void connect(IpAddress ip, TpPort port) {
         controller.connect(ip, port);
+    }
+
+    @Override
+    public void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler) {
+        controller.connect(ip, port, failhandler);
     }
 
     /**
