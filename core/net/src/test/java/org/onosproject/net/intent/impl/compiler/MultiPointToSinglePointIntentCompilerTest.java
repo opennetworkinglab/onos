@@ -293,7 +293,6 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
      */
     @Test
     public void testNonTrivialSelectorsIntent() {
-
         Set<FilteredConnectPoint> ingress = ImmutableSet.of(
                 new FilteredConnectPoint(connectPoint("of1", 1),
                                          DefaultTrafficSelector.builder().matchVlanId(VlanId.vlanId("100")).build()),

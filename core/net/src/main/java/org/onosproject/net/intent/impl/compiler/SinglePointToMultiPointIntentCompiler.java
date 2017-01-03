@@ -19,31 +19,34 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
-import org.onosproject.net.provider.ProviderId;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
+
 @Component(immediate = true)
 public class SinglePointToMultiPointIntentCompiler
         extends ConnectivityIntentCompiler<SinglePointToMultiPointIntent> {
 
-    // TODO: use off-the-shell core provider ID
-    private static final ProviderId PID =
-            new ProviderId("core", "org.onosproject.core", true);
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Activate
     public void activate() {
-        intentManager.registerCompiler(SinglePointToMultiPointIntent.class,
-                                       this);
+        intentManager.registerCompiler(SinglePointToMultiPointIntent.class, this);
     }
 
     @Deactivate
@@ -51,19 +54,40 @@ public class SinglePointToMultiPointIntentCompiler
         intentManager.unregisterCompiler(SinglePointToMultiPointIntent.class);
     }
 
-
     @Override
     public List<Intent> compile(SinglePointToMultiPointIntent intent,
                                 List<Intent> installable) {
         Set<Link> links = new HashSet<>();
 
+        final boolean allowMissingPaths = intentAllowsPartialFailure(intent);
+        boolean hasPaths = false;
+        boolean missingSomePaths = false;
+
         for (ConnectPoint egressPoint : intent.egressPoints()) {
             if (egressPoint.deviceId().equals(intent.ingressPoint().deviceId())) {
+                // Do not need to look for paths, since ingress and egress
+                // devices are the same.
+                if (deviceService.isAvailable(egressPoint.deviceId())) {
+                    hasPaths = true;
+                } else {
+                    missingSomePaths = true;
+                }
                 continue;
             }
 
             Path path = getPath(intent, intent.ingressPoint().deviceId(), egressPoint.deviceId());
-            links.addAll(path.links());
+            if (path != null) {
+                hasPaths = true;
+                links.addAll(path.links());
+            } else {
+                missingSomePaths = true;
+            }
+        }
+
+        if (!hasPaths) {
+            throw new IntentException("Cannot find any path between ingress and egress points.");
+        } else if (!allowMissingPaths && missingSomePaths) {
+            throw new IntentException("Missing some paths between ingress and egress points.");
         }
 
         Intent result = LinkCollectionIntent.builder()

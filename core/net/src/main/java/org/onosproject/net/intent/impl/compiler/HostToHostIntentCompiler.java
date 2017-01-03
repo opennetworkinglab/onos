@@ -82,9 +82,9 @@ public class HostToHostIntentCompiler
         }
 
         boolean isAsymmetric = intent.constraints().contains(new AsymmetricPathConstraint());
-        Path pathOne = getPath(intent, intent.one(), intent.two());
+        Path pathOne = getPathOrException(intent, intent.one(), intent.two());
         Path pathTwo = isAsymmetric ?
-                getPath(intent, intent.two(), intent.one()) : invertPath(pathOne);
+                getPathOrException(intent, intent.two(), intent.one()) : invertPath(pathOne);
 
         Host one = hostService.getHost(intent.one());
         Host two = hostService.getHost(intent.two());

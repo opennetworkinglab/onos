@@ -161,8 +161,8 @@ public class PointToPointIntentCompiler
                                                  ConnectPoint egressPoint,
                                                  PointToPointIntent intent) {
         List<Link> links = new ArrayList<>();
-        Path path = getPath(intent, ingressPoint.deviceId(),
-                            egressPoint.deviceId());
+        Path path = getPathOrException(intent, ingressPoint.deviceId(),
+                                       egressPoint.deviceId());
 
         links.add(createEdgeLink(ingressPoint, true));
         links.addAll(path.links());
@@ -174,8 +174,8 @@ public class PointToPointIntentCompiler
     }
 
     private List<Intent> createUnprotectedLinkCollectionIntent(PointToPointIntent intent) {
-        Path path = getPath(intent, intent.filteredIngressPoint().connectPoint().deviceId(),
-                            intent.filteredEgressPoint().connectPoint().deviceId());
+        Path path = getPathOrException(intent, intent.filteredIngressPoint().connectPoint().deviceId(),
+                                       intent.filteredEgressPoint().connectPoint().deviceId());
 
         return asList(createLinkCollectionIntent(ImmutableSet.copyOf(path.links()),
                                                  path.cost(),
@@ -274,8 +274,8 @@ public class PointToPointIntentCompiler
                                                 PointToPointIntent intent,
                                                 List<Intent> installable) {
         List<Link> links = new ArrayList<>();
-        Path onlyPath = getPath(intent, ingressPoint.deviceId(),
-                                egressPoint.deviceId());
+        Path onlyPath = getPathOrException(intent, ingressPoint.deviceId(),
+                                           egressPoint.deviceId());
 
         List<Intent> reusableIntents = null;
         if (installable != null) {

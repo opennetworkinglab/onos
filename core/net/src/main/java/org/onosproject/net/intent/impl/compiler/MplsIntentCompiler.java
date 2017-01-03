@@ -70,8 +70,8 @@ public class MplsIntentCompiler  extends ConnectivityIntentCompiler<MplsIntent> 
         }
 
         List<Link> links = new ArrayList<>();
-        Path path = getPath(intent, ingressPoint.deviceId(),
-                egressPoint.deviceId());
+        Path path = getPathOrException(intent, ingressPoint.deviceId(),
+                                       egressPoint.deviceId());
 
         links.add(createEdgeLink(ingressPoint, true));
         links.addAll(path.links());

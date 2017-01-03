@@ -94,6 +94,25 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
      * @return Path between the two
      * @throws PathNotFoundException if a path cannot be found
      */
+    @Deprecated
+    protected Path getPathOrException(ConnectivityIntent intent,
+                                      ElementId one, ElementId two) {
+        Path path = getPath(intent, one, two);
+        if (path == null) {
+            throw new PathNotFoundException(one, two);
+        }
+        // TODO: let's be more intelligent about this eventually
+        return path;
+    }
+
+    /**
+     * Computes a path between two ConnectPoints.
+     *
+     * @param intent intent on which behalf path is being computed
+     * @param one    start of the path
+     * @param two    end of the path
+     * @return Path between the two, or null if no path can be found
+     */
     protected Path getPath(ConnectivityIntent intent,
                            ElementId one, ElementId two) {
         Set<Path> paths = pathService.getPaths(one, two, weight(intent.constraints()));
@@ -102,7 +121,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
                 .filter(path -> checkPath(path, constraints))
                 .toList();
         if (filtered.isEmpty()) {
-            throw new PathNotFoundException(one, two);
+            return null;
         }
         // TODO: let's be more intelligent about this eventually
         return filtered.iterator().next();

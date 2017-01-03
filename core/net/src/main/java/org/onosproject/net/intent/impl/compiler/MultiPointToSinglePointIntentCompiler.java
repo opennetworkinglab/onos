@@ -28,19 +28,16 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.topology.PathService;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 
@@ -51,13 +48,10 @@ import static org.onosproject.net.intent.constraint.PartialFailureConstraint.int
  */
 @Component(immediate = true)
 public class MultiPointToSinglePointIntentCompiler
-        implements IntentCompiler<MultiPointToSinglePointIntent> {
+        extends ConnectivityIntentCompiler<MultiPointToSinglePointIntent> {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PathService pathService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -78,22 +72,23 @@ public class MultiPointToSinglePointIntentCompiler
         ConnectPoint egressPoint = intent.egressPoint();
 
         final boolean allowMissingPaths = intentAllowsPartialFailure(intent);
-        boolean partialTree = false;
-        boolean anyMissingPaths = false;
+        boolean hasPaths = false;
+        boolean missingSomePaths = false;
+
         for (ConnectPoint ingressPoint : intent.ingressPoints()) {
             if (ingressPoint.deviceId().equals(egressPoint.deviceId())) {
                 if (deviceService.isAvailable(ingressPoint.deviceId())) {
-                    partialTree = true;
+                    hasPaths = true;
                 } else {
-                    anyMissingPaths = true;
+                    missingSomePaths = true;
                 }
-
                 continue;
             }
 
-            Path path = getPath(ingressPoint, intent.egressPoint());
+            Path path = getPath(intent, ingressPoint.deviceId(), intent.egressPoint().deviceId());
+
             if (path != null) {
-                partialTree = true;
+                hasPaths = true;
 
                 for (Link link : path.links()) {
                     if (links.containsKey(link.dst().deviceId())) {
@@ -107,14 +102,14 @@ public class MultiPointToSinglePointIntentCompiler
                     links.put(link.src().deviceId(), link);
                 }
             } else {
-                anyMissingPaths = true;
+                missingSomePaths = true;
             }
         }
 
-        if (!partialTree) {
-            throw new IntentException("Could not find any paths between ingress and egress points.");
-        } else if (!allowMissingPaths && anyMissingPaths) {
-            throw new IntentException("Missing some paths between ingress and egress ports.");
+        if (!hasPaths) {
+            throw new IntentException("Cannot find any path between ingress and egress points.");
+        } else if (!allowMissingPaths && missingSomePaths) {
+            throw new IntentException("Missing some paths between ingress and egress points.");
         }
 
         Intent result = LinkCollectionIntent.builder()
@@ -130,21 +125,5 @@ public class MultiPointToSinglePointIntentCompiler
                 .build();
 
         return Collections.singletonList(result);
-    }
-
-    /**
-     * Computes a path between two ConnectPoints.
-     *
-     * @param one start of the path
-     * @param two end of the path
-     * @return Path between the two
-     */
-    private Path getPath(ConnectPoint one, ConnectPoint two) {
-        Set<Path> paths = pathService.getPaths(one.deviceId(), two.deviceId());
-        if (paths.isEmpty()) {
-            return null;
-        }
-        // TODO: let's be more intelligent about this eventually
-        return paths.iterator().next();
     }
 }
