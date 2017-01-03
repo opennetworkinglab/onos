@@ -3,28 +3,43 @@
 # Builds an ONOS release
 # -----------------------------------------------------------------------------
 
-if [ $# -ne 3 ]; then
-    echo "Usage: onos-build-release version next-version branch"
+if [ $# -ne 3  -a $# -ne 4 ]; then
+    echo "Usage: onos-build-release version next-version branch [--dry-run]"
     echo "For example, to build rc2 on the 1.8 branch - onos-build-release onos-1.8 1.8.0-rc2 1.8.0-SNAPSHOT"
+    exit 1
+fi
+
+if [ $# -eq 4 -a "${4}" != "--dry-run" ]; then
+    echo "$4 is an invalid parameter - only --dry-run allowed"
     exit 1
 fi
 
 BRANCH=$1
 VERSION=$2
 NEXT_VERSION=$3
+DRY_RUN=$4
 
 set -e
 set -x
 
-# Check that environment setup is correct
-onos-release-prerequisites
+IS_DRY_RUN=0
+if [ "${DRY_RUN}" == "--dry-run" ]; then
+    IS_DRY_RUN=1
+fi
 
-# Block commits to Gerrit
-ssh -p 29418 gerrit.onosproject.org projectlock lock onos ${BRANCH}
+# Check that environment setup is correct
+onos-release-prerequisites ${DRY_RUN}
+
+if [ ${IS_DRY_RUN} -eq 0 ]; then
+    # Block commits to Gerrit
+    ssh -p 29418 gerrit.onosproject.org projectlock lock onos ${BRANCH}
+fi
 
 # Prepare the build tree
-onos-prepare-release $VERSION $BRANCH "onos-build-and-upload $VERSION $NEXT_VERSION $BRANCH"
+onos-prepare-release $VERSION $BRANCH "onos-build-and-upload $VERSION $NEXT_VERSION $BRANCH $DRY_RUN"
 
-# Unblock commits
-ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
+if [ ${IS_DRY_RUN} -eq 0 ]; then
+    # Unblock commits
+    ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
+fi
 

@@ -5,6 +5,11 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 
+dryRun=0
+if [ "${1}" == "--dry-run" ]; then
+    dryRun=1
+fi
+
 GERRIT_USER=${GERRIT_USER:-$USER}
 WIKI_USER=${WIKI_USER:-$USER}
 
@@ -180,9 +185,12 @@ testBuckconfigLocal
 testToolchain
 testSnapshotDependencies
 testGerritAccess
-testWikiAccess
-testEC2Access
-testSonatypeAccessMvn
-testSonatypeAccessRest
+
+if [ ${dryRun} -eq 0 ]; then
+    testWikiAccess
+    testEC2Access
+    testSonatypeAccessMvn
+    testSonatypeAccessRest
+fi
 
 echo "Ready to commence release process!"

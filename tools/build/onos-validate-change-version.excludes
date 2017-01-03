@@ -12,6 +12,7 @@
 \./tools/build/onos-validate-change-version
 \./tools/build/onos-change-version
 \./tools/build/onos-release
+\./tools/build/onos-build-release
 \./tools/build/onos-snapshot
 \./tools/package/archetypes/.*/archetype\.properties
 \./tools/package/maven-plugin/pom.xml

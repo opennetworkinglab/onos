@@ -9,6 +9,12 @@
 set -e
 
 export NEW_VERSION=${1:-$ONOS_VERSION}
+DRY_RUN=${2:-""}
+dryRun=0
+if [ "${DRY_RUN}" == "--dry-run" ]; then
+    dryRun=1
+fi
+
 [ -z "$NEW_VERSION" ] && echo "New ONOS version not specified" && exit 1
 
 export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
@@ -27,7 +33,12 @@ onos-validate-change-version
 
 # Build ONOS & deploy to staging repo using the release profile.
 onos-buck build onos
-time onos-buck-publish
+
+if [ $dryRun -eq 0 ]; then
+    time onos-buck-publish
+else
+    time onos-buck-publish-local
+fi
 
 # Build ONOS docs
 onos-buck build //docs:internal //docs:external
