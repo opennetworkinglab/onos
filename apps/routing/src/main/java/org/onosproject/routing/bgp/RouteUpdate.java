@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing;
+package org.onosproject.routing.bgp;
 
 import com.google.common.base.MoreObjects;
 
@@ -23,10 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a change in routing information.
- *
- * @deprecated use RouteService instead
  */
-@Deprecated
 public class RouteUpdate {
     private final Type type;                    // The route update type
     private final RouteEntry routeEntry;        // The updated route entry

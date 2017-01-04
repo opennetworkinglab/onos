@@ -15,18 +15,13 @@
  */
 package org.onosproject.routing;
 
-import org.onlab.packet.IpAddress;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.RouterConfig;
 
-import java.util.Collection;
-
 /**
- * Provides a way of interacting with the RIB management component.
- *
- * @deprecated in Goldeneye. Use RouteService instead.
+ * Historical interface now used only as a centralised place to define routing
+ * config related constants.
  */
-@Deprecated
 public interface RoutingService {
 
     String ROUTER_APP_ID = "org.onosproject.router";
@@ -35,43 +30,8 @@ public interface RoutingService {
     Class<RouterConfig> ROUTER_CONFIG_CLASS = RouterConfig.class;
 
     /**
-     * Starts the routing service.
+     * Empty method to pacify checkstyle.
      */
-    void start();
-
-    /**
-     * Adds FIB listener.
-     *
-     * @param fibListener listener to send FIB updates to
-     */
-    void addFibListener(FibListener fibListener);
-
-    /**
-     * Stops the routing service.
-     */
-    void stop();
-
-    /**
-     * Gets all IPv4 routes from the RIB.
-     *
-     * @return the IPv4 routes
-     */
-    Collection<RouteEntry> getRoutes4();
-
-    /**
-     * Gets all IPv6 routes from the RIB.
-     *
-     * @return the IPv6 routes
-     */
-    Collection<RouteEntry> getRoutes6();
-
-    /**
-     * Finds out the route entry which has the longest matchable IP prefix.
-     *
-     * @param ipAddress IP address used to find out longest matchable IP prefix
-     * @return a route entry which has the longest matchable IP prefix if
-     * found, otherwise null
-     */
-    RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress);
-
+    default void nothing() {
+    }
 }

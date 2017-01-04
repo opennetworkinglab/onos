@@ -17,7 +17,6 @@ package org.onosproject.routing.bgp;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.incubator.net.routing.Route;
-import org.onosproject.routing.RouteUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

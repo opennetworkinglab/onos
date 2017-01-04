@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing;
+package org.onosproject.routing.bgp;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
@@ -25,10 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a route entry for an IP prefix.
- *
- * @deprecated use RouteService instead
  */
-@Deprecated
 public class RouteEntry {
     private final IpPrefix prefix;              // The IP prefix
     private final IpAddress nextHop;            // Next-hop IP address
@@ -87,36 +84,6 @@ public class RouteEntry {
      */
     public IpAddress nextHop() {
         return nextHop;
-    }
-
-    /**
-     * Creates the binary string representation of an IP prefix.
-     * The prefix can be either IPv4 or IPv6.
-     * The string length is equal to the prefix length + 1.
-     *
-     * For each string, we put a extra "0" in the front. The purpose of
-     * doing this is to store the default route inside InvertedRadixTree.
-     *
-     * @param ipPrefix the IP prefix to use
-     * @return the binary string representation
-     */
-    public static String createBinaryString(IpPrefix ipPrefix) {
-        if (ipPrefix.prefixLength() == 0) {
-            return "0";
-        }
-
-        byte[] octets = ipPrefix.address().toOctets();
-        StringBuilder result = new StringBuilder(ipPrefix.prefixLength());
-        for (int i = 0; i < ipPrefix.prefixLength(); i++) {
-            int byteOffset = i / Byte.SIZE;
-            int bitOffset = i % Byte.SIZE;
-            int mask = 1 << (Byte.SIZE - 1 - bitOffset);
-            byte value = octets[byteOffset];
-            boolean isSet = ((value & mask) != 0);
-            result.append(isSet ? "1" : "0");
-        }
-
-        return "0" + result.toString();
     }
 
     @Override

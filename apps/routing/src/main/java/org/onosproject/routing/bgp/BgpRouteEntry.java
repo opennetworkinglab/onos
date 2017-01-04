@@ -19,7 +19,6 @@ import com.google.common.base.MoreObjects;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.routing.RouteEntry;
 
 import java.util.ArrayList;
 import java.util.Objects;
