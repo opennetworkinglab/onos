@@ -659,7 +659,7 @@ public class ControlPlaneRedirectManager {
             // Ignore interfaces if they are not on the router switch
             return;
         }
-        if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf)) {
+        if (!prevIntf.vlan().equals(intf.vlan()) || !prevIntf.mac().equals(intf.mac())) {
             provisionInterface(prevIntf, false);
             provisionInterface(intf, true);
         } else {
