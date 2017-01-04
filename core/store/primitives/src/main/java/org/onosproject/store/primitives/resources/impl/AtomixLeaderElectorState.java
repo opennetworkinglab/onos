@@ -125,9 +125,21 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
      * @param commit listen commit
      */
     public void listen(Commit<? extends Listen> commit) {
+        Long sessionId = commit.session().id();
         if (listeners.putIfAbsent(commit.session().id(), commit) != null) {
             commit.close();
         }
+        commit.session()
+                .onStateChange(
+                        state -> {
+                            if (state == ServerSession.State.CLOSED
+                                    || state == ServerSession.State.EXPIRED) {
+                                Commit<? extends Listen> listener = listeners.remove(sessionId);
+                                if (listener != null) {
+                                    listener.close();
+                                }
+                            }
+                        });
     }
 
     /**
