@@ -198,6 +198,6 @@ public class OpaqueLsa10 extends OpaqueLsaHeader {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(opaqueInfo, topLevelValues);
+        return Objects.hashCode(Arrays.hashCode(opaqueInfo), topLevelValues);
     }
 }

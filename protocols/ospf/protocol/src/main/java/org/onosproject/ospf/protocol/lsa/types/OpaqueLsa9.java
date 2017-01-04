@@ -16,7 +16,6 @@
 package org.onosproject.ospf.protocol.lsa.types;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;
 
 import java.util.Arrays;
@@ -116,7 +115,7 @@ public class OpaqueLsa9 extends OpaqueLsaHeader {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(opaqueInfo);
+        return Arrays.hashCode(opaqueInfo);
     }
 
     @Override
