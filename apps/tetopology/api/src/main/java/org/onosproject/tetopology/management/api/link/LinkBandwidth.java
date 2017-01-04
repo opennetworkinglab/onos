@@ -151,8 +151,11 @@ public class LinkBandwidth {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(maxBandwidth, availBandwidth, maxAvailLspBandwidth,
-                                minAvailLspBandwidth, odu);
+        return Objects.hashCode(Arrays.hashCode(maxBandwidth),
+                Arrays.hashCode(availBandwidth),
+                Arrays.hashCode(maxAvailLspBandwidth),
+                Arrays.hashCode(minAvailLspBandwidth),
+                odu);
     }
 
     @Override
@@ -162,10 +165,10 @@ public class LinkBandwidth {
         }
         if (object instanceof LinkBandwidth) {
             LinkBandwidth that = (LinkBandwidth) object;
-            return Objects.equal(maxBandwidth, that.maxBandwidth) &&
-                    Objects.equal(availBandwidth, that.availBandwidth) &&
-                    Objects.equal(maxAvailLspBandwidth, that.maxAvailLspBandwidth) &&
-                    Objects.equal(minAvailLspBandwidth, that.minAvailLspBandwidth) &&
+            return Arrays.equals(maxBandwidth, that.maxBandwidth) &&
+                    Arrays.equals(availBandwidth, that.availBandwidth) &&
+                    Arrays.equals(maxAvailLspBandwidth, that.maxAvailLspBandwidth) &&
+                    Arrays.equals(minAvailLspBandwidth, that.minAvailLspBandwidth) &&
                     Objects.equal(odu, that.odu);
         }
         return false;

@@ -119,7 +119,7 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
     public int hashCode() {
         return Objects.hashCode(ttpId, switchingLayer, encodingLayer, flags,
                                 interLayerLockList, localLinkConnectivityList,
-                                availAdaptBandwidth);
+                                Arrays.hashCode(availAdaptBandwidth));
     }
 
     @Override
@@ -135,7 +135,7 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
                     Objects.equal(flags, that.flags) &&
                     Objects.equal(interLayerLockList, that.interLayerLockList) &&
                     Objects.equal(localLinkConnectivityList, that.localLinkConnectivityList) &&
-                    Objects.equal(availAdaptBandwidth, that.availAdaptBandwidth);
+                    Arrays.equals(availAdaptBandwidth, that.availAdaptBandwidth);
         }
         return false;
     }
