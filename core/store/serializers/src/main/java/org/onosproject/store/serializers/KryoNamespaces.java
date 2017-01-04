@@ -98,6 +98,7 @@ import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.domain.DomainIntent;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -571,6 +572,7 @@ public final class KryoNamespaces {
             .register(ProtectedTransportIntent.class)
             .register(MarkerResource.class)
             .register(new BitSetSerializer(), BitSet.class)
+            .register(DomainIntent.class)
             .build("API");
 
     /**
