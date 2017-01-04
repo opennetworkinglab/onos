@@ -16,66 +16,22 @@
 
 package org.onosproject.incubator.net.virtual.provider;
 
-import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onosproject.net.provider.ProviderId;
 
 public abstract class AbstractVirtualProvider implements VirtualProvider {
-    private final String scheme;
-    private final String id;
+    private final ProviderId providerId;
 
     /**
-     * Creates a provider with the supplied identifier.
+     * Creates a virtual provider with the supplied identifier.
      *
-     * @param scheme provider scheme
-     * @param id provider id
+     * @param id a virtual provider id
      */
-    protected AbstractVirtualProvider(String id, String scheme) {
-        this.scheme = scheme;
-        this.id = id;
-    }
-
-    /**
-     * Returns the device URI scheme to which this provider is bound.
-     *
-     * @return device URI scheme
-     */
-    @Override
-    public String scheme() {
-        return this.scheme;
-    }
-
-    /**
-     * Returns the device URI scheme specific id portion.
-     *
-     * @return id
-     */
-    @Override
-    public String id() {
-        return this.id;
+    protected AbstractVirtualProvider(ProviderId id) {
+        this.providerId = id;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(scheme, id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof AbstractVirtualProvider) {
-            final AbstractVirtualProvider other = (AbstractVirtualProvider) obj;
-            return Objects.equals(this.scheme, other.scheme) &&
-                    Objects.equals(this.id, other.id);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).add("scheme", scheme).add("id", id)
-                .toString();
+    public ProviderId id() {
+        return providerId;
     }
 }

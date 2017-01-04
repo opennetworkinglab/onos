@@ -16,6 +16,8 @@
 
 package org.onosproject.incubator.net.virtual.provider;
 
+import org.onosproject.net.provider.ProviderId;
+
 /**
  * Abstraction of a provider of information about virtual network environment.
  * The role of virtual providers is to translate virtual objects into physical
@@ -24,16 +26,9 @@ package org.onosproject.incubator.net.virtual.provider;
 public interface VirtualProvider {
 
     /**
-     * Returns the device URI scheme to which this provider is bound.
+     * Returns the provider identifier.
      *
-     * @return device URI scheme
+     * @return provider identification
      */
-    String scheme();
-
-    /**
-     * Returns the device URI scheme specific id portion.
-     *
-     * @return id
-     */
-    String id();
+    ProviderId id();
 }

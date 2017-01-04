@@ -18,13 +18,24 @@ package org.onosproject.incubator.net.virtual.provider;
 
 import static com.google.common.base.Preconditions.checkState;
 
+/**
+ * Base implementation of a virtual provider service,
+ * which tracks the provider to which it is issued and can be invalidated.
+ *
+ * @param <P> type of the information provider
+ */
 public abstract class AbstractVirtualProviderService<P extends VirtualProvider>
         implements VirtualProviderService {
 
     private boolean isValid = true;
-    private final P provider;
+    private P provider = null;
 
-    protected AbstractVirtualProviderService(P provider) {
+    /**
+     * Creates a virtual provider service on behalf of the specified provider.
+     *
+     * @param provider provider to which this service is being issued
+     */
+    protected void setProvider(P provider) {
         this.provider = provider;
     }
 
