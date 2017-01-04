@@ -15,24 +15,13 @@
  */
 package org.onosproject.vpls;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,11 +40,11 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
@@ -65,7 +54,6 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
-import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentServiceAdapter;
@@ -73,24 +61,27 @@ import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
-import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.vpls.config.VplsConfigService;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 import static org.onosproject.net.EncapsulationType.*;
-import static org.onosproject.vpls.IntentInstaller.PREFIX_BROADCAST;
-import static org.onosproject.vpls.IntentInstaller.PREFIX_UNICAST;
+import static org.onosproject.vpls.IntentInstaller.*;
 
 /**
  * Tests for the {@link Vpls} class.
@@ -503,7 +494,9 @@ public class VplsTest {
                             .collect(Collectors.toSet());
 
             Key brckey = buildKey(PREFIX_BROADCAST,
-                                  point.connectPoint(), name, MacAddress.BROADCAST);
+                                  point.connectPoint(),
+                                  name,
+                                  MacAddress.BROADCAST);
 
             intents.add(buildBrcIntent(brckey, point, otherPoints, encap));
         });
@@ -594,9 +587,10 @@ public class VplsTest {
                 .selector(selector)
                 .filteredIngressPoint(src)
                 .filteredEgressPoints(dsts)
+                .constraints(PARTIAL_FAILURE_CONSTRAINT)
                 .priority(PRIORITY_OFFSET);
 
-        encap(intentBuilder, encap);
+        setEncap(intentBuilder, PARTIAL_FAILURE_CONSTRAINT, encap);
 
         return intentBuilder.build();
     }
@@ -627,9 +621,10 @@ public class VplsTest {
                 .selector(selector)
                 .filteredIngressPoints(srcs)
                 .filteredEgressPoint(dst)
+                .constraints(PARTIAL_FAILURE_CONSTRAINT)
                 .priority(PRIORITY_OFFSET);
 
-        encap(intentBuilder, encap);
+        setEncap(intentBuilder, PARTIAL_FAILURE_CONSTRAINT, encap);
 
         return intentBuilder.build();
     }
@@ -706,21 +701,6 @@ public class VplsTest {
                 hostMac;
 
         return Key.of(keyString, APPID);
-    }
-
-    /**
-     * Adds an encapsulation constraint to the builder given, if encap is not
-     * equal to NONE.
-     *
-     * @param builder the intent builder
-     * @param encap the encapsulation type
-     */
-    private static void encap(ConnectivityIntent.Builder builder,
-                              EncapsulationType encap) {
-        if (!encap.equals(NONE)) {
-            builder.constraints(ImmutableList.of(
-                    new EncapsulationConstraint(encap)));
-        }
     }
 
     /**

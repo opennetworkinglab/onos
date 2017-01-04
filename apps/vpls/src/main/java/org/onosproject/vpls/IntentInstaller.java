@@ -27,6 +27,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.ConnectivityIntent;
+import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -34,10 +35,12 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +78,9 @@ public class IntentInstaller {
     private final ApplicationId appId;
     private final IntentSynchronizationService intentSynchronizer;
     private final IntentService intentService;
+
+    public static final ImmutableList<Constraint> PARTIAL_FAILURE_CONSTRAINT =
+            ImmutableList.of(new PartialFailureConstraint());
 
     /**
      * Class constructor.
@@ -155,9 +161,10 @@ public class IntentInstaller {
                 .selector(selector)
                 .filteredIngressPoint(src)
                 .filteredEgressPoints(dsts)
+                .constraints(PARTIAL_FAILURE_CONSTRAINT)
                 .priority(PRIORITY_OFFSET);
 
-        encap(intentBuilder, encap);
+        setEncap(intentBuilder, PARTIAL_FAILURE_CONSTRAINT, encap);
 
         return intentBuilder.build();
     }
@@ -191,9 +198,10 @@ public class IntentInstaller {
                 .selector(selector)
                 .filteredIngressPoints(srcs)
                 .filteredEgressPoint(dst)
+                .constraints(PARTIAL_FAILURE_CONSTRAINT)
                 .priority(PRIORITY_OFFSET);
 
-        encap(intentBuilder, encap);
+        setEncap(intentBuilder, PARTIAL_FAILURE_CONSTRAINT, encap);
 
         return intentBuilder.build();
     }
@@ -246,17 +254,31 @@ public class IntentInstaller {
     }
 
     /**
-     * Adds an encapsulation constraint to the builder given, if encap is not
-     * equal to NONE.
+     * Sets one or more encapsulation constraints on the intent builder given.
      *
      * @param builder the intent builder
-     * @param encap the encapsulation type
+     * @param constraints the existing intent constraints
+     * @param encap the encapsulation type to be set
      */
-    private static void encap(ConnectivityIntent.Builder builder,
-                              EncapsulationType encap) {
+    public static void setEncap(ConnectivityIntent.Builder builder,
+                                List<Constraint> constraints,
+                                EncapsulationType encap) {
+        // Constraints might be an immutable list, so a new modifiable list
+        // is created
+        List<Constraint> newConstraints = new ArrayList<>(constraints);
+
+        // Remove any encapsulation constraint if already in the list
+        constraints.stream()
+                .filter(c -> c instanceof EncapsulationConstraint)
+                .forEach(newConstraints::remove);
+
+        // if the new encapsulation is different from NONE, a new encapsulation
+        // constraint should be added to the list
         if (!encap.equals(NONE)) {
-            builder.constraints(ImmutableList.of(
-                    new EncapsulationConstraint(encap)));
+            newConstraints.add(new EncapsulationConstraint(encap));
         }
+
+        // Submit new constraint list as immutable list
+        builder.constraints(ImmutableList.copyOf(newConstraints));
     }
 }

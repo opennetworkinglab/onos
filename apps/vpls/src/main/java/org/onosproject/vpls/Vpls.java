@@ -116,7 +116,6 @@ public class Vpls {
 
     private ApplicationId appId;
 
-
     @Activate
     public void activate() {
         appId = coreService.registerApplication(VPLS_APP);
