@@ -32,13 +32,12 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.Timestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
@@ -283,21 +282,26 @@ public class GossipIntentStore
     @Override
     public void addPending(IntentData data) {
         checkNotNull(data);
+        if (data.version() == null) {
+            /*
+             * Copy IntentData including request state in this way we can
+             * avoid the creation of Intents with state == request, which can
+             * be problematic if the Intent state is different from *REQ
+             * {INSTALL_, WITHDRAW_ and PURGE_}.
+             */
+            pendingMap.put(data.key(), new IntentData(data.intent(), data.state(), data.request(),
+                                                      new WallClockTimestamp(), clusterService.getLocalNode().id()));
+        } else {
+            pendingMap.compute(data.key(), (key, existingValue) -> {
+                if (existingValue == null || existingValue.version().isOlderThan(data.version())) {
+                    return new IntentData(data.intent(), data.state(), data.request(),
+                                          data.version(), clusterService.getLocalNode().id());
+                } else {
+                    return existingValue;
+                }
+            });
+        }
 
-        Timestamp version = data.version() != null ? data.version() : new WallClockTimestamp();
-        pendingMap.compute(data.key(), (key, existingValue) -> {
-            if (existingValue == null || existingValue.version().isOlderThan(version)) {
-                /*
-                 * This avoids to create Intent with state == request, which can
-                 * be problematic if the Intent state is different from *REQ
-                 * {INSTALL_, WITHDRAW_ and PURGE_}.
-                 */
-                return new IntentData(data.intent(), data.state(), data.request(),
-                                      version, clusterService.getLocalNode().id());
-            } else {
-                return existingValue;
-            }
-        });
     }
 
     @Override
