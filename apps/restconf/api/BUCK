@@ -1,0 +1,10 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jersey-client',
+    '//lib:javax.ws.rs-api',
+    '//lib:jersey-server',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)

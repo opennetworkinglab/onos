@@ -1,0 +1,12 @@
+BUNDLES = [
+    '//apps/restconf/api:onos-apps-restconf-api',
+    '//apps/restconf/restconfmgr:onos-apps-restconf-restconfmgr',
+]
+
+onos_app (
+  app_name = 'org.onosproject.restconf',
+  title = 'RESTCONF Application Module',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+)
