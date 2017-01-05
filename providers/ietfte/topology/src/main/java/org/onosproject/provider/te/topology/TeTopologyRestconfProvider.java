@@ -34,9 +34,10 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBDevice;
-import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
 import org.onosproject.provider.te.utils.DefaultJsonCodec;
+import org.onosproject.provider.te.utils.RestconfNotificationEventProcessor;
+import org.onosproject.provider.te.utils.TeTopologyRestconfEventListener;
 import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.tetopology.management.api.TeTopologyProvider;
 import org.onosproject.tetopology.management.api.TeTopologyProviderRegistry;
@@ -78,6 +79,8 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_LINK_NOTIFICATION;
+import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_NODE_NOTIFICATION;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -93,8 +96,6 @@ public class TeTopologyRestconfProvider extends AbstractProvider
     private static final String IETF_NETWORK_URI = "ietf-network:networks";
     private static final String IETF_NETWORKS_PREFIX =
             "{\"ietf-network:networks\":";
-    private static final String TE_NOTIFICATION_PREFIX =
-            "{\"ietf-te-topology:ietf-te-topology\":";
     private static final String TE_LINK_EVENT_PREFIX =
             "{\"ietf-te-topology:te-link-event\":";
     private static final String TE_NODE_EVENT_PREFIX =
@@ -290,11 +291,27 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 //            topologyProviderService.networkUpdated(network);
 //        }
 
-        RestConfNotificationEventListener<String> callBackListener =
-                new InternalRestconfNotificationEventListener();
-        restconfClient.enableNotifications(deviceId, IETF_NOTIFICATION_URI,
-                                           "application/json",
-                                           callBackListener);
+        subscribeRestconfNotification(deviceId);
+    }
+
+    private void subscribeRestconfNotification(DeviceId deviceId) {
+
+        TeTopologyRestconfEventListener listener =
+                new TeTopologyRestconfEventListener();
+
+        listener.addCallbackFunction(TE_TOPOLOGY_LINK_NOTIFICATION,
+                                     new InternalLinkEventProcessor());
+        listener.addCallbackFunction(TE_TOPOLOGY_NODE_NOTIFICATION,
+                                     new InternalNodeEventProcessor());
+
+        if (!restconfClient.isNotificationEnabled(deviceId)) {
+            restconfClient.enableNotifications(deviceId,
+                                               IETF_NOTIFICATION_URI,
+                                               "application/json",
+                                               listener);
+        } else {
+            restconfClient.addNotificationListener(deviceId, listener);
+        }
     }
 
     private String removePrefixTagFromJson(String jsonString, String prefixTag) {
@@ -304,42 +321,15 @@ public class TeTopologyRestconfProvider extends AbstractProvider
         return jsonString;
     }
 
-    private class InternalNetworkConfigListener implements NetworkConfigListener {
+    private class InternalLinkEventProcessor implements
+            RestconfNotificationEventProcessor<String> {
 
         @Override
-        public void event(NetworkConfigEvent event) {
-            executor.execute(TeTopologyRestconfProvider.this::connectDevices);
-        }
-
-        @Override
-        public boolean isRelevant(NetworkConfigEvent event) {
-            return event.configClass().equals(RestconfServerConfig.class) &&
-                    (event.type() == CONFIG_ADDED ||
-                            event.type() == CONFIG_UPDATED);
-        }
-    }
-
-    private class InternalRestconfNotificationEventListener implements
-            RestConfNotificationEventListener<String> {
-        @Override
-        public void handleNotificationEvent(DeviceId deviceId,
-                                            String eventJsonString) {
-            log.debug("New notification: {} for device: {}",
-                      eventJsonString, deviceId.toString());
-
-            String teEventString = removePrefixTagFromJson(eventJsonString,
-                                                           TE_NOTIFICATION_PREFIX);
-            if (teEventString.startsWith(TE_LINK_EVENT_PREFIX)) {
-                String linkString = removePrefixTagFromJson(teEventString,
-                                                            TE_LINK_EVENT_PREFIX);
-                log.debug("link event={}", linkString);
-                handleRestconfLinkNotification(linkString);
-            } else if (teEventString.startsWith(TE_NODE_EVENT_PREFIX)) {
-                String nodeString = removePrefixTagFromJson(teEventString,
-                                                            TE_NODE_EVENT_PREFIX);
-                log.debug("node event={}", nodeString);
-                handleRestconfNodeNotification(nodeString);
-            }
+        public void processEventPayload(String payload) {
+            String linkString = removePrefixTagFromJson(payload,
+                                                        TE_LINK_EVENT_PREFIX);
+            log.debug("link event={}", linkString);
+            handleRestconfLinkNotification(linkString);
         }
 
         private void handleRestconfLinkNotification(String linkString) {
@@ -377,29 +367,16 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 
             topologyProviderService.linkUpdated(linkKey, networkLink);
         }
+    }
 
-        private IetfTeTopologyEvent convertJson2IetfTeTopologyEvent(String uriString,
-                                                                    String jsonBody) {
+    private class InternalNodeEventProcessor implements
+            RestconfNotificationEventProcessor<String> {
 
-            YangCompositeEncodingImpl yce =
-                    new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
-                                                  uriString,
-                                                  jsonBody);
-            Object yo = codecHandler.decode(yce,
-                                            YangProtocolEncodingFormat.JSON,
-                                            YmsOperationType.NOTIFICATION);
-
-            if (yo == null) {
-                log.error("YMS decoder error");
-                return null;
-            }
-
-            if (!(yo instanceof IetfTeTopologyEvent)) {
-                log.error("ERROR: YO is not IetfTeTopologyEvent");
-                return null;
-            }
-
-            return (IetfTeTopologyEvent) yo;
+        @Override
+        public void processEventPayload(String payload) {
+            String nodeString = removePrefixTagFromJson(payload, TE_NODE_EVENT_PREFIX);
+            log.debug("node event={}", nodeString);
+            handleRestconfNodeNotification(nodeString);
         }
 
         private void handleRestconfNodeNotification(String nodeString) {
@@ -436,5 +413,44 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 
             topologyProviderService.nodeUpdated(nodeKey, networkNode);
         }
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            executor.execute(TeTopologyRestconfProvider.this::connectDevices);
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass().equals(RestconfServerConfig.class) &&
+                    (event.type() == CONFIG_ADDED ||
+                            event.type() == CONFIG_UPDATED);
+        }
+    }
+
+    private IetfTeTopologyEvent convertJson2IetfTeTopologyEvent(String uriString,
+                                                                String jsonBody) {
+
+        YangCompositeEncodingImpl yce =
+                new YangCompositeEncodingImpl(YangResourceIdentifierType.URI,
+                                              uriString,
+                                              jsonBody);
+        Object yo = codecHandler.decode(yce,
+                                        YangProtocolEncodingFormat.JSON,
+                                        YmsOperationType.NOTIFICATION);
+
+        if (yo == null) {
+            log.error("YMS decoder error");
+            return null;
+        }
+
+        if (!(yo instanceof IetfTeTopologyEvent)) {
+            log.error("ERROR: YO is not IetfTeTopologyEvent");
+            return null;
+        }
+
+        return (IetfTeTopologyEvent) yo;
     }
 }

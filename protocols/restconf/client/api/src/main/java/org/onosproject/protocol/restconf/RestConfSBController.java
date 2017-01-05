@@ -31,29 +31,41 @@ public interface RestConfSBController extends HttpSBController {
      * callBackListener upon receiving notifications to notify the requester
      * about notifications.
      *
-     *
-     * @param device device to make the request to
-     * @param request url of the request
-     * @param mediaType format to retrieve the content in
+     * @param device           device to make the request to
+     * @param request          url of the request
+     * @param mediaType        format to retrieve the content in
      * @param callBackListener method to call when notifications arrives
      */
     void enableNotifications(DeviceId device, String request, String mediaType,
-                          RestConfNotificationEventListener callBackListener);
+                             RestconfNotificationEventListener callBackListener);
 
     /**
-     * Register a listener for notification events that occur to restconf
+     * Registers a listener for notification events that occur to restconf
      * devices.
      *
-     * @param deviceId the deviceId
+     * @param deviceId identifier of the device to which the listener is attached
      * @param listener the listener to notify
      */
     void addNotificationListener(DeviceId deviceId,
-                                 RestConfNotificationEventListener listener);
+                                 RestconfNotificationEventListener listener);
 
     /**
-     * Unregister the listener for the device.
+     * Unregisters the listener for the device.
      *
-     * @param deviceId the deviceId
+     * @param deviceId identifier of the device for which the listener
+     *                 is to be removed
+     * @param listener listener to be removed
      */
-    void removeNotificationListener(DeviceId deviceId);
+    void removeNotificationListener(DeviceId deviceId,
+                                    RestconfNotificationEventListener listener);
+
+    /**
+     * Returns true if a listener has been installed to listen to RESTCONF
+     * notifications sent from a particular device.
+     *
+     * @param deviceId identifier of the device from which the notifications
+     *                 are generated
+     * @return true if listener is installed; false otherwise
+     */
+    boolean isNotificationEnabled(DeviceId deviceId);
 }

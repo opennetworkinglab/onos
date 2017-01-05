@@ -33,8 +33,8 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
+import org.onosproject.protocol.restconf.RestconfNotificationEventListener;
 import org.onosproject.provider.te.utils.DefaultJsonCodec;
 import org.onosproject.provider.te.utils.YangCompositeEncodingImpl;
 import org.onosproject.tetopology.management.api.TeTopology;
@@ -89,6 +89,7 @@ public class TeTunnelRestconfProvider extends AbstractProvider
     private static final int DEFAULT_INDEX = 1;
     private static final String TUNNELS = "tunnels";
     private static final String TUNNELS_URL = IETF + ":" + TE + "/" + TUNNELS;
+    private static final String IETF_NOTIFICATION_URI = "netconf";
     private static final String MEDIA_TYPE_JSON = "json";
 
     private static final String SHOULD_IN_ONE = "Tunnel should be setup in one topo";
@@ -96,8 +97,8 @@ public class TeTunnelRestconfProvider extends AbstractProvider
     private static final String RESTCONF_ROOT = "/onos/restconf";
     private static final String TE_TUNNEL_KEY = "TeTunnelKey";
 
-    private final RestConfNotificationEventListener listener =
-            new InternalTunnelNotificationListener();
+    //private final RestconfNotificationEventListener listener =
+    //        new InternalTunnelNotificationListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RestConfSBController controller;
@@ -165,9 +166,14 @@ public class TeTunnelRestconfProvider extends AbstractProvider
     private void subscribe() {
         for (DeviceId deviceId : controller.getDevices().keySet()) {
             try {
-                controller.enableNotifications(deviceId, TUNNELS_URL,
-                                               MEDIA_TYPE_JSON,
-                                               listener);
+                if (!controller.isNotificationEnabled(deviceId)) {
+                    controller.enableNotifications(deviceId, IETF_NOTIFICATION_URI,
+                                                   "application/json",
+                                                   new InternalTunnelNotificationListener());
+                } else {
+                    controller.addNotificationListener(deviceId,
+                                                       new InternalTunnelNotificationListener());
+                }
             } catch (Exception e) {
                 log.error("Failed to subscribe for {} : {}", deviceId,
                           e.getMessage());
@@ -179,7 +185,8 @@ public class TeTunnelRestconfProvider extends AbstractProvider
         controller.getDevices()
                 .keySet()
                 .forEach(deviceId -> controller
-                        .removeNotificationListener(deviceId));
+                        .removeNotificationListener(deviceId,
+                                                    new InternalTunnelNotificationListener()));
     }
 
     @Override
@@ -343,8 +350,9 @@ public class TeTunnelRestconfProvider extends AbstractProvider
         return deviceId;
     }
 
+
     private class InternalTunnelNotificationListener implements
-            RestConfNotificationEventListener {
+            RestconfNotificationEventListener {
 
         @Override
         public void handleNotificationEvent(DeviceId deviceId, Object eventJsonString) {
