@@ -23,7 +23,7 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 /**
  * NexthopIPv6addressTlv provides Ipv6  address of next hop.
@@ -135,7 +135,7 @@ public class NexthopIPv6addressTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return Arrays.hashCode(rawValue);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class NexthopIPv6addressTlv implements PcepValueType {
         }
         if (obj instanceof NexthopIPv6addressTlv) {
             NexthopIPv6addressTlv other = (NexthopIPv6addressTlv) obj;
-            return Objects.equals(this.rawValue, other.rawValue);
+            return Arrays.equals(this.rawValue, other.rawValue);
         }
         return false;
     }

@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
@@ -99,7 +99,7 @@ public class OpaqueNodePropertiesSubTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return Arrays.hashCode(rawValue);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class OpaqueNodePropertiesSubTlv implements PcepValueType {
         }
         if (obj instanceof OpaqueNodePropertiesSubTlv) {
             OpaqueNodePropertiesSubTlv other = (OpaqueNodePropertiesSubTlv) obj;
-            return Objects.equals(this.rawValue, other.rawValue);
+            return Arrays.equals(this.rawValue, other.rawValue);
         }
         return false;
     }

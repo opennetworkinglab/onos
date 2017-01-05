@@ -16,7 +16,7 @@
 
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepNai;
@@ -78,7 +78,7 @@ public class PcepNaiIpv6NodeId implements PcepNai {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ipv6NodeId);
+        return Arrays.hashCode(ipv6NodeId);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class PcepNaiIpv6NodeId implements PcepNai {
         }
         if (obj instanceof PcepNaiIpv6NodeId) {
             PcepNaiIpv6NodeId other = (PcepNaiIpv6NodeId) obj;
-            return Objects.equals(this.ipv6NodeId, other.ipv6NodeId);
+            return Arrays.equals(this.ipv6NodeId, other.ipv6NodeId);
         }
         return false;
     }
