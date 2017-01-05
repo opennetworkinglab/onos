@@ -60,7 +60,7 @@ public class Controller {
     private OspfInterfaceChannelHandler ospfChannelHandler;
     private NioClientSocketChannelFactory peerExecFactory;
     private ClientBootstrap peerBootstrap = null;
-    private TpPort isisPort = TpPort.tpPort(OspfUtil.SPORT);
+    private TpPort ospfPort = TpPort.tpPort(OspfUtil.SPORT);
     private ScheduledExecutorService connectExecutor = null;
     private int connectRetryCounter = 0;
     private int connectRetryTime;
@@ -70,7 +70,7 @@ public class Controller {
     /**
      * Deactivates OSPF controller.
      */
-    public void isisDeactivate() {
+    public void ospfDeactivate() {
         peerExecFactory.shutdown();
     }
 
@@ -151,13 +151,13 @@ public class Controller {
 
         if (peerWorkerThreads == 0) {
             peerExecFactory = new NioClientSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/isis", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/isis", "worker-%d")));
+                    Executors.newCachedThreadPool(groupedThreads("onos/ospf", "boss-%d")),
+                    Executors.newCachedThreadPool(groupedThreads("onos/ospf", "worker-%d")));
             return new ClientBootstrap(peerExecFactory);
         } else {
             peerExecFactory = new NioClientSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/isis", "boss-%d")),
-                    Executors.newCachedThreadPool(groupedThreads("onos/isis", "worker-%d")),
+                    Executors.newCachedThreadPool(groupedThreads("onos/ospf", "boss-%d")),
+                    Executors.newCachedThreadPool(groupedThreads("onos/ospf", "worker-%d")),
                     peerWorkerThreads);
             return new ClientBootstrap(peerExecFactory);
         }
@@ -235,7 +235,7 @@ public class Controller {
      */
     public void stop() {
         log.info("Stopping OSPF controller...!!!");
-        isisDeactivate();
+        ospfDeactivate();
         processes.clear();
     }
 
@@ -331,7 +331,7 @@ public class Controller {
     }
 
     /**
-     * Implements ISIS connection and manages connection to peer with back-off mechanism in case of failure.
+     * Implements OSPF connection and manages connection to peer with back-off mechanism in case of failure.
      */
     class ConnectionRetry implements Runnable {
         @Override
@@ -339,7 +339,7 @@ public class Controller {
             log.debug("Connect to peer {}", OspfUtil.SHOST);
             initConnection();
             ospfChannelHandler.sentConfigPacket(configPacket);
-            InetSocketAddress connectToSocket = new InetSocketAddress(OspfUtil.SHOST, isisPort.toInt());
+            InetSocketAddress connectToSocket = new InetSocketAddress(OspfUtil.SHOST, ospfPort.toInt());
             try {
                 peerBootstrap.connect(connectToSocket).addListener(new ChannelFutureListener() {
                     @Override
