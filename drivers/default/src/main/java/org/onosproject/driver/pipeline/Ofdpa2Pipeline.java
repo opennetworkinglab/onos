@@ -901,7 +901,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
-                        tb.deferred().add(instr);
+                        // XXX decrementing IP ttl is done automatically for routing, this
+                        // action is ignored or rejected in ofdpa as it is not fully implemented
+                        //tb.deferred().add(instr);
                     }
                 }
             }
@@ -925,7 +927,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     if (instr instanceof L2ModificationInstruction &&
                             ((L2ModificationInstruction) instr).subtype() == L2SubType.MPLS_POP) {
                         popMpls = true;
-                        tb.immediate().add(instr);
+                        // OF-DPA does not pop in MPLS table. Instead it requires
+                        // setting the MPLS_TYPE so pop can happen down the pipeline
                     }
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
@@ -982,7 +985,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         if (forTableId == MPLS_TABLE_1) {
             if (mplsNextTable == MPLS_L3_TYPE) {
                 Ofdpa3SetMplsType setMplsType = new Ofdpa3SetMplsType(Ofdpa3MplsType.L3_PHP);
-                tb.extension(setMplsType, deviceId);
+                // set mpls type as apply_action
+                tb.immediate().extension(setMplsType, deviceId);
             }
             tb.transition(mplsNextTable);
         } else {
