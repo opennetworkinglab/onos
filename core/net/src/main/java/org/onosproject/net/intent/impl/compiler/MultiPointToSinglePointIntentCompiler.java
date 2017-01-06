@@ -38,6 +38,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 
@@ -85,7 +87,7 @@ public class MultiPointToSinglePointIntentCompiler
                 continue;
             }
 
-            Path path = getPath(intent, ingressPoint.deviceId(), intent.egressPoint().deviceId());
+            Path path = getPath(intent, ingressPoint.deviceId(), egressPoint.deviceId());
 
             if (path != null) {
                 hasPaths = true;
@@ -105,6 +107,23 @@ public class MultiPointToSinglePointIntentCompiler
                 missingSomePaths = true;
             }
         }
+
+        // Allocate bandwidth on existing paths if a bandwidth constraint is set
+        List<ConnectPoint> ingressCPs =
+                intent.filteredIngressPoints().stream()
+                                              .map(fcp -> fcp.connectPoint())
+                                              .collect(Collectors.toList());
+        ConnectPoint egressCP = intent.filteredEgressPoint().connectPoint();
+
+        List<ConnectPoint> pathCPs =
+                links.values().stream()
+                              .flatMap(l -> Stream.of(l.src(), l.dst()))
+                              .collect(Collectors.toList());
+
+        pathCPs.addAll(ingressCPs);
+        pathCPs.add(egressCP);
+
+        allocateBandwidth(intent, pathCPs);
 
         if (!hasPaths) {
             throw new IntentException("Cannot find any path between ingress and egress points.");

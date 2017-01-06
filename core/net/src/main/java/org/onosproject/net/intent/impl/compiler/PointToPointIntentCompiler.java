@@ -73,6 +73,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
@@ -122,8 +124,8 @@ public class PointToPointIntentCompiler
     @Override
     public List<Intent> compile(PointToPointIntent intent, List<Intent> installable) {
         log.trace("compiling {} {}", intent, installable);
-        ConnectPoint ingressPoint = intent.ingressPoint();
-        ConnectPoint egressPoint = intent.egressPoint();
+        ConnectPoint ingressPoint = intent.filteredIngressPoint().connectPoint();
+        ConnectPoint egressPoint = intent.filteredEgressPoint().connectPoint();
 
         if (ingressPoint.deviceId().equals(egressPoint.deviceId())) {
             return createZeroHopLinkCollectionIntent(intent);
@@ -157,6 +159,15 @@ public class PointToPointIntentCompiler
                                        intent));
     }
 
+    /**
+     * Creates an unprotected intent.
+     * @param ingressPoint the ingress connect point
+     * @param egressPoint the egress connect point
+     * @param intent the original intent
+     * @return the compilation result
+     * @deprecated 1.10.0
+     */
+    @Deprecated
     private List<Intent> createUnprotectedIntent(ConnectPoint ingressPoint,
                                                  ConnectPoint egressPoint,
                                                  PointToPointIntent intent) {
@@ -176,6 +187,20 @@ public class PointToPointIntentCompiler
     private List<Intent> createUnprotectedLinkCollectionIntent(PointToPointIntent intent) {
         Path path = getPathOrException(intent, intent.filteredIngressPoint().connectPoint().deviceId(),
                                        intent.filteredEgressPoint().connectPoint().deviceId());
+
+        // Allocate bandwidth if a bandwidth constraint is set
+        ConnectPoint ingressCP = intent.filteredIngressPoint().connectPoint();
+        ConnectPoint egressCP = intent.filteredEgressPoint().connectPoint();
+
+        List<ConnectPoint> pathCPs =
+                path.links().stream()
+                            .flatMap(l -> Stream.of(l.src(), l.dst()))
+                            .collect(Collectors.toList());
+
+        pathCPs.add(ingressCP);
+        pathCPs.add(egressCP);
+
+        allocateBandwidth(intent, pathCPs);
 
         return asList(createLinkCollectionIntent(ImmutableSet.copyOf(path.links()),
                                                  path.cost(),
@@ -292,6 +317,21 @@ public class PointToPointIntentCompiler
         if (reusableIntents != null && reusableIntents.size() > 1) {
             return reusableIntents;
         } else {
+            // Allocate bandwidth if a bandwidth constraint is set
+            ConnectPoint ingressCP = intent.filteredIngressPoint().connectPoint();
+            ConnectPoint egressCP = intent.filteredEgressPoint().connectPoint();
+
+            List<ConnectPoint> pathCPs =
+                    onlyPath.links().stream()
+                            .flatMap(l -> Stream.of(l.src(), l.dst()))
+                            .collect(Collectors.toList());
+
+            pathCPs.add(ingressCP);
+            pathCPs.add(egressCP);
+
+            // Allocate bandwidth if a bandwidth constraint is set
+            allocateBandwidth(intent, pathCPs);
+
             links.add(createEdgeLink(ingressPoint, true));
             links.addAll(onlyPath.links());
             links.add(createEdgeLink(egressPoint, false));
