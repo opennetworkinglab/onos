@@ -34,16 +34,15 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.openstacknetworking.OpenstackSwitchingService;
 import org.onosproject.openstacknetworking.AbstractVmHandler;
+import org.onosproject.openstacknetworking.OpenstackSwitchingService;
+import org.onosproject.openstacknetworking.RulePopulatorUtil;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.onosproject.openstacknetworking.Constants.*;
@@ -83,14 +82,22 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
     }
 
     private void populateSwitchingRules(Host host) {
-        populateFlowRulesForTunnelTag(host);
-        populateFlowRulesForTrafficToSameCnode(host);
-        populateFlowRulesForTrafficToDifferentCnode(host);
+        setFlowRulesForTunnelTag(host, true);
+        setFlowRulesForTrafficToSameCnode(host, true);
+        setFlowRulesForTrafficToDifferentCnode(host, true);
 
         log.debug("Populated switching rule for {}", host);
     }
 
-    private void populateFlowRulesForTunnelTag(Host host) {
+    private void removeSwitchingRules(Host host) {
+        setFlowRulesForTunnelTag(host, false);
+        setFlowRulesForTrafficToSameCnode(host, false);
+        setFlowRulesForTrafficToDifferentCnode(host, false);
+
+        log.debug("Removed switching rule for {}", host);
+    }
+
+    private void setFlowRulesForTunnelTag(Host host, boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -99,18 +106,12 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
 
         tBuilder.setTunnelId(Long.valueOf(getVni(host)));
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(TUNNELTAG_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(host.location().deviceId(), fo);
+        RulePopulatorUtil.setRule(flowObjectiveService, appId, host.location().deviceId(),
+                sBuilder.build(), tBuilder.build(), ForwardingObjective.Flag.SPECIFIC,
+                TUNNELTAG_RULE_PRIORITY, install);
     }
 
-    private void populateFlowRulesForTrafficToSameCnode(Host host) {
+    private void setFlowRulesForTrafficToSameCnode(Host host, boolean install) {
         //For L2 Switching Case
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
@@ -125,18 +126,12 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
         tBuilder.setEthDst(host.mac())
                 .setOutput(host.location().port());
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(SWITCHING_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(host.location().deviceId(), fo);
+        RulePopulatorUtil.setRule(flowObjectiveService, appId, host.location().deviceId(),
+                sBuilder.build(), tBuilder.build(), ForwardingObjective.Flag.SPECIFIC,
+                SWITCHING_RULE_PRIORITY, install);
     }
 
-    private void populateFlowRulesForTrafficToDifferentCnode(Host host) {
+    private void setFlowRulesForTrafficToDifferentCnode(Host host, boolean install) {
         Ip4Address localVmIp = getIp(host);
         DeviceId localDeviceId = host.location().deviceId();
         Optional<IpAddress> localDataIp = nodeService.dataIp(localDeviceId);
@@ -154,18 +149,18 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
                 setVxLanFlowRule(vni,
                         localDeviceId,
                         remoteDataIp.get().getIp4Address(),
-                        getIp(remoteVm));
+                        getIp(remoteVm), install);
 
                 setVxLanFlowRule(vni,
                         remoteVm.location().deviceId(),
                         localDataIp.get().getIp4Address(),
-                        localVmIp);
+                        localVmIp, install);
             }
         });
     }
 
     private void setVxLanFlowRule(String vni, DeviceId deviceId, Ip4Address remoteIp,
-                                  Ip4Address vmIp) {
+                                  Ip4Address vmIp, boolean install) {
         Optional<PortNumber> tunnelPort = nodeService.tunnelPort(deviceId);
         if (!tunnelPort.isPresent()) {
             log.warn("Failed to get tunnel port from {}", deviceId);
@@ -181,91 +176,9 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
         tBuilder.extension(buildExtension(deviceService, deviceId, remoteIp), deviceId)
                 .setOutput(tunnelPort.get());
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(SWITCHING_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(deviceId, fo);
-    }
-
-    private void removeSwitchingRules(Host host) {
-        removeFlowRuleForTunnelTag(host);
-        removeFlowRuleForVMsInSameCnode(host);
-        removeFlowRuleForVMsInDiffrentCnode(host);
-
-        log.debug("Removed switching rule for {}", host);
-    }
-
-    private void removeFlowRuleForTunnelTag(Host host) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchInPort(host.location().port());
-
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(TUNNELTAG_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId)
-                .remove();
-
-        flowObjectiveService.forward(host.location().deviceId(), fo);
-    }
-
-    private void removeFlowRuleForVMsInSameCnode(Host host) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(getIp(host).toIpPrefix())
-                .matchTunnelId(Long.valueOf(getVni(host)));
-
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(DefaultTrafficTreatment.builder().build())
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .withPriority(SWITCHING_RULE_PRIORITY)
-                .fromApp(appId)
-                .remove();
-
-        flowObjectiveService.forward(host.location().deviceId(), fo);
-    }
-
-    private void removeFlowRuleForVMsInDiffrentCnode(Host host) {
-        DeviceId deviceId = host.location().deviceId();
-        final boolean anyPortRemainedInSameCnode = hostService.getConnectedHosts(deviceId)
-                .stream()
-                .filter(this::isValidHost)
-                .anyMatch(h -> Objects.equals(getVni(h), getVni(host)));
-
-        getVmsInDifferentCnode(host).forEach(h -> {
-           removeVxLanFlowRule(h.location().deviceId(), getIp(host), getVni(host));
-           if (!anyPortRemainedInSameCnode) {
-               removeVxLanFlowRule(deviceId, getIp(h), getVni(host));
-           }
-       });
-    }
-
-    private void removeVxLanFlowRule(DeviceId deviceId, Ip4Address vmIp, String vni) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchTunnelId(Long.valueOf(vni))
-                .matchIPDst(vmIp.toIpPrefix());
-
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(DefaultTrafficTreatment.builder().build())
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .withPriority(SWITCHING_RULE_PRIORITY)
-                .fromApp(appId)
-                .remove();
-
-        flowObjectiveService.forward(deviceId, fo);
+        RulePopulatorUtil.setRule(flowObjectiveService, appId, deviceId,
+                sBuilder.build(), tBuilder.build(), ForwardingObjective.Flag.SPECIFIC,
+                SWITCHING_RULE_PRIORITY, install);
     }
 
     @Override
