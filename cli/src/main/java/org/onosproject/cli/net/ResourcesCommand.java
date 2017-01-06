@@ -120,9 +120,22 @@ public class ResourcesCommand extends AbstractShellCommand {
         } else {
             String resourceName = resource.simpleTypeName();
             if (resource instanceof ContinuousResource) {
-                print("%s%s: %f", Strings.repeat(" ", level),
-                                  resourceName,
-                                  ((ContinuousResource) resource).value());
+                if (availablesOnly) {
+                    // Get the total resource
+                    double total = ((ContinuousResource) resource).value();
+                    // Get allocated resource
+                    double allocated = resourceService.getResourceAllocations(resource.id()).stream()
+                            .mapToDouble(rA -> ((ContinuousResource) rA.resource()).value())
+                            .sum();
+                    // Difference
+                    double difference = total - allocated;
+                    print("%s%s: %f", Strings.repeat(" ", level),
+                          resourceName, difference);
+                } else {
+                    print("%s%s: %f", Strings.repeat(" ", level),
+                          resourceName,
+                          ((ContinuousResource) resource).value());
+                }
                 // Continuous resource is terminal node, stop here
                 return;
             } else {

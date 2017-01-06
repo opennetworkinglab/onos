@@ -17,9 +17,9 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.graph.Weight;
-import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
@@ -38,13 +38,7 @@ import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
-import org.onosproject.net.resource.DiscreteResourceId;
-import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.net.resource.ResourceId;
-import org.onosproject.net.resource.ResourceListener;
-import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeigher;
@@ -52,13 +46,13 @@ import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -185,8 +179,7 @@ public class IntentTestsMocks {
      * Mock path service for creating paths within the test.
      *
      */
-    public static class Mp2MpMockPathService
-            extends PathServiceAdapter {
+    public static class Mp2MpMockPathService extends PathServiceAdapter {
 
         final String[] pathHops;
         final String[] reversePathHops;
@@ -242,84 +235,74 @@ public class IntentTestsMocks {
         }
     }
 
-    public static final class MockResourceService implements ResourceService {
+    /**
+     * Mock path service for creating paths for MP2SP intent tests, returning
+     * pre-determined paths.
+     */
+    public static class FixedMP2MPMockPathService extends PathServiceAdapter {
 
-        private final double bandwidth;
+        final String[] pathHops;
 
-        public static ResourceService makeBandwidthResourceService(double bandwidth) {
-            return new MockResourceService(bandwidth);
-        }
+        public static final String DPID_1 = "of:s1";
+        public static final String DPID_2 = "of:s2";
+        public static final String DPID_3 = "of:s3";
+        public static final String DPID_4 = "of:s4";
 
-        private MockResourceService(double bandwidth) {
-            this.bandwidth = bandwidth;
-        }
-
-        @Override
-        public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<? extends Resource> resources) {
-            return null;
-        }
-
-        @Override
-        public boolean release(List<ResourceAllocation> allocations) {
-            return false;
-        }
-
-        @Override
-        public boolean release(ResourceConsumer consumer) {
-            return false;
+        /**
+         * Constructor that provides a set of hops to mock.
+         *
+         * @param pathHops path hops to mock
+         */
+        public FixedMP2MPMockPathService(String[] pathHops) {
+            this.pathHops = pathHops;
         }
 
         @Override
-        public List<ResourceAllocation> getResourceAllocations(ResourceId id) {
-            return null;
-        }
-
-        @Override
-        public <T> Collection<ResourceAllocation> getResourceAllocations(DiscreteResourceId parent, Class<T> cls) {
-            return null;
-        }
-
-        @Override
-        public Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer) {
-            return null;
-        }
-
-        @Override
-        public Set<Resource> getAvailableResources(DiscreteResourceId parent) {
-            return null;
-        }
-
-        @Override
-        public <T> Set<Resource> getAvailableResources(DiscreteResourceId parent, Class<T> cls) {
-            return null;
-        }
-
-        @Override
-        public <T> Set<T> getAvailableResourceValues(DiscreteResourceId parent, Class<T> cls) {
-            return null;
-        }
-
-        @Override
-        public Set<Resource> getRegisteredResources(DiscreteResourceId parent) {
-            return null;
-        }
-
-        @Override
-        public boolean isAvailable(Resource resource) {
-            if (!resource.isTypeOf(Bandwidth.class)) {
-                return false;
+        public Set<Path> getPaths(ElementId src, ElementId dst) {
+            List<Link> links = new ArrayList<>();
+            Set<Path> result = new HashSet<>();
+            ProviderId providerId = new ProviderId("of", "foo");
+            DefaultPath path;
+            if (src.toString().equals(DPID_1) && dst.toString().equals(DPID_4)) {
+                links.add(NetTestTools.linkNoPrefixes(src.toString(), 2, pathHops[0], 1));
+                links.add(NetTestTools.linkNoPrefixes(pathHops[0], 2, dst.toString(), 1));
+            } else if (src.toString().equals(DPID_2) && dst.toString().equals(DPID_4)) {
+                links.add(NetTestTools.linkNoPrefixes(src.toString(), 2, pathHops[0], 3));
+                links.add(NetTestTools.linkNoPrefixes(pathHops[0], 2, dst.toString(), 1));
+            } else if (src.toString().equals(DPID_4) && dst.toString().equals(DPID_1)) {
+                links.add(NetTestTools.linkNoPrefixes(src.toString(), 2, pathHops[0], 1));
+                links.add(NetTestTools.linkNoPrefixes(pathHops[0], 2, dst.toString(), 1));
+            } else if (src.toString().equals(DPID_4) && dst.toString().equals(DPID_2)) {
+                links.add(NetTestTools.linkNoPrefixes(src.toString(), 2, pathHops[0], 1));
+                links.add(NetTestTools.linkNoPrefixes(pathHops[0], 3, dst.toString(), 1));
+            } else {
+                return result;
             }
+            path = new DefaultPath(providerId, links, 3);
+            result.add(path);
 
-            Optional<Double> value = resource.valueAs(Double.class);
-            return value.filter(requested -> requested <= bandwidth).isPresent();
+            return result;
         }
 
         @Override
-        public void addListener(ResourceListener listener) {
-        }
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
+            final Set<Path> paths = getPaths(src, dst);
 
-        @Override
-        public void removeListener(ResourceListener listener) {
+            for (Path path : paths) {
+                final DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
+                final DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
+                if (srcDevice != null && dstDevice != null) {
+                    final TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
+                    final TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
+                    final Link link = link(src.toString(), 1, dst.toString(), 1);
+
+                    final Weight weightValue = weigher.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue.isNegative()) {
+                        return new HashSet<>();
+                    }
+                }
+            }
+            return paths;
         }
     }
 
@@ -500,5 +483,4 @@ public class IntentTestsMocks {
             return true;
         }
     }
-
 }

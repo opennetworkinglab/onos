@@ -51,8 +51,9 @@ import org.onosproject.net.intent.impl.compiler.PointToPointIntentCompiler;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.Skipped;
-import org.osgi.service.component.ComponentContext;
+import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.ResourceService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -344,9 +345,8 @@ public class IntentManager
             post(event);
             switch (event.type()) {
                 case WITHDRAWN:
-                    // release resources allocated to withdrawn intent
-                    if (!resourceService.release(event.subject().id())) {
-                        log.error("Failed to release resources allocated to {}", event.subject().id());
+                    if (!skipReleaseResourcesOnWithdrawal) {
+                        releaseResources(event.subject());
                     }
                     break;
                 default:
@@ -362,6 +362,41 @@ public class IntentManager
         @Override
         public void onUpdate(IntentData intentData) {
             trackerService.trackIntent(intentData);
+        }
+
+        private void releaseResources(Intent intent) {
+            // If a resource group is set on the intent, the resource consumer is
+            // set equal to it. Otherwise it's set to the intent key
+            ResourceConsumer resourceConsumer =
+                    intent.resourceGroup() != null ? intent.resourceGroup() : intent.key();
+
+            // By default the resource doesn't get released
+            boolean removeResource = false;
+
+            if (intent.resourceGroup() == null) {
+                // If the intent doesn't have a resource group, it means the
+                // resource was registered using the intent key, so it can be
+                // released
+                removeResource = true;
+            } else {
+                // When a resource group is set, we make sure there are no other
+                // intents using the same resource group, before deleting the
+                // related resources.
+                Long remainingIntents =
+                        Tools.stream(store.getIntents())
+                             .filter(i -> i.resourceGroup().equals(intent.resourceGroup()))
+                             .count();
+                if (remainingIntents == 0) {
+                    removeResource = true;
+                }
+            }
+
+            if (removeResource) {
+                // Release resources allocated to withdrawn intent
+                if (!resourceService.release(resourceConsumer)) {
+                    log.error("Failed to release resources allocated to {}", resourceConsumer);
+                }
+            }
         }
     }
 

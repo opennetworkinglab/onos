@@ -76,10 +76,15 @@ public final class NetTestTools {
     }
 
     // Crates a new host with the specified id
-    public static Host host(String id, String did) {
+    public static Host host(String id, String did, long port) {
         return new DefaultHost(PID, hid(id), valueOf(1234), vlanId((short) 2),
-                               new HostLocation(did(did), portNumber(1), 321),
+                               new HostLocation(did(did), portNumber(port), 321),
                                new HashSet<>());
+    }
+
+    // Crates a new host with the specified id
+    public static Host host(String id, String did) {
+        return host(id, did, 1);
     }
 
     // Short-hand for creating a connection point.
@@ -87,11 +92,24 @@ public final class NetTestTools {
         return new ConnectPoint(did(id), portNumber(port));
     }
 
+    // Short-hand for creating a connection point.
+    public static ConnectPoint connectPointNoOF(String id, int port) {
+        return new ConnectPoint(DeviceId.deviceId(id), portNumber(port));
+    }
+
     // Short-hand for creating a link.
     public static Link link(String src, int sp, String dst, int dp) {
         return new DefaultLink(PID,
                                connectPoint(src, sp),
                                connectPoint(dst, dp),
+                               Link.Type.DIRECT, Link.State.ACTIVE);
+    }
+
+    // Short-hand for creating a link.
+    public static Link linkNoPrefixes(String src, int sp, String dst, int dp) {
+        return new DefaultLink(PID,
+                               connectPointNoOF(src, sp),
+                               connectPointNoOF(dst, dp),
                                Link.Type.DIRECT, Link.State.ACTIVE);
     }
 
@@ -110,21 +128,21 @@ public final class NetTestTools {
     public static Path createPath(String... ids) {
         List<Link> links = new ArrayList<>();
         for (int i = 0; i < ids.length - 1; i++) {
-            links.add(link(ids[i], i, ids[i + 1], i));
+            links.add(link(ids[i], 2, ids[i + 1], 1));
         }
         return new DefaultPath(PID, links, ids.length);
     }
 
-    // Creates a path that leads through the given devices.
+    // Creates a path that leads through the given hosts.
     public static Path createPath(boolean srcIsEdge, boolean dstIsEdge, String... ids) {
         List<Link> links = new ArrayList<>();
         for (int i = 0; i < ids.length - 1; i++) {
             if (i == 0 && srcIsEdge) {
-                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i], ids[i + 1]), true));
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i], ids[i + 1], 1), true));
             } else if (i == ids.length - 2 && dstIsEdge) {
-                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i + 1], ids[i]), false));
+                links.add(DefaultEdgeLink.createEdgeLink(host(ids[i + 1], ids[i], 2), false));
             } else {
-                links.add(link(ids[i], i, ids[i + 1], i));
+                links.add(link(ids[i], 2, ids[i + 1], 1));
             }
         }
         return new DefaultPath(PID, links, ids.length);

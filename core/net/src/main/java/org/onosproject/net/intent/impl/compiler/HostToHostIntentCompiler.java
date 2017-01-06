@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
@@ -35,7 +36,6 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.AsymmetricPathConstraint;
 import org.slf4j.Logger;
 
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.onosproject.net.Link.Type.EDGE;
 import static org.onosproject.net.flow.DefaultTrafficSelector.builder;
@@ -115,22 +116,6 @@ public class HostToHostIntentCompiler
                 .build();
     }
 
-    // Creates a path intent from the specified path and original connectivity intent.
-    private Intent createPathIntent(Path path, Host src, Host dst,
-                                    HostToHostIntent intent) {
-        TrafficSelector selector = builder(intent.selector())
-                .matchEthSrc(src.mac()).matchEthDst(dst.mac()).build();
-        return PathIntent.builder()
-                .appId(intent.appId())
-                .key(intent.key())
-                .selector(selector)
-                .treatment(intent.treatment())
-                .path(path)
-                .constraints(intent.constraints())
-                .priority(intent.priority())
-                .build();
-    }
-
     private FilteredConnectPoint getFilteredPointFromLink(Link link) {
         FilteredConnectPoint filteredConnectPoint;
         if (link.src().elementId() instanceof DeviceId) {
@@ -147,14 +132,13 @@ public class HostToHostIntentCompiler
                                              Host src,
                                              Host dst,
                                              HostToHostIntent intent) {
-        /*
-         * The path contains also the edge links, these are not necessary
-         * for the LinkCollectionIntent.
-         */
-        Set<Link> coreLinks = path.links()
-                .stream()
-                .filter(link -> !link.type().equals(EDGE))
-                .collect(Collectors.toSet());
+        // Try to allocate bandwidth
+        List<ConnectPoint> pathCPs =
+                path.links().stream()
+                            .flatMap(l -> Stream.of(l.src(), l.dst()))
+                            .collect(Collectors.toList());
+
+        allocateBandwidth(intent, pathCPs);
 
         Link ingressLink = path.links().get(0);
         Link egressLink = path.links().get(path.links().size() - 1);
@@ -166,6 +150,15 @@ public class HostToHostIntentCompiler
                 .matchEthSrc(src.mac())
                 .matchEthDst(dst.mac())
                 .build();
+
+        /*
+         * The path contains also the edge links, these are not necessary
+         * for the LinkCollectionIntent.
+         */
+        Set<Link> coreLinks = path.links()
+                .stream()
+                .filter(link -> !link.type().equals(EDGE))
+                .collect(Collectors.toSet());
 
         return LinkCollectionIntent.builder()
                 .key(intent.key())
