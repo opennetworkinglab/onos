@@ -46,7 +46,7 @@ public interface CodecContext {
      *
      * @param serviceClass service class
      * @param <T>          service type
-     * @return JSON codec; null if no codec available for the class
+     * @return service implementation; null if no implementation available for the class
      */
     <T> T getService(Class<T> serviceClass);
 
