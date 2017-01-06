@@ -54,7 +54,7 @@
         <bundle>mvn:commons-collections/commons-collections/3.2.2</bundle>
 
         <bundle>mvn:com.typesafe/config/1.2.1</bundle>
-        <bundle>wrap:mvn:com.googlecode.concurrent-trees/concurrent-trees/2.4.0$Bundle-SymbolicName=concurrent-trees&amp;Bundle-Version=2.4.0</bundle>
+        <bundle>mvn:com.googlecode.concurrent-trees/concurrent-trees/2.6.0</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
         <bundle>mvn:io.atomix/atomix-all/1.0.0-rc9</bundle>
 
