@@ -258,14 +258,29 @@
         detailsPanel.hide();
     }
 
+    // Sample functions for detail panel creation
+    function popTop(div) {
+        $log.debug('populateTop');
+        // TODO: real work
+        // div.append(.....);
+        // div.append(.....);
+        // div.append(.....);
+    }
+
+    function popMid(div) {
+        $log.debug('populateMiddle');
+        // TODO: real work
+    }
+
     angular.module('ovDevice', [])
     .controller('OvDeviceCtrl',
-        ['$log', '$scope', '$location', 'TableBuilderService', 'FnService',
+        ['$log', '$scope', '$location', 'TableBuilderService',
+            'TableDetailService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
             'NavService', 'KeyService',
 
         function (_$log_, _$scope_, _$location_,
-                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_, _ks_) {
+                  tbs, tds, _fs_, _mast_, _ps_, _wss_, _is_, _ns_, _ks_) {
             var params,
                 handlers = {};
 
@@ -313,6 +328,16 @@
                 tag: 'device',
                 selCb: selCb
             });
+
+
+            // ==================== for testing for now ===============
+            // TODO: more than just an example
+            tds.buildBasePanel({
+                popTop: popTop,
+                popMid: popMid
+            });
+            // ==================== for testing for now ===============
+
 
             $scope.nav = function (path) {
                 if ($scope.selId) {
