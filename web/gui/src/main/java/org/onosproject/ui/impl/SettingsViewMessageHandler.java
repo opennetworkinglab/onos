@@ -79,12 +79,6 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected TableModel createTableModel() {
-            TableModel tm = super.createTableModel();
-            return tm;
-        }
-
-        @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             ComponentConfigService ccs = get(ComponentConfigService.class);
             for (String component : ccs.getComponentNames()) {

@@ -132,17 +132,17 @@ public class FlowViewMessageHandler extends UiMessageHandler {
 
         private void populateRow(TableModel.Row row, FlowEntry flow) {
             row.cell(ID, flow.id().value())
-                .cell(APP_ID, flow.appId())
-                .cell(GROUP_ID, flow.groupId().id())
-                .cell(TABLE_ID, flow.tableId())
-                .cell(PRIORITY, flow.priority())
-                .cell(TIMEOUT, flow.timeout())
-                .cell(PERMANENT, flow.isPermanent())
-                .cell(STATE, flow.state())
-                .cell(PACKETS, flow.packets())
-                .cell(BYTES, flow.bytes())
-                .cell(SELECTOR, flow)
-                .cell(TREATMENT, flow);
+                    .cell(APP_ID, flow.appId())
+                    .cell(GROUP_ID, flow.groupId().id())
+                    .cell(TABLE_ID, flow.tableId())
+                    .cell(PRIORITY, flow.priority())
+                    .cell(TIMEOUT, flow.timeout())
+                    .cell(PERMANENT, flow.isPermanent())
+                    .cell(STATE, flow.state())
+                    .cell(PACKETS, flow.packets())
+                    .cell(BYTES, flow.bytes())
+                    .cell(SELECTOR, flow)
+                    .cell(TREATMENT, flow);
         }
 
         private final class SelectorFormatter implements CellFormatter {
@@ -258,7 +258,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
 
             String flowId = string(payload, FLOW_ID);
             String appId = string(payload, APP_ID);

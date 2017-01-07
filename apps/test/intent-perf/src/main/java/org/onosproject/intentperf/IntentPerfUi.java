@@ -157,7 +157,7 @@ public class IntentPerfUi {
             }
 
             @Override
-            public void process(long sid, ObjectNode payload) {
+            public void process(ObjectNode payload) {
                 streamingEnabled = true;
                 sendInitData();
             }
@@ -171,7 +171,7 @@ public class IntentPerfUi {
 
                 collector.getSampleHeaders().forEach(an::add);
                 collector.getSamples().forEach(s -> sn.add(sampleNode(s)));
-                sendMessage("intentPerfInit", 0, rootNode);
+                sendMessage("intentPerfInit", rootNode);
             }
         }
 
@@ -184,7 +184,7 @@ public class IntentPerfUi {
             }
 
             @Override
-            public void process(long sid, ObjectNode payload) {
+            public void process(ObjectNode payload) {
                 streamingEnabled = false;
             }
         }

@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- General Purpose Angular directives defined here.
+ ONOS GUI -- General Purpose Angular directives.
  */
 
 (function () {

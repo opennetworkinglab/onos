@@ -168,7 +168,7 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
 
             String id = string(payload, ID);
             ClusterService cs = get(ClusterService.class);

@@ -79,7 +79,7 @@ describe('factory: fw/remote/websocket.js', function () {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(wss, [
-            'resetSid', 'resetState',
+            'resetState',
             'createWebSocket', 'bindHandlers', 'unbindHandlers',
             'addOpenListener', 'removeOpenListener', 'sendEvent',
             'isConnected', 'loggedInUser',
@@ -118,7 +118,6 @@ describe('factory: fw/remote/websocket.js', function () {
     it('should send pending events, handleOpen', function () {
         var fakeEvent = {
             event: 'mockEv',
-            sid: 1,
             payload: { mock: 'thing' }
         };
         wss.sendEvent(fakeEvent.event, fakeEvent.payload);

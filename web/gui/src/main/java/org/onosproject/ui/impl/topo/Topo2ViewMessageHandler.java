@@ -67,7 +67,6 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private static final String CURRENT_LAYOUT = "topo2CurrentLayout";
     private static final String CURRENT_REGION = "topo2CurrentRegion";
     private static final String PEER_REGIONS = "topo2PeerRegions";
-    private static final String TOPO_START_DONE = "topo2StartDone";
 
 
     private UiTopoSession topoSession;
@@ -122,7 +121,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             // client view is ready to receive data to display; so start up
             // server-side processing, and send over initial state
 
@@ -162,7 +161,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String rid = string(payload, "rid");
             log.debug("topo2navRegion: rid={}", rid);
 
@@ -185,7 +184,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             // client view has gone away; so shut down server-side processing
             // TODO: implement...
 
@@ -204,7 +203,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             t2json.updateMeta(payload);
         }
     }

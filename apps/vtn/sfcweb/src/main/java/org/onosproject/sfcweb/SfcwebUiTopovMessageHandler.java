@@ -15,16 +15,10 @@
  */
 package org.onosproject.sfcweb;
 
-import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import java.util.TimerTask;
-
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import jersey.repackaged.com.google.common.collect.Lists;
-
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.MacAddress;
@@ -59,9 +53,13 @@ import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
+import java.util.TimerTask;
+
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 
 /**
  * SFC web gui topology-overlay message handler.
@@ -125,8 +123,9 @@ public class SfcwebUiTopovMessageHandler extends UiMessageHandler {
         public DisplayStartHandler() {
             super(SAMPLE_TOPOV_DISPLAY_START);
         }
+
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String mode = string(payload, MODE);
             PortChainService pcs = get(PortChainService.class);
             Iterable<PortChain> portChains = pcs.getPortChains();
@@ -139,7 +138,7 @@ public class SfcwebUiTopovMessageHandler extends UiMessageHandler {
             }
             result.putArray("a").addAll(arrayNode);
 
-            sendMessage(SAMPLE_TOPOV_DISPLAY_SFC, sid, result);
+            sendMessage(SAMPLE_TOPOV_DISPLAY_SFC, result);
         }
     }
 
@@ -149,7 +148,7 @@ public class SfcwebUiTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             log.debug("Stop Display");
             clearState();
             clearForMode();
@@ -163,7 +162,7 @@ public class SfcwebUiTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID);
             ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
             vtnRscService = serviceDirectory.get(VtnRscService.class);
@@ -269,7 +268,7 @@ public class SfcwebUiTopovMessageHandler extends UiMessageHandler {
             }
             result.putArray("sfcPathList").addAll(arrayNode);
 
-            sendMessage(SAMPLE_TOPOV_SHOW_SFC_PATH, sid, result);
+            sendMessage(SAMPLE_TOPOV_SHOW_SFC_PATH, result);
         }
     }
 

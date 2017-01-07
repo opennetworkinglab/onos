@@ -40,13 +40,14 @@ import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.HostHighlight;
 import org.onosproject.ui.topo.NodeBadge;
-import org.onosproject.ui.topo.TopoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static org.onosproject.ui.topo.TopoJson.highlightsMessage;
 
 /**
  * ONOS UI PathPainter Topology-Overlay message handler.
@@ -67,11 +68,11 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private static final String TYPE = "type";
     private static final String SWITCH = "switch";
     private static final String ENDSTATION = "endstation";
-    public static final String DST = "Dst";
-    public static final String SRC = "Src";
+    private static final String DST = "Dst";
+    private static final String SRC = "Src";
     // Delay for showHighlights event processing on GUI client side to
     // account for addLink animation.
-    public static final int DELAY_MS = 1100;
+    private static final int DELAY_MS = 1100;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();
 
@@ -97,7 +98,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     protected TopologyService topologyService;
 
 
-    // ===============-=-=-=-=-=-======================-=-=-=-=-=-=-================================
+    // ===============-=-=-=-=-=-======================-=-=-=-=-=-=-===========
 
 
     @Override
@@ -139,10 +140,10 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             src = null;
             dst = null;
-            sendMessage(TopoJson.highlightsMessage(new Highlights()));
+            sendMessage(highlightsMessage(new Highlights()));
         }
     }
 
@@ -153,17 +154,17 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID);
             src = elementId(id);
             srcType = string(payload, TYPE);
             if (src.equals(dst)) {
                 dst = null;
             }
-            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
-                                                            srcType,
-                                                            src.toString(),
-                                                            SRC)));
+
+            sendMessage(highlightsMessage(
+                    addBadge(new Highlights(), srcType, src.toString(), SRC))
+            );
             findAndSendPaths(currentMode);
         }
     }
@@ -174,7 +175,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID);
             dst = elementId(id);
             dstType = string(payload, TYPE);
@@ -182,10 +183,9 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
                 src = null;
             }
 
-            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
-                                                            dstType,
-                                                            dst.toString(),
-                                                            DST)));
+            sendMessage(highlightsMessage(
+                    addBadge(new Highlights(), dstType, dst.toString(), DST))
+            );
             findAndSendPaths(currentMode);
         }
     }
@@ -196,7 +196,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             ElementId temp = src;
             src = dst;
             dst = temp;
@@ -214,7 +214,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             pathIndex = (pathIndex >= paths.size() - 1 ? 0 : pathIndex + 1);
             hilightAndSendPaths();
         }
@@ -226,7 +226,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             pathIndex = (pathIndex <= 0 ? paths.size() - 1 : pathIndex - 1);
             hilightAndSendPaths();
         }
@@ -238,7 +238,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String mode = string(payload, MODE);
             switch (mode) {
                 case "shortest":
@@ -287,7 +287,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
                 paths = ImmutableList.copyOf(pathService.getPaths(src, dst, linkData));
                 allPathLinks = buildPaths(builder).build();
             } else {
-                log.info("Unsupported MODE");
+                log.warn("Unsupported MODE");
             }
         } else {
             paths = ImmutableList.of();
@@ -342,7 +342,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         if (dst != null) {
             highlights = addBadge(highlights, dstType, dst.toString(), DST);
         }
-        sendMessage(TopoJson.highlightsMessage(highlights));
+        sendMessage(highlightsMessage(highlights));
     }
 
     private Highlights addBadge(Highlights highlights, String type, String elemId, String src) {

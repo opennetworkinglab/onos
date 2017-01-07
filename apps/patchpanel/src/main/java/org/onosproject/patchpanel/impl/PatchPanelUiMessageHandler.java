@@ -21,24 +21,26 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.onosproject.net.Device;
-import org.onosproject.net.Port;
-import org.onosproject.net.device.DeviceService;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
+
 /**
- *  ONOS UI Custom-View message handler.
- *
- *  This class contains the request handlers that handle the response
- *  to each event. In this particular implementation the second message
- *  handler creates the patch and the first message handler loads the data
+ * ONOS UI Custom-View message handler.
+ * <p>
+ * This class contains the request handlers that handle the response
+ * to each event. In this particular implementation the second message
+ * handler creates the patch and the first message handler loads the data.
  */
 public class PatchPanelUiMessageHandler extends UiMessageHandler {
 
@@ -48,60 +50,68 @@ public class PatchPanelUiMessageHandler extends UiMessageHandler {
     private static final String SAMPLE_CUSTOM_DATA_RESP2 = "sampleCustomDataResponse2";
     private static final String SAMPLE_CUSTOM_DATA_REQ3 = "sampleCustomDataRequest3";
     private static final String SAMPLE_CUSTOM_DATA_RESP3 = "sampleCustomDataResponse3";
-    private String message = "";
-    private String cpoints = "";
+
+    private static final String SLASH = "/";
+    private static final String CPS = "cps";
+    private static final String RESULT = "result";
+    private static final String MESSAGE = "message";
+
+    private static final String EOL = String.format("%n");
+    private static final String WITH = " with ";
+    private static final String CPOINTS = "cpoints";
+
     private List<ConnectPoint> previous = new ArrayList<>();
-    private static ConnectPoint cp1;
-    private static ConnectPoint cp2;
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new DataRequestHandler(), new SecondDataRequestHandler(), new ThirdDataRequestHandler());
+        return ImmutableSet.of(
+                new DataRequestHandler(),
+                new SecondDataRequestHandler(),
+                new ThirdDataRequestHandler()
+        );
     }
 
     // handler for data requests/events
     private final class DataRequestHandler extends RequestHandler {
-
         private DataRequestHandler() {
             super(SAMPLE_CUSTOM_DATA_REQ);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             DeviceService service = get(DeviceService.class);
             ObjectNode result = objectNode();
             ArrayNode cps = arrayNode();
-            result.set("cps", cps);
+            result.set(CPS, cps);
 
             for (Device device : service.getDevices()) {
                 cps.add(device.id().toString());
                 for (Port port : service.getPorts(device.id())) {
                     if (!port.number().isLogical()) {
                         cps.add(port.number().toString());
-                        log.info(device.id().toString() + "/" + port.number());
+                        log.info(device.id() + SLASH + port.number());
                     }
                 }
             }
-            sendMessage(SAMPLE_CUSTOM_DATA_RESP, 0, result);
+            sendMessage(SAMPLE_CUSTOM_DATA_RESP, result);
         }
     }
 
     private final class SecondDataRequestHandler extends RequestHandler {
-
         private SecondDataRequestHandler() {
             super(SAMPLE_CUSTOM_DATA_REQ2);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            boolean done;
-            String deviceId = payload.get("result").get(0).asText();
-            cp1 = ConnectPoint.deviceConnectPoint(deviceId + "/" + payload.get("result").get(1).asText());
-            cp2 = ConnectPoint.deviceConnectPoint(deviceId + "/" + payload.get("result").get(2).asText());
-            PatchPanelService patchPanelService;
-            patchPanelService = get(PatchPanelService.class);
-            done = patchPanelService.addPatch(cp1, cp2);
+        public void process(ObjectNode payload) {
+            String deviceId = payload.get(RESULT).get(0).asText();
+            ConnectPoint cp1 = deviceConnectPoint(deviceId + SLASH + payload.get(RESULT).get(1).asText());
+            ConnectPoint cp2 = deviceConnectPoint(deviceId + SLASH + payload.get(RESULT).get(2).asText());
+            PatchPanelService pps = get(PatchPanelService.class);
+
+            boolean done = pps.addPatch(cp1, cp2);
+            String message;
             if (done) {
                 message = "Patch has been created";
                 previous.add(cp1);
@@ -112,28 +122,26 @@ public class PatchPanelUiMessageHandler extends UiMessageHandler {
                     message = "Both ports can not be the same";
                 }
             }
-            payload.put("message", message);
-            sendMessage(SAMPLE_CUSTOM_DATA_RESP2, sid, payload);
+            payload.put(MESSAGE, message);
+            sendMessage(SAMPLE_CUSTOM_DATA_RESP2, payload);
 
         }
     }
+
     private final class ThirdDataRequestHandler extends RequestHandler {
         private ThirdDataRequestHandler() {
             super(SAMPLE_CUSTOM_DATA_REQ3);
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            cpoints = "";
+        public void process(ObjectNode payload) {
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < previous.size(); i++) {
-                if (i % 2 == 1) {
-                    cpoints += previous.get(i) + "\n";
-                } else {
-                    cpoints += previous.get(i) + " with ";
-                }
+                sb.append(previous.get(i)).append(i % 2 == 0 ? WITH : EOL);
             }
-            payload.put("cpoints", cpoints);
-            sendMessage(SAMPLE_CUSTOM_DATA_RESP3, sid, payload);
+            payload.put(CPOINTS, sb.toString());
+            sendMessage(SAMPLE_CUSTOM_DATA_RESP3, payload);
         }
     }
+
 }

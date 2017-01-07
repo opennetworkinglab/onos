@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.ui.RequestHandler;
-import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiExtensionService;
-import org.onosproject.ui.UiTopoMapFactory;
+import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiTopoMap;
+import org.onosproject.ui.UiTopoMapFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -56,8 +56,8 @@ class MapSelectorMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
-            sendMessage(MAP_LIST_RESP, 0, mapsJson());
+        public void process(ObjectNode payload) {
+            sendMessage(MAP_LIST_RESP, mapsJson());
         }
     }
 

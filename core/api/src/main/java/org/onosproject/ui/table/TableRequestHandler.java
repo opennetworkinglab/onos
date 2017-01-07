@@ -46,9 +46,9 @@ public abstract class TableRequestHandler extends RequestHandler {
      * table rows, sort them according the the request sort parameters, and
      * send back the response to the client.
      *
-     * @param reqType   type of the request event
-     * @param respType  type of the response event
-     * @param nodeName  name of JSON node holding row data
+     * @param reqType  type of the request event
+     * @param respType type of the response event
+     * @param nodeName name of JSON node holding row data
      */
     public TableRequestHandler(String reqType, String respType, String nodeName) {
         super(reqType);
@@ -57,7 +57,7 @@ public abstract class TableRequestHandler extends RequestHandler {
     }
 
     @Override
-    public void process(long sid, ObjectNode payload) {
+    public void process(ObjectNode payload) {
         TableModel tm = createTableModel();
         populateTable(tm, payload);
 
@@ -72,7 +72,7 @@ public abstract class TableRequestHandler extends RequestHandler {
         ObjectNode rootNode = MAPPER.createObjectNode();
         rootNode.set(nodeName, TableUtils.generateRowArrayNode(tm));
         rootNode.set(ANNOTS, TableUtils.generateAnnotObjectNode(tm));
-        sendMessage(respType, 0, rootNode);
+        sendMessage(respType, rootNode);
     }
 
     /**
@@ -91,7 +91,7 @@ public abstract class TableRequestHandler extends RequestHandler {
     /**
      * Adds table configuration specific annotations to table model.
      *
-     * @param tm a table model
+     * @param tm      a table model
      * @param payload the event payload from the client
      */
     protected void addTableConfigAnnotations(TableModel tm, ObjectNode payload) {
@@ -141,7 +141,7 @@ public abstract class TableRequestHandler extends RequestHandler {
      * parameters (other than sort column and sort direction) that are required
      * to generate the appropriate data.
      *
-     * @param tm the table model
+     * @param tm      the table model
      * @param payload request payload
      */
     protected abstract void populateTable(TableModel tm, ObjectNode payload);

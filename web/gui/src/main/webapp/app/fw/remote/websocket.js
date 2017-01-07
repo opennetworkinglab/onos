@@ -27,7 +27,6 @@
     var webSockOpts,            // web socket options
         ws = null,              // web socket reference
         wsUp = false,           // web socket is good to go
-        sid = 0,                // event sequence identifier
         handlers = {},          // event handler bindings
         pendingEvents = [],     // events TX'd while socket not up
         host,                   // web socket host
@@ -108,7 +107,7 @@
     function handleClose() {
         var gsucc;
 
-        $log.info('Web socket closed');
+        $log.warn('Web socket closed');
         ls && ls.stop();
         wsUp = false;
 
@@ -167,9 +166,6 @@
     // === API Functions
 
     // Required for unit tests to set to known state
-    function resetSid() {
-        sid = 0;
-    }
     function resetState() {
         webSockOpts = undefined;
         ws = null;
@@ -178,7 +174,6 @@
         url = undefined;
         pendingEvents = [];
         handlers = {};
-        sid = 0;
         clusterNodes = [];
         clusterIndex = -1;
         connectRetries = 0;
@@ -291,7 +286,6 @@
     function sendEvent(evType, payload) {
         var ev = {
                 event: evType,
-                sid: ++sid,
                 payload: payload || {}
             };
 
@@ -329,7 +323,6 @@
             bindHandlers(builtinHandlers);
 
             return {
-                resetSid: resetSid,
                 resetState: resetState,
                 createWebSocket: createWebSocket,
                 bindHandlers: bindHandlers,

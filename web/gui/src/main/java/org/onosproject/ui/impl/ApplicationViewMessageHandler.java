@@ -133,20 +133,27 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String action = string(payload, "action");
             String name = string(payload, "name");
+
             if (action != null && name != null) {
                 ApplicationAdminService service = get(ApplicationAdminService.class);
                 ApplicationId appId = service.getId(name);
-                if (action.equals("activate")) {
-                    service.activate(appId);
-                } else if (action.equals("deactivate")) {
-                    service.deactivate(appId);
-                } else if (action.equals("uninstall")) {
-                    service.uninstall(appId);
+                switch (action) {
+                    case "activate":
+                        service.activate(appId);
+                        break;
+                    case "deactivate":
+                        service.deactivate(appId);
+                        break;
+                    case "uninstall":
+                        service.uninstall(appId);
+                        break;
+                    default:
+                        break;
                 }
-                chain(APP_DATA_REQ, sid, payload);
+                chain(APP_DATA_REQ, payload);
             }
         }
     }
@@ -158,7 +165,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID);
             ApplicationService as = get(ApplicationService.class);
 
@@ -204,7 +211,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
-            sendMessage(APP_DETAILS_RESP, 0, rootNode);
+            sendMessage(APP_DETAILS_RESP, rootNode);
         }
 
     }

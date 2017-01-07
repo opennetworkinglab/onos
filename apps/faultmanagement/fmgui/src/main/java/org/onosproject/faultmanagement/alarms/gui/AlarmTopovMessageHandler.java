@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
@@ -38,8 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Set;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 
 /**
  * FaultManagement UI Topology-Overlay message handler.
@@ -54,7 +54,6 @@ public class AlarmTopovMessageHandler extends UiMessageHandler {
     private static final String MODE = "mode";
 
     private enum Mode {
-
         IDLE, MOUSE
     }
 
@@ -67,7 +66,7 @@ public class AlarmTopovMessageHandler extends UiMessageHandler {
     private Mode currentMode = Mode.IDLE;
     private Element elementOfNote;
 
-    // ===============-=-=-=-=-=-======================-=-=-=-=-=-=-================================
+    // =======================================================================
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
@@ -94,23 +93,21 @@ public class AlarmTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String mode = string(payload, MODE);
-
             log.debug("Start Display: mode [{}]", mode);
+
             clearState();
             clearForMode();
 
             switch (mode) {
                 case "mouse":
                     currentMode = Mode.MOUSE;
-
                     sendMouseData();
                     break;
 
                 default:
                     currentMode = Mode.IDLE;
-
                     break;
             }
         }
@@ -123,9 +120,10 @@ public class AlarmTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID);
             log.debug("Update Display: id [{}]", id);
+
             if (!Strings.isNullOrEmpty(id)) {
                 updateForMode(id);
             } else {
@@ -141,8 +139,9 @@ public class AlarmTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             log.debug("Stop Display");
+
             clearState();
             clearForMode();
         }

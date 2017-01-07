@@ -50,9 +50,9 @@ public class DriverViewMessageHandler extends UiMessageHandler {
     private static final String MATRIX = "matrix";
 
     private static final Comparator<? super Class<? extends Behaviour>> BEHAVIOUR_BY_NAME =
-            (o1, o2) -> o1.getSimpleName().compareTo(o2.getSimpleName());
+            Comparator.comparing(Class::getSimpleName);
     private static final Comparator<? super Driver> DRIVER_BY_NAME =
-            (o1, o2) -> o1.name().compareTo(o2.name());
+            Comparator.comparing(Driver::name);
 
 
     @Override
@@ -72,7 +72,7 @@ public class DriverViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             DriverService driverService = get(DriverService.class);
 
             List<Driver> drivers = new ArrayList<>(driverService.getDrivers());
@@ -82,7 +82,7 @@ public class DriverViewMessageHandler extends UiMessageHandler {
             List<Class<? extends Behaviour>> behaviours = orderBehaviours(drivers);
 
             // Produce a JSON structure and send it
-            sendMessage(DRIVER_DATA_RESPONSE, 0, driversJson(drivers, behaviours));
+            sendMessage(DRIVER_DATA_RESPONSE, driversJson(drivers, behaviours));
         }
 
         private List<Driver> orderDrivers(List<Driver> drivers) {

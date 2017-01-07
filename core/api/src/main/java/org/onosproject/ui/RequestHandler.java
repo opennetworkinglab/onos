@@ -59,11 +59,9 @@ public abstract class RequestHandler {
     /**
      * Processes the incoming message payload from the client.
      *
-     * @param sid     message sequence identifier
      * @param payload request message payload
      */
-    // TODO: remove sid from signature
-    public abstract void process(long sid, ObjectNode payload);
+    public abstract void process(ObjectNode payload);
 
 
     // ===================================================================
@@ -85,19 +83,6 @@ public abstract class RequestHandler {
      * Sends a message back to the client with the given event type and payload.
      *
      * @param eventType message event type
-     * @param sid       message sequence identifier
-     * @param payload   message payload
-     */
-    // TODO: remove sid from signature
-    @Deprecated
-    protected void sendMessage(String eventType, long sid, ObjectNode payload) {
-        parent.connection().sendMessage(eventType, sid, payload);
-    }
-
-    /**
-     * Sends a message back to the client with the given event type and payload.
-     *
-     * @param eventType message event type
      * @param payload   message payload
      */
     protected void sendMessage(String eventType, ObjectNode payload) {
@@ -108,7 +93,7 @@ public abstract class RequestHandler {
     /**
      * Sends a message back to the client.
      * Here, the message is preformatted; the assumption is that it has its
-     * eventType and payload attributes already filled in.
+     * "event" (event type) and "payload" attributes already filled in.
      *
      * @param message the message to send
      */
@@ -122,12 +107,10 @@ public abstract class RequestHandler {
      * Note that the message handlers must be defined in the same parent.
      *
      * @param eventType event type
-     * @param sid       sequence identifier
      * @param payload   message payload
      */
-    // TODO: remove sid from signature
-    protected void chain(String eventType, long sid, ObjectNode payload) {
-        parent.exec(eventType, sid, payload);
+    protected void chain(String eventType, ObjectNode payload) {
+        parent.exec(eventType, payload);
     }
 
     // ===================================================================

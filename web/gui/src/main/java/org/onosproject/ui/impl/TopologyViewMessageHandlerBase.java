@@ -395,7 +395,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Create models of the data to return, that overlays can adjust / augment
 
     // Returns property panel model for summary response.
-    protected PropertyPanel summmaryMessage(long sid) {
+    protected PropertyPanel summmaryMessage() {
         Topology topology = topologyService.currentTopology();
 
         return new PropertyPanel("ONOS Summary", "node")
@@ -412,7 +412,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Returns property panel model for device details response.
-    protected PropertyPanel deviceDetails(DeviceId deviceId, long sid) {
+    protected PropertyPanel deviceDetails(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
         String name = annot.value(AnnotationKeys.NAME);
@@ -525,7 +525,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Returns host details response.
-    protected PropertyPanel hostDetails(HostId hostId, long sid) {
+    protected PropertyPanel hostDetails(HostId hostId) {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value(AnnotationKeys.TYPE);

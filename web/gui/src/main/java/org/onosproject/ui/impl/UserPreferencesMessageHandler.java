@@ -46,12 +46,12 @@ class UserPreferencesMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             if (!isNullOrEmpty(connection().userName())) {
                 UiPreferencesService service = get(UiPreferencesService.class);
                 service.setPreference(connection().userName(),
-                                      payload.get(KEY).asText(),
-                                      (ObjectNode) payload.get(VALUE));
+                        payload.get(KEY).asText(),
+                        (ObjectNode) payload.get(VALUE));
             }
         }
     }

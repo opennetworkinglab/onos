@@ -39,7 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </p>
  * <pre>
  * {
- *     "type": "<em>event-type</em>",
+ *     "event": "<em>event-type</em>",
  *     "payload": {
  *         <em>arbitrary JSON object structure</em>
  *     }
@@ -93,22 +93,19 @@ public abstract class UiMessageHandler {
     public void process(ObjectNode message) {
         String type = JsonUtils.eventType(message);
         ObjectNode payload = JsonUtils.payload(message);
-        // TODO: remove sid
-        exec(type, 0, payload);
+        exec(type, payload);
     }
 
     /**
      * Finds the appropriate handler and executes the process method.
      *
      * @param eventType event type
-     * @param sid       sequence identifier
      * @param payload   message payload
      */
-    // TODO: remove sid from signature
-    void exec(String eventType, long sid, ObjectNode payload) {
+    void exec(String eventType, ObjectNode payload) {
         RequestHandler requestHandler = handlerMap.get(eventType);
         if (requestHandler != null) {
-            requestHandler.process(sid, payload);
+            requestHandler.process(payload);
         } else {
             log.warn("no request handler for event type {}", eventType);
         }

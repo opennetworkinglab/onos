@@ -127,12 +127,12 @@ public class GroupViewMessageHandler extends UiMessageHandler {
 
         private void populateRow(TableModel.Row row, Group g) {
             row.cell(ID, g.id().id())
-                .cell(APP_ID, g.appId().name())
-                .cell(STATE, g.state())
-                .cell(TYPE, g.type())
-                .cell(PACKETS, g.packets())
-                .cell(BYTES, g.bytes())
-                .cell(BUCKETS, g.buckets().buckets());
+                    .cell(APP_ID, g.appId().name())
+                    .cell(STATE, g.state())
+                    .cell(TYPE, g.type())
+                    .cell(PACKETS, g.packets())
+                    .cell(BYTES, g.bytes())
+                    .cell(BUCKETS, g.buckets().buckets());
         }
 
         private final class BucketFormatter implements CellFormatter {

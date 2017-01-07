@@ -49,7 +49,7 @@ public abstract class ChartRequestHandler extends RequestHandler {
     }
 
     @Override
-    public void process(long sid, ObjectNode payload) {
+    public void process(ObjectNode payload) {
         ChartModel cm = createChartModel();
         populateChart(cm, payload);
 

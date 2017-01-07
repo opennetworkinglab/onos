@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -181,7 +180,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String id = string(payload, ID, ZERO_URI);
 
             DeviceId deviceId = deviceId(id);
@@ -206,7 +205,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             ArrayNode ports = arrayNode();
 
             List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
-            Collections.sort(portList, (p1, p2) -> {
+            portList.sort((p1, p2) -> {
                 long delta = p1.number().toLong() - p2.number().toLong();
                 return delta == 0 ? 0 : (delta < 0 ? -1 : +1);
             });
@@ -218,7 +217,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
-            sendMessage(DEV_DETAILS_RESP, 0, rootNode);
+            sendMessage(DEV_DETAILS_RESP, rootNode);
         }
 
         private ObjectNode portData(Port p, DeviceId id) {
@@ -262,7 +261,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             DeviceId deviceId = deviceId(string(payload, ID, ZERO_URI));
             String name = emptyToNull(string(payload, NAME, null));
             log.debug("Name change request: {} -- '{}'", deviceId, name);
@@ -275,7 +274,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             // means that the friendly name should be unset.
             cfg.name(name);
             cfg.apply();
-            sendMessage(DEV_NAME_CHANGE_RESP, 0, payload);
+            sendMessage(DEV_NAME_CHANGE_RESP, payload);
         }
     }
 }

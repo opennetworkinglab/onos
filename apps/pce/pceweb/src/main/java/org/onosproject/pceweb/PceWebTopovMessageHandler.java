@@ -16,19 +16,32 @@
 
 package org.onosproject.pceweb;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
-
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.DataRateUnit;
+import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.TunnelEvent;
+import org.onosproject.incubator.net.tunnel.TunnelId;
+import org.onosproject.incubator.net.tunnel.TunnelListener;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.pce.pceservice.LspType;
+import org.onosproject.pce.pceservice.api.PceService;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -37,33 +50,19 @@ import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.Mod;
 import org.onosproject.ui.topo.NodeBadge;
-import org.onosproject.ui.topo.TopoJson;
 import org.onosproject.ui.topo.TopoUtils;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.intent.Constraint;
-import org.onosproject.pce.pceservice.LspType;
-import org.onosproject.pce.pceservice.api.PceService;
-import org.onosproject.pce.pceservice.constraint.CostConstraint;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.Tunnel;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.ACTIVE;
-import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.TunnelEvent;
-import org.onosproject.incubator.net.tunnel.TunnelId;
-import org.onosproject.incubator.net.tunnel.TunnelListener;
-import org.onosproject.incubator.net.tunnel.TunnelService;
-import static org.onosproject.ui.topo.LinkHighlight.Flavor.*;
-import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.ACTIVE;
+import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
+import static org.onosproject.ui.topo.LinkHighlight.Flavor.PRIMARY_HIGHLIGHT;
+import static org.onosproject.ui.topo.TopoJson.highlightsMessage;
 
 /**
  * ONOS UI PCE WEB Topology-Overlay message handler.
@@ -105,13 +104,17 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private static final String STRING_NULL = "null";
     // Delay for showHighlights event processing on GUI client side to
     // account for addLink animation.
-    private static final int DELAY_MS = 1100;
+    private static final int DELAY_MS = 1_100;
     private static final double BANDWIDTH_KBPS = 1_000;
     private static final double BANDWIDTH_MBPS = 1_000_000;
-    private static String[] linkColor = {"pCol1", "pCol2", "pCol3", "pCol4", "pCol5",
-                                               "pCol6", "pCol7", "pCol8", "pCol9", "pCol10",
-                                               "pCol11", "pCol12", "pCol13", "pCol14", "pCol15"};
-    private static final int LINK_COLOR_MAX = 15;
+    private static final String[] LINK_COLOR = {
+            "pCol1", "pCol2", "pCol3", "pCol4", "pCol5",
+            "pCol6", "pCol7", "pCol8", "pCol9", "pCol10",
+            "pCol11", "pCol12", "pCol13", "pCol14", "pCol15"
+    };
+
+    private static final int LINK_COLOR_MAX = LINK_COLOR.length;
+
     private Set<Link> allPathLinks;
     private ElementId src, dst;
     private List<Path> paths = new LinkedList<>();
@@ -124,9 +127,9 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     protected TunnelService tunnelService;
     protected PceService pceService;
     protected DeviceService deviceService;
+
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
-
         super.init(connection, directory);
         tunnelService = directory.get(TunnelService.class);
         pceService = directory.get(PceService.class);
@@ -155,6 +158,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     }
 
     // Handler classes
+
     /**
      * Handles the 'clear' event received from the client.
      */
@@ -165,10 +169,10 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             src = null;
             dst = null;
-            sendMessage(TopoJson.highlightsMessage(new Highlights()));
+            sendMessage(highlightsMessage(new Highlights()));
         }
     }
 
@@ -182,7 +186,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String srcId = string(payload, SRCID);
             src = elementId(srcId);
             String dstId = string(payload, DSTID);
@@ -237,7 +241,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String srcId = string(payload, SRCID);
             ElementId src = elementId(srcId);
             String dstId = string(payload, DSTID);
@@ -263,7 +267,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
 
             result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-            sendMessage(PCEWEB_SHOW_TUNNEL, sid, result);
+            sendMessage(PCEWEB_SHOW_TUNNEL, result);
         }
     }
 
@@ -277,7 +281,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String bandWidth = string(payload, BANDWIDTH);
             String bandWidthType = string(payload, BANDWIDTHTYPE);
             String costType = string(payload, COSTTYPE);
@@ -301,7 +305,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String tunnelIdStr = string(payload, TUNNEL_ID);
 
             if (tunnelIdStr == null) {
@@ -332,7 +336,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             arrayNode.add(tunnel.annotations().value("costType"));
 
             result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-            sendMessage(PCEWEB_TUNNEL_UPDATE_INFO_REPLY, sid, result);
+            sendMessage(PCEWEB_TUNNEL_UPDATE_INFO_REPLY, result);
         }
     }
 
@@ -346,7 +350,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String srcId = string(payload, SRCID);
             ElementId src = elementId(srcId);
             String dstId = string(payload, DSTID);
@@ -374,7 +378,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
 
             result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-            sendMessage(PCEWEB_SHOW_TUNNEL_REMOVE, sid, result);
+            sendMessage(PCEWEB_SHOW_TUNNEL_REMOVE, result);
         }
     }
 
@@ -388,7 +392,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String tunnelId = string(payload, TUNNEL_ID);
 
             if (tunnelId == null) {
@@ -409,7 +413,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             ObjectNode result = objectNode();
             ArrayNode arrayNode = arrayNode();
             Collection<Tunnel> tunnelSet = null;
@@ -423,7 +427,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
 
             result.putArray(BUFFER_ARRAY).addAll(arrayNode);
-            sendMessage(PCEWEB_TUNNEL_QUERY_INFO, sid, result);
+            sendMessage(PCEWEB_TUNNEL_QUERY_INFO, result);
         }
     }
 
@@ -437,7 +441,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             String tunnelIdStr = string(payload, TUNNEL_ID);
 
             if (tunnelIdStr == null) {
@@ -477,14 +481,18 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the setup path and highlights the path.
      *
-     * @param bandWidth
+     * @param src           ID of source
+     * @param dst           ID of destination
+     * @param bandWidth     bandwidth
      * @param bandWidthType is the kbps or mbps
-     * @param costType is igp or te
-     * @param lspType is WITH_SIGNALLING,WITHOUT_SIGNALLING_AND_WITHOUT_SR or SR_WITHOUT_SIGNALLING
-     * @param tunnelName tunnel id
+     * @param costType      is igp or te
+     * @param lspType       is WITH_SIGNALLING, WITHOUT_SIGNALLING_AND_WITHOUT_SR
+     *                      or SR_WITHOUT_SIGNALLING
+     * @param tunnelName    tunnel id
      */
-    private void findAndSendPaths(ElementId src, ElementId dst, String bandWidth, String bandWidthType,
-                                    String costType, String lspType, String tunnelName) {
+    private void findAndSendPaths(ElementId src, ElementId dst, String bandWidth,
+                                  String bandWidthType, String costType,
+                                  String lspType, String tunnelName) {
         log.debug("src={}; dst={};", src, dst);
         boolean path;
         List<Constraint> listConstrnt;
@@ -508,25 +516,24 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         //TODO: need to get explicit paths [temporarily using null as the value]
-        path = pceService.setupPath((DeviceId) src, (DeviceId) dst, tunnelName, listConstrnt, lspTypeVal,
-                null);
-        if (!path) {
-             log.error("setup path is failed");
-             return;
-        }
+        path = pceService.setupPath((DeviceId) src, (DeviceId) dst,
+                tunnelName, listConstrnt, lspTypeVal, null);
 
-        return;
+        if (!path) {
+            log.error("setup path is failed");
+        }
     }
 
     /**
      * Handles the update path and highlights the path.
      *
-     * @param bandWidth bandWidth
+     * @param bandWidth     bandWidth
      * @param bandWidthType is the kbps or mbps
-     * @param costType is igp or te
-     * @param tunnelIdStr tunnel id
+     * @param costType      is igp or te
+     * @param tunnelIdStr   tunnel id
      */
-    private void findAndSendPathsUpdate(String bandWidth, String bandWidthType, String costType, String tunnelIdStr) {
+    private void findAndSendPathsUpdate(String bandWidth, String bandWidthType,
+                                        String costType, String tunnelIdStr) {
         if (tunnelIdStr != null) {
             List<Constraint> listConstrnt;
 
@@ -546,10 +553,8 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
             if (!path) {
                 log.error("update path is failed");
-                return;
             }
         }
-        return;
     }
 
     /**
@@ -568,10 +573,8 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             boolean path = pceService.releasePath(tunnelId);
             if (!path) {
                 log.error("remove path is failed");
-                return;
             }
         }
-        return;
     }
 
     private ImmutableSet.Builder<Link> buildPaths(ImmutableSet.Builder<Link> pathBuilder) {
@@ -582,9 +585,9 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the preparation of constraints list with given bandwidth and cost-type.
      *
-     * @param bandWidth bandWidth
+     * @param bandWidth     bandWidth
      * @param bandWidthType is the kbps or mbps
-     * @param costType is igp or te
+     * @param costType      is igp or te
      * @return
      */
     private List<Constraint> addBandwidthCostTypeConstraints(String bandWidth,
@@ -605,14 +608,14 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         //Cost type
         CostConstraint.Type costTypeVal = null;
         switch (costType) {
-        case COST_TYPE_IGP:
-            costTypeVal = CostConstraint.Type.COST;
-            break;
-        case COST_TYPE_TE:
-            costTypeVal = CostConstraint.Type.TE_COST;
-            break;
-        default:
-            break;
+            case COST_TYPE_IGP:
+                costTypeVal = CostConstraint.Type.COST;
+                break;
+            case COST_TYPE_TE:
+                costTypeVal = CostConstraint.Type.TE_COST;
+                break;
+            default:
+                break;
         }
 
         if (bwValue != 0.0) {
@@ -635,7 +638,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         for (Path path : paths) {
             for (Link link : path.links()) {
                 lh = new LinkHighlight(TopoUtils.compactLinkString(link), PRIMARY_HIGHLIGHT)
-                         .addMod(new Mod(linkColor[linkclr]));
+                        .addMod(new Mod(LINK_COLOR[linkclr]));
                 highlights.add(lh);
             }
             linkclr = linkclr + 1;
@@ -644,19 +647,19 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
         }
 
-        sendMessage(TopoJson.highlightsMessage(highlights));
+        sendMessage(highlightsMessage(highlights));
     }
 
     /**
-     *  Handles the addition of badge and highlights.
+     * Handles the addition of badge and highlights.
      *
      * @param highlights highlights
-     * @param elemId device to be add badge
-     * @param src device to be add badge
+     * @param elemId     device to be add badge
+     * @param src        device to be add badge
      * @return
      */
     private Highlights addBadge(Highlights highlights,
-            String elemId, String src) {
+                                String elemId, String src) {
         highlights = addDeviceBadge(highlights, elemId, src);
         return highlights;
     }
@@ -664,9 +667,9 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     /**
      * Handles the badge add and highlights.
      *
-     * @param h highlights
+     * @param h      highlights
      * @param elemId device to be add badge
-     * @param type device badge value
+     * @param type   device badge value
      * @return highlights
      */
     private Highlights addDeviceBadge(Highlights h, String elemId, String type) {
@@ -699,9 +702,9 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
     }
 
-   /**
+    /**
      * Handles the event of topology listeners.
-    */
+     */
     private void findTunnelAndHighlights() {
         Collection<Tunnel> tunnelSet = null;
         Highlights highlights = new Highlights();
@@ -709,31 +712,31 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         tunnelSet = tunnelService.queryTunnel(MPLS);
         if (tunnelSet.size() == 0) {
             log.warn("Tunnel does not exist");
-            sendMessage(TopoJson.highlightsMessage(highlights));
+            sendMessage(highlightsMessage(highlights));
             return;
         }
 
         for (Tunnel tunnel : tunnelSet) {
             if (tunnel.path() == null) {
                 log.error("path does not exist");
-                sendMessage(TopoJson.highlightsMessage(highlights));
+                sendMessage(highlightsMessage(highlights));
                 return;
             }
             if (!tunnel.state().equals(ACTIVE)) {
                 log.debug("Tunnel state is not active");
-                sendMessage(TopoJson.highlightsMessage(highlights));
+                sendMessage(highlightsMessage(highlights));
                 return;
             }
             Link firstLink = tunnel.path().links().get(0);
             if (firstLink != null) {
                 if (firstLink.src() != null) {
-                        highlights = addBadge(highlights, firstLink.src().deviceId().toString(), SRC);
+                    highlights = addBadge(highlights, firstLink.src().deviceId().toString(), SRC);
                 }
             }
             Link lastLink = tunnel.path().links().get(tunnel.path().links().size() - 1);
             if (lastLink != null) {
                 if (lastLink.dst() != null) {
-                        highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
+                    highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
                 }
             }
             paths.add(tunnel.path());
@@ -752,12 +755,12 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         paths.removeAll(paths);
         if (tunnel.path() == null) {
             log.error("path does not exist");
-            sendMessage(TopoJson.highlightsMessage(highlights));
+            sendMessage(highlightsMessage(highlights));
             return;
         }
         if (!tunnel.state().equals(ACTIVE)) {
             log.debug("Tunnel state is not active");
-            sendMessage(TopoJson.highlightsMessage(highlights));
+            sendMessage(highlightsMessage(highlights));
             return;
         }
 
@@ -770,7 +773,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         Link lastLink = tunnel.path().links().get(tunnel.path().links().size() - 1);
         if (lastLink != null) {
             if (lastLink.dst() != null) {
-                    highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
+                highlights = addBadge(highlights, lastLink.dst().deviceId().toString(), DST);
             }
         }
         paths.add(tunnel.path());
