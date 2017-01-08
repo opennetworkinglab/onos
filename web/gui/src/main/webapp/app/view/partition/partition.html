@@ -1,0 +1,44 @@
+<!-- Partition partial HTML -->
+<div id="ov-partition">
+    <div class="tabular-header">
+        <h2>Partitions ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-id="refresh" icon-size="42"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="name"  col-width="100px" sortable>Name </td>
+                    <td colId="term"  col-width="100px" sortable>Term </td>
+                    <td colId="leader" col-width="200px" sortable>Leader </td>
+                    <td colId="members" >Members </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table onos-flash-changes id-prop="name">
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="4">
+                        {{annots.no_rows_msg}}
+                    </td>
+                </tr>
+
+                <tr ng-repeat="partition in tableData track by $index"
+                    ng-class="{selected: partition.name === selId}"
+                    ng-repeat-complete row-id="{{partition.name}}">
+                    <td>{{partition.name}}</td>
+                    <td>{{partition.term}}</td>
+                    <td>{{partition.leader}}</td>
+                    <td>{{partition.members}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

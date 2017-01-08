@@ -130,6 +130,7 @@ public class UiExtensionManager
                 new UiView(PLATFORM, "settings", "Settings", "nav_settings"),
                 new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
                 new UiView(PLATFORM, "processor", "Packet Processors", "nav_processors"),
+                new UiView(PLATFORM, "partition", "Partitions", "nav_partitions"),
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
 
                 // FIXME: leave commented out for now, while still under development
@@ -166,7 +167,8 @@ public class UiExtensionManager
                         new SettingsViewMessageHandler(),
                         new ClusterViewMessageHandler(),
                         new ProcessorViewMessageHandler(),
-                        new TunnelViewMessageHandler()
+                        new TunnelViewMessageHandler(),
+                        new PartitionViewMessageHandler()
                 );
 
         UiTopoOverlayFactory topoOverlayFactory =
