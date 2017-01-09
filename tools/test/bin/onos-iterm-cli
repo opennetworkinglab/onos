@@ -12,13 +12,13 @@ tell application \"iTerm\"
   set cellName to \"$cellName\"
   set paneCount to $nodeCount
 
-  set theTerm to (make new terminal)
+  set theTerm to (create window with default profile)
 
   tell theTerm
-    set number of columns to 292
-    set number of rows to 24
     launch session \"Default\"
     tell the current session
+      set columns to 256
+      set rows to 24
       set name to \"ONOS Shell 1\"
       write text \"cell \" & cellName
       write text \"oi 1 && clear && echo Node \$OCI\"
