@@ -226,7 +226,7 @@ public class RestDeviceProvider extends AbstractProvider
     }
 
     private boolean descriptionEquals(Device device, DeviceDescription updatedDeviceDescription) {
-        return Objects.equal(device.id(), updatedDeviceDescription.deviceUri())
+        return Objects.equal(device.id().uri(), updatedDeviceDescription.deviceUri())
                 && Objects.equal(device.type(), updatedDeviceDescription.type())
                 && Objects.equal(device.manufacturer(), updatedDeviceDescription.manufacturer())
                 && Objects.equal(device.hwVersion(), updatedDeviceDescription.hwVersion())
