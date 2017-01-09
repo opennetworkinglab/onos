@@ -16,14 +16,12 @@ package org.onosproject.kafkaintegration.api.dto;
 
 import org.onosproject.event.AbstractEvent;
 
-import com.google.protobuf.GeneratedMessageV3;
-
 /**
  * Represents the converted Onos Event data into protobuf format.
  *
  */
 // FIXME lack of abstraction in subject type is biting us
-public class OnosEvent extends AbstractEvent<OnosEvent.Type, GeneratedMessageV3> {
+public class OnosEvent extends AbstractEvent<OnosEvent.Type, byte[]> {
 
     /**
      * Creates a new Onos Event.
@@ -31,7 +29,7 @@ public class OnosEvent extends AbstractEvent<OnosEvent.Type, GeneratedMessageV3>
      * @param type The Type of Onos Event
      * @param subject Protobuf message corresponding to the Onos Event
      */
-    public OnosEvent(Type type, GeneratedMessageV3 subject) {
+    public OnosEvent(Type type, byte[] subject) {
         super(type, subject);
     }
 

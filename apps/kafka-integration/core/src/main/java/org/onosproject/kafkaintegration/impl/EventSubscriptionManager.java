@@ -40,8 +40,6 @@ import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent.Type;
 import org.onosproject.kafkaintegration.errors.InvalidApplicationException;
 import org.onosproject.kafkaintegration.errors.InvalidGroupIdException;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
@@ -68,12 +66,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     private static final String REGISTERED_APPS = "registered-applications";
 
     private static final String SUBSCRIBED_APPS = "event-subscriptions";
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -191,14 +183,6 @@ public class EventSubscriptionManager implements EventSubscriptionService {
     }
 
     /**
-     * Actions that can be performed on the ONOS Event Listeners.
-     *
-     */
-    private enum ListenerAction {
-        START, STOP;
-    }
-
-    /**
      * Checks if the group id is valid for this registered application.
      *
      * @param groupId GroupId assigned to the subscriber
@@ -241,12 +225,10 @@ public class EventSubscriptionManager implements EventSubscriptionService {
             return;
         }
 
-        // If this is the only subscriber listening for this event,
-        // stop the listener.
+        // update internal state.
         List<EventSubscriber> subscribers =
                 subscriptions.get(subscriber.eventType());
 
-        // update internal state.
         subscribers.remove(subscriber);
         subscriptions.put(subscriber.eventType(), subscribers);
 

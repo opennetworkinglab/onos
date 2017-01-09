@@ -35,7 +35,7 @@ public class LinkEventConverter implements EventConverter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
-    public GeneratedMessageV3 convertToProtoMessage(Event<?, ?> event) {
+    public byte[] convertToProtoMessage(Event<?, ?> event) {
 
         LinkEvent linkEvent = (LinkEvent) event;
 
@@ -45,7 +45,7 @@ public class LinkEventConverter implements EventConverter {
             return null;
         }
 
-        return buildDeviceProtoMessage(linkEvent);
+        return ((GeneratedMessageV3) buildDeviceProtoMessage(linkEvent)).toByteArray();
     }
 
     private boolean linkEventTypeSupported(LinkEvent event) {

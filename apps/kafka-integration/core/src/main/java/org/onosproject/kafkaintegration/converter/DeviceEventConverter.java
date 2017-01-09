@@ -35,7 +35,7 @@ public class DeviceEventConverter implements EventConverter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
-    public GeneratedMessageV3 convertToProtoMessage(Event<?, ?> event) {
+    public byte[] convertToProtoMessage(Event<?, ?> event) {
 
         DeviceEvent deviceEvent = (DeviceEvent) event;
 
@@ -45,7 +45,7 @@ public class DeviceEventConverter implements EventConverter {
             return null;
         }
 
-        return buildDeviceProtoMessage(deviceEvent);
+        return ((GeneratedMessageV3) buildDeviceProtoMessage(deviceEvent)).toByteArray();
     }
 
     /**

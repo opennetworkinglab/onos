@@ -16,99 +16,79 @@ package org.onosproject.kafkaintegration.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.kafkaintegration.api.KafkaEventStorageService;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent;
-import org.onosproject.store.service.AtomicValue;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Task;
+import org.onosproject.store.service.WorkQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.TreeMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-/**
- * TODO: This code is not being used at the moment.
- * This will be modified to use Distributed Work Queue.
- * Please see clustering section of
- * https://wiki.onosproject.org/display/ONOS/Kafka+Integration
- */
 @Component(immediate = false)
+@Service
 public class KafkaStorageManager implements KafkaEventStorageService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    private TreeMap<Long, OnosEvent> kafkaEventStore;
-
-    private AtomicValue<Long> lastPublishedEvent;
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ScheduledExecutorService gcExService;
+    private static final String KAFKA_WORK_QUEUE = "Kafka-Work-Queue";
 
-    private InternalGarbageCollector gcTask;
-
-    // Thread scheduler parameters.
-    private final long delay = 0;
-    private final long period = 1;
+    private WorkQueue<OnosEvent> queue;
 
     @Activate
     protected void activate() {
-        kafkaEventStore = new TreeMap<Long, OnosEvent>();
-        lastPublishedEvent = storageService.<Long>atomicValueBuilder()
-                .withName("onos-app-kafka-published-seqNumber").build()
-                .asAtomicValue();
-
-        startGC();
+        queue = storageService.<OnosEvent>getWorkQueue(KAFKA_WORK_QUEUE,
+                                                       Serializer.using(KryoNamespaces.API,
+                                                                        OnosEvent.class,
+                                                                        OnosEvent.Type.class));
 
         log.info("Started");
     }
 
-    private void startGC() {
-        log.info("Starting Garbage Collection Service");
-        gcExService = Executors.newSingleThreadScheduledExecutor();
-        gcTask = new InternalGarbageCollector();
-        gcExService.scheduleAtFixedRate(gcTask, delay, period,
-                                        TimeUnit.SECONDS);
-    }
-
     @Deactivate
     protected void deactivate() {
-        stopGC();
+        queue = null;
         log.info("Stopped");
     }
 
-    private void stopGC() {
-        log.info("Stopping Garbage Collection Service");
-        gcExService.shutdown();
+    @Override
+    public void publishEvent(OnosEvent e) {
+        queue.addOne(e);
+        log.debug("Published {} Event to Distributed Work Queue", e.type());
     }
 
     @Override
-    public boolean insertCacheEntry(OnosEvent e) {
-        // TODO: Fill in the code once the event carries timestamp info.
-        return true;
-    }
+    public OnosEvent consumeEvent() {
+        Task<OnosEvent> task = null;
 
-    @Override
-    public void updateLastPublishedEntry(Long sequenceNumber) {
-        this.lastPublishedEvent.set(sequenceNumber);
-    }
-
-    /**
-     * Removes events from the Kafka Event Store which have been published.
-     *
-     */
-    private class InternalGarbageCollector implements Runnable {
-
-        @Override
-        public void run() {
-            kafkaEventStore.headMap(lastPublishedEvent.get(), true).clear();
+        CompletableFuture<Task<OnosEvent>> future = queue.take();
+        try {
+            task = future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
+
+        if (task != null) {
+            queue.complete(task.taskId());
+            log.debug("Consumed {} Event from Distributed Work Queue with id {}",
+                     task.payload().type(), task.taskId());
+            return task.payload();
+        }
+
+        return null;
     }
 
 }

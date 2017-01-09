@@ -16,7 +16,6 @@ package org.onosproject.kafkaintegration.converter;
 
 import org.onosproject.event.Event;
 
-import com.google.protobuf.GeneratedMessageV3;
 
 /**
  *
@@ -30,8 +29,7 @@ public interface EventConverter {
      * to Kafka.
      *
      * @param event ONOS Event object
-     * @return converted data in protobuf format.
+     * @return converted data in protobuf format as a byte array.
      */
-    // FIXME reconsider return type, something similar to "OnosEvent"?
-    GeneratedMessageV3 convertToProtoMessage(Event<?, ?> event);
+    byte[] convertToProtoMessage(Event<?, ?> event);
 }

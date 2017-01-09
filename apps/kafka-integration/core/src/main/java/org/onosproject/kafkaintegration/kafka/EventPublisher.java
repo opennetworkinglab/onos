@@ -13,88 +13,119 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.kafkaintegration.kafka;
-
-import java.util.Properties;
-import java.util.concurrent.Future;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.kafkaintegration.api.KafkaConfigService;
 import org.onosproject.kafkaintegration.api.KafkaPublisherService;
-import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
+import org.onosproject.kafkaintegration.api.KafkaEventStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.onosproject.kafkaintegration.api.dto.OnosEvent;
 
-/**
- * Implementation of a Kafka Producer.
- */
-@Component
-@Service
-public class EventPublisher implements KafkaPublisherService {
-    private KafkaProducer<String, byte[]> kafkaProducer = null;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+@Component(immediate = true)
+public class EventPublisher {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected KafkaConfigService kafkaConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected KafkaEventStorageService kafkaStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected KafkaPublisherService kafkaPublisher;
+
+    protected ScheduledExecutorService exService;
+
+    private static final String SUBSCRIBER_TOPIC = "WORK_QUEUE_SUBSCRIBER";
+
+    private NodeId localNodeId;
+
+    // Thread Scheduler Parameters
+    private final long delay = 0;
+    private final long period = 1;
+
+    private EventCollector eventCollector;
+
     @Activate
     protected void activate() {
+
+        leadershipService.runForLeadership(SUBSCRIBER_TOPIC);
+
+        localNodeId = clusterService.getLocalNode().id();
+
+        startCollector();
+
         log.info("Started");
+    }
+
+    private void startCollector() {
+        exService = Executors.newSingleThreadScheduledExecutor();
+        eventCollector = new EventCollector();
+        exService.scheduleAtFixedRate(eventCollector, delay, period, TimeUnit.SECONDS);
     }
 
     @Deactivate
     protected void deactivate() {
+        stopCollector();
         log.info("Stopped");
     }
 
-    @Override
-    public void start(KafkaServerConfig config) {
+    private void stopCollector() {
+        exService.shutdown();
+    }
 
-        if (kafkaProducer != null) {
-            log.info("Producer has already started");
-            return;
+    private class EventCollector implements Runnable {
+
+        @Override
+        public void run() {
+
+            // do not allow to proceed without leadership
+            NodeId leaderNodeId = leadershipService.getLeader(SUBSCRIBER_TOPIC);
+            if (!Objects.equals(localNodeId, leaderNodeId)) {
+                log.debug("Not a Leader so cannot consume event");
+                return;
+            }
+
+            try {
+                OnosEvent onosEvent = kafkaStore.consumeEvent();
+
+                if (onosEvent != null) {
+                    kafkaPublisher.send(new ProducerRecord<>(onosEvent.type().toString(),
+                                                            onosEvent.subject())).get();
+
+                    log.info("Event Type - {}, Subject {} sent successfully.",
+                             onosEvent.type(), onosEvent.subject());
+                }
+            } catch (InterruptedException e1) {
+                log.error("Thread interupted");
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e2) {
+                log.error("Cannot publish data to Kafka - {}", e2);
+            }
         }
-
-        String bootstrapServer =
-                new StringBuilder().append(config.getIpAddress()).append(":")
-                        .append(config.getPort()).toString();
-
-        // Set Server Properties
-        Properties prop = new Properties();
-        prop.put("bootstrap.servers", bootstrapServer);
-        prop.put("retries", config.getNumOfRetries());
-        prop.put("max.in.flight.requests.per.connection",
-                 config.getMaxInFlightRequestsPerConnection());
-        prop.put("request.required.acks", config.getAcksRequired());
-        prop.put("key.serializer", config.getKeySerializer());
-        prop.put("value.serializer", config.getValueSerializer());
-
-        kafkaProducer = new KafkaProducer<>(prop);
-        log.info("Kafka Producer has started.");
     }
 
-    @Override
-    public void stop() {
-        if (kafkaProducer != null) {
-            kafkaProducer.close();
-            kafkaProducer = null;
-        }
-
-        log.info("Kafka Producer has Stopped");
-    }
-
-    @Override
-    public void restart(KafkaServerConfig config) {
-        stop();
-        start(config);
-    }
-
-    @Override
-    public Future<RecordMetadata> send(ProducerRecord<String, byte[]> record) {
-        return kafkaProducer.send(record);
-    }
 }
