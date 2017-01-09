@@ -61,7 +61,7 @@ public class AppUiMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        public void process(long sid, ObjectNode payload) {
+        public void process(ObjectNode payload) {
             someIncrement++;
             someNumber += someIncrement;
             log.debug("Computing data for {}...", someNumber);
@@ -71,7 +71,7 @@ public class AppUiMessageHandler extends UiMessageHandler {
             result.put(SQUARE, someNumber * someNumber);
             result.put(CUBE, someNumber * someNumber * someNumber);
             result.put(MESSAGE, String.format(MSG_FORMAT, someIncrement + 1));
-            sendMessage(SAMPLE_CUSTOM_DATA_RESP, 0, result);
+            sendMessage(SAMPLE_CUSTOM_DATA_RESP, result);
         }
     }
 }
