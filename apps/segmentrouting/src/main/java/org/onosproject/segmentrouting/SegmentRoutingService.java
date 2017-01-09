@@ -27,11 +27,6 @@ import java.util.Set;
  */
 public interface SegmentRoutingService {
     /**
-     * Highest flow priority.
-     */
-    int HIGHEST_PRIORITY = 0xffff;
-
-    /**
      * VLAN cross-connect priority.
      */
     int XCONNECT_PRIORITY = 1000;

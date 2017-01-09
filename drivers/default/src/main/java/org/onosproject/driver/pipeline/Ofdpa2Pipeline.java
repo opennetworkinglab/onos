@@ -762,6 +762,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     log.warn("Cannot process instruction in versatile fwd {}", ins);
                 }
             }
+            if (fwd.treatment().clearedDeferred()) {
+                ttBuilder.wipeDeferred();
+            }
         }
         if (fwd.nextId() != null) {
             // overide case

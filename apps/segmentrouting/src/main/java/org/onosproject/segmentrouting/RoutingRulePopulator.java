@@ -26,6 +26,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -623,27 +625,16 @@ public class RoutingRulePopulator {
                       deviceId);
             return;
         }
-        ForwardingObjective.Builder puntIp = DefaultForwardingObjective.builder();
         Set<Ip4Address> allIps = new HashSet<>(config.getPortIPs(deviceId));
         allIps.add(routerIp);
         for (Ip4Address ipaddr : allIps) {
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-            sbuilder.matchEthType(Ethernet.TYPE_IPV4);
-            sbuilder.matchIPDst(IpPrefix.valueOf(ipaddr,
-                                                 IpPrefix.MAX_INET_MASK_LENGTH));
-            tbuilder.setOutput(PortNumber.CONTROLLER);
-            puntIp.withSelector(sbuilder.build());
-            puntIp.withTreatment(tbuilder.build());
-            puntIp.withFlag(Flag.VERSATILE)
-                .withPriority(SegmentRoutingService.HIGHEST_PRIORITY)
-                .makePermanent()
-                .fromApp(srManager.appId);
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("IP punt rule for {} populated", ipaddr),
-                    (objective, error) ->
-                            log.warn("Failed to populate IP punt rule for {}: {}", ipaddr, error));
-            srManager.flowObjectiveService.forward(deviceId, puntIp.add(context));
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(IpPrefix.valueOf(ipaddr, IpPrefix.MAX_INET_MASK_LENGTH));
+            Optional<DeviceId> optDeviceId = Optional.of(deviceId);
+
+            srManager.packetService.requestPackets(sbuilder.build(),
+                    PacketPriority.CONTROL, srManager.appId, optDeviceId);
         }
     }
 

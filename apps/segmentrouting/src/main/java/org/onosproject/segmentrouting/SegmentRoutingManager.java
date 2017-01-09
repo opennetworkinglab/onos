@@ -351,10 +351,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         multicastRouteService.addListener(mcastListener);
         cordConfigService.addListener(cordConfigListener);
 
-        // Request ARP packet-in
+        /* Request ARP packet-in.
+         * Copy flag set to true since in cross-connect case we still want to
+         * forward ARP packet to the flood group.
+         */
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId, Optional.empty());
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId, true);
 
         cfgListener.configureNetwork();
 
