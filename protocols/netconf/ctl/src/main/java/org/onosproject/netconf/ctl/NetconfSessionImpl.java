@@ -71,7 +71,7 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String EDIT_CONFIG_CLOSE = "</edit-config>";
     private static final String TARGET_OPEN = "<target>";
     private static final String TARGET_CLOSE = "</target>";
-    private static final String CONFIG_OPEN = "<config>";
+    private static final String CONFIG_OPEN = "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
     private static final String CONFIG_CLOSE = "</config>";
     private static final String XML_HEADER =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";

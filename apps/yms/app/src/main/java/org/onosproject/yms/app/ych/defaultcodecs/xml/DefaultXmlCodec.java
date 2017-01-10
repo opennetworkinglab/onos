@@ -84,6 +84,10 @@ public class DefaultXmlCodec implements YangDataTreeCodec {
             rootElement.add(Namespace.get(rootNode.getNamespace()));
         }
 
+        if (rootElement.getName().equals("config")) {
+            rootElement.add(new Namespace("nc", "urn:ietf:params:xml:ns:netconf:base:1.0"));
+        }
+
         // Adding the attribute if exist
         Map<String, String> tagAttrMap = extBuilder.getRootTagAttributeMap();
         if (tagAttrMap != null && !tagAttrMap.isEmpty()) {

@@ -81,7 +81,7 @@ public abstract class XmlCodecHandler {
         YdtContextOperationType opType = ((YdtExtendedContext) ydtContext)
                 .getYdtContextOperationType();
         if (opType != null && opType != NONE) {
-            newElement.addAttribute(OPERATION,
+            newElement.addAttribute("nc:" + OPERATION,
                                     opType.toString().toLowerCase());
         }
 

@@ -45,6 +45,10 @@ import org.onosproject.yang.gen.v1.ych.combined.rev20160524.combined.attributes.
 import org.onosproject.yang.gen.v1.ych.combined.rev20160524.combined.attributes.bgpparameters.optionalcapabilities.cparameters.DefaultAs4BytesCapability;
 import org.onosproject.yang.gen.v1.ych.empty.container.rev20160524.EmptyContainerOpParam;
 import org.onosproject.yang.gen.v1.ych.empty.container.rev20160524.emptycontainer.EmptyContainer;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.YchPurchasingsupervisorOpParam;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.ychpurchasingsupervisor.DefaultYchPurchasingSupervisor;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.ychpurchasingsupervisor.YchPurchasingSupervisor;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.YchPurchasingsupervisor.OnosYangOpType;
 import org.onosproject.yang.gen.v1.ydt.customs.supervisor.rev20160524.CustomssupervisorOpParam;
 import org.onosproject.yang.gen.v1.ydt.material.supervisor.rev20160524.MaterialsupervisorOpParam;
 import org.onosproject.yang.gen.v1.ydt.material.supervisor.rev20160524.materialsupervisor.DefaultSupervisor;
@@ -102,7 +106,8 @@ public class DefaultYangCodecHandlerTest {
      * @return the xml string for merchandisersupervisor module
      */
     private static String merchandXml() {
-        return "<config xmlns=\"ydt.root\">" +
+        return "<config xmlns=\"ydt.root\" " +
+                "xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" +
                 "<supervisor xmlns=\"ydt.Merchandiser-supervisor\">" +
                 "Merchandisersupervisor</supervisor>" +
                 "</config>";
@@ -114,7 +119,8 @@ public class DefaultYangCodecHandlerTest {
      * @return the xml string for tradingsupervisor module
      */
     private static String tradingXml() {
-        return "<config xmlns=\"ydt.root\">" +
+        return "<config xmlns=\"ydt.root\" " +
+                "xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" +
                 "<supervisor xmlns=\"ydt.trading-supervisor\">" +
                 "Tradingsupervisor</supervisor>" +
                 "</config>";
@@ -226,18 +232,18 @@ public class DefaultYangCodecHandlerTest {
     /**
      * Returns the xml string for ych-purchasingsupervisor module.
      *
-     * @return the xml string for ych-purchasingsupervisor module
+     * @return the XML string for ych-purchasingsupervisor module
      */
     private static String purchaseXml() {
-        return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
-                "<ych-purchasingsupervisor xmlns=\"ych.purchasing-supervisor\">" +
-                "<ych-purchasing-supervisor operation=\"create\">" +
+        return "<config xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" " +
+                "xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" +
+                "<ych-purchasing-supervisor xmlns=\"ych.purchasing-supervisor\" " +
+                "nc:operation=\"create\">" +
                 "<ych-purchasing-specialist>purchasingSpecialist" +
                 "</ych-purchasing-specialist>" +
                 "<ych-purchasing-support>support</ych-purchasing-support>" +
                 "</ych-purchasing-supervisor>" +
-                "</ych-purchasingsupervisor>" +
-                "</filter>";
+                "</config>";
     }
 
     /**
@@ -791,42 +797,38 @@ public class DefaultYangCodecHandlerTest {
         assertEquals(AM_XML + "combined: list info", listTestXml(), xml);
     }
 
-    //TODO negative scenario will be handled later
-//    /**
-//     * Unit test case in which verifying xml string for module object with
-//     * container.
-//     */
-//    @Test
-//    public void proceessCodecHandlerForContainer() {
-//        testYangSchemaNodeProvider.processSchemaRegistry(null);
-//        DefaultYangSchemaRegistry schemaRegistry =
-//                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
-//        List<Object> yangModuleList = new ArrayList<>();
-//
-//        // Creating the object
-//        YchPurchasingSupervisor supervisor =
-//                new DefaultYchPurchasingSupervisor
-//                        .YchPurchasingSupervisorBuilder()
-//                        .ychPurchasingSpecialist("purchasingSpecialist")
-//                        .ychPurchasingSupport("support")
-//                        .yangYchPurchasingSupervisorOpType(CREATE).build();
-//        Object object = YchPurchasingsupervisorOpParam.builder()
-//                .ychPurchasingSupervisor(supervisor).build();
-//        yangModuleList.add(object);
-//
-//        // Get the xml string and compare
-//        Map<String, String> tagAttr = new HashMap<String, String>();
-//        tagAttr.put("type", "subtree");
-//
-//        YangCodecRegistry.initializeDefaultCodec();
-//        DefaultYangCodecHandler codecHandler =
-//                new DefaultYangCodecHandler(schemaRegistry);
-//        String xml = codecHandler.encodeOperation("filter", "ydt.filter-type",
-//                                                  tagAttr, yangModuleList,
-//                                                  XML, null);
-//        assertEquals(AM_XML + "puchas-super: container info", purchaseXml(),
-//                     xml);
-//    }
+//    TODO negative scenario will be handled later
+    /**
+     * Unit test case in which verifying xml string for module object with
+     * container.
+     */
+    @Test
+    public void proceessCodecHandlerForContainer() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+        List<Object> yangModuleList = new ArrayList<>();
+
+        // Creating the object
+        YchPurchasingSupervisor supervisor =
+                new DefaultYchPurchasingSupervisor
+                        .YchPurchasingSupervisorBuilder()
+                        .ychPurchasingSpecialist("purchasingSpecialist")
+                        .ychPurchasingSupport("support")
+                        .yangYchPurchasingSupervisorOpType(OnosYangOpType.CREATE).build();
+        Object object = YchPurchasingsupervisorOpParam.builder()
+                .ychPurchasingSupervisor(supervisor).build();
+        yangModuleList.add(object);
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler codecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+        String xml = codecHandler.encodeOperation("config", "urn:ietf:params:xml:ns:netconf:base:1.0",
+                                                  null, yangModuleList,
+                                                  XML, null);
+        assertEquals(AM_XML + "puchas-super: container info", purchaseXml(),
+                     xml);
+    }
 
 //    /**
 //     * Unit test case in which verifying xml string for module object with
