@@ -165,7 +165,9 @@ public class IntentPushTestCommand extends AbstractShellCommand
         }
 
         try {
-            if (latch.await(1000 + count * 30, TimeUnit.MILLISECONDS)) {
+            // In this way with the tests in place the timeout will be
+            // 61 seconds.
+            if (latch.await(1000 + count * 60, TimeUnit.MILLISECONDS)) {
                 printResults(count);
             } else {
                 print("Failure: %d intents not installed", latch.getCount());
