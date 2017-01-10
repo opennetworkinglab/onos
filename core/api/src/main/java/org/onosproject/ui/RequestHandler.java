@@ -87,7 +87,7 @@ public abstract class RequestHandler {
      */
     protected void sendMessage(String eventType, ObjectNode payload) {
         // TODO: remove sid
-        parent.connection().sendMessage(eventType, 0, payload);
+        parent.connection().sendMessage(eventType, payload);
     }
 
     /**

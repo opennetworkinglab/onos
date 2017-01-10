@@ -229,12 +229,9 @@ public class UiWebSocket
     }
 
     @Override
-    public synchronized void sendMessage(String type, long sid, ObjectNode payload) {
+    public synchronized void sendMessage(String type, ObjectNode payload) {
         ObjectNode message = mapper.createObjectNode();
         message.put(EVENT, type);
-        if (sid > 0) {
-            message.put(SID, sid);
-        }
         message.set(PAYLOAD, payload != null ? payload : mapper.createObjectNode());
         sendMessage(message);
     }
@@ -305,7 +302,7 @@ public class UiWebSocket
         ObjectNode payload = mapper.createObjectNode();
         payload.set(CLUSTER_NODES, instances);
         payload.put(USER, userName);
-        sendMessage(BOOTSTRAP, 0, payload);
+        sendMessage(BOOTSTRAP, payload);
     }
 
 }

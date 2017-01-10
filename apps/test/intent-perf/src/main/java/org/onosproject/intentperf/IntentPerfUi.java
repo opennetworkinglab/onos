@@ -131,7 +131,7 @@ public class IntentPerfUi {
 
         private void send(Sample sample) {
             if (streamingEnabled) {
-                connection().sendMessage("intentPerfSample", 0, sampleNode(sample));
+                connection().sendMessage("intentPerfSample", sampleNode(sample));
             }
         }
 

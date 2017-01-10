@@ -139,7 +139,7 @@ public class UiTopoSession implements UiModelListener {
         //   that are not relevant, and only send up events for objects that
         //   are currently being viewed by the user.
 
-        webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, 0, payload);
+        webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, payload);
     }
 
     /**

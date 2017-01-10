@@ -60,6 +60,8 @@ public interface UiConnection {
 
     /**
      * Sends the specified JSON message to the user interface client.
+     * It is assumed that the message is already correctly formatted and
+     * ready to send.
      *
      * @param message message to send
      */
@@ -68,11 +70,9 @@ public interface UiConnection {
     /**
      * Composes a message into JSON and sends it to the user interface client.
      *
-     * @param type    message type
-     * @param sid     message sequence number
+     * @param type    message (event) type
      * @param payload message payload
      */
-    // TODO: remove sid parameter
-    void sendMessage(String type, long sid, ObjectNode payload);
+    void sendMessage(String type, ObjectNode payload);
 
 }

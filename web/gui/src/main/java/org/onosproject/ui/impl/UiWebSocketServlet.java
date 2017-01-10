@@ -94,7 +94,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
      */
     static void sendToAll(String type, ObjectNode payload) {
         if (instance != null) {
-            instance.sockets.forEach(ws -> ws.sendMessage(type, 0, payload));
+            instance.sockets.forEach(ws -> ws.sendMessage(type, payload));
         }
     }
 
@@ -108,7 +108,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
     static void sendToUser(String userName, String type, ObjectNode payload) {
         if (instance != null) {
             instance.sockets.stream().filter(ws -> userName.equals(ws.userName()))
-                    .forEach(ws -> ws.sendMessage(type, 0, payload));
+                    .forEach(ws -> ws.sendMessage(type, payload));
         }
     }
 
