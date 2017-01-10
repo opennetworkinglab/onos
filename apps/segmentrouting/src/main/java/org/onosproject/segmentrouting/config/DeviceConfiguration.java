@@ -455,7 +455,6 @@ public class DeviceConfiguration implements DeviceProperties {
                 srManager.interfaceService.getInterfacesByPort(connectPoint).stream()
                         .flatMap(intf -> intf.ipAddressesList().stream())
                         .map(InterfaceIpAddress::subnetAddress)
-                        .map(IpPrefix::getIp4Prefix)
                         .collect(Collectors.toSet());
 
         if (subnets.isEmpty()) {
@@ -594,7 +593,6 @@ public class DeviceConfiguration implements DeviceProperties {
         log.debug("Cannot find a router for {}", gatewayIpAddress);
         return null;
     }
-
 
     /**
      * Checks if the host is in the subnet defined in the router with the

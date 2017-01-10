@@ -240,7 +240,7 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
 
     private void register(ConnectPoint connectPoint, HandlerRegistration registration) {
         synchronized (packetHandlers) {
-            if (packetHandlers.isEmpty()) {
+            if (packetHandlers.isEmpty() && requestInterceptsEnabled) {
                 requestPackets();
             }
             packetHandlers.put(connectPoint, registration);
