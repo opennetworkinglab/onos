@@ -433,9 +433,23 @@ public class IntentManager
                                 .thenApplyAsync(IntentProcessPhase::process, workerExecutor)
                                 .thenApply(FinalIntentProcessPhase::data)
                                 .exceptionally(e -> {
-                                    //FIXME
-                                    log.warn("Future failed: {}", e);
-                                    return null;
+                                    // When the future fails, we update the Intent to simulate the failure of
+                                    // the installation/withdrawal phase and we save in the current map. In
+                                    // the next round the CleanUp Thread will pick this Intent again.
+                                    log.warn("Future failed", e);
+                                    log.warn("Intent {} - state {} - request {}",
+                                             x.key(), x.state(), x.request());
+                                    switch (x.state()) {
+                                        case INSTALL_REQ:
+                                        case INSTALLING:
+                                        case WITHDRAW_REQ:
+                                        case WITHDRAWING:
+                                            x.setState(FAILED);
+                                            IntentData current = store.getIntentData(x.key());
+                                            return new IntentData(x, current.installables());
+                                        default:
+                                            return null;
+                                    }
                                 }))
                         .collect(Collectors.toList());
 

@@ -292,11 +292,9 @@ public class GossipIntentStore
                 currentMap.put(newData.key(), new IntentData(newData));
             }
         }
-        /*
-         * Remove the intent data from the pending map if the newData is more
-         * recent or equal to the existing entry. No matter if it is an acceptable
-         * update or not.
-         */
+        // Remove the intent data from the pending map if the newData is more
+        // recent or equal to the existing entry. No matter if it is an acceptable
+        // update or not
         pendingMap.compute(newData.key(), (key, existingValue) -> {
             if (existingValue == null || !existingValue.version().isNewerThan(newData.version())) {
                 return null;
