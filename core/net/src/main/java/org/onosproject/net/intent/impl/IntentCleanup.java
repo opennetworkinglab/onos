@@ -213,6 +213,8 @@ public class IntentCleanup implements Runnable, IntentListener {
         // Check the pending map first, because the check of the current map
         // will add items to the pending map.
         for (IntentData intentData : store.getPendingData(true, periodMs)) {
+            log.debug("Resubmit Pending Intent: key {}, state {}, request {}",
+                      intentData.key(), intentData.state(), intentData.request());
             resubmitPendingRequest(intentData);
             pendingCount++;
         }
@@ -220,15 +222,21 @@ public class IntentCleanup implements Runnable, IntentListener {
         for (IntentData intentData : store.getIntentData(true, periodMs)) {
             switch (intentData.state()) {
                 case FAILED:
+                    log.debug("Resubmit Failed Intent: key {}, state {}, request {}",
+                              intentData.key(), intentData.state(), intentData.request());
                     resubmitCorrupt(intentData, false);
                     failedCount++;
                     break;
                 case CORRUPT:
+                    log.debug("Resubmit Corrupt Intent: key {}, state {}, request {}",
+                              intentData.key(), intentData.state(), intentData.request());
                     resubmitCorrupt(intentData, false);
                     corruptCount++;
                     break;
                 case INSTALLING: //FALLTHROUGH
                 case WITHDRAWING:
+                    log.debug("Resubmit Pending Intent: key {}, state {}, request {}",
+                              intentData.key(), intentData.state(), intentData.request());
                     resubmitPendingRequest(intentData);
                     stuckCount++;
                     break;
