@@ -209,11 +209,22 @@
                 <ref component-id="roleCompleter"/>
             </completers>
         </command>
+
         <command>
             <action class="org.onosproject.cli.net.AnnotateDeviceCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <ref component-id="annotationKeysCompleter"/>
                 <null/>
+            </completers>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.AnnotateLinkCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="peerConnectPointCompleter"/>
+                <ref component-id="annotationKeysCompleter"/>
                 <null/>
             </completers>
         </command>
@@ -759,4 +770,8 @@
 
     <bean id="regionIdCompleter" class="org.onosproject.cli.net.RegionIdCompleter"/>
     <bean id="regionTypeCompleter" class="org.onosproject.cli.net.RegionTypeCompleter"/>
+
+    <bean id="annotationKeysCompleter" class="org.onosproject.cli.net.completer.AnnotationKeysCompleter"/>
+
+    <bean id="peerConnectPointCompleter" class="org.onosproject.cli.net.completer.PeerConnectPointCompleter"/>
 </blueprint>
