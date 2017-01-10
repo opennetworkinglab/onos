@@ -20,22 +20,19 @@ set -e
 set -x
 
 # Prepare artifact publish commands
-onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> $ARTIFACT_PUB
-
+cat ${ONOS_ROOT}/tools/build/publish-target-list | grep -v '#' >> $ARTIFACT_PUB
 sed -i.bak 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' $ARTIFACT_PUB
 
 # Print commands to be run and then run them
 cat $ARTIFACT_PUB
 bash $ARTIFACT_PUB
 
-# Prepare apps commands
-onos-buck query "filter('.*-oar', deps('//tools/package:onos-package', 1))" >> $ARTIFACT_PUB
 # Prepare feature commands
-onos-buck query "filter('.*-feature', deps(filter('.*-oar', deps('//tools/package:onos-package', 1)),1))" >> $ARTIFACT_PUB
-echo "//tools/package:onos-features" >> $ARTIFACT_PUB
-# Prepare test commands
-onos-buck query "testsof(kind('onos_jar', deps('//tools/package:onos-package')))" >> $TEST_PUB
+onos-buck query "filter('.*-feature', deps(filter('.*-oar', deps('//tools/package:onos-package', 1)),1))" > $TEST_PUB
+echo "//tools/package:onos-features" >> $TEST_PUB
 
+# Prepare test commands
+cat ${ONOS_ROOT}/tools/build/publish-test-target-list | grep -v '#' >> $TEST_PUB
 sed -i.bak 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
 
 # Print commands to be run and then run them

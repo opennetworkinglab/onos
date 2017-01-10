@@ -24,7 +24,7 @@ def checkArtifact(localPath, remoteUrl):
     repoResponse = requests.head(remoteUrl)
 
     if repoResponse.status_code != 200:
-        print 'Cannot find jar file artifact'
+        print 'Cannot find jar file artifact at ' + remoteUrl
         print repoResponse.text
         sys.exit(1)
 
@@ -69,7 +69,10 @@ def checkArtifactsForComponent(version, name, component, buildRoot, repoRoot):
 
 checkArtifactsForComponent(version, 'onos-api', 'core/api', buildRoot, repoRoot)
 checkArtifactsForComponent(version, 'onos-protocols-openflow-api', 'protocols/openflow/api', buildRoot, repoRoot)
-checkArtifactsForComponent(version, 'onos-drivers-ciena', 'drivers/ciena', buildRoot, repoRoot)
-checkArtifactsForComponent(version, 'onos-providers-lldp', 'providers/lldp', buildRoot, repoRoot)
-checkArtifactsForComponent(version, 'onos-apps-bgprouter', 'apps/bgprouter', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-core-serializers', 'core/store/serializers', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-cli', 'cli', buildRoot, repoRoot)
+checkArtifactsForComponent(version, 'onos-apps-optical-model', 'apps/optical-model', buildRoot, repoRoot)
+
+
+
 

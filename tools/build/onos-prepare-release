@@ -31,9 +31,8 @@ git checkout $BRANCH
 git tag -l | grep -q "$ONOS_VERSION\$" &&
   { echo "ERROR: Version already exists"; exit -1; }
 
-
+# Copy local buck configuration to new tree
 cp $ONOS_ROOT/.buckconfig.local $DIR/
-
 
 export ONOS_ROOT=$DIR
 . $ONOS_ROOT/tools/build/envDefaults

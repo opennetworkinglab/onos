@@ -1,0 +1,7 @@
+# Targets placed in this list will be published as Maven test artifacts
+    //utils/osgi:onlab-osgi-tests
+    //utils/junit:onlab-junit-tests
+    //utils/misc:onlab-misc-tests
+    //core/api:onos-api-tests
+    //core/net:onos-core-net-tests
+    //core/common:onos-core-common-tests

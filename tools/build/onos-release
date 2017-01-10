@@ -48,11 +48,17 @@ onos-buck build //:onos-test
 
 # Build ONOS archetypes & deploy to staging repo using the release profile.
 # Note that release of the staging repository is a separate manual step.
-export MVN_CLI_OPTS=-Pstaging
-pushd tools/package/archetypes/
-mvn -Pstaging clean install && onos-archetypes-test && mvn -Pstaging -Prelease clean deploy
-popd
-unset MVN_CLI_OPTS
+if [ $dryRun -eq 0 ]; then
+    export MVN_CLI_OPTS=-Pstaging
+    pushd tools/package/archetypes/
+    mvn -Pstaging clean install && onos-archetypes-test && mvn -Pstaging -Prelease clean deploy
+    popd
+    unset MVN_CLI_OPTS
+else
+    pushd tools/package/archetypes/
+    mvn clean install && onos-archetypes-test
+    popd
+fi
 
 # Commit newly versioned artifacts and issue a tag.
 git commit -a -m"Tagging $NEW_VERSION"

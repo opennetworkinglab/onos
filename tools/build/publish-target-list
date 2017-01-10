@@ -1,0 +1,23 @@
+# Targets placed in this list will be published as Maven artifacts
+    //utils/osgi:onlab-osgi
+    //utils/junit:onlab-junit
+    //utils/misc:onlab-misc
+    //utils/rest:onlab-rest
+    //core/api:onos-api
+    //incubator/api:onos-incubator-api
+    //core/net:onos-core-net
+    //core/common:onos-core-common
+    //core/store/dist:onos-core-dist
+    //core/store/serializers:onos-core-serializers
+    //core/store/persistence:onos-core-persistence
+    //incubator/net:onos-incubator-net
+    //incubator/core:onos-incubator-core
+    //incubator/rpc:onos-incubator-rpc
+    //incubator/store:onos-incubator-store
+    //cli:onos-cli
+    //protocols/openflow/api:onos-protocols-openflow-api
+    //protocols/openflow/ctl:onos-protocols-openflow-ctl
+    //apps/optical:onos-apps-optical
+    //apps/optical-model:onos-apps-optical-model
+    //web/api:onos-rest
+    //protocols/netconf/api:onos-protocols-netconf-api
