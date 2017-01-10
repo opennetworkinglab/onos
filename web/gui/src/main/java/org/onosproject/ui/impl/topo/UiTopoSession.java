@@ -66,7 +66,7 @@ public class UiTopoSession implements UiModelListener {
 
     private UiTopoLayoutService layoutService;
     private UiTopoLayout currentLayout;
-    private boolean messagesEnabled;
+    private boolean messagesEnabled = true;
 
     /**
      * Creates a new topology session for the specified web socket connection,
@@ -130,16 +130,22 @@ public class UiTopoSession implements UiModelListener {
 
     @Override
     public void event(UiModelEvent event) {
-        log.debug("Event received: {}", event);
-        ObjectNode payload = t2json.jsonEvent(event);
+        String msg = messagesEnabled
+                ? "Event received: {}"
+                : "Event received: {}, but not transmitted";
+        log.debug(msg, event);
 
-        // TODO: add filtering for relevant objects only...
-        // TO Decide: Since the session holds the state of what is being
-        //   displayed on the client, we should filter out any model events
-        //   that are not relevant, and only send up events for objects that
-        //   are currently being viewed by the user.
+        if (messagesEnabled) {
+            ObjectNode payload = t2json.jsonEvent(event);
 
-        webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, payload);
+            // TODO: add filtering for relevant objects only...
+            // TO Decide: Since the session holds the state of what is being
+            //   displayed on the client, we should filter out any model events
+            //   that are not relevant, and only send up events for objects that
+            //   are currently being viewed by the user.
+
+            webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, payload);
+        }
     }
 
     /**

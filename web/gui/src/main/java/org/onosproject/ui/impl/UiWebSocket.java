@@ -95,7 +95,12 @@ public class UiWebSocket
         Topo2Jsonifier t2json = new Topo2Jsonifier(directory);
         UiSharedTopologyModel sharedModel = directory.get(UiSharedTopologyModel.class);
         UiTopoLayoutService layoutService = directory.get(UiTopoLayoutService.class);
-        this.topoSession = new UiTopoSession(this, t2json, sharedModel, layoutService);
+
+        topoSession = new UiTopoSession(this, t2json, sharedModel, layoutService);
+
+        // FIXME: this is temporary to prevent unhandled events being set to GUI...
+        //         while Topo2 is still under development
+        topoSession.enableEvent(false);
     }
 
     @Override
