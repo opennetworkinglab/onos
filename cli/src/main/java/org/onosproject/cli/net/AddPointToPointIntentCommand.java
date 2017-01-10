@@ -25,6 +25,8 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.ProtectedConstraint;
+
 import static org.onosproject.net.intent.constraint.ProtectionConstraint.protection;
 
 import java.util.List;
@@ -46,11 +48,24 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
+
+    /**
+     * Option to produce protected path.
+     * @deprecated in 1.9.0
+     */
     // -p already defined in ConnectivityIntentCommand
+    @Deprecated
     @Option(name = "-r", aliases = "--protect",
-            description = "Utilize path protection",
+            description = "(deprecated) Utilize path protection",
             required = false, multiValued = false)
     private boolean backup = false;
+
+    /**
+     * Option to consume protected path.
+     */
+    @Option(name = "--useProtected",
+            description = "use protected links only")
+    private boolean useProtected = false;
 
     @Override
     protected void execute() {
@@ -66,6 +81,10 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
         List<Constraint> constraints = buildConstraints();
         if (backup) {
             constraints.add(protection());
+        }
+
+        if (useProtected) {
+            constraints.add(ProtectedConstraint.useProtectedLink());
         }
 
         Intent intent = PointToPointIntent.builder()
