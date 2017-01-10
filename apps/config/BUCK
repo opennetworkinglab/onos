@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//core/store/serializers:onos-core-serializers',
+    '//cli:onos-cli',
+]
+
+osgi_jar (
+    deps = COMPILE_DEPS,
+)
+
+onos_app (
+    title = 'Dynamic Config App',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Application to support the Dynamic configuration service and store.',
+)
