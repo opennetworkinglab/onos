@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -198,7 +199,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                         .collect(Collectors.toList());
                 notifyDelegate(events);
             } else {
-                log.warn("Failed to unregister {}: Commit failed.", ids, error);
+                String message = resources.stream()
+                        .map(Resource::simpleTypeName)
+                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                        .entrySet().stream()
+                        .map(e -> String.format("%d %s type resources", e.getValue(), e.getKey()))
+                        .collect(Collectors.joining(", "));
+                log.warn("Failed to unregister {}: Commit failed.", message, error);
             }
         }).join() == CommitStatus.SUCCESS;
     }
