@@ -140,6 +140,8 @@ public class Vpls {
 
     @Deactivate
     public void deactivate() {
+        hostService.removeListener(hostListener);
+        interfaceService.removeListener(interfaceListener);
         configService.removeListener(configListener);
         intentSynchronizer.removeIntentsByAppId(appId);
         log.info("Deactivated");
