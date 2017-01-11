@@ -17,6 +17,7 @@
 package org.onosproject.routing.impl;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -24,9 +25,17 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+
+import static org.onlab.packet.Ethernet.TYPE_ARP;
+import static org.onlab.packet.Ethernet.TYPE_IPV4;
+import static org.onlab.packet.Ethernet.TYPE_IPV6;
+import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
+import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -85,7 +94,7 @@ public class ControlPlaneRedirectManager {
     private static final int MIN_IP_PRIORITY = 10;
     private static final int IPV4_PRIORITY = 2000;
     private static final int IPV6_PRIORITY = 500;
-    private static final int ACL_PRIORITY = 40001;
+    static final int ACL_PRIORITY = 40001;
     private static final int OSPF_IP_PROTO = 0x59;
 
     private static final String APP_NAME = "org.onosproject.vrouter";
@@ -228,57 +237,178 @@ public class ControlPlaneRedirectManager {
                 intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
                                                  intf.vlan(), false, install);
             }
-
-            // IPv4 to router
-            TrafficSelector toSelector = DefaultTrafficSelector.builder()
-                    .matchInPort(intf.connectPoint().port())
-                    .matchEthDst(intf.mac())
-                    .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                    .matchVlanId(intf.vlan())
-                    .matchIPDst(ip.ipAddress().toIpPrefix())
-                    .build();
-
-            flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, null, cpNextId, install));
-
-            // IPv4 from router
-            TrafficSelector fromSelector = DefaultTrafficSelector.builder()
-                    .matchInPort(controlPlanePort)
-                    .matchEthSrc(intf.mac())
-                    .matchVlanId(intf.vlan())
-                    .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                    .matchIPSrc(ip.ipAddress().toIpPrefix())
-                    .build();
-
-            flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, null, intfNextId, install));
-
-            // ARP to router
-            toSelector = DefaultTrafficSelector.builder()
-                    .matchInPort(intf.connectPoint().port())
-                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .matchVlanId(intf.vlan())
-                    .build();
-
-            TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder()
+            List<ForwardingObjective> fwdToSend = Lists.newArrayList();
+            TrafficSelector selector;
+            // IP traffic toward the router.
+            selector = buildIPDstSelector(
+                    ip.ipAddress().toIpPrefix(),
+                    intf.connectPoint().port(),
+                    null,
+                    intf.mac(),
+                    intf.vlan()
+            );
+            fwdToSend.add(buildForwardingObjective(selector, null, cpNextId, install, ACL_PRIORITY));
+            // IP traffic from the router.
+            selector = buildIPSrcSelector(
+                    ip.ipAddress().toIpPrefix(),
+                    controlPlanePort,
+                    intf.mac(),
+                    null,
+                    intf.vlan()
+            );
+            fwdToSend.add(buildForwardingObjective(selector, null, intfNextId, install, ACL_PRIORITY));
+            // We build the punt treatment.
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .punt()
                     .build();
-
-            flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, install));
-
-            // ARP from router
-            fromSelector = DefaultTrafficSelector.builder()
-                    .matchInPort(controlPlanePort)
-                    .matchEthSrc(intf.mac())
-                    .matchVlanId(intf.vlan())
-                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .matchArpSpa(ip.ipAddress().getIp4Address())
-                    .build();
-
-            flowObjectiveService.forward(deviceId,
-            buildForwardingObjective(fromSelector, puntTreatment, intfNextId, install));
+            // Handling of neighbour discovery protocols.
+            // IPv4 traffic - we have to deal with the ARP protocol.
+            // IPv6 traffic - we have to deal with the NDP protocol.
+            if (ip.ipAddress().isIp4()) {
+                 // ARP traffic towards the router.
+                selector = buildArpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // ARP traffic from the router.
+                selector = buildArpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().getIp4Address(),
+                        intf.mac()
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
+            } else {
+                // Neighbour solicitation traffic towards the router.
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        NEIGHBOR_SOLICITATION,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour solicitation traffic from the router.
+                selector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        NEIGHBOR_SOLICITATION,
+                        intf.mac()
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
+                 // Neighbour advertisement traffic towards the router.
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        NEIGHBOR_ADVERTISEMENT,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour advertisement traffic from the router.
+                selector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        NEIGHBOR_ADVERTISEMENT,
+                        intf.mac()
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
+            }
+            // Finally we push the fwd objectives through the flow objective service.
+            fwdToSend.stream().forEach(forwardingObjective ->
+                flowObjectiveService.forward(deviceId, forwardingObjective)
+            );
         }
+    }
+
+    static TrafficSelector.Builder buildBaseSelectorBuilder(PortNumber inPort,
+                                                             MacAddress srcMac,
+                                                             MacAddress dstMac,
+                                                             VlanId vlanId) {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        if (inPort != null) {
+            selectorBuilder.matchInPort(inPort);
+        }
+        if (srcMac != null) {
+            selectorBuilder.matchEthSrc(srcMac);
+        }
+        if (dstMac != null) {
+            selectorBuilder.matchEthDst(dstMac);
+        }
+        if (vlanId != null) {
+            selectorBuilder.matchVlanId(vlanId);
+        }
+        return selectorBuilder;
+    }
+
+    static TrafficSelector buildIPDstSelector(IpPrefix dstIp,
+                                               PortNumber inPort,
+                                               MacAddress srcMac,
+                                               MacAddress dstMac,
+                                               VlanId vlanId) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
+        if (dstIp.isIp4()) {
+            selector.matchEthType(TYPE_IPV4);
+            selector.matchIPDst(dstIp);
+        } else {
+            selector.matchEthType(TYPE_IPV6);
+            selector.matchIPv6Dst(dstIp);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildIPSrcSelector(IpPrefix srcIp,
+                                               PortNumber inPort,
+                                               MacAddress srcMac,
+                                               MacAddress dstMac,
+                                               VlanId vlanId) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
+        if (srcIp.isIp4()) {
+            selector.matchEthType(TYPE_IPV4);
+            selector.matchIPSrc(srcIp);
+        } else {
+            selector.matchEthType(TYPE_IPV6);
+            selector.matchIPv6Src(srcIp);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildArpSelector(PortNumber inPort,
+                                             VlanId vlanId,
+                                             Ip4Address arpSpa,
+                                             MacAddress srcMac) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
+        selector.matchEthType(TYPE_ARP);
+        if (arpSpa != null) {
+            selector.matchArpSpa(arpSpa);
+        }
+        if (srcMac != null) {
+            selector.matchEthSrc(srcMac);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildNdpSelector(PortNumber inPort,
+                                             VlanId vlanId,
+                                             IpPrefix srcIp,
+                                             byte subProto,
+                                             MacAddress srcMac) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
+        selector.matchEthType(TYPE_IPV6)
+                .matchIPProtocol(PROTOCOL_ICMP6)
+                .matchIcmpv6Type(subProto);
+        if (srcIp != null) {
+            selector.matchIPv6Src(srcIp);
+        }
+        if (srcMac != null) {
+            selector.matchEthSrc(srcMac);
+        }
+        return selector.build();
     }
 
     /**
@@ -289,6 +419,7 @@ public class ControlPlaneRedirectManager {
      *            objective
      **/
     private void updateOspfForwarding(Interface intf, boolean install) {
+        // FIXME IPv6 support has not been implemented yet
         // OSPF to router
         TrafficSelector toSelector = DefaultTrafficSelector.builder()
                 .matchInPort(intf.connectPoint().port())
@@ -311,7 +442,7 @@ public class ControlPlaneRedirectManager {
         }
         log.debug("OSPF flows intf:{} nextid:{}", intf, cpNextId);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
-                buildForwardingObjective(toSelector, null, cpNextId, install ? ospfEnabled : install));
+                buildForwardingObjective(toSelector, null, cpNextId, install ? ospfEnabled : install, ACL_PRIORITY));
     }
 
     /**
@@ -370,7 +501,8 @@ public class ControlPlaneRedirectManager {
     private ForwardingObjective buildForwardingObjective(TrafficSelector selector,
                                                          TrafficTreatment treatment,
                                                          int nextId,
-                                                         boolean add) {
+                                                         boolean add,
+                                                         int priority) {
         DefaultForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder();
         fobBuilder.withSelector(selector);
         if (treatment != null) {
@@ -380,7 +512,7 @@ public class ControlPlaneRedirectManager {
             fobBuilder.nextStep(nextId);
         }
         fobBuilder.fromApp(appId)
-            .withPriority(ACL_PRIORITY)
+            .withPriority(priority)
             .withFlag(ForwardingObjective.Flag.VERSATILE);
 
         return add ? fobBuilder.add() : fobBuilder.remove();
@@ -425,22 +557,22 @@ public class ControlPlaneRedirectManager {
         public void event(NetworkConfigEvent event) {
             if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
                 switch (event.type()) {
-                    case CONFIG_ADDED:
-                    case CONFIG_UPDATED:
-                        readConfig();
-                        if (event.prevConfig().isPresent()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    readConfig();
+                    if (event.prevConfig().isPresent()) {
                             updateConfig(event);
                             }
 
-                        break;
-                    case CONFIG_REGISTERED:
-                    case CONFIG_UNREGISTERED:
-                    case CONFIG_REMOVED:
-                        removeConfig();
+                    break;
+                case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED:
+                case CONFIG_REMOVED:
+                    removeConfig();
 
                         break;
-                    default:
-                        break;
+                default:
+                    break;
                 }
             }
         }
@@ -520,12 +652,10 @@ public class ControlPlaneRedirectManager {
 
         private ForwardingObjective.Builder createPeerObjBuilder(
                 int nextId, IpPrefix ipAddresses) {
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            sbuilder.matchEthType(EthType.EtherType.IPV4.ethType().toShort());
-            sbuilder.matchIPDst(ipAddresses);
+            TrafficSelector selector = buildIPDstSelector(ipAddresses, null, null, null, null);
             DefaultForwardingObjective.Builder builder =
                     DefaultForwardingObjective.builder()
-                    .withSelector(sbuilder.build())
+                    .withSelector(selector)
                     .fromApp(appId)
                     .withPriority(getPriorityFromPrefix(ipAddresses))
                     .withFlag(ForwardingObjective.Flag.SPECIFIC);
@@ -577,7 +707,8 @@ public class ControlPlaneRedirectManager {
                     peerRemoved(event);
                     break;
                 case HOST_UPDATED:
-                    //TODO We assume BGP peer does not change IP for now
+                    //FIXME We assume BGP peer does not change IP for now
+                    // but we can discover new address.
                     break;
                 default:
                     break;
@@ -628,11 +759,10 @@ public class ControlPlaneRedirectManager {
     }
 
     private Set<Interface> filterInterfaces(List<String> interfaces) {
-        Set<Interface> intfs = interfaceService.getInterfaces().stream()
+        return interfaceService.getInterfaces().stream()
                 .filter(intf -> intf.connectPoint().deviceId().equals(controlPlaneConnectPoint.deviceId()))
                 .filter(intf -> interfaces.contains(intf.name()))
                 .collect(Collectors.toSet());
-        return intfs;
     }
 
     private void removeConfig() {
@@ -707,3 +837,4 @@ public class ControlPlaneRedirectManager {
         }
     }
 }
+

@@ -28,7 +28,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.IP;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -63,6 +64,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.packet.IpAddress.Version.INET6;
 
 /**
  * Reactively handles sending packets to hosts that are directly connected to
@@ -104,8 +106,8 @@ public class DirectHostManager {
     private InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
     private InternalHostListener hostListener = new InternalHostListener();
 
-    private Cache<IpAddress, Queue<IPv4>> ipPacketCache = CacheBuilder.newBuilder()
-            .weigher((IpAddress key, Queue<IPv4> value) -> value.size())
+    private Cache<IpAddress, Queue<IP>> ipPacketCache = CacheBuilder.newBuilder()
+            .weigher((IpAddress key, Queue<IP> value) -> value.size())
             .maximumWeight(MAX_QUEUED_PACKETS)
             .expireAfterAccess(MAX_QUEUE_DURATION, TimeUnit.SECONDS)
             .build();
@@ -134,18 +136,26 @@ public class DirectHostManager {
     private void enable() {
         hostService.addListener(hostListener);
         packetService.addProcessor(packetProcessor, PacketProcessor.director(3));
-
+        // Requests packets for IPv4 traffic.
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).build();
+        packetService.requestPackets(selector, PacketPriority.REACTIVE, appId, Optional.empty());
+        // Requests packets for IPv6 traffic.
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV6.ethType().toShort()).build();
         packetService.requestPackets(selector, PacketPriority.REACTIVE, appId, Optional.empty());
     }
 
     private void disable() {
         packetService.removeProcessor(packetProcessor);
         hostService.removeListener(hostListener);
-
+        // Withdraws IPv4 request.
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).build();
+        packetService.cancelPackets(selector, PacketPriority.REACTIVE, appId, Optional.empty());
+        // Withdraws IPv6 request.
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV6.ethType().toShort()).build();
         packetService.cancelPackets(selector, PacketPriority.REACTIVE, appId, Optional.empty());
     }
 
@@ -158,57 +168,82 @@ public class DirectHostManager {
         componentConfigService.unregisterProperties(getClass(), false);
     }
 
-    private void handle(Ethernet eth) {
+    private boolean handle(Ethernet eth) {
         checkNotNull(eth);
-
-        if (!(eth.getEtherType() == EthType.EtherType.IPV4.ethType().toShort())) {
-            return;
+        // If the DirectHostManager is not enabled and the
+        // packets are different from what we expect just
+        // skip them.
+        if (!enabled || (eth.getEtherType() != Ethernet.TYPE_IPV6
+                && eth.getEtherType() != Ethernet.TYPE_IPV4)) {
+            return false;
         }
-
-        IPv4 ipv4 = (IPv4) eth.getPayload().clone();
-
-        Ip4Address dstIp = Ip4Address.valueOf(ipv4.getDestinationAddress());
-
+        // According to the type we set the destIp.
+        IpAddress dstIp;
+        if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
+            IPv4 ip = (IPv4) eth.getPayload();
+            dstIp = IpAddress.valueOf(ip.getDestinationAddress());
+        } else {
+            IPv6 ip = (IPv6) eth.getPayload();
+            dstIp = IpAddress.valueOf(INET6, ip.getDestinationAddress());
+        }
+        // Looking for a candidate output port.
         Interface egressInterface = interfaceService.getMatchingInterface(dstIp);
 
         if (egressInterface == null) {
             log.info("No egress interface found for {}", dstIp);
-            return;
+            return false;
         }
-
+        // Looking for the destination mac.
         Optional<Host> host = hostService.getHostsByIp(dstIp).stream()
                 .filter(h -> h.location().equals(egressInterface.connectPoint()))
                 .filter(h -> h.vlan().equals(egressInterface.vlan()))
                 .findAny();
-
+        // If we don't have a destination we start the monitoring
+        // and we queue the packets waiting for a destination.
         if (host.isPresent()) {
-            transformAndSend(ipv4, egressInterface, host.get().mac());
+            transformAndSend(
+                    (IP) eth.getPayload(),
+                    eth.getEtherType(),
+                    egressInterface,
+                    host.get().mac()
+            );
         } else {
             hostService.startMonitoringIp(dstIp);
             ipPacketCache.asMap().compute(dstIp, (ip, queue) -> {
                 if (queue == null) {
-                    queue = new ConcurrentLinkedQueue();
+                    queue = new ConcurrentLinkedQueue<>();
                 }
-                queue.add(ipv4);
+                queue.add((IP) eth.getPayload());
                 return queue;
             });
         }
+
+        return true;
     }
 
-    private void transformAndSend(IPv4 ipv4, Interface egressInterface, MacAddress macAddress) {
-
+    private void transformAndSend(IP ip, short ethType,
+                                  Interface egressInterface,
+                                  MacAddress macAddress) {
+        // Base processing for IPv4
+        if (ethType == Ethernet.TYPE_IPV4) {
+            IPv4 ipv4 = (IPv4) ip;
+            ipv4.setTtl((byte) (ipv4.getTtl() - 1));
+            ipv4.setChecksum((short) 0);
+        // Base processing for IPv6.
+        } else {
+            IPv6 ipv6 = (IPv6) ip;
+            ipv6.setHopLimit((byte) (ipv6.getHopLimit() - 1));
+            ipv6.resetChecksum();
+        }
+        // Sends and serializes.
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(macAddress);
         eth.setSourceMACAddress(egressInterface.mac());
-        eth.setEtherType(EthType.EtherType.IPV4.ethType().toShort());
-        eth.setPayload(ipv4);
+        eth.setEtherType(ethType);
+        eth.setPayload(ip);
         if (!egressInterface.vlan().equals(VlanId.NONE)) {
             eth.setVlanID(egressInterface.vlan().toShort());
         }
-
-        ipv4.setTtl((byte) (ipv4.getTtl() - 1));
-        ipv4.setChecksum((short) 0);
-
         send(eth, egressInterface.connectPoint());
     }
 
@@ -221,7 +256,7 @@ public class DirectHostManager {
     private void sendQueued(IpAddress ipAddress, MacAddress macAddress) {
         log.debug("Sending queued packets for {} ({})", ipAddress, macAddress);
         ipPacketCache.asMap().computeIfPresent(ipAddress, (ip, packets) -> {
-            packets.forEach(ipv4 -> {
+            packets.forEach(ipPackets -> {
                 Interface egressInterface = interfaceService.getMatchingInterface(ipAddress);
 
                 if (egressInterface == null) {
@@ -229,7 +264,14 @@ public class DirectHostManager {
                     return;
                 }
 
-                transformAndSend(ipv4, egressInterface, macAddress);
+                // According to the type of the address we set proper
+                // protocol.
+                transformAndSend(
+                        ipPackets,
+                        ipAddress.isIp4() ? Ethernet.TYPE_IPV4 : Ethernet.TYPE_IPV6,
+                        egressInterface,
+                        macAddress
+                );
             });
             return null;
         });
@@ -253,7 +295,9 @@ public class DirectHostManager {
                 return;
             }
 
-            handle(eth);
+            if (!handle(eth)) {
+                return;
+            }
 
             context.block();
         }

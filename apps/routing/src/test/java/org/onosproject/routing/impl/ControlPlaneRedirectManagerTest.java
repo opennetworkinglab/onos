@@ -76,6 +76,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
+import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onosproject.routing.impl.ControlPlaneRedirectManager.*;
 
 /**
  * UnitTests for ControlPlaneRedirectManager.
@@ -149,11 +152,15 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testAddDevice() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+        List<InterfaceIpAddress> interfaceIpAddresses = new ArrayList<>();
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24"))
+        );
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("2000::ff"), IpPrefix.valueOf("2000::ff/120"))
+        );
 
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses,
                 MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
         interfaces.add(sw1Eth4);
         EasyMock.reset(flowObjectiveService);
@@ -168,11 +175,15 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testUpdateNetworkConfig() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+        List<InterfaceIpAddress> interfaceIpAddresses = new ArrayList<>();
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24"))
+        );
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("2000::ff"), IpPrefix.valueOf("2000::ff/120"))
+        );
 
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses,
                 MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
         interfaces.add(sw1Eth4);
         EasyMock.reset(flowObjectiveService);
@@ -189,11 +200,15 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testAddInterface() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+        List<InterfaceIpAddress> interfaceIpAddresses = new ArrayList<>();
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24"))
+        );
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("2000::ff"), IpPrefix.valueOf("2000::ff/120"))
+        );
 
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses,
                 MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
         interfaces.add(sw1Eth4);
 
@@ -209,11 +224,15 @@ public class ControlPlaneRedirectManagerTest {
     @Test
     public void testRemoveInterface() {
         ConnectPoint sw1eth4 = new ConnectPoint(DEVICE_ID, PortNumber.portNumber(4));
-        List<InterfaceIpAddress> interfaceIpAddresses4 = new ArrayList<>();
-        interfaceIpAddresses4
-                .add(new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24")));
+        List<InterfaceIpAddress> interfaceIpAddresses = new ArrayList<>();
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.40.101"), IpPrefix.valueOf("192.168.40.0/24"))
+        );
+        interfaceIpAddresses.add(
+                new InterfaceIpAddress(IpAddress.valueOf("2000::ff"), IpPrefix.valueOf("2000::ff/120"))
+        );
 
-        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses4,
+        Interface sw1Eth4 = new Interface(sw1eth4.deviceId().toString(), sw1eth4, interfaceIpAddresses,
                 MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE);
         EasyMock.reset(flowObjectiveService);
         expect(flowObjectiveService.allocateNextId()).andReturn(1).anyTimes();
@@ -251,38 +270,110 @@ public class ControlPlaneRedirectManagerTest {
             intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
                     VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN), true, install);
 
-            // IPv4 to router
-            TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
-                    .matchEthDst(intf.mac()).matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                    .matchVlanId(intf.vlan()).matchIPDst(ip.ipAddress().toIpPrefix()).build();
+            // IP to router
+            TrafficSelector toSelector = buildIPDstSelector(
+                    ip.ipAddress().toIpPrefix(),
+                    intf.connectPoint().port(),
+                    null,
+                    intf.mac(),
+                    intf.vlan());
 
-            flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, null, cpNextId, install));
+            flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, null,
+                                                                            cpNextId, install, ACL_PRIORITY));
             expectLastCall().once();
-            // IPv4 from router
-            TrafficSelector fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort)
-                    .matchEthSrc(intf.mac()).matchVlanId(intf.vlan())
-                    .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).matchIPSrc(ip.ipAddress().toIpPrefix())
-                    .build();
 
-            flowObjectiveService.forward(deviceId, buildForwardingObjective(fromSelector, null, intfNextId, install));
+            // IP from router
+            TrafficSelector fromSelector = buildIPSrcSelector(
+                    ip.ipAddress().toIpPrefix(),
+                    controlPlanePort,
+                    intf.mac(),
+                    null,
+                    intf.vlan()
+            );
+
+            flowObjectiveService.forward(deviceId, buildForwardingObjective(fromSelector, null,
+                                                                            intfNextId, install, ACL_PRIORITY));
             expectLastCall().once();
-            // ARP to router
-            toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
-                    .matchEthType(EthType.EtherType.ARP.ethType().toShort()).matchVlanId(intf.vlan()).build();
 
             TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder().punt().build();
+            if (ip.ipAddress().isIp4()) {
+                // ARP to router
+                toSelector = buildArpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        null
+                );
 
-            flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, install));
-            expectLastCall().once();
-            // ARP from router
-            fromSelector = DefaultTrafficSelector.builder().matchInPort(controlPlanePort).matchEthSrc(intf.mac())
-                    .matchVlanId(intf.vlan()).matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .matchArpSpa(ip.ipAddress().getIp4Address()).build();
+                flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
+                                                                                cpNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
 
-            flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, puntTreatment, intfNextId, install));
-            expectLastCall().once();
+                // ARP from router
+                fromSelector = buildArpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().getIp4Address(),
+                        intf.mac()
+                );
+
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(fromSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+            } else {
+                // NDP solicitation to router
+                toSelector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        NEIGHBOR_SOLICITATION,
+                        null
+                );
+
+                flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
+                                                                                cpNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+
+                // NDP solicitation from router
+                fromSelector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        NEIGHBOR_SOLICITATION,
+                        intf.mac()
+                );
+
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(fromSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+
+                // NDP advertisement to router
+                toSelector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        null,
+                        NEIGHBOR_ADVERTISEMENT,
+                        null
+                );
+
+                flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
+                                                                                cpNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+
+                // NDP advertisement from router
+                fromSelector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        NEIGHBOR_ADVERTISEMENT,
+                        intf.mac()
+                );
+
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(fromSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+            }
         }
         // setting expectations for ospf forwarding.
         TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
@@ -291,7 +382,7 @@ public class ControlPlaneRedirectManagerTest {
 
         modifyNextObjective(deviceId, controlPlanePort, VlanId.vlanId((short) 4094), true, install);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
-                buildForwardingObjective(toSelector, null, 1, install));
+                buildForwardingObjective(toSelector, null, 1, install, 40001));
         expectLastCall().once();
     }
 
@@ -353,7 +444,7 @@ public class ControlPlaneRedirectManagerTest {
     }
 
     private ForwardingObjective buildForwardingObjective(TrafficSelector selector, TrafficTreatment treatment,
-            int nextId, boolean add) {
+            int nextId, boolean add, int priority) {
         DefaultForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder();
         fobBuilder.withSelector(selector);
         if (treatment != null) {
@@ -362,7 +453,7 @@ public class ControlPlaneRedirectManagerTest {
         if (nextId != -1) {
             fobBuilder.nextStep(nextId);
         }
-        fobBuilder.fromApp(APPID).withPriority(40001).withFlag(ForwardingObjective.Flag.VERSATILE);
+        fobBuilder.fromApp(APPID).withPriority(priority).withFlag(ForwardingObjective.Flag.VERSATILE);
 
         return add ? fobBuilder.add() : fobBuilder.remove();
     }

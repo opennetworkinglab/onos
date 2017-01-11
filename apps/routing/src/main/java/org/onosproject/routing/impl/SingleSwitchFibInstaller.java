@@ -126,7 +126,7 @@ public class SingleSwitchFibInstaller {
     protected ApplicationService applicationService;
 
     @Property(name = "routeToNextHop", boolValue = false,
-            label = "Install a /32 route to each next hop")
+            label = "Install a /32 or /128 route to each next hop")
     private boolean routeToNextHop = false;
 
     // Device id of data-plane switch - should be learned from config
@@ -333,11 +333,7 @@ public class SingleSwitchFibInstaller {
 
     private ForwardingObjective.Builder generateRibForwardingObj(IpPrefix prefix,
                                                                  Integer nextId) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(prefix)
-                .build();
-
+        TrafficSelector selector = buildIpSelectorFromIpPrefix(prefix).build();
         int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
@@ -357,11 +353,30 @@ public class SingleSwitchFibInstaller {
         return fwdBuilder;
     }
 
+    /**
+     * Method to build IPv4 or IPv6 selector.
+     *
+     * @param prefixToMatch the prefix to match
+     * @return the traffic selector builder
+     */
+    private TrafficSelector.Builder buildIpSelectorFromIpPrefix(IpPrefix prefixToMatch) {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        // If the prefix is IPv4
+        if (prefixToMatch.isIp4()) {
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
+            selectorBuilder.matchIPDst(prefixToMatch);
+            return selectorBuilder;
+        }
+        // If the prefix is IPv6
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        selectorBuilder.matchIPv6Dst(prefixToMatch);
+        return selectorBuilder;
+    }
+
     private synchronized void addNextHop(ResolvedRoute route) {
         prefixToNextHop.put(route.prefix(), route.nextHop());
         if (nextHopsCount.count(route.nextHop()) == 0) {
             // There was no next hop in the multiset
-
             Interface egressIntf = interfaceService.getMatchingInterface(route.nextHop());
             if (egressIntf == null) {
                 log.warn("no egress interface found for {}", route);
