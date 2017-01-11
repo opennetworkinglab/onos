@@ -89,6 +89,14 @@ public class ApplicationArchiveTest {
     }
 
     @Test
+    public void saveSelfContainedApp() throws IOException {
+        InputStream stream = getClass().getResourceAsStream("app.scj");
+        ApplicationDescription app = aar.saveApplication(stream);
+        validate(app);
+        stream.close();
+    }
+
+    @Test
     public void loadApp() throws IOException {
         saveZippedApp();
         ApplicationDescription app = aar.getApplicationDescription(APP_NAME);
