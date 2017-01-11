@@ -5,20 +5,21 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
+export ONOS_TMP=/tmp/onos-$ONOS_POM_VERSION
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
 
 ssh $remote "
     [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1
-    cd /tmp && rm -fr /tmp/$ONOS_BITS
+    cd /tmp && rm -fr $ONOS_TMP
     tar zxf /tmp/$ONOS_BITS.tar.gz
 
-    cd /tmp/$ONOS_BITS
+    cd $ONOS_TMP
     export ONOS_NIC=$ONOS_NIC
     bin/onos-service server 1>/tmp/onos.out 2>/tmp/onos.err &
 
     # Setup a few symlinks to allow other tools to work
-    sudo ln -s /tmp/$ONOS_BITS $ONOS_INSTALL_DIR
-    sudo ln -s /tmp/$ONOS_BITS/$KARAF_DIST/data/log $ONOS_INSTALL_DIR/log
+    sudo ln -s $ONOS_TMP $ONOS_INSTALL_DIR
+    sudo ln -s $ONOS_TMP/$KARAF_DIST/data/log $ONOS_INSTALL_DIR/log
 "
