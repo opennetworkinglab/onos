@@ -43,12 +43,10 @@ import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -59,21 +57,13 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.routing.IntentSynchronizationService;
-import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.sdnip.config.SdnIpConfig;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.onosproject.routing.TestIntentServiceHelper.eqExceptId;
 
 /**

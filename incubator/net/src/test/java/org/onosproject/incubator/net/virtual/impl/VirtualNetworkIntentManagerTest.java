@@ -20,6 +20,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
@@ -77,6 +78,7 @@ import static org.junit.Assert.*;
 /**
  * Junit tests for VirtualNetworkIntentService.
  */
+@Ignore("deprecated prototype implementation")
 public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
 
     private final String tenantIdValue1 = "TENANT_ID1";
