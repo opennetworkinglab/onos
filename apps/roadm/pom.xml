@@ -32,7 +32,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.9.0-SNAPSHOT</onos.version>
+        <onos.version>${project.version}</onos.version>
         <onos.app.name>org.onosproject.roadm</onos.app.name>
         <onos.app.title>ROADM Application</onos.app.title>
         <onos.app.category>Utility</onos.app.category>
