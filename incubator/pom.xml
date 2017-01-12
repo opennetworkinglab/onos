@@ -35,6 +35,8 @@
         <module>core</module>
         <module>net</module>
         <module>store</module>
+        <module>protobuf-dependencies</module>
+        <module>grpc-dependencies</module>
         <module>protobuf</module>
         <module>rpc</module>
         <module>rpc-grpc</module>

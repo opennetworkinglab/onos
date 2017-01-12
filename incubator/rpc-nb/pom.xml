@@ -19,9 +19,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-incubator</artifactId>
+        <artifactId>onos-incubator-grpc-dependencies</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.9.0-SNAPSHOT</version>
+        <relativePath>../grpc-dependencies/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -35,49 +36,50 @@
         <onos.app.name>org.onosproject.incubator.rpc-nb</onos.app.name>
         <onos.app.title>ONOS gRPC Northbound API</onos.app.title>
         <onos.app.requires>org.onosproject.incubator.grpc</onos.app.requires>
-        <grpc.version>1.0.0</grpc.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-core</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-auth</artifactId>
-            <version>${grpc.version}</version>
         </dependency>
 
         <dependency>
@@ -99,22 +101,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-scr-srcdescriptor</id>
-                        <goals>
-                            <goal>scr</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- avoid searching into wrong source path -->
-                    <scanClasses>true</scanClasses>
-                    <supportedProjectTypes>
-                        <supportedProjectType>bundle</supportedProjectType>
-                        <supportedProjectType>war</supportedProjectType>
-                    </supportedProjectTypes>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -17,9 +17,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>onos-incubator</artifactId>
+        <artifactId>onos-incubator-protobuf-dependencies</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.9.0-SNAPSHOT</version>
+        <relativePath>../protobuf-dependencies/pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-incubator-protobuf</artifactId>
@@ -31,10 +32,15 @@
     <properties>
         <onos.app.name>org.onosproject.incubator.protobuf</onos.app.name>
         <onos.app.title>ONOS Protocol Buffers models</onos.app.title>
-        <protobuf.version>3.0.0</protobuf.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -51,13 +57,6 @@
     </dependencies>
 
     <build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.4.1.Final</version>
-            </extension>
-        </extensions>
 
         <pluginManagement>
             <plugins>
@@ -102,59 +101,23 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-scr-srcdescriptor</id>
-                        <goals>
-                            <goal>scr</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <!-- avoid searching into wrong source path -->
-                    <scanClasses>true</scanClasses>
-                    <supportedProjectTypes>
-                        <supportedProjectType>bundle</supportedProjectType>
-                    </supportedProjectTypes>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
-                <version>0.5.0</version>
-                <configuration>
-                    <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.11</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.build.directory}/generated-sources/protobuf/java</source>
-                                <source>${project.build.directory}/generated-sources/protobuf/grpc-java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+
         </plugins>
     </build>
 
