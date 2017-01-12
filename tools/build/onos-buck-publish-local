@@ -4,6 +4,8 @@ set -e
 onos-buck -V
 
 rm -f /tmp/publish.sh
+trap "rm -f /tmp/publish.sh /tmp/publish.sh.bak" EXIT
+
 
 onos-buck query "kind('onos_jar', deps('//tools/package:onos-package'))" >> /tmp/publish.sh
 

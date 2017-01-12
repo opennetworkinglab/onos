@@ -14,6 +14,8 @@ TEST_PUB=$(mktemp /tmp/onos-publish-tests.XXXXX) &&
   echo "Created temp file for test artifact publish: $TEST_PUB" ||
   { echo "Failed to create temp file"; exit 1; }
 
+trap "rm -f $ARTIFACT_PUB $ARTIFACT_PUB.bak $TEST_PUB $TEST_PUB.bak" EXIT
+
 set -e
 set -x
 
