@@ -506,15 +506,24 @@
         flash.enable(true);
     }
 
+    // initial set of topo events received, now do post-processing
     function topoStartDone() {
-        var d = $scope.intentData;
-        // give a small delay before attempting to reselect node(s) and stuff
-        // since they have to be re-added to the DOM first...
+        // give a small delay before attempting to reselect node(s) and
+        // highlight elements, since they have to be re-added to the DOM first...
         $timeout(function () {
+            $log.debug('^^ topo.topoStartDone() ^^');
+
+            // reselect the previous selection...
             tss.reselect();
-            if (d) {
-                tts.selectIntent(d);
+
+            // if an intent should be shown, invoke the appropriate callback
+            if ($scope.intentData) {
+
+                // TODO: if a specific overlay was requested, activate that first
+
+                tov.hooks.showIntent($scope.intentData);
             }
+
         }, 200);
     }
 

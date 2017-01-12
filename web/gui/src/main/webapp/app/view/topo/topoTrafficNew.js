@@ -141,6 +141,12 @@
             },
             mouseout: function () {
                 tts.requestTrafficForMode(true);
+            },
+
+            // intent visualization hook
+            showintent: function (intentData) {
+                $log.debug('^^ trafficOverlay.showintent() ^^');
+                tts.selectIntent(intentData);
             }
         }
     };

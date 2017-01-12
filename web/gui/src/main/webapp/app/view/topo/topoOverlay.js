@@ -284,6 +284,13 @@
         return cb && extra ? cb(data, extra) : data;
     }
 
+    // Request from Intent View to visualize an intent on the topo view
+    function showIntentHook(intentData) {
+        $log.debug('^^ topoOverlay.showIntentHook(...) ^^');
+        var cb = _hook('showintent');
+        return cb && cb(intentData);
+    }
+
     // === -----------------------------------------------------
     //  Event (from server) Handlers
 
@@ -435,7 +442,8 @@
                     multiSelect: multiSelectHook,
                     mouseOver: mouseOverHook,
                     mouseOut: mouseOutHook,
-                    modifyLinkData: modifyLinkDataHook
+                    modifyLinkData: modifyLinkDataHook,
+                    showIntent: showIntentHook
                 },
 
                 showHighlights: showHighlights
