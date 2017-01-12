@@ -31,6 +31,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.intent.FlowObjectiveIntent;
 import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
@@ -109,9 +110,9 @@ public class TrafficMonitor {
     /**
      * Constructs a traffic monitor.
      *
-     * @param trafficPeriod   traffic task period in ms
-     * @param servicesBundle  bundle of services
-     * @param msgHandler  our message handler
+     * @param trafficPeriod  traffic task period in ms
+     * @param servicesBundle bundle of services
+     * @param msgHandler     our message handler
      */
     public TrafficMonitor(long trafficPeriod, ServicesBundle servicesBundle,
                           TopologyViewMessageHandler msgHandler) {
@@ -133,9 +134,9 @@ public class TrafficMonitor {
      * <p>
      * The monitoring mode is expected to be one of:
      * <ul>
-     *     <li>ALL_FLOW_TRAFFIC</li>
-     *     <li>ALL_PORT_TRAFFIC</li>
-     *     <li>SELECTED_INTENT</li>
+     * <li>ALL_FLOW_TRAFFIC</li>
+     * <li>ALL_PORT_TRAFFIC</li>
+     * <li>SELECTED_INTENT</li>
      * </ul>
      *
      * @param mode monitoring mode
@@ -179,11 +180,11 @@ public class TrafficMonitor {
      * <p>
      * The monitoring mode is expected to be one of:
      * <ul>
-     *     <li>DEV_LINK_FLOWS</li>
-     *     <li>RELATED_INTENTS</li>
+     * <li>DEV_LINK_FLOWS</li>
+     * <li>RELATED_INTENTS</li>
      * </ul>
      *
-     * @param mode monitoring mode
+     * @param mode          monitoring mode
      * @param nodeSelection how to select a node
      */
     public synchronized void monitor(Mode mode, NodeSelection nodeSelection) {
@@ -223,6 +224,7 @@ public class TrafficMonitor {
     }
 
     // TODO: move this out to the "h2h/multi-intent app"
+
     /**
      * Monitor for traffic data to be sent back to the web client, for the
      * given intent.
@@ -308,7 +310,7 @@ public class TrafficMonitor {
         selectedIntents = null;
     }
 
-    private synchronized void  scheduleTask() {
+    private synchronized void scheduleTask() {
         if (trafficTask == null) {
             log.debug("Starting up background traffic task...");
             trafficTask = new TrafficUpdateTask();
@@ -431,7 +433,7 @@ public class TrafficMonitor {
                 allBut.remove(current);
                 secondary = allBut;
                 log.debug("Highlight intent: {} ([{}] of {})",
-                          current.id(), selectedIntents.index(), count);
+                        current.id(), selectedIntents.index(), count);
             }
 
             highlightIntentLinks(highlights, primary, secondary);
@@ -447,7 +449,7 @@ public class TrafficMonitor {
             Set<Intent> primary = new HashSet<>();
             primary.add(current);
             log.debug("Highlight traffic for intent: {} ([{}] of {})",
-                      current.id(), selectedIntents.index(), selectedIntents.size());
+                    current.id(), selectedIntents.index(), selectedIntents.size());
 
             highlightIntentLinksWithTraffic(highlights, primary);
             highlights.subdueAllElse(Amount.MINIMALLY);
@@ -505,14 +507,13 @@ public class TrafficMonitor {
     private Map<Link, Integer> getLinkFlowCounts(DeviceId deviceId) {
         // get the flows for the device
         List<FlowEntry> entries = new ArrayList<>();
-        for (FlowEntry flowEntry : servicesBundle.flowService()
-                                            .getFlowEntries(deviceId)) {
+        for (FlowEntry flowEntry : servicesBundle.flowService().getFlowEntries(deviceId)) {
             entries.add(flowEntry);
         }
 
         // get egress links from device, and include edge links
         Set<Link> links = new HashSet<>(servicesBundle.linkService()
-                                            .getDeviceEgressLinks(deviceId));
+                .getDeviceEgressLinks(deviceId));
         Set<Host> hosts = servicesBundle.hostService().getConnectedHosts(deviceId);
         if (hosts != null) {
             for (Host host : hosts) {
@@ -574,9 +575,9 @@ public class TrafficMonitor {
                     if (installable instanceof PathIntent) {
                         links = ((PathIntent) installable).path().links();
                     } else if (installable instanceof FlowRuleIntent) {
-                        links = linkResources(installable);
+                        links = addEdgeLinksIfNeeded(intent, linkResources(installable));
                     } else if (installable instanceof FlowObjectiveIntent) {
-                        links = linkResources(installable);
+                        links = addEdgeLinksIfNeeded(intent, linkResources(installable));
                     } else if (installable instanceof LinkCollectionIntent) {
                         links = ((LinkCollectionIntent) installable).links();
                     } else if (installable instanceof OpticalPathIntent) {
@@ -589,6 +590,19 @@ public class TrafficMonitor {
                 }
             }
         }
+    }
+
+    private Iterable<Link> addEdgeLinksIfNeeded(Intent parentIntent,
+                                                Collection<Link> links) {
+        if (parentIntent instanceof HostToHostIntent) {
+            links = new HashSet<>(links);
+            HostToHostIntent h2h = (HostToHostIntent) parentIntent;
+            Host h1 = servicesBundle.hostService().getHost(h2h.one());
+            Host h2 = servicesBundle.hostService().getHost(h2h.two());
+            links.add(createEdgeLink(h1, true));
+            links.add(createEdgeLink(h2, true));
+        }
+        return links;
     }
 
     private void updateHighlights(Highlights highlights, Iterable<Link> links) {
