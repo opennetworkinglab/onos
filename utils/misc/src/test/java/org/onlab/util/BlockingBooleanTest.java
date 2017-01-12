@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
  */
 public class BlockingBooleanTest  {
 
-    private static final int TIMEOUT = 100; //ms
+    private static final int FAIL_TIMEOUT = 1000; //ms
 
     @Test
     public void basics() {
@@ -62,7 +62,7 @@ public class BlockingBooleanTest  {
         }
         b.set(value);
         try {
-            assertTrue(latch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+            assertTrue(latch.await(FAIL_TIMEOUT, TimeUnit.MILLISECONDS));
         } catch (InterruptedException e) {
             fail();
         }
@@ -94,7 +94,7 @@ public class BlockingBooleanTest  {
             }
         });
         try {
-            assertTrue(latch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+            assertTrue(latch.await(FAIL_TIMEOUT, TimeUnit.MILLISECONDS));
         } catch (InterruptedException e) {
             fail();
         }
@@ -126,14 +126,14 @@ public class BlockingBooleanTest  {
             });
         }
         try {
-            assertTrue(sameLatch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+            assertTrue(sameLatch.await(FAIL_TIMEOUT, TimeUnit.MILLISECONDS));
             assertEquals(waitLatch.getCount(), numThreads / 2);
         } catch (InterruptedException e) {
             fail();
         }
         b.set(true);
         try {
-            assertTrue(waitLatch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+            assertTrue(waitLatch.await(FAIL_TIMEOUT, TimeUnit.MILLISECONDS));
         } catch (InterruptedException e) {
             fail();
         }
@@ -158,7 +158,7 @@ public class BlockingBooleanTest  {
             }
         });
         try {
-            assertTrue(latch.await(TIMEOUT, TimeUnit.MILLISECONDS));
+            assertTrue(latch.await(FAIL_TIMEOUT, TimeUnit.MILLISECONDS));
         } catch (InterruptedException e) {
             fail();
         }
