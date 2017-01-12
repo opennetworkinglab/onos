@@ -115,7 +115,7 @@ public interface GroupService
     /**
      * Purges all group entries.
      */
-    default void purgeGroupEntries() {};
+    default void purgeGroupEntries() {}
 
     /**
      * Deletes a group associated to an application cookie.

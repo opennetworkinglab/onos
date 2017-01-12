@@ -249,7 +249,7 @@ public class DistributedGroupStore
         } else {
             return groupTopic;
         }
-    };
+    }
 
     /**
      * Returns the group store eventual consistent key map.

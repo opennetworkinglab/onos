@@ -127,7 +127,7 @@ public interface GroupStore extends Store<GroupEvent, GroupStoreDelegate> {
     /**
      * Removes all group entries from store.
      */
-    default void purgeGroupEntries() {};
+    default void purgeGroupEntries() {}
 
     /**
      * A group entry that is present in switch but not in the store.
