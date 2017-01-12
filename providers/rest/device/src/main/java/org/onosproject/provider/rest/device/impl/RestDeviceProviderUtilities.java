@@ -43,7 +43,7 @@ final class RestDeviceProviderUtilities {
      * Needs addressing for secutirty purposes.
      *
      * @throws NoSuchAlgorithmException if algorithm specified is not available
-     * @throws KeyManagementException if unable to use the key
+     * @throws KeyManagementException   if unable to use the key
      */
     //FIXME redo for security purposes.
     protected static void enableSslCert() throws NoSuchAlgorithmException, KeyManagementException {

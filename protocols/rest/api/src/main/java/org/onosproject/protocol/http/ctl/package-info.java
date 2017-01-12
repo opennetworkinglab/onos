@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
- * @author onos
- *
+ * REST southbound protocol controller.
  */
 package org.onosproject.protocol.http.ctl;

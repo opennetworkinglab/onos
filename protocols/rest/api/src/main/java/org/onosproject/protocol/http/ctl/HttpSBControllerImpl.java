@@ -63,8 +63,8 @@ public class HttpSBControllerImpl implements HttpSBController {
             LoggerFactory.getLogger(HttpSBControllerImpl.class);
     private static final String XML = "xml";
     private static final String JSON = "json";
-    private static final String DOUBLESLASH = "//";
-    private static final String COLON = ":";
+    protected static final String DOUBLESLASH = "//";
+    protected static final String COLON = ":";
     private static final int STATUS_OK = Response.Status.OK.getStatusCode();
     private static final int STATUS_CREATED = Response.Status.CREATED.getStatusCode();
     private static final int STATUS_ACCEPTED = Response.Status.ACCEPTED.getStatusCode();
@@ -279,7 +279,7 @@ public class HttpSBControllerImpl implements HttpSBController {
                                       .build()).build();
     }
 
-    private String getUrlString(DeviceId device, String request) {
+    protected String getUrlString(DeviceId device, String request) {
         if (deviceMap.get(device).url() != null) {
             return deviceMap.get(device).protocol() + COLON + DOUBLESLASH
                     + deviceMap.get(device).url() + request;

@@ -16,11 +16,44 @@
 
 package org.onosproject.protocol.rest;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.http.HttpSBController;
+
+import java.util.Set;
 
 /**
  * Abstraction of an REST controller. Serves as a one stop shop for obtaining
- * Rest southbound devices and (un)register listeners.
+ * Rest southbound devices.
  */
 public interface RestSBController extends HttpSBController {
+
+    /**
+     * Add a new association between a proxied device exposed to ONOS and
+     * a REST proxy server.
+     * @param deviceId REST device identifier
+     * @param proxy REST proxy device
+     */
+    void addProxiedDevice(DeviceId deviceId, RestSBDevice proxy);
+
+    /**
+     * Remove the association between a proxied device exposed to ONOS
+     * and a REST proxy server.
+     * @param deviceId REST device identifier
+     */
+    void removeProxiedDevice(DeviceId deviceId);
+
+    /**
+     * Get all the proxied device exposed to ONOS ids under the same
+     * REST proxy server.
+     * @param proxyId REST proxy device identifier
+     * @return set of device ids under same proxy
+     */
+    Set<DeviceId> getProxiedDevices(DeviceId proxyId);
+
+    /**
+     * Get a REST proxied server given a device id.
+     * @param deviceId the id of proxied device exposed to ONOS
+     * @return the corresponding REST proxied device
+     */
+    RestSBDevice getProxySBDevice(DeviceId deviceId);
 }

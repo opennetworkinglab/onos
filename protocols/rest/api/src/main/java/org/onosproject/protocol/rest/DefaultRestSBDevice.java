@@ -16,16 +16,16 @@
 
 package org.onosproject.protocol.rest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Default implementation for Rest devices.
@@ -40,9 +40,21 @@ public class DefaultRestSBDevice implements RestSBDevice {
     private boolean isActive;
     private String protocol;
     private String url;
+    private boolean isProxy;
+    private final Optional<String> testUrl;
+    private final Optional<String> manufacturer;
+    private final Optional<String> hwVersion;
+    private final Optional<String> swVersion;
 
     public DefaultRestSBDevice(IpAddress ip, int port, String name, String password,
                                String protocol, String url, boolean isActive) {
+        this(ip, port, name, password, protocol, url, isActive, "", "", "", "");
+    }
+
+    public DefaultRestSBDevice(IpAddress ip, int port, String name, String password,
+                               String protocol, String url, boolean isActive, String testUrl, String manufacturer,
+                               String hwVersion,
+                               String swVersion) {
         Preconditions.checkNotNull(ip, "IP address cannot be null");
         Preconditions.checkArgument(port > 0, "Port address cannot be negative");
         Preconditions.checkNotNull(protocol, "protocol address cannot be null");
@@ -53,6 +65,21 @@ public class DefaultRestSBDevice implements RestSBDevice {
         this.isActive = isActive;
         this.protocol = protocol;
         this.url = StringUtils.isEmpty(url) ? null : url;
+        this.manufacturer = StringUtils.isEmpty(manufacturer) ?
+                Optional.empty() : Optional.ofNullable(manufacturer);
+        this.hwVersion = StringUtils.isEmpty(hwVersion) ?
+                Optional.empty() : Optional.ofNullable(hwVersion);
+        this.swVersion = StringUtils.isEmpty(swVersion) ?
+                Optional.empty() : Optional.ofNullable(swVersion);
+        this.testUrl = StringUtils.isEmpty(testUrl) ?
+                Optional.empty() : Optional.ofNullable(testUrl);
+        if (this.manufacturer.isPresent()
+                && this.hwVersion.isPresent()
+                && this.swVersion.isPresent()) {
+            this.isProxy = true;
+        } else {
+            this.isProxy = false;
+        }
     }
 
     @Override
@@ -107,14 +134,45 @@ public class DefaultRestSBDevice implements RestSBDevice {
     }
 
     @Override
+    public boolean isProxy() {
+        return isProxy;
+    }
+
+    @Override
+    public Optional<String> testUrl() {
+        return testUrl;
+    }
+
+    @Override
+    public Optional<String> manufacturer() {
+        return manufacturer;
+    }
+
+    @Override
+    public Optional<String> hwVersion() {
+        return hwVersion;
+    }
+
+    @Override
+    public Optional<String> swVersion() {
+        return swVersion;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .omitNullValues()
                 .add("url", url)
+                .add("testUrl", testUrl)
                 .add("protocol", protocol)
                 .add("username", username)
                 .add("port", port)
                 .add("ip", ip)
+                .add("manufacturer", manufacturer.orElse(null))
+                .add("hwVersion", hwVersion.orElse(null))
+                .add("swVersion", swVersion.orElse(null))
                 .toString();
+
     }
 
     @Override

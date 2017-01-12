@@ -19,6 +19,8 @@ package org.onosproject.protocol.rest;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
+import java.util.Optional;
+
 /**
  * Represents an abstraction of a Rest Device in ONOS.
  */
@@ -85,4 +87,39 @@ public interface RestSBDevice {
      * @return url
      */
     String url();
+
+    /**
+     * Returns the proxy state of this device
+     * (if true, the device is proxying multiple ONOS devices).
+     * @return proxy state
+     */
+    boolean isProxy();
+
+    /**
+     * Returns the url for the REST TEST requests.
+     *
+     * @return testUrl
+     */
+    Optional<String> testUrl();
+
+    /**
+     * The manufacturer of the rest device.
+     *
+     * @return the name of the manufacturer
+     */
+    Optional<String> manufacturer();
+
+    /**
+     * The hardware version of the rest device.
+     *
+     * @return the hardware version
+     */
+    Optional<String> hwVersion();
+
+    /**
+     * The software version of rest device.
+     *
+     * @return the software version.
+     */
+    Optional<String> swVersion();
 }

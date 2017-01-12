@@ -17,7 +17,6 @@
 package org.onosproject.provider.rest.device.impl;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -34,6 +33,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.behaviour.DevicesDiscovery;
 import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -46,6 +46,12 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBController;
@@ -58,6 +64,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
@@ -75,11 +82,12 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String JSON = "json";
     private static final String PROVIDER = "org.onosproject.provider.rest.device";
     private static final String IPADDRESS = "ipaddress";
-    private static final int TEST_CONNECT_TIMEOUT = 1000;
     private static final String HTTPS = "https";
     private static final String AUTHORIZATION_PROPERTY = "authorization";
     private static final String BASIC_AUTH_PREFIX = "Basic ";
     private static final String URL_SEPARATOR = "://";
+    protected static final String ISNOTNULL = "Rest device is not null";
+    private static final String UNKNOWN = "unknown";
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -97,10 +105,12 @@ public class RestDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
 
     private DeviceProviderService providerService;
-    protected static final String ISNOTNULL = "Rest device is not null";
-    private static final String UNKNOWN = "unknown";
+    private ApplicationId appId;
 
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
@@ -116,7 +126,6 @@ public class RestDeviceProvider extends AbstractProvider
                 }
             };
     private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
-    private ApplicationId appId;
 
     private Set<DeviceId> addedDevices = new HashSet<>();
 
@@ -161,34 +170,98 @@ public class RestDeviceProvider extends AbstractProvider
     public boolean isReachable(DeviceId deviceId) {
         RestSBDevice restDevice = controller.getDevice(deviceId);
         if (restDevice == null) {
-            log.debug("the requested device id: " +
-                              deviceId.toString() +
-                              "  is not associated to any REST Device");
-            return false;
+            restDevice = controller.getProxySBDevice(deviceId);
+            if (restDevice == null) {
+                log.debug("the requested device id: " +
+                                  deviceId.toString() +
+                                  "  is not associated to any REST or REST " +
+                                  "proxy Device");
+                return false;
+            }
         }
         return restDevice.isActive();
     }
 
-    private void deviceAdded(RestSBDevice nodeId) {
-        Preconditions.checkNotNull(nodeId, ISNOTNULL);
-        DeviceId deviceId = nodeId.deviceId();
-        ChassisId cid = new ChassisId();
-        String ipAddress = nodeId.ip().toString();
-        SparseAnnotations annotations = DefaultAnnotations.builder()
-                .set(IPADDRESS, ipAddress)
-                .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
-                .build();
-        DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                deviceId.uri(),
-                Device.Type.SWITCH,
-                UNKNOWN, UNKNOWN,
-                UNKNOWN, UNKNOWN,
-                cid,
-                annotations);
-        nodeId.setActive(true);
-        providerService.deviceConnected(deviceId, deviceDescription);
-        checkAndUpdateDevice(deviceId);
-        addedDevices.add(deviceId);
+    private void deviceAdded(RestSBDevice restSBDev) {
+        checkNotNull(restSBDev, ISNOTNULL);
+
+        //check if the server is controlling a single or multiple devices
+        if (restSBDev.isProxy()) {
+
+            Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
+                                                    restSBDev.hwVersion().get(),
+                                                    restSBDev.swVersion().get());
+
+            if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
+
+                //Creates the driver to communicate with the server
+                DevicesDiscovery devicesDiscovery =
+                        devicesDiscovery(restSBDev, driver);
+                Set<DeviceId> deviceIds = devicesDiscovery.deviceIds();
+                restSBDev.setActive(true);
+                deviceIds.stream().forEach(deviceId -> {
+                    controller.addProxiedDevice(deviceId, restSBDev);
+                    DeviceDescription devDesc =
+                            devicesDiscovery.deviceDetails(deviceId);
+                    checkNotNull(devDesc,
+                                 "deviceDescription cannot be null");
+                    providerService.deviceConnected(
+                            deviceId, mergeAnn(restSBDev.deviceId(), devDesc));
+
+                    if (driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
+                        DriverHandler h = driverService.createHandler(deviceId);
+                        DeviceDescriptionDiscovery devDisc =
+                                h.behaviour(DeviceDescriptionDiscovery.class);
+                        providerService.updatePorts(deviceId,
+                                                    devDisc.discoverPortDetails());
+                    }
+
+                    checkAndUpdateDevice(deviceId);
+                    addedDevices.add(deviceId);
+                });
+            } else {
+                log.warn("Driver not found for {}", restSBDev);
+            }
+        } else {
+            DeviceId deviceId = restSBDev.deviceId();
+            ChassisId cid = new ChassisId();
+            String ipAddress = restSBDev.ip().toString();
+            SparseAnnotations annotations = DefaultAnnotations.builder()
+                    .set(IPADDRESS, ipAddress)
+                    .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
+                    .build();
+            DeviceDescription deviceDescription = new DefaultDeviceDescription(
+                    deviceId.uri(),
+                    Device.Type.SWITCH,
+                    UNKNOWN, UNKNOWN,
+                    UNKNOWN, UNKNOWN,
+                    cid,
+                    annotations);
+            restSBDev.setActive(true);
+            providerService.deviceConnected(deviceId, deviceDescription);
+            checkAndUpdateDevice(deviceId);
+            addedDevices.add(deviceId);
+        }
+    }
+
+    private DefaultDeviceDescription mergeAnn(DeviceId devId, DeviceDescription desc) {
+        return new DefaultDeviceDescription(
+                desc,
+                DefaultAnnotations.merge(
+                        DefaultAnnotations.builder()
+                                .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
+                                // The rest server added as annotation to the device
+                                .set(AnnotationKeys.REST_SERVER, devId.toString())
+                                .build(),
+                        desc.annotations()));
+    }
+
+    private DevicesDiscovery devicesDiscovery(RestSBDevice restSBDevice, Driver driver) {
+        DriverData driverData = new DefaultDriverData(driver, restSBDevice.deviceId());
+        DevicesDiscovery devicesDiscovery = driver.createBehaviour(driverData,
+                                                                   DevicesDiscovery.class);
+        devicesDiscovery.setHandler(new DefaultDriverHandler(driverData));
+        return devicesDiscovery;
     }
 
     private void checkAndUpdateDevice(DeviceId deviceId) {
@@ -200,17 +273,17 @@ public class RestDeviceProvider extends AbstractProvider
             if (isReachable && deviceService.isAvailable(deviceId)) {
                 Device device = deviceService.getDevice(deviceId);
                 if (device.is(DeviceDescriptionDiscovery.class)) {
-                        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
-                                device.as(DeviceDescriptionDiscovery.class);
-                        DeviceDescription updatedDeviceDescription =
-                                deviceDescriptionDiscovery.discoverDeviceDetails();
-                        if (updatedDeviceDescription != null &&
-                                !descriptionEquals(device, updatedDeviceDescription)) {
-                            providerService.deviceConnected(
-                                    deviceId,
-                                    new DefaultDeviceDescription(
-                                            updatedDeviceDescription, true,
-                                            updatedDeviceDescription.annotations()));
+                    DeviceDescriptionDiscovery deviceDescriptionDiscovery =
+                            device.as(DeviceDescriptionDiscovery.class);
+                    DeviceDescription updatedDeviceDescription =
+                            deviceDescriptionDiscovery.discoverDeviceDetails();
+                    if (updatedDeviceDescription != null &&
+                            !descriptionEquals(device, updatedDeviceDescription)) {
+                        providerService.deviceConnected(
+                                deviceId,
+                                new DefaultDeviceDescription(
+                                        updatedDeviceDescription, true,
+                                        updatedDeviceDescription.annotations()));
                         //if ports are not discovered, retry the discovery
                         if (deviceService.getPorts(deviceId).isEmpty()) {
                             discoverPorts(deviceId);
@@ -237,8 +310,12 @@ public class RestDeviceProvider extends AbstractProvider
     }
 
     private void deviceRemoved(DeviceId deviceId) {
-        Preconditions.checkNotNull(deviceId, ISNOTNULL);
+        checkNotNull(deviceId, ISNOTNULL);
         providerService.deviceDisconnected(deviceId);
+        controller.getProxiedDevices(deviceId).stream().forEach(device -> {
+            controller.removeProxiedDevice(device);
+            providerService.deviceDisconnected(device);
+        });
         controller.removeDevice(deviceId);
     }
 
@@ -282,11 +359,16 @@ public class RestDeviceProvider extends AbstractProvider
         }
     }
 
-    private boolean testDeviceConnection(RestSBDevice device) {
+    private boolean testDeviceConnection(RestSBDevice dev) {
         try {
-            return controller.get(device.deviceId(), "", JSON) != null;
+            if (dev.testUrl().isPresent()) {
+                return controller
+                        .get(dev.deviceId(), dev.testUrl().get(), JSON) != null;
+            }
+            return controller.get(dev.deviceId(), "", JSON) != null;
+
         } catch (ProcessingException e) {
-            log.warn("Cannot connect to device {}", device, e);
+            log.warn("Cannot connect to device {}", dev, e);
         }
         return false;
     }
