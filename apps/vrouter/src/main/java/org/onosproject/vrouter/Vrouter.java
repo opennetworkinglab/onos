@@ -65,9 +65,9 @@ public class Vrouter {
      * It should be turned off when vRouter is deployed in a scenario where
      * other components that pushes the routes.
      */
-    @Property(boolValue = true,
+    @Property(name = "fibInstallerEnabled", boolValue = true,
             label = "Enable single switch fib installer; default is true")
-    private static final String FIB_INSTALLED_ENABLED = "fibInstalledEnabled";
+    private boolean fibInstallerEnabled = true;
 
     private ApplicationId appId;
 
@@ -104,8 +104,15 @@ public class Vrouter {
             return;
         }
 
-        boolean fibInstallerEnabled = Boolean.parseBoolean(Tools.get(properties, FIB_INSTALLED_ENABLED));
-        log.info("fibInstallerEnabled set to {}", fibInstallerEnabled);
+        Boolean newFibInstallerEnabled = Tools.isPropertyEnabled(properties, "fibInstalledEnabled");
+        if (newFibInstallerEnabled == null) {
+            log.info("fibInstallerEnabled is not configured, " +
+                    "using current value of {}", fibInstallerEnabled);
+        } else {
+            fibInstallerEnabled = newFibInstallerEnabled;
+            log.info("Configured. fibInstallerEnabled set to {}, ",
+                    fibInstallerEnabled ? "enabled" : "disabled");
+        }
 
         if (fibInstallerEnabled) {
             componentService.activate(appId, FIB_INSTALLER);
