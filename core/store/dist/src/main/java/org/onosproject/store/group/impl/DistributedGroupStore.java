@@ -110,6 +110,7 @@ public class DistributedGroupStore
 
     private static final boolean GARBAGE_COLLECT = false;
     private static final int GC_THRESH = 6;
+    private static final boolean ALLOW_EXTRANEOUS_GROUPS = true;
 
     private final int dummyId = 0xffffffff;
     private final GroupId dummyGroupId = new GroupId(dummyId);
@@ -161,6 +162,9 @@ public class DistributedGroupStore
             label = "Number of rounds for group garbage collection")
     private int gcThresh = GC_THRESH;
 
+    @Property(name = "allowExtraneousGroups", boolValue = ALLOW_EXTRANEOUS_GROUPS,
+            label = "Allow groups in switches not installed by ONOS")
+    private boolean allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS;
 
     @Activate
     public void activate() {
@@ -252,9 +256,13 @@ public class DistributedGroupStore
 
             s = get(properties, "gcThresh");
             gcThresh = isNullOrEmpty(s) ? GC_THRESH : Integer.parseInt(s.trim());
+
+            s = get(properties, "allowExtraneousGroups");
+            allowExtraneousGroups = isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_GROUPS : Boolean.parseBoolean(s.trim());
         } catch (Exception e) {
             gcThresh = GC_THRESH;
             garbageCollect = GARBAGE_COLLECT;
+            allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS;
         }
     }
 
@@ -1367,7 +1375,11 @@ public class DistributedGroupStore
                 log.debug("Group AUDIT: extraneous group {} exists in data plane for device {}",
                           group.id(), deviceId);
                 extraneousStoredEntries.remove(group);
-                extraneousGroup(group);
+                if (allowExtraneousGroups) {
+                    extraneousGroup(group);
+                } else {
+                    notifyDelegate(new GroupEvent(Type.GROUP_REMOVE_REQUESTED, group));
+                }
             }
         }
         for (Group group : storedGroupEntries) {
