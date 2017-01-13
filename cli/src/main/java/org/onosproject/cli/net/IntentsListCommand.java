@@ -65,7 +65,7 @@ public class IntentsListCommand extends AbstractShellCommand {
     private boolean pending = false;
 
     @Option(name = "-f", aliases = "--filter",
-            description = "Filter intents by specific key",
+            description = "Filter intents by specific keyword",
             required = false, multiValued = true)
     private List<String> filter = new ArrayList<>();
 
