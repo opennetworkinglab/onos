@@ -44,6 +44,8 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * An implementation of RouteStore that is backed by either LocalRouteStore or
  * DistributedRouteStore according to configuration.
@@ -101,18 +103,40 @@ public class RouteStoreImpl extends AbstractStore<RouteEvent, RouteStoreDelegate
                 }
                 currentRouteStore = new DistributedRouteStore(storageService);
                 ((DistributedRouteStore) currentRouteStore).activate();
+                ((DistributedRouteStore) currentRouteStore).setDelegate(delegate);
             } else {
                 if (currentRouteStore != null) {
                     ((DistributedRouteStore) currentRouteStore).deactivate();
                 }
                 currentRouteStore = new LocalRouteStore();
                 ((LocalRouteStore) currentRouteStore).activate();
+                ((LocalRouteStore) currentRouteStore).setDelegate(delegate);
             }
 
             this.distributed = expectDistributed;
             log.info("Switched to {} route store", distributed ? "distributed" : "local");
         }
 
+    }
+
+    @Override
+    public void setDelegate(RouteStoreDelegate delegate) {
+        checkState(this.delegate == null || this.delegate == delegate,
+                "Store delegate already set");
+        this.delegate = delegate;
+
+        // Set the delegate of underlying route store implementation
+        currentRouteStore.setDelegate(delegate);
+    }
+
+    @Override
+    public void unsetDelegate(RouteStoreDelegate delegate) {
+        if (this.delegate == delegate) {
+            this.delegate = null;
+        }
+
+        // Unset the delegate of underlying route store implementation
+        currentRouteStore.unsetDelegate(delegate);
     }
 
     @Override
