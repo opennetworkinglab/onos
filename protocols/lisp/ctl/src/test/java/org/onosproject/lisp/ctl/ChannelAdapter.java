@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelId;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.ChannelProgressivePromise;
@@ -33,6 +34,11 @@ import java.net.SocketAddress;
  * Adapter for testing against a netty channel.
  */
 public class ChannelAdapter implements Channel {
+    @Override
+    public ChannelId id() {
+        return null;
+    }
+
     @Override
     public EventLoop eventLoop() {
         return null;
@@ -86,6 +92,16 @@ public class ChannelAdapter implements Channel {
     @Override
     public boolean isWritable() {
         return false;
+    }
+
+    @Override
+    public long bytesBeforeUnwritable() {
+        return 0;
+    }
+
+    @Override
+    public long bytesBeforeWritable() {
+        return 0;
     }
 
     @Override
@@ -221,6 +237,11 @@ public class ChannelAdapter implements Channel {
     @Override
     public <T> Attribute<T> attr(AttributeKey<T> attributeKey) {
         return null;
+    }
+
+    @Override
+    public <T> boolean hasAttr(AttributeKey<T> key) {
+        return false;
     }
 
     @Override

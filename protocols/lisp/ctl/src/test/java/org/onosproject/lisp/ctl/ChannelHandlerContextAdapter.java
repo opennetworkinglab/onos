@@ -234,4 +234,9 @@ public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
     public <T> Attribute<T> attr(AttributeKey<T> attributeKey) {
         return null;
     }
+
+    @Override
+    public <T> boolean hasAttr(AttributeKey<T> key) {
+        return false;
+    }
 }

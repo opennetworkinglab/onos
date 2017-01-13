@@ -41,7 +41,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos-build-conf.version>1.3</onos-build-conf.version>
-        <netty4.version>4.0.40.Final</netty4.version>
+        <netty4.version>4.1.5.Final</netty4.version>
         <openflowj.version>0.9.7.onos</openflowj.version>
         <onos-maven-plugin.version>1.10</onos-maven-plugin.version>
         <osgi.version>5.0.0</osgi.version>
@@ -325,6 +325,12 @@
                 <artifactId>netty-transport-native-epoll</artifactId>
                 <version>${netty4.version}</version>
                 <classifier>${os.detected.classifier}</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver</artifactId>
+                <version>${netty4.version}</version>
             </dependency>
 
             <dependency>

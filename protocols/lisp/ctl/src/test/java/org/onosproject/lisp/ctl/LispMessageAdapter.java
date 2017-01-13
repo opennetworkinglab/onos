@@ -45,7 +45,7 @@ public class LispMessageAdapter implements LispMessage {
 
     @Override
     public InetSocketAddress getSender() {
-        return null;
+        return new InetSocketAddress(1);
     }
 
     @Override
