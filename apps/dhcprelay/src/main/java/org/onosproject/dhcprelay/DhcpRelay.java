@@ -16,11 +16,14 @@
 package org.onosproject.dhcprelay;
 
 import java.nio.ByteBuffer;
+import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Set;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ARP;
@@ -34,6 +37,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -56,6 +60,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +108,10 @@ public class DhcpRelay {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
+    @Property(name = "arpEnabled", boolValue = true,
+            label = "Enable Address resolution protocol")
+    protected boolean arpEnabled = true;
+
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ConnectPoint dhcpServerConnectPoint = null;
     private Ip4Address dhcpServerIp = null;
@@ -110,7 +119,7 @@ public class DhcpRelay {
     private ApplicationId appId;
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         //start the dhcp relay agent
 
         appId = coreService.registerApplication(DHCP_RELAY_APP);
@@ -121,9 +130,11 @@ public class DhcpRelay {
         updateConfig();
         //add the packet services.
         packetService.addProcessor(dhcpRelayPacketProcessor, PacketProcessor.director(0));
-        requestPackets();
+
+        requestDhcpPackets();
+        modified(context);
+
         log.info("DHCP-RELAY Started");
-        log.info("started the apps dhcp relay");
     }
 
     @Deactivate
@@ -131,8 +142,30 @@ public class DhcpRelay {
         cfgService.removeListener(cfgListener);
         factories.forEach(cfgService::unregisterConfigFactory);
         packetService.removeProcessor(dhcpRelayPacketProcessor);
-        cancelPackets();
+
+        cancelDhcpPackets();
+        cancelArpPackets();
+
         log.info("DHCP-RELAY Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "arpEnabled");
+        if (flag != null) {
+            arpEnabled = flag;
+            log.info("Address resolution protocol is {}",
+                     arpEnabled ? "enabled" : "disabled");
+        }
+
+        if (arpEnabled) {
+            requestArpPackets();
+        } else {
+            cancelArpPackets();
+        }
     }
 
     private void updateConfig() {
@@ -152,10 +185,9 @@ public class DhcpRelay {
     }
 
     /**
-     * Request packet in via PacketService.
+     * Request DHCP packet in via PacketService.
      */
-    private void requestPackets() {
-
+    private void requestDhcpPackets() {
         TrafficSelector.Builder selectorServer = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
@@ -167,16 +199,12 @@ public class DhcpRelay {
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT));
         packetService.requestPackets(selectorClient.build(), PacketPriority.CONTROL, appId);
-
-        TrafficSelector.Builder selectorArpServer = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selectorArpServer.build(), PacketPriority.CONTROL, appId);
     }
 
     /**
-     * Cancel requested packets in via packet service.
+     * Cancel requested DHCP packets in via packet service.
      */
-    private void cancelPackets() {
+    private void cancelDhcpPackets() {
         TrafficSelector.Builder selectorServer = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
@@ -188,7 +216,21 @@ public class DhcpRelay {
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT));
         packetService.cancelPackets(selectorClient.build(), PacketPriority.CONTROL, appId);
+    }
 
+    /**
+     * Request ARP packet in via PacketService.
+     */
+    private void requestArpPackets() {
+        TrafficSelector.Builder selectorArpServer = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selectorArpServer.build(), PacketPriority.CONTROL, appId);
+    }
+
+    /**
+     * Cancel requested ARP packets in via packet service.
+     */
+    private void cancelArpPackets() {
         TrafficSelector.Builder selectorArpServer = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_ARP);
         packetService.cancelPackets(selectorArpServer.build(), PacketPriority.CONTROL, appId);
@@ -217,7 +259,7 @@ public class DhcpRelay {
                         processDhcpPacket(context, dhcpPayload);
                     }
                 }
-            } else if (packet.getEtherType() == Ethernet.TYPE_ARP) {
+            } else if (packet.getEtherType() == Ethernet.TYPE_ARP && arpEnabled) {
                 ARP arpPacket = (ARP) packet.getPayload();
                 Set<Interface> serverInterfaces = interfaceService.
                         getInterfacesByPort(context.inPacket().receivedFrom());
