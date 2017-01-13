@@ -87,7 +87,7 @@ public class IpHandler {
 
         // IP packets for unknown host
         } else {
-            log.debug("ICMP request for unknown host {} which is not in the subnet",
+            log.debug("IP request for unknown host {} which is not in the subnet",
                     destinationAddress);
             // Do nothing
         }

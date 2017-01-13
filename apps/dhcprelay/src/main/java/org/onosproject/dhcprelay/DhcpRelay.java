@@ -413,6 +413,11 @@ public class DhcpRelay {
             //set the ethernet frame.
             etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
             udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
+            // SRC_IP: relay agent IP
+            // DST_IP: offered IP
+            ipv4Packet.setSourceAddress(relayAgentIP.toInt());
+            ipv4Packet.setDestinationAddress(dhcpPayload.getYourIPAddress());
+
             udpPacket.setPayload(dhcpPayload);
             ipv4Packet.setPayload(udpPacket);
             etherReply.setPayload(ipv4Packet);
