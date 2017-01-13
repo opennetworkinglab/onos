@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-actn-mdsc</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.8.2-SNAPSHOT</version>
+        <version>1.8.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -33,12 +33,12 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-tetunnel-api</artifactId>
-            <version>1.8.2-SNAPSHOT</version>
+            <version>1.8.2</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-tetunnel-api</artifactId>
-            <version>1.8.2-SNAPSHOT</version>
+            <version>1.8.2</version>
         </dependency>
     </dependencies>
 </project>
