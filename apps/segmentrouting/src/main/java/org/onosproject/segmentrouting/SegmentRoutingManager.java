@@ -337,6 +337,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "fibInstalledEnabled", "false");
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
                                       "requestInterceptsEnabled", "false");
+        compCfgService.preSetProperty("org.onosproject.incubator.net.neighbour.impl.NeighbourResolutionManager",
+                                      "requestInterceptsEnabled", "false");
+        compCfgService.preSetProperty("org.onosproject.dhcprelay.DhcpRelay",
+                                      "arpEnabled", "false");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
