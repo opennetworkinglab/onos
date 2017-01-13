@@ -387,9 +387,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             Driver driver = driverService.getDriver(sw.manufacturerDescription(),
                     sw.hardwareDescription(),
                     sw.softwareDescription());
-            if (driver != null) {
-                annotationsBuilder.set(AnnotationKeys.DRIVER, driver.name());
-            }
+            // FIXME: The following breaks the STC tests and will require to be revisited.
+//            if (driver != null) {
+//                annotationsBuilder.set(AnnotationKeys.DRIVER, driver.name());
+//            }
 
             SparseAnnotations annotations = annotationsBuilder.build();
 
