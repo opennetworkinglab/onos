@@ -15,6 +15,7 @@ osgi_feature (
     '//lib:netty-handler',
     '//lib:netty-codec',
     '//lib:netty-transport-native-epoll',
+    '//lib:netty-resolver',
     '//lib:commons-pool',
     '//lib:commons-math3',
     '//lib:joda-time',

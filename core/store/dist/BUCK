@@ -8,6 +8,7 @@ COMPILE_DEPS = [
     '//lib:netty-buffer',
     '//lib:netty-handler',
     '//lib:netty-transport-native-epoll',
+    '//lib:netty-resolver',
     '//lib:commons-math3',
     '//incubator/api:onos-incubator-api',
 ]

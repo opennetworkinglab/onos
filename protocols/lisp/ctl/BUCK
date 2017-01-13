@@ -6,7 +6,8 @@ COMPILE_DEPS = [
     '//lib:netty-codec',
     '//lib:netty-transport',
     '//lib:netty-transport-native-epoll',
-    '//lib:netty-handler'
+    '//lib:netty-handler',
+    '//lib:netty-resolver',
 ]
 
 TEST_DEPS = [
