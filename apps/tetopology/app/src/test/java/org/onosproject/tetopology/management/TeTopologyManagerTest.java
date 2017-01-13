@@ -128,6 +128,7 @@ public class TeTopologyManagerTest {
                 .teNode(new TeNodeKey(DefaultBuilder.teTopologyKey(),
                                       DefaultBuilder.teNode().teNodeId()));
         assertNotNull("TeNode should be found", teNode);
+        assertTrue("TE node should be identical", teNode.equals(DefaultBuilder.teNode()));
         assertTrue("Number of TTPs should be 1",
                    teNode.tunnelTerminationPoints().size() == 1);
         TeLink teLink = service

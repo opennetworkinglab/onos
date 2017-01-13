@@ -274,11 +274,11 @@ public interface TeTopologyStore
     void setNextTeNodeId(TeTopologyKey topologyKey, long nextNodeId);
 
     /**
-     * Sets the queue to store the events originating from consistent maps.
+     * Returns the queue to store the events originating from consistent maps.
      *
-     * @param queue a blocking queue
+     * @return value of the blocking queue
      */
-    void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue);
+    BlockingQueue<TeTopologyMapEvent> mapEventQueue();
 
     /**
      * Sets the provider ID.

@@ -275,7 +275,7 @@ public class TeTopologyRestconfProvider extends AbstractProvider
             //Convert the YO to TE Core data and update TE Core.
             for (Network nw : ietfNetwork.networks().network()) {
                 topologyProviderService.networkUpdated(
-                        NetworkConverter.yang2TeSubsystemNetwork(nw, ietfNetwork.networks()));
+                        NetworkConverter.yang2TeSubsystemNetwork(nw, ietfNetwork.networks(), deviceId));
             }
         }
 

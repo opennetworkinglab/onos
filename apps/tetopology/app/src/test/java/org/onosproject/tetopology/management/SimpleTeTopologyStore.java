@@ -1026,12 +1026,13 @@ public class SimpleTeTopologyStore
     }
 
     @Override
-    public void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue) {
+    public void setProviderId(long providerId) {
+        this.providerId = providerId;
     }
 
     @Override
-    public void setProviderId(long providerId) {
-        this.providerId = providerId;
+    public BlockingQueue<TeTopologyMapEvent> mapEventQueue() {
+        return null;
     }
 }
 

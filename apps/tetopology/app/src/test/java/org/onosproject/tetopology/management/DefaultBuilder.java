@@ -113,7 +113,7 @@ public final class DefaultBuilder {
                                                  EncodingType.LSP_ENCODING_ODUK,
                                                  new BitSet(TeConstants.FLAG_MAX_BITS),
                                                  null, null,
-                                                 ODU2BW); //10G for ODU2
+                                                 ODU2BW, null); //10G for ODU2
     }
 
     private static TerminationPoint tpBuilder(long teTpId) {

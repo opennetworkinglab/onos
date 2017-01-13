@@ -15,16 +15,17 @@
  */
 package org.onosproject.tetopology.management.api.node;
 
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
+
+import org.onosproject.tetopology.management.api.EncodingType;
+import org.onosproject.tetopology.management.api.SwitchingType;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.onosproject.tetopology.management.api.EncodingType;
-import org.onosproject.tetopology.management.api.SwitchingType;
-
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.List;
 
 /**
  * Default implementation of a tunnel termination point.
@@ -37,6 +38,7 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
     private final List<Long> interLayerLockList;
     private final List<LocalLinkConnectivity> localLinkConnectivityList;
     private final float[] availAdaptBandwidth;
+    private final TtpKey supportTtpKey;
 
     /**
      * Create a tunnel termination point.
@@ -50,6 +52,7 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
      * @param localLinkConnectivityList the local link connectivity list
      * @param availAdaptBandwidth       the remaining adaptation bandwidth
      *                                  at each priority level
+     * @param supportTtpKey             supporting TTP key from underlay topology
      */
     public DefaultTunnelTerminationPoint(long ttpId,
                                          SwitchingType switchingLayer,
@@ -57,7 +60,8 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
                                          BitSet flags,
                                          List<Long> interLayerLockList,
                                          List<LocalLinkConnectivity> localLinkConnectivityList,
-                                         float[] availAdaptBandwidth) {
+                                         float[] availAdaptBandwidth,
+                                         TtpKey supportTtpKey) {
         this.ttpId = ttpId;
         this.switchingLayer = switchingLayer;
         this.encodingLayer = encodingLayer;
@@ -69,6 +73,7 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
         this.availAdaptBandwidth = availAdaptBandwidth != null ?
                 Arrays.copyOf(availAdaptBandwidth,
                               availAdaptBandwidth.length) : null;
+        this.supportTtpKey = supportTtpKey;
     }
 
     @Override
@@ -116,10 +121,15 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
     }
 
     @Override
+    public TtpKey supportingTtpId() {
+        return supportTtpKey;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hashCode(ttpId, switchingLayer, encodingLayer, flags,
                                 interLayerLockList, localLinkConnectivityList,
-                                Arrays.hashCode(availAdaptBandwidth));
+                                Arrays.hashCode(availAdaptBandwidth), supportTtpKey);
     }
 
     @Override
@@ -135,7 +145,8 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
                     Objects.equal(flags, that.flags) &&
                     Objects.equal(interLayerLockList, that.interLayerLockList) &&
                     Objects.equal(localLinkConnectivityList, that.localLinkConnectivityList) &&
-                    Arrays.equals(availAdaptBandwidth, that.availAdaptBandwidth);
+                    Arrays.equals(availAdaptBandwidth, that.availAdaptBandwidth) &&
+                    Objects.equal(supportTtpKey, that.supportTtpKey);
         }
         return false;
     }
@@ -150,6 +161,8 @@ public class DefaultTunnelTerminationPoint implements TunnelTerminationPoint {
                 .add("interLayerLockList", interLayerLockList)
                 .add("localLinkConnectivityList", localLinkConnectivityList)
                 .add("availAdaptBandwidth", availAdaptBandwidth)
+                .add("supportTtpKey", supportTtpKey)
                 .toString();
     }
+
 }

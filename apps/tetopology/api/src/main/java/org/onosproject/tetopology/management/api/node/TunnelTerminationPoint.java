@@ -15,11 +15,11 @@
  */
 package org.onosproject.tetopology.management.api.node;
 
-import org.onosproject.tetopology.management.api.EncodingType;
-import org.onosproject.tetopology.management.api.SwitchingType;
-
 import java.util.BitSet;
 import java.util.List;
+
+import org.onosproject.tetopology.management.api.EncodingType;
+import org.onosproject.tetopology.management.api.SwitchingType;
 
 /**
  * Representation of a tunnel termination point.
@@ -88,4 +88,11 @@ public interface TunnelTerminationPoint {
      * @return list of available adaptation bandwidth
      */
     float[] availAdaptBandwidth();
+
+    /**
+     * Returns the supporting TTP identifier.
+     *
+     * @return the supporting TTP key
+     */
+    TtpKey supportingTtpId();
 }

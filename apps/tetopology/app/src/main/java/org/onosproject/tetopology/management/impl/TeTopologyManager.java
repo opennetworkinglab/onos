@@ -40,6 +40,7 @@ import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_UPDATED;
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_ADDED;
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_REMOVED;
+import static org.onosproject.tetopology.management.api.link.TeLink.BIT_ACCESS_INTERDOMAIN;
 import static org.onosproject.tetopology.management.impl.TeMgrUtil.linkBuilder;
 import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkBuilder;
 import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkLinkKey;
@@ -51,9 +52,7 @@ import static org.onosproject.tetopology.management.impl.TeMgrUtil.toNetworkLink
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -113,6 +112,7 @@ import org.onosproject.tetopology.management.api.link.UnderlayPath;
 import org.onosproject.tetopology.management.api.node.CommonNodeData;
 import org.onosproject.tetopology.management.api.node.ConnectivityMatrix;
 import org.onosproject.tetopology.management.api.node.DefaultTeNode;
+import org.onosproject.tetopology.management.api.node.DefaultTunnelTerminationPoint;
 import org.onosproject.tetopology.management.api.node.NetworkNode;
 import org.onosproject.tetopology.management.api.node.NetworkNodeEventSubject;
 import org.onosproject.tetopology.management.api.node.NetworkNodeKey;
@@ -176,8 +176,6 @@ public class TeTopologyManager
     public TeTopologyStore store;
 
     private TeTopologyStoreDelegate delegate = this::post;
-    private final BlockingQueue<TeTopologyEvent> eventQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<TeTopologyMapEvent> mapEventQueue = new LinkedBlockingQueue<>();
     private final ConfigFactory<ApplicationId, TeTopologyConfig> factory =
             new ConfigFactory<ApplicationId, TeTopologyConfig>(APP_SUBJECT_FACTORY,
                     TeTopologyConfig.class,
@@ -205,7 +203,6 @@ public class TeTopologyManager
      */
     public void activateBasics() {
         store.setDelegate(delegate);
-        store.setMapEventQueue(mapEventQueue);
         store.setProviderId(providerId);
         eventDispatcher.addSink(TeTopologyEvent.class, listenerRegistry);
     }
@@ -238,7 +235,6 @@ public class TeTopologyManager
         cfgService.unregisterConfigFactory(factory);
         executor.shutdownNow();
         executor = null;
-        eventQueue.clear();
         log.info("Stopped");
     }
 
@@ -315,7 +311,7 @@ public class TeTopologyManager
         public void run() {
             try {
                 TeTopologyMapEvent event;
-                while ((event = mapEventQueue.take()) != null) {
+                while ((event = store.mapEventQueue().take()) != null) {
                     switch (event.type()) {
                     case TE_TOPOLOGY_ADDED:
                     case TE_TOPOLOGY_UPDATED:
@@ -335,6 +331,10 @@ public class TeTopologyManager
                         break;
                     case TE_NODE_ADDED:
                     case TE_NODE_UPDATED:
+                        if (store.teTopology(event.teNodeKey().teTopologyKey()) == null) {
+                            // Event should be ignored when the topology is not there.
+                            break;
+                        }
                         TeNode teNode = store.teNode(event.teNodeKey());
                         post(new TeTopologyEvent(event.type(),
                                                  new TeNodeEventSubject(event.teNodeKey(), teNode)));
@@ -344,6 +344,10 @@ public class TeTopologyManager
                         }
                         break;
                     case TE_NODE_REMOVED:
+                        if (store.teTopology(event.teNodeKey().teTopologyKey()) == null) {
+                            // Event should be ignored when the topology is not there.
+                            break;
+                        }
                         post(new TeTopologyEvent(TE_NODE_REMOVED,
                                                  new TeNodeEventSubject(event.teNodeKey(), null)));
                         if (mdsc && isCustomizedLearnedTopology(event.teNodeKey().teTopologyKey())) {
@@ -352,6 +356,11 @@ public class TeTopologyManager
                         break;
                     case TE_LINK_ADDED:
                     case TE_LINK_UPDATED:
+                        if (store.teTopology(event.teLinkKey().teTopologyKey()) == null ||
+                                store.teNode(event.teLinkKey().teNodeKey()) == null) {
+                            // Event should be ignored when the topology or node is not there.
+                            break;
+                        }
                         TeLink teLink = store.teLink(event.teLinkKey());
                         post(new TeTopologyEvent(event.type(),
                                                  new TeLinkEventSubject(event.teLinkKey(), teLink)));
@@ -362,6 +371,11 @@ public class TeTopologyManager
                         }
                         break;
                     case TE_LINK_REMOVED:
+                        if (store.teTopology(event.teLinkKey().teTopologyKey()) == null ||
+                                store.teNode(event.teLinkKey().teNodeKey()) == null) {
+                            // Event should be ignored when the topology or node is not there.
+                            break;
+                        }
                         post(new TeTopologyEvent(TE_LINK_REMOVED,
                                                  new TeLinkEventSubject(event.teLinkKey(), null)));
                         if (mdsc && isCustomizedLearnedTopology(event.teLinkKey().teTopologyKey())) {
@@ -382,21 +396,37 @@ public class TeTopologyManager
                         break;
                     case NODE_ADDED:
                     case NODE_UPDATED:
+                        if (store.network(event.networkNodeKey().networkId()) == null) {
+                            // Event should be ignored when the network is not there.
+                            break;
+                        }
                         NetworkNode node = store.networkNode(event.networkNodeKey());
                         post(new TeTopologyEvent(event.type(),
                                                  new NetworkNodeEventSubject(event.networkNodeKey(), node)));
                         break;
                     case NODE_REMOVED:
+                        if (store.network(event.networkNodeKey().networkId()) == null) {
+                            // Event should be ignored when the network is not there.
+                            break;
+                        }
                         post(new TeTopologyEvent(NODE_REMOVED,
                                                  new NetworkNodeEventSubject(event.networkNodeKey(), null)));
                         break;
                     case LINK_ADDED:
                     case LINK_UPDATED:
+                        if (store.network(event.networkLinkKey().networkId()) == null) {
+                            // Event should be ignored when the network is not there.
+                            break;
+                        }
                         NetworkLink link = store.networkLink(event.networkLinkKey());
                         post(new TeTopologyEvent(event.type(),
                                                  new NetworkLinkEventSubject(event.networkLinkKey(), link)));
                         break;
                     case LINK_REMOVED:
+                        if (store.network(event.networkLinkKey().networkId()) == null) {
+                            // Event should be ignored when the network is not there.
+                            break;
+                        }
                         post(new TeTopologyEvent(LINK_REMOVED,
                                                  new NetworkLinkEventSubject(event.networkLinkKey(), null)));
                         break;
@@ -452,7 +482,21 @@ public class TeTopologyManager
                                                    srcNode.opStatus(), srcNode.flags()); // No change
         Map<Long, ConnectivityMatrix> connMatrices = srcNode.connectivityMatrices();
         List<Long> teLinkIds = srcNode.teLinkIds(); // No change
-        Map<Long, TunnelTerminationPoint> ttps = srcNode.tunnelTerminationPoints();
+        Map<Long, TunnelTerminationPoint> ttps = null;
+        if (MapUtils.isNotEmpty(srcNode.tunnelTerminationPoints())) {
+            ttps = Maps.newHashMap();
+            for (Map.Entry<Long, TunnelTerminationPoint> entry : srcNode.tunnelTerminationPoints().entrySet()) {
+                TunnelTerminationPoint ttp = entry.getValue();
+                ttps.put(entry.getKey(),
+                         new DefaultTunnelTerminationPoint(ttp.ttpId(), ttp.switchingLayer(),
+                                                           ttp.encodingLayer(), ttp.flags(),
+                                                           ttp.interLayerLockList(),
+                                                           ttp.localLinkConnectivityList(),
+                                                           ttp.availAdaptBandwidth(),
+                                                           null)); //Remove supporting TTP Ids
+            }
+        }
+
         List<Long> teTpIds = srcNode.teTerminationPointIds(); // No change
         DefaultTeNode newNode = new DefaultTeNode(mergedTeNodeId, underlayTopologyId,
                 supportTeNodeId, sourceTeNodeId, common, connMatrices, teLinkIds,
@@ -504,8 +548,21 @@ public class TeTopologyManager
                                                     exLink.maxAvailLspBandwidth(),
                                                     exLink.minAvailLspBandwidth(),
                                                     exLink.oduResource());
+        BitSet flags = exLink.flags();
+        if (peerTeLinkKey != null &&
+                externalLink != null && externalLink.plugId() != null) {
+            // Assuming this is an inter-domain link which is merged with its peer,
+            // needs to clear BIT_ACCESS_INTERDOMAIN
+            flags.clear(BIT_ACCESS_INTERDOMAIN);
+        } else if (peerTeLinkKey == null &&
+                externalLink != null && externalLink.plugId() != null) {
+            // Assuming this is an inter-domain link which lost its peer,
+            // needs to clear BIT_ACCESS_INTERDOMAIN
+            flags.set(BIT_ACCESS_INTERDOMAIN);
+        }
+
         CommonLinkData common = new CommonLinkData(exLink.adminStatus(), exLink.opStatus(),
-                exLink.flags(), exLink.switchingLayer(), exLink.encodingLayer(),
+                flags, exLink.switchingLayer(), exLink.encodingLayer(),
                 externalLink, underlayPath, teAttributes,
                 exLink.administrativeGroup(), exLink.interLayerLocks(),
                 bandwidth);
@@ -793,19 +850,18 @@ public class TeTopologyManager
                 teNodeIpEnd = cfgService.getConfig(appId, TeTopologyConfig.class)
                                         .teNodeIpEnd();
                 mdsc = cfgService.getConfig(appId, TeTopologyConfig.class)
-                                 .mdsc().equalsIgnoreCase(MDSC_MODE);
+                        .mdsc().equals(MDSC_MODE);
                 nextTeNodeId = teNodeIpStart.toInt();
             } catch (ConfigException e) {
                 log.error("Configuration error {}", e);
             }
         }
 
-
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
             return event.configClass().equals(TeTopologyConfig.class) &&
                     (event.type() == CONFIG_ADDED ||
-                     event.type() == CONFIG_UPDATED);
+                    event.type() == CONFIG_UPDATED);
         }
     }
 
@@ -826,6 +882,7 @@ public class TeTopologyManager
     @Override
     public TeTopology teTopology(TeTopologyKey topologyId) {
         if (mergedTopology != null &&
+                topologyId != null &&
                 topologyId.equals(mergedTopologyKey)) {
             return mergedTopology;
         }
@@ -954,5 +1011,10 @@ public class TeTopologyManager
                new TerminationPointKey(networkNodeKey(teTpKey.teNodeKey()),
                                                       KeyId.keyId(Long.toString(teTpKey.teLinkTpId()))) :
                store.terminationPointKey(teTpKey);
+    }
+
+    @Override
+    public long teContollerId() {
+        return providerId;
     }
 }

@@ -39,6 +39,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -137,7 +138,7 @@ public class DistributedTeTopologyStore
     implements TeTopologyStore {
     private static final String STORE_NAME = "TE_NETWORK_TOPOLOGY_STORE";
     private static final String TETOPOLOGYKEY_INTERNALTETOPOLOGY = "TeTopologyKey-InternalTeTopology";
-    private static final String NETWORKID_NETWORK = "NetworkId-Network";
+    private static final String NETWORKID_NETWORK = "NetworkId-InternalNetwork";
     private static final String TENODEKEY_INTERNALTENODE = "TeNodeKey-InternalTeNode";
     private static final String CONNMATRIXKEY_CONNECTIVITYMATRIX = "ConnMatrixKey-ConnectivityMatrix";
     private static final String NETWORKNODEKEY_INTERNALNETWORKNODE = "NetworkNodeKey-InternalNetworkNode";
@@ -199,7 +200,8 @@ public class DistributedTeTopologyStore
     // Track termination point keys by TE termination point Key
     private ConsistentMap<TeLinkTpGlobalKey, TerminationPointKey> tpKeyConsistentMap;
     private Map<TeLinkTpGlobalKey, TerminationPointKey> tpKeyMap;
-    private BlockingQueue<TeTopologyMapEvent> mapEventQueue;
+    private final BlockingQueue<TeTopologyMapEvent> mapEventQueue = new LinkedBlockingQueue<>();
+
     private long providerId;
     private static final Serializer TETOPOLOGY_SERIALIZER = Serializer
             .using(new KryoNamespace.Builder().register(KryoNamespaces.API)
@@ -373,6 +375,7 @@ public class DistributedTeTopologyStore
         tpKeyMap.clear();
         ttpConsistentMap.destroy();
         ttpMap.clear();
+        mapEventQueue.clear();
         log.info("Stopped");
     }
 
@@ -454,10 +457,6 @@ public class DistributedTeTopologyStore
     private class InternalTeNodeListener implements MapEventListener<TeNodeKey, InternalTeNode> {
         @Override
         public void event(MapEvent<TeNodeKey, InternalTeNode> event) {
-            // Event should be ignored when the topology is not there.
-            if (teTopologyMap.get(event.key().teTopologyKey()) == null) {
-                return;
-            }
             Type type = null;
             switch (event.type()) {
             case INSERT:
@@ -499,10 +498,6 @@ public class DistributedTeTopologyStore
     private class InternalNetworkNodeListener implements MapEventListener<NetworkNodeKey, InternalNetworkNode> {
         @Override
         public void event(MapEvent<NetworkNodeKey, InternalNetworkNode> event) {
-            // Event should be ignored when the network is not there.
-            if (networkMap.get(event.key().networkId()) == null) {
-                return;
-            }
             Type type = null;
             switch (event.type()) {
             case INSERT:
@@ -544,11 +539,6 @@ public class DistributedTeTopologyStore
     private class InternalTeLinkListener implements MapEventListener<TeLinkTpGlobalKey, InternalTeLink> {
         @Override
         public void event(MapEvent<TeLinkTpGlobalKey, InternalTeLink> event) {
-            // Event should be ignored when the topology or locol node is not there.
-            if (teTopologyMap.get(event.key().teTopologyKey()) == null ||
-                    teNodeMap.get(event.key().teNodeKey()) == null) {
-                return;
-            }
             Type type = null;
             switch (event.type()) {
             case INSERT:
@@ -589,10 +579,6 @@ public class DistributedTeTopologyStore
     private class InternalNetworkLinkListener implements MapEventListener<NetworkLinkKey, InternalNetworkLink> {
         @Override
         public void event(MapEvent<NetworkLinkKey, InternalNetworkLink> event) {
-            // Event should be ignored when the network is not there.
-            if (networkMap.get(event.key().networkId()) == null) {
-                return;
-            }
             Type type = null;
             switch (event.type()) {
             case INSERT:
@@ -819,6 +805,7 @@ public class DistributedTeTopologyStore
 
     @Override
     public void updateNetwork(Network network) {
+        log.debug("updateNetwork {}", network);
         InternalNetwork curNetwork = networkMap.get(network.networkId());
         TeTopologyKey topoKey = null;
         if (network.teTopologyId() != null) {
@@ -1415,8 +1402,8 @@ public class DistributedTeTopologyStore
     }
 
     @Override
-    public void setMapEventQueue(BlockingQueue<TeTopologyMapEvent> queue) {
-        mapEventQueue = queue;
+    public BlockingQueue<TeTopologyMapEvent> mapEventQueue() {
+        return mapEventQueue;
     }
 
     @Override

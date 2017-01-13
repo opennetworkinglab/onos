@@ -158,4 +158,11 @@ public interface TeTopologyService
      * @return value of termination point key
      */
     TerminationPointKey terminationPointKey(TeLinkTpGlobalKey teTpKey);
+
+    /**
+     * Returns the TE controller global identification.
+     *
+     * @return value of controller id
+     */
+    long teContollerId();
 }
