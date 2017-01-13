@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.osgi.TestServiceDirectory;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
@@ -88,6 +89,7 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
     private DefaultVirtualNetworkProvider topologyProvider;
     private TopologyService topologyService;
     private TestableIntentService intentService = new FakeIntentManager();
+    private TestServiceDirectory testDirectory;
     private final VirtualNetworkRegistryAdapter virtualNetworkRegistry = new VirtualNetworkRegistryAdapter();
 
     private static final int MAX_WAIT_TIME = 5;
@@ -112,6 +114,10 @@ public class VirtualNetworkTopologyProviderTest extends TestDeviceParams {
         TestUtils.setField(manager, "store", virtualNetworkManagerStore);
         TestUtils.setField(manager, "intentService", intentService);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
+
+        testDirectory = new TestServiceDirectory();
+        TestUtils.setField(manager, "serviceDirectory", testDirectory);
+
         manager.activate();
 
         manager.registerTenantId(TenantId.tenantId(tenantIdValue1));

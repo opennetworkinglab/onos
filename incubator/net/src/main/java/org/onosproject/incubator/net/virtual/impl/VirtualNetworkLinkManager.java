@@ -16,11 +16,10 @@
 
 package org.onosproject.incubator.net.virtual.impl;
 
-import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualLink;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
-import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -38,49 +37,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Link service implementation built on the virtual network service.
  */
 public class VirtualNetworkLinkManager
-        extends AbstractListenerManager<LinkEvent, LinkListener>
-        implements LinkService, VnetService {
+        extends AbstractVirtualListenerManager<LinkEvent, LinkListener>
+        implements LinkService {
 
-    private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String DEVICE_NULL = "Device cannot be null";
     private static final String CONNECT_POINT_NULL = "Connect point cannot be null";
-
-    private final VirtualNetwork network;
-    private final VirtualNetworkService manager;
 
     /**
      * Creates a new VirtualNetworkLinkService object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
+     * @param networkId a virtual networkIdentifier
      */
     public VirtualNetworkLinkManager(VirtualNetworkService virtualNetworkManager,
-                                     VirtualNetwork network) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        this.manager = virtualNetworkManager;
-    }
-
-    @Override
-    public VirtualNetwork network() {
-        return network;
+                                     NetworkId networkId) {
+        super(virtualNetworkManager, networkId);
     }
 
     @Override
     public int getLinkCount() {
-        return manager.getVirtualLinks(this.network.id()).size();
+        return manager.getVirtualLinks(this.networkId()).size();
     }
 
     @Override
     public Iterable<Link> getLinks() {
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream().collect(Collectors.toSet());
     }
 
     @Override
     public Iterable<Link> getActiveLinks() {
 
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (link.state().equals(Link.State.ACTIVE)))
                 .collect(Collectors.toSet());
@@ -89,7 +77,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getDeviceLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (deviceId.equals(link.src().elementId()) ||
                         deviceId.equals(link.dst().elementId())))
@@ -99,7 +87,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (deviceId.equals(link.dst().elementId())))
                 .collect(Collectors.toSet());
@@ -108,7 +96,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (deviceId.equals(link.src().elementId())))
                 .collect(Collectors.toSet());
@@ -117,7 +105,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (connectPoint.equals(link.src()) ||
                         connectPoint.equals(link.dst())))
@@ -127,7 +115,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getEgressLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (connectPoint.equals(link.dst())))
                 .collect(Collectors.toSet());
@@ -136,7 +124,7 @@ public class VirtualNetworkLinkManager
     @Override
     public Set<Link> getIngressLinks(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
-        return manager.getVirtualLinks(this.network.id())
+        return manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (connectPoint.equals(link.src())))
                 .collect(Collectors.toSet());
@@ -146,7 +134,7 @@ public class VirtualNetworkLinkManager
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
         checkNotNull(src, CONNECT_POINT_NULL);
         checkNotNull(dst, CONNECT_POINT_NULL);
-        Optional<VirtualLink> foundLink =  manager.getVirtualLinks(this.network.id())
+        Optional<VirtualLink> foundLink =  manager.getVirtualLinks(this.networkId())
                 .stream()
                 .filter(link -> (src.equals(link.src()) &&
                         dst.equals(link.dst())))

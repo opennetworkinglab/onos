@@ -290,16 +290,6 @@ public class DistributedVirtualNetworkStore
         log.info("Stopped");
     }
 
-    /**
-     * This method is used for Junit tests to set the CoreService instance, which
-     * is required to set the IdGenerator instance.
-     *
-     * @param coreService core service instance
-     */
-    public void setCoreService(CoreService coreService) {
-        this.coreService = coreService;
-    }
-
     @Override
     public void addTenantId(TenantId tenantId) {
         tenantIdSet.add(tenantId);

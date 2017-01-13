@@ -20,5 +20,5 @@ package org.onosproject.incubator.net.virtual;
  * Virtual network service interface.
  */
 public interface VnetService {
-    VirtualNetwork network();
+    NetworkId networkId();
 }

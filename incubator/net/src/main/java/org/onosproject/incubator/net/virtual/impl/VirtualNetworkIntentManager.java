@@ -17,14 +17,13 @@
 package org.onosproject.incubator.net.virtual.impl;
 
 import com.google.common.collect.Iterators;
-import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -50,12 +49,11 @@ import static com.google.common.base.Preconditions.*;
  * Intent service implementation built on the virtual network service.
  */
 public class VirtualNetworkIntentManager
-        extends AbstractListenerManager<IntentEvent, IntentListener>
+        extends AbstractVirtualListenerManager<IntentEvent, IntentListener>
         implements IntentService, VnetService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String NETWORK_NULL = "Network cannot be null";
     private static final String NETWORK_ID_NULL = "Network ID cannot be null";
     private static final String DEVICE_NULL = "Device cannot be null";
     private static final String INTENT_NULL = "Intent cannot be null";
@@ -68,22 +66,17 @@ public class VirtualNetworkIntentManager
     protected VirtualNetworkStore store;
     protected WorkPartitionService partitionService;
 
-    private final VirtualNetwork network;
-    private final VirtualNetworkService manager;
-
     /**
      * Creates a new VirtualNetworkIntentService object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
-     * @param serviceDirectory      service directory
+     * @param networkId a virtual network identifier
      */
     public VirtualNetworkIntentManager(VirtualNetworkService virtualNetworkManager,
-                                       VirtualNetwork network,
-                                       ServiceDirectory serviceDirectory) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        this.manager = virtualNetworkManager;
+                                       NetworkId networkId) {
+
+        super(virtualNetworkManager, networkId);
+
         this.store = serviceDirectory.get(VirtualNetworkStore.class);
         this.intentService = serviceDirectory.get(IntentService.class);
         this.partitionService = serviceDirectory.get(WorkPartitionService.class);
@@ -137,7 +130,7 @@ public class VirtualNetworkIntentManager
     private Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
 
-        Optional<VirtualPort> foundPort = manager.getVirtualPorts(this.network.id(), deviceId)
+        Optional<VirtualPort> foundPort = manager.getVirtualPorts(this.networkId(), deviceId)
                 .stream()
                 .filter(port -> port.number().equals(portNumber))
                 .findFirst();
@@ -239,11 +232,5 @@ public class VirtualNetworkIntentManager
     @Override
     public Iterable<Intent> getPending() {
         return null;
-    }
-
-
-    @Override
-    public VirtualNetwork network() {
-        return network;
     }
 }

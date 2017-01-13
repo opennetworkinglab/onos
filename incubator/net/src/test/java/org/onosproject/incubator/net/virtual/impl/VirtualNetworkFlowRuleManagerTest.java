@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.TestApplicationId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
@@ -108,13 +107,12 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
 
     private ApplicationId appId;
 
-
     @Before
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
         CoreService coreService = new TestCoreService();
-        virtualNetworkManagerStore.setCoreService(coreService);
+        TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
@@ -128,24 +126,23 @@ public class VirtualNetworkFlowRuleManagerTest extends TestDeviceParams {
         manager.intentService = intentService;
         TestUtils.setField(manager, "coreService", coreService);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
-        manager.activate();
 
         appId = new TestApplicationId("FlowRuleManagerTest");
-
 
         testDirectory = new TestServiceDirectory()
                 .add(VirtualNetworkStore.class, virtualNetworkManagerStore)
                 .add(CoreService.class, coreService)
                 .add(VirtualProviderRegistryService.class, providerRegistryService)
                 .add(VirtualNetworkFlowRuleStore.class, flowRuleStore);
+        TestUtils.setField(manager, "serviceDirectory", testDirectory);
 
-        BaseResource.setServiceDirectory(testDirectory);
+        manager.activate();
 
         vnet1 = setupVirtualNetworkTopology(tid1);
         vnet2 = setupVirtualNetworkTopology(tid2);
 
-        vnetFlowRuleService1 = new VirtualNetworkFlowRuleManager(manager, vnet1, testDirectory);
-        vnetFlowRuleService2 = new VirtualNetworkFlowRuleManager(manager, vnet2, testDirectory);
+        vnetFlowRuleService1 = new VirtualNetworkFlowRuleManager(manager, vnet1.id());
+        vnetFlowRuleService2 = new VirtualNetworkFlowRuleManager(manager, vnet2.id());
         vnetFlowRuleService1.addListener(listener1);
 
         vnetFlowRuleService1.operationsService = MoreExecutors.newDirectExecutorService();

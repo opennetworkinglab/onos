@@ -15,7 +15,7 @@
  */
 package org.onosproject.incubator.net.virtual.impl;
 
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VnetService;
 import org.onosproject.net.DisjointPath;
@@ -31,8 +31,6 @@ import org.onosproject.net.topology.TopologyService;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Path service implementation built on the virtual network service.
  */
@@ -40,23 +38,21 @@ public class VirtualNetworkPathManager
         extends AbstractPathService
         implements PathService, VnetService {
 
-    private static final String NETWORK_NULL = "Network ID cannot be null";
-
-    private final VirtualNetwork network;
+    private final NetworkId networkId;
 
     /**
      * Creates a new virtual network path service object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
+     * @param networkId a virtual network identifier
      */
 
     public VirtualNetworkPathManager(VirtualNetworkService virtualNetworkManager,
-                                     VirtualNetwork network) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        topologyService = virtualNetworkManager.get(network.id(), TopologyService.class);
-        hostService = virtualNetworkManager.get(network.id(), HostService.class);
+                                     NetworkId networkId) {
+        this.networkId = networkId;
+
+        topologyService = virtualNetworkManager.get(networkId(), TopologyService.class);
+        hostService = virtualNetworkManager.get(networkId(), HostService.class);
     }
 
     @Override
@@ -76,7 +72,7 @@ public class VirtualNetworkPathManager
     }
 
     @Override
-    public VirtualNetwork network() {
-        return network;
+    public NetworkId networkId() {
+        return this.networkId;
     }
 }

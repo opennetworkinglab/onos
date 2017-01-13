@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
+import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
 
 import java.util.Set;
@@ -105,4 +106,10 @@ public interface VirtualNetworkService {
      */
     <T> T get(NetworkId networkId, Class<T> serviceClass);
 
+    /**
+     * Returns service directory.
+     *
+     * @return a service directory
+     */
+    ServiceDirectory getServiceDirectory();
 }

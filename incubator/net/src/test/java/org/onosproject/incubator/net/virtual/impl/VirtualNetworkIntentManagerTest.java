@@ -124,8 +124,7 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
-        virtualNetworkManagerStore.setCoreService(coreService);
-        TestUtils.setField(coreService, "coreService", new VirtualNetworkIntentManagerTest.TestCoreService());
+        TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
@@ -133,7 +132,6 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         manager.store = virtualNetworkManagerStore;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.intentService = intentService;
-        manager.activate();
         intentService.addListener(listener);
 
         // Register a compiler and an installer both setup for success.
@@ -150,6 +148,9 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
                 .add(IntentService.class, intentService)
                 .add(WorkPartitionService.class, workPartitionService);
         BaseResource.setServiceDirectory(testDirectory);
+        TestUtils.setField(manager, "serviceDirectory", testDirectory);
+
+        manager.activate();
     }
 
     @After
@@ -214,7 +215,7 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         link4 = manager.createVirtualLink(virtualNetwork.id(), cp5, cp4);
         virtualNetworkManagerStore.updateLink(link4, link4.tunnelId(), Link.State.ACTIVE);
 
-        vnetIntentService = new VirtualNetworkIntentManager(manager, virtualNetwork, testDirectory);
+        vnetIntentService = new VirtualNetworkIntentManager(manager, virtualNetwork.id());
         vnetIntentService.intentService = intentService;
         vnetIntentService.store = virtualNetworkManagerStore;
         vnetIntentService.partitionService = workPartitionService;

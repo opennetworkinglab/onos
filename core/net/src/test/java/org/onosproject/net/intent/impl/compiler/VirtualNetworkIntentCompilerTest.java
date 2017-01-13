@@ -21,7 +21,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.rest.BaseResource;
 import org.onosproject.TestApplicationId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
@@ -101,8 +100,7 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
-        virtualNetworkManagerStore.setCoreService(coreService);
-        setField(coreService, "coreService", new TestCoreService());
+        setField(virtualNetworkManagerStore, "coreService", coreService);
         setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
@@ -119,7 +117,7 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
                 .add(VirtualNetworkService.class, manager)
                 .add(VirtualNetworkStore.class, virtualNetworkManagerStore)
                 .add(IntentService.class, intentService);
-        BaseResource.setServiceDirectory(testDirectory);
+        setField(manager, "serviceDirectory", testDirectory);
 
         compiler = new VirtualNetworkIntentCompiler();
         compiler.manager = manager;

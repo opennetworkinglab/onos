@@ -17,12 +17,11 @@
 package org.onosproject.incubator.net.virtual.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
-import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -43,45 +42,39 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Device service implementation built on the virtual network service.
  */
 public class VirtualNetworkDeviceManager
-        extends AbstractListenerManager<DeviceEvent, DeviceListener>
-        implements DeviceService, VnetService {
+        extends AbstractVirtualListenerManager<DeviceEvent, DeviceListener>
+        implements DeviceService {
 
-    private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String TYPE_NULL = "Type cannot be null";
     private static final String DEVICE_NULL = "Device cannot be null";
     private static final String PORT_NUMBER_NULL = "PortNumber cannot be null";
-
-    private final VirtualNetwork network;
-    private final VirtualNetworkService manager;
 
     /**
      * Creates a new VirtualNetworkDeviceService object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
+     * @param networkId a virtual network identifier
      */
     public VirtualNetworkDeviceManager(VirtualNetworkService virtualNetworkManager,
-                                       VirtualNetwork network) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        this.manager = virtualNetworkManager;
+                                       NetworkId networkId) {
+        super(virtualNetworkManager, networkId);
     }
 
     @Override
     public int getDeviceCount() {
-        return manager.getVirtualDevices(this.network.id()).size();
+        return manager.getVirtualDevices(this.networkId).size();
     }
 
     @Override
     public Iterable<Device> getDevices() {
         return manager.getVirtualDevices(
-                this.network.id()).stream().collect(Collectors.toSet());
+                this.networkId).stream().collect(Collectors.toSet());
     }
 
     @Override
     public Iterable<Device> getDevices(Device.Type type) {
         checkNotNull(type, TYPE_NULL);
-        return manager.getVirtualDevices(this.network.id())
+        return manager.getVirtualDevices(this.networkId)
                 .stream()
                 .filter(device -> type.equals(device.type()))
                 .collect(Collectors.toSet());
@@ -101,7 +94,7 @@ public class VirtualNetworkDeviceManager
     public Device getDevice(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
         Optional<VirtualDevice> foundDevice =
-                manager.getVirtualDevices(this.network.id())
+                manager.getVirtualDevices(this.networkId)
                 .stream()
                 .filter(device -> deviceId.equals(device.id()))
                 .findFirst();
@@ -121,7 +114,7 @@ public class VirtualNetworkDeviceManager
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICE_NULL);
-        return manager.getVirtualPorts(this.network.id(), deviceId)
+        return manager.getVirtualPorts(this.networkId, deviceId)
                 .stream()
                 .collect(Collectors.toList());
     }
@@ -163,7 +156,7 @@ public class VirtualNetworkDeviceManager
         checkNotNull(deviceId, DEVICE_NULL);
 
         Optional<VirtualPort> foundPort =
-                manager.getVirtualPorts(this.network.id(), deviceId)
+                manager.getVirtualPorts(this.networkId, deviceId)
                 .stream()
                 .filter(port -> port.number().equals(portNumber))
                 .findFirst();
@@ -176,11 +169,6 @@ public class VirtualNetworkDeviceManager
     @Override
     public boolean isAvailable(DeviceId deviceId) {
         return getDevice(deviceId) != null;
-    }
-
-    @Override
-    public VirtualNetwork network() {
-        return network;
     }
 
     @Override

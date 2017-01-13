@@ -17,10 +17,9 @@
 package org.onosproject.incubator.net.virtual.impl;
 
 import org.onosproject.common.DefaultTopology;
-import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
-import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -49,10 +48,9 @@ import static org.onosproject.incubator.net.virtual.DefaultVirtualLink.PID;
  * Topology service implementation built on the virtual network service.
  */
 public class VirtualNetworkTopologyManager
-        extends AbstractListenerManager<TopologyEvent, TopologyListener>
-        implements TopologyService, VnetService {
+        extends AbstractVirtualListenerManager<TopologyEvent, TopologyListener>
+        implements TopologyService {
 
-    private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String TOPOLOGY_NULL = "Topology cannot be null";
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String CLUSTER_ID_NULL = "Cluster ID cannot be null";
@@ -60,28 +58,23 @@ public class VirtualNetworkTopologyManager
     private static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
     private static final String LINK_WEIGHT_NULL = "Link weight cannot be null";
 
-    private final VirtualNetwork network;
-    private final VirtualNetworkService manager;
-
     /**
      * Creates a new VirtualNetworkTopologyService object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
+     * @param networkId a virtual network identifier
      */
     public VirtualNetworkTopologyManager(VirtualNetworkService virtualNetworkManager,
-                                         VirtualNetwork network) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        this.manager = virtualNetworkManager;
+                                         NetworkId networkId) {
+        super(virtualNetworkManager, networkId);
     }
 
     @Override
     public Topology currentTopology() {
-        Iterable<Device> devices = manager.getVirtualDevices(network().id())
+        Iterable<Device> devices = manager.getVirtualDevices(networkId())
                 .stream()
                 .collect(Collectors.toSet());
-        Iterable<Link> links = manager.getVirtualLinks(network().id())
+        Iterable<Link> links = manager.getVirtualLinks(networkId())
                 .stream()
                 .collect(Collectors.toSet());
 
@@ -193,10 +186,5 @@ public class VirtualNetworkTopologyManager
     public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
         return defaultTopology(topology).isBroadcastPoint(connectPoint);
-    }
-
-    @Override
-    public VirtualNetwork network() {
-        return network;
     }
 }

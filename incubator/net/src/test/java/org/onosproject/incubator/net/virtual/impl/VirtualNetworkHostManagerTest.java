@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.osgi.TestServiceDirectory;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -51,13 +52,14 @@ public class VirtualNetworkHostManagerTest extends TestDeviceParams {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private TestableIntentService intentService = new FakeIntentManager();
+    private TestServiceDirectory testDirectory;
 
     @Before
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
         CoreService coreService = new TestCoreService();
-        virtualNetworkManagerStore.setCoreService(coreService);
+        TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
         virtualNetworkManagerStore.activate();
 
@@ -65,6 +67,10 @@ public class VirtualNetworkHostManagerTest extends TestDeviceParams {
         manager.store = virtualNetworkManagerStore;
         manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
+
+        testDirectory = new TestServiceDirectory();
+        TestUtils.setField(manager, "serviceDirectory", testDirectory);
+
         manager.activate();
     }
 

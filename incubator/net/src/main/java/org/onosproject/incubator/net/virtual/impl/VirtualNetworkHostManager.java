@@ -19,11 +19,10 @@ package org.onosproject.incubator.net.virtual.impl;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualHost;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
-import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -45,32 +44,26 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Host service implementation built on the virtual network service.
  */
 public class VirtualNetworkHostManager
-        extends AbstractListenerManager<HostEvent, HostListener>
-        implements HostService, VnetService {
+        extends AbstractVirtualListenerManager<HostEvent, HostListener>
+        implements HostService {
 
-    private static final String NETWORK_NULL = "Network ID cannot be null";
     private static final String HOST_NULL = "Host ID cannot be null";
-
-    private final VirtualNetwork network;
-    private final VirtualNetworkService manager;
 
     /**
      * Creates a new virtual network host service object.
      *
      * @param virtualNetworkManager virtual network manager service
-     * @param network               virtual network
+     * @param networkId a virtual network identifier
      */
     public VirtualNetworkHostManager(VirtualNetworkService virtualNetworkManager,
-                                     VirtualNetwork network) {
-        checkNotNull(network, NETWORK_NULL);
-        this.network = network;
-        this.manager = virtualNetworkManager;
+                                     NetworkId networkId) {
+        super(virtualNetworkManager, networkId);
     }
 
 
     @Override
     public int getHostCount() {
-        return manager.getVirtualHosts(this.network.id()).size();
+        return manager.getVirtualHosts(this.networkId()).size();
     }
 
     @Override
@@ -82,7 +75,7 @@ public class VirtualNetworkHostManager
     public Host getHost(HostId hostId) {
         checkNotNull(hostId, HOST_NULL);
         Optional<VirtualHost> foundHost =
-                manager.getVirtualHosts(this.network.id())
+                manager.getVirtualHosts(this.networkId())
                 .stream()
                 .filter(host -> hostId.equals(host.id()))
                 .findFirst();
@@ -98,7 +91,7 @@ public class VirtualNetworkHostManager
      * @return collection of virtual hosts.
      */
     private Collection<Host> getHostsColl() {
-        return manager.getVirtualHosts(this.network.id())
+        return manager.getVirtualHosts(this.networkId())
                 .stream().collect(Collectors.toSet());
     }
 
@@ -156,10 +149,5 @@ public class VirtualNetworkHostManager
     @Override
     public void requestMac(IpAddress ip) {
         //TODO check what needs to be done here
-    }
-
-    @Override
-    public VirtualNetwork network() {
-        return network;
     }
 }

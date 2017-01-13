@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -100,6 +101,8 @@ public class VirtualNetworkManager
             new InternalVirtualIntentListener();
 
     private VirtualNetworkStoreDelegate delegate = this::post;
+
+    private ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
 
     // TODO: figure out how to coordinate "implementation" of a virtual network in a cluster
 
@@ -294,6 +297,11 @@ public class VirtualNetworkManager
     }
 
     @Override
+    public ServiceDirectory getServiceDirectory() {
+        return serviceDirectory;
+    }
+
+    @Override
     public Set<VirtualNetwork> getVirtualNetworks(TenantId tenantId) {
         checkNotNull(tenantId, TENANT_NULL);
         return store.getNetworks(tenantId);
@@ -379,23 +387,22 @@ public class VirtualNetworkManager
     private VnetService create(ServiceKey serviceKey) {
         VirtualNetwork network = getVirtualNetwork(serviceKey.networkId());
         checkNotNull(network, NETWORK_NULL);
+
         VnetService service;
         if (serviceKey.serviceClass.equals(DeviceService.class)) {
-            service = new VirtualNetworkDeviceManager(this, network);
+            service = new VirtualNetworkDeviceManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(LinkService.class)) {
-            service = new VirtualNetworkLinkManager(this, network);
+            service = new VirtualNetworkLinkManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(TopologyService.class)) {
-            service = new VirtualNetworkTopologyManager(this, network);
+            service = new VirtualNetworkTopologyManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(IntentService.class)) {
-            service = new VirtualNetworkIntentManager(
-                    this, network, new DefaultServiceDirectory());
+            service = new VirtualNetworkIntentManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(HostService.class)) {
-            service = new VirtualNetworkHostManager(this, network);
+            service = new VirtualNetworkHostManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(PathService.class)) {
-            service = new VirtualNetworkPathManager(this, network);
+            service = new VirtualNetworkPathManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(FlowRuleService.class)) {
-            service = new VirtualNetworkFlowRuleManager(this, network,
-                                                        new DefaultServiceDirectory());
+            service = new VirtualNetworkFlowRuleManager(this, network.id());
         } else {
             return null;
         }

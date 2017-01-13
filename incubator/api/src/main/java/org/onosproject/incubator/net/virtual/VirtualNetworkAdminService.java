@@ -55,7 +55,6 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      */
     Set<TenantId> getTenantIds();
 
-
     /**
      * Creates a new virtual network for the specified tenant.
      *
@@ -70,7 +69,6 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * @param networkId network identifier
      */
     void removeVirtualNetwork(NetworkId networkId);
-
 
     /**
      * Creates a new virtual device within the specified network. The device id
