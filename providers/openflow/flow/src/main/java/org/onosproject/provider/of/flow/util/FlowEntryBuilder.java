@@ -180,7 +180,7 @@ public class FlowEntryBuilder {
                             .withSelector(buildSelector())
                             .withTreatment(buildTreatment())
                             .withPriority(stat.getPriority())
-                            .makeTemporary(stat.getIdleTimeout())
+                            .withIdleTimeout(stat.getIdleTimeout())
                             .withCookie(stat.getCookie().getValue());
                     if (stat.getVersion() != OFVersion.OF_10) {
                         builder.forTable(stat.getTableId().getValue());
@@ -206,7 +206,7 @@ public class FlowEntryBuilder {
                             .forDevice(deviceId)
                             .withSelector(buildSelector())
                             .withPriority(removed.getPriority())
-                            .makeTemporary(removed.getIdleTimeout())
+                            .withIdleTimeout(removed.getIdleTimeout())
                             .withCookie(removed.getCookie().getValue())
                             .withReason(FlowRule.FlowRemoveReason.parseShort(removed.getReason()));
 
@@ -236,7 +236,7 @@ public class FlowEntryBuilder {
                             .withSelector(buildSelector())
                             .withTreatment(buildTreatment())
                             .withPriority(flowMod.getPriority())
-                            .makeTemporary(flowMod.getIdleTimeout())
+                            .withIdleTimeout(flowMod.getIdleTimeout())
                             .withCookie(flowMod.getCookie().getValue());
                     if (flowMod.getVersion() != OFVersion.OF_10) {
                         builder.forTable(flowMod.getTableId().getValue());
