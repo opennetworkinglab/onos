@@ -249,6 +249,21 @@ public interface FlowRule {
         Builder makeTemporary(int timeout);
 
         /**
+         * Sets the idle timeout parameter in flow table.
+         *
+         * Will automatically make it permanent or temporary if the timeout is 0 or not, respectively.
+         * @param timeout an integer
+         * @return this
+         */
+        default Builder withIdleTimeout(int timeout) {
+            if (timeout == 0) {
+                return makePermanent();
+            } else {
+                return makeTemporary(timeout);
+            }
+        }
+
+        /**
          * Sets hard timeout parameter in flow table.
          * @param timeout an integer
          * @return this
