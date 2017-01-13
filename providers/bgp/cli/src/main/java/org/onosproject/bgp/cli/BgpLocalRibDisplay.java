@@ -205,7 +205,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
             Set<RouteDistinguisher> vpnNodekeySet = vpnNode.keySet();
             for (RouteDistinguisher vpnNodes : vpnNodekeySet) {
                 boolean invalidProcess = true;
-                if (vpnId != null && vpnId.trim().equals(vpnNodes.hashCode())) {
+                if (vpnId != null && Integer.parseInt(vpnId.trim()) == vpnNodes.hashCode()) {
                     invalidProcess = false;
                     displayNodes();
                 }
@@ -228,7 +228,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
             Set<RouteDistinguisher> vpnLinkkeySet = vpnLink.keySet();
             for (RouteDistinguisher vpnLinks : vpnLinkkeySet) {
                 boolean invalidProcess = true;
-                if (vpnId != null && vpnId.trim().equals(vpnLinks.hashCode())) {
+                if (vpnId != null && Integer.parseInt(vpnId.trim()) == vpnLinks.hashCode()) {
                     invalidProcess = false;
                     displayLinks();
                 }
@@ -250,7 +250,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
             Set<RouteDistinguisher> vpnPrefixkeySet = vpnPrefix.keySet();
             for (RouteDistinguisher vpnprefixId : vpnPrefixkeySet) {
                 boolean invalidProcess = true;
-                if (vpnId != null && vpnId.trim().equals(vpnprefixId.hashCode())) {
+                if (vpnId != null && Integer.parseInt(vpnId.trim()) == vpnprefixId.hashCode()) {
                     invalidProcess = false;
                     displayPrefix();
                 }
