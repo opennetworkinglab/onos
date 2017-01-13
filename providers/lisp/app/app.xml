@@ -24,5 +24,6 @@
     <artifact>mvn:${project.groupId}/onos-lisp-msg/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-lisp-provider-device/${project.version}</artifact>
-
+    <artifact>mvn:${project.groupId}/onos-lisp-provider-mapping/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-lisp-provider-message/${project.version}</artifact>
 </app>

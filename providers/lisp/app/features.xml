@@ -23,6 +23,8 @@
         <bundle>mvn:${project.groupId}/onos-lisp-msg/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-lisp-provider-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-lisp-provider-mapping/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-lisp-provider-message/${project.version}</bundle>
     </feature>
 </features>
 
