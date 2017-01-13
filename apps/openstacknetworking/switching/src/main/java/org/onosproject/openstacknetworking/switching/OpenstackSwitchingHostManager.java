@@ -263,6 +263,8 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
                         deviceEventExecutor.execute(() -> processPortRemoved(event.port()));
+                    } else if (event.port().isEnabled()) {
+                        deviceEventExecutor.execute(() -> processPortAdded(event.port()));
                     }
                     break;
                 case PORT_ADDED:
