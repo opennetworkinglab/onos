@@ -27,7 +27,7 @@ import org.onosproject.net.packet.PacketService;
         description = "Lists packet requests")
 public class PacketRequestsListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "nodeId=%s appId=%s, priority=%s, criteria=%s copy=%s";
+    private static final String FMT = "nodeId=%s appId=%s, priority=%s, criteria=%s";
 
     @Override
     protected void execute() {
@@ -41,8 +41,7 @@ public class PacketRequestsListCommand extends AbstractShellCommand {
     }
 
     private void print(PacketRequest request) {
-        print(FMT, request.nodeId(), request.appId().name(), request.priority(),
-                request.selector().criteria(), request.copy());
+        print(FMT, request.nodeId(), request.appId().name(), request.priority(), request.selector().criteria());
     }
 
 }

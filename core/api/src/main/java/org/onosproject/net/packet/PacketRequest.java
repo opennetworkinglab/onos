@@ -62,11 +62,4 @@ public interface PacketRequest {
      */
     Optional<DeviceId> deviceId();
 
-    /**
-     * Obtains copy flag.
-     *
-     * @return true if copy flag is set
-     */
-    boolean copy();
-
 }

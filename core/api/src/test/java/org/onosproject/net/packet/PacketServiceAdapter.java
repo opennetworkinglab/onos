@@ -51,11 +51,6 @@ public class PacketServiceAdapter implements PacketService {
 
     @Override
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
-                               ApplicationId appId, boolean copy) {
-    }
-
-    @Override
-    public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId, Optional<DeviceId> deviceId) {
 
     }
@@ -63,11 +58,6 @@ public class PacketServiceAdapter implements PacketService {
     @Override
     public void cancelPackets(TrafficSelector selector, PacketPriority priority,
                               ApplicationId appId) {
-    }
-
-    @Override
-    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
-                              ApplicationId appId, boolean copy) {
     }
 
     @Override

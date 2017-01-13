@@ -34,7 +34,7 @@ public final class DefaultPacketRequest implements PacketRequest {
     private final ApplicationId appId;
     private final NodeId nodeId;
     private final Optional<DeviceId> deviceId;
-    private final boolean copy;
+
 
     /**
      * Creates a new packet request.
@@ -46,27 +46,11 @@ public final class DefaultPacketRequest implements PacketRequest {
      */
     public DefaultPacketRequest(TrafficSelector selector, PacketPriority priority,
                                 ApplicationId appId, NodeId nodeId, Optional<DeviceId> deviceId) {
-        this(selector, priority, appId, nodeId, deviceId, false);
-    }
-
-    /**
-     * Creates a new packet request.
-     * @param selector  traffic selector
-     * @param priority  intercept priority
-     * @param appId     application id
-     * @param nodeId    identifier of node where request originated
-     * @param deviceId  device id
-     * @param copy      copy flag
-     */
-    public DefaultPacketRequest(TrafficSelector selector, PacketPriority priority,
-                                ApplicationId appId, NodeId nodeId, Optional<DeviceId> deviceId,
-                                boolean copy) {
         this.selector = selector;
         this.priority = priority;
         this.appId = appId;
         this.nodeId = nodeId;
         this.deviceId = deviceId;
-        this.copy = copy;
     }
 
     @Override
@@ -94,13 +78,8 @@ public final class DefaultPacketRequest implements PacketRequest {
     }
 
     @Override
-    public boolean copy() {
-        return copy;
-    }
-
-    @Override
     public int hashCode() {
-        return Objects.hash(selector, priority, appId, nodeId, deviceId, copy);
+        return Objects.hash(selector, priority, appId, nodeId, deviceId);
     }
 
     @Override
@@ -116,8 +95,7 @@ public final class DefaultPacketRequest implements PacketRequest {
                 && Objects.equals(this.priority, other.priority)
                 && Objects.equals(this.appId, other.appId)
                 && Objects.equals(this.nodeId, other.nodeId)
-                && Objects.equals(this.deviceId, other.deviceId)
-                && Objects.equals(this.copy, other.copy);
+                && Objects.equals(this.deviceId, other.deviceId);
     }
 
     @Override
@@ -128,7 +106,6 @@ public final class DefaultPacketRequest implements PacketRequest {
                 .add("appId", appId)
                 .add("nodeId", nodeId)
                 .add("applies to", deviceId.map(DeviceId::toString).orElse("all"))
-                .add("copy", copy)
                 .toString();
     }
 }
