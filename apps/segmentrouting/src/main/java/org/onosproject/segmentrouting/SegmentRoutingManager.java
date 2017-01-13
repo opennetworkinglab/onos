@@ -51,7 +51,6 @@ import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -60,7 +59,6 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.MulticastRouteService;
-import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
@@ -97,7 +95,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -333,11 +330,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .build();
 
         compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                "purgeOnDisconnection", "true");
+                                      "purgeOnDisconnection", "true");
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                "purgeOnDisconnection", "true");
+                                      "purgeOnDisconnection", "true");
         compCfgService.preSetProperty("org.onosproject.vrouter.Vrouter",
-                "fibInstalledEnabled", "false");
+                                      "fibInstalledEnabled", "false");
+        compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
+                                      "requestInterceptsEnabled", "false");
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
@@ -360,14 +359,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceService.addListener(deviceListener);
         multicastRouteService.addListener(mcastListener);
         cordConfigService.addListener(cordConfigListener);
-
-        /* Request ARP packet-in.
-         * Copy flag set to true since in cross-connect case we still want to
-         * forward ARP packet to the flood group.
-         */
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId, true);
 
         cfgListener.configureNetwork();
 
@@ -400,11 +391,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(appConfigFactory);
         cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
-
-        // Withdraw ARP packet-in
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId, Optional.empty());
 
         packetService.removeProcessor(processor);
         linkService.removeListener(linkListener);

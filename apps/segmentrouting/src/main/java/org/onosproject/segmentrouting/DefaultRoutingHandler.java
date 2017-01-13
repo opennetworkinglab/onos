@@ -611,6 +611,7 @@ public class DefaultRoutingHandler {
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
         rulePopulator.populateRouterIpPunts(deviceId);
+        rulePopulator.populateArpNdpPunts(deviceId);
 
         // Although device is added, sometimes device store does not have the
         // ports for this device yet. It results in missing filtering rules in the

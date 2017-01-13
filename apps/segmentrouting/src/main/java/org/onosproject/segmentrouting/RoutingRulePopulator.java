@@ -25,7 +25,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -57,6 +59,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.packet.Ethernet.TYPE_ARP;
+import static org.onlab.packet.Ethernet.TYPE_IPV6;
+import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 
 /**
  * Populator of segment routing flow rules.
@@ -639,6 +645,82 @@ public class RoutingRulePopulator {
             srManager.packetService.requestPackets(sbuilder.build(),
                     PacketPriority.CONTROL, srManager.appId, optDeviceId);
         }
+    }
+
+    /**
+     * Creates forwarding objectives to punt ARP and NDP packets, to the controller.
+     * Furthermore, these are applied only by the master instance. Deferred actions
+     * are not cleared such that packets can be flooded in the cross connect use case
+     *
+     * @param deviceId the switch dpid for the router
+     */
+    public void populateArpNdpPunts(DeviceId deviceId) {
+        /*
+         * We are not the master just skip.
+         */
+        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
+            log.debug("Not installing ARP/NDP punts - not the master for dev:{} ",
+                      deviceId);
+            return;
+        }
+
+        // We punt all ARP packets towards the controller.
+        ForwardingObjective puntFwd = puntArpFwdObjective()
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to install packet request for ARP to {}: {}",
+                                 deviceId, error);
+                    }
+                });
+        srManager.flowObjectiveService.forward(deviceId, puntFwd);
+
+        // TODO: The driver does not support NDP at this moment. Turn it back on later.
+        // We punt all NDP packets towards the controller.
+        /*
+        puntFwd = puntNdpFwdObjective()
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to install packet request for NDP to {}: {}",
+                                 deviceId, error);
+                    }
+                });
+        srManager.flowObjectiveService.forward(deviceId, puntFwd);
+        */
+    }
+
+    private ForwardingObjective.Builder fwdObjBuilder(TrafficSelector selector) {
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.punt();
+
+        return DefaultForwardingObjective.builder()
+                .withPriority(PacketPriority.CONTROL.priorityValue())
+                .withSelector(selector)
+                .fromApp(srManager.appId)
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withTreatment(tBuilder.build())
+                .makePermanent();
+    }
+
+    private ForwardingObjective.Builder puntArpFwdObjective() {
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(TYPE_ARP);
+
+        return fwdObjBuilder(sBuilder.build());
+    }
+
+    private ForwardingObjective.Builder puntNdpFwdObjective() {
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(TYPE_IPV6)
+                .matchIPProtocol(PROTOCOL_ICMP6)
+                .matchIcmpv6Type(NEIGHBOR_SOLICITATION)
+                .build();
+
+        return fwdObjBuilder(sBuilder.build());
     }
 
     /**
