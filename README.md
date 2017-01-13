@@ -1,12 +1,8 @@
 ONOS : Open Network Operating System
 ====================================
 
-<<<<<<< HEAD
 # Gluon ONOS EVPN
 
-=======
-## Gluon ONOS EVPN
->>>>>>> 4353c0c... Updated README
 
 ### What is ONOS?
 ONOS is a new SDN network operating system designed for high availability,
