@@ -96,9 +96,17 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
+    @Property(name = "arpEnabled", boolValue = true,
+            label = "Enable Address resolution protocol")
+    protected boolean arpEnabled = true;
+
     @Property(name = "ndpEnabled", boolValue = false,
             label = "Enable IPv6 neighbour discovery")
     protected boolean ndpEnabled = false;
+
+    @Property(name = "requestInterceptsEnabled", boolValue = true,
+            label = "Enable requesting packet intercepts")
+    private boolean requestInterceptsEnabled = true;
 
     private static final String APP_NAME = "org.onosproject.neighbour";
     private ApplicationId appId;
@@ -140,15 +148,38 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
                     ndpEnabled ? "enabled" : "disabled");
         }
 
+        flag = Tools.isPropertyEnabled(properties, "arpEnabled");
+        if (flag != null) {
+            arpEnabled = flag;
+            log.info("Address resolution protocol is {}",
+                     arpEnabled ? "enabled" : "disabled");
+        }
+
+        flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
+        if (flag == null) {
+            log.info("Request intercepts is not configured, " +
+                             "using current value of {}", requestInterceptsEnabled);
+        } else {
+            requestInterceptsEnabled = flag;
+            log.info("Configured. Request intercepts is {}",
+                     requestInterceptsEnabled ? "enabled" : "disabled");
+        }
+
         synchronized (packetHandlers) {
-            if (!packetHandlers.isEmpty()) {
+            if (!packetHandlers.isEmpty() && requestInterceptsEnabled) {
                 requestPackets();
+            } else {
+                cancelPackets();
             }
         }
     }
 
     private void requestPackets() {
-        packetService.requestPackets(buildArpSelector(), CONTROL, appId);
+        if (arpEnabled) {
+            packetService.requestPackets(buildArpSelector(), CONTROL, appId);
+        } else {
+            packetService.cancelPackets(buildArpSelector(), CONTROL, appId);
+        }
 
         if (ndpEnabled) {
             packetService.requestPackets(buildNeighborSolicitationSelector(),
