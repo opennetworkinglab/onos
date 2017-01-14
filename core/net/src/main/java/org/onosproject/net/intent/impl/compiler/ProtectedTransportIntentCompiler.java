@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl.compiler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.transform;
 import static java.util.stream.Stream.concat;
+import static org.onosproject.net.MarkerResource.marker;
 import static org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription.buildDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -75,6 +76,17 @@ import com.google.common.collect.Sets;
 @Component(immediate = true)
 public class ProtectedTransportIntentCompiler
         extends ConnectivityIntentCompiler<ProtectedTransportIntent> {
+
+    /**
+     * Marker value for forward path.
+     */
+    private static final String FWD = "fwd";
+
+    /**
+     * Marker value for reverse path.
+     */
+    private static final String REV = "rev";
+
 
     private final Logger log = getLogger(getClass());
 
@@ -232,10 +244,13 @@ public class ProtectedTransportIntentCompiler
 
         // Build transit intent for primary/secondary path
 
+        Collection<NetworkResource> resources1 = ImmutableList.of(marker("protection1"));
+        Collection<NetworkResource> resources2 = ImmutableList.of(marker("protection2"));
+
         ImmutableList<Intent> result = ImmutableList.<Intent>builder()
                 // LinkCollection for primary and backup paths
-                .addAll(createTransitIntent(intent, primary, primaryVlan))
-                .addAll(createTransitIntent(intent, secondary, secondaryVlan))
+                .addAll(createTransitIntent(intent, primary, primaryVlan, resources1))
+                .addAll(createTransitIntent(intent, secondary, secondaryVlan, resources2))
                 .add(oneIntent)
                 .add(twoIntent)
                 .build();
@@ -249,16 +264,29 @@ public class ProtectedTransportIntentCompiler
      * @param intent parent IntentId
      * @param path whole path
      * @param vid VlanId to use as tunnel labels
+     * @param resources to be passed down to generated Intents
      * @return List on transit Intents, if any is required.
      */
-    List<LinkCollectionIntent> createTransitIntent(Intent intent, Path path, VlanId vid) {
+    List<LinkCollectionIntent> createTransitIntent(Intent intent,
+                                                   Path path,
+                                                   VlanId vid,
+                                                   Collection<NetworkResource> resources) {
         if (path.links().size() <= 1) {
             // There's no need for transit Intents
             return ImmutableList.of();
         }
 
-        return ImmutableList.of(createSubTransitIntent(intent, path, vid),
-                                createSubTransitIntent(intent, reverse(path), vid));
+        Collection<NetworkResource> fwd = ImmutableList.<NetworkResource>builder()
+                                            .addAll(resources)
+                                            .add(marker(FWD))
+                                            .build();
+        Collection<NetworkResource> rev = ImmutableList.<NetworkResource>builder()
+                                            .addAll(resources)
+                                            .add(marker(REV))
+                                            .build();
+
+        return ImmutableList.of(createSubTransitIntent(intent, path, vid, fwd),
+                                createSubTransitIntent(intent, reverse(path), vid, rev));
     }
 
     /**
@@ -300,9 +328,13 @@ public class ProtectedTransportIntentCompiler
      * @param intent parent IntentId
      * @param path whole path
      * @param vid VlanId to use as tunnel labels
-     * @return List on transit Intents, if any is required.
+     * @param resources to be passed down to generated Intents
+     * @return List of transit Intents, if any is required.
      */
-    LinkCollectionIntent createSubTransitIntent(Intent intent, Path path, VlanId vid) {
+    LinkCollectionIntent createSubTransitIntent(Intent intent,
+                                                Path path,
+                                                VlanId vid,
+                                                Collection<NetworkResource> resources) {
         checkArgument(path.links().size() > 1);
 
         // transit ingress/egress
@@ -319,6 +351,7 @@ public class ProtectedTransportIntentCompiler
                     // VLAN tunnel
                     //.selector(DefaultTrafficSelector.builder().matchVlanId(vid).build())
                     //.treatment(intent.treatment())
+                    .resources(resources)
                     .links(ImmutableSet.copyOf(path.links()))
                     .filteredIngressPoints(ImmutableSet.of(vlanPort(one, vid)))
                     .filteredEgressPoints(ImmutableSet.of(vlanPort(two, vid)))
