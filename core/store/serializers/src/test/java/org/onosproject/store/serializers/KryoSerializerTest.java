@@ -46,6 +46,7 @@ import org.onosproject.net.GridType;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.MarkerResource;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
@@ -412,6 +413,11 @@ public class KryoSerializerTest {
     @Test
     public void testEmptySet() {
         testSerializedEquals(Collections.emptySet());
+    }
+
+    @Test
+    public void testMarkerResource() {
+        testSerializedEquals(MarkerResource.marker("testString"));
     }
 
     @Test

@@ -74,6 +74,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.MarkerResource;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
@@ -561,6 +562,7 @@ public final class KryoNamespaces {
             .register(ProtectedTransportEndpointDescription.class)
             .register(ProtectionEndpointIntent.class)
             .register(ProtectedTransportIntent.class)
+            .register(MarkerResource.class)
             .build("API");
 
     /**
