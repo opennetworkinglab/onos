@@ -23,6 +23,8 @@ if [ $key != "--remove" ]; then
     echo "$user=$key,_g_:admingroup" >> $KEYS
 fi
 
+# ensure known_hosts file exist
+(umask 077; touch "$HOME/.ssh/known_hosts")
+
 # Also, remove any previous known keys for the localhost.
 ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
-
