@@ -648,11 +648,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 arpHandler.processPacketIn(pkt);
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
                 IPv4 ipPacket = (IPv4) ethernet.getPayload();
-                ipHandler.addToPacketBuffer(ipPacket);
+                // ipHandler.addToPacketBuffer(ipPacket);
                 if (ipPacket.getProtocol() == IPv4.PROTOCOL_ICMP) {
                     icmpHandler.processPacketIn(pkt);
                 } else {
-                    ipHandler.processPacketIn(pkt);
+                    // NOTE: We don't support IP learning at this moment so this
+                    //       is not necessary. Also it causes duplication of DHCP packets.
+                    // ipHandler.processPacketIn(pkt);
                 }
             }
         }
