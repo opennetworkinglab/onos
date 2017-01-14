@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-//CHECKSTYLE:OFF
 package org.onosproject.openflow.controller.impl;
 
 import java.io.IOException;
@@ -129,8 +128,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     OFChannelHandler(Controller controller) {
         this.controller = controller;
         this.state = ChannelState.INIT;
-        this.pendingPortStatusMsg = new CopyOnWriteArrayList<OFPortStatus>();
-        this.portDescReplies = new ArrayList<OFPortDescStatsReply>();
+        this.pendingPortStatusMsg = new CopyOnWriteArrayList<>();
+        this.portDescReplies = new ArrayList<>();
         factory13 = controller.getOFMessageFactory13();
         factory10 = controller.getOFMessageFactory10();
         duplicateDpidFound = Boolean.FALSE;
@@ -307,11 +306,10 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     log.debug("Stats reply indicates more stats from sw {} for "
                             + "port description",
                             h.getSwitchInfoString());
-                    h.portDescReplies.add((OFPortDescStatsReply)m);
+                    h.portDescReplies.add((OFPortDescStatsReply) m);
                     return;
-                }
-                else {
-                    h.portDescReplies.add((OFPortDescStatsReply)m);
+                } else {
+                    h.portDescReplies.add((OFPortDescStatsReply) m);
                 }
                 //h.portDescReply = (OFPortDescStatsReply) m; // temp store
                 log.info("Received port desc reply for switch at {}",
@@ -356,18 +354,18 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 } else {
                     // FIXME: we can't really deal with switches that don't send
                     // full packets. Shouldn't we drop the connection here?
-                    log.warn("Config Reply from switch {} has"
+                    log.warn("Config Reply from switch {} has "
                             + "miss length set to {}",
                             h.getSwitchInfoString(),
                             m.getMissSendLen());
                 }
 
+                // TODO should this check if 1.3 or later?
                 if (h.ofVersion == OFVersion.OF_13) {
                     // Meters were introduced in OpenFlow 1.3
                     h.sendMeterFeaturesRequest();
                     h.setState(WAIT_METER_FEATURES_REPLY);
-                }
-                else {
+                } else {
                     h.sendHandshakeDescriptionStatsRequest();
                     h.setState(WAIT_DESCRIPTION_STAT_REPLY);
                 }
@@ -533,7 +531,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 } else if (m.getType() == OFType.ROLE_REPLY) {
                     h.sw.handleRole(m);
                 } else if (m.getType() == OFType.ERROR) {
-                    if (!h.sw.handleRoleError((OFErrorMsg)m)) {
+                    if (!h.sw.handleRoleError((OFErrorMsg) m)) {
                         h.sw.processDriverHandshakeMessage(m);
                         if (h.sw.isDriverHandshakeComplete()) {
                             moveToActive(h);
@@ -591,11 +589,11 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             void processOFStatisticsReply(OFChannelHandler h,
                                           OFStatsReply  m)
                     throws IOException, SwitchStateException {
-                switch(m.getStatsType()) {
+                switch (m.getStatsType()) {
                     case METER_FEATURES:
 
                         log.debug("Received Meter Features");
-                        OFMeterFeaturesStatsReply ofmfsr = (OFMeterFeaturesStatsReply)m;
+                        OFMeterFeaturesStatsReply ofmfsr = (OFMeterFeaturesStatsReply) m;
                         log.info("Received meter features from {} with max meters: {}",
                                 h.getSwitchInfoString(),
                                 ofmfsr.getFeatures().getMaxMeter());
@@ -800,7 +798,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             log.error("{} from switch {} in state {}",
                     error,
                     h.getSwitchInfoString(),
-                    this.toString());
+                    this);
         }
 
         /**
@@ -857,7 +855,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             log.info("Processing {} pending port status messages for {}",
                      h.pendingPortStatusMsg.size(), h.sw.getStringId());
 
-            ArrayList<OFPortStatus> temp  = new ArrayList<OFPortStatus>();
+            ArrayList<OFPortStatus> temp  = new ArrayList<>();
             for (OFPortStatus ps: h.pendingPortStatusMsg) {
                 temp.add(ps);
                 handlePortStatusMessage(h, ps, false);
@@ -923,7 +921,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          */
         void processOFMessage(OFChannelHandler h, OFMessage m)
                 throws IOException, SwitchStateException {
-            switch(m.getType()) {
+            switch (m.getType()) {
             case HELLO:
                 processOFHello(h, (OFHello) m);
                 break;
@@ -1213,7 +1211,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
         OFMessage m = factory.buildEchoRequest().build();
         log.debug("Sending Echo Request on idle channel: {}",
-                e.getChannel().getPipeline().getLast().toString());
+                e.getChannel().getPipeline().getLast());
         e.getChannel().write(Collections.singletonList(m));
         // XXX S some problems here -- echo request has no transaction id, and
         // echo reply is not correlated to the echo request.
@@ -1328,13 +1326,13 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     private void sendHandshakeSetConfig() throws IOException {
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
         //log.debug("Sending CONFIG_REQUEST to {}", channel.getRemoteAddress());
-        List<OFMessage> msglist = new ArrayList<OFMessage>(3);
+        List<OFMessage> msglist = new ArrayList<>(3);
 
         // Ensure we receive the full packet via PacketIn
         // FIXME: We don't set the reassembly flags.
-	// Only send config to switches to send full packets, if they have a buffer.
+        // Only send config to switches to send full packets, if they have a buffer.
         // Saves a packet & OFSetConfig can't be handled by certain switches.
-        if(this.featuresReply.getNBuffers() > 0) {
+        if (this.featuresReply.getNBuffers() > 0) {
             OFSetConfig sc = factory
                     .buildSetConfig()
                     .setMissSendLen((short) 0xffff)
@@ -1374,7 +1372,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     /**
-     * send a meter features request
+     * send a meter features request.
+     *
      * @throws IOException
      */
     private void sendMeterFeaturesRequest() throws IOException {
