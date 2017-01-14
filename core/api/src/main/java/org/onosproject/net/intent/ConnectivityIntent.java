@@ -29,7 +29,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -190,6 +190,21 @@ public abstract class ConnectivityIntent extends Intent {
      */
     public List<Constraint> constraints() {
         return constraints;
+    }
+
+    /**
+     * Produces a collection of network resources from the given links.
+     *
+     * @param resources base resources
+     * @param links collection of links
+     * @return collection of resources
+     */
+    protected static Collection<NetworkResource> resources(Collection<NetworkResource> resources,
+                                                           Collection<Link> links) {
+        return ImmutableSet.<NetworkResource>builder()
+                .addAll(firstNonNull(resources, ImmutableList.of()))
+                .addAll(links)
+                .build();
     }
 
     /**
