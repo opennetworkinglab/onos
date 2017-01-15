@@ -43,6 +43,7 @@ import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.onosproject.openstacknetworking.Constants.*;
@@ -92,7 +93,7 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
     private void removeSwitchingRules(Host host) {
         setFlowRulesForTunnelTag(host, false);
         setFlowRulesForTrafficToSameCnode(host, false);
-        setFlowRulesForTrafficToDifferentCnode(host, false);
+        removeFlowRuleForVMsInDiffrentCnode(host);
 
         log.debug("Removed switching rule for {}", host);
     }
@@ -179,6 +180,21 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
         RulePopulatorUtil.setRule(flowObjectiveService, appId, deviceId,
                 sBuilder.build(), tBuilder.build(), ForwardingObjective.Flag.SPECIFIC,
                 SWITCHING_RULE_PRIORITY, install);
+    }
+
+    private void removeFlowRuleForVMsInDiffrentCnode(Host host) {
+        DeviceId deviceId = host.location().deviceId();
+        final boolean anyPortRemainedInSameCnode = hostService.getConnectedHosts(deviceId)
+                .stream()
+                .filter(this::isValidHost)
+                .anyMatch(h -> Objects.equals(getVni(h), getVni(host)));
+
+        getVmsInDifferentCnode(host).forEach(h -> {
+            setVxLanFlowRule(getVni(host), h.location().deviceId(), getIp(host), Ip4Address.valueOf(0), false);
+            if (!anyPortRemainedInSameCnode) {
+                setVxLanFlowRule(getVni(host), deviceId, getIp(h), Ip4Address.valueOf(0), false);
+            }
+        });
     }
 
     @Override
