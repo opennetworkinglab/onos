@@ -23,6 +23,7 @@ import org.joda.time.DateTime;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.ui.RequestHandler;
@@ -36,7 +37,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableList.copyOf;
-import static org.onosproject.net.MastershipRole.MASTER;
 
 
 /**
@@ -140,10 +140,11 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
             super(CLUSTER_DETAILS_REQ);
         }
 
-        private List<Device> populateDevices() {
+        private List<Device> populateDevices(ControllerNode node) {
             DeviceService ds = get(DeviceService.class);
+            MastershipService ms = get(MastershipService.class);
             return copyOf(ds.getDevices()).stream()
-                    .filter(d -> ds.getRole(d.id()) == MASTER)
+                    .filter(d -> ms.getMasterFor(d.id()).equals(node.id()))
                     .collect(Collectors.toList());
         }
 
@@ -176,7 +177,7 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
 
             ObjectNode data = objectNode();
             ArrayNode devices = arrayNode();
-            List<Device> deviceList = populateDevices();
+            List<Device> deviceList = populateDevices(node);
 
             data.put(ID, node.id().toString());
             data.put(IP, node.ip().toString());
