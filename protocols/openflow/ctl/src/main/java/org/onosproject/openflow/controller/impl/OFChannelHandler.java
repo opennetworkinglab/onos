@@ -619,6 +619,15 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                     throws IOException {
                 h.pendingPortStatusMsg.add(m);
             }
+
+            @Override
+            void processIdle(OFChannelHandler h) throws IOException {
+                log.info("{} did not respond to MeterFeaturesRequest, " +
+                         "moving on without it.",
+                         h.getSwitchInfoString());
+                h.sendHandshakeDescriptionStatsRequest();
+                h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+            }
         },
 
 
@@ -717,6 +726,11 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             void processOFFeaturesReply(OFChannelHandler h, OFFeaturesReply  m) {
                 h.sw.setFeaturesReply(m);
                 h.dispatchMessage(m);
+            }
+
+            @Override
+            void processIdle(OFChannelHandler h) throws IOException {
+                log.info("{} idle", h.getSwitchInfoString());
             }
 
         };
@@ -1098,6 +1112,11 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
             unhandledMessageReceived(h, m);
         }
 
+        void processIdle(OFChannelHandler h) throws IOException {
+            // disconnect channel which did no complete handshake
+            log.error("{} idle in state {}, disconnecting", h.getSwitchInfoString(), this);
+            h.channel.disconnect();
+        }
     }
 
 
@@ -1215,6 +1234,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         e.getChannel().write(Collections.singletonList(m));
         // XXX S some problems here -- echo request has no transaction id, and
         // echo reply is not correlated to the echo request.
+        state.processIdle(this);
     }
 
     @Override
