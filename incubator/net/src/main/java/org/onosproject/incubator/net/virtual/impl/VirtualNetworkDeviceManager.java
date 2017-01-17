@@ -182,4 +182,10 @@ public class VirtualNetworkDeviceManager
     public VirtualNetwork network() {
         return network;
     }
+
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        // TODO not supported at this time
+        return null;
+    }
 }

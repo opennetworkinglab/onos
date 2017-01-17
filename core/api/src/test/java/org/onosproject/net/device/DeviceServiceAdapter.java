@@ -132,4 +132,9 @@ public class DeviceServiceAdapter implements DeviceService {
         return Collections.emptyList();
     }
 
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        return null;
+    }
+
 }

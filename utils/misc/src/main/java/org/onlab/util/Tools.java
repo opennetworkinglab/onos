@@ -541,11 +541,11 @@ public abstract class Tools {
         long hoursSince = (long) (deltaMillis / (1000.0 * 60 * 60));
         long daysSince = (long) (deltaMillis / (1000.0 * 60 * 60 * 24));
         if (daysSince > 0) {
-            return String.format("%dd ago", daysSince);
+            return String.format("%dd%dh ago", daysSince, hoursSince - daysSince * 24);
         } else if (hoursSince > 0) {
-            return String.format("%dh ago", hoursSince);
+            return String.format("%dh%dm ago", hoursSince, minsSince - hoursSince * 60);
         } else if (minsSince > 0) {
-            return String.format("%dm ago", minsSince);
+            return String.format("%dm%ds ago", minsSince, secondsSince - minsSince * 60);
         } else if (secondsSince > 0) {
             return String.format("%ds ago", secondsSince);
         } else {

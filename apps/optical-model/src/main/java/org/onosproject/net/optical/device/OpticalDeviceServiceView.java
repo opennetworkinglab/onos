@@ -202,4 +202,10 @@ public class OpticalDeviceServiceView
         }
     }
 
+
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        return null;
+    }
+
 }

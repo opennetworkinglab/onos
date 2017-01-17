@@ -166,4 +166,14 @@ public interface DeviceService
      */
     boolean isAvailable(DeviceId deviceId);
 
+    /**
+     * Indicates how long ago the device connected or disconnected from this
+     * controller instance.
+     *
+     * @param deviceId device identifier
+     * @return a human readable string indicating the time since the device
+     *          connected-to or disconnected-from this controller instance.
+     */
+    String localStatus(DeviceId deviceId);
+
 }

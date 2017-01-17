@@ -111,4 +111,9 @@ class NetconfDeviceServiceMock implements DeviceService {
     public void removeListener(DeviceListener listener) {
 
     }
+
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        return null;
+    }
 }

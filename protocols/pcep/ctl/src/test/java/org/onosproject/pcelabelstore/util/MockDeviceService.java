@@ -145,4 +145,10 @@ public class MockDeviceService implements DeviceService {
         // TODO Auto-generated method stub
         return false;
     }
+
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

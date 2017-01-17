@@ -18,6 +18,7 @@ package org.onosproject.net.device.impl;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +35,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.joda.time.DateTime;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -76,6 +78,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 
@@ -145,6 +148,20 @@ public class DeviceManager
         = synchronizedListMultimap(
            newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));
 
+    /**
+     * Local storage for connectivity status of devices.
+     */
+    private class LocalStatus {
+        boolean connected;
+        DateTime dateTime;
+
+        public LocalStatus(boolean b, DateTime now) {
+            connected = b;
+            dateTime = now;
+        }
+    }
+    private final Map<DeviceId, LocalStatus> deviceLocalStatus =
+            Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
@@ -262,6 +279,16 @@ public class DeviceManager
         return store.isAvailable(deviceId);
     }
 
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        LocalStatus ls = deviceLocalStatus.get(deviceId);
+        if (ls == null) {
+            return "No Record";
+        }
+        String timeAgo = Tools.timeAgo(ls.dateTime.getMillis());
+        return (ls.connected) ? "connected " + timeAgo : "disconnected " + timeAgo;
+    }
+
     // Check a device for control channel connectivity.
     private boolean isReachable(DeviceId deviceId) {
         if (deviceId == null) {
@@ -334,7 +361,6 @@ public class DeviceManager
                     }
                 } else {
                     // check if the device has master, if not, mark it offline
-                    NodeId masterId = mastershipService.getMasterFor(deviceId);
                     // only the nodes which has mastership role can mark any device offline.
                     CompletableFuture<MastershipRole> roleFuture = mastershipService.requestRoleFor(deviceId);
                     roleFuture.thenAccept(role -> {
@@ -404,6 +430,8 @@ public class DeviceManager
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
 
+            deviceLocalStatus.put(deviceId, new LocalStatus(true, DateTime.now()));
+
             BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
             if (!isAllowed(cfg)) {
                 log.warn("Device {} is not allowed", deviceId);
@@ -445,7 +473,7 @@ public class DeviceManager
         public void deviceDisconnected(DeviceId deviceId) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkValidity();
-
+            deviceLocalStatus.put(deviceId, new LocalStatus(false, DateTime.now()));
             log.info("Device {} disconnected from this node", deviceId);
 
             List<PortDescription> descs = store.getPortDescriptions(provider().id(), deviceId)
