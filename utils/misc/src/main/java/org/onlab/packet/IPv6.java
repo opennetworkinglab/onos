@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -48,6 +49,8 @@ public class IPv6 extends IP implements IExtensionHeader {
     public static final byte PROTOCOL_AH = 0x33;
     public static final byte PROTOCOL_DSTOPT = 0x3C;
 
+    public static final byte LINK_LOCAL_0 = (byte) 0xfe;
+    public static final byte LINK_LOCAL_1 = (byte) 0x80;
 
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
@@ -396,8 +399,9 @@ public class IPv6 extends IP implements IExtensionHeader {
      * @param targetIp the unicast or anycast address
      * @return the computed solicitation node address
      */
-    public static byte[] solicitationNodeAddress(byte[] targetIp) {
-        return targetIp.length != Ip6Address.BYTE_LENGTH ? null : new byte[] {
+    public static byte[] getSolicitNodeAddress(byte[] targetIp) {
+        checkArgument(targetIp.length == Ip6Address.BYTE_LENGTH);
+        return new byte[] {
                 (byte) 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x01, (byte) 0xff,
                 targetIp[targetIp.length - 3],
@@ -424,8 +428,9 @@ public class IPv6 extends IP implements IExtensionHeader {
      * @param targetIp the multicast address.
      * @return the multicast mac address
      */
-    public static byte[] multicastMacAddress(byte[] targetIp) {
-        return targetIp.length != Ip6Address.BYTE_LENGTH ? null : new byte[] {
+    public static byte[] getMCastMacAddress(byte[] targetIp) {
+        checkArgument(targetIp.length == Ip6Address.BYTE_LENGTH);
+        return new byte[] {
                 0x33, 0x33,
                 targetIp[targetIp.length - 4],
                 targetIp[targetIp.length - 3],
@@ -433,4 +438,70 @@ public class IPv6 extends IP implements IExtensionHeader {
                 targetIp[targetIp.length - 1],
         };
     }
+
+    /**
+     * According to the RFC 4291, an IPv6 link local address is an IPv6
+     * unicast address that can be automatically configured on any interface
+     * using the link-local prefix FE80::/10 (1111 1110 10) and the interface
+     * identifier in the modified EUI-64 format.
+     *
+     *    +----------------------------------------------------------------+
+     *    |  10 bits   |         54 bits         |          64 bits        |
+     *    +----------- +-------------------------+-------------------------+
+     *    | 1111111010 |           0             |       interface ID      |
+     *    +----------- +-------------------------+-------------------------+
+     *
+     * @param targetIp the ip address to verify
+     * @return true if the ipv6 address is link local,
+     * false otherwise
+     */
+    public static boolean isLinkLocalAddress(byte[] targetIp) {
+        checkArgument(targetIp.length == Ip6Address.BYTE_LENGTH);
+        return (targetIp[0] & 0xff) == 0xfe && (targetIp[1] & 0xc0) == 0x80;
+    }
+
+    /**
+     * Returns the auto-generated link local address using the
+     * mac address as parameter.
+     *
+     * @param macAddress the mac address to use
+     * @return the ipv6 link local address
+     */
+    public static byte[] getLinkLocalAddress(byte[] macAddress) {
+        checkArgument(macAddress.length == MacAddress.MAC_ADDRESS_LENGTH);
+        return new byte[] {
+                LINK_LOCAL_0,
+                LINK_LOCAL_1,
+                0, 0, 0, 0, 0, 0,
+                (byte) (macAddress[0] ^ (1 << 1)),
+                macAddress[1],
+                macAddress[2],
+                (byte) 0xff,
+                (byte) 0xfe,
+                macAddress[3],
+                macAddress[4],
+                macAddress[5],
+        };
+    }
+
+    /**
+     * Returns the mac address from the auto-generated
+     * link local address.
+     *
+     * @param linkLocalAddress the ipv6 to use
+     * @return the mac address
+     */
+    public static byte[] getMacAddress(byte[] linkLocalAddress) {
+        return !isLinkLocalAddress(linkLocalAddress) ? null : new byte[] {
+                (byte) (linkLocalAddress[8] ^ (1 << 1)),
+                linkLocalAddress[9],
+                linkLocalAddress[10],
+                linkLocalAddress[13],
+                linkLocalAddress[14],
+                linkLocalAddress[15],
+        };
+    }
+
+
+
 }

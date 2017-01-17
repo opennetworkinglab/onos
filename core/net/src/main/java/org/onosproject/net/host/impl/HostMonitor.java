@@ -221,13 +221,13 @@ public class HostMonitor implements TimerTask {
              * we should use the solicitation node address as IPv6 destination
              * and the multicast mac address as Ethernet destination.
              */
-            byte[] destIp = IPv6.solicitationNodeAddress(targetIp.toOctets());
+            byte[] destIp = IPv6.getSolicitNodeAddress(targetIp.toOctets());
             probePacket = NeighborSolicitation.buildNdpSolicit(
                     targetIp.toOctets(),
                     sourceIp.toOctets(),
                     destIp,
                     sourceMac.toBytes(),
-                    IPv6.multicastMacAddress(destIp),
+                    IPv6.getMCastMacAddress(destIp),
                     vlan
             );
         }
