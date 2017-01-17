@@ -42,21 +42,25 @@
 
     Collection.prototype = {
         model: Model,
-        add: function (data) {
+        addModel: function (data) {
+            var CollectionModel = this.model;
+            var model = new CollectionModel(data);
+            model.collection = this;
 
+            this.models.push(model);
+            this._byId[data.id] = model;
+
+            return model;
+        },
+        add: function (data) {
             var _this = this;
 
             if (angular.isArray(data)) {
-
                 data.forEach(function (d) {
-
-                    var CollectionModel = _this.model;
-                    var model = new CollectionModel(d);
-                    model.collection = _this;
-
-                    _this.models.push(model);
-                    _this._byId[d.id] = model;
+                    _this.addModel(d);
                 });
+            } else {
+                return this.addModel(data);
             }
         },
         get: function (id) {

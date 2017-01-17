@@ -256,7 +256,7 @@
                         var regionLinks = t2rs.regionLinks();
 
                         this.link = this.elements.linkG.selectAll('.link')
-                            .data(regionLinks, function (d) { return d.get('key'); });
+                            .data(regionLinks);
 
                         // operate on entering links:
                         var entering = this.link.enter()

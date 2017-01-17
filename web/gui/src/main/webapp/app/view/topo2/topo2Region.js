@@ -26,7 +26,7 @@
     var Model;
 
     // Internal
-    var instance
+    var instance;
 
     // 'static' vars
     var ROOT = '(root)';
@@ -101,6 +101,9 @@
                 regionLinks: function () {
                     return (this.model) ? this.model.get('links').models : [];
                 },
+                getLink: function (linkId) {
+                    return this.model.get('links').get(linkId);
+                },
                 filterRegionNodes: function (predicate) {
                     var nodes = this.regionNodes();
                     return _.filter(nodes, predicate);
@@ -138,6 +141,27 @@
                     }
 
                     return false;
+                },
+
+                update: function (event) {
+                    if (this[event.type]) {
+                        this[event.type](event);
+                        this.layout.update();
+                    } else {
+                        $log.error("Unhanded topology update", event);
+                    }
+                },
+
+                // Topology update event handlers
+                LINK_ADDED_OR_UPDATED: function (event) {
+                    if (event.memo === 'added') {
+                        var link = this.model.get('links').add(event.data);
+                        link.createLink();
+                    }
+                },
+                LINK_REMOVED: function (event) {
+                    var link = this.getLink(event.subject);
+                    link.remove();
                 }
             });
 
@@ -146,6 +170,7 @@
             }
 
             return getInstance();
+
         }]);
 
 })();

@@ -319,6 +319,18 @@
                 if (this.get('enhanced')) {
                     this.enhance();
                 }
+            },
+            remove: function () {
+
+                var width = linkScale(widthRatio) / t2zs.scale();
+
+                this.el.transition()
+                    .duration(300)
+                    .attr('stroke', '#ff0000')
+                    .style('stroke-width', width * 4)
+                    .transition()
+                    .delay(1000)
+                    .style('opacity', 0);
             }
         });
 
