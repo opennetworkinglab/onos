@@ -190,9 +190,9 @@ public final class OpenstackSwitchingManager extends AbstractVmHandler
                 .anyMatch(h -> Objects.equals(getVni(h), getVni(host)));
 
         getVmsInDifferentCnode(host).forEach(h -> {
-            setVxLanFlowRule(getVni(host), h.location().deviceId(), getIp(host), Ip4Address.valueOf(0), false);
+            setVxLanFlowRule(getVni(host), h.location().deviceId(), Ip4Address.valueOf(0), getIp(host),  false);
             if (!anyPortRemainedInSameCnode) {
-                setVxLanFlowRule(getVni(host), deviceId, getIp(h), Ip4Address.valueOf(0), false);
+                setVxLanFlowRule(getVni(host), deviceId, Ip4Address.valueOf(0), getIp(h), false);
             }
         });
     }
