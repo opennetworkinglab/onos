@@ -14,11 +14,11 @@ options:
 summary:
  Remotely configures and starts ONOS for the first time.
 
- The procedure for configruing a node include determining base features,
+ The procedure for configuring a node includes determining base features,
  applications to load at startup, and clustering and logical network view
  configurations, among others.
 
- If [node] isn't specified, the defualt target becomes \$OCI.
+ If [node] isn't specified, the default target becomes \$OCI.
 
 _EOF_
 }
@@ -51,7 +51,13 @@ ssh -tt $remote "
 
     # Customize which builtin apps should be ignited
     for app in $(echo $ONOS_APPS | tr ',' ' '); do
-        touch $ONOS_INSTALL_DIR/apps/org.onosproject.\$app/active
+        if  [ -d \"$ONOS_INSTALL_DIR/apps/org.onosproject.\$app/\" ]; then
+            touch $ONOS_INSTALL_DIR/apps/org.onosproject.\$app/active
+        elif [ -d \"$ONOS_INSTALL_DIR/apps/\$app\" ]; then
+            touch $ONOS_INSTALL_DIR/apps/\$app/active
+        else
+            echo \"[WARN] Don\'t know how to activate \$app\"
+        fi
     done
 "
 

@@ -41,11 +41,13 @@ done
 # Activate the system required applications (SYS_APPS) as well as any
 # specified applications in the var ONOS_APPS
 for app in ${SYS_APPS//,/ } ${ONOS_APPS//,/ }; do
-  if [[ "$app" =~ \. ]]; then
-    touch ${ONOS_HOME}/apps/$app/active
-  else
-    touch ${ONOS_HOME}/apps/org.onosproject.$app/active
-  fi
+    if  [ -d "${ONOS_HOME}/apps/org.onosproject.$app/" ]; then
+        touch ${ONOS_HOME}/apps/org.onosproject.$app/active
+    elif [ -d "${ONOS_HOME}/apps/$app" ]; then
+        touch ${ONOS_HOME}/apps/$app/active
+    else
+        echo "[WARN] Don't know how to activate $app"
+    fi
 done
 
 exec ${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/karaf $KARAF_ARGS
