@@ -17,6 +17,8 @@ package org.onosproject.lisp.ctl;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,6 +31,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class LispRouterId extends Identifier<IpAddress> {
 
+    private static final Logger log = LoggerFactory.getLogger(LispRouterId.class);
     private static final String SCHEME = "lisp";
     private static final IpAddress UNKNOWN = IpAddress.valueOf("0.0.0.0");
 
@@ -88,6 +91,7 @@ public final class LispRouterId extends Identifier<IpAddress> {
         try {
             return new URI(SCHEME, ipAddress.toString(), null);
         } catch (URISyntaxException e) {
+            log.warn("Failed to parse the IP address.", e);
             return null;
         }
     }

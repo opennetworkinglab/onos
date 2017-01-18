@@ -75,8 +75,13 @@ public final class LispAuthenticationConfig {
     /**
      * Prevents object instantiation from external.
      */
-    private static class SingletonHelper {
+    private static final class SingletonHelper {
+        private static final String ILLEGAL_ACCESS_MSG = "Should not instantiate this class.";
         private static final LispAuthenticationConfig INSTANCE =
-                new LispAuthenticationConfig();
+                                                new LispAuthenticationConfig();
+
+        private SingletonHelper() {
+            throw new IllegalAccessError(ILLEGAL_ACCESS_MSG);
+        }
     }
 }

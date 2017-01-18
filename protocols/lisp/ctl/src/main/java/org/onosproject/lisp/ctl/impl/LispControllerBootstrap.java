@@ -125,9 +125,9 @@ public class LispControllerBootstrap {
         try {
             eventLoopGroup = new EpollEventLoopGroup();
             channelClass = EpollDatagramChannel.class;
-        } catch (Throwable e) {
+        } catch (RuntimeException e) {
             log.debug("Failed to initialize native (epoll) transport. "
-                        + "Reason: {}. Proceeding with NIO event group.", e.getMessage());
+                        + "Reason: {}. Proceeding with NIO event group.", e);
         }
         eventLoopGroup = new NioEventLoopGroup();
         channelClass = NioDatagramChannel.class;

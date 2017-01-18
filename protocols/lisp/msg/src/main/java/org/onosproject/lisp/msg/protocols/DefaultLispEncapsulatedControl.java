@@ -183,8 +183,6 @@ public final class DefaultLispEncapsulatedControl extends AbstractLispMessage
 
         private static final int SECURITY_INDEX = 3;
         private static final int RESERVED_SKIP_LENGTH = 3;
-        private static final int UDP_HEADER_LENGTH = 8;
-        private static final short HEADER_LENGTH_MASK = 0xf;
 
         @Override
         public LispEncapsulatedControl readFrom(ByteBuf byteBuf) throws

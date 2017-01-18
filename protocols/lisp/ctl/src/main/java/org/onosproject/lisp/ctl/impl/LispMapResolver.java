@@ -15,6 +15,7 @@
  */
 package org.onosproject.lisp.ctl.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onosproject.lisp.msg.protocols.DefaultLispEncapsulatedControl.DefaultEcmBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
@@ -100,7 +101,7 @@ public final class LispMapResolver {
 
         } else {
 
-            if (mapReplyRecords.size() > 0) {
+            if (!mapReplyRecords.isEmpty()) {
 
                 List<LispMessage> mapReplies = Lists.newArrayList();
 
@@ -125,7 +126,7 @@ public final class LispMapResolver {
                 return mapReplies;
             }
 
-            if (mapRequestRecords.size() > 0) {
+            if (!mapRequestRecords.isEmpty()) {
 
                 List<LispMessage> ecms = Lists.newArrayList();
 
@@ -146,7 +147,7 @@ public final class LispMapResolver {
                 return ecms;
             }
         }
-        return null;
+        return ImmutableList.of();
     }
 
     /**

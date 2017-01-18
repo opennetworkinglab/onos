@@ -301,7 +301,7 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
         @Override
         public LispMapRequest build() {
 
-            checkArgument((itrRlocs != null) && (itrRlocs.size() > 0), "Must have an ITR RLOC entry");
+            checkArgument((itrRlocs != null) && (!itrRlocs.isEmpty()), "Must have an ITR RLOC entry");
 
             return new DefaultLispMapRequest(nonce, sourceEid, itrRlocs, eidRecords,
                     authoritative, mapDataPresent, probe, smr, pitr, smrInvoked, replyRecord);
