@@ -38,6 +38,7 @@ import org.onosproject.ovsdb.controller.OvsdbPort;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,6 +74,9 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         addBridge(bridgeDesc);
 
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return;
+        }
         client.createPort(bridgeName.name(), exPortName);
     }
 
@@ -93,7 +97,9 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public boolean addBridge(BridgeDescription bridgeDesc) {
         OvsdbClientService client = getOvsdbClientService(handler());
-
+        if (client == null) {
+            return false;
+        }
         OvsdbBridge.Builder bridgeBuilder = OvsdbBridge.builder(bridgeDesc);
         if (bridgeDesc.enableLocalController()) {
             bridgeBuilder.controller(client.localController());
@@ -104,12 +110,19 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public void deleteBridge(BridgeName bridgeName) {
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return;
+        }
         client.dropBridge(bridgeName.name());
     }
 
     @Override
     public Collection<BridgeDescription> getBridges() {
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return Collections.emptyList();
+        }
+
         Set<OvsdbBridge> bridges = client.getBridges();
 
         return bridges.stream()
@@ -123,18 +136,27 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public void addPort(BridgeName bridgeName, String portName) {
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return;
+        }
         client.createPort(bridgeName.name(), portName);
     }
 
     @Override
     public void deletePort(BridgeName bridgeName, String portName) {
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return;
+        }
         client.dropPort(bridgeName.name(), portName);
     }
 
     @Override
     public Collection<PortDescription> getPorts() {
         OvsdbClientService client = getOvsdbClientService(handler());
+        if (client == null) {
+            return Collections.emptyList();
+        }
         Set<OvsdbPort> ports = client.getPorts();
 
         return ports.stream()
@@ -170,6 +192,9 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     public Set<PortNumber> getPortNumbers() {
         DriverHandler handler = handler();
         OvsdbClientService client = getOvsdbClientService(handler);
+        if (client == null) {
+            return Collections.emptySet();
+        }
         Set<OvsdbPort> ports = client.getPorts();
 
         return ports.stream()
@@ -186,6 +211,9 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         List<PortNumber> ports = new ArrayList<>();
         DriverHandler handler = handler();
         OvsdbClientService client = getOvsdbClientService(handler);
+        if (client == null) {
+            return Collections.emptyList();
+        }
         Set<OvsdbPort> ovsdbSet = client.getLocalPorts(ifaceIds);
         ovsdbSet.forEach(o -> {
             PortNumber port = PortNumber.portNumber(o.portNumber().value(),
