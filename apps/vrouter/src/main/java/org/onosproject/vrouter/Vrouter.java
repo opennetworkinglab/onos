@@ -104,7 +104,7 @@ public class Vrouter {
             return;
         }
 
-        Boolean newFibInstallerEnabled = Tools.isPropertyEnabled(properties, "fibInstalledEnabled");
+        Boolean newFibInstallerEnabled = Tools.isPropertyEnabled(properties, "fibInstallerEnabled");
         if (newFibInstallerEnabled == null) {
             log.info("fibInstallerEnabled is not configured, " +
                     "using current value of {}", fibInstallerEnabled);
