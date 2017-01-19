@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpPrefix;
@@ -29,6 +30,8 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -42,10 +45,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public class InterfaceConfig extends Config<ConnectPoint> {
+    private static Logger log = LoggerFactory.getLogger(InterfaceConfig.class);
+
     public static final String NAME = "name";
     public static final String IPS = "ips";
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
+    public static final String VLAN_UNTAGGED = "vlan-untagged";
+    public static final String VLAN_TAGGED = "vlan-tagged";
+    public static final String VLAN_NATIVE = "vlan-native";
 
     private static final String CONFIG_VALUE_ERROR = "Error parsing config value";
     private static final String INTF_NULL_ERROR = "Interface cannot be null";
@@ -54,7 +62,8 @@ public class InterfaceConfig extends Config<ConnectPoint> {
     @Override
     public boolean isValid() {
         for (JsonNode node : array) {
-            if (!hasOnlyFields((ObjectNode) node, NAME, IPS, MAC, VLAN)) {
+            if (!hasOnlyFields((ObjectNode) node, NAME, IPS, MAC, VLAN,
+                    VLAN_UNTAGGED, VLAN_TAGGED, VLAN_NATIVE)) {
                 return false;
             }
 
@@ -62,16 +71,41 @@ public class InterfaceConfig extends Config<ConnectPoint> {
 
             if (!(isString(obj, NAME, FieldPresence.OPTIONAL) &&
                     isMacAddress(obj, MAC, FieldPresence.OPTIONAL) &&
-                    isIntegralNumber(obj, VLAN, FieldPresence.OPTIONAL, 0, VlanId.MAX_VLAN))) {
+                    isIntegralNumber(obj, VLAN, FieldPresence.OPTIONAL, 0, VlanId.MAX_VLAN) &&
+                    isIntegralNumber(obj, VLAN_UNTAGGED, FieldPresence.OPTIONAL, 0, VlanId.MAX_VLAN) &&
+                    isIntegralNumber(obj, VLAN_NATIVE, FieldPresence.OPTIONAL, 0, VlanId.MAX_VLAN))) {
                 return false;
             }
-
 
             for (JsonNode ipNode : node.path(IPS)) {
                 if (!ipNode.isTextual() || IpPrefix.valueOf(ipNode.asText()) == null) {
                     return false;
                 }
             }
+
+            checkArgument(!hasField(obj, VLAN_TAGGED) ||
+                            (node.path(VLAN_TAGGED).isArray() && node.path(VLAN_TAGGED).size() >= 1),
+                    "%s must be an array with at least one element", VLAN_TAGGED);
+
+            for (JsonNode vlanNode : node.path(VLAN_TAGGED)) {
+                checkArgument(vlanNode.isInt() &&
+                        vlanNode.intValue() >= 0 &&  vlanNode.intValue() <= VlanId.MAX_VLAN,
+                        "Invalid VLAN ID %s in %s", vlanNode.intValue(), VLAN_TAGGED);
+            }
+
+            checkArgument(!hasField(obj, VLAN_UNTAGGED) ||
+                    !(hasField(obj, VLAN_TAGGED) || hasField(obj, VLAN_NATIVE)),
+                    "%s and %s should not be used when %s is set", VLAN_TAGGED, VLAN_NATIVE, VLAN_UNTAGGED);
+
+            checkArgument(!hasField(obj, VLAN_TAGGED) || !hasField(obj, VLAN_UNTAGGED),
+                    "%s should not be used when %s is set", VLAN_UNTAGGED, VLAN_TAGGED);
+
+            checkArgument(!hasField(obj, VLAN_NATIVE) || hasField(obj, VLAN_TAGGED),
+                    "%s should not be used alone without %s", VLAN_NATIVE, VLAN_TAGGED);
+
+            checkArgument(!hasField(obj, VLAN_NATIVE) || !hasField(obj, VLAN_TAGGED) ||
+                    !getVlans(obj, VLAN_TAGGED).contains(getVlan(obj, VLAN_NATIVE)),
+                    "%s cannot be one of the VLANs configured in %s", VLAN_NATIVE, VLAN_TAGGED);
         }
         return true;
     }
@@ -94,9 +128,13 @@ public class InterfaceConfig extends Config<ConnectPoint> {
                 String mac = intfNode.path(MAC).asText();
                 MacAddress macAddr = mac.isEmpty() ? null : MacAddress.valueOf(mac);
 
-                VlanId vlan = getVlan(intfNode);
+                VlanId vlan = getVlan(intfNode, VLAN);
+                VlanId vlanUntagged = getVlan(intfNode, VLAN_UNTAGGED);
+                Set<VlanId> vlanTagged = getVlans(intfNode, VLAN_TAGGED);
+                VlanId vlanNative = getVlan(intfNode, VLAN_NATIVE);
 
-                interfaces.add(new Interface(name, subject, ips, macAddr, vlan));
+                interfaces.add(new Interface(name, subject, ips, macAddr, vlan,
+                        vlanUntagged, vlanTagged, vlanNative));
             }
         } catch (IllegalArgumentException e) {
             throw new ConfigException(CONFIG_VALUE_ERROR, e);
@@ -125,12 +163,24 @@ public class InterfaceConfig extends Config<ConnectPoint> {
             intfNode.put(MAC, intf.mac().toString());
         }
 
-        if (!intf.ipAddresses().isEmpty()) {
+        if (!intf.ipAddressesList().isEmpty()) {
             intfNode.set(IPS, putIps(intf.ipAddressesList()));
         }
 
         if (!intf.vlan().equals(VlanId.NONE)) {
             intfNode.put(VLAN, intf.vlan().toString());
+        }
+
+        if (!intf.vlanUntagged().equals(VlanId.NONE)) {
+            intfNode.put(VLAN_UNTAGGED, intf.vlanUntagged().toString());
+        }
+
+        if (!intf.vlanTagged().isEmpty()) {
+            intfNode.set(VLAN_UNTAGGED, putVlans(intf.vlanTagged()));
+        }
+
+        if (!intf.vlanNative().equals(VlanId.NONE)) {
+            intfNode.put(VLAN_NATIVE, intf.vlanNative().toString());
         }
     }
 
@@ -153,12 +203,46 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         }
     }
 
-    private VlanId getVlan(JsonNode node) {
+    /**
+     * Extracts VLAN ID from given path of given json node.
+     *
+     * @param node JSON node
+     * @param path path
+     * @return VLAN ID
+     */
+    private VlanId getVlan(JsonNode node, String path) {
         VlanId vlan = VlanId.NONE;
-        if (!node.path(VLAN).isMissingNode()) {
-            vlan = VlanId.vlanId(Short.valueOf(node.path(VLAN).asText()));
+        if (!node.path(path).isMissingNode()) {
+            vlan = VlanId.vlanId(Short.valueOf(node.path(path).asText()));
         }
         return vlan;
+    }
+
+    /**
+     * Extracts a set of VLAN ID from given path of given json node.
+     *
+     * @param node JSON node
+     * @param path path
+     * @return a set of VLAN ID
+     */
+    private Set<VlanId> getVlans(JsonNode node, String path) {
+        ImmutableSet.Builder<VlanId> vlanIdBuilder = ImmutableSet.builder();
+
+        JsonNode vlansNode = node.get(path);
+        if (vlansNode != null) {
+            vlansNode.forEach(vlanNode ->
+                    vlanIdBuilder.add(VlanId.vlanId(vlanNode.shortValue())));
+        }
+
+        return vlanIdBuilder.build();
+    }
+
+    private ArrayNode putVlans(Set<VlanId> vlans) {
+        ArrayNode vlanArray = mapper.createArrayNode();
+
+        vlans.forEach(vlan -> vlanArray.add(vlan.toShort()));
+
+        return vlanArray;
     }
 
     private List<InterfaceIpAddress> getIps(JsonNode node) {

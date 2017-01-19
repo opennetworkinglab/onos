@@ -38,6 +38,9 @@ public class InterfacesListCommand extends AbstractShellCommand {
     private static final String IP_FORMAT = " ips=";
     private static final String MAC_FORMAT = " mac=";
     private static final String VLAN_FORMAT = " vlan=";
+    private static final String VLAN_UNTAGGED = " vlanUntagged=";
+    private static final String VLAN_TAGGED = " vlanTagged=";
+    private static final String VLAN_NATIVE = " vlanNative=";
 
     private static final String NO_NAME = "(unamed)";
 
@@ -68,6 +71,21 @@ public class InterfacesListCommand extends AbstractShellCommand {
         if (!intf.vlan().equals(VlanId.NONE)) {
             formatStringBuilder.append(VLAN_FORMAT);
             formatStringBuilder.append(intf.vlan().toString());
+        }
+
+        if (!intf.vlanUntagged().equals(VlanId.NONE)) {
+            formatStringBuilder.append(VLAN_UNTAGGED);
+            formatStringBuilder.append(intf.vlanUntagged().toString());
+        }
+
+        if (!intf.vlanTagged().isEmpty()) {
+            formatStringBuilder.append(VLAN_TAGGED);
+            formatStringBuilder.append(intf.vlanTagged().toString());
+        }
+
+        if (!intf.vlanNative().equals(VlanId.NONE)) {
+            formatStringBuilder.append(VLAN_NATIVE);
+            formatStringBuilder.append(intf.vlanNative().toString());
         }
 
         String name = (intf.name().equals(Interface.NO_INTERFACE_NAME)) ?
