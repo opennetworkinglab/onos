@@ -89,7 +89,7 @@ public class GroupBucketEntryBuilder {
                     break;
                 case SELECT:
                     groupBucket =
-                            DefaultGroupBucket.createSelectGroupBucket(treatment);
+                            DefaultGroupBucket.createSelectGroupBucket(treatment, (short) bucket.getWeight());
                     break;
                 case FF:
                     PortNumber port =
