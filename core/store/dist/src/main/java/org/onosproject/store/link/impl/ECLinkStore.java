@@ -261,9 +261,9 @@ public class ECLinkStore
             linkDescriptions.compute(internalLinkKey, (k, v) -> createOrUpdateLinkInternal(v, linkDescription));
             return refreshLinkCache(linkKey);
         } else {
-            // Only forward for ConfigProvider
+            // Only forward for ConfigProvider or NullProvider
             // Forwarding was added as a workaround for ONOS-490
-            if (!providerId.scheme().equals("cfg")) {
+            if (!providerId.scheme().equals("cfg") && !providerId.scheme().equals("null")) {
                 return null;
             }
             // Temporary hack for NPE (ONOS-1171).
