@@ -161,7 +161,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 new DelegatingAsyncConsistentTreeMap<byte[]>(atomixConsistentTreeMap) {
                     @Override
                     public String name() {
-                        return name();
+                        return name;
                     }
                 };
         AsyncConsistentTreeMap<V> transcodedMap =
