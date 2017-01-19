@@ -204,7 +204,7 @@ function build_rpm() {
 set -e
 
 [[ $# == 0 ]] && ONOS_PACKAGE_TAR_arg=true
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
 case $1 in
     -t|--tar)
         ONOS_PACKAGE_TAR_arg=true

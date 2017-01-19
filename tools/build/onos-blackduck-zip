@@ -39,7 +39,7 @@ check_copy() {
     [ -d "$FOLDER" ] && rm -r $FOLDER
     mkdir $FOLDER
     mvn clean install
-    if [$? -eq 0 ]; then
+    if [ $? -eq 0 ]; then
         cp -r -a * $FOLDER;
         if [ -d "$FOLDER/.git" ]; then
          rm -r $FOLDER/.git
