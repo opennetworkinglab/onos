@@ -83,6 +83,7 @@
         <module>tenbi</module>
         <module>tetunnel</module>
         <module>actn-mdsc</module>
+        <module>restconf</module>
     </modules>
 
     <properties>
