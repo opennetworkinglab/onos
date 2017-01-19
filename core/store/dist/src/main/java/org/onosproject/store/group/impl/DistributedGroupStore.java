@@ -64,6 +64,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
+import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -85,10 +86,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -126,6 +130,8 @@ public class DistributedGroupStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    private ScheduledExecutorService executor;
+    private Consumer<Status> statusChangeListener;
     // Per device group table with (device id + app cookie) as key
     private ConsistentMap<GroupStoreKeyMapKey,
             StoredGroupEntry> groupStoreEntriesByKey = null;
@@ -204,6 +210,16 @@ public class DistributedGroupStore
         log.debug("Current size of groupstorekeymap:{}",
                   groupStoreEntriesByKey.size());
 
+        log.debug("Creating GroupStoreId Map From GroupStoreKey Map");
+        matchGroupEntries();
+        executor = newSingleThreadScheduledExecutor(groupedThreads("onos/group", "store", log));
+        statusChangeListener = status -> {
+            if (status == Status.ACTIVE) {
+                executor.execute(this::matchGroupEntries);
+            }
+        };
+        groupStoreEntriesByKey.addStatusChangeListener(statusChangeListener);
+
         log.debug("Creating Consistent map pendinggroupkeymap");
 
         auditPendingReqQueue = storageService.<GroupStoreKeyMapKey, StoredGroupEntry>consistentMapBuilder()
@@ -248,6 +264,16 @@ public class DistributedGroupStore
             return storageService.getTopic("group-failover-notif", serializer);
         } else {
             return groupTopic;
+        }
+    }
+
+    /**
+     * Updating values of groupEntriesById.
+     */
+    private void matchGroupEntries() {
+        for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupStoreEntriesByKey.asJavaMap().entrySet()) {
+            StoredGroupEntry group = entry.getValue();
+            getGroupIdTable(entry.getKey().deviceId()).put(group.id(), group);
         }
     }
 
