@@ -1,0 +1,14 @@
+BUNDLES = [
+    '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
+    '//apps/mappingmanagement/cli:onos-apps-mappingmanagement-cli',
+    '//apps/mappingmanagement/mgr:onos-apps-mappingmanagement-mgr',
+    '//apps/mappingmanagement/web:onos-apps-mappingmanagement-web',
+]
+
+onos_app (
+  title = 'Mapping Management App',
+  description = 'ONOS mapping management application',
+  category = 'Monitoring',
+  url = 'https://onosproject.org/',
+  included_bundles = BUNDLES,
+)

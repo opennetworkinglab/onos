@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//incubator/api:onos-incubator-api',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//utils/osgi:onlab-osgi',
+    '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    import_packages = '*,org.onosproject.cli.net',
+)

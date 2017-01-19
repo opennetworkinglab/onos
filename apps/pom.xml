@@ -87,6 +87,7 @@
         <module>restconf</module>
         <module>ofagent</module>
         <module>intentsync</module>
+        <module>mappingmanagement</module>
     </modules>
 
     <properties>
