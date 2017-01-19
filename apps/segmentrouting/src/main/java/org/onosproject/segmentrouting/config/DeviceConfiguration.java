@@ -357,7 +357,7 @@ public class DeviceConfiguration implements DeviceProperties {
                         .map(IpPrefix::getIp4Prefix)
                         .collect(Collectors.toSet());
 
-        if (subnets.size() == 0) {
+        if (subnets.isEmpty()) {
             log.info(NO_SUBNET, connectPoint);
             return null;
         } else if (subnets.size() > 1) {

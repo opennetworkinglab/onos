@@ -93,7 +93,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
             pcepSessionKeySet = pcepSessionMap.keySet();
             pcepSessionIdKeySet = pcepSessionIdMap.keySet();
             if (peer != null) {
-                if (pcepSessionKeySet.size() > 0) {
+                if (!pcepSessionKeySet.isEmpty()) {
                     if (pcepSessionKeySet.contains(peer)) {
                         for (String pcepSessionPeer : pcepSessionKeySet) {
                             if (pcepSessionPeer.equals(peer)) {
@@ -116,7 +116,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
                     }
                 }
             } else {
-                if (pcepSessionKeySet.size() > 0) {
+                if (!pcepSessionKeySet.isEmpty()) {
                     for (String pcepSessionPeer : pcepSessionKeySet) {
                         for (String pcepSessionId : pcepSessionIdKeySet) {
                             if (pcepSessionId.equals(pcepSessionPeer)) {
@@ -143,7 +143,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
             this.pcepClientController = get(PcepClientController.class);
             Map<String, List<String>> pcepSessionFailureReasonMap = pcepClientController.getPcepExceptions();
             pcepSessionFailurekeySet = pcepSessionFailureReasonMap.keySet();
-            if (pcepSessionFailurekeySet.size() > 0) {
+            if (!pcepSessionFailurekeySet.isEmpty()) {
                 if (peer != null) {
                     if (pcepSessionFailurekeySet.contains(peer)) {
                         for (String pcepSessionPeerId : pcepSessionFailurekeySet) {
@@ -158,7 +158,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
 
                 } else {
                     pcepSessionFailurekeySet = pcepSessionFailureReasonMap.keySet();
-                    if (pcepSessionFailurekeySet.size() > 0) {
+                    if (!pcepSessionFailurekeySet.isEmpty()) {
                         for (String pcepSessionPeerId : pcepSessionFailurekeySet) {
                             pcepSessionExceptions = pcepSessionFailureReasonMap.get(pcepSessionPeerId);
                             print("PeerId = %s, FailureReason = %s", pcepSessionPeerId, pcepSessionExceptions);
@@ -181,7 +181,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
             this.pcepClientController = get(PcepClientController.class);
             Map<Integer, Integer> pcepErrorMsgMap = pcepClientController.getPcepErrorMsg();
             pcepErrorMsgKey = pcepErrorMsgMap.keySet();
-            if (pcepErrorMsgKey.size() > 0) {
+            if (!pcepErrorMsgKey.isEmpty()) {
                 for (Integer errorType : pcepErrorMsgKey) {
                     pcepErrorValue = pcepErrorMsgMap.get(errorType);
                     pcepErrorType = PcepErrorType.values()[errorType];

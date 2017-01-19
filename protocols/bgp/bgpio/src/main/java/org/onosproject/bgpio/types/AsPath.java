@@ -208,7 +208,7 @@ public class AsPath implements BgpValueType {
         if (isaspathSet()) {
             int iAsLenIndex = cb.writerIndex();
             cb.writeByte(0);
-            if (aspathSeq.size() != 0) {
+            if (!aspathSeq.isEmpty()) {
                 cb.writeByte(ASPATH_SEQ_TYPE);
                 cb.writeByte(aspathSeq.size());
 

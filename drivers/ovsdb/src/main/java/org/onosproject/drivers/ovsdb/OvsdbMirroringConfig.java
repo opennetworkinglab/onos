@@ -124,7 +124,7 @@ public class OvsdbMirroringConfig extends AbstractHandlerBehaviour implements Mi
                 List<OvsdbNodeId> nodeIds = ovsController.getNodeIds().stream()
                         .filter(nodeID -> nodeID.getIpAddress().equals(targetIp))
                         .collect(Collectors.toList());
-                if (nodeIds.size() == 0) {
+                if (nodeIds.isEmpty()) {
                     //TODO decide what port?
                     ovsController.connect(IpAddress.valueOf(targetIp),
                                           targetPort == null ? TpPort.tpPort(OvsdbConstant.OVSDBPORT) : targetPort);
@@ -135,9 +135,9 @@ public class OvsdbMirroringConfig extends AbstractHandlerBehaviour implements Mi
                         .map(ovsController::getOvsdbClient)
                         .filter(cs -> cs.getBridges().stream().anyMatch(b -> dpidMatches(b, deviceId)))
                         .collect(Collectors.toList());
-                checkState(clientServices.size() > 0, "No clientServices found");
+                checkState(!clientServices.isEmpty(), "No clientServices found");
                 //FIXME add connection to management address if null --> done ?
-                return clientServices.size() > 0 ? clientServices.get(0) : null;
+                return !clientServices.isEmpty() ? clientServices.get(0) : null;
             default:
                 log.warn("Unmanaged device type");
         }

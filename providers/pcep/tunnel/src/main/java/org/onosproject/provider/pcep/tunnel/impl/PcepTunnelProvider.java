@@ -720,7 +720,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     // Creates a path that leads through the given devices.
     private Path createPath(List<PcepHopNodeDescription> hopList,
                             PathType pathtype, PathState pathState) {
-        if (hopList == null || hopList.size() == 0) {
+        if (hopList == null || hopList.isEmpty()) {
             return null;
         }
         List<Link> links = new ArrayList<>();
@@ -947,7 +947,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             llSubObjects = createPcepPath(path);
         }
 
-        if (llSubObjects == null || llSubObjects.size() == 0) {
+        if (llSubObjects == null || llSubObjects.isEmpty()) {
             log.error("There is no link information to create tunnel");
             return null;
         }
@@ -1053,7 +1053,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = createPcInitiatedLspReqList(tunnel, path,
                                                                                                         pc, srpId);
-            if (llPcInitiatedLspRequestList == null || llPcInitiatedLspRequestList.size() == 0) {
+            if (llPcInitiatedLspRequestList == null || llPcInitiatedLspRequestList.isEmpty()) {
                 log.error("Failed to create PcInitiatedLspRequestList");
                 return;
             }
@@ -1735,7 +1735,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             checkNotNull(eroObj);
             List<Object> subObjList = new ArrayList<>();
             LinkedList<PcepValueType> llSubObj = eroObj.getSubObjects();
-            if (0 == llSubObj.size()) {
+            if (llSubObj.isEmpty()) {
                 log.error("ERO in report message does not have hop information");
                 return new ArrayList<>();
             }

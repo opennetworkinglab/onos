@@ -153,7 +153,7 @@ public final class BasicPceccHandler {
         checkNotNull(pceStore, PCE_STORE_NULL);
 
         List<Link> linkList = tunnel.path().links();
-        if ((linkList != null) && (linkList.size() > 0)) {
+        if ((linkList != null) && (!linkList.isEmpty())) {
             // Sequence through reverse order to push local labels into devices
             // Generation of labels from egress to ingress
             for (ListIterator<Link> iterator = linkList.listIterator(linkList.size()); iterator.hasPrevious();) {
@@ -161,7 +161,7 @@ public final class BasicPceccHandler {
                 DeviceId dstDeviceId = link.dst().deviceId();
                 DeviceId srcDeviceId = link.src().deviceId();
                 labelRscList = labelRsrcService.applyFromDevicePool(dstDeviceId, applyNum);
-                if ((labelRscList != null) && (labelRscList.size() > 0)) {
+                if ((labelRscList != null) && (!labelRscList.isEmpty())) {
                     // Link label value is taken from destination device local pool.
                     // [X]OUT---link----IN[Y]OUT---link-----IN[Z] where X, Y and Z are nodes.
                     // Link label value is used as OUT and IN for both ends
@@ -228,7 +228,7 @@ public final class BasicPceccHandler {
        boolean srcDeviceUpdated = false;
 
        List<LspLocalLabelInfo> lspLabelInfoList = pceStore.getTunnelInfo(tunnel.tunnelId());
-       if ((lspLabelInfoList != null) && (lspLabelInfoList.size() > 0)) {
+       if ((lspLabelInfoList != null) && (!lspLabelInfoList.isEmpty())) {
            for (int i = 0; i < lspLabelInfoList.size(); ++i) {
                LspLocalLabelInfo lspLocalLabelInfo =
                        lspLabelInfoList.get(i);
@@ -299,7 +299,7 @@ public final class BasicPceccHandler {
 
        Multimap<DeviceId, LabelResource> release = ArrayListMultimap.create();
        List<LspLocalLabelInfo> lspLocalLabelInfoList = pceStore.getTunnelInfo(tunnel.tunnelId());
-       if ((lspLocalLabelInfoList != null) && (lspLocalLabelInfoList.size() > 0)) {
+       if ((lspLocalLabelInfoList != null) && (!lspLocalLabelInfoList.isEmpty())) {
            for (Iterator<LspLocalLabelInfo> iterator = lspLocalLabelInfoList.iterator(); iterator.hasNext();) {
                LspLocalLabelInfo lspLocalLabelInfo = iterator.next();
                DeviceId deviceId = lspLocalLabelInfo.deviceId();

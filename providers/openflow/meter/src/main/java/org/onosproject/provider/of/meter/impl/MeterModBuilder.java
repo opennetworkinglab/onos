@@ -155,6 +155,6 @@ public final class MeterModBuilder {
     private void validate() {
         checkNotNull(id, "id cannot be null");
         checkNotNull(bands, "Must have bands");
-        checkArgument(bands.size() > 0, "Must have at lease one band");
+        checkArgument(!bands.isEmpty(), "Must have at lease one band");
     }
 }

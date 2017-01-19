@@ -209,7 +209,7 @@ public class TunnelManager
                                               Annotations... annotations) {
         Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
                                                            dst, annotations);
-        if (tunnels == null || tunnels.size() == 0) {
+        if (tunnels == null || tunnels.isEmpty()) {
             Tunnel tunnel = new DefaultTunnel(null, src, dst, null, null, null,
                                               null, null, annotations);
             Set<ProviderId> ids = getProviders();
@@ -228,7 +228,7 @@ public class TunnelManager
         Collection<Tunnel> tunnels = store.borrowTunnel(consumerId, src,
                                                            dst, type,
                                                            annotations);
-        if (tunnels == null || tunnels.size() == 0) {
+        if (tunnels == null || tunnels.isEmpty()) {
             Tunnel tunnel = new DefaultTunnel(null, src, dst, type, null, null,
                                               null, null, annotations);
             Set<ProviderId> ids = getProviders();

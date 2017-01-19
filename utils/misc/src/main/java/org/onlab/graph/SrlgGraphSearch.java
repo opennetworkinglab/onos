@@ -184,7 +184,7 @@ public class SrlgGraphSearch<V extends Vertex, E extends Edge<V>>
         public double fitness() {
             Set<Path<V, E>> paths1 = findShortestPathFromSubset(subset).paths();
             Set<Path<V, E>> paths2 = findShortestPathFromSubset(not).paths();
-            if (paths1.size() == 0 || paths2.size() == 0) {
+            if (paths1.isEmpty() || paths2.isEmpty()) {
                 return INF;
             }
             return paths1.iterator().next().cost() + paths2.iterator().next().cost();

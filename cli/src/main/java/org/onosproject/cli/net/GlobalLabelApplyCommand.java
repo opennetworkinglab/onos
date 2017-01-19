@@ -40,7 +40,7 @@ public class GlobalLabelApplyCommand extends AbstractShellCommand {
         LabelResourceService lrs = get(LabelResourceService.class);
         Collection<LabelResource> result =
                 lrs.applyFromGlobalPool(Long.parseLong(applyNum));
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             for (Iterator<LabelResource> iterator = result.iterator(); iterator
                     .hasNext();) {
                 DefaultLabelResource defaultLabelResource = (DefaultLabelResource) iterator

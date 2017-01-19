@@ -142,7 +142,7 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
                     .withSelector(selector).fromApp(appId).makePermanent()
                     .withFlag(Flag.SPECIFIC).withPriority(MAC_PRIORITY);
             if (type.equals(Objective.Operation.ADD)) {
-                if (Sets.newHashSet(localVmPorts).size() == 0) {
+                if (Sets.newHashSet(localVmPorts).isEmpty()) {
                     flowObjectiveService.forward(deviceId, objective.remove());
                 } else {
                     flowObjectiveService.forward(deviceId, objective.add());

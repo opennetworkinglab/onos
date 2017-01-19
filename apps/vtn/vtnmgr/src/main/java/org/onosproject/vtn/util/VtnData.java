@@ -137,7 +137,7 @@ public final class VtnData {
                     }
                 }
             });
-            if (vPorts.size() == 0) {
+            if (vPorts.isEmpty()) {
                 return null;
             }
             return vPorts.get(0);
@@ -168,7 +168,7 @@ public final class VtnData {
                             }
                         }
                     });
-            if (vPorts.size() == 0) {
+            if (vPorts.isEmpty()) {
                 return null;
             }
             return vPorts.get(0);

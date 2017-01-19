@@ -165,7 +165,7 @@ public final class UiExtension {
          */
         public Builder(ClassLoader cl, List<UiView> views) {
             checkNotNull(cl, "Must provide a class loader");
-            checkArgument(views.size() > 0, "Must provide at least one view");
+            checkArgument(!views.isEmpty(), "Must provide at least one view");
             classLoader = cl;
             viewList = views;
         }

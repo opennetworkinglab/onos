@@ -171,7 +171,7 @@ public class As4Path implements BgpValueType {
         if ((as4pathSet != null) && (as4pathSeq != null)) {
             int iAsLenIndex = cb.writerIndex();
             cb.writeByte(0);
-            if (as4pathSeq.size() != 0) {
+            if (!as4pathSeq.isEmpty()) {
                 cb.writeByte(AsPath.ASPATH_SEQ_TYPE);
                 cb.writeByte(as4pathSeq.size());
 

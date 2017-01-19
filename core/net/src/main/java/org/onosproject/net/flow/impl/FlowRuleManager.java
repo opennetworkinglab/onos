@@ -629,7 +629,7 @@ public class FlowRuleManager
 
         @Override
         public synchronized void run() {
-            if (stages.size() > 0) {
+            if (!stages.isEmpty()) {
                 process(stages.remove(0));
             } else if (!hasFailed) {
                 fops.callback().onSuccess(fops);

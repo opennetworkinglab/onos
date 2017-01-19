@@ -277,7 +277,7 @@ public class OplinkRoadm extends AbstractOpenFlowSwitch implements OpenFlowOptic
     private OplinkPortAdjacency getNeighbor(OFExpPortAdjacency ad) {
         for (OFExpPortAdjacencyId adid : ad.getProperties()) {
             List<OFExpExtAdId> otns = adid.getAdId();
-            if (otns != null && otns.size() > 0) {
+            if (otns != null && !otns.isEmpty()) {
                 OFExpPortAdidOtn otn = (OFExpPortAdidOtn) otns.get(0);
                 // ITU-T G.7714 ETH MAC Format (in second 16 bytes of the following)
                 // |---------------------------------------------------------------------------|

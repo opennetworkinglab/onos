@@ -99,7 +99,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
                 .getFloatingIp(FloatingIpId.of(id)), GET_FAIL);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
-        if (fields.size() > 0) {
+        if (!fields.isEmpty()) {
             result.set("floatingip",
                        new FloatingIpCodec().extracFields(sub, this, fields));
         } else {

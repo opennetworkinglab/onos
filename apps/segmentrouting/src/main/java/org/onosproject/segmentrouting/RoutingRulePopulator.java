@@ -559,7 +559,7 @@ public class RoutingRulePopulator {
         }
 
         List<Port> devPorts = srManager.deviceService.getPorts(deviceId);
-        if (devPorts == null || devPorts.size() == 0) {
+        if (devPorts == null || devPorts.isEmpty()) {
             log.warn("Device {} ports not available. Unable to add MacVlan filters",
                      deviceId);
             return null;

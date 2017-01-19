@@ -73,7 +73,7 @@ public class IsisMessageDecoder extends FrameDecoder {
                 isisMessageList.add(message);
             }
         }
-        return (isisMessageList.size() > 0) ? isisMessageList : null;
+        return (!isisMessageList.isEmpty()) ? isisMessageList : null;
     }
 
     /**

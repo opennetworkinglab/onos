@@ -56,7 +56,7 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
 
         //choose an arbitrary shortest path to run Suurballe on
         Path<V, E> shortPath = null;
-        if (firstDijkstraS.paths().size() == 0) {
+        if (firstDijkstraS.paths().isEmpty()) {
             return firstDijkstraS;
         }
 
@@ -88,7 +88,7 @@ public class SuurballeGraphSearch<V extends Vertex, E extends Edge<V>> extends D
                     .search(gt, src, dst, modified, ALL_PATHS);
 
             Path<V, E> residualShortPath = null;
-            if (secondDijkstra.paths().size() == 0) {
+            if (secondDijkstra.paths().isEmpty()) {
                 result.dpps.add(new DisjointPathPair<>(shortPath, null));
                 continue;
             }

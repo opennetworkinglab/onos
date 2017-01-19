@@ -127,7 +127,7 @@ public class Controller {
         configPacket[1] = numberOfInterface;
         //First time configuration
         if (processes == null) {
-            if (isisProcesses.size() > 0) {
+            if (!isisProcesses.isEmpty()) {
                 processes = isisProcesses;
                 connectPeer();
             }
@@ -337,7 +337,7 @@ public class Controller {
                 }
                 interfaceList.add(isisInterface);
             }
-            if (interfaceList.size() > 0) {
+            if (!interfaceList.isEmpty()) {
                 IsisProcess process = new DefaultIsisProcess();
                 process.setProcessId(jsonNode.path(IsisConstants.PROCESSESID).asText());
                 process.setIsisInterfaceList(interfaceList);

@@ -58,7 +58,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
         DijkstraGraphSearch<V, E> dijkstraSearch = new DijkstraGraphSearch<>();
         Set<Path<V, E>> dijkstraResults = dijkstraSearch.search(originalGraph, src, dst, modifiedWeighter, 1).paths();
         //Checks if the dst was reachable
-        if (dijkstraResults.size() == 0) {
+        if (dijkstraResults.isEmpty()) {
             log.warn("No path was found.");
             return result;
         }
@@ -84,7 +84,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
                 }
 
                 dijkstraResults = dijkstraSearch.search(originalGraph, spurNode, dst, modifiedWeighter, 1).paths();
-                if (dijkstraResults.size() != 0) {
+                if (!dijkstraResults.isEmpty()) {
                     Path<V, E> spurPath = dijkstraResults.iterator().next();
                     List<E> totalPath = new ArrayList<>(rootPathEdgeList);
                     spurPath.edges().forEach(e -> totalPath.add(e));

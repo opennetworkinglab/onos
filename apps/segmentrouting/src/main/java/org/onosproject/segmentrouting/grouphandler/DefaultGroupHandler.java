@@ -655,7 +655,7 @@ public class DefaultGroupHandler {
                     log.warn("Neighbor {} is not in the port map yet for dev:{}",
                              neighborId, deviceId);
                     return;
-                } else if (devicePortMap.get(neighborId).size() == 0) {
+                } else if (devicePortMap.get(neighborId).isEmpty()) {
                     log.warn("There are no ports for "
                             + "the Device {} in the port map yet", neighborId);
                     return;

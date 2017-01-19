@@ -191,7 +191,7 @@ public final class PceccSrTeBeHandler {
         // The specificDeviceId is the new device and is not there in the pce store.
         // So, first generate its label and configure label and its lsr-id to it.
         Collection<LabelResource> result = labelRsrcService.applyFromGlobalPool(applyNum);
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             // Only one element (label-id) to retrieve
             Iterator<LabelResource> iterator = result.iterator();
             DefaultLabelResource defaultLabelResource = (DefaultLabelResource) iterator.next();
@@ -338,7 +338,7 @@ public final class PceccSrTeBeHandler {
         // Allocate adjacency label to a link from label manager.
         // Take label from source device pool to allocate.
         labelList = labelRsrcService.applyFromDevicePool(srcDeviceId, applyNum);
-        if (labelList.size() <= 0) {
+        if (labelList.isEmpty()) {
             log.error("Unable to allocate label to a device id {}.", srcDeviceId.toString());
             return false;
         }
@@ -427,7 +427,7 @@ public final class PceccSrTeBeHandler {
         // Label stack is linked list to make labels in order.
         List<LabelResourceId> labelStack = new LinkedList<>();
         List<Link> linkList = path.links();
-        if ((linkList != null) && (linkList.size() > 0)) {
+        if ((linkList != null) && (!linkList.isEmpty())) {
             // Path: [x] ---- [y] ---- [z]
             // For other than last link, add only source[x] device label.
             // For the last link, add both source[y] and destination[z] device labels.

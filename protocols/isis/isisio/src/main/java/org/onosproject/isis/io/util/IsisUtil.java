@@ -423,7 +423,7 @@ public final class IsisUtil {
         adjacencyStateTlv.setAdjacencyType((byte) IsisInterfaceState.DOWN.value());
         adjacencyStateTlv.setLocalCircuitId(Integer.parseInt(isisInterface.circuitId()));
         Set<MacAddress> neighbors = isisInterface.neighbors();
-        if (neighbors.size() > 0) {
+        if (!neighbors.isEmpty()) {
             IsisNeighbor neighbor = isisInterface.lookup(neighbors.iterator().next());
             adjacencyStateTlv.setAdjacencyType((byte) neighbor.interfaceState().value());
             adjacencyStateTlv.setNeighborSystemId(neighbor.neighborSystemId());
@@ -509,7 +509,7 @@ public final class IsisUtil {
         areaAddressTlv.addAddress(isisInterface.areaAddress());
         l1L2HelloPdu.addTlv(areaAddressTlv);
         Set<MacAddress> neighbors = isisInterface.neighbors();
-        if (neighbors.size() > 0) {
+        if (!neighbors.isEmpty()) {
             List<MacAddress> neighborMacs = new ArrayList<>();
             for (MacAddress neighbor : neighbors) {
                 IsisNeighbor isisNeighbor = isisInterface.lookup(neighbor);

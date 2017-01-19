@@ -97,7 +97,7 @@ public class NodeSelection {
         Set<String> unmatched = findLinks(ids);
         unmatched = findDevices(unmatched);
         unmatched = findHosts(unmatched);
-        if (unmatched.size() > 0) {
+        if (!unmatched.isEmpty()) {
             log.debug("Skipping unmatched IDs {}", unmatched);
         }
 

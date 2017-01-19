@@ -106,7 +106,7 @@ public class RouterWebResource extends AbstractWebResource {
                 .getRouter(RouterId.valueOf(id)), NOT_EXIST);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
-        if (fields.size() > 0) {
+        if (!fields.isEmpty()) {
             result.set("router",
                        new RouterCodec().extracFields(sub, this, fields));
         } else {

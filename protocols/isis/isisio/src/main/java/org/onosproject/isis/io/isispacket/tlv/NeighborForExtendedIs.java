@@ -134,7 +134,7 @@ public class NeighborForExtendedIs {
         List<Byte> byteList = new ArrayList<>();
         byteList.addAll(IsisUtil.sourceAndLanIdToBytes(this.neighborId()));
         byteList.addAll(Bytes.asList(IsisUtil.convertToThreeBytes(this.metric())));
-        if (this.teSubTlv.size() > 0) {
+        if (!this.teSubTlv.isEmpty()) {
             for (TrafficEngineeringSubTlv trafficEngineeringSubTlv : this.teSubTlv) {
                 byteList.addAll(SubTlvToBytes.tlvToBytes(trafficEngineeringSubTlv));
             }

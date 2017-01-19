@@ -307,7 +307,7 @@ public class DistributedTunnelStore
         orderRelationship.put(appId, orderSet);
         TunnelKey key = TunnelKey.tunnelKey(src, dst);
         Set<TunnelId> idSet = srcAndDstKeyMap.get(key);
-        if (idSet == null || idSet.size() == 0) {
+        if (idSet == null || idSet.isEmpty()) {
             return Collections.emptySet();
         }
         Collection<Tunnel> tunnelSet = new HashSet<Tunnel>();
@@ -337,7 +337,7 @@ public class DistributedTunnelStore
         orderRelationship.put(appId, orderSet);
         TunnelKey key = TunnelKey.tunnelKey(src, dst);
         Set<TunnelId> idSet = srcAndDstKeyMap.get(key);
-        if (idSet == null || idSet.size() == 0) {
+        if (idSet == null || idSet.isEmpty()) {
             return Collections.emptySet();
         }
         Collection<Tunnel> tunnelSet = new HashSet<Tunnel>();
@@ -364,7 +364,7 @@ public class DistributedTunnelStore
         boolean isExist = orderSet.contains(order);
 
         Set<TunnelId> idSet = tunnelNameAsKeyMap.get(tunnelName);
-        if (idSet == null || idSet.size() == 0) {
+        if (idSet == null || idSet.isEmpty()) {
             return Collections.emptySet();
         }
         Collection<Tunnel> tunnelSet = new HashSet<Tunnel>();
@@ -447,7 +447,7 @@ public class DistributedTunnelStore
         for (TunnelId id : tunnelIds) {
             result.add(tunnelIdAsKeyStore.get(id));
         }
-        return result.size() == 0 ? Collections.emptySet() : ImmutableSet
+        return result.isEmpty() ? Collections.emptySet() : ImmutableSet
                 .copyOf(result);
     }
 
@@ -462,7 +462,7 @@ public class DistributedTunnelStore
         for (TunnelId id : tunnelIds) {
             result.add(tunnelIdAsKeyStore.get(id));
         }
-        return result.size() == 0 ? Collections.emptySet() : ImmutableSet
+        return result.isEmpty() ? Collections.emptySet() : ImmutableSet
                 .copyOf(result);
     }
 

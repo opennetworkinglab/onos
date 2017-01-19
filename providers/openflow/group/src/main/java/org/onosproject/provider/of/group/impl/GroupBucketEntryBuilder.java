@@ -119,7 +119,7 @@ public class GroupBucketEntryBuilder {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
 
         // If this is a drop rule
-        if (actions.size() == 0) {
+        if (actions.isEmpty()) {
             builder.drop();
             return builder.build();
         }

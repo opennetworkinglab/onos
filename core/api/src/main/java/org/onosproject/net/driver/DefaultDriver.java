@@ -99,7 +99,7 @@ public class DefaultDriver implements Driver {
                 }
             }));
         }
-        return new DefaultDriver(name, completeParents.size() > 0 ? completeParents : other.parents(),
+        return new DefaultDriver(name, !completeParents.isEmpty() ? completeParents : other.parents(),
                                  manufacturer, hwVersion, swVersion,
                                  ImmutableMap.copyOf(behaviours), properties.build());
     }

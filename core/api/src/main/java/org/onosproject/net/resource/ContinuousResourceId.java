@@ -93,7 +93,7 @@ public final class ContinuousResourceId extends ResourceId {
 
     @Override
     public Optional<DiscreteResourceId> parent() {
-        if (components.size() == 0) {
+        if (components.isEmpty()) {
             return Optional.empty();
         }
         if (components.size() == 1) {

@@ -66,6 +66,6 @@ public class OspfMessageDecoder extends FrameDecoder {
                 ospfMessageList.add(message);
             }
         }
-        return (ospfMessageList.size() > 0) ? ospfMessageList : null;
+        return (!ospfMessageList.isEmpty()) ? ospfMessageList : null;
     }
 }

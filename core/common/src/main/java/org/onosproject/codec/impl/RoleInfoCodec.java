@@ -54,7 +54,7 @@ public final class RoleInfoCodec extends JsonCodec<RoleInfo> {
         ArrayNode backups = context.mapper().createArrayNode();
         roleInfo.backups().forEach(backup -> backups.add(backup.id()));
 
-        if (roleInfo.backups().size() != 0) {
+        if (!roleInfo.backups().isEmpty()) {
             result.set(BACKUPS, backups);
         }
 

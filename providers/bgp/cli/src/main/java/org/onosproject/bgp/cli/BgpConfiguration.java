@@ -87,7 +87,7 @@ public class BgpConfiguration extends AbstractShellCommand {
             TreeMap<String, BgpPeerCfg> displayPeerTree = bgpCfg.getPeerTree();
             Set<String> peerKey = displayPeerTree.keySet();
             if (peer != null) {
-                if (peerKey.size() > 0) {
+                if (!peerKey.isEmpty()) {
                     for (String peerIdKey : peerKey) {
                         bgpPeerCfg = displayPeerTree.get(peerIdKey);
                         bgpConnectPeer = bgpPeerCfg.connectPeer();
@@ -101,7 +101,7 @@ public class BgpConfiguration extends AbstractShellCommand {
                     }
                 }
             } else {
-                if (peerKey.size() > 0) {
+                if (!peerKey.isEmpty()) {
                     for (String peerIdKey : peerKey) {
                         bgpPeerCfg = displayPeerTree.get(peerIdKey);
                         bgpConnectPeer = bgpPeerCfg.connectPeer();

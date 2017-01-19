@@ -165,7 +165,7 @@ public final class DefaultMeterRequest implements MeterRequest {
         private void validate() {
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(bands, "Must have bands.");
-            checkArgument(bands.size() > 0, "Must have at least one band.");
+            checkArgument(!bands.isEmpty(), "Must have at least one band.");
             checkNotNull(appId, "Must have an application id");
         }
 

@@ -235,7 +235,7 @@ public class McastForwarding {
 
             ArrayList<ConnectPoint> egressList = (ArrayList<ConnectPoint>) mcastRouteManager.fetchSinks(mRoute);
             //If there are no egress ports set return, otherwise forward the packets to their expected port.
-            if (egressList.size() == 0) {
+            if (egressList.isEmpty()) {
                 return;
             }
 

@@ -713,7 +713,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port,
                 OpenFlowOpticalSwitch opsw) {
-            checkArgument(port.getDesc().size() >= 1);
+            checkArgument(!port.getDesc().isEmpty());
 
             // Minimally functional fixture. This needs to be fixed as we add better support.
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
@@ -790,7 +790,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             // Use the alias name if it's available
             String name = port.getName();
             List<OFCalientPortDescProp> props = port.getProperties();
-            if (props != null && props.size() > 0) {
+            if (props != null && !props.isEmpty()) {
                 OFCalientPortDescPropOptical propOptical = (OFCalientPortDescPropOptical) props.get(0);
                 if (propOptical != null) {
                     name = propOptical.getInAlias();

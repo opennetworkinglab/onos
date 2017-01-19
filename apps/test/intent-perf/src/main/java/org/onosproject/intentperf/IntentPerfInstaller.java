@@ -358,7 +358,7 @@ public class IntentPerfInstaller {
                 .forEach(device -> devices.put(mastershipService.getMasterFor(device.id()), device));
 
         // ensure that we have at least one device per neighbor
-        neighbors.forEach(node -> checkState(devices.get(node).size() > 0,
+        neighbors.forEach(node -> checkState(!devices.get(node).isEmpty(),
                                              "There are no devices for {}", node));
 
         // TODO pull this outside so that createIntent can use it

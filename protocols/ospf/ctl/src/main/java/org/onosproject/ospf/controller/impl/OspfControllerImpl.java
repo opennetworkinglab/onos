@@ -115,10 +115,10 @@ public class OspfControllerImpl implements OspfController {
         try {
             List<OspfProcess> ospfProcesses = OspfConfigUtil.processes(processesNode);
             //if there is interface details then update configuration
-            if (ospfProcesses.size() > 0 &&
-                    ospfProcesses.get(0).areas() != null && ospfProcesses.get(0).areas().size() > 0 &&
+            if (!ospfProcesses.isEmpty() &&
+                    ospfProcesses.get(0).areas() != null && !ospfProcesses.get(0).areas().isEmpty() &&
                     ospfProcesses.get(0).areas().get(0) != null &&
-                    ospfProcesses.get(0).areas().get(0).ospfInterfaceList().size() > 0) {
+                    !ospfProcesses.get(0).areas().get(0).ospfInterfaceList().isEmpty()) {
                 ctrl.updateConfig(ospfProcesses);
             }
         } catch (Exception e) {

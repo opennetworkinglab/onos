@@ -181,7 +181,7 @@ implements VirtualPortService {
                 }
             }
         });
-        if (vPorts.size() == 0) {
+        if (vPorts.isEmpty()) {
             return null;
         }
         return vPorts.get(0);
@@ -196,7 +196,7 @@ implements VirtualPortService {
                 vPorts.add(p);
             }
         });
-        if (vPorts.size() == 0) {
+        if (vPorts.isEmpty()) {
             return null;
         }
         return vPorts.get(0);
@@ -217,7 +217,7 @@ implements VirtualPortService {
                         }
                     }
                 });
-        if (vPorts.size() == 0) {
+        if (vPorts.isEmpty()) {
             return null;
         }
         return vPorts.get(0);

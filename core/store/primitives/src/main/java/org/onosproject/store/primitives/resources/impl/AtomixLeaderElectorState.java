@@ -449,7 +449,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                         .filter(r -> r.sessionId() != session.id())
                         .collect(Collectors.toList());
                 if (leader.sessionId() == session.id()) {
-                    if (updatedRegistrations.size() > 0) {
+                    if (!updatedRegistrations.isEmpty()) {
                         return new ElectionState(updatedRegistrations,
                                 updatedRegistrations.get(0),
                                 termCounter.get(),
@@ -474,7 +474,7 @@ public class AtomixLeaderElectorState extends ResourceStateMachine
                         .filter(r -> !r.nodeId().equals(nodeId))
                         .collect(Collectors.toList());
                 if (leader.nodeId().equals(nodeId)) {
-                    if (updatedRegistrations.size() > 0) {
+                    if (!updatedRegistrations.isEmpty()) {
                         return new ElectionState(updatedRegistrations,
                                 updatedRegistrations.get(0),
                                 termCounter.get(),

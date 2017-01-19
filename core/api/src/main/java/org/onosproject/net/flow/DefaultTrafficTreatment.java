@@ -498,7 +498,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public TrafficTreatment build() {
-            if (deferred.size() == 0 && immediate.size() == 0
+            if (deferred.isEmpty() && immediate.isEmpty()
                     && table == null && !clear) {
                 immediate();
                 noAction();

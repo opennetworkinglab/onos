@@ -64,7 +64,7 @@ public class BgpExceptions extends AbstractShellCommand {
             this.bgpController = get(BgpController.class);
             Map<String, List<String>> activeSessionExceptionMap = bgpController.activeSessionMap();
             activeSessionExceptionkeySet = activeSessionExceptionMap.keySet();
-            if (activeSessionExceptionkeySet.size() > 0) {
+            if (!activeSessionExceptionkeySet.isEmpty()) {
                 if (peerId != null) {
                     if (activeSessionExceptionkeySet.contains(peerId)) {
                         for (String peerIdKey : activeSessionExceptionkeySet) {
@@ -76,7 +76,7 @@ public class BgpExceptions extends AbstractShellCommand {
                     }
                 } else {
                     activeSessionExceptionkeySet = activeSessionExceptionMap.keySet();
-                    if (activeSessionExceptionkeySet.size() > 0) {
+                    if (!activeSessionExceptionkeySet.isEmpty()) {
                         for (String peerId : activeSessionExceptionkeySet) {
                             print("PeerId = %s, Exception = %s ", peerId, activeSessionExceptionMap.get(peerId));
                         }
@@ -93,7 +93,7 @@ public class BgpExceptions extends AbstractShellCommand {
             this.bgpController = get(BgpController.class);
             Map<String, List<String>> closedSessionExceptionMap = bgpController.closedSessionMap();
             closedSessionExceptionKeySet = closedSessionExceptionMap.keySet();
-            if (closedSessionExceptionKeySet.size() > 0) {
+            if (!closedSessionExceptionKeySet.isEmpty()) {
                 if (peerId != null) {
                     if (closedSessionExceptionKeySet.contains(peerId)) {
                         for (String peerIdKey : closedSessionExceptionKeySet) {
@@ -105,7 +105,7 @@ public class BgpExceptions extends AbstractShellCommand {
                     }
                 } else {
                     closedSessionExceptionKeySet = closedSessionExceptionMap.keySet();
-                    if (closedSessionExceptionKeySet.size() > 0) {
+                    if (!closedSessionExceptionKeySet.isEmpty()) {
                         for (String peerId : closedSessionExceptionKeySet) {
                             print("PeerId = %s, Exception = %s", peerId, closedSessionExceptionMap.get(peerId));
                         }

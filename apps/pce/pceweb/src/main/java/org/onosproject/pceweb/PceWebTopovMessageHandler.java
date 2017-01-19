@@ -710,7 +710,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         Highlights highlights = new Highlights();
         paths.removeAll(paths);
         tunnelSet = tunnelService.queryTunnel(MPLS);
-        if (tunnelSet.size() == 0) {
+        if (tunnelSet.isEmpty()) {
             log.warn("Tunnel does not exist");
             sendMessage(highlightsMessage(highlights));
             return;

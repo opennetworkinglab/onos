@@ -62,7 +62,7 @@ public final class McastRouteInfo {
     }
 
     public boolean isComplete() {
-        return ((sink.isPresent() || sinks.size() > 0) && source.isPresent());
+        return ((sink.isPresent() || !sinks.isEmpty()) && source.isPresent());
     }
 
     /**

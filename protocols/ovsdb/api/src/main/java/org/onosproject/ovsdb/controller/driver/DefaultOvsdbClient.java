@@ -356,7 +356,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             OvsdbSet setPorts = (OvsdbSet) bridge.getPortsColumn().data();
             @SuppressWarnings("unchecked")
             Set<Uuid> ports = setPorts.set();
-            if (ports == null || ports.size() == 0) {
+            if (ports == null || ports.isEmpty()) {
                 log.warn("The port uuid is null");
                 return null;
             }
@@ -677,9 +677,9 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         mirrorBuilder.externalIds(mirror.externalIds());
         mirror = mirrorBuilder.build();
 
-        if (mirror.monitorDstPorts().size() == 0 &&
-                mirror.monitorSrcPorts().size() == 0 &&
-                mirror.monitorVlans().size() == 0) {
+        if (mirror.monitorDstPorts().isEmpty() &&
+                mirror.monitorSrcPorts().isEmpty() &&
+                mirror.monitorVlans().isEmpty()) {
             log.warn("Invalid monitoring data");
             return false;
         }
@@ -1332,7 +1332,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         OvsdbSet datapathIdSet = (OvsdbSet) bridge.getDatapathIdColumn().data();
         @SuppressWarnings("unchecked")
         Set<String> datapathIds = datapathIdSet.set();
-        if (datapathIds == null || datapathIds.size() == 0) {
+        if (datapathIds == null || datapathIds.isEmpty()) {
             return null;
         }
         String datapathId = (String) datapathIds.toArray()[0];
@@ -1347,7 +1347,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         OvsdbSet ofPortSet = (OvsdbSet) intf.getOpenFlowPortColumn().data();
         @SuppressWarnings("unchecked")
         Set<Integer> ofPorts = ofPortSet.set();
-        if (ofPorts == null || ofPorts.size() <= 0) {
+        if (ofPorts == null || ofPorts.isEmpty()) {
             log.debug("The ofport is null in {}", intf.getName());
             return -1;
         }
