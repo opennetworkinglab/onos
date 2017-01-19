@@ -74,6 +74,7 @@
             $scope.resubmitTip = 'Resubmit selected intent';
             $scope.deactivateTip = 'Remove selected intent';
             $scope.purgeTip = 'Purge selected intent';
+            $scope.purgeAllTip = 'Purge withdrawn intents';
 
             $scope.showIntent = function () {
                 var d = $scope.intentData;
@@ -86,6 +87,16 @@
 
             $scope.isIntentWithdrawn = function () {
                 return $scope.intentState === 'Withdrawn';
+            };
+
+            $scope.isHavingWithdrawn = function () {
+                var isWithdrawn = false;
+                $scope.tableData.forEach(function (intent) {
+                    if (intent.state ==='Withdrawn') {
+                        isWithdrawn = true;
+                    }
+                });
+                return isWithdrawn;
             };
 
             function executeAction(action) {
@@ -119,6 +130,29 @@
                     .addCancel(dCancel)
                     .bindKeys();
             }
+            function executeActions(action) {
+                 var content = ds.createDiv(),
+                     txt='purgeIntents';
+                     content.append('p').
+                     text('Are you sure you want to purge all the withdrawn intents?');
+
+                 function dOk() {
+                     tts.removeIntents();
+                     $scope.fired = true;
+                 }
+
+                 function dCancel() {
+                     ds.closeDialog();
+                     $log.debug('Canceling remove-intents action');
+                 }
+
+                 ds.openDialog(dialogId, dialogOpts)
+                 .setTitle('Confirm Action')
+                 .addContent(content)
+                 .addOk(dOk)
+                 .addCancel(dCancel)
+                 .bindKeys();
+            }
 
             $scope.deactivateIntent = function () {
                 executeAction("withdraw");
@@ -141,6 +175,9 @@
                 $log.debug('OvIntentCtrl has been destroyed');
             });
 
+            $scope.purgeIntents = function () {
+                executeActions("purgeIntents");
+            };
             $log.debug('OvIntentCtrl has been created');
         }]);
 }());

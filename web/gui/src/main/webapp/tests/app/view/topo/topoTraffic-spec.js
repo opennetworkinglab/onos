@@ -51,6 +51,7 @@ describe('factory: view/topo/topoTraffic.js', function() {
             'addMultiSourceIntent',
             'removeIntent',
             'resubmitIntent',
+            'removeIntents',
         ])).toBeTruthy();
     });
 

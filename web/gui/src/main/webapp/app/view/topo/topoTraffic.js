@@ -217,6 +217,14 @@
         flash.flash('Multi-Source flow added');
     }
 
+    function removeIntents () {
+        $log.debug('Entering removeIntents');
+        wss.sendEvent('removeIntents', {});
+        trafficMode = 'intents';
+        hoverMode = null;
+        flash.flash('Intent are purged');
+    }
+
 
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
@@ -254,7 +262,8 @@
                 addHostIntent: addHostIntent,
                 addMultiSourceIntent: addMultiSourceIntent,
                 removeIntent: removeIntent,
-                resubmitIntent: resubmitIntent
+                resubmitIntent: resubmitIntent,
+                removeIntents: removeIntents
             };
         }]);
 }());

@@ -47,6 +47,10 @@
                  tooltip tt-msg="purgeTip"
                  ng-click="(!!selId && isIntentWithdrawn()) ? purgeIntent():''"></div>
 
+            <div ng-class="{'active': isHavingWithdrawn()}"
+                 icon icon-id="garbage" icon-size="47"
+                 tooltip tt-msg="purgeAllTip"
+                 ng-click="(isHavingWithdrawn()) ? purgeIntents():''"></div>
 
         </div>
     </div>

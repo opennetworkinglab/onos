@@ -55,6 +55,8 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
@@ -101,6 +103,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String UPDATE_META = "updateMeta";
     private static final String ADD_HOST_INTENT = "addHostIntent";
     private static final String REMOVE_INTENT = "removeIntent";
+    private static final String REMOVE_INTENTS = "removeIntents";
     private static final String RESUBMIT_INTENT = "resubmitIntent";
     private static final String ADD_MULTI_SRC_INTENT = "addMultiSourceIntent";
     private static final String REQ_RELATED_INTENTS = "requestRelatedIntents";
@@ -223,6 +226,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new AddMultiSourceIntent(),
                 new RemoveIntent(),
                 new ResubmitIntent(),
+                new RemoveIntents(),
 
                 new ReqAllFlowTraffic(),
                 new ReqAllPortTraffic(),
@@ -504,6 +508,24 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             if (overlayCache.isActive(TrafficOverlay.TRAFFIC_ID)) {
                 traffic.monitor(intent);
             }
+        }
+    }
+
+    private final class RemoveIntents extends RequestHandler {
+        private RemoveIntents() {
+            super(REMOVE_INTENTS);
+        }
+
+
+        @Override
+        public void process(ObjectNode payload) {
+            IntentService intentService = get(IntentService.class);
+            for (Intent intent : intentService.getIntents()) {
+                if (intentService.getIntentState(intent.key()) == IntentState.WITHDRAWN) {
+                    intentService.purge(intent);
+                }
+            }
+
         }
     }
 
