@@ -30,6 +30,16 @@ public class LispControllerAdapter implements LispController {
     }
 
     @Override
+    public LispRouter connectRouter(LispRouterId routerId) {
+        return null;
+    }
+
+    @Override
+    public void disconnectRouter(LispRouterId routerId, boolean remove) {
+
+    }
+
+    @Override
     public LispRouter getRouter(LispRouterId routerId) {
         return null;
     }

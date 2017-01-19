@@ -36,6 +36,24 @@ public interface LispController {
     Iterable<LispRouter> getSubscribedRouters();
 
     /**
+     * Connects to a specific LISP router.
+     * If the connection is established, it creates and adds the device to
+     * ONOS core as a LISP router.
+     *
+     * @param routerId router identifier
+     * @return LispRouter LISP router
+     */
+    LispRouter connectRouter(LispRouterId routerId);
+
+    /**
+     * Disconnects a LISP router and notify router removal event.
+     *
+     * @param routerId router identifier
+     * @param remove   true only if want to notify router removal event
+     */
+    void disconnectRouter(LispRouterId routerId, boolean remove);
+
+    /**
      * Obtains the actual router for the given LispRouterId.
      *
      * @param routerId the router to fetch

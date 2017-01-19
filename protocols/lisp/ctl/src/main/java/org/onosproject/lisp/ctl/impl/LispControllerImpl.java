@@ -186,6 +186,30 @@ public class LispControllerImpl implements LispController {
     }
 
     @Override
+    public LispRouter connectRouter(LispRouterId routerId) {
+        if (connectedRouters.containsKey(routerId)) {
+            log.debug("LISP router {} is already existing", routerId);
+            return connectedRouters.get(routerId);
+        } else {
+            // TODO: currently we do not consider to add LISP router from netcfg
+            log.warn("Adding router from netcfg is not supported currently");
+            return null;
+        }
+    }
+
+    @Override
+    public void disconnectRouter(LispRouterId routerId, boolean remove) {
+        if (!connectedRouters.containsKey(routerId)) {
+            log.warn("LISP router {} is not existing", routerId);
+        } else {
+            connectedRouters.get(routerId).disconnectRouter();
+            if (remove) {
+                agent.removeConnectedRouter(routerId);
+            }
+        }
+    }
+
+    @Override
     public LispRouter getRouter(LispRouterId routerId) {
         return connectedRouters.get(routerId);
     }
