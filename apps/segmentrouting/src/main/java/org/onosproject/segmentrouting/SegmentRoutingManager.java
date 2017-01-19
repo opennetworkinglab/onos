@@ -334,7 +334,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
                                       "purgeOnDisconnection", "true");
         compCfgService.preSetProperty("org.onosproject.vrouter.Vrouter",
-                                      "fibInstalledEnabled", "false");
+                                      "fibInstallerEnabled", "false");
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
                                       "requestInterceptsEnabled", "false");
         compCfgService.preSetProperty("org.onosproject.incubator.net.neighbour.impl.NeighbourResolutionManager",
