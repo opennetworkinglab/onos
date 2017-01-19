@@ -18,6 +18,7 @@ package org.onosproject.drivers.juniper;
 
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceDescription;
@@ -25,7 +26,6 @@ import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
-import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.drivers.juniper.JuniperUtils.FAILED_CFG;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_IF_INFO;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_MAC_ADD_INFO;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_SYS_INFO;
@@ -52,19 +51,20 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        DeviceId deviceId = handler().data().deviceId();
+        DeviceId devId = handler().data().deviceId();
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(deviceId).getSession();
+        NetconfSession session = controller.getDevicesMap().get(devId).getSession();
         String sysInfo;
         String chassis;
         try {
             sysInfo = session.get(requestBuilder(REQ_SYS_INFO));
             chassis = session.get(requestBuilder(REQ_MAC_ADD_INFO));
         } catch (IOException e) {
-            throw new RuntimeException(new NetconfException(FAILED_CFG, e));
+            log.warn("Failed to retrieve device details for {}", devId);
+            return null;
         }
         DeviceDescription description =
-                JuniperUtils.parseJuniperDescription(deviceId, XmlConfigParser.
+                JuniperUtils.parseJuniperDescription(devId, XmlConfigParser.
                         loadXml(new ByteArrayInputStream(sysInfo.getBytes())), chassis);
         log.debug("Device  description {}", description);
         return description;
@@ -72,13 +72,15 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
 
     @Override
     public List<PortDescription> discoverPortDetails() {
+        DeviceId devId = handler().data().deviceId();
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(handler().data().deviceId()).getSession();
+        NetconfSession session = controller.getDevicesMap().get(devId).getSession();
         String reply;
         try {
             reply = session.get(requestBuilder(REQ_IF_INFO));
         } catch (IOException e) {
-            throw new RuntimeException(new NetconfException(FAILED_CFG, e));
+            log.warn("Failed to retrieve ports for device {}", devId);
+            return ImmutableList.of();
         }
         List<PortDescription> descriptions =
                 JuniperUtils.parseJuniperPorts(XmlConfigParser.

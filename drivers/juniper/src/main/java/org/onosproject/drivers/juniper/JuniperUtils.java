@@ -64,7 +64,8 @@ public final class JuniperUtils {
     public static final String REQ_IF_INFO = "<get-interface-information/>";
 
     //helper strings for parsing
-    private static final String LLDP_NBR_INFO = "lldp-neighbors-information";
+    private static final String LLDP_LIST_NBR_INFO = "lldp-neighbors-information";
+    private static final String LLDP_NBR_INFO = "lldp-neighbor-information";
     private static final String SYS_INFO = "system-information";
     private static final String HW_MODEL = "hardware-model";
     private static final String OS_NAME = "os-name";
@@ -230,7 +231,7 @@ public final class JuniperUtils {
                 .set("index", index);
         setIpIfPresent(cfg, annotationsBuilder);
 
-        PortNumber portNumber = portNumberFromName(cfg.getString(IF_LO_INDEX), name);
+        PortNumber portNumber = PortNumber.portNumber(index);
 
         boolean enabled = false;
         if (cfg.getString(IF_LO_STATUS) != null) {
@@ -243,18 +244,6 @@ public final class JuniperUtils {
                 COPPER,
                 DEFAULT_PORT_SPEED,
                 annotationsBuilder.build());
-    }
-
-    private static PortNumber portNumberFromName(String ifIndex, String name) {
-        PortNumber portNumber = portNumber(ifIndex);
-        if (name.contains("-")) {
-            String[] splitted = name.split("-");
-            String typeInt = "[" + splitted[0] + "]";
-            String number = splitted[1].replace("/", "");
-            number = "(" + number + ")";
-            portNumber = PortNumber.fromString(typeInt + number);
-        }
-        return portNumber;
     }
 
     private static void setIpIfPresent(HierarchicalConfiguration cfg,
@@ -302,7 +291,7 @@ public final class JuniperUtils {
     public static Set<LinkAbstraction> parseJuniperLldp(HierarchicalConfiguration info) {
         Set<LinkAbstraction> neighbour = new HashSet<>();
         List<HierarchicalConfiguration> subtrees =
-                info.configurationsAt(LLDP_NBR_INFO);
+                info.configurationsAt(LLDP_LIST_NBR_INFO);
         for (HierarchicalConfiguration neighborsInfo : subtrees) {
             List<HierarchicalConfiguration> neighbors =
                     neighborsInfo.configurationsAt(LLDP_NBR_INFO);

@@ -16,9 +16,8 @@
 
 package org.onosproject.drivers.juniper;
 
-//import com.google.common.base.Optional;
-
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.Device;
@@ -29,7 +28,6 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.netconf.NetconfController;
-import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
@@ -45,7 +43,6 @@ import static org.onosproject.drivers.juniper.JuniperUtils.parseJuniperLldp;
 import static org.onosproject.drivers.juniper.JuniperUtils.requestBuilder;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_LLDP_NBR_INFO;
-import static org.onosproject.drivers.juniper.JuniperUtils.FAILED_CFG;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -71,7 +68,8 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         try {
             reply = session.get(requestBuilder(REQ_LLDP_NBR_INFO));
         } catch (IOException e) {
-            throw new RuntimeException(new NetconfException(FAILED_CFG, e));
+            log.warn("Failed to retrieve ports for device {}", localDeviceId);
+            return ImmutableSet.of();
         }
         log.debug("Reply from device {} : {}", localDeviceId, reply);
         Set<LinkAbstraction> linkAbstractions = parseJuniperLldp(
