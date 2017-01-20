@@ -68,7 +68,7 @@ public class DriversListCommand extends AbstractShellCommand {
     private void printDriver(Driver driver) {
         if (outputJson()) {
             json(driver);
-        } else {
+        } else if (driver.parents() != null) {
             driver.parents().forEach(parent -> {
                 print(FMT, driver.name(), parent != null ? parent.name() : "none",
                            driver.manufacturer(), driver.hwVersion(), driver.swVersion());
