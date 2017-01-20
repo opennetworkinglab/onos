@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -61,6 +60,7 @@ import org.onosproject.net.region.RegionService;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.UiTopoLayoutService;
+import org.onosproject.ui.impl.topo.Topo2Jsonifier;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
@@ -75,7 +75,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Service that creates and maintains the UI-model of the network topology.
@@ -143,7 +145,7 @@ public final class UiSharedTopologyModel
     @Activate
     protected void activate() {
         cache = new ModelCache(new DefaultServiceBundle(), eventDispatcher);
-        eventHandler = Executors.newSingleThreadExecutor(Tools.groupedThreads("onos/ui/topo", "event-handler", log));
+        eventHandler = newSingleThreadExecutor(groupedThreads("onos/ui/topo", "event-handler", log));
 
         eventDispatcher.addSink(UiModelEvent.class, listenerRegistry);
 
@@ -180,6 +182,17 @@ public final class UiSharedTopologyModel
         cache = null;
 
         log.info("Stopped");
+    }
+
+    /**
+     * Injects an instance of the JSON-ifier (which has been bound to the
+     * services (link, host, device, ...)) to be passed on to the Model Cache,
+     * for use in forming UiModelEvent payloads.
+     *
+     * @param t2json JSONifier
+     */
+    public void injectJsonifier(Topo2Jsonifier t2json) {
+        cache.injectJsonifier(t2json);
     }
 
 

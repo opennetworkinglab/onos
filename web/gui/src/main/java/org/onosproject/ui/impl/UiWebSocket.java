@@ -96,6 +96,8 @@ public class UiWebSocket
         UiSharedTopologyModel sharedModel = directory.get(UiSharedTopologyModel.class);
         UiTopoLayoutService layoutService = directory.get(UiTopoLayoutService.class);
 
+        sharedModel.injectJsonifier(t2json);
+
         topoSession = new UiTopoSession(this, t2json, sharedModel, layoutService);
 
         // FIXME: this is temporary to prevent unhandled events being set to GUI...

@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo.model;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
@@ -30,6 +31,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.UiTopoLayoutService;
+import org.onosproject.ui.impl.topo.Topo2Jsonifier;
 import org.onosproject.ui.model.ServiceBundle;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
@@ -70,12 +72,18 @@ import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
 class ModelCache {
 
     private static final String E_NO_ELEMENT = "Tried to remove non-member {}: {}";
+    private static final String MEMO_ADDED = "added";
+    private static final String MEMO_UPDATED = "updated";
+    private static final String MEMO_REMOVED = "removed";
+    private static final String MEMO_MOVED = "moved";
 
     private static final Logger log = LoggerFactory.getLogger(ModelCache.class);
 
     private final ServiceBundle services;
     private final EventDispatcher dispatcher;
     private final UiTopology uiTopology = new UiTopology();
+
+    private Topo2Jsonifier t2json;
 
     ModelCache(ServiceBundle services, EventDispatcher eventDispatcher) {
         this.services = services;
@@ -87,8 +95,13 @@ class ModelCache {
         return "ModelCache{" + uiTopology + "}";
     }
 
-    private void postEvent(UiModelEvent.Type type, UiElement subject) {
-        dispatcher.post(new UiModelEvent(type, subject));
+    private void postEvent(UiModelEvent.Type type, UiElement subject, String memo) {
+        ObjectNode data = t2json != null ? t2json.jsonUiElement(subject) : null;
+        dispatcher.post(new UiModelEvent(type, subject, data, memo));
+    }
+
+    void injectJsonifier(Topo2Jsonifier t2json) {
+        this.t2json = t2json;
     }
 
     void clear() {
@@ -131,13 +144,15 @@ class ModelCache {
     // invoked from UiSharedTopologyModel cluster event listener
     void addOrUpdateClusterMember(ControllerNode cnode) {
         NodeId id = cnode.id();
+        String memo = MEMO_UPDATED;
         UiClusterMember member = uiTopology.findClusterMember(id);
         if (member == null) {
             member = addNewClusterMember(cnode);
+            memo = MEMO_ADDED;
         }
         updateClusterMember(member);
 
-        postEvent(CLUSTER_MEMBER_ADDED_OR_UPDATED, member);
+        postEvent(CLUSTER_MEMBER_ADDED_OR_UPDATED, member, memo);
     }
 
     // package private for unit test access
@@ -151,7 +166,7 @@ class ModelCache {
         UiClusterMember member = uiTopology.findClusterMember(id);
         if (member != null) {
             uiTopology.remove(member);
-            postEvent(CLUSTER_MEMBER_REMOVED, member);
+            postEvent(CLUSTER_MEMBER_REMOVED, member, MEMO_REMOVED);
         } else {
             log.warn(E_NO_ELEMENT, "cluster node", id);
         }
@@ -256,13 +271,15 @@ class ModelCache {
     // invoked from UiSharedTopologyModel region listener
     void addOrUpdateRegion(Region region) {
         RegionId id = region.id();
+        String memo = MEMO_UPDATED;
         UiRegion uiRegion = uiTopology.findRegion(id);
         if (uiRegion == null) {
             uiRegion = addNewRegion(region);
+            memo = MEMO_ADDED;
         }
         updateRegion(uiRegion);
 
-        postEvent(REGION_ADDED_OR_UPDATED, uiRegion);
+        postEvent(REGION_ADDED_OR_UPDATED, uiRegion, memo);
     }
 
     // package private for unit test access
@@ -276,7 +293,7 @@ class ModelCache {
         UiRegion uiRegion = uiTopology.findRegion(id);
         if (uiRegion != null) {
             uiTopology.remove(uiRegion);
-            postEvent(REGION_REMOVED, uiRegion);
+            postEvent(REGION_REMOVED, uiRegion, MEMO_REMOVED);
         } else {
             log.warn(E_NO_ELEMENT, "region", id);
         }
@@ -313,14 +330,16 @@ class ModelCache {
     // invoked from UiSharedTopologyModel device listener
     void addOrUpdateDevice(Device device) {
         DeviceId id = device.id();
+        String memo = MEMO_UPDATED;
         UiDevice uiDevice = uiTopology.findDevice(id);
         if (uiDevice == null) {
             uiDevice = addNewDevice(device);
+            memo = MEMO_ADDED;
         } else {
             updateDevice(uiDevice);
         }
 
-        postEvent(DEVICE_ADDED_OR_UPDATED, uiDevice);
+        postEvent(DEVICE_ADDED_OR_UPDATED, uiDevice, memo);
     }
 
     // package private for unit test access
@@ -334,7 +353,7 @@ class ModelCache {
         UiDevice uiDevice = uiTopology.findDevice(id);
         if (uiDevice != null) {
             uiTopology.remove(uiDevice);
-            postEvent(DEVICE_REMOVED, uiDevice);
+            postEvent(DEVICE_REMOVED, uiDevice, MEMO_REMOVED);
         } else {
             log.warn(E_NO_ELEMENT, "device", id);
         }
@@ -378,13 +397,15 @@ class ModelCache {
     // invoked from UiSharedTopologyModel link listener
     void addOrUpdateDeviceLink(Link link) {
         UiLinkId id = uiLinkId(link);
+        String memo = MEMO_UPDATED;
         UiDeviceLink uiDeviceLink = uiTopology.findDeviceLink(id);
         if (uiDeviceLink == null) {
             uiDeviceLink = addNewDeviceLink(id);
+            memo = MEMO_ADDED;
         }
         updateDeviceLink(uiDeviceLink, link);
 
-        postEvent(LINK_ADDED_OR_UPDATED, uiDeviceLink);
+        postEvent(LINK_ADDED_OR_UPDATED, uiDeviceLink, memo);
     }
 
     // package private for unit test access
@@ -399,10 +420,10 @@ class ModelCache {
         if (uiDeviceLink != null) {
             boolean remaining = uiDeviceLink.detachBackingLink(link);
             if (remaining) {
-                postEvent(LINK_ADDED_OR_UPDATED, uiDeviceLink);
+                postEvent(LINK_ADDED_OR_UPDATED, uiDeviceLink, MEMO_UPDATED);
             } else {
                 uiTopology.remove(uiDeviceLink);
-                postEvent(LINK_REMOVED, uiDeviceLink);
+                postEvent(LINK_REMOVED, uiDeviceLink, MEMO_REMOVED);
             }
         } else {
             log.warn(E_NO_ELEMENT, "Device link", id);
@@ -474,13 +495,15 @@ class ModelCache {
     // invoked from UiSharedTopologyModel host listener
     void addOrUpdateHost(Host host) {
         HostId id = host.id();
+        String memo = MEMO_UPDATED;
         UiHost uiHost = uiTopology.findHost(id);
         if (uiHost == null) {
             uiHost = addNewHost(host);
+            memo = MEMO_ADDED;
         }
         updateHost(uiHost, host);
 
-        postEvent(HOST_ADDED_OR_UPDATED, uiHost);
+        postEvent(HOST_ADDED_OR_UPDATED, uiHost, memo);
     }
 
     // invoked from UiSharedTopologyModel host listener
@@ -488,7 +511,7 @@ class ModelCache {
         UiHost uiHost = uiTopology.findHost(prevHost.id());
         if (uiHost != null) {
             updateHost(uiHost, host);
-            postEvent(HOST_MOVED, uiHost);
+            postEvent(HOST_MOVED, uiHost, MEMO_MOVED);
         } else {
             log.warn(E_NO_ELEMENT, "host", prevHost.id());
         }
@@ -507,7 +530,7 @@ class ModelCache {
             UiEdgeLink edgeLink = uiTopology.findEdgeLink(uiHost.edgeLinkId());
             uiTopology.remove(edgeLink);
             uiTopology.remove(uiHost);
-            postEvent(HOST_REMOVED, uiHost);
+            postEvent(HOST_REMOVED, uiHost, MEMO_REMOVED);
         } else {
             log.warn(E_NO_ELEMENT, "host", id);
         }

@@ -44,6 +44,7 @@ import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
+import org.onosproject.ui.model.topo.UiElement;
 import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
 import org.onosproject.ui.model.topo.UiNode;
@@ -82,6 +83,8 @@ public class Topo2Jsonifier {
     private static final String HOST = "host";
     private static final String TYPE = "type";
     private static final String SUBJECT = "subject";
+    private static final String DATA = "data";
+    private static final String MEMO = "memo";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -267,6 +270,28 @@ public class Topo2Jsonifier {
     }
 
     /**
+     * Creates a JSON representation of a UI element.
+     *
+     * @param element the source element
+     * @return a JSON representation of that element
+     */
+    public ObjectNode jsonUiElement(UiElement element) {
+        if (element instanceof UiNode) {
+            return json((UiNode) element);
+        }
+        if (element instanceof UiLink) {
+            return json((UiLink) element);
+        }
+
+        // TODO: UiClusterMember
+
+        // Unrecognized UiElement class
+        return objectNode()
+                .put("warning", "unknown UiElement... cannot encode")
+                .put("javaclass", element.getClass().toString());
+    }
+
+    /**
      * Creates a JSON representation of a UI model event.
      *
      * @param modelEvent the source model event
@@ -276,6 +301,8 @@ public class Topo2Jsonifier {
         ObjectNode payload = objectNode();
         payload.put(TYPE, enumToString(modelEvent.type()));
         payload.put(SUBJECT, modelEvent.subject().idAsString());
+        payload.set(DATA, modelEvent.data());
+        payload.put(MEMO, modelEvent.memo());
         return payload;
     }
 
@@ -408,14 +435,17 @@ public class Topo2Jsonifier {
     }
 
     private ObjectNode json(UiSynthLink sLink) {
-        UiLink uLink = sLink.link();
+        return json(sLink.link());
+    }
+
+    private ObjectNode json(UiLink link) {
         ObjectNode data = objectNode()
-                .put("id", uLink.idAsString())
-                .put("epA", uLink.endPointA())
-                .put("epB", uLink.endPointB())
-                .put("type", uLink.type());
-        String pA = uLink.endPortA();
-        String pB = uLink.endPortB();
+                .put("id", link.idAsString())
+                .put("epA", link.endPointA())
+                .put("epB", link.endPointB())
+                .put("type", link.type());
+        String pA = link.endPortA();
+        String pB = link.endPortB();
         if (pA != null) {
             data.put("portA", pA);
         }

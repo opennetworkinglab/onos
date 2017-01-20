@@ -61,12 +61,12 @@ public class UiDeviceLink extends UiLink {
 
     @Override
     public String endPortA() {
-        return portA.toString();
+        return portA == null ? null : portA.toString();
     }
 
     @Override
     public String endPortB() {
-        return portB.toString();
+        return portB == null ? null : portB.toString();
     }
 
 

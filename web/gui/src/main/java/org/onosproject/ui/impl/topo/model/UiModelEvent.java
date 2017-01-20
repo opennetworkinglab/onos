@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo.model;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.ui.model.topo.UiElement;
 
@@ -24,10 +25,9 @@ import org.onosproject.ui.model.topo.UiElement;
  */
 public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
 
-    protected UiModelEvent(Type type, UiElement subject) {
-        super(type, subject);
-    }
-
+    /**
+     * Enumeration of event types.
+     */
     enum Type {
         CLUSTER_MEMBER_ADDED_OR_UPDATED,
         CLUSTER_MEMBER_REMOVED,
@@ -45,4 +45,42 @@ public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
         HOST_MOVED,
         HOST_REMOVED
     }
+
+    private final ObjectNode data;
+    private final String memo;
+
+    /**
+     * Creates a UI model event. Note that the memo field can be used to
+     * pass a hint to the listener about the event.
+     *
+     * @param type    event type
+     * @param subject subject of the event
+     * @param data    data containing details of the subject
+     * @param memo    a note about the event
+     */
+    protected UiModelEvent(Type type, UiElement subject, ObjectNode data,
+                           String memo) {
+        super(type, subject);
+        this.data = data;
+        this.memo = memo;
+    }
+
+    /**
+     * Returns the data of the subject.
+     *
+     * @return the subject data
+     */
+    public ObjectNode data() {
+        return data;
+    }
+
+    /**
+     * Returns the memo.
+     *
+     * @return the memo
+     */
+    public String memo() {
+        return memo;
+    }
+
 }
