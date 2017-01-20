@@ -21,6 +21,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,6 +41,7 @@ import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterState;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -64,8 +66,10 @@ import org.projectfloodlight.openflow.protocol.errormsg.OFMeterModFailedErrorMsg
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -102,6 +106,12 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
     private InternalMeterListener listener = new InternalMeterListener();
     private Map<Dpid, MeterStatsCollector> collectors = Maps.newHashMap();
+
+    private static final Set<Device.Type> NO_METER_SUPPORT =
+            ImmutableSet.copyOf(EnumSet.of(Device.Type.ROADM,
+                                           Device.Type.ROADM_OTN,
+                                           Device.Type.FIBER_SWITCH,
+                                           Device.Type.OTN));
 
     /**
      * Creates a OpenFlow meter provider.
@@ -222,6 +232,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
         if (sw.factory().getVersion() == OFVersion.OF_10 ||
                 sw.factory().getVersion() == OFVersion.OF_11 ||
                 sw.factory().getVersion() == OFVersion.OF_12 ||
+                NO_METER_SUPPORT.contains(sw.deviceType()) ||
                 sw.softwareDescription().equals("OF-DPA 2.0")) {
             return false;
         }
