@@ -110,21 +110,21 @@ public class IsisChannelHandler extends IdleStateAwareChannelHandler {
                     isisInterfaceMap.put(isisUpdatedInterface.interfaceIndex(), isisUpdatedInterface);
                     interfaceIps.add(isisUpdatedInterface.interfaceIpAddress());
                 } else {
-                    if (isisInterface.intermediateSystemName() != isisUpdatedInterface.intermediateSystemName()) {
+                    if (!isisInterface.intermediateSystemName().equals(isisUpdatedInterface.intermediateSystemName())) {
                         isisInterface.setIntermediateSystemName(isisUpdatedInterface.intermediateSystemName());
                     }
                     if (isisInterface.reservedPacketCircuitType() != isisUpdatedInterface.reservedPacketCircuitType()) {
                         isisInterface.setReservedPacketCircuitType(isisUpdatedInterface.reservedPacketCircuitType());
                         isisInterface.removeNeighbors();
                     }
-                    if (isisInterface.circuitId() != isisUpdatedInterface.circuitId()) {
+                    if (!isisInterface.circuitId().equals(isisUpdatedInterface.circuitId())) {
                         isisInterface.setCircuitId(isisUpdatedInterface.circuitId());
                     }
                     if (isisInterface.networkType() != isisUpdatedInterface.networkType()) {
                         isisInterface.setNetworkType(isisUpdatedInterface.networkType());
                         isisInterface.removeNeighbors();
                     }
-                    if (isisInterface.areaAddress() != isisUpdatedInterface.areaAddress()) {
+                    if (!isisInterface.areaAddress().equals(isisUpdatedInterface.areaAddress())) {
                         isisInterface.setAreaAddress(isisUpdatedInterface.areaAddress());
                     }
                     if (isisInterface.holdingTime() != isisUpdatedInterface.holdingTime()) {
