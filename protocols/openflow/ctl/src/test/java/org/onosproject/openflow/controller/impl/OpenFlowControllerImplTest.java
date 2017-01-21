@@ -30,7 +30,6 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestTools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.device.DeviceServiceAdapter;
@@ -59,6 +58,13 @@ import static org.hamcrest.Matchers.nullValue;
  * Unit tests for the open flow controller implementation test.
  */
 public class OpenFlowControllerImplTest {
+
+    /**
+     * Let system pick ephemeral port.
+     *
+     * @see InetSocketAddress#InetSocketAddress(int)
+     */
+    private static final int EPHEMERAL_PORT = 0;
 
     OpenFlowSwitch switch1;
     Dpid dpid1;
@@ -149,7 +155,7 @@ public class OpenFlowControllerImplTest {
         ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
         Dictionary<String, Object> properties = new Hashtable<>();
         properties.put("openflowPorts",
-                       Integer.toString(TestTools.findAvailablePort(0)));
+                       Integer.toString(EPHEMERAL_PORT));
         expect(mockContext.getProperties()).andReturn(properties);
         replay(mockContext);
         controller.activate(mockContext);
