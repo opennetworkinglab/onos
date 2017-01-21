@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
@@ -27,7 +28,9 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterService;
 
-import java.util.Collections;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Add a meter to a device.
@@ -36,11 +39,103 @@ import java.util.Collections;
         description = "Adds a meter to a device (currently for testing)")
 public class AddMeterCommand extends AbstractShellCommand {
 
+    private Meter.Unit unit;
+    private Set<Band> bands = new HashSet<>();
+    private Long rate;
+    private Long burstSize;
+
+
+    @Option(name = "-bd", aliases = "--bandDrop",
+            description = "Assign band DROP to this meter",
+            required = false, multiValued = false)
+    private boolean hasBandDrop = false;
+
+    @Option(name = "-br", aliases = "--bandRemark",
+            description = "Assign band REMARK to this meter",
+            required = false, multiValued = false)
+    private boolean hasBandRemark = false;
+
+    @Option(name = "-up", aliases = "--unitPkts",
+            description = "Assign unit Packets per Second to this meter",
+            required = false, multiValued = false)
+    private boolean hasPkts = false;
+
+    @Option(name = "-uk", aliases = "--unitKbps",
+            description = "Assign unit Kilobits per Second to this meter",
+            required = false, multiValued = false)
+    private boolean hasKbps = false;
+
+    @Option(name = "-ib", aliases = "--isBurst",
+            description = "Set meter applicable only to burst",
+            required = false, multiValued = false)
+    private boolean isBurst = false;
+
+    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
+            required = false, multiValued = false)
+    private String bandwidthString = null;
+
+    @Option(name = "-bs", aliases = "--burstSize", description = "Burst size",
+            required = false, multiValued = false)
+    private String burstSizeString = null;
+
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
-    String uri = null;
+    private String uri = null;
 
     private final String appId = "org.onosproject.cli.meterCmd";
+
+    private void checkOptions() {
+        // check units
+        if (hasPkts) {
+            unit = Meter.Unit.PKTS_PER_SEC;
+        } else {
+            unit = Meter.Unit.KB_PER_SEC;
+        }
+
+        // check rate (does not take into account if it is kbps or pkts)
+        if (!isNullOrEmpty(bandwidthString)) {
+            rate = Long.parseLong(bandwidthString);
+        } else {
+            rate = 500L;
+        }
+
+        // burst size
+        if (!isNullOrEmpty(burstSizeString)) {
+            burstSize = Long.parseLong(burstSizeString);
+        } else {
+            burstSize = 0L;
+        }
+
+        // Create bands
+        if (hasBandDrop) {
+            Band band = DefaultBand.builder()
+                    .ofType(Band.Type.DROP)
+                    .withRate(rate)
+                    .burstSize(burstSize)
+                    .build();
+            bands.add(band);
+        }
+        if (hasBandRemark) {
+            Band band = DefaultBand.builder()
+                    .ofType(Band.Type.REMARK)
+                    .withRate(rate)
+                    .burstSize(burstSize)
+                    .build();
+            bands.add(band);
+        }
+        // default band is drop
+        if (bands.size() == 0) {
+            Band band = DefaultBand.builder()
+                    .ofType(Band.Type.DROP)
+                    .withRate(rate)
+                    .burstSize(burstSize)
+                    .build();
+            bands.add(band);
+        }
+
+
+
+    }
 
     @Override
     protected void execute() {
@@ -49,18 +144,21 @@ public class AddMeterCommand extends AbstractShellCommand {
 
         DeviceId deviceId = DeviceId.deviceId(uri);
 
-        Band band = DefaultBand.builder()
-                        .ofType(Band.Type.DROP)
-                        .withRate(500)
-                        .build();
+        checkOptions();
 
 
-        MeterRequest request = DefaultMeterRequest.builder()
+        MeterRequest.Builder builder = DefaultMeterRequest.builder()
                 .forDevice(deviceId)
                 .fromApp(coreService.registerApplication(appId))
-                .withUnit(Meter.Unit.KB_PER_SEC)
-                .withBands(Collections.singleton(band))
-                .add();
+                .withUnit(unit)
+                .withBands(bands);
+
+
+        if (isBurst) {
+            builder = builder.burst();
+        }
+
+        MeterRequest request = builder.add();
 
         service.submit(request);
 
