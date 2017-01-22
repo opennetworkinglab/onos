@@ -90,6 +90,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -99,6 +101,8 @@ import static org.onosproject.ovsdb.controller.OvsdbConstant.*;
  * An representation of an ovsdb client.
  */
 public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientService {
+
+    private static final int TRANSACTCONFIG_TIMEOUT = 3; //sec
 
     private final Logger log = LoggerFactory.getLogger(DefaultOvsdbClient.class);
 
@@ -958,8 +962,11 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
         List<OperationResult> results;
         try {
-            results = transactConfig(DATABASENAME, operations).get();
+            results = transactConfig(DATABASENAME, operations)
+                    .get(TRANSACTCONFIG_TIMEOUT, TimeUnit.SECONDS);
             return results.get(0).getUuid().value();
+        } catch (TimeoutException e) {
+            log.warn("TimeoutException thrown while to get result");
         } catch (InterruptedException e) {
             log.warn("Interrupted while waiting to get result");
             Thread.currentThread().interrupt();
@@ -969,6 +976,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
         return null;
     }
+
 
     /**
      * Handles port insert.
