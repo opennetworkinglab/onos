@@ -309,7 +309,10 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return subtype().toString() + SEPARATOR + ethernetType;
+            // etherType is not specified in VLAN_POP case. Ignore it.
+            return subtype().equals(L2SubType.VLAN_POP) ?
+                    subtype().toString() :
+                    subtype().toString() + SEPARATOR + ethernetType;
         }
 
         @Override
