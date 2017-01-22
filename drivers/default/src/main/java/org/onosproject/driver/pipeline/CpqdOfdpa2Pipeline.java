@@ -22,20 +22,16 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -51,13 +47,13 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.net.packet.PacketPriority;
 import org.slf4j.Logger;
 
@@ -72,7 +68,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
- * Driver for software switch emulation of the OFDPA 2.0 pipeline.
+ * Driver for software switch emulation of the OFDPA pipeline.
  * The software switch is the CPqD OF 1.3 switch. Unfortunately the CPqD switch
  * does not handle vlan tags and mpls labels simultaneously, which requires us
  * to do some workarounds in the driver. This driver is meant for the use of
@@ -83,25 +79,25 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     private final Logger log = getLogger(getClass());
 
+    /**
+     * Determines whether this pipeline support copy ttl instructions or not.
+     *
+     * @return true if copy ttl instructions are supported
+     */
+    protected boolean supportCopyTtl() {
+        return true;
+    }
+
     @Override
-    public void init(DeviceId deviceId, PipelinerContext context) {
-        this.deviceId = deviceId;
-
-        // Initialize OFDPA group handler
-        groupHandler = new CpqdOfdpa2GroupHandler();
-        groupHandler.init(deviceId, context);
-
-        serviceDirectory = context.directory();
-        coreService = serviceDirectory.get(CoreService.class);
-        flowRuleService = serviceDirectory.get(FlowRuleService.class);
-        groupService = serviceDirectory.get(GroupService.class);
-        flowObjectiveStore = context.store();
-        deviceService = serviceDirectory.get(DeviceService.class);
-
+    protected void initDriverId() {
         driverId = coreService.registerApplication(
                 "org.onosproject.driver.CpqdOfdpa2Pipeline");
+    }
 
-        initializePipeline();
+    @Override
+    protected void initGroupHander(PipelinerContext context) {
+        groupHandler = new CpqdOfdpa2GroupHandler();
+        groupHandler.init(deviceId, context);
     }
 
     /*
@@ -567,6 +563,13 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
         if (fwd.treatment() != null) {
             for (Instruction i : fwd.treatment().allInstructions()) {
+                if (!supportCopyTtl() && i instanceof L3ModificationInstruction) {
+                    L3ModificationInstruction l3instr = (L3ModificationInstruction) i;
+                    if (l3instr.subtype().equals(L3ModificationInstruction.L3SubType.TTL_IN) ||
+                            l3instr.subtype().equals(L3ModificationInstruction.L3SubType.TTL_OUT)) {
+                        continue;
+                    }
+                }
                 /*
                  * NOTE: OF-DPA does not support immediate instruction in
                  * L3 unicast and MPLS table.

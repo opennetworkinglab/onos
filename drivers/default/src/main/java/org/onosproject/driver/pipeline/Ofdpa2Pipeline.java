@@ -147,10 +147,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     public void init(DeviceId deviceId, PipelinerContext context) {
         this.deviceId = deviceId;
 
-        // Initialize OFDPA group handler
-        groupHandler = new Ofdpa2GroupHandler();
-        groupHandler.init(deviceId, context);
-
         serviceDirectory = context.directory();
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
@@ -158,10 +154,20 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         flowObjectiveStore = context.store();
         deviceService = serviceDirectory.get(DeviceService.class);
 
-        driverId = coreService.registerApplication(
-                "org.onosproject.driver.Ofdpa2Pipeline");
+        initDriverId();
+        initGroupHander(context);
 
         initializePipeline();
+    }
+
+    protected void initDriverId() {
+        driverId = coreService.registerApplication(
+                "org.onosproject.driver.Ofdpa2Pipeline");
+    }
+
+    protected void initGroupHander(PipelinerContext context) {
+        groupHandler = new Ofdpa2GroupHandler();
+        groupHandler.init(deviceId, context);
     }
 
     protected void initializePipeline() {

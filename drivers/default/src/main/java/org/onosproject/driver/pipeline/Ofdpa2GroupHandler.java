@@ -80,7 +80,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Group handler for OFDPA2 pipeline.
+ * Group handler that emulates Broadcom OF-DPA TTP on CpqD.
  */
 public class Ofdpa2GroupHandler {
     /*
@@ -128,6 +128,24 @@ public class Ofdpa2GroupHandler {
     // pending bucket for a group
     protected ConcurrentHashMap<Integer, NextObjective> pendingBuckets =
             new ConcurrentHashMap<>();
+
+    /**
+     * Determines whether this pipeline support copy ttl instructions or not.
+     *
+     * @return true if copy ttl instructions are supported
+     */
+    protected boolean supportCopyTtl() {
+        return true;
+    }
+
+    /**
+     * Determines whether this pipeline support set mpls bos instruction or not.
+     *
+     * @return true if set mpls bos instruction is supported
+     */
+    protected boolean supportSetMplsBos() {
+        return true;
+    }
 
     protected void init(DeviceId deviceId, PipelinerContext context) {
         this.deviceId = deviceId;
@@ -844,10 +862,14 @@ public class Ofdpa2GroupHandler {
                 TrafficTreatment.Builder l3vpnTtb = DefaultTrafficTreatment.builder();
                 l3vpnTtb.pushMpls()
                         .setMpls(innermostLabel)
-                        .setMplsBos(true)
-                        .copyTtlOut()
-                        .group(new DefaultGroupId(
-                                onelabelGroupInfo.nextGroupDesc.givenGroupId()));
+                        .group(new DefaultGroupId(onelabelGroupInfo.nextGroupDesc.givenGroupId()));
+                if (supportCopyTtl()) {
+                    l3vpnTtb.copyTtlOut();
+                }
+                if (supportSetMplsBos()) {
+                    l3vpnTtb.setMplsBos(true);
+                }
+
                 GroupBucket l3vpnGrpBkt  =
                         DefaultGroupBucket.createIndirectGroupBucket(l3vpnTtb.build());
                 int l3vpnIndex = getNextAvailableIndex();

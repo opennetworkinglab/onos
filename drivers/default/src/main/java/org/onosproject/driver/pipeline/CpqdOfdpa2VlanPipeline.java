@@ -25,18 +25,14 @@ import java.util.List;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -51,7 +47,6 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
-import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 
 
@@ -70,24 +65,15 @@ public class CpqdOfdpa2VlanPipeline extends CpqdOfdpa2Pipeline {
     private final Logger log = getLogger(getClass());
 
     @Override
-    public void init(DeviceId deviceId, PipelinerContext context) {
-        this.deviceId = deviceId;
-
-        // Initialize OFDPA group handler
-        groupHandler = new CpqdOfdpa2GroupHandler();
-        groupHandler.init(deviceId, context);
-
-        serviceDirectory = context.directory();
-        coreService = serviceDirectory.get(CoreService.class);
-        flowRuleService = serviceDirectory.get(FlowRuleService.class);
-        groupService = serviceDirectory.get(GroupService.class);
-        flowObjectiveStore = context.store();
-        deviceService = serviceDirectory.get(DeviceService.class);
-
+    protected void initDriverId() {
         driverId = coreService.registerApplication(
                 "org.onosproject.driver.CpqdOfdpa2VlanPipeline");
+    }
 
-        initializePipeline();
+    @Override
+    protected void initGroupHander(PipelinerContext context) {
+        groupHandler = new CpqdOfdpa2GroupHandler();
+        groupHandler.init(deviceId, context);
     }
 
     /*
