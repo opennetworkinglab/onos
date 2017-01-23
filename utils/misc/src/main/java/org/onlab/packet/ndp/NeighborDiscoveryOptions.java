@@ -19,6 +19,8 @@ import org.onlab.packet.BasePacket;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -121,14 +123,8 @@ public class NeighborDiscoveryOptions extends BasePacket {
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            sb.append("type= ");
-            sb.append(type);
-            sb.append("data= ");
-            sb.append(data);
-            sb.append("]");
-            return sb.toString();
+            return MoreObjects.toStringHelper(this).add("type", type).
+                    add("data", data).toString();
         }
     }
 
@@ -230,14 +226,7 @@ public class NeighborDiscoveryOptions extends BasePacket {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-
-        for (Option option : this.options) {
-            result = prime * result + option.type();
-            result = prime * result + Arrays.hashCode(option.data());
-        }
-        return result;
+        return Objects.hashCode(this.options.toArray());
     }
 
     @Override
@@ -247,7 +236,7 @@ public class NeighborDiscoveryOptions extends BasePacket {
         }
         if (obj instanceof NeighborDiscoveryOptions) {
             NeighborDiscoveryOptions other = (NeighborDiscoveryOptions) obj;
-            return this.options.equals(other.options);
+            return Objects.equal(this.options, other.options);
         }
         return false;
     }
