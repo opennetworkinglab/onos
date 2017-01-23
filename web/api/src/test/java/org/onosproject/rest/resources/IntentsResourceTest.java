@@ -502,6 +502,11 @@ public class IntentsResourceTest extends ResourceTest {
 
             if (pathEntries != null) {
 
+                if (pathEntries.size() == 0) {
+                    reason = "pathEntries array empty";
+                    return false;
+                }
+
                 if (pathEntries.size() != jsonPaths.size()) {
                     reason = "path entries array size of " +
                             Integer.toString(pathEntries.size());
@@ -559,7 +564,7 @@ public class IntentsResourceTest extends ResourceTest {
                     }
 
                 }
-            } else if (pathEntries.size() != 0) {
+            } else {
                 reason = "pathEntries array empty";
                 return false;
             }
