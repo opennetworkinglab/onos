@@ -198,7 +198,7 @@ class TestBgpPeerChannelHandler extends SimpleChannelHandler {
             message.writeByte(pathSegment.getType());
             message.writeByte(pathSegment.getSegmentAsNumbers().size());
             for (Long asNumber : pathSegment.getSegmentAsNumbers()) {
-                message.writeShort(asNumber.intValue());
+                message.writeInt(asNumber.intValue());
             }
         }
 
