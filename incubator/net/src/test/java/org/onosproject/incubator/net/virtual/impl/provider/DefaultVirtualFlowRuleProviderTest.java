@@ -78,7 +78,7 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyListener;
-import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -476,7 +476,7 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
     }
 
-    private static class TestTopologyService implements TopologyService {
+    private static class TestTopologyService extends TopologyServiceAdapter {
 
         @Override
         public void addListener(TopologyListener listener) {
