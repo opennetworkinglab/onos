@@ -69,10 +69,8 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
             impl="org.onosproject.driver.optical.handshaker.OplinkSwitchHandshaker"/>
 
-        <!-- Transparent in-line device ignore all FlowRules  -->
-        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-
+        <behaviour api="org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour"
+                   impl="org.onosproject.driver.optical.protection.OplinkSwitchProtection"/>
     </driver>
 
     <driver name="oplk-edfa" extends="default"
