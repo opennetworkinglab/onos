@@ -18,22 +18,18 @@
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
 
         <command>
-            <action class="org.onosproject.faultmanagement.alarms.cli.GetAllActiveAlarms"/>
-        </command>
-        <command>
             <action class="org.onosproject.faultmanagement.alarms.cli.GetAllAlarms"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.faultmanagement.alarms.cli.GetAllAlarmsCounts"/>
-        </command>        
-        <command>
-            <action class="org.onosproject.faultmanagement.alarms.cli.GetDeviceAlarmsCounts"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
     </command-bundle>
- 
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
 

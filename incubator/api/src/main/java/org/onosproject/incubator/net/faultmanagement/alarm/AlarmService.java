@@ -21,6 +21,7 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service for interacting with the alarm handling of devices. Unless stated otherwise, getter methods
@@ -91,6 +92,18 @@ public interface AlarmService extends ListenerService<AlarmEvent, AlarmListener>
      * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarms(DeviceId deviceId);
+
+    /**
+     * Returns all of the ACTIVE alarms for a specific device. Recently cleared alarms excluded.
+     *
+     * @param deviceId the device to use when searching alarms.
+     * @return set of alarms; empty set if no alarms
+     */
+    default Set<Alarm> getActiveAlarms(DeviceId deviceId) {
+        return getActiveAlarms().stream()
+                .filter(a -> deviceId.equals(a.deviceId()))
+                .collect(Collectors.toSet());
+    }
 
     /**
      * Returns the alarm for a given device and source.

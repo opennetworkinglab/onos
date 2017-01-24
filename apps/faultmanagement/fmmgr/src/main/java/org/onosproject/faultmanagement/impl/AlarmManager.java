@@ -164,12 +164,6 @@ public class AlarmManager
         return ImmutableSet.copyOf(store.getAlarms(deviceId));
     }
 
-    private Set<Alarm> getActiveAlarms(DeviceId deviceId) {
-        return ImmutableSet.copyOf(getActiveAlarms().stream().filter(
-                a -> deviceId.equals(a.deviceId())).
-                collect(Collectors.toSet()));
-    }
-
     @Override
     public Set<Alarm> getAlarms(DeviceId deviceId, AlarmEntityId source) {
         return ImmutableSet.copyOf(getAlarms(deviceId).stream().filter(
