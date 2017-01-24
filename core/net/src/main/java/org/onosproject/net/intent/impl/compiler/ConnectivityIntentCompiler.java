@@ -30,6 +30,7 @@ import org.onosproject.net.intent.ConnectivityIntent;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.provider.ProviderId;
@@ -127,7 +128,11 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         if (filtered.isEmpty()) {
             return null;
         }
-        // TODO: let's be more intelligent about this eventually
+
+        if (constraints.stream().anyMatch(c -> c instanceof HashedPathSelectionConstraint)) {
+            return filtered.get(intent.hashCode() % filtered.size());
+        }
+
         return filtered.iterator().next();
     }
 
@@ -150,7 +155,11 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         if (filtered.isEmpty()) {
             throw new PathNotFoundException(one, two);
         }
-        // TODO: let's be more intelligent about this eventually
+
+        if (constraints.stream().anyMatch(c -> c instanceof HashedPathSelectionConstraint)) {
+            return filtered.get(intent.hashCode() % filtered.size());
+        }
+
         return filtered.iterator().next();
     }
 

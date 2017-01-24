@@ -37,6 +37,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 
 import java.util.LinkedList;
@@ -175,6 +176,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-e", aliases = "--encapsulation", description = "Encapsulation type",
             required = false, multiValued = false)
     private String encapsulationString = null;
+
+    @Option(name = "--hashed", description = "Hashed path selection",
+            required = false, multiValued = false)
+    private boolean hashedPathSelection = false;
 
 
     /**
@@ -385,6 +390,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             constraints.add(new EncapsulationConstraint(encapType));
         }
 
+        // Check for hashed path selection
+        if (hashedPathSelection) {
+            constraints.add(new HashedPathSelectionConstraint());
+        }
         return constraints;
     }
 
