@@ -46,6 +46,7 @@
         <module>optical</module>
         <module>arista</module>
         <module>juniper</module>
+        <module>lisp</module>
     </modules>
 
     <!--<properties>
