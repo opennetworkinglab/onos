@@ -283,7 +283,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
             selector.matchEthDst(e.mac());
         }
         selector.matchVlanId(v.vlanId());
-        selector.matchEthType(TYPE_IPV4);
         if (!v.vlanId().equals(VlanId.NONE)) {
             treatment.popVlan();
         }
@@ -298,29 +297,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 .forTable(FILTER_TABLE).build();
 
         ops = install ? ops.add(rule) : ops.remove(rule);
-        // FIXME IPv6 in the multicast use case.
-        // Filtering rules for IPv6.
-        if (e.mask() == null) {
-            selector = DefaultTrafficSelector.builder();
-            selector.matchInPort(p.port());
-            selector.matchEthDst(e.mac());
-            selector.matchVlanId(v.vlanId());
-            selector.matchEthType(Ethernet.TYPE_IPV6);
-            if (!v.vlanId().equals(VlanId.NONE)) {
-                treatment.popVlan();
-            }
-            treatment.transition(FIB_TABLE);
-            rule = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(DEFAULT_PRIORITY)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(FILTER_TABLE).build();
 
-            ops = install ? ops.add(rule) : ops.remove(rule);
-        }
         // apply filtering flow rules
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
