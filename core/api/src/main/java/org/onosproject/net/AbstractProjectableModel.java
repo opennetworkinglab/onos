@@ -44,7 +44,7 @@ public abstract class AbstractProjectableModel extends AbstractModel implements 
     // Static reference to the driver service; injected via setDriverService
     private static DriverService driverService;
 
-    private Driver driver;
+    private transient Driver driver;
 
     // For serialization
     public AbstractProjectableModel() {
