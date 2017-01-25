@@ -15,6 +15,8 @@
  */
 package org.onosproject.faultmanagement.alarms.cli;
 
+import static java.util.Comparator.comparingInt;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -66,9 +68,10 @@ public class GetAllAlarmsCounts extends AbstractShellCommand {
     }
 
     void printCounts(Map<Alarm.SeverityLevel, Long> alarmCounts) {
-        alarmCounts.entrySet().forEach((countEntry) -> {
+        alarmCounts.entrySet().stream()
+            .sorted(comparingInt(e -> e.getKey().ordinal()))
+            .forEach((countEntry) -> {
             print(String.format("%s, %d", countEntry.getKey(), countEntry.getValue()));
-
         });
     }
 }
