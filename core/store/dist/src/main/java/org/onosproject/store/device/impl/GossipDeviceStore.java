@@ -737,6 +737,7 @@ public class GossipDeviceStore
     private DeviceEvent updatePort(Device device, Port oldPort,
                                    Port newPort,
                                    Map<PortNumber, Port> ports) {
+
         if (oldPort.isEnabled() != newPort.isEnabled() ||
                 oldPort.type() != newPort.type() ||
                 oldPort.portSpeed() != newPort.portSpeed() ||
@@ -745,6 +746,14 @@ public class GossipDeviceStore
             return new DeviceEvent(PORT_UPDATED, device, newPort);
         }
         return null;
+    }
+
+    private DeviceEvent removePort(DeviceId deviceId, PortNumber portNumber) {
+
+        log.info("Deleted port: " + deviceId.toString() + "/" + portNumber.toString());
+        Port deletedPort = devicePorts.get(deviceId).remove(portNumber);
+
+        return new DeviceEvent(PORT_REMOVED, getDevice(deviceId), deletedPort);
     }
 
     // Prunes the specified list of ports based on which ports are in the
@@ -858,14 +867,16 @@ public class GossipDeviceStore
             final PortNumber number = deltaDesc.value().portNumber();
             final Port oldPort = ports.get(number);
             final Port newPort;
-
             final Timestamped<PortDescription> existingPortDesc = descs.getPortDesc(number);
+            boolean toDelete = false;
+
             if (existingPortDesc == null ||
                     deltaDesc.isNewer(existingPortDesc)) {
                 // on new port or valid update
                 // update description
                 descs.putPortDesc(deltaDesc);
                 newPort = composePort(device, number, descsMap);
+                toDelete = deltaDesc.value().isRemoved();
             } else {
                 // same or outdated event, ignored.
                 log.trace("ignore same or outdated {} >= {}", existingPortDesc, deltaDesc);
@@ -875,7 +886,7 @@ public class GossipDeviceStore
             if (oldPort == null) {
                 return createPort(device, newPort, ports);
             } else {
-                return updatePort(device, oldPort, newPort, ports);
+                return toDelete ? removePort(deviceId, number) : updatePort(device, oldPort, newPort, ports);
             }
         }
     }

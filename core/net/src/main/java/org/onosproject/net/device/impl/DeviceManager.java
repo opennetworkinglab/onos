@@ -585,6 +585,41 @@ public class DeviceManager
         }
 
         @Override
+        public void deletePort(DeviceId deviceId, PortDescription basePortDescription) {
+
+            checkNotNull(deviceId, DEVICE_ID_NULL);
+            checkNotNull(basePortDescription, PORT_DESCRIPTION_NULL);
+            checkValidity();
+
+            if (!mastershipService.isLocalMaster(deviceId)) {
+                // Never been a master for this device
+                // any update will be ignored.
+                log.trace("Ignoring {} port update on standby node. {}", deviceId,
+                          basePortDescription);
+                return;
+            }
+
+            Device device = getDevice(deviceId);
+            if (device == null) {
+                log.trace("Device not found: {}", deviceId);
+            }
+
+            PortDescription newPortDescription = new DefaultPortDescription(basePortDescription.portNumber(),
+                                                                            basePortDescription.isEnabled(),
+                                                                            true,
+                                                                            basePortDescription.type(),
+                                                                            basePortDescription.portSpeed(),
+                                                                            basePortDescription.annotations());
+            final DeviceEvent event = store.updatePortStatus(this.provider().id(),
+                                                             deviceId,
+                                                             newPortDescription);
+            if (event != null) {
+                log.info("Device {} port {} status changed", deviceId, event.port().number());
+                post(event);
+            }
+        }
+
+        @Override
         public void receivedRoleReply(DeviceId deviceId, MastershipRole requested,
                                       MastershipRole response) {
             // Several things can happen here:

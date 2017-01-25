@@ -55,6 +55,17 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
     void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions);
 
     /**
+     * Delete information about a single port of a device.
+     * It is up to the core to determine what has changed.
+     *
+     * @param deviceId         identity of the device
+     * @param portDescription       device port description
+     */
+    default void deletePort(DeviceId deviceId, PortDescription portDescription) {
+
+    }
+
+    /**
      * Notifies the core about port status change of a single port.
      *
      * @param deviceId        identity of the device

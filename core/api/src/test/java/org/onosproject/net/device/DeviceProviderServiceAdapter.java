@@ -42,6 +42,11 @@ public class DeviceProviderServiceAdapter implements DeviceProviderService {
     }
 
     @Override
+    public void deletePort(DeviceId deviceId, PortDescription portDescription) {
+
+    }
+
+    @Override
     public void portStatusChanged(DeviceId deviceId, PortDescription portDescription) {
 
     }

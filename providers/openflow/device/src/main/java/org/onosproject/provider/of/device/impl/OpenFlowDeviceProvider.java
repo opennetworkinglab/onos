@@ -450,7 +450,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         public void portChanged(Dpid dpid, OFPortStatus status) {
             LOG.debug("portChanged({},{})", dpid, status);
             PortDescription portDescription = buildPortDescription(status);
-            providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
+            if (status.getReason() != OFPortReason.DELETE) {
+                providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
+            } else {
+                providerService.deletePort(deviceId(uri(dpid)), portDescription);
+            }
         }
 
         @Override
@@ -817,7 +821,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
                 Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
                 SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
-                return new DefaultPortDescription(portNo, false, type,
+                return new DefaultPortDescription(portNo, false, true, type,
                                                   portSpeed(port), annotations);
             }
         }

@@ -34,6 +34,7 @@ public class DefaultPortDescription extends AbstractDescription
 
     private final PortNumber number;
     private final boolean isEnabled;
+    private final boolean isRemoved;
     private final Type type;
     private final long portSpeed;
 
@@ -61,9 +62,26 @@ public class DefaultPortDescription extends AbstractDescription
     public DefaultPortDescription(PortNumber number, boolean isEnabled,
                                   Type type, long portSpeed,
                                   SparseAnnotations...annotations) {
+        this(number, isEnabled, false, type, portSpeed, annotations);
+    }
+
+    /**
+     * Creates a port description using the supplied information.
+     *
+     * @param number      port number
+     * @param isEnabled   port enabled state
+     * @param isRemoved   port removed state
+     * @param type        port type
+     * @param portSpeed   port speed in Mbps
+     * @param annotations optional key/value annotations map
+     */
+    public DefaultPortDescription(PortNumber number, boolean isEnabled, boolean isRemoved,
+                                  Type type, long portSpeed,
+                                  SparseAnnotations...annotations) {
         super(annotations);
         this.number = checkNotNull(number);
         this.isEnabled = isEnabled;
+        this.isRemoved = isRemoved;
         this.type = type;
         this.portSpeed = portSpeed;
     }
@@ -72,6 +90,7 @@ public class DefaultPortDescription extends AbstractDescription
     protected DefaultPortDescription() {
         this.number = null;
         this.isEnabled = false;
+        this.isRemoved = false;
         this.portSpeed = DEFAULT_SPEED;
         this.type = Type.COPPER;
     }
@@ -96,6 +115,11 @@ public class DefaultPortDescription extends AbstractDescription
     @Override
     public boolean isEnabled() {
         return isEnabled;
+    }
+
+    @Override
+    public boolean isRemoved() {
+        return isRemoved;
     }
 
     @Override
