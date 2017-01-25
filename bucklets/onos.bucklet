@@ -325,3 +325,44 @@ def tar_file(
        out = out if out is not None else ( root if root is not None else name ) + '.tar.gz',
        visibility = visibility,
    )
+
+def only_lib_dep_pom(
+    name,
+    src,
+    out,
+    version = ONOS_VERSION,
+    onosGroupId = ONOS_GROUP_ID,
+    visibility = [ 'PUBLIC' ],
+    ):
+
+    cmd = 'grep -v \<module\> ' + src + ' | sed "s/\<modules\>/\<\modules\>\<module\>lib\<\/module\>/" >$OUT'
+
+    genrule(
+        name = name,
+        srcs = [ src ],
+        bash = cmd,
+        out = out,
+        visibility = visibility,
+        maven_coords = onosGroupId + ':onos:pom:' + version,
+    )
+
+def pass_thru_pom(
+    name,
+    src,
+    out,
+    artifactId,
+    version = ONOS_VERSION,
+    onosGroupId = ONOS_GROUP_ID,
+    visibility = [ 'PUBLIC' ],
+    ):
+
+    cmd = 'cp ' + src + ' $OUT'
+
+    genrule(
+        name = name,
+        srcs = [ src ],
+        bash = cmd,
+        out = out,
+        visibility = visibility,
+        maven_coords = onosGroupId + ':' + artifactId + ':pom:' + version,
+    )

@@ -58,3 +58,13 @@ tar_file(
                'tools/build/envDefaults'
            ],
 )
+
+only_lib_dep_pom(
+    name = 'top-level-pom',
+    src = 'pom.xml',
+    out = 'onos.pom',
+)
+
+
+
+

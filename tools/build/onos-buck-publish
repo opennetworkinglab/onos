@@ -39,5 +39,9 @@ sed -i.bak 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
 cat $TEST_PUB
 bash $TEST_PUB
 
+# stage ONOS poms
+onos-buck publish --to-maven-central --sign //:top-level-pom
+onos-buck publish --to-maven-central --sign //lib:onos-dependencies-pom
+
 # Close the staging area
 onos-close-staging
