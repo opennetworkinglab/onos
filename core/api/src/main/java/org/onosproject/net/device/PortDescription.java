@@ -40,6 +40,13 @@ public interface PortDescription extends Description {
     boolean isEnabled();
 
     /**
+     * Indicates whether or not the port was removed.
+     *
+     * @return true if the port is removed.
+     */
+    boolean isRemoved();
+
+    /**
      * Returns the port type.
      *
      * @return port type

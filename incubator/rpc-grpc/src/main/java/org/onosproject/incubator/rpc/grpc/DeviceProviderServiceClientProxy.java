@@ -129,6 +129,11 @@ final class DeviceProviderServiceClientProxy
     }
 
     @Override
+    public void deletePort(DeviceId deviceId, PortDescription portDescription) {
+
+    }
+
+    @Override
     public void portStatusChanged(DeviceId deviceId,
                                   PortDescription portDescription) {
         checkValidity();
