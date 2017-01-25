@@ -766,7 +766,12 @@ public class DeviceManager
         final boolean isReachable = isReachable(did);
         if (!isReachable) {
             // device is not connected to this node
-            if (myNextRole != NONE) {
+            if (mastershipService.getLocalRole(did) == NONE) {
+                log.debug("Node was instructed to be {} role for {}, "
+                                + "but this node cannot reach the device "
+                                + "and role is already None. Ignoring request.",
+                        myNextRole, did);
+            } else if (myNextRole != NONE) {
                 log.warn("Node was instructed to be {} role for {}, "
                                  + "but this node cannot reach the device.  "
                                  + "Relinquishing role.  ",
