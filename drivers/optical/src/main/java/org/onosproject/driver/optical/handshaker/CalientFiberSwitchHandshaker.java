@@ -64,7 +64,7 @@ public class CalientFiberSwitchHandshaker extends AbstractOpenFlowSwitch impleme
 
     @Override
     public void startDriverHandshake() {
-        log.warn("Starting driver handshake for sw {}", getStringId());
+        log.info("Starting driver handshake for sw {}", getStringId());
         if (startDriverHandshakeCalled) {
             throw new SwitchDriverSubHandshakeAlreadyStarted();
         }
@@ -82,8 +82,8 @@ public class CalientFiberSwitchHandshaker extends AbstractOpenFlowSwitch impleme
         OFCalientPortDescStatsRequest portsRequest = factory()
                 .buildCalientPortDescStatsRequest()
                 .build();
-        log.warn("Sending experimenter port description message {}",
-                portsRequest.toString());
+        log.info("Sending experimenter port description message {}",
+                 portsRequest);
         this.sendHandshakeMessage(portsRequest);
     }
 
@@ -122,7 +122,7 @@ public class CalientFiberSwitchHandshaker extends AbstractOpenFlowSwitch impleme
             case ROLE_REPLY:
                 break;
             case STATS_REPLY:
-                log.warn("Received port desc reply");
+                log.debug("Received port desc reply");
                 OFCalientPortDescStatsReply descStatsReply = (OFCalientPortDescStatsReply) m;
                 fiberPorts.addAll(descStatsReply.getPortDesc());
                 // Multi-part message
