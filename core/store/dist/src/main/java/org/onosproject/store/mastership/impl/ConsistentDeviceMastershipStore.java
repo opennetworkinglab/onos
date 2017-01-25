@@ -210,6 +210,10 @@ public class ConsistentDeviceMastershipStore
     public Set<DeviceId> getDevices(NodeId nodeId) {
         checkArgument(nodeId != null, NODE_ID_NULL);
 
+        // FIXME This result contains REMOVED device.
+        // MastershipService cannot listen to DeviceEvent to GC removed topic,
+        // since DeviceManager depend on it.
+        // Reference count, etc. at LeadershipService layer?
         return leadershipService
                 .ownedTopics(nodeId)
                 .stream()

@@ -121,6 +121,8 @@ public interface MastershipService
 
     /**
      * Returns the devices for which a controller is master.
+     * <p>
+     * Returned Set may contain DeviceId which no longer exist in the system.
      *
      * @param nodeId the ID of the controller
      * @return a set of device IDs
