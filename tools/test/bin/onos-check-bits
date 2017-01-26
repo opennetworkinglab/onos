@@ -12,7 +12,7 @@ if [ -f $BUCK_TAR -a $BUCK_TAR -nt $ONOS_TAR ]; then
     rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
 fi
 
-ls -l $ONOS_TAR  && cksum $ONOS_TAR
+ls -lL $ONOS_TAR  && cksum $ONOS_TAR
 if [ $? -ne 0 ]; then
    echo "ONOS archive is unreadable" && exit 1
 fi
