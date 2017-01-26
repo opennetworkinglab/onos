@@ -29,6 +29,7 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.Key;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -58,6 +59,9 @@ public class IntentCleanup implements Runnable, IntentListener {
 
     private static final Logger log = getLogger(IntentCleanup.class);
 
+    // Logical timeout for stuck Intents in INSTALLING or WITHDRAWING. The unit is seconds
+    private static final int INSTALLING_WITHDRAWING_PERIOD = 120;
+
     private static final int DEFAULT_PERIOD = 5; //seconds
     private static final int DEFAULT_THRESHOLD = 5; //tries
 
@@ -69,6 +73,7 @@ public class IntentCleanup implements Runnable, IntentListener {
               label = "Frequency in ms between cleanup runs")
     protected int period = DEFAULT_PERIOD;
     private long periodMs;
+    private long periodMsForStuck;
 
     @Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
             label = "Number of times to retry CORRUPT intent without delay")
@@ -129,7 +134,9 @@ public class IntentCleanup implements Runnable, IntentListener {
         }
 
         // Any change in the following parameters implies hard restart
-        if (newPeriod != period || enabled != newEnabled) {
+        // We could further restrict only for values multiple of the period
+        // of the stuck intents
+        if (newPeriod != period || enabled != newEnabled || newPeriod <= INSTALLING_WITHDRAWING_PERIOD) {
             period = newPeriod;
             enabled = newEnabled;
             adjustRate();
@@ -152,8 +159,10 @@ public class IntentCleanup implements Runnable, IntentListener {
                     executor.execute(IntentCleanup.this);
                 }
             };
-
-            periodMs = period * 1_000; //convert to ms
+            // Convert to ms
+            periodMs = period * 1_000;
+            periodMsForStuck = INSTALLING_WITHDRAWING_PERIOD * 1000;
+            // Schedule the executions
             timer.scheduleAtFixedRate(timerTask, periodMs, periodMs);
         }
     }
@@ -208,7 +217,7 @@ public class IntentCleanup implements Runnable, IntentListener {
      * re-submit/withdraw appropriately.
      */
     private void cleanup() {
-        int corruptCount = 0, failedCount = 0, stuckCount = 0, pendingCount = 0;
+        int corruptCount = 0, failedCount = 0, stuckCount = 0, pendingCount = 0, skipped = 0;
 
         // Check the pending map first, because the check of the current map
         // will add items to the pending map.
@@ -235,10 +244,17 @@ public class IntentCleanup implements Runnable, IntentListener {
                     break;
                 case INSTALLING: //FALLTHROUGH
                 case WITHDRAWING:
-                    log.debug("Resubmit Pending Intent: key {}, state {}, request {}",
-                              intentData.key(), intentData.state(), intentData.request());
-                    resubmitPendingRequest(intentData);
-                    stuckCount++;
+                    // Instances can have different clocks and potentially we can have problems
+                    // An Intent can be submitted again before the real period of the stuck intents
+                    final WallClockTimestamp time = new WallClockTimestamp(
+                            System.currentTimeMillis() - periodMsForStuck
+                    );
+                    if (intentData.version().isOlderThan(time)) {
+                        resubmitPendingRequest(intentData);
+                        stuckCount++;
+                    } else {
+                        skipped++;
+                    }
                     break;
                 default:
                     //NOOP
@@ -249,6 +265,9 @@ public class IntentCleanup implements Runnable, IntentListener {
         if (corruptCount + failedCount + stuckCount + pendingCount > 0) {
             log.debug("Intent cleanup ran and resubmitted {} corrupt, {} failed, {} stuck, and {} pending intents",
                     corruptCount, failedCount, stuckCount, pendingCount);
+        }
+        if (skipped > 0) {
+            log.debug("Intent cleanup skipped {} intents", skipped);
         }
     }
 
