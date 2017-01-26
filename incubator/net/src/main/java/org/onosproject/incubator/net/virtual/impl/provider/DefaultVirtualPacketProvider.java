@@ -35,6 +35,7 @@ import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProviderService;
+import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -71,9 +72,6 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VirtualPacketProviderService virtualPacketProviderService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -85,6 +83,8 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualNetworkAdminService virtualNetworkAdminService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VirtualProviderRegistryService providerRegistryService;
 
     ApplicationId appId;
     InternalPacketProcessor processor;
@@ -104,6 +104,7 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     public void activate() {
         appId = coreService.registerApplication(
                 "org.onosproject.provider.virtual-packet-provider");
+        providerRegistryService.registerProvider(this);
 
         processor = new InternalPacketProcessor();
         packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
@@ -263,9 +264,14 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
         @Override
         public void process(PacketContext context) {
             Set<VirtualPacketContext> vContexts = virtualize(context);
-            vContexts.forEach(vpc -> virtualPacketProviderService
-                                              .processPacket(vpc.getNetworkId(),
-                                                             vpc));
+
+            vContexts.forEach(vpc -> {
+                                  VirtualPacketProviderService service =
+                                          (VirtualPacketProviderService) providerRegistryService
+                                                  .getProviderService(vpc.getNetworkId(),
+                                                                      VirtualPacketProvider.class);
+                                  service.processPacket(vpc);
+                              });
         }
     }
 }

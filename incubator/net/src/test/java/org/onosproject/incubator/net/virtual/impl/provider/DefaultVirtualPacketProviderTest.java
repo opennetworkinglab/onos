@@ -39,6 +39,7 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProviderService;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProviderService;
 import org.onosproject.net.ConnectPoint;
@@ -129,7 +130,9 @@ public class DefaultVirtualPacketProviderTest {
 
     protected DefaultVirtualPacketProvider virtualProvider;
     protected TestPacketService testPacketService;
-    protected TestVirtualPacketProivderService providerService;
+    protected TestVirtualPacketProviderService providerService;
+
+    private VirtualProviderManager providerManager;
 
     private ApplicationId vAppId;
 
@@ -141,11 +144,14 @@ public class DefaultVirtualPacketProviderTest {
         virtualProvider.virtualNetworkAdminService =
                 new TestVirtualNetworkAdminService();
 
-        providerService = new TestVirtualPacketProivderService();
-        virtualProvider.virtualPacketProviderService = providerService;
+        providerService = new TestVirtualPacketProviderService();
 
         testPacketService = new TestPacketService();
         virtualProvider.packetService = testPacketService;
+
+        providerManager = new VirtualProviderManager();
+        virtualProvider.providerRegistryService = providerManager;
+        providerManager.registerProviderService(VNET_ID, providerService);
 
         virtualProvider.activate();
         vAppId = new TestApplicationId(0, "Virtual App");
@@ -211,9 +217,6 @@ public class DefaultVirtualPacketProviderTest {
                 new TestPacketContext(System.nanoTime(), pInPacket, null, false);
 
         testPacketService.sendTestPacketContext(pContext);
-
-        assertEquals("The virtual network Id should be 1", VNET_ID,
-                     providerService.getRequestedNetworkId(0));
 
         PacketContext vContext = providerService.getRequestedPacketContext(0);
         InboundPacket vInPacket = vContext.inPacket();
@@ -288,6 +291,11 @@ public class DefaultVirtualPacketProviderTest {
 
         @Override
         public ServiceDirectory getServiceDirectory() {
+            return null;
+        }
+
+        @Override
+        public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
             return null;
         }
 
@@ -375,7 +383,8 @@ public class DefaultVirtualPacketProviderTest {
         }
     }
 
-    private static class TestVirtualPacketProivderService
+    private static class TestVirtualPacketProviderService
+            extends AbstractVirtualProviderService<VirtualPacketProvider>
             implements VirtualPacketProviderService {
         static List<PacketContext> requestedContext = new LinkedList();
         static List<NetworkId> requestedNetworkId = new LinkedList();
@@ -385,18 +394,17 @@ public class DefaultVirtualPacketProviderTest {
             return null;
         }
 
-        @Override
-        public void processPacket(NetworkId networkId, PacketContext context) {
-            requestedNetworkId.add(networkId);
-            requestedContext.add(context);
-        }
-
         public NetworkId getRequestedNetworkId(int index) {
-            return requestedNetworkId.get(0);
+            return requestedNetworkId.get(index);
         }
 
         public PacketContext getRequestedPacketContext(int index) {
-            return requestedContext.get(0);
+            return requestedContext.get(index);
+        }
+
+        @Override
+        public void processPacket(PacketContext context) {
+            requestedContext.add(context);
         }
     }
 
