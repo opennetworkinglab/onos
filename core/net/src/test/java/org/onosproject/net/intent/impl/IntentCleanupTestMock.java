@@ -18,6 +18,7 @@ package org.onosproject.net.intent.impl;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.IdGenerator;
@@ -156,6 +157,7 @@ public class IntentCleanupTestMock {
      * Trigger resubmit of intent in INSTALLING for too long.
      */
     @Test
+    @Ignore("The implementation is dependent on the SimpleStore")
     public void installingPoll() {
         IntentStoreDelegate mockDelegate = new IntentStoreDelegate() {
             @Override

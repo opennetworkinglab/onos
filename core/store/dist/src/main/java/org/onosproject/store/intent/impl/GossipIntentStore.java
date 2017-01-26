@@ -281,12 +281,10 @@ public class GossipIntentStore
     public void addPending(IntentData data) {
         checkNotNull(data);
         if (data.version() == null) {
-            /*
-             * Copy IntentData including request state in this way we can
-             * avoid the creation of Intents with state == request, which can
-             * be problematic if the Intent state is different from *REQ
-             * {INSTALL_, WITHDRAW_ and PURGE_}.
-             */
+            // Copy IntentData including request state in this way we can
+            // avoid the creation of Intents with state == request, which can
+            // be problematic if the Intent state is different from *REQ
+            // {INSTALL_, WITHDRAW_ and PURGE_}.
             pendingMap.put(data.key(), new IntentData(data.intent(), data.state(), data.request(),
                                                       new WallClockTimestamp(), clusterService.getLocalNode().id()));
         } else {
