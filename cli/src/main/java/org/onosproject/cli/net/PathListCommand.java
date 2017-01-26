@@ -20,9 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.Set;
 
@@ -47,19 +51,38 @@ public class PathListCommand extends TopologyCommand {
               required = true, multiValued = false)
     String dst = null;
 
+    @Option(name = "--disjoint", description = "Show disjoint Paths")
+    boolean disjoint = false;
+
     @Override
     protected void execute() {
         init();
-        if (src.split("/").length != 1 || dst.split("/").length != 1) {
-            print("Expected device IDs as arguments");
+        DeviceService deviceService = get(DeviceService.class);
+        DeviceId srcDid = deviceId(src);
+        if (deviceService.getDevice(srcDid) == null) {
+            print("Unknown device %s", src);
             return;
         }
-        Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
+        DeviceId dstDid = deviceId(dst);
+        if (deviceService.getDevice(dstDid) == null) {
+            print("Unknown device %s", dst);
+            return;
+        }
+        Set<? extends Path> paths;
+        if (disjoint) {
+            paths = service.getDisjointPaths(topology, srcDid, dstDid);
+        } else {
+            paths = service.getPaths(topology, srcDid, dstDid);
+        }
         if (outputJson()) {
             print("%s", json(this, paths));
         } else {
             for (Path path : paths) {
                 print(pathString(path));
+                if (path instanceof DisjointPath) {
+                    // print backup right after primary
+                    print(pathString(((DisjointPath) path).backup()));
+                }
             }
         }
     }
@@ -71,13 +94,22 @@ public class PathListCommand extends TopologyCommand {
      * @param paths collection of paths
      * @return JSON array
      */
-    public static JsonNode json(AbstractShellCommand context, Iterable<Path> paths) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static JsonNode json(AbstractShellCommand context,
+                                Iterable<? extends Path> paths) {
+        ObjectMapper mapper = context.mapper();
         ArrayNode result = mapper.createArrayNode();
         for (Path path : paths) {
             result.add(LinksListCommand.json(context, path)
                     .put("cost", path.cost())
                     .set("links", LinksListCommand.json(context, path.links())));
+
+            if (path instanceof DisjointPath) {
+                // [ (primay), (backup), ...]
+                DisjointPath backup = (DisjointPath) path;
+                result.add(LinksListCommand.json(context, backup.backup())
+                           .put("cost", backup.cost())
+                           .set("links", LinksListCommand.json(context, backup.links())));
+            }
         }
         return result;
     }
