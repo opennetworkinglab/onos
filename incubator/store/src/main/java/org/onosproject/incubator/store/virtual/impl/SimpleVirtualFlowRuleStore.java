@@ -67,8 +67,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
-//TODO: support distributed flowrule store for virtual networks
+/**
+ * Manages inventory of virtual flow rules using trivial in-memory implementation.
+ */
 
+//TODO: support distributed flowrule store for virtual networks
 @Component(immediate = true)
 @Service
 public class SimpleVirtualFlowRuleStore

@@ -16,7 +16,6 @@
 
 package org.onosproject.incubator.net.virtual.provider;
 
-import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupOperation;
@@ -32,29 +31,24 @@ public interface VirtualGroupProviderService
     /**
      * Notifies core if any failure from data plane during group operations.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId the device ID
      * @param operation offended group operation
      */
-    void groupOperationFailed(NetworkId networkId, DeviceId deviceId,
-                              GroupOperation operation);
+    void groupOperationFailed(DeviceId deviceId, GroupOperation operation);
 
     /**
      * Pushes the collection of group detected in the data plane along
      * with statistics.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId device identifier
      * @param groupEntries collection of group entries as seen in data plane
      */
-    void pushGroupMetrics(NetworkId networkId,
-                          DeviceId deviceId, Collection<Group> groupEntries);
+    void pushGroupMetrics(DeviceId deviceId, Collection<Group> groupEntries);
 
     /**
      * Notifies store of group failovers.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param failoverGroups failover groups in which a failover has occurred
      */
-    void notifyOfFailovers(NetworkId networkId, Collection<Group> failoverGroups);
+    void notifyOfFailovers(Collection<Group> failoverGroups);
 }

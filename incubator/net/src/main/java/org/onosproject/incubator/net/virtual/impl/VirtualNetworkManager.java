@@ -57,6 +57,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
@@ -421,6 +422,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkFlowRuleManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(PacketService.class)) {
             service = new VirtualNetworkPacketManager(this, network.id());
+        } else if (serviceKey.serviceClass.equals(GroupService.class)) {
+            service = new VirtualNetworkGroupManager(this, network.id());
         } else {
             return null;
         }

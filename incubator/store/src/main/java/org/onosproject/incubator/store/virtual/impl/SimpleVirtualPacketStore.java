@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Simple single instance implementation of the virtual packet store.
+ */
 public class SimpleVirtualPacketStore
         extends AbstractVirtualStore<PacketEvent, PacketStoreDelegate>
         implements VirtualNetworkPacketStore {

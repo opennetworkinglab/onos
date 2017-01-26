@@ -27,6 +27,10 @@ import org.onosproject.net.flow.TableStatisticsEntry;
 
 import java.util.List;
 
+/**
+ * Manages inventory of flow rules for virtual networks;
+ * not intended for direct use.
+ */
 public interface VirtualNetworkFlowRuleStore
         extends VirtualStore<FlowRuleBatchEvent, FlowRuleStoreDelegate> {
     /**
