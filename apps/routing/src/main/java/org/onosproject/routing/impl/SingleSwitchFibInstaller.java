@@ -172,22 +172,13 @@ public class SingleSwitchFibInstaller {
 
         asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
 
-        updateConfig();
+        processRouterConfig();
 
         // FIXME: There can be an issue when this component is deactivated before vRouter.
         //        This will be addressed in CORD-710.
         applicationService.registerDeactivateHook(vrouterAppId, () -> cleanUp());
 
         log.info("Started");
-    }
-
-    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
-        return new RouterInterfaceManager(deviceId,
-                configuredInterfaces,
-                interfaceService,
-                intf -> processIntfFilter(true, intf),
-                intf -> processIntfFilter(false, intf)
-        );
     }
 
     @Deactivate
@@ -217,22 +208,7 @@ public class SingleSwitchFibInstaller {
         log.info("routeToNextHop set to {}", routeToNextHop);
     }
 
-    //remove filtering objectives and routes before deactivate.
-    private void cleanUp() {
-        //remove the route listener
-        routeService.removeListener(routeListener);
-
-        //clean up the routes.
-        for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
-            deleteRoute(new ResolvedRoute(routes.getKey(), null, null, null));
-        }
-
-        if (interfaceManager != null) {
-            interfaceManager.cleanup();
-        }
-    }
-
-    private void updateConfig() {
+    private void processRouterConfig() {
         RouterConfig routerConfig =
                 networkConfigService.getConfig(routerAppId, RoutingService.ROUTER_CONFIG_CLASS);
 
@@ -256,6 +232,31 @@ public class SingleSwitchFibInstaller {
         } else {
             interfaceManager.changeConfiguredInterfaces(interfaces);
         }
+    }
+
+    /*
+     * Removes filtering objectives and routes before deactivate.
+     */
+    private void cleanUp() {
+        //remove the route listener
+        routeService.removeListener(routeListener);
+
+        //clean up the routes.
+        for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
+            deleteRoute(new ResolvedRoute(routes.getKey(), null, null, null));
+        }
+
+        if (interfaceManager != null) {
+            interfaceManager.cleanup();
+        }
+    }
+
+    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
+        return new RouterInterfaceManager(deviceId,
+                configuredInterfaces,
+                interfaceService,
+                this::provisionInterface,
+                this::unprovisionInterface);
     }
 
     private void updateRoute(ResolvedRoute route) {
@@ -411,14 +412,32 @@ public class SingleSwitchFibInstaller {
         return group;
     }*/
 
-    //process filtering objective for interface add/remove.
-    private void processIntfFilter(boolean install, Interface intf) {
-        createFilteringObjective(install, intf);
-        createMcastFilteringObjective(install, intf);
+    private void provisionInterface(Interface intf) {
+        updateInterfaceFilters(intf, true);
     }
 
-    //create filtering objective for interface
-    private void createFilteringObjective(boolean install, Interface intf) {
+    private void unprovisionInterface(Interface intf) {
+        updateInterfaceFilters(intf, false);
+    }
+
+    /**
+     * Installs or removes flow objectives relating to an interface.
+     *
+     * @param intf interface to update objectives for
+     * @param install true to install the objectives, false to remove them
+     */
+    private void updateInterfaceFilters(Interface intf, boolean install) {
+        updateFilteringObjective(intf, install);
+        updateMcastFilteringObjective(intf, install);
+    }
+
+    /**
+     * Installs or removes unicast filtering objectives relating to an interface.
+     *
+     * @param intf interface to update objectives for
+     * @param install true to install the objectives, false to remove them
+     */
+    private void updateFilteringObjective(Interface intf, boolean install) {
         VlanId assignedVlan = (egressVlan().equals(VlanId.NONE)) ?
                 VlanId.vlanId(ASSIGNED_VLAN) :
                 egressVlan();
@@ -444,8 +463,13 @@ public class SingleSwitchFibInstaller {
         }
     }
 
-    //create filtering objective for multicast traffic
-    private void createMcastFilteringObjective(boolean install, Interface intf) {
+    /**
+     * Installs or removes multicast filtering objectives relating to an interface.
+     *
+     * @param intf interface to update objectives for
+     * @param install true to install the objectives, false to remove them
+     */
+    private void updateMcastFilteringObjective(Interface intf, boolean install) {
         VlanId assignedVlan = (egressVlan().equals(VlanId.NONE)) ?
                 VlanId.vlanId(ASSIGNED_VLAN) :
                 egressVlan();
@@ -490,6 +514,9 @@ public class SingleSwitchFibInstaller {
         return (mcastConfig != null) ? mcastConfig.egressVlan() : VlanId.NONE;
     }
 
+    /**
+     * Listener for route changes.
+     */
     private class InternalRouteListener implements RouteListener {
         @Override
         public void event(RouteEvent event) {
@@ -518,7 +545,7 @@ public class SingleSwitchFibInstaller {
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
-                    updateConfig();
+                    processRouterConfig();
                     break;
                 case CONFIG_REGISTERED:
                     break;

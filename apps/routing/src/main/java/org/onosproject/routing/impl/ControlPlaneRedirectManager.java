@@ -138,7 +138,7 @@ public class ControlPlaneRedirectManager {
 
         asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
 
-        readConfig();
+        processRouterConfig();
 
         // FIXME There can be an issue when this component is deactivated before vRouter
         applicationService.registerDeactivateHook(this.appId, () -> {
@@ -155,19 +155,10 @@ public class ControlPlaneRedirectManager {
         asyncDeviceFetcher.shutdown();
     }
 
-    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
-        return new RouterInterfaceManager(deviceId,
-                configuredInterfaces,
-                interfaceService,
-                intf -> provisionInterface(intf, true),
-                intf -> provisionInterface(intf, false)
-        );
-    }
-
     /**
      * Sets up the router interfaces if router config is available.
      */
-    private void readConfig() {
+    private void processRouterConfig() {
         ApplicationId routingAppId =
                 coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
@@ -195,21 +186,50 @@ public class ControlPlaneRedirectManager {
         }
     }
 
-    private void provisionInterface(Interface intf, boolean install) {
+    /**
+     * Cleans up after router config was removed.
+     */
+    private void removeRouterConfig() {
+        if (interfaceManager != null) {
+            interfaceManager.cleanup();
+        }
+    }
+
+    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
+        return new RouterInterfaceManager(deviceId,
+                configuredInterfaces,
+                interfaceService,
+                this::provisionInterface,
+                this::unprovisionInterface);
+    }
+
+    private void provisionInterface(Interface intf) {
+        updateInterfaceObjectives(intf, true);
+    }
+
+    private void unprovisionInterface(Interface intf) {
+        updateInterfaceObjectives(intf, false);
+    }
+
+    /**
+     * Installs or removes flow objectives relating to a give interface.
+     *
+     * @param intf interface to change objectives for
+     * @param install true to install the objectives, false to remove them
+     */
+    private void updateInterfaceObjectives(Interface intf, boolean install) {
         updateInterfaceForwarding(intf, install);
         updateOspfForwarding(intf, install);
     }
 
     /**
-     * Installs or removes the basic forwarding flows for each interface
-     * based on the flag used.
+     * Installs or removes the basic forwarding flows for each interface.
      *
      * @param intf the Interface on which event is received
-     * @param install true to create an add objective, false to create a remove
-     *            objective
-     **/
+     * @param install true to install the objectives, false to remove them
+     */
     private void updateInterfaceForwarding(Interface intf, boolean install) {
-        log.debug("Adding interface objectives for {}", intf);
+        log.debug("{} interface objectives for {}", operation(install), intf);
 
         DeviceId deviceId = intf.connectPoint().deviceId();
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
@@ -319,100 +339,18 @@ public class ControlPlaneRedirectManager {
         }
     }
 
-    static TrafficSelector.Builder buildBaseSelectorBuilder(PortNumber inPort,
-                                                             MacAddress srcMac,
-                                                             MacAddress dstMac,
-                                                             VlanId vlanId) {
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        if (inPort != null) {
-            selectorBuilder.matchInPort(inPort);
-        }
-        if (srcMac != null) {
-            selectorBuilder.matchEthSrc(srcMac);
-        }
-        if (dstMac != null) {
-            selectorBuilder.matchEthDst(dstMac);
-        }
-        if (vlanId != null) {
-            selectorBuilder.matchVlanId(vlanId);
-        }
-        return selectorBuilder;
-    }
-
-    static TrafficSelector buildIPDstSelector(IpPrefix dstIp,
-                                               PortNumber inPort,
-                                               MacAddress srcMac,
-                                               MacAddress dstMac,
-                                               VlanId vlanId) {
-        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
-        if (dstIp.isIp4()) {
-            selector.matchEthType(TYPE_IPV4);
-            selector.matchIPDst(dstIp);
-        } else {
-            selector.matchEthType(TYPE_IPV6);
-            selector.matchIPv6Dst(dstIp);
-        }
-        return selector.build();
-    }
-
-    static TrafficSelector buildIPSrcSelector(IpPrefix srcIp,
-                                               PortNumber inPort,
-                                               MacAddress srcMac,
-                                               MacAddress dstMac,
-                                               VlanId vlanId) {
-        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
-        if (srcIp.isIp4()) {
-            selector.matchEthType(TYPE_IPV4);
-            selector.matchIPSrc(srcIp);
-        } else {
-            selector.matchEthType(TYPE_IPV6);
-            selector.matchIPv6Src(srcIp);
-        }
-        return selector.build();
-    }
-
-    static TrafficSelector buildArpSelector(PortNumber inPort,
-                                             VlanId vlanId,
-                                             Ip4Address arpSpa,
-                                             MacAddress srcMac) {
-        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
-        selector.matchEthType(TYPE_ARP);
-        if (arpSpa != null) {
-            selector.matchArpSpa(arpSpa);
-        }
-        if (srcMac != null) {
-            selector.matchEthSrc(srcMac);
-        }
-        return selector.build();
-    }
-
-    static TrafficSelector buildNdpSelector(PortNumber inPort,
-                                             VlanId vlanId,
-                                             IpPrefix srcIp,
-                                             byte subProto,
-                                             MacAddress srcMac) {
-        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
-        selector.matchEthType(TYPE_IPV6)
-                .matchIPProtocol(PROTOCOL_ICMP6)
-                .matchIcmpv6Type(subProto);
-        if (srcIp != null) {
-            selector.matchIPv6Src(srcIp);
-        }
-        if (srcMac != null) {
-            selector.matchEthSrc(srcMac);
-        }
-        return selector.build();
-    }
-
     /**
      * Installs or removes OSPF forwarding rules.
      *
      * @param intf the interface on which event is received
      * @param install true to create an add objective, false to create a remove
      *            objective
-     **/
+     */
     private void updateOspfForwarding(Interface intf, boolean install) {
-        // FIXME IPv6 support has not been implemented yet
+        // TODO IPv6 support has not been implemented yet
+
+        log.debug("{} OSPF flows for {}", operation(install), intf);
+
         // OSPF to router
         TrafficSelector toSelector = DefaultTrafficSelector.builder()
                 .matchInPort(intf.connectPoint().port())
@@ -433,10 +371,9 @@ public class ControlPlaneRedirectManager {
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                                            intf.vlan(), false, install);
         }
-        log.debug("OSPF flows intf:{} nextid:{}", intf, cpNextId);
-        log.debug("install={}", install);
         flowObjectiveService.forward(intf.connectPoint().deviceId(),
-                buildForwardingObjective(toSelector, null, cpNextId, install ? ospfEnabled : install, ACL_PRIORITY));
+                buildForwardingObjective(toSelector, null, cpNextId,
+                        install ? ospfEnabled : install, ACL_PRIORITY));
     }
 
     /**
@@ -512,6 +449,103 @@ public class ControlPlaneRedirectManager {
         return add ? fobBuilder.add() : fobBuilder.remove();
     }
 
+
+    static TrafficSelector.Builder buildBaseSelectorBuilder(PortNumber inPort,
+                                                            MacAddress srcMac,
+                                                            MacAddress dstMac,
+                                                            VlanId vlanId) {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        if (inPort != null) {
+            selectorBuilder.matchInPort(inPort);
+        }
+        if (srcMac != null) {
+            selectorBuilder.matchEthSrc(srcMac);
+        }
+        if (dstMac != null) {
+            selectorBuilder.matchEthDst(dstMac);
+        }
+        if (vlanId != null) {
+            selectorBuilder.matchVlanId(vlanId);
+        }
+        return selectorBuilder;
+    }
+
+    static TrafficSelector buildIPDstSelector(IpPrefix dstIp,
+                                              PortNumber inPort,
+                                              MacAddress srcMac,
+                                              MacAddress dstMac,
+                                              VlanId vlanId) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
+        if (dstIp.isIp4()) {
+            selector.matchEthType(TYPE_IPV4);
+            selector.matchIPDst(dstIp);
+        } else {
+            selector.matchEthType(TYPE_IPV6);
+            selector.matchIPv6Dst(dstIp);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildIPSrcSelector(IpPrefix srcIp,
+                                              PortNumber inPort,
+                                              MacAddress srcMac,
+                                              MacAddress dstMac,
+                                              VlanId vlanId) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, srcMac, dstMac, vlanId);
+        if (srcIp.isIp4()) {
+            selector.matchEthType(TYPE_IPV4);
+            selector.matchIPSrc(srcIp);
+        } else {
+            selector.matchEthType(TYPE_IPV6);
+            selector.matchIPv6Src(srcIp);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildArpSelector(PortNumber inPort,
+                                            VlanId vlanId,
+                                            Ip4Address arpSpa,
+                                            MacAddress srcMac) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
+        selector.matchEthType(TYPE_ARP);
+        if (arpSpa != null) {
+            selector.matchArpSpa(arpSpa);
+        }
+        if (srcMac != null) {
+            selector.matchEthSrc(srcMac);
+        }
+        return selector.build();
+    }
+
+    static TrafficSelector buildNdpSelector(PortNumber inPort,
+                                            VlanId vlanId,
+                                            IpPrefix srcIp,
+                                            byte subProto,
+                                            MacAddress srcMac) {
+        TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
+        selector.matchEthType(TYPE_IPV6)
+                .matchIPProtocol(PROTOCOL_ICMP6)
+                .matchIcmpv6Type(subProto);
+        if (srcIp != null) {
+            selector.matchIPv6Src(srcIp);
+        }
+        if (srcMac != null) {
+            selector.matchEthSrc(srcMac);
+        }
+        return selector.build();
+    }
+
+    private int getPriorityFromPrefix(IpPrefix prefix) {
+        return (prefix.isIp4()) ?
+               IPV4_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY :
+               IPV6_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY;
+    }
+
+    private String operation(boolean install) {
+        return install ? "Installing" : "Removing";
+    }
+
+
     /**
      * Listener for network config events.
      */
@@ -523,14 +557,14 @@ public class ControlPlaneRedirectManager {
                 switch (event.type()) {
                     case CONFIG_ADDED:
                     case CONFIG_UPDATED:
-                        readConfig();
+                        processRouterConfig();
                         break;
                     case CONFIG_REGISTERED:
                         break;
                     case CONFIG_UNREGISTERED:
                         break;
                     case CONFIG_REMOVED:
-                        removeConfig();
+                        removeRouterConfig();
                         break;
                 default:
                     break;
@@ -678,18 +712,6 @@ public class ControlPlaneRedirectManager {
                 default:
                     break;
             }
-        }
-    }
-
-    private int getPriorityFromPrefix(IpPrefix prefix) {
-        return (prefix.isIp4()) ?
-                IPV4_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY :
-                IPV6_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY;
-    }
-
-    private void removeConfig() {
-        if (interfaceManager != null) {
-            interfaceManager.cleanup();
         }
     }
 
