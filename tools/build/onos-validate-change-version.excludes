@@ -2,6 +2,7 @@
 \./.git
 /target/
 \.iml$
+\.versionsBackup$
 \./buck-out/
 \./\.buckd
 \./lib/BUCK
