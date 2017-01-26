@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.Task;
@@ -150,6 +151,7 @@ public class AtomixWorkQueueTest extends AtomixTestBase {
         assertEquals(0, stats.totalCompleted());
     }
 
+    @Ignore("Disable due to ONOS-5906")
     @Test
     public void testAutomaticTaskProcessing() throws Throwable {
         String queueName = UUID.randomUUID().toString();
