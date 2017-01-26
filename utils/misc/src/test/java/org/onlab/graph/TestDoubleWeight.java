@@ -59,7 +59,7 @@ public class TestDoubleWeight implements Weight {
 
     @Override
     public boolean isViable() {
-        return this != NON_VIABLE_WEIGHT;
+        return !this.equals(NON_VIABLE_WEIGHT);
     }
 
     @Override
