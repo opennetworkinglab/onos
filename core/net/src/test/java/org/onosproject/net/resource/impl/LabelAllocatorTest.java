@@ -43,7 +43,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
@@ -218,7 +217,7 @@ public class LabelAllocatorTest {
         // value should not be a forbidden value
         Short value = Short.parseShort(id.toString());
         VlanId prevVlanId = VlanId.vlanId(value);
-        assertTrue(VlanId.NO_VID < prevVlanId.toShort() && prevVlanId.toShort() < VlanId.MAX_VLAN);
+        assertTrue(VlanId.NO_VID <= prevVlanId.toShort() && prevVlanId.toShort() <= VlanId.MAX_VLAN);
 
         allocation = this.allocator.assignLabelToLinks(
                 ImmutableSet.copyOf(links.subList(1, 2)),
@@ -229,8 +228,7 @@ public class LabelAllocatorTest {
         assertThat(id, instanceOf(VlanId.class));
         // value should not be a forbidden value
         VlanId vlanId = (VlanId) id;
-        assertTrue(VlanId.NO_VID < vlanId.toShort() && vlanId.toShort() < VlanId.MAX_VLAN);
-        assertNotEquals(vlanId, prevVlanId);
+        assertTrue(VlanId.NO_VID <= vlanId.toShort() && vlanId.toShort() <= VlanId.MAX_VLAN);
 
     }
 
@@ -252,7 +250,7 @@ public class LabelAllocatorTest {
         assertThat(id, instanceOf(MplsLabel.class));
         // value should not be a forbidden value
         MplsLabel prevMplsId = (MplsLabel) id;
-        assertTrue(0 < prevMplsId.toInt() && prevMplsId.toInt() < MplsLabel.MAX_MPLS);
+        assertTrue(0 <= prevMplsId.toInt() && prevMplsId.toInt() <= MplsLabel.MAX_MPLS);
 
         allocation = this.allocator.assignLabelToLinks(
                 ImmutableSet.copyOf(links.subList(1, 2)),
@@ -263,9 +261,7 @@ public class LabelAllocatorTest {
         assertThat(id, instanceOf(MplsLabel.class));
         // value should not be a forbidden value
         MplsLabel mplsId = (MplsLabel) id;
-        assertTrue(0 < mplsId.toInt() && mplsId.toInt() < MplsLabel.MAX_MPLS);
-        assertNotEquals(prevMplsId, mplsId);
-
+        assertTrue(0 <= mplsId.toInt() && mplsId.toInt() <= MplsLabel.MAX_MPLS);
     }
 
     /**
