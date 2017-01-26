@@ -16,6 +16,8 @@
 package org.onlab.util;
 
 import com.google.common.collect.Lists;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -142,6 +144,7 @@ public final class BoundedThreadPoolTest {
         return latches;
     }
 
+    @Ignore("Disabled due to ONOS-5900")
     @Test
     public void releaseOneThread() {
         maxQueueSize = 10;
