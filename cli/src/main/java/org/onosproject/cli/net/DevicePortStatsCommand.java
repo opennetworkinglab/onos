@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -34,18 +36,21 @@ import org.onosproject.net.device.PortStatistics;
  */
 @Command(scope = "onos", name = "portstats",
         description = "Lists statistics of all ports in the system")
-public class DevicePortStatsCommand extends DevicesListCommand {
+public class DevicePortStatsCommand extends AbstractShellCommand {
 
     @Option(name = "-nz", aliases = "--nonzero", description = "Show only non-zero portstats",
             required = false, multiValued = false)
     private boolean nonzero = false;
 
-    @Option(name = "-d", aliases = "--delta", description = "Show Delta Port Statistics,"
+    @Option(name = "-d", aliases = "--delta",
+            description = "Show delta port statistics,"
             + "only for the last polling interval",
             required = false, multiValued = false)
     private boolean delta = false;
 
-    @Option(name = "-t", aliases = "--table", description = "Show human readable table format for statistics",
+    @Option(name = "-t", aliases = "--table",
+            description = "Show delta port statistics in table format "
+                    + "using human readable unit",
             required = false, multiValued = false)
     private boolean table = false;
 
@@ -111,6 +116,7 @@ public class DevicePortStatsCommand extends DevicesListCommand {
                     stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec());
         }
     }
+
     /**
      * Prints Port delta statistics.
      *
@@ -200,6 +206,7 @@ public class DevicePortStatsCommand extends DevicesListCommand {
         Character pre = ("KMGTPE").charAt(exp - 1);
         return String.format("%.2f%s", bytes / Math.pow(unit, exp), pre);
     }
+
     /**
      * Converts bps to human readable format.
      *
@@ -209,7 +216,7 @@ public class DevicePortStatsCommand extends DevicesListCommand {
     public static String humanReadableBps(float bps) {
         int unit = 1000;
         if (bps < unit) {
-            return String.format("%.0f ", (float) bps);
+            return String.format("%.0f ", bps);
         }
         int exp = (int) (Math.log(bps) / Math.log(unit));
         Character pre = ("KMGTPE").charAt(exp - 1);
