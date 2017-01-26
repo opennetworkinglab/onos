@@ -99,11 +99,8 @@ public class FlowsWebResource extends AbstractWebResource {
 
     /**
      * Creates new flow rules. Creates and installs a new flow rules.<br>
-     * Instructions description:
-     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Instructions
-     * <br>
-     * Criteria description:
-     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Criteria
+     * Flow rule criteria and instruction description:
+     * https://wiki.onosproject.org/display/ONOS/Flow+Rules
      *
      * @param appId application id
      * @param stream flow rules JSON
@@ -233,11 +230,8 @@ public class FlowsWebResource extends AbstractWebResource {
     /**
      * Creates new flow rule. Creates and installs a new flow rule for the
      * specified device. <br>
-     * Instructions description:
-     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Instructions
-     * <br>
-     * Criteria description:
-     * https://wiki.onosproject.org/display/ONOS/Flow+Rule+Criteria
+     * Flow rule criteria and instruction description:
+     * https://wiki.onosproject.org/display/ONOS/Flow+Rules
      *
      * @param deviceId device identifier
      * @param appId    application identifier
