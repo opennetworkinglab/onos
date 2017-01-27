@@ -197,6 +197,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.MeterRemoveCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.MetersListCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
