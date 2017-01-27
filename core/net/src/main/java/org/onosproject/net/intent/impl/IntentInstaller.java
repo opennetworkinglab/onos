@@ -326,9 +326,9 @@ class IntentInstaller {
                 List<Intent> installIntents = Lists.newArrayList(install.installables());
 
                 checkState(uninstallIntents.stream().allMatch(this::isSupported),
-                           "Unsupported installable intents detected");
+                           "Unsupported installable intents detected: %s", uninstallIntents);
                 checkState(installIntents.stream().allMatch(this::isSupported),
-                           "Unsupported installable intents detected");
+                           "Unsupported installable intents detected: %s", installIntents);
 
                 //TODO: Filter FlowObjective intents
                 // Filter out same intents and intents with same flow rules
@@ -388,7 +388,7 @@ class IntentInstaller {
             IntentData data = intentData.get();
             List<Intent> intentsToApply = data.installables();
             checkState(intentsToApply.stream().allMatch(this::isSupported),
-                       "Unsupported installable intents detected");
+                       "Unsupported installable intents detected: %s", intentsToApply);
 
             if (direction == Direction.ADD) {
                 trackerService.addTrackedResources(data.key(), data.intent().resources());
