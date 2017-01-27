@@ -114,6 +114,7 @@
             <action class="org.onosproject.cli.net.DriversListCommand"/>
             <completers>
                 <ref component-id="driverNameCompleter"/>
+                <null/>
             </completers>
         </command>
 
