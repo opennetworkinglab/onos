@@ -6,7 +6,7 @@ COMPILE_DEPS = [
 
 BUNDLES = [
     '//apps/routing-api:onos-apps-routing-api',
-    '//apps/routing:onos-apps-routing',
+    '//apps/routing/common:onos-apps-routing-common',
     '//apps/bgprouter:onos-apps-bgprouter',
 ]
 
@@ -20,4 +20,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'BGP router application.',
     included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.fibinstaller' ],
 )

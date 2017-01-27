@@ -1,0 +1,30 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//incubator/api:onos-incubator-api',
+    '//apps/routing-api:onos-apps-routing-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+BUNDLES = [
+    '//apps/routing/fpm:onos-apps-routing-fpm',
+    '//apps/routing-api:onos-apps-routing-api',
+]
+
+onos_app (
+    app_name = 'org.onosproject.fpm',
+    title = 'FIB Push Manager (FPM) route reciever',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    description = 'Receives routes from external routing daemon over FPM protocol',
+    included_bundles = BUNDLES,
+)

@@ -10,7 +10,7 @@ COMPILE_DEPS = [
 BUNDLES = [
     '//apps/sdnip:onos-apps-sdnip',
     '//apps/routing-api:onos-apps-routing-api',
-    '//apps/routing:onos-apps-routing',
+    '//apps/routing/common:onos-apps-routing-common',
 ]
 
 TEST_DEPS = [

@@ -5,7 +5,7 @@ COMPILE_DEPS = [
 
 BUNDLES = [
     '//apps/routing-api:onos-apps-routing-api',
-    '//apps/routing:onos-apps-routing',
+    '//apps/routing/common:onos-apps-routing-common',
     '//apps/vrouter:onos-apps-vrouter',
 ]
 
@@ -19,4 +19,5 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'Virtual router (vRouter) application.',
+    required_apps = [ 'org.onosproject.fibinstaller', 'org.onosproject.cpr', 'org.onosproject.fpm' ],
 )
