@@ -474,7 +474,8 @@
             <action class="org.onosproject.cli.net.InterfaceRemoveCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
-                <ref component-id="placeholderCompleter" />
+                <ref component-id="interfaceNameCompleter"/>
+                <null/>
             </completers>
         </command>
         <command>
@@ -809,4 +810,5 @@
     <bean id="annotationKeysCompleter" class="org.onosproject.cli.net.completer.AnnotationKeysCompleter"/>
 
     <bean id="peerConnectPointCompleter" class="org.onosproject.cli.net.completer.PeerConnectPointCompleter"/>
+    <bean id="interfaceNameCompleter" class="org.onosproject.cli.net.completer.InterfaceNameCompleter"/>
 </blueprint>
