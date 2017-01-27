@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.StringFilter;
+import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
@@ -45,9 +46,16 @@ import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.lang.String.format;
+import static org.apache.commons.lang3.text.WordUtils.uncapitalize;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -95,7 +103,7 @@ public class IntentsListCommand extends AbstractShellCommand {
 
     private static final String SELECTOR = BOLD + "Selector:" + RESET + " %s";
 
-    private static final String SEPARATOR = StringUtils.repeat("-", 172);;
+    private static final String SEPARATOR = StringUtils.repeat("-", 172);
 
     private static final String SPACE = "   ";
 
@@ -107,8 +115,11 @@ public class IntentsListCommand extends AbstractShellCommand {
 
     private static final String TYPE = BOLD + "Intent type:" + RESET + " %s";
 
+    /**
+     * {@value #SUMMARY_TITLES}.
+     */
     private static final String SUMMARY_TITLES =
-            BOLD + String.format(
+            BOLD + format(
             "\n%1s%21s%14s%14s%14s%14s%14s%14s%14s%14s%14s%14s",
             "Intent type",
             "Total",
@@ -134,6 +145,11 @@ public class IntentsListCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean intentsSummary = false;
 
+    @Option(name = "-m", aliases = "--mini-summary",
+            description = "Intents mini summary",
+            required = false, multiValued = false)
+    private boolean miniSummary = false;
+
     @Option(name = "-p", aliases = "--pending",
             description = "Show information about pending intents",
             required = false, multiValued = false)
@@ -145,411 +161,382 @@ public class IntentsListCommand extends AbstractShellCommand {
     private List<String> filter = new ArrayList<>();
 
     private StringFilter contentFilter;
+    private IntentService service;
 
     @Override
     protected void execute() {
-        IntentService service = get(IntentService.class);
+        service = get(IntentService.class);
         contentFilter = new StringFilter(filter, StringFilter.Strategy.AND);
 
-        if (intentsSummary) {
-            IntentSummaries intentSummaries = new IntentSummaries();
-            intentSummaries.collectIntentSummary(service,
-                                                 service.getIntents());
+        Iterable<Intent> intents;
+        if (pending) {
+            intents = service.getPending();
+        } else {
+            intents = service.getIntents();
+        }
+
+        if (intentsSummary || miniSummary) {
+            Map<String, IntentSummary> summarized = summarize(intents);
             if (outputJson()) {
-                print("%s", intentSummaries.json());
+                ObjectNode summaries = mapper().createObjectNode();
+                summarized.forEach((n, s) -> summaries.set(uncapitalize(n), s.json(mapper())));
+                print("%s", summaries);
+            } else if (miniSummary) {
+                StringBuilder builder = new StringBuilder();
+                builder.append(summarized.remove("All").miniSummary());
+                summarized.values().forEach(s -> builder.append(s.miniSummary()));
+                print("%s", builder.toString());
             } else {
-                print(intentSummaries.summary());
-            }
-            return;
-        } else if (pending) {
-            if (outputJson()) {
-                print("%s", json(service.getPending()));
-            } else {
-                StreamSupport.stream(service.getPending().spliterator(), false)
-                        .filter(intent -> contentFilter.filter(intent))
-                        .forEach(intent -> print(fullFormat(intent)));
+                StringBuilder builder = new StringBuilder();
+                builder.append(SUMMARY_TITLES);
+                builder.append('\n').append(SEPARATOR);
+                builder.append(summarized.remove("All").summary());
+                summarized.values().forEach(s -> builder.append(s.summary()));
+                print("%s", builder.toString());
             }
             return;
         }
 
         if (outputJson()) {
-            print("%s", json(service.getIntents()));
+            print("%s", json(intents));
         } else {
-            printIntents(service);
+            for (Intent intent : intents) {
+                IntentState state = service.getIntentState(intent.key());
+                StringBuilder intentFormat = fullFormat(intent, state);
+                StringBuilder detailsIntentFormat = detailsFormat(intent, state);
+                String formatted = intentFormat.append(detailsIntentFormat).toString();
+                if (contentFilter.filter(formatted)) {
+                    print("%s\n", formatted);
+                }
+            }
         }
     }
 
     /**
-     * Internal local class to keep track of all intent summaries.
+     * Internal local class to keep track of a single type Intent summary.
      */
-    private class IntentSummaries {
-        private IntentSummary summaryAll;
-        private IntentSummary summaryConnectivity;
-        private IntentSummary summaryHostToHost;
-        private IntentSummary summaryPointToPoint;
-        private IntentSummary summaryMultiPointToSinglePoint;
-        private IntentSummary summarySinglePointToMultiPoint;
-        private IntentSummary summaryPath;
-        private IntentSummary summaryLinkCollection;
-        private IntentSummary summaryOpticalCircuit;
-        private IntentSummary summaryOpticalConnectivity;
-        private IntentSummary summaryOpticalOdu;
-        private IntentSummary summaryUnknownType;
+    private class IntentSummary {
+        private final String intentType;
+        private int total = 0;
+        private int installReq = 0;
+        private int compiling = 0;
+        private int installing = 0;
+        private int installed = 0;
+        private int recompiling = 0;
+        private int withdrawReq = 0;
+        private int withdrawing = 0;
+        private int withdrawn = 0;
+        private int failed = 0;
+        private int unknownState = 0;
 
         /**
-         * Initializes the internal summary.
+         * Creates empty {@link IntentSummary} for specified {@code intentType}.
+         *
+         * @param intentType the string describing the Intent type
          */
-        private void init() {
-            summaryAll = new IntentSummary("All");
-            summaryConnectivity = new IntentSummary("Connectivity");
-            summaryHostToHost = new IntentSummary("HostToHost");
-            summaryPointToPoint = new IntentSummary("PointToPoint");
-            summaryMultiPointToSinglePoint =
-                new IntentSummary("MultiPointToSinglePoint");
-            summarySinglePointToMultiPoint =
-                new IntentSummary("SinglePointToMultiPoint");
-            summaryPath = new IntentSummary("Path");
-            summaryLinkCollection = new IntentSummary("LinkCollection");
-            summaryOpticalCircuit = new IntentSummary("OpticalCircuit");
-            summaryOpticalConnectivity = new IntentSummary("OpticalConnectivity");
-            summaryOpticalOdu = new IntentSummary("OpticalOdu");
-            summaryUnknownType = new IntentSummary("UnknownType");
+        IntentSummary(String intentType) {
+            this.intentType = intentType;
         }
 
         /**
-         * Collects summary of all intents.
+         * Creates {@link IntentSummary} initialized with given {@code intent}.
          *
-         * @param service the Intent Service to use
-         * @param intents the intents
+         * @param intent to initialize with
          */
-        private void collectIntentSummary(IntentService service,
-                                          Iterable<Intent> intents) {
-            init();
+        IntentSummary(Intent intent) {
+            // remove "Intent" from intentType label
+            this(intentType(intent));
+            update(service.getIntentState(intent.key()));
+        }
 
-            // Collect the summary for each intent type intents
-            for (Intent intent : intents) {
-                IntentState intentState = service.getIntentState(intent.key());
-                if (intentState == null) {
-                    continue;
-                }
-                if (!contentFilter.filter(intent)) {
-                    break;
-                }
+        // for identity element, when reducing
+        IntentSummary() {
+            this.intentType = null;
+        }
 
-                // Update the summary for all Intents
-                summaryAll.update(intentState);
-
-                if (intent instanceof ConnectivityIntent) {
-                    summaryConnectivity.update(intentState);
-                    // NOTE: ConnectivityIntent is a base type Intent
-                    // continue;
-                }
-                if (intent instanceof HostToHostIntent) {
-                    summaryHostToHost.update(intentState);
-                    continue;
-                }
-                if (intent instanceof PointToPointIntent) {
-                    summaryPointToPoint.update(intentState);
-                    continue;
-                }
-                if (intent instanceof MultiPointToSinglePointIntent) {
-                    summaryMultiPointToSinglePoint.update(intentState);
-                    continue;
-                }
-                if (intent instanceof SinglePointToMultiPointIntent) {
-                    summarySinglePointToMultiPoint.update(intentState);
-                    continue;
-                }
-                if (intent instanceof PathIntent) {
-                    summaryPath.update(intentState);
-                    continue;
-                }
-                if (intent instanceof LinkCollectionIntent) {
-                    summaryLinkCollection.update(intentState);
-                    continue;
-                }
-                if (intent instanceof OpticalCircuitIntent) {
-                    summaryOpticalCircuit.update(intentState);
-                    continue;
-                }
-                if (intent instanceof OpticalConnectivityIntent) {
-                    summaryOpticalConnectivity.update(intentState);
-                    continue;
-                }
-                if (intent instanceof OpticalOduIntent) {
-                    summaryOpticalOdu.update(intentState);
-                    continue;
-                }
-                summaryUnknownType.update(intentState);
+        /**
+         * Updates the Intent Summary.
+         *
+         * @param intentState the state of the intent
+         */
+        void update(IntentState intentState) {
+            total++;
+            switch (intentState) {
+            case INSTALL_REQ:
+                installReq++;
+                break;
+            case COMPILING:
+                compiling++;
+                break;
+            case INSTALLING:
+                installing++;
+                break;
+            case INSTALLED:
+                installed++;
+                break;
+            case RECOMPILING:
+                recompiling++;
+                break;
+            case WITHDRAW_REQ:
+                withdrawReq++;
+                break;
+            case WITHDRAWING:
+                withdrawing++;
+                break;
+            case WITHDRAWN:
+                withdrawn++;
+                break;
+            case FAILED:
+                failed++;
+                break;
+            default:
+                unknownState++;
+                break;
             }
         }
 
         /**
-         * Gets JSON representation of all Intents summary.
+         * Prints the Intent Summary.
          *
-         * @return JSON representation of all Intents summary
          */
-        ObjectNode json() {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode result = mapper.createObjectNode();
-            result.set("connectivity", summaryConnectivity.json(mapper));
-            result.set("hostToHost", summaryHostToHost.json(mapper));
-            result.set("pointToPoint", summaryPointToPoint.json(mapper));
-            result.set("multiPointToSinglePoint",
-                       summaryMultiPointToSinglePoint.json(mapper));
-            result.set("singlePointToMultiPoint",
-                       summarySinglePointToMultiPoint.json(mapper));
-            result.set("path", summaryPath.json(mapper));
-            result.set("linkCollection", summaryLinkCollection.json(mapper));
-            result.set("opticalCircuit", summaryOpticalCircuit.json(mapper));
-            result.set("opticalConnectivity", summaryOpticalConnectivity.json(mapper));
-            result.set("opticalOdu", summaryOpticalOdu.json(mapper));
-            result.set("unknownType", summaryUnknownType.json(mapper));
-            result.set("all", summaryAll.json(mapper));
-            return result;
-        }
-
-        /**
-         * Prints summary of the intents.
-         */
-        private String summary() {
+        StringBuilder summary() {
             StringBuilder builder = new StringBuilder();
-            builder.append(SUMMARY_TITLES);
-            builder.append("\n" + SEPARATOR);
-            builder.append(summaryAll.summary());
-            builder.append(summaryPointToPoint.summary());
-            builder.append(summarySinglePointToMultiPoint.summary());
-            builder.append(summaryMultiPointToSinglePoint.summary());
-            builder.append(summaryHostToHost.summary());
-            builder.append(summaryLinkCollection.summary());
-            builder.append(summaryConnectivity.summary());
-            builder.append(summaryPath.summary());
-            builder.append(summaryOpticalCircuit.summary());
-            builder.append(summaryOpticalConnectivity.summary());
-            builder.append(summaryOpticalOdu.summary());
-            builder.append(summaryUnknownType.summary());
 
-            return builder.toString();
+            builder.append(format(
+                    "\n%1s%s%14d%14d%14d%14d%14d%14d%14d%14d%14d%14d",
+                    BOLD + intentType + RESET,
+                    Strings.padStart(String.valueOf(total),
+                                     (32 - intentType.length()),
+                                     ' '),
+                    installed,
+                    withdrawn,
+                    failed,
+                    installReq,
+                    compiling,
+                    installing,
+                    recompiling,
+                    withdrawReq,
+                    withdrawing,
+                    unknownState));
+            builder.append('\n').append(SEPARATOR);
+
+            return builder;
+        }
+
+        StringBuilder miniSummary() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(BOLD).append(intentType).append(RESET)
+                    .append(" (").append(total).append(')').append('\n');
+            builder.append('\t')
+                   .append("installed: ").append(installed).append(' ')
+                   .append("withdrawn: ").append(withdrawn).append(' ')
+                   .append("failed: ").append(failed)
+                   .append('\n');
+            builder.append('\t')
+                   .append("compiling: ").append(compiling).append(' ')
+                   .append("installing: ").append(installing).append(' ')
+                   .append("recompiling: ").append(recompiling).append(' ')
+                   .append("withdrawing: ").append(withdrawing)
+                   .append('\n');
+            builder.append('\t')
+                   .append("installReq: ").append(installReq).append(' ')
+                   .append("withdrawReq: ").append(withdrawReq).append(' ')
+                   .append("unknownState: ").append(unknownState)
+                   .append('\n')
+                   .append('\n');
+            return builder;
         }
 
         /**
-         * Internal local class to keep track of a single type Intent summary.
+         * Gets the JSON representation of the Intent Summary.
+         *
+         * @param mapper the object mapper
+         * @return the JSON representation of the Intent Summary
          */
-        private class IntentSummary {
-            private final String intentType;
-            private int total = 0;
-            private int installReq = 0;
-            private int compiling = 0;
-            private int installing = 0;
-            private int installed = 0;
-            private int recompiling = 0;
-            private int withdrawReq = 0;
-            private int withdrawing = 0;
-            private int withdrawn = 0;
-            private int failed = 0;
-            private int unknownState = 0;
+        JsonNode json(ObjectMapper mapper) {
+            ObjectNode result = mapper.createObjectNode()
+                .put("total", total)
+                .put("installed", installed)
+                .put("failed", failed)
+                .put("installReq", installReq)
+                .put("installing", installing)
+                .put("compiling", compiling)
+                .put("recompiling", recompiling)
+                .put("withdrawReq", withdrawReq)
+                .put("withdrawing", withdrawing)
+                .put("withdrawn", withdrawn)
+                .put("unknownState", unknownState);
 
-            /**
-             * Constructor.
-             *
-             * @param intentType the scring describing the Intent type
-             */
-            IntentSummary(String intentType) {
-                this.intentType = intentType;
-            }
-
-            /**
-             * Updates the Intent Summary.
-             *
-             * @param intentState the state of the intent
-             */
-            void update(IntentState intentState) {
-                total++;
-                switch (intentState) {
-                case INSTALL_REQ:
-                    installReq++;
-                    break;
-                case COMPILING:
-                    compiling++;
-                    break;
-                case INSTALLING:
-                    installing++;
-                    break;
-                case INSTALLED:
-                    installed++;
-                    break;
-                case RECOMPILING:
-                    recompiling++;
-                    break;
-                case WITHDRAW_REQ:
-                    withdrawReq++;
-                    break;
-                case WITHDRAWING:
-                    withdrawing++;
-                    break;
-                case WITHDRAWN:
-                    withdrawn++;
-                    break;
-                case FAILED:
-                    failed++;
-                    break;
-                default:
-                    unknownState++;
-                    break;
-                }
-            }
-
-            /**
-             * Prints the Intent Summary.
-             *
-             */
-            String summary() {
-                StringBuilder builder = new StringBuilder();
-
-                builder.append(String.format(
-                        "\n%1s%s%14d%14d%14d%14d%14d%14d%14d%14d%14d%14d",
-                        BOLD + intentType + RESET,
-                        Strings.padStart(String.valueOf(total),
-                                         (32 - intentType.length()),
-                                         ' '),
-                        installed,
-                        withdrawn,
-                        failed,
-                        installReq,
-                        compiling,
-                        installing,
-                        recompiling,
-                        withdrawReq,
-                        withdrawing,
-                        unknownState));
-                builder.append("\n" + SEPARATOR);
-
-                return builder.toString();
-            }
-
-            /**
-             * Gets the JSON representation of the Intent Summary.
-             *
-             * @param mapper the object mapper
-             * @return the JSON representation of the Intent Summary
-             */
-            JsonNode json(ObjectMapper mapper) {
-                ObjectNode result = mapper.createObjectNode()
-                    .put("total", total)
-                    .put("installed", installed)
-                    .put("failed", failed)
-                    .put("installReq", installReq)
-                    .put("installing", installing)
-                    .put("compiling", compiling)
-                    .put("recompiling", recompiling)
-                    .put("withdrawReq", withdrawReq)
-                    .put("withdrawing", withdrawing)
-                    .put("withdrawn", withdrawn)
-                    .put("unknownState", unknownState);
-
-                return result;
-            }
+            return result;
         }
     }
 
-    /*
-     * Prints detailed information about a specific intent.
+    /**
+     * Merges 2 {@link IntentSummary} together.
+     *
+     * @param a element to merge
+     * @param b element to merge
+     * @return merged {@link IntentSummary}
      */
-    private String detailsFormat(IntentService service, Intent intent) {
+    IntentSummary merge(IntentSummary a, IntentSummary b) {
+        IntentSummary m = new IntentSummary(firstNonNull(a.intentType, b.intentType));
+        m.total         = a.total + b.total;
+        m.installReq    = a.installReq + b.installReq;
+        m.compiling     = a.compiling + b.compiling;
+        m.installing    = a.installing + b.installing;
+        m.installed     = a.installed + b.installed;
+        m.recompiling   = a.recompiling + b.recompiling;
+        m.withdrawing   = a.withdrawing + b.withdrawing;
+        m.withdrawReq   = a.withdrawReq + b.withdrawReq;
+        m.withdrawn     = a.withdrawn + b.withdrawn;
+        m.failed        = a.failed + b.failed;
+        m.unknownState  = a.unknownState + b.unknownState;
+        return m;
+    }
+
+    /**
+     * Returns IntentType string.
+     *
+     * @param intent input
+     * @return IntentType string
+     */
+    private static String intentType(Intent intent) {
+        return intent.getClass().getSimpleName().replace("Intent", "");
+    }
+
+    /**
+     * Build summary of intents per intent type.
+     *
+     * @param intents to summarize
+     * @return summaries per Intent type
+     */
+    private Map<String, IntentSummary> summarize(Iterable<Intent> intents) {
+        Map<String, List<Intent>> perIntent = Tools.stream(intents)
+            .collect(Collectors.groupingBy(i -> intentType(i)));
+
+        List<IntentSummary> collect = perIntent.values().stream()
+            .map(il ->
+                il.stream()
+                    .map(IntentSummary::new)
+                    .reduce(new IntentSummary(), this::merge)
+            ).collect(Collectors.toList());
+
+        Map<String, IntentSummary> summaries = new HashMap<>();
+
+        // individual
+        collect.forEach(is -> summaries.put(is.intentType, is));
+
+        // all summarised
+        summaries.put("All", collect.stream()
+                              .reduce(new IntentSummary("All"), this::merge));
+        return summaries;
+    }
+
+    /**
+     * Returns detailed information text about a specific intent.
+     *
+     * @param intent to print
+     * @param state of intent
+     * @return detailed information or "" if {@code state} was null
+     */
+    private StringBuilder detailsFormat(Intent intent, IntentState state) {
         StringBuilder builder = new StringBuilder();
+        if (state == null) {
+            return builder;
+        }
         if (!intent.resources().isEmpty()) {
-            builder.append("\n" + String.format(RESOURCES, intent.resources()));
+            builder.append('\n').append(format(RESOURCES, intent.resources()));
         }
         if (intent instanceof ConnectivityIntent) {
             ConnectivityIntent ci = (ConnectivityIntent) intent;
             if (!ci.selector().criteria().isEmpty()) {
-                builder.append("\n" + String.format(COMMON_SELECTOR, formatSelector(ci.selector())));
+                builder.append('\n').append(format(COMMON_SELECTOR, formatSelector(ci.selector())));
             }
             if (!ci.treatment().allInstructions().isEmpty()) {
-                builder.append("\n" + String.format(TREATMENT, ci.treatment().allInstructions()));
+                builder.append('\n').append(format(TREATMENT, ci.treatment().allInstructions()));
             }
             if (ci.constraints() != null && !ci.constraints().isEmpty()) {
-                builder.append("\n" + String.format(CONSTRAINTS, ci.constraints()));
+                builder.append('\n').append(format(CONSTRAINTS, ci.constraints()));
             }
         }
 
         if (intent instanceof HostToHostIntent) {
             HostToHostIntent pi = (HostToHostIntent) intent;
-            builder.append("\n" + String.format(SRC + HOST, pi.one()));
-            builder.append("\n" + String.format(DST + HOST, pi.two()));
+            builder.append('\n').append(format(SRC + HOST, pi.one()));
+            builder.append('\n').append(format(DST + HOST, pi.two()));
         } else if (intent instanceof PointToPointIntent) {
             PointToPointIntent pi = (PointToPointIntent) intent;
-            builder.append("\n" + formatFilteredCps(Sets.newHashSet(pi.filteredIngressPoint()), INGRESS));
-            builder.append("\n" + formatFilteredCps(Sets.newHashSet(pi.filteredEgressPoint()), EGRESS));
+            builder.append('\n').append(formatFilteredCps(Sets.newHashSet(pi.filteredIngressPoint()), INGRESS));
+            builder.append('\n').append(formatFilteredCps(Sets.newHashSet(pi.filteredEgressPoint()), EGRESS));
         } else if (intent instanceof MultiPointToSinglePointIntent) {
             MultiPointToSinglePointIntent pi = (MultiPointToSinglePointIntent) intent;
-            builder.append("\n" + formatFilteredCps(pi.filteredIngressPoints(), INGRESS));
-            builder.append("\n" + formatFilteredCps(Sets.newHashSet(pi.filteredEgressPoint()), EGRESS));
+            builder.append('\n').append(formatFilteredCps(pi.filteredIngressPoints(), INGRESS));
+            builder.append('\n').append(formatFilteredCps(Sets.newHashSet(pi.filteredEgressPoint()), EGRESS));
         } else if (intent instanceof SinglePointToMultiPointIntent) {
             SinglePointToMultiPointIntent pi = (SinglePointToMultiPointIntent) intent;
-            builder.append("\n" + formatFilteredCps(Sets.newHashSet(pi.filteredIngressPoint()), INGRESS));
-            builder.append("\n" + formatFilteredCps(pi.filteredEgressPoints(), EGRESS));
+            builder.append('\n').append(formatFilteredCps(Sets.newHashSet(pi.filteredIngressPoint()), INGRESS));
+            builder.append('\n').append(formatFilteredCps(pi.filteredEgressPoints(), EGRESS));
         } else if (intent instanceof PathIntent) {
             PathIntent pi = (PathIntent) intent;
-            builder.append(String.format("path=%s, cost=%f", pi.path().links(), pi.path().cost()));
+            builder.append(format("path=%s, cost=%f", pi.path().links(), pi.path().cost()));
         } else if (intent instanceof LinkCollectionIntent) {
             LinkCollectionIntent li = (LinkCollectionIntent) intent;
-            builder.append("\n" + String.format("links=%s", li.links()));
-            builder.append("\n" + String.format(CP, li.egressPoints()));
+            builder.append('\n').append(format("links=%s", li.links()));
+            builder.append('\n').append(format(CP, li.egressPoints()));
         } else if (intent instanceof OpticalCircuitIntent) {
             OpticalCircuitIntent ci = (OpticalCircuitIntent) intent;
-            builder.append("\n" + String.format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         } else if (intent instanceof OpticalConnectivityIntent) {
             OpticalConnectivityIntent ci = (OpticalConnectivityIntent) intent;
-            builder.append("\n" + String.format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         } else if (intent instanceof OpticalOduIntent) {
             OpticalOduIntent ci = (OpticalOduIntent) intent;
-            builder.append("\n" + String.format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.key());
         installable.stream().filter(i -> contentFilter.filter(i));
         if (showInstallable && installable != null && !installable.isEmpty()) {
-            builder.append("\n" + String.format(INSTALLABLE, installable));
+            builder.append('\n').append(format(INSTALLABLE, installable));
         }
-        return builder.toString();
+        return builder;
     }
 
     /*
      * Prints out a formatted string, given a list of connect points.
      */
-    private String formatFilteredCps(Set<FilteredConnectPoint> fCps, String prefix) {
+    private StringBuilder formatFilteredCps(Set<FilteredConnectPoint> fCps, String prefix) {
         StringBuilder builder = new StringBuilder();
         builder.append(prefix);
         builder.append(FILTERED_CPS);
-        fCps.forEach(fCp -> builder.append("\n" + String.format(formatFilteredCp(fCp))));
+        fCps.forEach(fCp -> builder.append('\n').append(formatFilteredCp(fCp)));
 
-        return builder.toString();
+        return builder;
     }
 
     /*
      * Prints out a formatted string, given a filtered connect point.
      */
-    private String formatFilteredCp(FilteredConnectPoint fCp) {
+    private StringBuilder formatFilteredCp(FilteredConnectPoint fCp) {
         ConnectPoint connectPoint = fCp.connectPoint();
         TrafficSelector selector = fCp.trafficSelector();
         StringBuilder builder = new StringBuilder();
-        builder.append(INDENTATION + String.format(CP, connectPoint));
-        builder.append(SPACE + String.format(SELECTOR, formatSelector(selector)));
+        builder.append(INDENTATION).append(format(CP, connectPoint));
+        builder.append(SPACE).append(format(SELECTOR, formatSelector(selector)));
 
-        return builder.toString();
+        return builder;
     }
 
     /*
      * Prints out a formatted string, given a traffic selector
      */
-    private String formatSelector(TrafficSelector ts) {
+    private StringBuilder formatSelector(TrafficSelector ts) {
         StringBuilder builder = new StringBuilder();
         List<Criterion> criteria = Lists.newArrayList(ts.criteria());
 
         if (criteria == null || criteria.isEmpty()) {
             builder.append(INHERITED);
-            return builder.toString();
+            return builder;
         }
 
         criteria.forEach(c -> {
@@ -559,46 +546,23 @@ public class IntentsListCommand extends AbstractShellCommand {
             }
         });
 
-        return builder.toString();
-    }
-
-    private String fullFormat(Intent intent) {
-        return fullFormat(intent, null);
+        return builder;
     }
 
     /*
      * Prints information about the intent state, given an intent.
      */
-    private String fullFormat(Intent intent, String state) {
+    private StringBuilder fullFormat(Intent intent, IntentState state) {
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format(ID, intent.id()));
+        builder.append(format(ID, intent.id()));
         if (state != null) {
-            builder.append("\n" + String.format(STATE, state));
+            builder.append('\n').append(format(STATE, state));
         }
-        builder.append("\n" + String.format(KEY, intent.key()));
-        builder.append("\n" + String.format(TYPE, intent.getClass().getSimpleName()));
-        builder.append("\n" + String.format(APP_ID, intent.appId().name()));
+        builder.append('\n').append(format(KEY, intent.key()));
+        builder.append('\n').append(format(TYPE, intent.getClass().getSimpleName()));
+        builder.append('\n').append(format(APP_ID, intent.appId().name()));
 
-        return builder.toString();
-    }
-
-    /*
-     * Prints a detailed information about intents.
-     */
-    private void printIntents(IntentService service) {
-        for (Intent intent : service.getIntents()) {
-            IntentState state = service.getIntentState(intent.key());
-            String intentFormat = fullFormat(intent, state.toString());
-            String detailsIntentFormat = detailsFormat(service, intent);
-            if (state != null && (contentFilter.filter(
-                    intentFormat + detailsIntentFormat))) {
-                StringBuilder builder = new StringBuilder();
-                builder.append(intentFormat)
-                       .append(detailsIntentFormat)
-                       .append("\n");
-                print(builder.toString());
-            }
-        }
+        return builder;
     }
 
     /*
