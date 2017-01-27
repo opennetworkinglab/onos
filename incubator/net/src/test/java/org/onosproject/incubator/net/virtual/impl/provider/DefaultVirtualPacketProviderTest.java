@@ -162,7 +162,6 @@ public class DefaultVirtualPacketProviderTest {
         virtualProvider.deactivate();
         virtualProvider.coreService = null;
         virtualProvider.virtualNetworkAdminService = null;
-        virtualProvider.providerService = null;
     }
 
 

@@ -78,9 +78,6 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VirtualPacketProviderService providerService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualNetworkAdminService virtualNetworkAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -103,7 +100,7 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Activate
     public void activate() {
         appId = coreService.registerApplication(
-                "org.onosproject.provider.virtual-packet-provider");
+                "org.onosproject.virtual.virtual-packet");
         providerRegistryService.registerProvider(this);
 
         processor = new InternalPacketProcessor();
