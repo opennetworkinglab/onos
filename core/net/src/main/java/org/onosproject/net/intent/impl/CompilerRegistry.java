@@ -23,8 +23,10 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentException;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -76,13 +78,27 @@ class CompilerRegistry {
             return ImmutableList.of(intent);
         }
 
-        registerSubclassCompilerIfNeeded(intent);
         // FIXME: get previous resources
-        List<Intent> installable = new ArrayList<>();
-        for (Intent compiled : getCompiler(intent).compile(intent, previousInstallables)) {
-            installable.addAll(compile(compiled, previousInstallables));
+        List<Intent> installables = new ArrayList<>();
+        Queue<Intent> compileQueue = new LinkedList<>();
+        compileQueue.add(intent);
+
+        Intent compiling;
+        while ((compiling = compileQueue.poll()) != null) {
+            registerSubclassCompilerIfNeeded(compiling);
+
+            List<Intent> compiled = getCompiler(compiling)
+                                     .compile(compiling, previousInstallables);
+
+            compiled.forEach(i -> {
+                if (i.isInstallable()) {
+                    installables.add(i);
+                } else {
+                    compileQueue.add(i);
+                }
+            });
         }
-        return installable;
+        return installables;
     }
 
     /**
