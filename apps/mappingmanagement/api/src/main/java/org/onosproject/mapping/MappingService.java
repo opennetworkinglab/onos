@@ -15,8 +15,11 @@
  */
 package org.onosproject.mapping;
 
+import org.onosproject.event.ListenerService;
+
 /**
  * Interface of mapping management service.
  */
-public interface MappingService {
+public interface MappingService
+                    extends ListenerService<MappingEvent, MappingListener> {
 }

@@ -15,10 +15,20 @@
  */
 package org.onosproject.mapping.impl;
 
+import org.onosproject.mapping.MappingListener;
 import org.onosproject.mapping.MappingService;
 
 /**
  * Implementation of mapping management service.
  */
 public class MappingManager implements MappingService {
+    @Override
+    public void addListener(MappingListener listener) {
+
+    }
+
+    @Override
+    public void removeListener(MappingListener listener) {
+
+    }
 }

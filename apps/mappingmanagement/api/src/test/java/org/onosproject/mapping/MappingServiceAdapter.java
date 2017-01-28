@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping.impl;
-
-import org.onosproject.mapping.MappingStore;
-import org.onosproject.mapping.MappingStoreDelegate;
+package org.onosproject.mapping;
 
 /**
- * Implementation of a distributed store for managing mapping information.
+ * Adapter for testing against mapping service.
  */
-public class DistributedMappingStore implements MappingStore {
+public class MappingServiceAdapter implements MappingService {
     @Override
-    public void setDelegate(MappingStoreDelegate delegate) {
+    public void addListener(MappingListener listener) {
 
     }
 
     @Override
-    public void unsetDelegate(MappingStoreDelegate delegate) {
+    public void removeListener(MappingListener listener) {
 
-    }
-
-    @Override
-    public boolean hasDelegate() {
-        return false;
     }
 }

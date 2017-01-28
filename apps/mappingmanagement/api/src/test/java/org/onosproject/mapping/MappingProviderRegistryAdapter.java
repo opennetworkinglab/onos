@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping.impl;
+package org.onosproject.mapping;
 
-import org.onosproject.mapping.MappingStore;
-import org.onosproject.mapping.MappingStoreDelegate;
+import org.onosproject.net.provider.ProviderId;
+
+import java.util.Set;
 
 /**
- * Implementation of a distributed store for managing mapping information.
+ * Adapter for testing against mapping provider registry.
  */
-public class DistributedMappingStore implements MappingStore {
+public class MappingProviderRegistryAdapter implements MappingProviderRegistry {
     @Override
-    public void setDelegate(MappingStoreDelegate delegate) {
+    public MappingProviderService register(MappingProvider provider) {
+        return null;
+    }
+
+    @Override
+    public void unregister(MappingProvider provider) {
 
     }
 
     @Override
-    public void unsetDelegate(MappingStoreDelegate delegate) {
-
-    }
-
-    @Override
-    public boolean hasDelegate() {
-        return false;
+    public Set<ProviderId> getProviders() {
+        return null;
     }
 }

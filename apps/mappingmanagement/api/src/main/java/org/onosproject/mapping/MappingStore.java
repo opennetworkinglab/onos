@@ -15,8 +15,10 @@
  */
 package org.onosproject.mapping;
 
+import org.onosproject.store.Store;
+
 /**
  * Interface of a distributed store for managing mapping information.
  */
-public interface MappingStore {
+public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> {
 }
