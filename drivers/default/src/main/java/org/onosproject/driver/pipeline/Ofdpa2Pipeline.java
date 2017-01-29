@@ -885,17 +885,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             log.warn("IPv6 Multicast is currently not supported");
             fail(fwd, ObjectiveError.BADPARAMS);
             return -1;
-        } else {
-            if (ipv6Dst.prefixLength() == 0) {
-                log.warn("Default ipv6 route is currently not supported");
-                fail(fwd, ObjectiveError.BADPARAMS);
-                return -1;
-            } else {
-                builderToUpdate.matchEthType(Ethernet.TYPE_IPV6).matchIPv6Dst(ipv6Dst);
-            }
-            log.debug("processing IPv6 unicast specific forwarding objective {} -> next:{}"
-                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
         }
+        if (ipv6Dst.prefixLength() != 0) {
+            builderToUpdate.matchIPv6Dst(ipv6Dst);
+        }
+        builderToUpdate.matchEthType(Ethernet.TYPE_IPV6);
+        log.debug("processing IPv6 unicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
         return 0;
     }
 
