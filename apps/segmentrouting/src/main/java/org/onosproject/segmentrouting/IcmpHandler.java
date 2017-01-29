@@ -431,7 +431,10 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         /*
          * Retrieves device info.
          */
-        getSenderInfo(senderMacAddress, senderIpAddress, deviceId, targetAddress);
+        if (!getSenderInfo(senderMacAddress, senderIpAddress, deviceId, targetAddress)) {
+            log.warn("Aborting sendNdpRequest, we cannot get all the information needed");
+            return;
+        }
         /*
          * We have to compute the dst mac address and dst
          * ip address.

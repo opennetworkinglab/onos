@@ -73,28 +73,37 @@ public class SegmentRoutingNeighbourHandler {
      * @param ip where to copy the ip
      * @param deviceId the device id
      * @param targetAddress the target address
+     * @return true if it was possible to get the necessary info.
+     * False for errors
      */
-    protected void getSenderInfo(byte[] mac,
+    protected boolean getSenderInfo(byte[] mac,
                                  byte[] ip,
                                  DeviceId deviceId,
                                  IpAddress targetAddress) {
         byte[] senderMacAddress;
         byte[] senderIpAddress;
+        IpAddress sender;
         try {
             senderMacAddress = config.getDeviceMac(deviceId).toBytes();
             if (targetAddress.isIp4()) {
-                senderIpAddress = config.getRouterIpAddressForASubnetHost(targetAddress.getIp4Address())
-                        .toOctets();
+                sender = config.getRouterIpAddressForASubnetHost(targetAddress.getIp4Address());
+
             } else {
-                senderIpAddress = config.getRouterIpAddressForASubnetHost(targetAddress.getIp6Address())
-                        .toOctets();
+                sender = config.getRouterIpAddressForASubnetHost(targetAddress.getIp6Address());
             }
+            // If sender is null we abort.
+            if (sender == null) {
+                log.warn("Sender ip is null. Aborting getSenderInfo");
+                return false;
+            }
+            senderIpAddress = sender.toOctets();
         } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting sendArpRequest.");
-            return;
+            log.warn(e.getMessage() + " Aborting getSenderInfo");
+            return false;
         }
         System.arraycopy(senderMacAddress, 0, mac, 0, senderMacAddress.length);
         System.arraycopy(senderIpAddress, 0, ip, 0, senderIpAddress.length);
+        return true;
     }
 
     /**

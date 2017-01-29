@@ -192,7 +192,10 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
         /*
          * Retrieves device info.
          */
-        getSenderInfo(senderMacAddress, senderIpAddress, deviceId, targetAddress);
+        if (!getSenderInfo(senderMacAddress, senderIpAddress, deviceId, targetAddress)) {
+            log.warn("Aborting sendArpRequest, we cannot get all the information needed");
+            return;
+        }
         /*
          * Creates the request.
          */
