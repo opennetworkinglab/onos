@@ -39,6 +39,8 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-lisp-api</artifactId>
             <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -49,6 +51,18 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-lisp-msg</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-mapping-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

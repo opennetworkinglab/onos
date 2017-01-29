@@ -24,9 +24,17 @@ import org.onosproject.lisp.ctl.LispController;
 import org.onosproject.lisp.ctl.LispMessageListener;
 import org.onosproject.lisp.ctl.LispRouterId;
 import org.onosproject.lisp.ctl.LispRouterListener;
+import org.onosproject.lisp.msg.protocols.LispMapNotify;
+import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
+import org.onosproject.mapping.MappingEntry;
+import org.onosproject.mapping.MappingProvider;
+import org.onosproject.mapping.MappingProviderRegistry;
+import org.onosproject.mapping.MappingProviderService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.provider.lisp.mapping.util.MappingEntryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +42,17 @@ import org.slf4j.LoggerFactory;
  * Provider which uses a LISP controller to manage EID-RLOC mapping.
  */
 @Component(immediate = true)
-public class LispMappingProvider extends AbstractProvider {
+public class LispMappingProvider extends AbstractProvider implements MappingProvider {
 
     private static final Logger log = LoggerFactory.getLogger(LispMappingProvider.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LispController controller;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MappingProviderRegistry providerRegistry;
+
+    protected MappingProviderService providerService;
 
     private static final String SCHEME_NAME = "lisp";
     private static final String MAPPING_PROVIDER_PACKAGE =
@@ -57,6 +70,8 @@ public class LispMappingProvider extends AbstractProvider {
     @Activate
     public void activate() {
 
+        providerService = providerRegistry.register(this);
+
         // listens all LISP router related events
         controller.addRouterListener(listener);
 
@@ -69,11 +84,15 @@ public class LispMappingProvider extends AbstractProvider {
     @Deactivate
     public void deactivate() {
 
+        providerRegistry.unregister(this);
+
         // stops listening all LISP router related events
         controller.removeRouterListener(listener);
 
         // stops listening all LISP control messages
         controller.removeMessageListener(listener);
+
+        providerService = null;
 
         log.info("Stopped");
     }
@@ -106,7 +125,31 @@ public class LispMappingProvider extends AbstractProvider {
 
         @Override
         public void handleOutgoingMessage(LispRouterId routerId, LispMessage msg) {
+            if (providerService == null) {
+                // We are shutting down, nothing to be done
+                return;
+            }
 
+            DeviceId deviceId = DeviceId.deviceId(routerId.toString());
+            switch (msg.getType()) {
+
+                case LISP_MAP_REPLY:
+                    LispMapReply reply = (LispMapReply) msg;
+
+                    MappingEntry replyMe = new MappingEntryBuilder(deviceId, reply).build();
+                    providerService.mappingAdded(replyMe, false);
+                    break;
+
+                case LISP_MAP_NOTIFY:
+                    LispMapNotify notify = (LispMapNotify) msg;
+
+                    MappingEntry notifyMe = new MappingEntryBuilder(deviceId, notify).build();
+                    providerService.mappingAdded(notifyMe, true);
+                    break;
+
+                default:
+                    log.warn("Unhandled message type: {}", msg.getType());
+            }
         }
     }
 }
