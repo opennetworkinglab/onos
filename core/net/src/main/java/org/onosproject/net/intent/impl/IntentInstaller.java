@@ -55,6 +55,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -250,24 +251,27 @@ class IntentInstaller {
         return contexts;
     }
 
+    /**
+     * Tests if one of {@code toUninstall} or {@code toInstall} contains
+     * installable Intent of type specified by {@code intentClass}.
+     *
+     * @param toUninstall IntentData to test
+     * @param toInstall   IntentData to test
+     * @param intentClass installable Intent class
+     * @return true if at least one of IntentData contains installable specified.
+     */
     private boolean isInstallable(Optional<IntentData> toUninstall, Optional<IntentData> toInstall,
                                   Class<? extends Intent> intentClass) {
-        boolean notBothNull = false;
-        if (toInstall.isPresent()) {
-            notBothNull = true;
-            if (!toInstall.get().installables().stream()
-                    .anyMatch(i -> intentClass.isAssignableFrom(i.getClass()))) {
-                return false;
-            }
-        }
-        if (toUninstall.isPresent()) {
-            notBothNull = true;
-            if (!toUninstall.get().installables().stream()
-                    .anyMatch(i -> intentClass.isAssignableFrom(i.getClass()))) {
-                return false;
-            }
-        }
-        return notBothNull;
+
+        return Stream.concat(toInstall
+                              .map(IntentData::installables)
+                              .map(Collection::stream)
+                              .orElse(Stream.empty()),
+                             toUninstall
+                              .map(IntentData::installables)
+                              .map(Collection::stream)
+                              .orElse(Stream.empty()))
+                .anyMatch(i -> intentClass.isAssignableFrom(i.getClass()));
     }
 
     // Base context for applying and tracking operations related to installable intents.
