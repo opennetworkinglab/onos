@@ -25,8 +25,8 @@ public interface RestConfNotificationEventListener<T> {
     /**
      * Handles the notification event.
      *
-     * @param deviceId restconf device identifier
-     * @param event    event payload
+     * @param deviceId        restconf device identifier
+     * @param eventJsonString the json string representation of the event
      */
-    void handleNotificationEvent(DeviceId deviceId, T event);
+    void handleNotificationEvent(DeviceId deviceId, T eventJsonString);
 }
