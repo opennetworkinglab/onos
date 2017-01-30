@@ -18,6 +18,8 @@ package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -211,6 +213,14 @@ class IntentInstaller {
                 }
             }
         }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("pendingContexts", pendingContexts)
+                    .add("errorContexts", errorContexts)
+                    .toString();
+        }
     }
 
     // --- Utilities to support various installable Intent ----
@@ -232,7 +242,12 @@ class IntentInstaller {
             contexts.add(new ProtectionConfigOperationContext(intentContext));
         }
 
-        return contexts.isEmpty() ? ImmutableSet.of(new ErrorContext(intentContext)) : contexts;
+        if (contexts.isEmpty()) {
+            log.warn("{} did not contain installable Intents", intentContext);
+            return ImmutableSet.of(new ErrorContext(intentContext));
+        }
+
+        return contexts;
     }
 
     private boolean isInstallable(Optional<IntentData> toUninstall, Optional<IntentData> toInstall,
@@ -410,6 +425,19 @@ class IntentInstaller {
                    intent instanceof FlowObjectiveIntent ||
                    intent instanceof ProtectionEndpointIntent;
         }
+
+        protected ToStringHelper toStringHelper() {
+            return MoreObjects.toStringHelper(this)
+                    .add("intentContext", intentContext)
+                    .add("toUninstall", toUninstall)
+                    .add("toInstall", toInstall);
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper()
+                    .toString();
+        }
     }
 
 
@@ -473,6 +501,13 @@ class IntentInstaller {
         public Object error() {
             return flowRuleOperationsContext;
         }
+
+        @Override
+        protected ToStringHelper toStringHelper() {
+            return super.toStringHelper()
+                    .omitNullValues()
+                    .add("flowRuleOperationsContext", flowRuleOperationsContext);
+        }
     }
 
     // Context for applying and tracking operations related to flow objective intents.
@@ -533,6 +568,15 @@ class IntentInstaller {
         public Object error() {
             return errorContexts;
         }
+
+        @Override
+        protected ToStringHelper toStringHelper() {
+            return super.toStringHelper()
+                    .add("contexts", contexts)
+                    .add("pendingContexts", pendingContexts)
+                    .add("errorContexts", errorContexts);
+        }
+
 
         private class FlowObjectiveInstallationContext implements ObjectiveContext {
             Objective objective;
@@ -699,5 +743,11 @@ class IntentInstaller {
                                  .collect(Collectors.toList())));
         }
 
+        @Override
+        protected ToStringHelper toStringHelper() {
+            return super.toStringHelper()
+                    .add("stages", stages)
+                    .add("failed", failed);
+        }
     }
 }
