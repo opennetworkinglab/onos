@@ -394,7 +394,7 @@ public class RoutingRulePopulator {
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         List<ForwardingObjective.Builder> fwdObjBuilders = Lists.newArrayList();
-        // For the transport of VPWS we can use two or three MPLS label
+        // For the transport of Pwaas we can use two or three MPLS label
         sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
         sbuilder.matchMplsLabel(MplsLabel.mplsLabel(segmentId));
         sbuilder.matchMplsBos(isMplsBos);
@@ -507,7 +507,7 @@ public class RoutingRulePopulator {
             return false;
         }
         fwdObjs.addAll(fwdObjsMpls);
-        // Generates the transit rules used by the MPLS VPWS. For now it is
+        // Generates the transit rules used by the MPLS Pwaas. For now it is
         // the only case !BoS supported.
         fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
         if (fwdObjsMpls.isEmpty()) {

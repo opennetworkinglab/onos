@@ -350,7 +350,10 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         // according to the OFDPA 2.0 specification.
         flowTreatment = DefaultTrafficTreatment.builder(mplsTreatment.build());
         flowTreatment.extension(new Ofdpa3PopCw(), deviceId);
-        flowTreatment.popVlan();
+        // Even though the specification and the xml/json files
+        // specify is allowed, the switch rejects the flow. In the
+        // OFDPA 3.0 EA0 version was necessary
+        //flowTreatment.popVlan();
         flowTreatment.extension(new Ofdpa3PopL2Header(), deviceId);
         flowTreatment.setTunnelId(tunnelId);
         flowTreatment.extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId);

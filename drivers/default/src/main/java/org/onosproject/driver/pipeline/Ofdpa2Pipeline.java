@@ -16,7 +16,6 @@
 package org.onosproject.driver.pipeline;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -905,35 +904,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     /**
-     * Helper method to build Ipv6 selector using the selector provided by
-     * a forwarding objective.
-     *
-     * @param builderToUpdate the builder to update
-     * @param fwd the selector to read
-     * @return 0 if the update ends correctly. -1 if the matches
-     * are not yet supported
-     */
-    protected int buildIpv6Selector(TrafficSelector.Builder builderToUpdate,
-                                    ForwardingObjective fwd) {
-
-        TrafficSelector selector = fwd.selector();
-
-        IpPrefix ipv6Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV6_DST)).ip();
-        if (ipv6Dst.isMulticast()) {
-            log.warn("IPv6 Multicast is currently not supported");
-            fail(fwd, ObjectiveError.BADPARAMS);
-            return -1;
-        }
-        if (ipv6Dst.prefixLength() != 0) {
-            builderToUpdate.matchIPv6Dst(ipv6Dst);
-        }
-        builderToUpdate.matchEthType(Ethernet.TYPE_IPV6);
-        log.debug("processing IPv6 unicast specific forwarding objective {} -> next:{}"
-                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
-        return 0;
-    }
-
-    /**
      * Internal implementation of processEthTypeSpecific.
      * <p>
      * Wildcarded IPv4_DST is not supported in OFDPA i12. Therefore, we break
@@ -952,7 +922,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        boolean defaultRule = false;
         boolean popMpls = false;
         boolean emptyGroup = false;
         int forTableId;
@@ -961,47 +930,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
+            if (buildIpv4Selector(filteredSelector, complementarySelector, fwd, allowDefaultRoute) < 0) {
+                return Collections.emptyList();
+            }
+            // We need to set properly the next table
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
             if (ipv4Dst.isMulticast()) {
-                if (ipv4Dst.prefixLength() != 32) {
-                    log.warn("Multicast specific forwarding objective can only be /32");
-                    fail(fwd, ObjectiveError.BADPARAMS);
-                    return ImmutableSet.of();
-                }
-                VlanId assignedVlan = readVlanFromSelector(fwd.meta());
-                if (assignedVlan == null) {
-                    log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
-                    fail(fwd, ObjectiveError.BADPARAMS);
-                    return ImmutableSet.of();
-                }
-                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
-                filteredSelector.extension(ofdpaMatchVlanVid, deviceId);
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
                 forTableId = MULTICAST_ROUTING_TABLE;
-                log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
-                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                if (ipv4Dst.prefixLength() == 0) {
-                    if (allowDefaultRoute) {
-                        // The entire IPV4_DST field is wildcarded intentionally
-                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4);
-                    } else {
-                         // NOTE: The switch does not support matching 0.0.0.0/0
-                         // Split it into 0.0.0.0/1 and 128.0.0.0/1
-                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                                .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                        complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                                .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                        defaultRule = true;
-                    }
-                } else {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
-                }
                 forTableId = UNICAST_ROUTING_TABLE;
-                log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
-                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
-
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
@@ -1047,8 +985,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     if (instr instanceof L2ModificationInstruction &&
                             ((L2ModificationInstruction) instr).subtype() == L2SubType.MPLS_POP) {
                         popMpls = true;
-                        // OF-DPA does not pop in MPLS table. Instead it requires
+                        // OF-DPA does not pop in MPLS table in some cases. For the L3 VPN, it requires
                         // setting the MPLS_TYPE so pop can happen down the pipeline
+                        if (mplsNextTable == MPLS_TYPE_TABLE && isNotMplsBos(selector)) {
+                            tb.immediate().popMpls();
+                        }
                     }
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
@@ -1134,7 +1075,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
         Collection<FlowRule> flowRuleCollection = new ArrayList<>();
         flowRuleCollection.add(ruleBuilder.build());
-        if (defaultRule) {
+        if (!allowDefaultRoute) {
             flowRuleCollection.add(
                     defaultRoute(fwd, complementarySelector, forTableId, tb)
             );
@@ -1146,6 +1087,81 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                      RETRY_MS, TimeUnit.MILLISECONDS);
         }
         return flowRuleCollection;
+    }
+
+    protected int buildIpv4Selector(TrafficSelector.Builder builderToUpdate,
+                                    TrafficSelector.Builder extBuilder,
+                                    ForwardingObjective fwd,
+                                    boolean allowDefaultRoute) {
+        TrafficSelector selector = fwd.selector();
+
+        IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
+        if (ipv4Dst.isMulticast()) {
+            if (ipv4Dst.prefixLength() != 32) {
+                log.warn("Multicast specific forwarding objective can only be /32");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+            if (assignedVlan == null) {
+                log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+            builderToUpdate.extension(ofdpaMatchVlanVid, deviceId);
+            builderToUpdate.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+            log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        } else {
+            if (ipv4Dst.prefixLength() == 0) {
+                if (allowDefaultRoute) {
+                    // The entire IPV4_DST field is wildcarded intentionally
+                    builderToUpdate.matchEthType(Ethernet.TYPE_IPV4);
+                } else {
+                    // NOTE: The switch does not support matching 0.0.0.0/0
+                    // Split it into 0.0.0.0/1 and 128.0.0.0/1
+                    builderToUpdate.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                    extBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                }
+            } else {
+                builderToUpdate.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+            }
+            log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        }
+        return 0;
+    }
+
+    /**
+     * Helper method to build Ipv6 selector using the selector provided by
+     * a forwarding objective.
+     *
+     * @param builderToUpdate the builder to update
+     * @param fwd the selector to read
+     * @return 0 if the update ends correctly. -1 if the matches
+     * are not yet supported
+     */
+    protected int buildIpv6Selector(TrafficSelector.Builder builderToUpdate,
+                                    ForwardingObjective fwd) {
+
+        TrafficSelector selector = fwd.selector();
+
+        IpPrefix ipv6Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV6_DST)).ip();
+        if (ipv6Dst.isMulticast()) {
+            log.warn("IPv6 Multicast is currently not supported");
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return -1;
+        }
+        if (ipv6Dst.prefixLength() != 0) {
+            builderToUpdate.matchIPv6Dst(ipv6Dst);
+        }
+        builderToUpdate.matchEthType(Ethernet.TYPE_IPV6);
+        log.debug("processing IPv6 unicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        return 0;
     }
 
     protected FlowRule defaultRoute(ForwardingObjective fwd,

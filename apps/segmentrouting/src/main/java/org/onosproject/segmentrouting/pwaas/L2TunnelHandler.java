@@ -1211,7 +1211,7 @@ public class L2TunnelHandler {
     }
 
     /**
-     * VPWS pipelines.
+     * Pwaas pipelines.
      */
     protected enum Pipeline {
         /**
