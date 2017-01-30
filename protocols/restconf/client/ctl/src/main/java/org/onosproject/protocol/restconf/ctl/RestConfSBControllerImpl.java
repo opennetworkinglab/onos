@@ -15,16 +15,6 @@
  */
 package org.onosproject.protocol.restconf.ctl;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,10 +28,22 @@ import org.onosproject.protocol.http.ctl.HttpSBControllerImpl;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.onosproject.protocol.restconf.RestConfNotificationEventListener;
 import org.onosproject.protocol.restconf.RestConfSBController;
+import org.onosproject.protocol.restconf.RestconfNotificationEventListener;
 import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * The implementation of RestConfSBController.
@@ -62,8 +64,8 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
     private static final String RESOURCE_PATH_PREFIX = "/data/";
     private static final String NOTIFICATION_PATH_PREFIX = "/streams/";
 
-    private Map<DeviceId, RestConfNotificationEventListener>
-                                            restconfNotificationListenerMap = new ConcurrentHashMap<>();
+    private Map<DeviceId, Set<RestconfNotificationEventListener>>
+            restconfNotificationListenerMap = new ConcurrentHashMap<>();
     private Map<DeviceId, GetChunksRunnable> runnableTable = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -168,8 +170,13 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
 
     @Override
     public void enableNotifications(DeviceId device, String request,
-                                 String mediaType,
-                                 RestConfNotificationEventListener listener) {
+                                    String mediaType,
+                                    RestconfNotificationEventListener listener) {
+
+        if (isNotificationEnabled(device)) {
+            log.warn("enableNotifications: already enabled on device: {}", device);
+            return;
+        }
 
         request = discoverRootResource(device) + NOTIFICATION_PATH_PREFIX
                 + request;
@@ -182,11 +189,17 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         executor.execute(runnable);
     }
 
-    public void stopNotifications(DeviceId device) {
+    @Override
+    public void enableNotifications(DeviceId device, String request,
+                                    String mediaType,
+                                    RestConfNotificationEventListener callBackListener) {
+        //TODO: to be removed once the call to the API is updated.
+    }
 
+    public void stopNotifications(DeviceId device) {
         runnableTable.get(device).terminate();
         runnableTable.remove(device);
-        removeNotificationListener(device);
+        restconfNotificationListenerMap.remove(device);
         log.debug("Stop sending notifications for device URI: " + device.uri().toString());
 
     }
@@ -203,9 +216,9 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         }
 
         /**
-         * @param request request
+         * @param request   request
          * @param mediaType media type
-         * @param device device identifier
+         * @param device    device identifier
          */
         public GetChunksRunnable(String request, String mediaType,
                                  DeviceId device) {
@@ -218,8 +231,8 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
         public void run() {
             WebTarget wt = getWebTarget(device, request);
             Response clientResp = wt.request(mediaType).get();
-            RestConfNotificationEventListener listener = restconfNotificationListenerMap
-                    .get(device);
+            Set<RestconfNotificationEventListener> listeners =
+                    restconfNotificationListenerMap.get(device);
             final ChunkedInput<String> chunkedInput = (ChunkedInput<String>) clientResp
                     .readEntity(new GenericType<ChunkedInput<String>>() {
                     });
@@ -233,10 +246,12 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
                 chunk = chunkedInput.read();
                 if (chunk != null) {
                     if (running) {
-                        listener.handleNotificationEvent(device, chunk);
+                        for (RestconfNotificationEventListener listener : listeners) {
+                            listener.handleNotificationEvent(device, chunk);
+                        }
                     } else {
                         log.trace("the requesting client is no more interested "
-                                + "to receive such notifications.");
+                                          + "to receive such notifications.");
                     }
                 } else {
                     log.trace("The received notification chunk is null. do not continue any more.");
@@ -256,15 +271,35 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
 
     @Override
     public void addNotificationListener(DeviceId deviceId,
-                                        RestConfNotificationEventListener listener) {
-        if (!restconfNotificationListenerMap.containsKey(deviceId)) {
-            this.restconfNotificationListenerMap.put(deviceId, listener);
+                                        RestconfNotificationEventListener listener) {
+        Set<RestconfNotificationEventListener> listeners =
+                restconfNotificationListenerMap.get(deviceId);
+        if (listeners == null) {
+            listeners = new HashSet<>();
+        }
+
+        listeners.add(listener);
+
+        this.restconfNotificationListenerMap.put(deviceId, listeners);
+    }
+
+    @Override
+    public void removeNotificationListener(DeviceId deviceId,
+                                           RestconfNotificationEventListener listener) {
+        Set<RestconfNotificationEventListener> listeners =
+                restconfNotificationListenerMap.get(deviceId);
+        if (listeners != null) {
+            listeners.remove(listener);
         }
     }
 
     @Override
     public void removeNotificationListener(DeviceId deviceId) {
-        this.restconfNotificationListenerMap.remove(deviceId);
+        //TODO: This API is obsolete.
+        return;
     }
 
+    public boolean isNotificationEnabled(DeviceId deviceId) {
+        return runnableTable.containsKey(deviceId);
+    }
 }
