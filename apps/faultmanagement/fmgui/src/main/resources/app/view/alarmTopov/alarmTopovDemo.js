@@ -27,26 +27,14 @@
 
     // constants
     var displayStart = 'alarmTopovDisplayStart',
-        displayUpdate = 'alarmTopovDisplayUpdate',
         displayStop = 'alarmTopovDisplayStop';
-
-    // internal state
-    var currentMode = null;
 
 
     // === ---------------------------
     // === Helper functions
 
-    function sendDisplayStart(mode) {
-        wss.sendEvent(displayStart, {
-            mode: mode
-        });
-    }
-
-    function sendDisplayUpdate(what) {
-        wss.sendEvent(displayUpdate, {
-            id: what ? what.id : ''
-        });
+    function sendDisplayStart() {
+        wss.sendEvent(displayStart);
     }
 
     function sendDisplayStop() {
@@ -56,30 +44,15 @@
     // === ---------------------------
     // === Main API functions
 
-    function startDisplay(mode) {
-        if (currentMode === mode) {
-            $log.debug('(in mode', mode, 'already)');
-        } else {
-            currentMode = mode;
-            sendDisplayStart(mode);
-            flash.flash('Starting display mode: ' + mode);
-        }
-    }
-
-    function updateDisplay(m) {
-        if (currentMode) {
-            sendDisplayUpdate(m);
-        }
+    function startDisplay() {
+        sendDisplayStart();
+        flash.flash('Showing alarm counts on devices');
     }
 
     function stopDisplay() {
-        if (currentMode) {
-            currentMode = null;
-            sendDisplayStop();
-            flash.flash('Canceling display mode');
-            return true;
-        }
-        return false;
+        sendDisplayStop();
+        flash.flash('Canceling alarm counts on devices');
+        return true;
     }
 
     // === ---------------------------
@@ -97,7 +70,6 @@
 
             return {
                 startDisplay: startDisplay,
-                updateDisplay: updateDisplay,
                 stopDisplay: stopDisplay
             };
         }]);
