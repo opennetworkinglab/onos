@@ -191,7 +191,7 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.AddMeterCommand"/>
+            <action class="org.onosproject.cli.net.MeterAddCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
             </completers>

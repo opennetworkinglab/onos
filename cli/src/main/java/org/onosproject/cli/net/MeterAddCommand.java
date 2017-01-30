@@ -35,9 +35,9 @@ import java.util.Set;
 /**
  * Add a meter to a device.
  */
-@Command(scope = "onos", name = "add-meter",
+@Command(scope = "onos", name = "meter-add",
         description = "Adds a meter to a device (currently for testing)")
-public class AddMeterCommand extends AbstractShellCommand {
+public class MeterAddCommand extends AbstractShellCommand {
 
     private Meter.Unit unit;
     private Set<Band> bands = new HashSet<>();
