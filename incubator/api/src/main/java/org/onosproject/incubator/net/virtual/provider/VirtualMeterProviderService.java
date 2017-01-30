@@ -16,7 +16,6 @@
 
 package org.onosproject.incubator.net.virtual.provider;
 
-import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterFailReason;
@@ -34,21 +33,17 @@ public interface VirtualMeterProviderService
      * Notifies the core that a meter operation failed for a
      * specific reason.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param operation the failed operation
      * @param reason the failure reason
      */
-    void meterOperationFailed(NetworkId networkId, MeterOperation operation,
-                              MeterFailReason reason);
+    void meterOperationFailed(MeterOperation operation, MeterFailReason reason);
 
     /**
      * Pushes the collection of meters observed on the virtual data plane as
      * well as their associated statistics.
      *
-     * @param networkId the identity of the virtual network where this rule applies
      * @param deviceId a device id
      * @param meterEntries a collection of meter entries
      */
-    void pushMeterMetrics(NetworkId networkId, DeviceId deviceId,
-                          Collection<Meter> meterEntries);
+    void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries);
 }

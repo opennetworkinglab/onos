@@ -126,7 +126,7 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
     private FlowRuleListener flowRuleListener;
 
     /**
-     * Creates a provider with the supplied identifier.
+     * Creates a provider with the identifier.
      */
     public DefaultVirtualFlowRuleProvider() {
         super(new ProviderId("vnet-flow", "org.onosproject.virtual.vnet-flow"));
