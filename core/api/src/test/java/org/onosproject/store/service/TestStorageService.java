@@ -49,6 +49,11 @@ public class TestStorageService extends StorageServiceAdapter {
     }
 
     @Override
+    public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
+        return TestConsistentMultimap.builder();
+    }
+
+    @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
         return new TestTopic(name);
     }

@@ -114,4 +114,14 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      */
     long getMaxMeters(MeterFeaturesKey key);
 
+    /**
+     * Returns the first available MeterId from previously removed meter.
+     * This method allows allocating MeterIds below the actual meterIdCounter
+     * value.
+     *
+     * @param deviceId the device id
+     * @return the meter Id or null if none exist
+     */
+    MeterId firstReusableMeterId(DeviceId deviceId);
+
 }

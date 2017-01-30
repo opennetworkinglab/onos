@@ -30,18 +30,19 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
+import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
 import org.onosproject.net.meter.MeterFeaturesKey;
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
-import org.onosproject.net.meter.DefaultMeterFeatures;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -54,6 +55,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -74,6 +76,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     private static final String METERSTORE = "onos-meter-store";
     private static final String METERFEATURESSTORE = "onos-meter-features-store";
+    private static final String AVAILABLEMETERIDSTORE = "onos-meters-available-store";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private StorageService storageService;
@@ -93,6 +96,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     private Map<MeterKey, CompletableFuture<MeterStoreResult>> futures =
             Maps.newConcurrentMap();
+
+    private ConsistentMap<DeviceId, BitSet> availableMeterIds;
 
     @Activate
     public void activate() {
@@ -122,6 +127,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                         Meter.Unit.class,
                         MeterFailReason.class)).build();
 
+        availableMeterIds = storageService.<DeviceId, BitSet>consistentMapBuilder()
+                .withName(AVAILABLEMETERIDSTORE)
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                        DeviceId.class,
+                        BitSet.class)).build();
+
         log.info("Started");
     }
 
@@ -131,11 +142,33 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         log.info("Stopped");
     }
 
+    private void updateMeterIdAvailability(DeviceId deviceId, MeterId id,
+                                           boolean available) {
+        availableMeterIds.compute(deviceId, (k, v) -> {
+            v = v == null ? new BitSet() : v;
+            v.set(id.id().intValue(), available);
+            return v;
+        });
+    }
+
+    public MeterId firstReusableMeterId(DeviceId deviceId) {
+        Versioned<BitSet> bitSetVersioned = availableMeterIds.get(deviceId);
+        if (bitSetVersioned == null) {
+            return null;
+        }
+        BitSet value = bitSetVersioned.value();
+        int nextSetBit = value.nextSetBit(1);
+        if (nextSetBit < 0) {
+            return null;
+        }
+        return MeterId.meterId(nextSetBit);
+    }
 
     @Override
     public CompletableFuture<MeterStoreResult> storeMeter(Meter meter) {
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
         MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        updateMeterIdAvailability(meter.deviceId(), meter.id(), false);
         futures.put(key, future);
         MeterData data = new MeterData(meter, null, local);
 
@@ -163,6 +196,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             if (meters.computeIfPresent(key, (k, v) -> data) == null) {
                 future.complete(MeterStoreResult.success());
             }
+            updateMeterIdAvailability(meter.deviceId(), meter.id(), true);
         } catch (StorageException e) {
             future.completeExceptionally(e);
         }

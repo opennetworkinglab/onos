@@ -189,9 +189,19 @@ public class MeterManager
     }
 
     private MeterId allocateMeterId(DeviceId deviceId) {
+        // We first query the store for any previously removed meterId that could
+        // be reused. Receiving a value (not null) already means that meters
+        // are available for the device.
+        MeterId meterid = store.firstReusableMeterId(deviceId);
+        if (meterid != null) {
+            return meterid;
+        }
+        // If there was no reusable MeterId we have to generate a new value
+        // with an upper limit in maxMeters.
         long maxMeters = store.getMaxMeters(MeterFeaturesKey.key(deviceId));
         if (maxMeters == 0L) {
-            // MeterFeatures couldn't be retrieved, trying with queryMeters
+            // MeterFeatures couldn't be retrieved, trying with queryMeters.
+            // queryMeters is implemented in FullMetersAvailable behaviour.
             maxMeters = queryMeters(deviceId);
         }
 
