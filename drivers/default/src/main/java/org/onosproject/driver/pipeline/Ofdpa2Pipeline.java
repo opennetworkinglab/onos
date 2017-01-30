@@ -15,8 +15,24 @@
  */
 package org.onosproject.driver.pipeline;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -76,23 +92,7 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Driver for Broadcom's OF-DPA v2.0 TTP.
@@ -867,7 +867,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        boolean defaultRule = false;
         boolean popMpls = false;
         boolean emptyGroup = false;
         int forTableId;
@@ -876,49 +875,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
+            if (buildIpv4Selector(filteredSelector, complementarySelector, fwd, allowDefaultRoute) < 0) {
+                return Collections.emptyList();
+            }
+            // We need to set properly the next table
             IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
             if (ipv4Dst.isMulticast()) {
-                if (ipv4Dst.prefixLength() != 32) {
-                    log.warn("Multicast specific forwarding objective can only be /32");
-                    fail(fwd, ObjectiveError.BADPARAMS);
-                    return ImmutableSet.of();
-                }
-                VlanId assignedVlan = readVlanFromSelector(fwd.meta());
-                if (assignedVlan == null) {
-                    log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
-                    fail(fwd, ObjectiveError.BADPARAMS);
-                    return ImmutableSet.of();
-                }
-                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
-                filteredSelector.extension(ofdpaMatchVlanVid, deviceId);
-                filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
                 forTableId = MULTICAST_ROUTING_TABLE;
-                log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
-                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             } else {
-                if (ipv4Dst.prefixLength() == 0) {
-                    if (allowDefaultRoute) {
-                        // The entire IPV4_DST field is wildcarded intentionally
-                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4);
-                    } else {
-                        /*
-                         * NOTE: The switch does not support matching 0.0.0.0/0
-                         * Split it into 0.0.0.0/1 and 128.0.0.0/1
-                         */
-                        filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                                .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
-                        complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
-                                .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
-                        defaultRule = true;
-                    }
-                } else {
-                    filteredSelector.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
-                }
                 forTableId = UNICAST_ROUTING_TABLE;
-                log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
-                        + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
             }
-
             if (fwd.treatment() != null) {
                 for (Instruction instr : fwd.treatment().allInstructions()) {
                     if (instr instanceof L3ModificationInstruction &&
@@ -949,8 +915,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     if (instr instanceof L2ModificationInstruction &&
                             ((L2ModificationInstruction) instr).subtype() == L2SubType.MPLS_POP) {
                         popMpls = true;
-                        // OF-DPA does not pop in MPLS table. Instead it requires
+                        // OF-DPA does not pop in MPLS table in some cases. For the L3 VPN, it requires
                         // setting the MPLS_TYPE so pop can happen down the pipeline
+                        if (mplsNextTable == MPLS_TYPE_TABLE && bos != null && !bos.mplsBos()) {
+                            tb.immediate().popMpls();
+                        }
                     }
                     if (instr instanceof L3ModificationInstruction &&
                             ((L3ModificationInstruction) instr).subtype() == L3SubType.DEC_TTL) {
@@ -970,10 +939,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 log.warn("SR CONTINUE case cannot be handled as MPLS ECMP "
                         + "is not implemented in OF-DPA yet. Aborting this flow {} -> next:{}"
                         + "in this device {}", fwd.id(), fwd.nextId(), deviceId);
-                // XXX We could convert to forwarding to a single-port, via a
-                // MPLS interface, or a MPLS SWAP (with-same) but that would
-                // have to be handled in the next-objective. Also the pop-mpls
-                // logic used here won't work in non-BoS case.
+                // XXX We could convert to forwarding to a single-port, via a MPLS interface,
+                // or a MPLS SWAP (with-same) but that would have to be handled in the next-objective.
+                // Also the pop-mpls logic used here won't work in non-BoS case.
                 fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
                 return Collections.emptySet();
             }
@@ -1037,20 +1005,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
         Collection<FlowRule> flowRuleCollection = new ArrayList<>();
         flowRuleCollection.add(ruleBuilder.build());
-        if (defaultRule) {
-            FlowRule.Builder rule = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority())
-                .forDevice(deviceId)
-                .withSelector(complementarySelector.build())
-                .withTreatment(tb.build())
-                .forTable(forTableId);
-            if (fwd.permanent()) {
-                rule.makePermanent();
-            } else {
-                rule.makeTemporary(fwd.timeout());
-            }
-            flowRuleCollection.add(rule.build());
+        if (!allowDefaultRoute) {
+            flowRuleCollection.add(
+                    defaultRoute(fwd, complementarySelector, forTableId, tb)
+            );
             log.debug("Default rule 0.0.0.0/0 is being installed two rules");
         }
         // XXX retrying flows may be necessary due to bug CORD-554
@@ -1059,6 +1017,71 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                      RETRY_MS, TimeUnit.MILLISECONDS);
         }
         return flowRuleCollection;
+    }
+
+    protected int buildIpv4Selector(TrafficSelector.Builder builderToUpdate,
+                                    TrafficSelector.Builder extBuilder,
+                                    ForwardingObjective fwd,
+                                    boolean allowDefaultRoute) {
+        TrafficSelector selector = fwd.selector();
+
+        IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
+        if (ipv4Dst.isMulticast()) {
+            if (ipv4Dst.prefixLength() != 32) {
+                log.warn("Multicast specific forwarding objective can only be /32");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            VlanId assignedVlan = readVlanFromSelector(fwd.meta());
+            if (assignedVlan == null) {
+                log.warn("VLAN ID required by multicast specific fwd obj is missing. Abort.");
+                fail(fwd, ObjectiveError.BADPARAMS);
+                return -1;
+            }
+            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+            builderToUpdate.extension(ofdpaMatchVlanVid, deviceId);
+            builderToUpdate.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+            log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        } else {
+            if (ipv4Dst.prefixLength() == 0) {
+                if (allowDefaultRoute) {
+                    // The entire IPV4_DST field is wildcarded intentionally
+                    builderToUpdate.matchEthType(Ethernet.TYPE_IPV4);
+                } else {
+                    // NOTE: The switch does not support matching 0.0.0.0/0
+                    // Split it into 0.0.0.0/1 and 128.0.0.0/1
+                    builderToUpdate.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                    extBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                            .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                }
+            } else {
+                builderToUpdate.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
+            }
+            log.debug("processing IPv4 unicast specific forwarding objective {} -> next:{}"
+                              + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
+        }
+        return 0;
+    }
+
+    protected FlowRule defaultRoute(ForwardingObjective fwd,
+                                    TrafficSelector.Builder complementarySelector,
+                                    int forTableId,
+                                    TrafficTreatment.Builder tb) {
+        FlowRule.Builder rule = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(complementarySelector.build())
+                .withTreatment(tb.build())
+                .forTable(forTableId);
+        if (fwd.permanent()) {
+            rule.makePermanent();
+        } else {
+            rule.makeTemporary(fwd.timeout());
+        }
+        return rule.build();
     }
 
     /**
