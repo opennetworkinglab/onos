@@ -167,7 +167,8 @@ class TopologyMutationDriver implements Runnable {
      * @param deviceId device identifier
      */
     void repairDevice(DeviceId deviceId) {
-        int chassisId = Integer.parseInt(deviceId.uri().getSchemeSpecificPart());
+        // device IDs are expressed in hexadecimal... (use radix 16)
+        int chassisId = Integer.parseInt(deviceId.uri().getSchemeSpecificPart(), 16);
         simulator.createDevice(deviceId, chassisId);
         Set<Link> links = savedLinks.remove(deviceId);
         if (links != null) {
