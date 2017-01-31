@@ -527,8 +527,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             selector.extension(ofdpaMatchVlanVid, deviceId);
 
             if (!assignedVlan.equals(vidCriterion.vlanId())) {
-                OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
-                treatment.extension(ofdpaSetVlanVid, deviceId);
+                if (useSetVlanExtension) {
+                    OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
+                    treatment.extension(ofdpaSetVlanVid, deviceId);
+                } else {
+                    treatment.setVlanId(assignedVlan);
+                }
             }
         }
 
