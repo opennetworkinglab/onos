@@ -52,6 +52,7 @@ import org.onosproject.net.device.DeviceStoreAdapter;
 import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.snmp.SnmpController;
+import org.onosproject.snmp.SnmpDeviceConfig;
 
 import java.io.InputStream;
 import java.util.HashMap;

@@ -16,11 +16,14 @@
 
 package org.onosproject.snmp;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
+import org.snmp4j.Snmp;
 
 /**
  * Abstraction a default Snmp Device.
  */
+@Beta
 public interface SnmpDevice {
 
     /**
@@ -29,6 +32,13 @@ public interface SnmpDevice {
      * @return Device Information.
      */
     String deviceInfo();
+
+    /**
+     * Returns an Snmp session context for this device.
+     *
+     * @return snmp session
+     */
+    Snmp getSession();
 
     /**
      * Terminates the device connection.
@@ -57,6 +67,13 @@ public interface SnmpDevice {
     int getSnmpPort();
 
     /**
+     * Returns the notification port for asynchronous messages from the device.
+     *
+     * @return notification port
+     */
+    int getNotificationPort();
+
+    /**
      * Retrieves the username of the device.
      *
      * @return username
@@ -69,6 +86,20 @@ public interface SnmpDevice {
      * @return password
      */
     String getCommunity();
+
+    /**
+     * Returns the protocol of the device.
+     *
+     * @return protocol
+     */
+    String getProtocol();
+
+    /**
+     * Returns the notification protocol of the device.
+     *
+     * @return notification protocol
+     */
+    String getNotificationProtocol();
 
     /**
      * Return the SNMP device deviceID.

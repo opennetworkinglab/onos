@@ -48,6 +48,7 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.snmp.SnmpController;
 import org.onosproject.snmp.SnmpDevice;
+import org.onosproject.snmp.SnmpDeviceConfig;
 import org.onosproject.snmp.ctl.DefaultSnmpDevice;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -165,8 +166,7 @@ public class SnmpDeviceProvider extends AbstractProvider
         deviceSubjects.forEach(deviceId -> {
             SnmpDeviceConfig config =
                     netCfgService.getConfig(deviceId, SnmpDeviceConfig.class);
-            buildDevice(new DefaultSnmpDevice(config.ip().toString(),
-                                              config.port(), config.username(), config.password()));
+            buildDevice(new DefaultSnmpDevice(config));
         });
     }
 

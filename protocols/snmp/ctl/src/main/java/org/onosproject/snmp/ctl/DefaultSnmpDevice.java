@@ -17,8 +17,15 @@ package org.onosproject.snmp.ctl;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.snmp.SnmpDevice;
+import org.onosproject.snmp.SnmpDeviceConfig;
 import org.slf4j.Logger;
+import org.snmp4j.Snmp;
+import org.snmp4j.TransportMapping;
+import org.snmp4j.smi.GenericAddress;
+import org.snmp4j.transport.DefaultTcpTransportMapping;
+import org.snmp4j.transport.DefaultUdpTransportMapping;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -33,34 +40,73 @@ public class DefaultSnmpDevice implements SnmpDevice {
 
     private final Logger log = getLogger(DefaultSnmpDevice.class);
 
-
-    private static final int DEFAULT_SNMP_PORT = 161;
-
     private static final String SCHEME = "snmp";
 
     private final String snmpHost;
     private final DeviceId deviceId;
-    private int snmpPort = DEFAULT_SNMP_PORT;
+    private final int snmpPort;
+    private final int notificationPort;
     private final String username;
     //Community is a conventional name for password in SNMP.
     private final String community;
     private boolean reachable = false;
+    private final String protocol;
+    private final String notificationProtocol;
 
+    private Snmp session;
 
-    public DefaultSnmpDevice(String snmpHost, int snmpPort, String username, String community) {
-
+    public DefaultSnmpDevice(String snmpHost, int snmpPort,
+                             String username, String community) {
+        this.protocol = GenericAddress.TYPE_UDP;
         this.snmpHost = checkNotNull(snmpHost, "SNMP Device IP cannot be null");
-        this.snmpPort = snmpPort;
+        this.snmpPort = checkNotNull(snmpPort, "SNMP Device port cannot be null");
+        this.notificationProtocol = GenericAddress.TYPE_UDP;
+        this.notificationPort = 0;
         this.username = username;
         this.community = community;
         this.deviceId = createDeviceId();
+        initializeSession();
+    }
+
+    public DefaultSnmpDevice(SnmpDeviceConfig snmpDeviceConfig) {
+        checkNotNull(snmpDeviceConfig.ip(), "SNMP Device IP address cannot be null");
+        this.protocol = snmpDeviceConfig.protocol();
+        this.notificationProtocol = snmpDeviceConfig.notificationProtocol();
+        this.snmpHost = checkNotNull(snmpDeviceConfig.ip().toString(), "SNMP Device IP cannot be null");
+        this.snmpPort = checkNotNull(snmpDeviceConfig.port(), "SNMP Device port cannot be null");
+        this.notificationPort = checkNotNull(snmpDeviceConfig.notificationPort(),
+                                          "SNMP Device notification port cannot be null");
+        this.username = snmpDeviceConfig.username();
+        this.community = snmpDeviceConfig.password();
+        this.deviceId = createDeviceId();
+        initializeSession();
+    }
+
+    private void initializeSession() {
         reachable = true;
+        try {
+            TransportMapping transport;
+            if (protocol == GenericAddress.TYPE_TCP) {
+                transport = new DefaultTcpTransportMapping();
+            } else {
+                transport = new DefaultUdpTransportMapping();
+            }
+            transport.listen();
+            session = new Snmp(transport);
+        } catch (IOException e) {
+            log.error("Failed to connect to device: ", e);
+        }
     }
 
     @Override
     public String deviceInfo() {
         return new StringBuilder("host: ").append(snmpHost).append(". port: ")
                 .append(snmpPort).toString();
+    }
+
+    @Override
+    public Snmp getSession() {
+        return session;
     }
 
     @Override
@@ -86,6 +132,11 @@ public class DefaultSnmpDevice implements SnmpDevice {
     }
 
     @Override
+    public int getNotificationPort() {
+        return notificationPort;
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }
@@ -98,6 +149,16 @@ public class DefaultSnmpDevice implements SnmpDevice {
     @Override
     public DeviceId deviceId() {
         return deviceId;
+    }
+
+    @Override
+    public String getProtocol() {
+        return protocol;
+    }
+
+    @Override
+    public String getNotificationProtocol() {
+        return notificationProtocol;
     }
 
     private DeviceId createDeviceId() {
@@ -114,4 +175,5 @@ public class DefaultSnmpDevice implements SnmpDevice {
             throw new IllegalArgumentException("Can't create device ID from " + additionalSsp, e);
         }
     }
+
 }

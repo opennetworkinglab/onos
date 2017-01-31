@@ -1,5 +1,6 @@
 BUNDLES = [
   '//providers/snmp/device:onos-providers-snmp-device',
+  '//providers/snmp/alarm:onos-providers-snmp-alarm',
   '//protocols/snmp/api:onos-protocols-snmp-api',
   '//protocols/snmp/ctl:onos-protocols-snmp-ctl',
   '//lib:org.apache.servicemix.bundles.snmp4j',
@@ -16,4 +17,5 @@ onos_app (
     included_bundles = BUNDLES,
     description = 'Provides means for ONOS to discover and trigger the initial handshake procedure ' +
         'with SNMP enabled devices from information given by network configuration.',
+    required_apps = [ 'org.onosproject.faultmanagement'],
 )

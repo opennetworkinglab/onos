@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.snmp.device.impl;
+package org.onosproject.snmp;
 
 import com.google.common.annotations.Beta;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,8 +28,12 @@ import org.onosproject.net.config.Config;
 @Beta
 public class SnmpDeviceConfig extends Config<DeviceId> {
 
+    private static final String PROTOCOL = "protocol";
+    private static final String NOTIFICATION_PROTOCOL = "notificationProtocol";
     private static final String IP = "ip";
     private static final String PORT = "port";
+    private static final int DEFAULT_PORT = 161;
+    private static final String NOTIFICATION_PORT = "notificationPort";
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
 
@@ -37,6 +41,24 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
     public boolean isValid() {
         return hasOnlyFields(IP, PORT, USERNAME, PASSWORD) &&
                 ip() != null;
+    }
+
+    /**
+     * Gets the protocol of the SNMP device.
+     *
+     * @return protocol
+     */
+    public String protocol() {
+        return get(PROTOCOL, "udp");
+    }
+
+    /**
+     * Gets the notification protocol of the SNMP device.
+     *
+     * @return notification protocol
+     */
+    public String notificationProtocol() {
+        return get(NOTIFICATION_PROTOCOL, "udp");
     }
 
     /**
@@ -55,6 +77,15 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
      */
     public int port() {
         return get(PORT, extractIpPort().getValue());
+    }
+
+    /**
+     * Gets the notification port of the SNMP device.
+     *
+     * @return notification port
+     */
+    public int notificationPort() {
+        return get(NOTIFICATION_PORT, 0);
     }
 
     /**
@@ -77,13 +108,14 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
 
 
     private Pair<String, Integer> extractIpPort() {
-        String info = subject.toString();
-        if (info.startsWith(SnmpDeviceProvider.SCHEME)) {
-            //+1 is due to length of colon separator
-            String ip = info.substring(info.indexOf(":") + 1, info.lastIndexOf(":"));
-            int port = Integer.parseInt(info.substring(info.lastIndexOf(":") + 1));
-            return Pair.of(ip, port);
+        String info = subject.uri().getSchemeSpecificPart();
+        int portSeparator = info.lastIndexOf(':');
+        if (portSeparator == -1) {
+            return Pair.of(info, DEFAULT_PORT);
         }
-        return null;
+
+        String ip = info.substring(0, portSeparator);
+        int port = Integer.parseInt(info.substring(portSeparator + 1));
+        return Pair.of(ip, port);
     }
 }

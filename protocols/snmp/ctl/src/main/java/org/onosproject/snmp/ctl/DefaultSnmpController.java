@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,6 +74,7 @@ public class DefaultSnmpController implements SnmpController {
     }
 
     @Override
+    @Deprecated
     public ISnmpSession getSession(DeviceId deviceId) throws IOException {
         if (!sessionMap.containsKey(deviceId)) {
             SnmpDevice device = snmpDeviceMap.get(deviceId);
@@ -112,13 +114,29 @@ public class DefaultSnmpController implements SnmpController {
     }
 
     @Override
+    public SnmpDevice getDevice(URI uri) {
+            //this assumes that only one device is associated with one deviceId
+            return snmpDeviceMap.entrySet()
+                    .stream().filter(p -> p.getValue()
+                    .getSnmpHost().equals(uri.toString()))
+                    .map(Map.Entry::getValue).findFirst().orElse(null);
+    }
+
+    @Override
     public void removeDevice(DeviceId did) {
         snmpDeviceMap.remove(did);
     }
 
     @Override
+    @Deprecated // in 1.14.0
     public void addDevice(DeviceId did, SnmpDevice device) {
         snmpDeviceMap.put(did, device);
+    }
+
+    @Override
+    public void addDevice(SnmpDevice device) {
+        log.info("Adding device {}", device.deviceId());
+        snmpDeviceMap.put(device.deviceId(), device);
     }
 
     @Override

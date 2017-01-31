@@ -23,6 +23,7 @@ import org.onosproject.snmp.SnmpController;
 import org.onosproject.snmp.SnmpDevice;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,11 @@ public class SnmpControllerAdapter implements SnmpController {
     }
 
     @Override
+    public SnmpDevice getDevice(URI uri) {
+        return null;
+    }
+
+    @Override
     public void removeDevice(DeviceId deviceId) {
         devices.remove(deviceId);
     }
@@ -51,6 +57,11 @@ public class SnmpControllerAdapter implements SnmpController {
     @Override
     public void addDevice(DeviceId deviceId, SnmpDevice snmpDevice) {
         devices.put(deviceId, snmpDevice);
+    }
+
+    @Override
+    public void addDevice(SnmpDevice device) {
+        devices.put(device.deviceId(), device);
     }
 
     @Override

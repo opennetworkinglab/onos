@@ -32,12 +32,15 @@ public class DefaultSnmpDeviceTest {
     private final String community = "test";
     private final DeviceId deviceId = DeviceId.deviceId("snmp:1.1.1.1:1");
     private final String deviceInfo = "host: 1.1.1.1. port: 1";
+    private final String defaultProtocol = "udp";
+    private final String tcpProtocol = "tcp";
 
     DefaultSnmpDevice device = new DefaultSnmpDevice("1.1.1.1", 1, "test", "test");
 
     @Test
     public void basics() throws Exception {
         assertTrue("Device should be reachable", device.isReachable());
+        assertEquals("Incorrect protocol", defaultProtocol, device.getProtocol());
         assertEquals("Incorrect host", snmpHost, device.getSnmpHost());
         assertEquals("Incorrect port", snmpPort, device.getSnmpPort());
         assertEquals("Incorrect username", username, device.getUsername());
@@ -46,6 +49,5 @@ public class DefaultSnmpDeviceTest {
         assertEquals("Incorrect deviceInfo", deviceInfo, device.deviceInfo());
         device.disconnect();
         assertFalse("Device should not be reachable", device.isReachable());
-
     }
 }

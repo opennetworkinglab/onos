@@ -36,6 +36,11 @@
             <artifactId>onos-snmp-provider-device</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-snmp-provider-alarm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
