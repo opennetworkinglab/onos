@@ -198,6 +198,11 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
         public void emit(NetworkId networkId, OutboundPacket packet) {
             emittedPacket = packet;
         }
+
+        @Override
+        public void startPacketHandling() {
+
+        }
     }
 
     private class TestProcessor implements PacketProcessor {

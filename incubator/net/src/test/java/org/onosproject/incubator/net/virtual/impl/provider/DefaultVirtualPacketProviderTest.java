@@ -154,6 +154,7 @@ public class DefaultVirtualPacketProviderTest {
         providerManager.registerProviderService(VNET_ID, providerService);
 
         virtualProvider.activate();
+        virtualProvider.startPacketHandling();
         vAppId = new TestApplicationId(0, "Virtual App");
     }
 

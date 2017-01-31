@@ -103,9 +103,6 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
                 "org.onosproject.virtual.virtual-packet");
         providerRegistryService.registerProvider(this);
 
-        processor = new InternalPacketProcessor();
-        packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
-
         contextMap = Maps.newConcurrentMap();
 
         log.info("Started");
@@ -125,6 +122,12 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Override
     public void emit(NetworkId networkId, OutboundPacket packet) {
        packetService.emit(devirtualize(networkId, packet));
+    }
+
+    @Override
+    public void startPacketHandling() {
+        processor = new InternalPacketProcessor();
+        packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
     }
 
     /**

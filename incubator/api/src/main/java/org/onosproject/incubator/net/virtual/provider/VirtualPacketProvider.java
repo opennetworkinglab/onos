@@ -34,4 +34,9 @@ public interface VirtualPacketProvider extends VirtualProvider {
      */
     void emit(NetworkId networkId, OutboundPacket packet);
 
+    /**
+     * Starts to deliver packets to virtual packet managers.
+     */
+    void startPacketHandling();
+
 }
