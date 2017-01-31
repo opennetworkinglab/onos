@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2017-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -431,6 +432,8 @@ public class VirtualNetworkManager
             service = new VirtualNetworkPacketManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(GroupService.class)) {
             service = new VirtualNetworkGroupManager(this, network.id());
+        } else if (serviceKey.serviceClass.equals(MeterService.class)) {
+            service = new VirtualNetworkMeterManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(FlowObjectiveService.class)) {
             service = new VirtualNetworkFlowObjectiveManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(MastershipService.class) ||
