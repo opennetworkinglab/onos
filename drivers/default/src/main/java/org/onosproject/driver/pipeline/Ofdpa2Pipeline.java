@@ -685,6 +685,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
             ApplicationId applicationId) {
+        ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
+
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
@@ -698,7 +700,22 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        return ImmutableList.<FlowRule>builder().add(rule).build();
+        builder.add(rule);
+
+        selector = DefaultTrafficSelector.builder();
+        treatment = DefaultTrafficTreatment.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV6);
+        selector.matchEthDst(ethCriterion.mac());
+        treatment.transition(UNICAST_ROUTING_TABLE);
+        rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+        return builder.add(rule).build();
     }
 
     protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,

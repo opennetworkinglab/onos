@@ -158,9 +158,7 @@ public class DeviceConfiguration implements DeviceProperties {
                     });
                 }
             });
-            /*
-             * We register the connect point with the NRS.
-             */
+            // We register the connect point with the NRS.
             srManager.registerConnectPoint(subject);
         });
     }

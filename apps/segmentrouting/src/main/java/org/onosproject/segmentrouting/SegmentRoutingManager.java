@@ -999,9 +999,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param portToRegister connect point to register
      */
     public void registerConnectPoint(ConnectPoint portToRegister) {
-        /*
-         * First we register the ARP handler.
-         */
         this.neighbourResolutionService.registerNeighbourHandler(
                 portToRegister,
                 neighbourHandler,

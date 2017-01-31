@@ -315,7 +315,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         IpPrefix subnet = config.getPortIPv6Subnet(
                 connectPoint.deviceId(),
                 connectPoint.port()
-        ).getIp6Prefix();
+        );
         return subnet != null && subnet.contains(pkt.sender());
     }
 
