@@ -14,7 +14,7 @@
 
 # Clean up onos runtime directories
 #      TODO don't hardcode karaf version
-rm -rf /opt/onos/apache-karaf-3.0.5/
+rm -rf /opt/onos/apache-karaf-3.0.8/
 rm -rf /opt/onos/var/*
 rm -rf /opt/onos/config
 rm -rf /opt/onos/options

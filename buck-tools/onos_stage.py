@@ -45,7 +45,7 @@ def stageOnos(output, version, files=[]):
                     for f in zip_part.infolist():
                         dest = f.filename
                         if base not in dest:
-                            dest = base + 'apache-karaf-3.0.5/system/' + f.filename
+                            dest = base + 'apache-karaf-3.0.8/system/' + f.filename
                         addFile(output, dest, zip_part.open(f), f.file_size)
             elif '.oar' in file:
                 with ZipFile(file, 'r') as oar:
@@ -58,12 +58,12 @@ def stageOnos(output, version, files=[]):
                     for f in oar.infolist():
                         filename = f.filename
                         if 'm2' in filename:
-                            dest = base + 'apache-karaf-3.0.5/system/' + filename[3:]
+                            dest = base + 'apache-karaf-3.0.8/system/' + filename[3:]
                             if dest not in written_files:
                                 addFile(output, dest, oar.open(f), f.file_size)
                                 written_files.add(dest)
             elif 'features.xml' in file:
-                dest = base + 'apache-karaf-3.0.5/system/org/onosproject/onos-features/%s/' % version
+                dest = base + 'apache-karaf-3.0.8/system/org/onosproject/onos-features/%s/' % version
                 dest += 'onos-features-%s-features.xml' % version
                 with open(file) as f:
                     addFile(output, dest, f, os.stat(file).st_size)

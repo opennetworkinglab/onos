@@ -54,7 +54,7 @@ onos_variables:
   - "source $ONOS_ROOT/tools/dev/bash_profile"
 
 # Karaf
-karaf_version: "3.0.5"
+karaf_version: "3.0.8"
 
 # Tutorial reset files
 reset_files:

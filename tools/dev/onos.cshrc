@@ -27,7 +27,7 @@ if ( ! $?MAVEN ) then
     setenv MAVEN $HOME/Applications/apache-maven-3.3.9
 endif
 if ( ! $?KARAF_VERSION ) then
-    setenv KARAF_VERSION 3.0.5
+    setenv KARAF_VERSION 3.0.8
 endif
 if ( ! $?KARAF_ROOT ) then
     setenv KARAF_ROOT $HOME/Applications/apache-karaf-$KARAF_VERSION
