@@ -124,6 +124,7 @@ public interface VirtualNetworkService
      * <li>{@link org.onosproject.net.host.HostService}</li>
      * <li>{@link org.onosproject.net.topology.TopologyService}</li>
      * <li>{@link org.onosproject.net.topology.PathService}</li>
+     * <li>{@link org.onosproject.net.packet.PacketService}</li>
      * <li>{@link org.onosproject.net.flow.FlowRuleService}</li>
      * <li>{@link org.onosproject.net.flowobjective.FlowObjectiveService}</li>
      * <li>{@link org.onosproject.net.intent.IntentService}</li>

@@ -20,6 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkPacketStore;
 import org.onosproject.net.flow.TrafficSelector;
@@ -27,21 +31,40 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketEvent;
 import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketStoreDelegate;
+import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Simple single instance implementation of the virtual packet store.
  */
+//TODO: support distributed packet store for virtual networks
+
+@Component(immediate = true)
+@Service
 public class SimpleVirtualPacketStore
         extends AbstractVirtualStore<PacketEvent, PacketStoreDelegate>
         implements VirtualNetworkPacketStore {
 
+    private final Logger log = getLogger(getClass());
+
     private Map<NetworkId, Map<TrafficSelector, Set<PacketRequest>>> requests
             = Maps.newConcurrentMap();
+
+    @Activate
+    public void activate() {
+        log.info("Started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        log.info("Stopped");
+    }
 
     @Override
     public void emit(NetworkId networkId, OutboundPacket packet) {

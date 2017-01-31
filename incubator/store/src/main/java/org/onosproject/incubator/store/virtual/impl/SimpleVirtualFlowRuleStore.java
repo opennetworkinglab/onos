@@ -68,10 +68,11 @@ import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Manages inventory of virtual flow rules using trivial in-memory implementation.
+ * Implementation of the virtual network flow rule store to manage inventory of
+ * virtual flow rules using trivial in-memory implementation.
  */
-
 //TODO: support distributed flowrule store for virtual networks
+
 @Component(immediate = true)
 @Service
 public class SimpleVirtualFlowRuleStore
