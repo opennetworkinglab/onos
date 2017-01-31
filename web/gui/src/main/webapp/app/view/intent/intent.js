@@ -29,9 +29,9 @@
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
         ['$log', '$scope', 'TableBuilderService', 'NavService',
-            'TopoTrafficService', 'DialogService',
+            'TopoOverlayService', 'TopoTrafficService', 'DialogService',
 
-        function ($log, $scope, tbs, ns, tts, ds) {
+        function ($log, $scope, tbs, ns, tov, tts, ds) {
             $scope.briefTip = 'Switch to brief view';
             $scope.detailTip = 'Switch to detailed view';
             $scope.brief = true;
@@ -78,7 +78,13 @@
 
             $scope.showIntent = function () {
                 var d = $scope.intentData;
-                d && ns.navTo('topo', d);
+                if (d) {
+                    // TODO: if more than one overlay registered, provide dropdown
+                    $log.debug('SHOW-INTENT: overlay list:', tov.list());
+                    $log.debug('SHOW-INTENT: overlay info:', tov.list(true));
+
+                    ns.navTo('topo', d);
+                }
             };
 
             $scope.isIntentInstalled = function () {

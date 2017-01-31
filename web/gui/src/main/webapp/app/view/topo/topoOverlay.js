@@ -108,9 +108,25 @@
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
-    // returns the list of overlay identifiers
-    function list() {
-        return d3.map(overlays).keys();
+    // Returns the list of overlay identifiers. If a truthy argument is supplied,
+    // returns an augmented list of overlay tokens, providing overlay ID,
+    // glyph ID and overlay Tooltip text.
+    function list(x) {
+        var oids = d3.map(overlays).keys(),
+            info = [];
+
+        if (!x) {
+            return oids;
+        }
+
+        oids.forEach(function (oid) {
+            var o = overlays[oid],
+                ot = o.tooltip || '%' + o.overlayId + '%',
+                og = o._glyphId;
+
+            info.push({ id: oid, tt: ot, gid: og });
+        });
+        return info;
     }
 
     // add a radio button for each registered overlay
