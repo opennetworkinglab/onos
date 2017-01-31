@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -80,6 +81,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
+import static org.onlab.packet.IPv6.getLinkLocalAddress;
+import static org.onlab.packet.IPv6.getSolicitNodeAddress;
 import static org.onosproject.routing.cpr.ControlPlaneRedirectManager.ACL_PRIORITY;
 import static org.onosproject.routing.cpr.ControlPlaneRedirectManager.buildArpSelector;
 import static org.onosproject.routing.cpr.ControlPlaneRedirectManager.buildIPDstSelector;
@@ -268,97 +271,135 @@ public class ControlPlaneRedirectManagerTest {
     private void setUpInterfaceConfiguration(Interface intf, boolean install) {
         DeviceId deviceId = controlPlaneConnectPoint.deviceId();
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
-
         for (InterfaceIpAddress ip : intf.ipAddresses()) {
             int cpNextId, intfNextId;
-
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                     VlanId.vlanId(ControlPlaneRedirectManager.ASSIGNED_VLAN), true, install);
             intfNextId = modifyNextObjective(deviceId, intf.connectPoint().port(),
                     VlanId.vlanId(ControlPlaneRedirectManager.ASSIGNED_VLAN), true, install);
 
             // IP to router
-            TrafficSelector toSelector = buildIPDstSelector(
-                    ip.ipAddress().toIpPrefix(),
-                    intf.connectPoint().port(),
-                    null,
-                    intf.mac(),
-                    intf.vlan());
-
+            TrafficSelector toSelector = buildIPDstSelector(ip.ipAddress().toIpPrefix(),
+                                                            intf.connectPoint().port(),
+                                                            null,
+                                                            intf.mac(),
+                                                            intf.vlan());
             flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, null,
                                                                             cpNextId, install, ACL_PRIORITY));
             expectLastCall().once();
-
             // IP from router
-            TrafficSelector fromSelector = buildIPSrcSelector(
-                    ip.ipAddress().toIpPrefix(),
-                    controlPlanePort,
-                    intf.mac(),
-                    null,
-                    intf.vlan()
-            );
-
+            TrafficSelector fromSelector = buildIPSrcSelector(ip.ipAddress().toIpPrefix(),
+                                                              controlPlanePort,
+                                                              intf.mac(),
+                                                              null,
+                                                              intf.vlan());
             flowObjectiveService.forward(deviceId, buildForwardingObjective(fromSelector, null,
                                                                             intfNextId, install, ACL_PRIORITY));
             expectLastCall().once();
-
             TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder().punt().build();
             if (ip.ipAddress().isIp4()) {
                 // ARP to router
-                toSelector = buildArpSelector(
-                        intf.connectPoint().port(),
-                        intf.vlan(),
-                        null,
-                        null
-                );
-
+                toSelector = buildArpSelector(intf.connectPoint().port(),
+                                              intf.vlan(),
+                                              null,
+                                              null);
                 flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
                                                                                 cpNextId, install, ACL_PRIORITY + 1));
                 expectLastCall().once();
-
                 // ARP from router
-                fromSelector = buildArpSelector(
-                        controlPlanePort,
-                        intf.vlan(),
-                        ip.ipAddress().getIp4Address(),
-                        intf.mac()
-                );
-
+                fromSelector = buildArpSelector(controlPlanePort,
+                                                intf.vlan(),
+                                                ip.ipAddress().getIp4Address(),
+                                                intf.mac());
                 flowObjectiveService.forward(deviceId,
                                              buildForwardingObjective(fromSelector, puntTreatment,
                                                                       intfNextId, install, ACL_PRIORITY + 1));
                 expectLastCall().once();
             } else {
                 // NDP solicitation to router
-                toSelector = buildNdpSelector(
-                        intf.connectPoint().port(),
-                        intf.vlan(),
-                        null,
-                        NEIGHBOR_SOLICITATION,
-                        null
-                );
-
+                // Global unicast address
+                toSelector = buildNdpSelector(intf.connectPoint().port(),
+                                              intf.vlan(),
+                                              ip.ipAddress().toIpPrefix(),
+                                              null,
+                                              NEIGHBOR_SOLICITATION,
+                                              null);
                 flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
                                                                                 cpNextId, install, ACL_PRIORITY + 1));
                 expectLastCall().once();
-
+                // NDP solicitation to router
+                // Link local address
+                toSelector = buildNdpSelector(intf.connectPoint().port(),
+                                              intf.vlan(),
+                                              Ip6Address.valueOf(
+                                                      getLinkLocalAddress(intf.mac().toBytes())
+                                              ).toIpPrefix(),
+                                              null,
+                                              NEIGHBOR_SOLICITATION,
+                                              null);
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(toSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+                // NDP solicitation to router
+                // solicitated global unicast address
+                toSelector = buildNdpSelector(intf.connectPoint().port(),
+                                              intf.vlan(),
+                                              Ip6Address.valueOf(
+                                                      getSolicitNodeAddress(ip.ipAddress().toOctets())
+                                              ).toIpPrefix(),
+                                              null,
+                                              NEIGHBOR_SOLICITATION,
+                                              null);
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(toSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                // NDP solicitation to router
+                // solicitated link local address
+                toSelector = buildNdpSelector(intf.connectPoint().port(),
+                                              intf.vlan(),
+                                              Ip6Address.valueOf(
+                                                      getSolicitNodeAddress(getLinkLocalAddress(intf.mac().toBytes()))
+                                              ).toIpPrefix(),
+                                              null,
+                                              NEIGHBOR_SOLICITATION,
+                                              null);
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(toSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
                 // NDP solicitation from router
-                fromSelector = buildNdpSelector(
-                        controlPlanePort,
-                        intf.vlan(),
-                        ip.ipAddress().toIpPrefix(),
-                        NEIGHBOR_SOLICITATION,
-                        intf.mac()
-                );
-
+                // Global unicast address
+                fromSelector = buildNdpSelector(controlPlanePort,
+                                                intf.vlan(),
+                                                null,
+                                                ip.ipAddress().toIpPrefix(),
+                                                NEIGHBOR_SOLICITATION,
+                                                intf.mac());
                 flowObjectiveService.forward(deviceId,
                                              buildForwardingObjective(fromSelector, puntTreatment,
                                                                       intfNextId, install, ACL_PRIORITY + 1));
-
+                expectLastCall().once();
+                // NDP solicitation from router
+                // Link local address
+                fromSelector = buildNdpSelector(controlPlanePort,
+                                                intf.vlan(),
+                                                null,
+                                                Ip6Address.valueOf(
+                                                        getLinkLocalAddress(intf.mac().toBytes())
+                                                ).toIpPrefix(),
+                                                NEIGHBOR_SOLICITATION,
+                                                intf.mac());
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(fromSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
                 // NDP advertisement to router
+                // Global unicast address
                 toSelector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
                         null,
                         NEIGHBOR_ADVERTISEMENT,
                         null
@@ -367,26 +408,52 @@ public class ControlPlaneRedirectManagerTest {
                 flowObjectiveService.forward(deviceId, buildForwardingObjective(toSelector, puntTreatment,
                                                                                 cpNextId, install, ACL_PRIORITY + 1));
                 expectLastCall().once();
-
                 // NDP advertisement from router
+                // Link local address
                 fromSelector = buildNdpSelector(
-                        controlPlanePort,
+                        intf.connectPoint().port(),
                         intf.vlan(),
-                        ip.ipAddress().toIpPrefix(),
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
+                        null,
                         NEIGHBOR_ADVERTISEMENT,
-                        intf.mac()
+                        null
                 );
-
                 flowObjectiveService.forward(deviceId,
                                              buildForwardingObjective(fromSelector, puntTreatment,
                                                                       intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+                // NDP advertisement to router
+                // Global unicast address
+                toSelector = buildNdpSelector(controlPlanePort,
+                                              intf.vlan(),
+                                              null,
+                                              ip.ipAddress().toIpPrefix(),
+                                              NEIGHBOR_ADVERTISEMENT,
+                                              intf.mac());
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(toSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
+                // NDP advertisement to router
+                // Link local address
+                fromSelector = buildNdpSelector(controlPlanePort,
+                                                intf.vlan(),
+                                                null,
+                                                Ip6Address.valueOf(
+                                                        getLinkLocalAddress(intf.mac().toBytes())
+                                                ).toIpPrefix(),
+                                                NEIGHBOR_ADVERTISEMENT,
+                                                intf.mac());
+                flowObjectiveService.forward(deviceId,
+                                             buildForwardingObjective(fromSelector, puntTreatment,
+                                                                      intfNextId, install, ACL_PRIORITY + 1));
+                expectLastCall().once();
             }
         }
         // setting expectations for ospf forwarding.
         TrafficSelector toSelector = DefaultTrafficSelector.builder().matchInPort(intf.connectPoint().port())
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort()).matchVlanId(intf.vlan())
                 .matchIPProtocol((byte) OSPF_IP_PROTO).build();
-
         modifyNextObjective(deviceId, controlPlanePort, VlanId.vlanId((short) 4094), true, install);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
                 buildForwardingObjective(toSelector, null, 1, install, 40001));

@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -76,6 +77,8 @@ import static org.onlab.packet.Ethernet.TYPE_IPV6;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
+import static org.onlab.packet.IPv6.getLinkLocalAddress;
+import static org.onlab.packet.IPv6.getSolicitNodeAddress;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -301,37 +304,115 @@ public class ControlPlaneRedirectManager {
                 fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
             } else {
                 // Neighbour solicitation traffic towards the router.
+                // This flow is for the global unicast address.
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        null,
+                        NEIGHBOR_SOLICITATION,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour solicitation traffic towards the router.
+                // This flow is for the link local address.
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
+                        null,
+                        NEIGHBOR_SOLICITATION,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour solicitation traffic towards the router.
+                // This flow is for the solicitation node address of
+                // the global unicast address.
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        Ip6Address.valueOf(getSolicitNodeAddress(ip.ipAddress().toOctets())).toIpPrefix(),
+                        null,
+                        NEIGHBOR_SOLICITATION,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour solicitation traffic towards the router.
+                // This flow is for the solicitation node address of
+                // the link local address.
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        Ip6Address.valueOf(
+                                getSolicitNodeAddress(getLinkLocalAddress(intf.mac().toBytes()))
+                        ).toIpPrefix(),
                         null,
                         NEIGHBOR_SOLICITATION,
                         null
                 );
                 fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
                 // Neighbour solicitation traffic from the router.
+                // This flow is for the global unicast address.
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
+                        null,
                         ip.ipAddress().toIpPrefix(),
                         NEIGHBOR_SOLICITATION,
                         intf.mac()
                 );
                 fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
-                 // Neighbour advertisement traffic towards the router.
+                // Neighbour solicitation traffic from the router.
+                // This flow is for the link local address.
+                selector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        null,
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
+                        NEIGHBOR_SOLICITATION,
+                        intf.mac()
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
+                // Neighbour advertisement traffic towards the router.
+                // This flow is for the global unicast address
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
+                        ip.ipAddress().toIpPrefix(),
+                        null,
+                        NEIGHBOR_ADVERTISEMENT,
+                        null
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
+                // Neighbour advertisement traffic towards the router.
+                // This flow is for the link local address
+                selector = buildNdpSelector(
+                        intf.connectPoint().port(),
+                        intf.vlan(),
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         null,
                         NEIGHBOR_ADVERTISEMENT,
                         null
                 );
                 fwdToSend.add(buildForwardingObjective(selector, treatment, cpNextId, install, ACL_PRIORITY + 1));
                 // Neighbour advertisement traffic from the router.
+                // This flow is for the global unicast address
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
+                        null,
                         ip.ipAddress().toIpPrefix(),
+                        NEIGHBOR_ADVERTISEMENT,
+                        intf.mac()
+                );
+                fwdToSend.add(buildForwardingObjective(selector, treatment, intfNextId, install, ACL_PRIORITY + 1));
+                // Neighbour advertisement traffic from the router.
+                // This flow is for the link local address
+                selector = buildNdpSelector(
+                        controlPlanePort,
+                        intf.vlan(),
+                        null,
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         NEIGHBOR_ADVERTISEMENT,
                         intf.mac()
                 );
@@ -454,7 +535,6 @@ public class ControlPlaneRedirectManager {
         return add ? fobBuilder.add() : fobBuilder.remove();
     }
 
-
     static TrafficSelector.Builder buildBaseSelectorBuilder(PortNumber inPort,
                                                             MacAddress srcMac,
                                                             MacAddress dstMac,
@@ -525,6 +605,7 @@ public class ControlPlaneRedirectManager {
     static TrafficSelector buildNdpSelector(PortNumber inPort,
                                             VlanId vlanId,
                                             IpPrefix srcIp,
+                                            IpPrefix dstIp,
                                             byte subProto,
                                             MacAddress srcMac) {
         TrafficSelector.Builder selector = buildBaseSelectorBuilder(inPort, null, null, vlanId);
@@ -533,6 +614,9 @@ public class ControlPlaneRedirectManager {
                 .matchIcmpv6Type(subProto);
         if (srcIp != null) {
             selector.matchIPv6Src(srcIp);
+        }
+        if (dstIp != null) {
+            selector.matchIPv6Dst(srcIp);
         }
         if (srcMac != null) {
             selector.matchEthSrc(srcMac);
