@@ -16,7 +16,7 @@
 package org.onosproject.incubator.net.tunnel;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Description;
@@ -63,7 +63,7 @@ public interface TunnelDescription extends Description, Annotated {
      *
      * @return OpenFlowGroupId
      */
-    DefaultGroupId groupId();
+    GroupId groupId();
 
     /**
      * Returns tunnel producer name.

@@ -16,7 +16,6 @@
 package org.onosproject.provider.of.group.impl;
 
 import com.google.common.collect.Lists;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -95,7 +94,7 @@ public class GroupBucketEntryBuilder {
                     PortNumber port =
                             PortNumber.portNumber(bucket.getWatchPort().getPortNumber());
                     GroupId groupId =
-                            new DefaultGroupId(bucket.getWatchGroup().getGroupNumber());
+                            new GroupId(bucket.getWatchGroup().getGroupNumber());
                     groupBucket =
                             DefaultGroupBucket.createFailoverGroupBucket(treatment,
                                     port, groupId);

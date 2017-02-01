@@ -27,7 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -91,7 +91,7 @@ public class OvsdbTunnelProviderTest {
                                                                 src,
                                                                 dst,
                                                                 Tunnel.Type.VXLAN,
-                                                                new DefaultGroupId(0),
+                                                                new GroupId(0),
                                                                 this.provider.id(),
                                                                 TunnelName.tunnelName("tunnel12"),
                                                                 new DefaultPath(this.provider.id(), links, 0.3),
@@ -116,7 +116,7 @@ public class OvsdbTunnelProviderTest {
                                                                 src,
                                                                 dst,
                                                                 Tunnel.Type.VXLAN,
-                                                                new DefaultGroupId(0),
+                                                                new GroupId(0),
                                                                 this.provider.id(),
                                                                 TunnelName.tunnelName("tunnel1"),
                                                                 new DefaultPath(this.provider.id(), links, 0.3),

@@ -49,7 +49,7 @@ import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.ApplicationRole;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.core.Version;
 import org.onosproject.event.Change;
 import org.onosproject.incubator.net.domain.IntentDomainId;
@@ -536,7 +536,7 @@ public final class KryoNamespaces {
             .register(MapEvent.Type.class)
             .register(SetEvent.class)
             .register(SetEvent.Type.class)
-            .register(DefaultGroupId.class)
+            .register(GroupId.class)
             .register(Annotations.class)
             .register(OmsPort.class)
             .register(OchPort.class)

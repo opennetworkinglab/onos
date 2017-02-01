@@ -22,7 +22,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
@@ -188,7 +188,7 @@ public class TunnelCreateCommand extends AbstractShellCommand {
                                                                 srcPoint,
                                                                 dstPoint,
                                                                 trueType,
-                                                                new DefaultGroupId(Integer.parseInt(groupId)),
+                                                                new GroupId(Integer.parseInt(groupId)),
                                                                 producerName,
                                                                 TunnelName
                                                                         .tunnelName(tunnelName),

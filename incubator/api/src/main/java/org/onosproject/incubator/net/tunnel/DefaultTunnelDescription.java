@@ -16,7 +16,7 @@
 package org.onosproject.incubator.net.tunnel;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
@@ -36,7 +36,7 @@ public class DefaultTunnelDescription extends AbstractDescription
     private final TunnelEndPoint src;
     private final TunnelEndPoint dst;
     private final Tunnel.Type type;
-    private final DefaultGroupId groupId; // represent for a group flow table
+    private final GroupId groupId; // represent for a group flow table
     // which a tunnel match up
     // tunnel producer
     private final ProviderId producerName; // tunnel producer name
@@ -59,7 +59,7 @@ public class DefaultTunnelDescription extends AbstractDescription
      */
     public DefaultTunnelDescription(TunnelId id, TunnelEndPoint src,
                                     TunnelEndPoint dst, Tunnel.Type type,
-                                    DefaultGroupId groupId,
+                                    GroupId groupId,
                                     ProviderId producerName,
                                     TunnelName tunnelName,
                                     Path path,
@@ -92,7 +92,7 @@ public class DefaultTunnelDescription extends AbstractDescription
      */
     public DefaultTunnelDescription(TunnelId id, TunnelEndPoint src,
                                     TunnelEndPoint dst, Tunnel.Type type,
-                                    DefaultGroupId groupId,
+                                    GroupId groupId,
                                     ProviderId producerName,
                                     TunnelName tunnelName,
                                     Path path,
@@ -131,7 +131,7 @@ public class DefaultTunnelDescription extends AbstractDescription
     }
 
     @Override
-    public DefaultGroupId groupId() {
+    public GroupId groupId() {
         return groupId;
     }
 

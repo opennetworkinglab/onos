@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelAdminService;
@@ -107,7 +107,7 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
                                                                teTunnel.srcTp()),
                                           new TeTunnelEndpoint(teTunnel.dstNode(),
                                                                teTunnel.dstTp()),
-                                          Tunnel.Type.MPLS, new DefaultGroupId(0),
+                                          Tunnel.Type.MPLS, new GroupId(0),
                                           tunnelId,
                                           TunnelName.tunnelName(teTunnel.name()),
                                           null,

@@ -29,7 +29,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -105,7 +105,7 @@ public class PcepTunnelProviderTest {
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   new GroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
         controller.getClient(PccId.pccId(IpAddress.valueOf(0xC010101))).setCapability(
                 new ClientCapability(true, true, true, true, true));

@@ -16,7 +16,6 @@
 package org.onosproject.net.group;
 
 import org.junit.Test;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -32,9 +31,9 @@ import static org.onosproject.net.NetTestTools.did;
  * Unit tests for DefaultGroup class.
  */
 public class DefaultGroupTest {
-    private final GroupId id1 = new DefaultGroupId(6);
-    private final GroupId id2 = new DefaultGroupId(7);
-    private final GroupId id3 = new DefaultGroupId(1234);
+    private final GroupId id1 = new GroupId(6);
+    private final GroupId id2 = new GroupId(7);
+    private final GroupId id3 = new GroupId(1234);
 
     private final GroupBucket bucket =
             DefaultGroupBucket.createSelectGroupBucket(

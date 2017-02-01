@@ -19,7 +19,7 @@ package org.onosproject.driver.pipeline;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -148,7 +148,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             int mplsgroupId = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & mplsInterfaceIndex);
             final GroupKey mplsgroupkey = new DefaultGroupKey(
                     Ofdpa2Pipeline.appKryo.serialize(mplsInterfaceIndex));
-            outerTtb.group(new DefaultGroupId(l2groupId));
+            outerTtb.group(new GroupId(l2groupId));
             // create the mpls-interface group description to wait for the
             // l2 interface group to be processed
             GroupBucket mplsinterfaceGroupBucket =
@@ -170,7 +170,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
             final GroupKey l3groupkey = new DefaultGroupKey(
                     Ofdpa2Pipeline.appKryo.serialize(l3unicastIndex));
-            outerTtb.group(new DefaultGroupId(l2groupId));
+            outerTtb.group(new GroupId(l2groupId));
             // create the l3unicast group description to wait for the
             // l2 interface group to be processed
             GroupBucket l3unicastGroupBucket =
@@ -237,7 +237,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             for (GroupInfo gi : unsentGroups) {
                 // create ECMP bucket to point to the outer group
                 TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
-                ttb.group(new DefaultGroupId(gi.getNextGroupDesc().givenGroupId()));
+                ttb.group(new GroupId(gi.getNextGroupDesc().givenGroupId()));
                 GroupBucket sbucket = DefaultGroupBucket
                         .createSelectGroupBucket(ttb.build());
                 mplsEcmpGroupBuckets.add(sbucket);

@@ -25,7 +25,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
@@ -101,7 +101,7 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
             if (type == Objective.Operation.REMOVE && inPort.equals(lp)) {
                 flag = false;
             }
-            treatment.group(new DefaultGroupId(GROUP_ID));
+            treatment.group(new GroupId(GROUP_ID));
             ForwardingObjective.Builder objective = DefaultForwardingObjective
                     .builder().withTreatment(treatment.build())
                     .withSelector(selector).fromApp(appId).makePermanent()

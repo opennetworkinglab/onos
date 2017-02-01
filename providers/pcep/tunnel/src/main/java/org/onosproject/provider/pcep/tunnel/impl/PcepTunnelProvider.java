@@ -27,7 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
@@ -825,7 +825,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                                                                 srcPoint,
                                                                 dstPoint,
                                                                 tunnelType,
-                                                                new DefaultGroupId(0),
+                                                                new GroupId(0),
                                                                 id(), name,
                                                                 path,
                                                                 annotations);
@@ -1630,7 +1630,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 }
                 annotations = getAnnotations(lspObj, ipv4LspIdenTlv, tempBandwidth, lspType,
                     temoCostType, lspObj.getCFlag());
-                td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS, new DefaultGroupId(
+                td = new DefaultTunnelDescription(null, tunnelEndPointSrc, tunnelEndPointDst, MPLS, new GroupId(
                         0), providerId, TunnelName.tunnelName(new String(pathNameTlv.getValue())), path, labelStack,
                         annotations);
                 // Do not support PCC initiated LSP after LSP DB sync is completed.
@@ -1661,7 +1661,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                 if (mastershipService.isLocalMaster(deviceId)) {
                     TunnelId tId = tunnelAdded(td, tunnelState);
                     Tunnel tunnelInserted = new DefaultTunnel(providerId, tunnelEndPointSrc, tunnelEndPointDst, MPLS,
-                            tunnelState, new DefaultGroupId(0), tId, TunnelName.tunnelName(String.valueOf(pathNameTlv
+                            tunnelState, new GroupId(0), tId, TunnelName.tunnelName(String.valueOf(pathNameTlv
                                     .getValue())), path, labelStack, annotations);
 
                     PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnelInserted, path, LSP_STATE_RPT);
@@ -1693,7 +1693,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             annotations = getAnnotations(lspObj, ipv4LspIdenTlv,
                     tunnel.annotations().value(BANDWIDTH), lspType,
                     tunnel.annotations().value(COST_TYPE), isPceInit);
-            td = new DefaultTunnelDescription(null, tunnel.src(), tunnel.dst(), MPLS, new DefaultGroupId(
+            td = new DefaultTunnelDescription(null, tunnel.src(), tunnel.dst(), MPLS, new GroupId(
                     0), tunnel.providerId(), tunnel.tunnelName(),
                     tunnel.path(), labelStack, annotations);
             tunnelUpdateInDelegatedCase(pccId, annotations, td, tunnel.providerId(), tunnelState, ipv4LspIdenTlv);
@@ -1957,7 +1957,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             //If tunnel is found update the tunnel and shutdown the thread otherwise thread will be executing
             //periodically
             if (tempTunnelId != null) {
-                Tunnel tunnel = new DefaultTunnel(providerId, td.src(), td.dst(), MPLS, new DefaultGroupId(0),
+                Tunnel tunnel = new DefaultTunnel(providerId, td.src(), td.dst(), MPLS, new GroupId(0),
                         tempTunnelId, td.tunnelName(), td.path(), annotations);
                 PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, tunnel.path(), LSP_STATE_RPT);
                 pcepTunnelData.setStatefulIpv4IndentifierTlv(ipv4LspIdentifiersTlv);

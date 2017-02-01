@@ -21,7 +21,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
@@ -366,7 +366,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 .matchInPort(portNumber)
                 .matchVlanId(assignedVlan);
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
-                .group(new DefaultGroupId(POP_VLAN_PUNT_GROUP_ID));
+                .group(new GroupId(POP_VLAN_PUNT_GROUP_ID));
 
         return DefaultFlowRule.builder()
                 .forDevice(deviceId)

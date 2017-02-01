@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -92,7 +91,7 @@ public class OpenFlowGroupProviderTest {
     @Test
     public void addGroup() {
 
-        GroupId groupId = new DefaultGroupId(1);
+        GroupId groupId = new GroupId(1);
 
         List<GroupBucket> bucketList = Lists.newArrayList();
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
@@ -123,7 +122,7 @@ public class OpenFlowGroupProviderTest {
         TestOpenFlowGroupProviderService testProviderService =
                 (TestOpenFlowGroupProviderService) providerService;
 
-        GroupId groupId = new DefaultGroupId(1);
+        GroupId groupId = new GroupId(1);
         List<GroupBucket> bucketList = Lists.newArrayList();
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         builder.setOutput(PortNumber.portNumber(1));

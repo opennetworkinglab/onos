@@ -43,7 +43,6 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.codec.impl.FlowRuleCodec;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -184,7 +183,7 @@ public class FlowsResourceTest extends ResourceTest {
 
         @Override
         public GroupId groupId() {
-            return new DefaultGroupId(3);
+            return new GroupId(3);
         }
 
         @Override

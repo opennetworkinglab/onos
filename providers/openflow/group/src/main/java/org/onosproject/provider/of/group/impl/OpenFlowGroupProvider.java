@@ -31,7 +31,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -191,7 +190,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                     return;
             }
             sw.sendMsg(groupMod);
-            GroupId groudId = new DefaultGroupId(groupMod.getGroup().getGroupNumber());
+            GroupId groudId = new GroupId(groupMod.getGroup().getGroupNumber());
             pendingGroupOperations.put(groudId, groupOperation);
             pendingXidMaps.put(groudId, groupModXid);
         }
@@ -245,7 +244,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
         for (OFGroupDescStatsEntry entry: groupDescStatsReply.getEntries()) {
             int id = entry.getGroup().getGroupNumber();
-            GroupId groupId = new DefaultGroupId(id);
+            GroupId groupId = new GroupId(id);
             GroupDescription.Type type = getGroupType(entry.getGroupType());
             GroupBuckets buckets = new GroupBucketEntryBuilder(dpid, entry.getBuckets(),
                     entry.getGroupType(), driverService).build();

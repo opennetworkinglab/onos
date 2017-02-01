@@ -25,7 +25,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OduSignalId;
@@ -424,7 +424,7 @@ public class FlowEntryBuilder {
                     break;
                 case GROUP:
                     OFActionGroup group = (OFActionGroup) act;
-                    builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
+                    builder.group(new GroupId(group.getGroup().getGroupNumber()));
                     break;
                 case SET_QUEUE:
                     OFActionSetQueue setQueue = (OFActionSetQueue) act;

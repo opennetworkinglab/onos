@@ -21,7 +21,6 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 
@@ -97,7 +96,7 @@ public class DefaultFlowRule implements FlowRule {
 
 
         //FIXME: fields below will be removed.
-        this.groupId = new DefaultGroupId(0);
+        this.groupId = new GroupId(0);
         this.payLoad = null;
     }
 
@@ -155,7 +154,7 @@ public class DefaultFlowRule implements FlowRule {
         this.selector = selector;
         this.treatment = treatment;
         this.appId = appId.id();
-        this.groupId = new DefaultGroupId(0);
+        this.groupId = new GroupId(0);
         this.timeout = timeout;
         this.reason = FlowRemoveReason.NO_REASON;
         this.hardTimeout = hardTimeout;

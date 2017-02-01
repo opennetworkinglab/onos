@@ -28,7 +28,6 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.ExtensionTreatmentCodec;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.Device;
@@ -355,7 +354,7 @@ public final class DecodeInstructionCodecHelper {
             return Instructions.transition(nullIsIllegal(json.get(InstructionCodec.TABLE_ID),
                     InstructionCodec.TABLE_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
         } else if (type.equals(Instruction.Type.GROUP.name())) {
-            GroupId groupId = new DefaultGroupId(nullIsIllegal(json.get(InstructionCodec.GROUP_ID),
+            GroupId groupId = new GroupId(nullIsIllegal(json.get(InstructionCodec.GROUP_ID),
                     InstructionCodec.GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
             return Instructions.createGroup(groupId);
         } else if (type.equals(Instruction.Type.METER.name())) {

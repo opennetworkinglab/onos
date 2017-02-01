@@ -29,7 +29,6 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -353,11 +352,11 @@ public class VirtualNetworkGroupManagerTest {
                 PortNumber.portNumber(32)};
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                 PortNumber.portNumber(42)};
-        GroupId gId1 = new DefaultGroupId(1);
+        GroupId gId1 = new GroupId(1);
         Group group1 = createSouthboundGroupEntry(gId1,
                                                   Arrays.asList(ports1),
                                                   0, deviceId);
-        GroupId gId2 = new DefaultGroupId(2);
+        GroupId gId2 = new GroupId(2);
         // Non zero reference count will make the group manager to queue
         // the extraneous groups until reference count is zero.
         Group group2 = createSouthboundGroupEntry(gId2,
@@ -402,11 +401,11 @@ public class VirtualNetworkGroupManagerTest {
                 PortNumber.portNumber(32)};
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                 PortNumber.portNumber(42)};
-        GroupId gId1 = new DefaultGroupId(1);
+        GroupId gId1 = new GroupId(1);
         Group group1 = createSouthboundGroupEntry(gId1,
                                                   Arrays.asList(ports1),
                                                   0, deviceId);
-        GroupId gId2 = new DefaultGroupId(2);
+        GroupId gId2 = new GroupId(2);
         Group group2 = createSouthboundGroupEntry(gId2,
                                                   Arrays.asList(ports2),
                                                   0, deviceId);

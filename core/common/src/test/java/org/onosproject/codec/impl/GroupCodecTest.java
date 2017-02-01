@@ -22,7 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -84,12 +84,12 @@ public class GroupCodecTest {
         GroupBuckets bucketsIndirect = new GroupBuckets(ImmutableList.of(bucket2));
 
         DefaultGroup group = new DefaultGroup(
-                new DefaultGroupId(1),
+                new GroupId(1),
                 NetTestTools.did("d1"),
                 ALL,
                 buckets);
         DefaultGroup group1 = new DefaultGroup(
-                new DefaultGroupId(2),
+                new GroupId(2),
                 NetTestTools.did("d2"),
                 INDIRECT,
                 bucketsIndirect);

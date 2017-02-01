@@ -19,7 +19,7 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.provider.ProviderId;
 
 import com.google.common.testing.EqualsTester;
@@ -42,7 +42,7 @@ public class DefaultTunnelTest {
                 .valueOf(23423));
         TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress
                 .valueOf(32421));
-        DefaultGroupId groupId = new DefaultGroupId(92034);
+        GroupId groupId = new GroupId(92034);
         TunnelName tunnelName = TunnelName.tunnelName("TunnelName");
         TunnelId tunnelId = TunnelId.valueOf("41654654");
         ProviderId producerName1 = new ProviderId("producer1", "13");

@@ -28,7 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
@@ -74,7 +74,7 @@ public class BasicPceccHandlerTest {
     protected PceLabelStore pceStore;
     private TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
-    private DefaultGroupId groupId = new DefaultGroupId(92034);
+    private GroupId groupId = new GroupId(92034);
     private TunnelName tunnelName = TunnelName.tunnelName("TunnelName");
     private TunnelId tunnelId = TunnelId.valueOf("41654654");
     private ProviderId producerName = new ProviderId("producer1", "13");

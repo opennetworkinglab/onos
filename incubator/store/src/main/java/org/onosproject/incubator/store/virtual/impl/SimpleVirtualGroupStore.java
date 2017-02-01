@@ -22,7 +22,6 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
@@ -67,7 +66,7 @@ public class SimpleVirtualGroupStore
     private final Logger log = getLogger(getClass());
 
     private final int dummyId = 0xffffffff;
-    private final GroupId dummyGroupId = new DefaultGroupId(dummyId);
+    private final GroupId dummyGroupId = new GroupId(dummyId);
 
     // inner Map is per device group table
     private final ConcurrentMap<NetworkId,
@@ -198,14 +197,14 @@ public class SimpleVirtualGroupStore
             if (groupEntriesById.get(networkId) != null &&
                     groupEntriesById.get(networkId).get(deviceId) != null) {
                 existing = groupEntriesById.get(networkId).get(deviceId)
-                                .get(new DefaultGroupId(freeId));
+                                .get(new GroupId(freeId));
             }
 
             if (existing == null) {
                 if (extraneousGroupEntriesById.get(networkId) != null &&
                         extraneousGroupEntriesById.get(networkId).get(deviceId) != null) {
                     existing = extraneousGroupEntriesById.get(networkId).get(deviceId)
-                                    .get(new DefaultGroupId(freeId));
+                                    .get(new GroupId(freeId));
                 }
             }
 
@@ -251,9 +250,9 @@ public class SimpleVirtualGroupStore
         GroupId id = null;
         if (groupDesc.givenGroupId() == null) {
             // Get a new group identifier
-            id = new DefaultGroupId(getFreeGroupIdValue(networkId, groupDesc.deviceId()));
+            id = new GroupId(getFreeGroupIdValue(networkId, groupDesc.deviceId()));
         } else {
-            id = new DefaultGroupId(groupDesc.givenGroupId());
+            id = new GroupId(groupDesc.givenGroupId());
         }
         // Create a group entry object
         StoredGroupEntry group = new DefaultGroup(id, groupDesc);

@@ -33,7 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -120,7 +120,7 @@ public class PcepUpdateTunnelProviderTest {
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   new GroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
 
         // for updating tunnel tunnel should exist in db
@@ -180,7 +180,7 @@ public class PcepUpdateTunnelProviderTest {
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   new GroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
 
         // for updating tunnel tunnel should exist in db
@@ -240,7 +240,7 @@ public class PcepUpdateTunnelProviderTest {
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   new GroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
 
         // for updating tunnel tunnel should exist in db
@@ -300,7 +300,7 @@ public class PcepUpdateTunnelProviderTest {
                 .build();
 
         tunnel = new DefaultTunnel(pid, ipTunnelEndPointSrc, ipTunnelEndPointDst, Tunnel.Type.MPLS,
-                                   new DefaultGroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
+                                   new GroupId(0), TunnelId.valueOf("1"), TunnelName.tunnelName("T123"),
                                    path, annotations);
 
         // for updating tunnel tunnel should exist in db

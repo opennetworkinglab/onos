@@ -28,7 +28,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.DeviceId;
@@ -529,7 +528,7 @@ public class Ofdpa2GroupHandler {
             int mplsgroupId = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & mplsInterfaceIndex);
             final GroupKey mplsgroupkey = new DefaultGroupKey(
                                Ofdpa2Pipeline.appKryo.serialize(mplsInterfaceIndex));
-            outerTtb.group(new DefaultGroupId(l2groupId));
+            outerTtb.group(new GroupId(l2groupId));
             // create the mpls-interface group description to wait for the
             // l2 interface group to be processed
             GroupBucket mplsinterfaceGroupBucket =
@@ -551,7 +550,7 @@ public class Ofdpa2GroupHandler {
             int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
             final GroupKey l3groupkey = new DefaultGroupKey(
                                Ofdpa2Pipeline.appKryo.serialize(l3unicastIndex));
-            outerTtb.group(new DefaultGroupId(l2groupId));
+            outerTtb.group(new GroupId(l2groupId));
             // create the l3unicast group description to wait for the
             // l2 interface group to be processed
             GroupBucket l3unicastGroupBucket =
@@ -751,7 +750,7 @@ public class Ofdpa2GroupHandler {
             GroupDescription nextGroupDesc = (groupInfo.nextGroupDesc != null) ?
                     groupInfo.nextGroupDesc : groupInfo.innerMostGroupDesc;
             TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
-            ttb.group(new DefaultGroupId(nextGroupDesc.givenGroupId()));
+            ttb.group(new GroupId(nextGroupDesc.givenGroupId()));
             GroupBucket abucket = DefaultGroupBucket.createAllGroupBucket(ttb.build());
             l3McastBuckets.add(abucket);
         });
@@ -830,7 +829,7 @@ public class Ofdpa2GroupHandler {
         for (GroupInfo gi : unsentGroups) {
             // create ECMP bucket to point to the outer group
             TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
-            ttb.group(new DefaultGroupId(gi.nextGroupDesc.givenGroupId()));
+            ttb.group(new GroupId(gi.nextGroupDesc.givenGroupId()));
             GroupBucket sbucket = DefaultGroupBucket
                     .createSelectGroupBucket(ttb.build());
             l3ecmpGroupBuckets.add(sbucket);
@@ -957,7 +956,7 @@ public class Ofdpa2GroupHandler {
                 }
                 l3vpnTtb.pushMpls()
                         .setMpls(innermostLabel)
-                        .group(new DefaultGroupId(onelabelGroupInfo.nextGroupDesc.givenGroupId()));
+                        .group(new GroupId(onelabelGroupInfo.nextGroupDesc.givenGroupId()));
                 if (supportCopyTtl()) {
                     l3vpnTtb.copyTtlOut();
                 }
@@ -1279,7 +1278,7 @@ public class Ofdpa2GroupHandler {
         groupInfos.forEach(groupInfo -> {
             GroupDescription groupDesc = groupInfo.nextGroupDesc;
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.group(new DefaultGroupId(groupDesc.givenGroupId()));
+            treatmentBuilder.group(new GroupId(groupDesc.givenGroupId()));
             GroupBucket newBucket = null;
             switch (bucketType) {
                 case ALL:
@@ -1322,7 +1321,7 @@ public class Ofdpa2GroupHandler {
             GroupDescription nextGroupDesc = (groupInfo.nextGroupDesc != null) ?
                     groupInfo.nextGroupDesc : groupInfo.innerMostGroupDesc;
             TrafficTreatment.Builder treatmentBuidler = DefaultTrafficTreatment.builder();
-            treatmentBuidler.group(new DefaultGroupId(nextGroupDesc.givenGroupId()));
+            treatmentBuidler.group(new GroupId(nextGroupDesc.givenGroupId()));
             GroupBucket newBucket = DefaultGroupBucket.createAllGroupBucket(treatmentBuidler.build());
             newBuckets.add(newBucket);
         });

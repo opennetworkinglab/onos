@@ -19,7 +19,7 @@ package org.onosproject.driver.pipeline;
 import com.google.common.collect.Lists;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.driver.extensions.Ofdpa3PushCw;
 import org.onosproject.driver.extensions.Ofdpa3PushL2Header;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -231,7 +231,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         // We add all the instructions.
         instructions.forEach(treatment::add);
         // We point the group to the next group.
-        treatment.group(new DefaultGroupId(nextGroupId));
+        treatment.group(new GroupId(nextGroupId));
         GroupBucket groupBucket = DefaultGroupBucket
                 .createIndirectGroupBucket(treatment.build());
         // Finally we build the group description.
@@ -269,7 +269,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         instructions.forEach(treatment::add);
         treatment.extension(new Ofdpa3PushCw(), deviceId);
         // We point the group to the next group.
-        treatment.group(new DefaultGroupId(nextGroupId));
+        treatment.group(new GroupId(nextGroupId));
         GroupBucket groupBucket = DefaultGroupBucket
                 .createIndirectGroupBucket(treatment.build());
         // Finally we build the group description.

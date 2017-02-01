@@ -23,7 +23,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
@@ -732,8 +731,8 @@ public class InstructionsTest {
 
     //  GroupInstruction
 
-    private final GroupId groupId1 = new DefaultGroupId(1);
-    private final GroupId groupId2 = new DefaultGroupId(2);
+    private final GroupId groupId1 = new GroupId(1);
+    private final GroupId groupId2 = new GroupId(2);
     private final Instruction groupInstruction1 = Instructions.createGroup(groupId1);
     private final Instruction sameAsGroupInstruction1 = Instructions.createGroup(groupId1);
     private final Instruction groupInstruction2 = Instructions.createGroup(groupId2);

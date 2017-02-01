@@ -31,7 +31,6 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -113,7 +112,7 @@ public class DistributedGroupStore
     private static final int GC_THRESH = 6;
 
     private final int dummyId = 0xffffffff;
-    private final GroupId dummyGroupId = new DefaultGroupId(dummyId);
+    private final GroupId dummyGroupId = new GroupId(dummyId);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -387,12 +386,12 @@ public class DistributedGroupStore
         int freeId = groupIdGen.incrementAndGet();
 
         while (true) {
-            Group existing = getGroup(deviceId, new DefaultGroupId(freeId));
+            Group existing = getGroup(deviceId, new GroupId(freeId));
             if (existing == null) {
                 existing = (
                         extraneousGroupEntriesById.get(deviceId) != null) ?
                         extraneousGroupEntriesById.get(deviceId).
-                                get(new DefaultGroupId(freeId)) :
+                                get(new GroupId(freeId)) :
                         null;
             }
             if (existing != null) {
@@ -468,7 +467,7 @@ public class DistributedGroupStore
         if (extraneousMap == null) {
             return null;
         }
-        return extraneousMap.get(new DefaultGroupId(groupId));
+        return extraneousMap.get(new GroupId(groupId));
     }
 
     private Group getMatchingExtraneousGroupbyBuckets(DeviceId deviceId,
@@ -599,12 +598,12 @@ public class DistributedGroupStore
         GroupId id = null;
         if (groupDesc.givenGroupId() == null) {
             // Get a new group identifier
-            id = new DefaultGroupId(getFreeGroupIdValue(groupDesc.deviceId()));
+            id = new GroupId(getFreeGroupIdValue(groupDesc.deviceId()));
         } else {
             // we need to use the identifier passed in by caller, but check if
             // already used
             Group existing = getGroup(groupDesc.deviceId(),
-                                      new DefaultGroupId(groupDesc.givenGroupId()));
+                                      new GroupId(groupDesc.givenGroupId()));
             if (existing != null) {
                 log.warn("Group already exists with the same id: 0x{} in dev:{} "
                                  + "but with different key: {} (request gkey: {})",
@@ -614,7 +613,7 @@ public class DistributedGroupStore
                          groupDesc.appCookie());
                 return;
             }
-            id = new DefaultGroupId(groupDesc.givenGroupId());
+            id = new GroupId(groupDesc.givenGroupId());
         }
         // Create a group entry object
         StoredGroupEntry group = new DefaultGroup(id, groupDesc);

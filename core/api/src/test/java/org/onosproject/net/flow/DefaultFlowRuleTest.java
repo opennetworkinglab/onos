@@ -17,7 +17,7 @@
 package org.onosproject.net.flow;
 
 import org.junit.Test;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.intent.IntentTestsMocks;
 
 import com.google.common.testing.EqualsTester;
@@ -127,13 +127,13 @@ public class DefaultFlowRuleTest {
     public void testCreationWithPayLoadByGroupTable() {
         final DefaultFlowRule rule =
                 new DefaultFlowRule(did("1"), null,
-                        null, 22, APP_ID, new DefaultGroupId(0),
+                        null, 22, APP_ID, new GroupId(0),
                 44, false, payLoad);
         assertThat(rule.deviceId(), is(did("1")));
         assertThat(rule.isPermanent(), is(false));
         assertThat(rule.priority(), is(22));
         assertThat(rule.timeout(), is(44));
-        assertThat(rule.groupId(), is(new DefaultGroupId(0)));
+        assertThat(rule.groupId(), is(new GroupId(0)));
         assertThat(defaultFlowRule1.payLoad(), is(payLoad));
     }
     /**

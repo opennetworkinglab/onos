@@ -35,7 +35,6 @@ import org.onosproject.codec.impl.GroupCodec;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -127,7 +126,7 @@ public class GroupsResourceTest extends ResourceTest {
 
         @Override
         public GroupId id() {
-            return new DefaultGroupId((int) baseValue + 55);
+            return new GroupId((int) baseValue + 55);
         }
 
         @Override

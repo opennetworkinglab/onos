@@ -17,7 +17,6 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.graph.Weight;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
@@ -347,7 +346,7 @@ public class IntentTestsMocks {
 
         @Override
         public GroupId groupId() {
-            return new DefaultGroupId(0);
+            return new GroupId(0);
         }
 
         @Override

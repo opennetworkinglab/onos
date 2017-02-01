@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
@@ -72,9 +71,9 @@ public class DistributedGroupStoreTest {
 
     DeviceId deviceId1 = did("dev1");
     DeviceId deviceId2 = did("dev2");
-    GroupId groupId1 = new DefaultGroupId(1);
-    GroupId groupId2 = new DefaultGroupId(2);
-    GroupId groupId3 = new DefaultGroupId(3);
+    GroupId groupId1 = new GroupId(1);
+    GroupId groupId2 = new GroupId(2);
+    GroupId groupId3 = new GroupId(3);
     GroupKey groupKey1 = new DefaultGroupKey("abc".getBytes());
     GroupKey groupKey2 = new DefaultGroupKey("def".getBytes());
     GroupKey groupKey3 = new DefaultGroupKey("ghi".getBytes());

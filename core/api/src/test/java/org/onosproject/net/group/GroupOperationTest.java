@@ -16,7 +16,6 @@
 package org.onosproject.net.group;
 
 import org.junit.Test;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -36,7 +35,7 @@ import static org.onosproject.net.group.GroupOperation.Type.ADD;
  */
 public class GroupOperationTest {
 
-    private final GroupId groupId = new DefaultGroupId(6);
+    private final GroupId groupId = new GroupId(6);
     private final TrafficTreatment treatment =
             DefaultTrafficTreatment.emptyTreatment();
     private final GroupBucket bucket =

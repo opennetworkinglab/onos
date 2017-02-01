@@ -30,7 +30,7 @@ import org.onlab.util.Frequency;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -407,8 +407,8 @@ public class KryoSerializerTest {
     }
 
     @Test
-    public void testDefaultGroupId() {
-        testSerializedEquals(new DefaultGroupId(99));
+    public void testGroupId() {
+        testSerializedEquals(new GroupId(99));
     }
 
     @Test

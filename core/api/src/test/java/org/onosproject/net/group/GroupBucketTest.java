@@ -16,7 +16,6 @@
 package org.onosproject.net.group;
 
 import org.junit.Test;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -36,7 +35,7 @@ import static org.onosproject.net.group.GroupDescription.Type.SELECT;
  */
 public class GroupBucketTest {
 
-    private final GroupId groupId = new DefaultGroupId(7);
+    private final GroupId groupId = new GroupId(7);
     private final GroupId nullGroup = null;
 
     private final PortNumber nullPort = null;

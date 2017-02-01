@@ -19,7 +19,6 @@ package org.onosproject.scalablegateway.impl;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -116,7 +115,7 @@ public class SelectGroupHandler {
     }
 
     private GroupId getGroupId(DeviceId srcDeviceId) {
-        return new DefaultGroupId(srcDeviceId.toString().hashCode());
+        return new GroupId(srcDeviceId.toString().hashCode());
     }
 
     /**
