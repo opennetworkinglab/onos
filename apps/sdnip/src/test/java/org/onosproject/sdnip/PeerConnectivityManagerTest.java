@@ -46,7 +46,7 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.sdnip.config.SdnIpConfig;
 

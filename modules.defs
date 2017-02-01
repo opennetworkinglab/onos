@@ -133,6 +133,7 @@ ONOS_APPS = [
     '//apps/gangliametrics:onos-apps-gangliametrics-oar',
     '//apps/graphitemetrics:onos-apps-graphitemetrics-oar',
     '//apps/flowanalyzer:onos-apps-flowanalyzer-oar',
+    '//apps/intentsync:onos-apps-intentsync-oar',
     '//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar',
     '//apps/metrics:onos-apps-metrics-oar',
     '//apps/mfwd:onos-apps-mfwd-oar',

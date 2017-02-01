@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.routing;
+package org.onosproject.intentsync;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intent.Intent;
@@ -23,6 +23,12 @@ import org.onosproject.net.intent.Intent;
  * Submits and withdraws intents to the IntentService from a single point in
  * the cluster at any one time. The provided intents will be synchronized with
  * the IntentService on leadership change.
+ * <p>
+ * This is a sample utility and not part of the core ONOS API. This means it is
+ * subject to change or to be removed. It is recommended to consider using one
+ * of the built-in ONOS distributed primitives such as the
+ * {@link org.onosproject.store.service.WorkQueue} instead of using this.
+ * </p>
  */
 public interface IntentSynchronizationService {
 

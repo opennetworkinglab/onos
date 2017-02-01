@@ -37,7 +37,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

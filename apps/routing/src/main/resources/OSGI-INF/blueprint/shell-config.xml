@@ -26,9 +26,6 @@
       <action class="org.onosproject.routing.cli.BgpSpeakersListCommand"/>
     </command>
     <command>
-      <action class="org.onosproject.routing.cli.PrimaryChangeCommand"/>
-    </command>
-    <command>
       <action class="org.onosproject.routing.cli.AddSpeakerCommand"/>
     </command>
     <command>

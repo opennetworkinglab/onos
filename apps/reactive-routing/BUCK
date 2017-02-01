@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//apps/intentsync:onos-apps-intentsync',
 ]
 
 osgi_jar (
@@ -13,4 +14,5 @@ onos_app (
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'SDN-IP reactive routing application.',
+    required_apps = [ 'org.onosproject.intentsynchronizer' ],
 )

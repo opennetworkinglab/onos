@@ -44,7 +44,7 @@ import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.sdnip.config.SdnIpConfig;

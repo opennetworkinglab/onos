@@ -7,6 +7,7 @@ COMPILE_DEPS = [
   '//core/store/serializers:onos-core-serializers',
   '//incubator/api:onos-incubator-api',
   '//apps/routing-api:onos-apps-routing-api',
+  '//apps/intentsync:onos-apps-intentsync',
 ]
 
 BUNDLES = [
@@ -37,4 +38,5 @@ onos_app (
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,
   description = 'Castor application',
+  required_apps = [ 'org.onosproject.intentsynchronizer' ],
 )

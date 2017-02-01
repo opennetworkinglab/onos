@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing.cli;
+package org.onosproject.intentsync.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.routing.IntentSynchronizationAdminService;
+import org.onosproject.intentsync.IntentSynchronizationAdminService;
 
 /**
  * Command to change whether this instance's intent synchronizer is primary.
@@ -34,7 +34,7 @@ public class PrimaryChangeCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        get(IntentSynchronizationAdminService.class).modifyPrimary(isPrimary);
+        AbstractShellCommand.get(IntentSynchronizationAdminService.class).modifyPrimary(isPrimary);
     }
 
 }

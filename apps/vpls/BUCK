@@ -6,14 +6,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//utils/rest:onlab-rest',
     '//incubator/api:onos-incubator-api',
-    '//apps/routing-api:onos-apps-routing-api',
-    '//apps/routing:onos-apps-routing',
-]
-
-BUNDLES = [
-    '//apps/vpls:onos-apps-vpls',
-    '//apps/routing-api:onos-apps-routing-api',
-    '//apps/routing:onos-apps-routing',
+    '//apps/intentsync:onos-apps-intentsync',
 ]
 
 TEST_DEPS = [
@@ -29,6 +22,6 @@ onos_app (
     title = 'VLAN L2 Broadcast Network App',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
-    included_bundles = BUNDLES,
     description = 'Application to create L2 broadcast network using VLAN.',
+    required_apps = [ 'org.onosproject.intentsynchronizer' ],
 )

@@ -64,6 +64,12 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-intentsync</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-app-routing</artifactId>
             <version>${project.version}</version>
         </dependency>

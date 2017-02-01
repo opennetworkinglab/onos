@@ -36,7 +36,7 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -86,6 +86,7 @@
         <module>config</module>
         <module>restconf</module>
         <module>ofagent</module>
+        <module>intentsync</module>
     </modules>
 
     <properties>

@@ -16,17 +16,8 @@
 
 package org.onosproject.reactive.routing;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -35,6 +26,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -47,9 +39,16 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.routing.IntentRequestListener;
-import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * FIB component for reactive routing intents.

@@ -1,0 +1,22 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli'
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+  app_name = 'org.onosproject.intentsynchronizer',
+  title = 'Intent Synchronizer',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  description = 'Synchronizes intents to the intent framework from a single instance',
+)

@@ -36,6 +36,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
@@ -62,8 +63,6 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.routing.IntentSynchronizationAdminService;
-import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.Collection;
@@ -77,11 +76,20 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.net.EncapsulationType.*;
-import static org.onosproject.vpls.IntentInstaller.*;
+import static org.onosproject.net.EncapsulationType.NONE;
+import static org.onosproject.net.EncapsulationType.VLAN;
+import static org.onosproject.net.EncapsulationType.valueOf;
+import static org.onosproject.vpls.IntentInstaller.PARTIAL_FAILURE_CONSTRAINT;
+import static org.onosproject.vpls.IntentInstaller.PREFIX_BROADCAST;
+import static org.onosproject.vpls.IntentInstaller.PREFIX_UNICAST;
+import static org.onosproject.vpls.IntentInstaller.setEncap;
 
 /**
  * Tests for the {@link Vpls} class.
@@ -808,8 +816,7 @@ public class VplsTest {
      * Test IntentSynchronizer that passes all intents straight through to the
      * intent service.
      */
-    private class TestIntentSynchronizer implements IntentSynchronizationService,
-            IntentSynchronizationAdminService {
+    private class TestIntentSynchronizer implements IntentSynchronizationService {
 
         private final IntentService intentService;
 
@@ -830,14 +837,6 @@ public class VplsTest {
         @Override
         public void withdraw(Intent intent) {
             intentService.withdraw(intent);
-        }
-
-        @Override
-        public void modifyPrimary(boolean isPrimary) {
-        }
-
-        @Override
-        public void removeIntents() {
         }
 
         @Override

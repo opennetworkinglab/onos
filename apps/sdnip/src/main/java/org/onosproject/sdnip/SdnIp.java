@@ -30,7 +30,7 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.sdnip.config.SdnIpConfig;
 import org.slf4j.Logger;

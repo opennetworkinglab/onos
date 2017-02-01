@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.routing.impl;
+
+package org.onosproject.intentsync;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
@@ -49,12 +51,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * This class tests the intent synchronization function in the
@@ -95,7 +91,7 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
 
         setUpConnectPoints();
 
-        intentService = createMock(IntentService.class);
+        intentService = EasyMock.createMock(IntentService.class);
 
         intentSynchronizer = new TestIntentSynchronizer();
 
@@ -157,21 +153,21 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         // Set up expectation
         Set<Intent> intents = new HashSet<>();
         intents.add(intent1);
-        expect(intentService.getIntentState(intent1.key()))
+        EasyMock.expect(intentService.getIntentState(intent1.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent2);
-        expect(intentService.getIntentState(intent2.key()))
+        EasyMock.expect(intentService.getIntentState(intent2.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent4);
-        expect(intentService.getIntentState(intent4.key()))
+        EasyMock.expect(intentService.getIntentState(intent4.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent5);
-        expect(intentService.getIntentState(intent5.key()))
+        EasyMock.expect(intentService.getIntentState(intent5.key()))
                 .andReturn(IntentState.INSTALLED).anyTimes();
         intents.add(intent7);
-        expect(intentService.getIntentState(intent7.key()))
+        EasyMock.expect(intentService.getIntentState(intent7.key()))
                 .andReturn(IntentState.WITHDRAWING).anyTimes();
-        expect(intentService.getIntents()).andReturn(intents).anyTimes();
+        EasyMock.expect(intentService.getIntents()).andReturn(intents).anyTimes();
 
         // These are the operations that should be done to the intentService
         // during synchronization
@@ -180,7 +176,7 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         intentService.submit(intent4Update);
         intentService.submit(intent6);
         intentService.submit(intent7);
-        replay(intentService);
+        EasyMock.replay(intentService);
 
         // Start the test
 
@@ -202,7 +198,7 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         // recorded based on the earlier user input.
         intentSynchronizer.modifyPrimary(true);
 
-        verify(intentService);
+        EasyMock.verify(intentService);
     }
 
     /**
@@ -216,9 +212,9 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
 
         // Set up expectations
         intentService.submit(intent);
-        expect(intentService.getIntents()).andReturn(Collections.emptyList())
+        EasyMock.expect(intentService.getIntents()).andReturn(Collections.emptyList())
                 .anyTimes();
-        replay(intentService);
+        EasyMock.replay(intentService);
 
         // Give the intent synchronizer leadership so it will submit intents
         // to the intent service
@@ -227,19 +223,19 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         // Test the submit
         intentSynchronizer.submit(intent);
 
-        verify(intentService);
+        EasyMock.verify(intentService);
 
         // Now we'll remove leadership from the intent synchronizer and verify
         // that it does not submit any intents to the intent service when we
         // call the submit API
-        reset(intentService);
-        replay(intentService);
+        EasyMock.reset(intentService);
+        EasyMock.replay(intentService);
 
         intentSynchronizer.modifyPrimary(false);
 
         intentSynchronizer.submit(intent);
 
-        verify(intentService);
+        EasyMock.verify(intentService);
     }
 
     /**
@@ -254,9 +250,9 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         // Submit an intent first so we can withdraw it later
         intentService.submit(intent);
         intentService.withdraw(intent);
-        expect(intentService.getIntents()).andReturn(Collections.emptyList())
+        EasyMock.expect(intentService.getIntents()).andReturn(Collections.emptyList())
                 .anyTimes();
-        replay(intentService);
+        EasyMock.replay(intentService);
 
         // Give the intent synchronizer leadership so it will submit intents
         // to the intent service
@@ -266,20 +262,20 @@ public class IntentSynchronizerTest extends AbstractIntentTest {
         intentSynchronizer.submit(intent);
         intentSynchronizer.withdraw(intent);
 
-        verify(intentService);
+        EasyMock.verify(intentService);
 
         // Now we'll remove leadership from the intent synchronizer and verify
         // that it does not withdraw any intents to the intent service when we
         // call the withdraw API
-        reset(intentService);
-        replay(intentService);
+        EasyMock.reset(intentService);
+        EasyMock.replay(intentService);
 
         intentSynchronizer.modifyPrimary(false);
 
         intentSynchronizer.submit(intent);
         intentSynchronizer.withdraw(intent);
 
-        verify(intentService);
+        EasyMock.verify(intentService);
     }
 
     /**

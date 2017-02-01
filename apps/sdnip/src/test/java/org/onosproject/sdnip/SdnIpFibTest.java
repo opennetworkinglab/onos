@@ -56,7 +56,7 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.sdnip.config.SdnIpConfig;
 
 import java.util.Collections;

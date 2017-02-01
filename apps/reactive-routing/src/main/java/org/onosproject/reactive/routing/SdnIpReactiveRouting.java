@@ -49,7 +49,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.IntentRequestListener;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.routing.impl;
+package org.onosproject.intentsync;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -34,8 +34,6 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
-import org.onosproject.routing.IntentSynchronizationAdminService;
-import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +52,7 @@ import static org.onlab.util.Tools.groupedThreads;
  * Synchronizes intents between an in-memory intent store and the IntentService.
  */
 @Service
-@Component(immediate = false)
+@Component(immediate = true)
 public class IntentSynchronizer implements IntentSynchronizationService,
         IntentSynchronizationAdminService {
 

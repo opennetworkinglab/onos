@@ -49,7 +49,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.vpls.config.VplsConfigService;
 import org.slf4j.Logger;
 
