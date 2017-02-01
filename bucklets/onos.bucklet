@@ -335,7 +335,7 @@ def only_lib_dep_pom(
     visibility = [ 'PUBLIC' ],
     ):
 
-    cmd = 'grep -v \<module\> ' + src + ' | sed "s/\<modules\>/\<\modules\>\<module\>lib\<\/module\>/" >$OUT'
+    cmd = 'grep -v \<module\> ' + src + ' | sed "s#<modules>#<modules><module>lib</module>#" >$OUT'
 
     genrule(
         name = name,
