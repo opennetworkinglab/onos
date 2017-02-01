@@ -15,6 +15,8 @@
  */
 package org.onosproject.tenbi.topology.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,18 +40,16 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
         .rev20151208.IetfNetworkTopologyOpParam;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology
         .rev20151208.IetfNetworkTopologyService;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopologyOpParam;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopologyService;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.IetfTeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.IetfTeTopologyOpParam;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.IetfTeTopologyService;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology
         .IetfTeTopologyEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology
         .IetfTeTopologyEventListener;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * The IETF TE Topology NBI Manager implementation.
@@ -137,7 +137,7 @@ public class TeTopologyNbiManager
         // processSubtreeFiltering() filters the entire data tree based on the
         // user's query and returns the filtered data.
         IetfNetwork result = ietfNetwork.processSubtreeFiltering(
-                (IetfNetworkOpParam) newNetwork,
+                newNetwork,
                 false);
         log.debug("result is: {}", result);
         return result;
@@ -195,7 +195,8 @@ public class TeTopologyNbiManager
     private class InternalTeTopologyListener implements TeTopologyListener {
         @Override
         public void event(TeTopologyEvent event) {
-            IetfTeTopologyEvent yangEvent = NetworkConverter.teTopoEvent2YangIetfTeTopoEvent(event);
+            IetfTeTopologyEvent yangEvent = NetworkConverter
+                    .teTopoEvent2YangIetfTeTopoEvent(event);
             post(yangEvent);
         }
     }

@@ -18,7 +18,6 @@ package org.onosproject.teyang.utils.topology;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.tetopology.management.api.TeConstants.MAX_PRIORITY;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.List;
@@ -84,51 +83,51 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
                .ietfnetworktopology.networks.network.augmentedndnetwork.link.SupportingLink
                .SupportingLinkBuilder;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.ietfnetworktopology.networks.network.node.AugmentedNdNode;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.DefaultTeLinkEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.DefaultInformationSourceState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.InformationSourceState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.informationsourcestate.DefaultTopology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.informationsourceattributes.informationsourcestate.Topology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks.network.AugmentedNwNetwork;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.DefaultTeLinkEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.TeBandwidth;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.TeLinkEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourceperlinkattributes.DefaultInformationSourceState;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourceperlinkattributes.InformationSourceState;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourceperlinkattributes.informationsourcestate.DefaultTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourceperlinkattributes.informationsourcestate.Topology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.networks.network.AugmentedNwNetwork;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.link.AugmentedNtLink;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.link.DefaultAugmentedNtLink;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.link.DefaultAugmentedNtLink.AugmentedNtLinkBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks.network.node.AugmentedNwNode;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.DefaultTe;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.DefaultTe.TeBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.Config;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.DefaultConfig;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.DefaultConfig.ConfigBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.DefaultState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.DefaultState.StateBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkaugment.te.State;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.DefaultTeLinkAttributes;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.DefaultTeLinkAttributes.TeLinkAttributesBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.TeLinkAttributes;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.telinkattributes.DefaultExternalDomain;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.telinkattributes.DefaultExternalDomain.ExternalDomainBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.telinkattributes.DefaultUnderlay;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.telinkattributes.DefaultUnderlay.UnderlayBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconfigattributes.telinkattributes.ExternalDomain;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.DefaultTeSrlgs;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.DefaultTeSrlgs.TeSrlgsBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.DefaultUnreservedBandwidth;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.DefaultUnreservedBandwidth.UnreservedBandwidthBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.TeSrlgs;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkconnectivityattributes.UnreservedBandwidth;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkinfoattributes.LinkProtectionTypeEnum;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.DefaultUnderlayBackupPath;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.DefaultUnderlayBackupPath.UnderlayBackupPathBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.DefaultUnderlayPrimaryPath;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.DefaultUnderlayPrimaryPath.UnderlayPrimaryPathBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.UnderlayPrimaryPath;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.telinkunderlayattributes.underlayprimarypath.DefaultPathElement;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.tenodeaugment.Te;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.networks.network.node.AugmentedNwNode;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.DefaultTe;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.DefaultTe.TeBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.Config;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.DefaultConfig;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.DefaultConfig.ConfigBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.DefaultState;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.DefaultState.StateBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkaugment.te.State;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.DefaultTeLinkAttributes;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.DefaultTeLinkAttributes.TeLinkAttributesBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.TeLinkAttributes;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.telinkattributes.DefaultExternalDomain;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.telinkattributes.DefaultExternalDomain.ExternalDomainBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.telinkattributes.DefaultUnderlay;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.telinkattributes.DefaultUnderlay.UnderlayBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconfigattributes.telinkattributes.ExternalDomain;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.DefaultTeSrlgs;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.DefaultTeSrlgs.TeSrlgsBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.DefaultUnreservedBandwidth;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.DefaultUnreservedBandwidth.UnreservedBandwidthBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.TeSrlgs;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.UnreservedBandwidth;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkinfoattributes.LinkProtectionTypeEnum;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.DefaultBackupPath;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.DefaultBackupPath.BackupPathBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.DefaultPrimaryPath;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.DefaultPrimaryPath.PrimaryPathBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.PrimaryPath;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.primarypath.DefaultPathElement;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.Srlg;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeNodeId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeOperStatus;
@@ -223,13 +222,11 @@ public final class LinkConverter {
             }
             if (teLink.externalLink().externalLinkKey() != null) {
                 edBuilder = edBuilder
-                        .remoteTeLinkTpId(TeTpId.fromString(
-                                                                String.valueOf(teLink
+                        .remoteTeLinkTpId(TeTpId.fromString(String.valueOf(teLink
                                                                         .externalLink()
                                                                         .externalLinkKey()
                                                                         .teLinkTpId())))
-                        .remoteTeNodeId(TeNodeId.fromString(
-                                                                String.valueOf(teLink
+                        .remoteTeNodeId(TeNodeId.fromString(String.valueOf(teLink
                                                                         .externalLink()
                                                                         .externalLinkKey()
                                                                         .teNodeId())));
@@ -241,7 +238,8 @@ public final class LinkConverter {
             for (short i = 0; i < teLink.availBandwidth().length; i++) {
                 UnreservedBandwidthBuilder urBuilder =
                         DefaultUnreservedBandwidth.builder()
-                                                  .bandwidth(BigDecimal.valueOf(teLink.availBandwidth()[i]))
+                                .bandwidth(TeBandwidth.fromString(String
+                                        .valueOf(teLink.availBandwidth()[i])))
                                                   .priority(i);
                 attrBuilder = attrBuilder.addToUnreservedBandwidth(urBuilder.build());
             }
@@ -249,7 +247,8 @@ public final class LinkConverter {
 
         if (teLink.maxBandwidth() != null) {
             // maxBandwidth is an array of float[], but in yang is just a big decimal
-            attrBuilder = attrBuilder.maxLinkBandwidth(BigDecimal.valueOf(teLink.maxBandwidth()[0]));
+            attrBuilder = attrBuilder.maxLinkBandwidth(TeBandwidth
+                    .fromString(String.valueOf(teLink.maxBandwidth()[0])));
         }
         // FIXME: how to retrieve maxResvLinkBandwidth from teLink
 //        if (teLink.maxResvLinkBandwidth() != null) {
@@ -308,7 +307,8 @@ public final class LinkConverter {
         }
         if (teLink.maxBandwidth() != null) {
             // maxBandwidth is an array of float[], but in yang is just a big decimal
-            attrBuilder = attrBuilder.maxLinkBandwidth(BigDecimal.valueOf(teLink.maxBandwidth()[0]));
+            attrBuilder = attrBuilder.maxLinkBandwidth(TeBandwidth
+                    .fromString(String.valueOf(teLink.maxBandwidth()[0])));
         }
 //        if (teLink.maxResvLinkBandwidth() != null) {
 //            attrBuilder = attrBuilder.maxResvLinkBandwidth(teLink.maxResvLinkBandwidth());
@@ -346,7 +346,9 @@ public final class LinkConverter {
             short i = 0;
             for (float f : teLink.availBandwidth()) {
                 UnreservedBandwidth.UnreservedBandwidthBuilder urBuilder = DefaultUnreservedBandwidth
-                        .builder().bandwidth(BigDecimal.valueOf(f)).priority(i);
+                        .builder()
+                        .bandwidth(TeBandwidth.fromString(String.valueOf(f)))
+                        .priority(i);
                 i++;
                 attrBuilder = attrBuilder.addToUnreservedBandwidth(urBuilder.build());
             }
@@ -363,9 +365,8 @@ public final class LinkConverter {
             InformationSourceState.InformationSourceStateBuilder issBuilder = DefaultInformationSourceState.builder();
 
             Topology.TopologyBuilder topologyBuilder = DefaultTopology.builder();
-            topologyBuilder = topologyBuilder.clientIdRef(teLink.sourceTeLinkId().clientId())
-                                             .providerIdRef(teLink.sourceTeLinkId().providerId())
-                                             .teTopologyIdRef(teLink.sourceTeLinkId().topologyId());
+            // TODO: pass teTopologyService and retrieve linkRef and NetworkRef from there
+
             issBuilder = issBuilder.topology(topologyBuilder.build());
             yangStateBuilder.informationSourceState(issBuilder.build());
         }
@@ -373,7 +374,7 @@ public final class LinkConverter {
         // Once stateDerived underlay is available in yang and core TE Topology
         // object model, set the value properly
         // stateDerivedUnderlay = org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology
-        // .rev20160708.ietftetopology.telinkstatederived.Underlay
+        // .rev20170110.ietftetopology.telinkstatederived.Underlay
         //yangStateBuilder = yangStateBuilder.underlay(stateDerivedUnderlay);
 
         return yangStateBuilder.build();
@@ -383,7 +384,7 @@ public final class LinkConverter {
      * Link object conversion from TE Topology subsystem to YANG.
      *
      * @param teSubsNetworkLink TE subsystem link object
-     * @param teTopologyService teTopology core service
+     * @param teTopologyService TE Topology Service object
      * @return YANG link object
      */
     public static Link teSubsystem2YangLink(
@@ -447,12 +448,11 @@ public final class LinkConverter {
 
         org.onosproject.tetopology.management.api.link.UnderlayPrimaryPath tePath = teLink.primaryPath();
 
-        UnderlayPrimaryPathBuilder pathBuilder =
-                                       DefaultUnderlayPrimaryPath.builder();
+        PrimaryPathBuilder pathBuilder = DefaultPrimaryPath.builder();
         if (tePath.pathElements() != null) {
             for (PathElement pathElementTe : tePath.pathElements()) {
-                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-                .ietftetopology.telinkunderlayattributes.underlayprimarypath.PathElement
+                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
+                .ietftetopology.telinkunderlayattributes.primarypath.PathElement
                    .PathElementBuilder pathElementYangBuilder = DefaultPathElement.builder();
 
                 pathElementYangBuilder = pathElementYangBuilder.pathElementId(pathElementTe.pathElementId());
@@ -469,13 +469,10 @@ public final class LinkConverter {
             }
         }
 
-        pathBuilder = pathBuilder.clientIdRef(teLink.underlayTeTopologyId().clientId())
-                                 .providerIdRef(teLink.underlayTeTopologyId().providerId())
-                                 .teTopologyIdRef(teLink.underlayTeTopologyId().topologyId());
+        pathBuilder = pathBuilder.networkRef(teTopologyService
+                .networkId(teLink.underlayTeTopologyId()));
 
-        pathBuilder = pathBuilder.networkIdRef(teTopologyService.networkId(teLink.underlayTeTopologyId()));
-
-        return yangBuilder.underlayPrimaryPath(pathBuilder.build());
+        return yangBuilder.primaryPath(pathBuilder.build());
     }
 
     private static UnderlayBuilder te2YangConfigUnderlayBackupPaths(UnderlayBuilder yangBuilder,
@@ -484,21 +481,19 @@ public final class LinkConverter {
         List<UnderlayBackupPath> tePaths = teLink.backupPaths();
 
         for (UnderlayBackupPath tePath : tePaths) {
-            UnderlayBackupPathBuilder pathBuilder = DefaultUnderlayBackupPath
+            BackupPathBuilder pathBuilder = DefaultBackupPath
                     .builder();
             pathBuilder = pathBuilder.index(tePath.index());
-            pathBuilder = pathBuilder.clientIdRef(teLink.underlayTeTopologyId().clientId())
-                                     .providerIdRef(teLink.underlayTeTopologyId().providerId())
-                                     .teTopologyIdRef(teLink.underlayTeTopologyId().topologyId());
 
-            pathBuilder = pathBuilder.networkIdRef(teTopologyService.networkId(teLink.underlayTeTopologyId()));
+            pathBuilder = pathBuilder.networkRef(teTopologyService
+                    .networkId(teLink.underlayTeTopologyId()));
 
             for (PathElement backupPathElementTe : tePath.pathElements()) {
-                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-                .ietftetopology.telinkunderlayattributes.underlaybackuppath.PathElement
+                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
+                .ietftetopology.telinkunderlayattributes.backuppath.PathElement
                 .PathElementBuilder elementBuilder =
-                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
-                .ietftetopology.telinkunderlayattributes.underlaybackuppath.DefaultPathElement
+                                org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
+                .ietftetopology.telinkunderlayattributes.backuppath.DefaultPathElement
                         .builder();
 
                 elementBuilder = elementBuilder.pathElementId(backupPathElementTe.pathElementId());
@@ -511,11 +506,9 @@ public final class LinkConverter {
                     elementBuilder = elementBuilder.type(unmBuilder.build());
                 }
 
-                pathBuilder = pathBuilder
-                        .addToPathElement(elementBuilder.build());
+                pathBuilder = pathBuilder.addToPathElement(elementBuilder.build());
             }
-            yangBuilder = yangBuilder
-                    .addToUnderlayBackupPath(pathBuilder.build());
+            yangBuilder = yangBuilder.addToBackupPath(pathBuilder.build());
         }
 
         return yangBuilder;
@@ -563,11 +556,32 @@ public final class LinkConverter {
             opStatus = EnumConverter.yang2TeSubsystemOpStatus(opState.operStatus());
         }
 
+        TeTopologyKey underlayTopologyId = null;
+        if (yangLinkAttr != null && yangLinkAttr.underlay() != null && yangLinkAttr.underlay().primaryPath() != null) {
+            underlayTopologyId = findTopologyId(yangNetworks, yangLinkAttr.underlay().primaryPath().networkRef());
+        }
 
-        TeLink teLink = yangLinkAttr2TeLinkAttributes(yangLinkAttr, opStatus, teNodeIdLong, teNodeIdDestLong, teLinkKey,
-                                                      peerTeLinkKey, supportTeLinkId);
+        TeLink teLink = yangLinkAttr2TeLinkAttributes(yangLinkAttr, opStatus,
+                                                      teNodeIdLong,
+                                                      teNodeIdDestLong,
+                                                      teLinkKey,
+                                                      peerTeLinkKey,
+                                                      supportTeLinkId,
+                                                      underlayTopologyId);
 
         return teLink;
+    }
+
+    /**
+     * Finds the TE TopologyKey from yangNetworks and a networkRef.
+     *
+     * @param yangNetworks YANG networks object
+     * @param networkRef YANG network reference
+     * @return TeTopologyKey the TE TopologyKey
+     */
+    public static TeTopologyKey findTopologyId(Networks yangNetworks, Object networkRef) {
+        // TODO: add implementation
+        return null;
     }
 
     private static TeLink yangLinkAttr2TeLinkAttributes(TeLinkAttributes yangLinkAtrr,
@@ -576,20 +590,13 @@ public final class LinkConverter {
                                                         long teNodeIdDestLong,
                                                         TeLinkTpKey teLinkKey,
                                                         TeLinkTpKey peerTeLinkKey,
-                                                        TeLinkTpGlobalKey supportTeLinkId) {
+                                                        TeLinkTpGlobalKey supportTeLinkId,
+                                                        TeTopologyKey underlayTopologyId) {
         org.onosproject.tetopology.management.api.TeStatus adminStatus = null;
 
         TeLinkTpGlobalKey sourceTeLinkId = null; // from yang to core, we can ignore sourceTeLinkId
-        TeTopologyKey underlayTopologyId = null;
-        CommonLinkData teData = null;
 
-        if (yangLinkAtrr != null && yangLinkAtrr.underlay() != null &&
-                yangLinkAtrr.underlay().underlayPrimaryPath() != null) {
-            underlayTopologyId = new
-                    TeTopologyKey((long) yangLinkAtrr.underlay().underlayPrimaryPath().providerIdRef(),
-                                  (long) yangLinkAtrr.underlay().underlayPrimaryPath().clientIdRef(),
-                                  (long) yangLinkAtrr.underlay().underlayPrimaryPath().teTopologyIdRef());
-        }
+        CommonLinkData teData = null;
 
         if (yangLinkAtrr.adminStatus() != null) {
             adminStatus = EnumConverter.yang2TeSubsystemAdminStatus(yangLinkAtrr.adminStatus());
@@ -617,14 +624,14 @@ public final class LinkConverter {
         List<UnreservedBandwidth> listOfUnreservedBandwidth = yangLinkAtrr.unreservedBandwidth();
         float[] availBandwidth = new float[MAX_PRIORITY + 1];
         for (UnreservedBandwidth urbw : listOfUnreservedBandwidth) {
-            availBandwidth[urbw.priority()] = urbw.bandwidth().floatValue();
+            availBandwidth[urbw.priority()] = Float.valueOf(urbw.bandwidth().string());
         }
 
         float[] maxBandwidth = new float[MAX_PRIORITY + 1];
         if (yangLinkAtrr.maxLinkBandwidth() != null) {
             // Core TE has an array, but YANG is an integer
             for (short p = 0; p <= MAX_PRIORITY; p++) {
-                maxBandwidth[p] = yangLinkAtrr.maxLinkBandwidth().floatValue();
+                maxBandwidth[p] = Float.valueOf(yangLinkAtrr.maxLinkBandwidth().string());
             }
         }
 
@@ -645,10 +652,7 @@ public final class LinkConverter {
             }
         }
         TePathAttributes teAttributes =
-                new TePathAttributes(yangLinkAtrr.teDefaultMetric(),
-                                     yangLinkAtrr.performanceMetric() == null ? null :
-                                           (yangLinkAtrr.performanceMetric().measurement() == null ? null :
-                                               yangLinkAtrr.performanceMetric().measurement().unidirectionalDelay()),
+                new TePathAttributes(yangLinkAtrr.teDefaultMetric(), yangLinkAtrr.teDelayMetric(),
                                      srlgs);
         teData = new CommonLinkData(adminStatus,
                                     opStatus,
@@ -714,9 +718,9 @@ public final class LinkConverter {
                         (AugmentedNwNetwork) teNetworkFound.yangAugmentedInfo(AugmentedNwNetwork.class);
                 teTopologyId =
                         new org.onosproject.tetopology.management.api.TeTopologyId(
-                                augmentTeIds.te().clientId().uint32(),
-                                augmentTeIds.te().providerId().uint32(),
-                                augmentTeIds.te().teTopologyId().string());
+                                augmentTeIds.clientId().uint32(),
+                                augmentTeIds.providerId().uint32(),
+                                augmentTeIds.teTopologyId().string());
             }
 
             supportTeLinkId = new TeLinkTpGlobalKey(teTopologyId.providerId(),
@@ -729,7 +733,14 @@ public final class LinkConverter {
         return supportTeLinkId;
     }
 
-    private static TeNodeId findTeNodeId(Network yangNetwork, NodeId yangNodeId) {
+    /**
+     * Finds TeNodeId from a yangNetwork and yangNodeId.
+     *
+     * @param yangNetwork YANG network object
+     * @param yangNodeId YANG node Id
+     * @return teNodeId teNodeId
+     */
+    public static TeNodeId findTeNodeId(Network yangNetwork, NodeId yangNodeId) {
         TeNodeId teNodeId = null;
         for (Node node : yangNetwork.node()) {
             if (node.nodeId().equals(yangNodeId)) {
@@ -737,10 +748,9 @@ public final class LinkConverter {
                         && !node.yangAugmentedInfoMap().isEmpty()) {
                     AugmentedNwNode yangNodeAugment = (AugmentedNwNode) node
                             .yangAugmentedInfo(AugmentedNwNode.class);
-                    if (yangNodeAugment != null && yangNodeAugment.te() != null
-                            && yangNodeAugment.te().teNodeId() != null) {
-                        Te yangNodeAugTe = yangNodeAugment.te();
-                        teNodeId = yangNodeAugTe.teNodeId();
+                    if (yangNodeAugment != null
+                            && yangNodeAugment.teNodeId() != null) {
+                        teNodeId = yangNodeAugment.teNodeId();
                     }
                 }
             }
@@ -768,8 +778,8 @@ public final class LinkConverter {
                                     AugmentedNtTerminationPoint yangTpAugment =
                                             (AugmentedNtTerminationPoint) yangTpnode
                                                     .yangAugmentedInfo(AugmentedNtTerminationPoint.class);
-                                    if (yangTpAugment.te() != null && yangTpAugment.te().teTpId() != null) {
-                                        teTpId = Long.valueOf(yangTpAugment.te().teTpId().toString());
+                                    if (yangTpAugment.teTpId() != null) {
+                                        teTpId = Long.valueOf(yangTpAugment.teTpId().toString());
                                     }
                                 }
                             }
@@ -853,13 +863,13 @@ public final class LinkConverter {
     }
 
     private static org.onosproject.tetopology.management.api.link.UnderlayPrimaryPath
-                    yang2TeSubsystemUnderlayPrimaryPath(UnderlayPrimaryPath yangpath,
+                    yang2TeSubsystemUnderlayPrimaryPath(PrimaryPath yangpath,
                                                         long teNodeId) {
         org.onosproject.tetopology.management.api.link.UnderlayPrimaryPath teUnderlayPrimaryPath = null;
 
         List<PathElement> pathElementList = Lists.newArrayList();
-        for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
-                .telinkunderlayattributes.underlayprimarypath.
+        for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology
+                .telinkunderlayattributes.primarypath.
                 PathElement pathElementYang : yangpath.pathElement()) {
 
             long nodeId = 0;
@@ -885,20 +895,20 @@ public final class LinkConverter {
     private static List<UnderlayBackupPath>
        yang2TeSubsystemUnderlayBackupPaths(
                 List<org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
-                    rev20160708.ietftetopology.telinkunderlayattributes.
-                    UnderlayBackupPath> yangpaths,
+                                                        rev20170110.ietftetopology.telinkunderlayattributes.
+                    BackupPath> yangpaths,
                 long teNodeId) {
 
         List<UnderlayBackupPath> underlayBackupPathsList = Lists.newArrayList();
-        for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+        for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                 .ietftetopology.telinkunderlayattributes.
-                UnderlayBackupPath yangConfig : yangpaths) {
+                BackupPath yangConfig : yangpaths) {
             UnderlayBackupPath ubp = null;
             List<PathElement> backupPathElementList = Lists.newArrayList();
             long nodeId = 0;
             ElementType type = null;
-            for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
-                    .telinkunderlayattributes.underlaybackuppath.
+            for (org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology
+                    .telinkunderlayattributes.backuppath.
                     PathElement backupYang : yangConfig.pathElement()) {
                 // TODO: check more types
                 if (backupYang.type() instanceof UnnumberedLink) {
@@ -935,14 +945,14 @@ public final class LinkConverter {
         List<UnderlayBackupPath> underlayBackupPathsList = null;
         TeTunnelId teTunnelId = new TeTunnelId(srcTeNodeId, dstTeNodeId, 0); // FIXME: how to find teTunnelId?
 
-        if (yangLinkAtrr.underlay() != null && yangLinkAtrr.underlay().underlayPrimaryPath() != null) {
+        if (yangLinkAtrr.underlay() != null && yangLinkAtrr.underlay().primaryPath() != null) {
             underlayPrimaryPath =
-                    yang2TeSubsystemUnderlayPrimaryPath(yangLinkAtrr.underlay().underlayPrimaryPath(), srcTeNodeId);
+                    yang2TeSubsystemUnderlayPrimaryPath(yangLinkAtrr.underlay().primaryPath(), srcTeNodeId);
         }
 
-        if (yangLinkAtrr.underlay() != null && yangLinkAtrr.underlay().underlayBackupPath() != null) {
+        if (yangLinkAtrr.underlay() != null && yangLinkAtrr.underlay().backupPath() != null) {
             underlayBackupPathsList =
-                    yang2TeSubsystemUnderlayBackupPaths(yangLinkAtrr.underlay().underlayBackupPath(), srcTeNodeId);
+                    yang2TeSubsystemUnderlayBackupPaths(yangLinkAtrr.underlay().backupPath(), srcTeNodeId);
         }
 
         org.onosproject.tetopology.management.api.link.UnderlayPath teUnderlay = null;
@@ -950,9 +960,9 @@ public final class LinkConverter {
             teUnderlay = new org.onosproject.tetopology.management.api.link.
                         UnderlayPath(underlayPrimaryPath,
                                      underlayBackupPathsList,
-                                     TunnelProtectionType.of(yangLinkAtrr.underlay().underlayProtectionType()),
-                                     (long) yangLinkAtrr.underlay().underlayTrailSrc().tpRef(), // Is this correct?
-                                     (long) yangLinkAtrr.underlay().underlayTrailDes().tpRef(), // Is this correct?
+                                     TunnelProtectionType.of(yangLinkAtrr.underlay().protectionType()),
+                                     (Long) yangLinkAtrr.underlay().tunnelSrc().tunnelTpRef(), // null safe?
+                                     (Long) yangLinkAtrr.underlay().tunnelDes().tunnelTpRef(), // null safe?
                                      teTunnelId);
         }
 
@@ -1011,6 +1021,7 @@ public final class LinkConverter {
         NetworkLinkKey networkLinkKey = new NetworkLinkKey(networkId, linkId);
 
         return networkLinkKey;
+
     }
 
     /**
@@ -1022,6 +1033,7 @@ public final class LinkConverter {
      */
     public static NetworkLink yangLinkEvent2NetworkLink(TeLinkEvent yangLinkEvent,
                                                         TeTopologyService teTopologyService) {
+
         KeyId linkId = yangLinkEvent2NetworkLinkKey(yangLinkEvent).linkId();
 
         org.onosproject.tetopology.management.api.
@@ -1052,7 +1064,8 @@ public final class LinkConverter {
         org.onosproject.tetopology.management.api.
         TeStatus opStatus = EnumConverter.yang2TeSubsystemOpStatus(opState);
 
-        TeLink updatedTeLink = yangLinkEvent2TeLinkAttributes(yangLinkEvent, teLink, opStatus);
+        TeLink updatedTeLink = yangLinkEvent2TeLinkAttributes(yangLinkEvent,
+                                                              teLink, opStatus, teTopologyService);
 
 
         NetworkLink updatedNetworkLink = new DefaultNetworkLink(linkId, sourceTp, destTp, supportingLinkIds,
@@ -1062,23 +1075,26 @@ public final class LinkConverter {
     }
 
     private static TeLink yangLinkEvent2TeLinkAttributes(TeLinkEvent yangLinkEvent, TeLink oldTeLink, TeStatus
-            opStatus) {
+                                                         opStatus, TeTopologyService teTopologyService) {
 
         TeLinkAttributes yangTeLinkAttrs = yangLinkEvent.teLinkAttributes();
 
         TeLinkTpKey teLinkKey = oldTeLink.teLinkKey();
 
-
-        //long teNodeIdDest = oldTeLink.peerTeLinkKey().teNodeId();
-        //long teNodeIdSrc = oldTeLink.teLinkKey().teNodeId();
         long teNodeIdDest = 0;
         long teNodeIdSrc = 0;
 
         TeLinkTpGlobalKey supportTeLinkId = oldTeLink.supportingTeLinkId();
         TeLinkTpKey peerTeLinkKey = oldTeLink.peerTeLinkKey();
 
+        TeTopologyKey underlayTopologyId = null;
+        // TODO: add code to retrieve underlayTopologyId
+
         TeLink updatedTeLink = yangLinkAttr2TeLinkAttributes(yangTeLinkAttrs, opStatus, teNodeIdSrc, teNodeIdDest,
-                                                             teLinkKey, peerTeLinkKey, supportTeLinkId);
+                                                             teLinkKey,
+                                                             peerTeLinkKey,
+                                                             supportTeLinkId,
+                                                             underlayTopologyId);
 
         return updatedTeLink;
     }

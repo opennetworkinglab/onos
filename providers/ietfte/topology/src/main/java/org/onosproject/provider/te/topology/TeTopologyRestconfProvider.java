@@ -15,7 +15,24 @@
  */
 package org.onosproject.provider.te.topology;
 
-import com.google.common.base.Preconditions;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_LINK_NOTIFICATION;
+import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_NODE_NOTIFICATION;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -53,13 +70,11 @@ import org.onosproject.teyang.utils.topology.NodeConverter;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.IetfNetwork;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.networks.Network;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208.IetfNetworkTopology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.IetfTeTopology;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology
-        .IetfTeTopologyEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
-        .tetopologyeventtype.TeTopologyEventTypeEnum;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.IetfTeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.IetfTeTopologyEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.TeLinkEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.TeNodeEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
 import org.onosproject.yms.ych.YangCodecHandler;
 import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ych.YangResourceIdentifierType;
@@ -67,23 +82,7 @@ import org.onosproject.yms.ydt.YmsOperationType;
 import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
-import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_LINK_NOTIFICATION;
-import static org.onosproject.provider.te.utils.TeTopologyRestconfEventType.TE_TOPOLOGY_NODE_NOTIFICATION;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Preconditions;
 
 /**
  * Provider for IETF TE Topology that use RESTCONF as means of communication.

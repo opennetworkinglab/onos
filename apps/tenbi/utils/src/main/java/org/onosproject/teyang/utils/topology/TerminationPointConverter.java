@@ -35,20 +35,20 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topology.rev20151208
                .ietfnetworktopology.networks.network.node.augmentedndnode.terminationpoint
                        .SupportingTerminationPoint;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.DefaultInterfaceSwitchingCapability;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.InterfaceSwitchingCapability;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.interfaceswitchingcapability.DefaultMaxLspBandwidth;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.interfaceswitchingcapabilitylist.interfaceswitchingcapability.MaxLspBandwidth;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.interfaceswitchingcapabilitylist.DefaultInterfaceSwitchingCapability;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.interfaceswitchingcapabilitylist.InterfaceSwitchingCapability;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.node.terminationpoint.DefaultAugmentedNtTerminationPoint;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.DefaultTe;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.DefaultTe.TeBuilder;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.Config;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.DefaultConfig;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.DefaultState;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.teterminationpointaugment.te.State;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkiscdattributes.DefaultMaxLspBandwidth;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkiscdattributes.MaxLspBandwidth;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.DefaultTe;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.DefaultTe.TeBuilder;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.te.Config;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.te.DefaultConfig;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.te.DefaultState;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.teterminationpointaugment.te.State;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTpId;
 
 import com.google.common.collect.Lists;
@@ -98,10 +98,8 @@ public final class TerminationPointConverter {
         if (teSubsystem.teTpId() != null) {
             AugmentedNtTerminationPoint.AugmentedNtTerminationPointBuilder
                     tpAugmentBuilder = DefaultAugmentedNtTerminationPoint.builder();
-
+            tpAugmentBuilder.teTpId(TeTpId.fromString((String.valueOf(teSubsystem.teTpId()))));
             TeBuilder yangTeBuilder = DefaultTe.builder();
-
-            yangTeBuilder = yangTeBuilder.teTpId(TeTpId.fromString((String.valueOf(teSubsystem.teTpId()))));
 
 //            Config yConfig = teSubsystem2YangTeAugConfig(teSubsystem);
 //            yangTeBuilder = yangTeBuilder.config(yConfig);
@@ -177,8 +175,8 @@ public final class TerminationPointConverter {
         if (yangTp.yangAugmentedInfoMap() != null && !yangTp.yangAugmentedInfoMap().isEmpty()) {
             AugmentedNtTerminationPoint yangTpAugment =
                     (AugmentedNtTerminationPoint) yangTp.yangAugmentedInfo(AugmentedNtTerminationPoint.class);
-            if (yangTpAugment.te() != null && yangTpAugment.te().teTpId() != null) {
-                teTpId = KeyId.keyId(yangTpAugment.te().teTpId().toString());
+            if (yangTpAugment.teTpId() != null) {
+                teTpId = KeyId.keyId(yangTpAugment.teTpId().toString());
             }
         }
 
@@ -186,7 +184,6 @@ public final class TerminationPointConverter {
                 .DefaultTerminationPoint(KeyId.keyId(yangTp.tpId().uri().string()),
                                          spTps,
                                          teTpId == null ? null : Long.valueOf(teTpId.toString()));
-
         return tp;
     }
 

@@ -892,6 +892,28 @@ module ietf-te-types {
     }
     description "TE  Event type for notifications";
   } // te-topology-event-type
+
+
+  typedef te-tunnel-event-type {
+      type enumeration {
+        enum "add" {
+          value 0;
+          description
+            "A TE tunnel has been added.";
+        }
+        enum "remove" {
+          value 1;
+          description
+            "A TE tunnel has been removed.";
+        }
+        enum "update" {
+          value 2;
+          description
+            "A TE tunnel has been updated.";
+        }
+      }
+      description "TE  Event type for notifications";
+  } // te-tunnel-event-type
   
   typedef te-topology-id {
     type string {
