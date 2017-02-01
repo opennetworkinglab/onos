@@ -846,10 +846,13 @@ public class YangApplicationBroker {
                         .getDeclaredMethod(yangNode.getJavaClassNameOrBuiltInType(),
                                            inputObject.getClass().getInterfaces());
             }
+            if (methodObject != null) {
+                return methodObject.getReturnType().getSimpleName();
+            }
+            throw new YabException("No such method in application");
         } catch (NoSuchMethodException e) {
-            new YabException(e);
+            throw new YabException(e);
         }
-        return methodObject.getReturnType().getSimpleName();
     }
 
     /**
