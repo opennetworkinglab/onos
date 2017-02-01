@@ -34,6 +34,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.routing.RouteEvent;
@@ -72,6 +73,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
@@ -651,6 +653,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
+
+            if (ethernet == null) {
+                return;
+            }
+
             log.trace("Rcvd pktin: {}", ethernet);
             if (ethernet.getEtherType() == TYPE_ARP) {
                 log.warn("{} - we are still receiving ARP packets from {}",
@@ -670,17 +677,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6Packet = (IPv6) ethernet.getPayload();
                 //ipHandler.addToPacketBuffer(ipv6Packet);
-                /*
-                 * We deal with the packet only if the packet is a ICMP6 ECHO/REPLY
-                 */
+                // We deal with the packet only if the packet is a ICMP6 ECHO/REPLY
                 if (ipv6Packet.getNextHeader() == IPv6.PROTOCOL_ICMP6) {
                     ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
                     if (icmp6Packet.getIcmpType() == ICMP6.ECHO_REQUEST ||
                             icmp6Packet.getIcmpType() == ICMP6.ECHO_REPLY) {
                         icmpHandler.processIcmpv6(ethernet, pkt.receivedFrom());
                     } else {
-                        log.warn("Received ICMPv6 0x{} - not handled",
-                                 Integer.toHexString(icmp6Packet.getIcmpType() & 0xff));
+                        // XXX Neigbour hacking, to handle the ICMPv6 packet
+                        // not under our control
+                        if (icmpHandler.handleUPstreamPackets(context)) {
+                            log.debug("Rcvd pktin from UpStream: {}", ipv6Packet);
+                        } else {
+                            log.debug("Received ICMPv6 0x{} - not handled",
+                                     Integer.toHexString(icmp6Packet.getIcmpType() & 0xff));
+                        }
                     }
                 } else {
                    // NOTE: We don't support IP learning at this moment so this
@@ -1088,6 +1099,35 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         break;
                     case CONFIG_REMOVED:
                         xConnectHandler.processXConnectConfigRemoved(event);
+                        break;
+                    default:
+                        break;
+                }
+                // XXX Neighbour hacking. This method is looking for
+                // the Internet-Router interface. In order to retrieve
+                // the upstream port.
+            } else if (event.configClass().equals(InterfaceConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                    case CONFIG_UPDATED:
+                        icmpHandler.updateUPstreamCP(event);
+                    case CONFIG_REGISTERED:
+                    case CONFIG_UNREGISTERED:
+                    case CONFIG_REMOVED:
+                        break;
+                    default:
+                        break;
+                }
+                // XXX Neighbour hacking. This method is looking for
+                // the vrouter port.
+            } else if (event.configClass().equals(RouterConfig.class)) {
+                switch (event.type()) {
+                    case CONFIG_ADDED:
+                    case CONFIG_UPDATED:
+                        icmpHandler.updateVRouterCP(event);
+                    case CONFIG_REGISTERED:
+                    case CONFIG_UNREGISTERED:
+                    case CONFIG_REMOVED:
                         break;
                     default:
                         break;

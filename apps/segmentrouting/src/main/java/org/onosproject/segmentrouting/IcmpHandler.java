@@ -28,17 +28,24 @@ import org.onlab.packet.MPLS;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
+import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.incubator.net.config.basics.InterfaceConfig;
+import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.routing.config.RouterConfig;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
@@ -453,6 +460,73 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                 VlanId.NONE
         );
         flood(ndpRequest, inPort, targetAddress);
+    }
+
+    /////////////////////////////////////////////////////////////////
+    //    XXX Neighbour hacking, temporary workaround will be      //
+    //    removed as soon as possible, when the bridging will      //
+    //    be implemented. For now, it's fine to leave this         //
+    /////////////////////////////////////////////////////////////////
+
+    // XXX Neighbour hacking. To store upstream connect
+    // point and vRouter connect point
+    private ConnectPoint upstreamCP = null;
+    private ConnectPoint vRouterCP = null;
+
+    // XXX Neighbour hacking, this method is used to handle
+    // the ICMPv6 protocols for the upstream port
+    public boolean handleUPstreamPackets(PacketContext packetContext) {
+        InboundPacket pkt = packetContext.inPacket();
+        Ethernet ethernet = pkt.parsed();
+        if (vRouterCP == null || upstreamCP == null) {
+            return false;
+        }
+        if (pkt.receivedFrom().equals(upstreamCP)) {
+            sendTo(ByteBuffer.wrap(ethernet.serialize()), vRouterCP);
+            return true;
+        }
+        return false;
+    }
+
+    // XXX Neighbour hacking. To update the Upstream CP
+    public void updateUPstreamCP(NetworkConfigEvent event) {
+        Set<ConnectPoint> portSubjects = srManager.cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
+        upstreamCP = null;
+        portSubjects.stream().forEach(subject -> {
+            InterfaceConfig config = srManager.cfgService.getConfig(subject, InterfaceConfig.class);
+            Set<Interface> networkInterfaces;
+            try {
+                networkInterfaces = config.getInterfaces();
+            } catch (ConfigException e) {
+                log.error("Error loading port configuration");
+                return;
+            }
+            networkInterfaces.forEach(networkInterface -> {
+                if (networkInterface.name().equals("internet-router")) {
+                    upstreamCP = subject;
+                }
+            });
+        });
+
+    }
+
+    // XXX Neighbour hacking. To update the Upstream CP
+    public void updateVRouterCP(NetworkConfigEvent event) {
+        RouterConfig config = (RouterConfig) event.config().get();
+        if (config == null) {
+            log.warn("Router config not available");
+            vRouterCP = null;
+            return;
+        }
+        vRouterCP = config.getControlPlaneConnectPoint();
+    }
+
+    // XXX Neigbour hack. To send out a packet
+    private void sendTo(ByteBuffer packet, ConnectPoint outPort) {
+        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+        builder.setOutput(outPort.port());
+        srManager.packetService.emit(new DefaultOutboundPacket(outPort.deviceId(),
+                                                     builder.build(), packet));
     }
 
 }
