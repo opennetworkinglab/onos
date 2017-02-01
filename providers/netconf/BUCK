@@ -16,6 +16,7 @@ onos_app (
     included_bundles = BUNDLES,
     excluded_bundles = EXCLUDED_BUNDLES,
     description = 'NETCONF protocol southbound providers.',
+    required_apps = [ 'org.onosproject.faultmanagement'],
 )
 
 
