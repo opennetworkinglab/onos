@@ -58,6 +58,8 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
         .IetfTeTopologyEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeLinkEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20160708.ietftetopology.TeNodeEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
+        .tetopologyeventtype.TeTopologyEventTypeEnum;
 import org.onosproject.yms.ych.YangCodecHandler;
 import org.onosproject.yms.ych.YangProtocolEncodingFormat;
 import org.onosproject.yms.ych.YangResourceIdentifierType;
@@ -354,9 +356,16 @@ public class TeTopologyRestconfProvider extends AbstractProvider
             NetworkLinkKey linkKey = LinkConverter.yangLinkEvent2NetworkLinkKey(
                     teLinkEvent);
 
-            NetworkLink networkLink = LinkConverter.yangLinkEvent2NetworkLink(
-                    teLinkEvent,
-                    teTopologyService);
+            TeTopologyEventTypeEnum teLinkEventType = teLinkEvent.eventType()
+                    .enumeration();
+
+            if (teLinkEventType == TeTopologyEventTypeEnum.REMOVE) {
+                topologyProviderService.linkRemoved(linkKey);
+                return;
+            }
+
+            NetworkLink networkLink = LinkConverter.yangLinkEvent2NetworkLink(teLinkEvent,
+                                                                              teTopologyService);
 
             if (networkLink == null) {
                 log.error("ERROR: yangLinkEvent2NetworkLink returns null");
@@ -401,6 +410,14 @@ public class TeTopologyRestconfProvider extends AbstractProvider
 
             NetworkNodeKey nodeKey = NodeConverter.yangNodeEvent2NetworkNodeKey(
                     teNodeEvent);
+
+            TeTopologyEventTypeEnum teNodeEventType = teNodeEvent.eventType()
+                    .enumeration();
+
+            if (teNodeEventType == TeTopologyEventTypeEnum.REMOVE) {
+                topologyProviderService.nodeRemoved(nodeKey);
+                return;
+            }
 
             NetworkNode networkNode = NodeConverter.yangNodeEvent2NetworkNode(
                     teNodeEvent,
