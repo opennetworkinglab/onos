@@ -15,10 +15,15 @@
  */
 package org.onosproject.cli.net;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketService;
+
+import java.util.List;
 
 /**
  * Lists packet requests.
@@ -33,11 +38,25 @@ public class PacketRequestsListCommand extends AbstractShellCommand {
     protected void execute() {
         PacketService service = get(PacketService.class);
         if (outputJson()) {
-            // TODO: implement this
-            print("Not implemented.");
+            print("%s", json(service.getRequests()));
         } else {
             service.getRequests().forEach(this::print);
         }
+    }
+
+    private JsonNode json(List<PacketRequest> requests) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+
+        for (PacketRequest r : requests) {
+            result.add(mapper.createObjectNode()
+                    .put("nodeId", r.nodeId().toString())
+                    .put("appId", r.appId().name())
+                    .put("priority", r.priority().toString())
+                    .put("criteria", r.selector().criteria().toString()));
+        }
+
+        return result;
     }
 
     private void print(PacketRequest request) {
