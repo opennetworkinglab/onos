@@ -18,6 +18,7 @@ package org.onosproject.ovsdb.rfc.utils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.List;
 import java.util.Stack;
@@ -96,7 +97,7 @@ public final class JsonRpcReaderUtil {
 
             if (jrContext.isStartMatch() && bufStack.isEmpty()) {
                 ByteBuf buf = in.readSlice(i - in.readerIndex() + 1);
-                JsonParser jf = new MappingJsonFactory().createParser(new ByteBufInputStream(buf));
+                JsonParser jf = new MappingJsonFactory().createParser((DataInput) new ByteBufInputStream(buf));
                 JsonNode jsonNode = jf.readValueAsTree();
                 out.add(jsonNode);
                 lastReadBytes = 0;
