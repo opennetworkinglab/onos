@@ -43,5 +43,7 @@ bash $TEST_PUB
 onos-buck publish --to-maven-central --sign //:top-level-pom
 onos-buck publish --to-maven-central --sign //lib:onos-dependencies-pom
 
-# Close the staging area
-onos-close-staging
+if [ ! grep "maven_url" $ONOS_ROOT/.buckconfig.local | grep -v '#' | grep -q snapshots ]; then
+    # Close the staging area
+    onos-close-staging
+fi
