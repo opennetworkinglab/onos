@@ -33,7 +33,6 @@ public class AlarmTopovOverlay extends UiTopoOverlay {
     private static final String OVERLAY_ID = "alarmsTopo-overlay";
 
     private static final ButtonId ALARM1_BUTTON = new ButtonId("alarm1button");
-    private static final ButtonId ALARM2_BUTTON = new ButtonId("alarm2button");
 
     public AlarmTopovOverlay() {
         super(OVERLAY_ID);
@@ -58,8 +57,7 @@ public class AlarmTopovOverlay extends UiTopoOverlay {
         Map<Alarm.SeverityLevel, Long> countsForDevice = AlarmServiceUtil.lookUpAlarmCounts(deviceId);
         addAlarmCountsProperties(pp, countsForDevice);
 
-        pp.addButton(ALARM1_BUTTON)
-                .addButton(ALARM2_BUTTON);
+        pp.addButton(ALARM1_BUTTON);
 
         pp.removeButtons(CoreButtons.SHOW_PORT_VIEW)
                 .removeButtons(CoreButtons.SHOW_GROUP_VIEW)

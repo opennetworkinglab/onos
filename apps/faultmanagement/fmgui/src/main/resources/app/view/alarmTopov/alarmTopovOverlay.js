@@ -103,12 +103,6 @@
             }
         },
         hooks: {
-            // hook for handling escape key
-            // Must return true to consume ESC, false otherwise.
-            escape: function () {
-                // Must return true to consume ESC, false otherwise.
-                return atds.stopDisplay();
-            },
             // hooks for when the selection changes...
             empty: function () {
                 selectionCallback('empty');
