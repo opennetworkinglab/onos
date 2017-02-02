@@ -43,15 +43,28 @@
     }
 
     // converts string values to numbers for selected (or all) keys
-    function asNumbers(obj, keys) {
+    // asNumbers(obj, ['a', 'b'])        <-- convert keys .a, .b to numbers
+    // asNumbers(obj, ['a', 'b'], true)  <-- convert ALL BUT keys .a, .b to numbers
+
+    function asNumbers(obj, keys, not) {
         if (!obj) return null;
 
-        if (!keys) {
+        var skip = {};
+        if (not) {
+            keys.forEach(function (k) {
+                skip[k] = 1;
+            });
+        }
+
+        if (!keys || not) {
             // do them all
             angular.forEach(obj, function (v, k) {
-                obj[k] = Number(obj[k]);
+                if (!not || !skip[k]) {
+                    obj[k] = Number(obj[k]);
+                }
             });
         } else {
+            // do the explicitly named keys
             keys.forEach(function (k) {
                 obj[k] = Number(obj[k]);
             });

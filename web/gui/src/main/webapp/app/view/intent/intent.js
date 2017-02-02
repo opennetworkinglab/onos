@@ -24,7 +24,8 @@
     var dialogId = 'remove-intent-dialog',
         dialogOpts = {
             edge: 'right'
-        };
+        },
+        dropdown;
 
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
@@ -37,6 +38,9 @@
             $scope.brief = true;
             $scope.intentState = 'NA';
             $scope.fired = false;
+            $scope.showOverlays = false;
+
+            dropdown = d3.select('div.show-intent-btn .dropdown');
 
             function selCb($event, row) {
                 $log.debug('Got a click on:', row);
@@ -51,6 +55,7 @@
                 } : null;
 
                 $scope.intentState = row.state;
+                showDropdown(false);
             }
 
             function respCb() {
@@ -76,16 +81,66 @@
             $scope.purgeTip = 'Purge selected intent';
             $scope.purgeAllTip = 'Purge withdrawn intents';
 
-            $scope.showIntent = function () {
-                var d = $scope.intentData;
-                if (d) {
-                    // TODO: if more than one overlay registered, provide dropdown
-                    $log.debug('SHOW-INTENT: overlay list:', tov.list());
-                    $log.debug('SHOW-INTENT: overlay info:', tov.list(true));
 
+            function showDropdown(b) {
+                dropdown.style('display', b ? 'block' : 'none');
+            }
+
+            $scope.showIntent = function () {
+                var d = $scope.intentData,
+                    tovData,
+                    ncb;
+
+                if (!d) {
+                    // no intent selected - nothing to do
+                    return;
+                }
+
+                function setOvAndNavigate(info) {
+                    d.overlayId = info.id;
                     ns.navTo('topo', d);
                 }
+
+                function clickMe(data) {
+                    showDropdown(false);
+                    setOvAndNavigate(data);
+                }
+
+                function setUpSelection(tovData) {
+                    dropdown.text(null);
+
+                    tovData.forEach(function (data) {
+                        var div = dropdown.append('div');
+                        div.classed('overlay-choice', true);
+                        div.text(data.tt);
+                        div.on('click', function () {
+                            clickMe(data);
+                        });
+                    });
+
+                    showDropdown(true);
+                }
+
+                tovData = tov.listOverlaysThatShowIntents();
+                ncb = tovData.length;
+                // NOTE: ncb should be at least 1, (traffic overlay)
+
+                if (ncb === 1) {
+                    setOvAndNavigate(tovData[0]);
+
+                } else if (ncb > 1) {
+                    // let the user choose which overlay to invoke...
+                    setUpSelection(tovData);
+
+                } else {
+                    $log.error('Internal Error - no overlay configured',
+                    'to show selected intent on topology view');
+                }
             };
+
+
+
+            // TODO: clean up the following code...
 
             $scope.isIntentInstalled = function () {
                 return $scope.intentState === 'Installed';

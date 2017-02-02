@@ -476,7 +476,9 @@
 
     function restoreConfigFromPrefs() {
         // NOTE: toolbar will have set this for us..
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
+        prefsState = ps.asNumbers(
+            ps.getPrefs('topo_prefs', ttbs.defaultPrefs), ['ovid'], true
+        );
 
         $log.debug('TOPO- Prefs State:', prefsState);
 
@@ -498,7 +500,9 @@
     //  have opened the websocket to the server; hence this extra function
     // invoked after tes.start()
     function restoreSummaryFromPrefs() {
-        prefsState = ps.asNumbers(ps.getPrefs('topo_prefs', ttbs.defaultPrefs));
+        prefsState = ps.asNumbers(
+            ps.getPrefs('topo_prefs', ttbs.defaultPrefs), ['ovid'], true
+        );
         $log.debug('TOPO- Prefs SUMMARY State:', prefsState.summary);
 
         flash.enable(false);
@@ -518,9 +522,6 @@
 
             // if an intent should be shown, invoke the appropriate callback
             if ($scope.intentData) {
-
-                // TODO: if a specific overlay was requested, activate that first
-
                 tov.hooks.showIntent($scope.intentData);
             }
 
@@ -546,7 +547,9 @@
                   _tds_, _t3s_, _tes_,
                   _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
                   _ttbs_, _tms_, _tspr_, _ttip_, _tov_) {
+
             var params = _$loc_.search(),
+                selOverlay = params.overlayId,
                 projection,
                 dim,
                 uplink = {
@@ -668,7 +671,8 @@
             tps.initPanels();
 
             restoreConfigFromPrefs();
-            ttbs.setDefaultOverlay(prefsState.ovidx);
+
+            ttbs.selectOverlay(selOverlay || prefsState.ovid);
 
             $log.debug('registered overlays...', tov.list());
             $log.log('OvTopoCtrl has been created');

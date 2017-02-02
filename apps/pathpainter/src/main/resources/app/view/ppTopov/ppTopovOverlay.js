@@ -17,7 +17,7 @@
         // NOTE: this must match the ID defined in AppUiTopovOverlay
         overlayId: 'pp-overlay',
         glyphId: 'm_topo',
-        tooltip: 'Path Painter Topo Overlay',
+        tooltip: 'Path Painter Overlay',
 
         activate: function () {
             $log.debug("Path painter topology overlay ACTIVATED");
@@ -122,11 +122,12 @@
 
         hooks: {
             // hook for handling escape key
-            // Must return true to consume ESC, false otherwise.
+            // TODO: Must return true to consume ESC, false otherwise.
             escape: function () {
                 selectionCallback();
                 pps.setSrc();
                 pps.setDst();
+                // FIXME: should explicitly return true or false
             },
 
             // hooks for when the selection changes...

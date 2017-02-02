@@ -30,3 +30,29 @@
 #ov-intent td.details {
     padding-left: 36px;
 }
+
+#ov-intent div.show-intent-btn {
+    position:relative;
+}
+
+#ov-intent .dropdown {
+    position: absolute;
+    top: 42px;
+    left: 0;
+    display: none;
+
+    border: 1px solid black;
+    background-color: #aec5dc;
+}
+
+#ov-intent .overlay-choice {
+    padding: 2px;
+    white-space: nowrap;
+    font-size: 10pt;
+
+    color: black;
+}
+
+#ov-intent .overlay-choice:hover {
+    color: white;
+}

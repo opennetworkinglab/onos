@@ -27,10 +27,14 @@
 
             <div class="separator"></div>
 
-            <div ng-class="{active: !!selId}"
-                 icon icon-id="topo" icon-size="42"
-                 tooltip tt-msg="topoTip"
-                 ng-click="showIntent()"></div>
+            <div class="show-intent-btn">
+                <div ng-class="{active: !!selId}"
+                     icon icon-id="topo" icon-size="42"
+                     tooltip tt-msg="topoTip"
+                     ng-click="showIntent()">
+                </div>
+                <div class="dropdown"></div>
+            </div>
 
             <div ng-class="{'active': !!selId && isIntentWithdrawn()}"
                  icon icon-id="play" icon-size="42"

@@ -211,7 +211,7 @@
             // tps.initPanels();
 
             // restoreConfigFromPrefs();
-            // ttbs.setDefaultOverlay(prefsState.ovidx);
+            // ttbs.setDefaultOverlay(prefsState.ovid);
 
             // $log.debug('registered overlays...', tov.list());
 

@@ -144,9 +144,9 @@
             },
 
             // intent visualization hook
-            showintent: function (intentData) {
-                $log.debug('^^ trafficOverlay.showintent() ^^');
-                tts.selectIntent(intentData);
+            showintent: function (info) {
+                $log.debug('^^ trafficOverlay.showintent() ^^', info);
+                tts.selectIntent(info);
             }
         }
     };

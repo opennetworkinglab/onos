@@ -29,7 +29,7 @@
         porthl: 1,
         bg: 0,
         spr: 0,
-        ovidx: 1,   // default to traffic overlay
+        ovid: 'traffic',   // default to traffic overlay
         toolbar: 0
     };
 

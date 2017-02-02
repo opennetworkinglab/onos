@@ -108,25 +108,27 @@
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
-    // Returns the list of overlay identifiers. If a truthy argument is supplied,
-    // returns an augmented list of overlay tokens, providing overlay ID,
-    // glyph ID and overlay Tooltip text.
-    function list(x) {
-        var oids = d3.map(overlays).keys(),
-            info = [];
+    // Returns the list of overlay identifiers.
+    function list() {
+        return d3.map(overlays).keys();
+    }
 
-        if (!x) {
-            return oids;
-        }
+    // returns data on overlays that implement the showIntent callback
+    function listShowIntents() {
+        var result = [];
+        angular.forEach(overlays, function (ov) {
+            var hooks = fs.isO(ov.hooks) || {},
+                sicb = fs.isF(hooks.showintent);
 
-        oids.forEach(function (oid) {
-            var o = overlays[oid],
-                ot = o.tooltip || '%' + o.overlayId + '%',
-                og = o._glyphId;
-
-            info.push({ id: oid, tt: ot, gid: og });
+            if (sicb) {
+                result.push({
+                    id: ov.overlayId,
+                    tt: ov.tooltip || '%' + ov.overlayId + '%',
+                    gid: ov._glyphId
+                });
+            }
         });
-        return info;
+        return result;
     }
 
     // add a radio button for each registered overlay
@@ -302,7 +304,6 @@
 
     // Request from Intent View to visualize an intent on the topo view
     function showIntentHook(intentData) {
-        $log.debug('^^ topoOverlay.showIntentHook(...) ^^');
         var cb = _hook('showintent');
         return cb && cb(intentData);
     }
@@ -445,6 +446,7 @@
                 register: register,
                 setApi: setApi,
                 list: list,
+                listOverlaysThatShowIntents: listShowIntents,
                 augmentRbset: augmentRbset,
                 mkGlyphId: mkGlyphId,
                 tbSelection: tbSelection,

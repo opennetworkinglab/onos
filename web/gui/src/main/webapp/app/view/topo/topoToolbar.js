@@ -78,7 +78,7 @@
             porthl: 1,
             bg: 0,
             spr: 0,
-            ovidx: 1,   // default to traffic overlay
+            ovid: 'traffic',   // default to traffic overlay
             toolbar: 0
         },
         prefsMap = {
@@ -104,7 +104,9 @@
     }
 
     function setInitToggleState() {
-        cachedState = ps.asNumbers(ps.getPrefs(cooktag, defaultPrefsState));
+        cachedState = ps.asNumbers(
+            ps.getPrefs(cooktag, defaultPrefsState), ['ovid'], true
+        );
         $log.debug('TOOLBAR---- read prefs state:', cachedState);
 
         if (!cachedState) {
@@ -199,7 +201,7 @@
         thirdRow.clear();
 
         // persist our choice of overlay...
-        persistTopoPrefs('ovidx', ovIndex[oid] || 0);
+        persistTopoPrefs('ovid', oid);
 
         if (!order.length) {
             thirdRow.setText(selOver);
@@ -277,10 +279,11 @@
         persistTopoPrefs('toolbar');
     }
     
-    function setDefaultOverlay(prefsIdx) {
-        var idx = ovIndex[defaultOverlay] || 0;
-        if (prefsIdx >= 0 && prefsIdx < ovRset.size()) {
-            idx = prefsIdx;
+    function selectOverlay(ovid) {
+        var idx = ovIndex[defaultOverlay] || 0,
+            pidx = (ovid === null) ? 0 : ovIndex[ovid] || -1;
+        if (pidx >= 0 && pidx < ovRset.size()) {
+            idx = pidx;
         }
         ovRset.selectedIndex(idx);
     }
@@ -311,7 +314,7 @@
                 destroyToolbar: destroyToolbar,
                 keyListener: keyListener,
                 toggleToolbar: toggleToolbar,
-                setDefaultOverlay: setDefaultOverlay,
+                selectOverlay: selectOverlay,
                 defaultPrefs: defaultPrefsState,
                 fnkey: fnkey
             };
