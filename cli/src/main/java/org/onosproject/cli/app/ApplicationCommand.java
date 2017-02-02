@@ -107,17 +107,21 @@ public class ApplicationCommand extends AbstractShellCommand {
             return false;
         }
 
+        String action;
         if (command.equals(UNINSTALL)) {
             service.uninstall(appId);
+            action = "Uninstalled";
         } else if (command.equals(ACTIVATE)) {
             service.activate(appId);
+            action = "Activated";
         } else if (command.equals(DEACTIVATE)) {
             service.deactivate(appId);
+            action = "Deactivated";
         } else {
             print("Unsupported command: %s", command);
             return false;
         }
-        print("%s-ed %s", command, appId.name());
+        print("%s %s", action, appId.name());
         return true;
     }
 
