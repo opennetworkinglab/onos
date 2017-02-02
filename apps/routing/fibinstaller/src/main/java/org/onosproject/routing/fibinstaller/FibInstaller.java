@@ -85,10 +85,10 @@ import java.util.Set;
  * Programs routes to a single OpenFlow switch.
  */
 @Component(immediate = true)
-public class SingleSwitchFibInstaller {
+public class FibInstaller {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private static final String APP_NAME = "org.onosproject.vrouter";
+    private static final String APP_NAME = "org.onosproject.fibinstaller";
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
@@ -138,7 +138,7 @@ public class SingleSwitchFibInstaller {
 
     private ApplicationId coreAppId;
     private ApplicationId routerAppId;
-    private ApplicationId vrouterAppId;
+    private ApplicationId fibAppId;
 
     // Reference count for how many times a next hop is used by a route
     private final Multiset<IpAddress> nextHopsCount = ConcurrentHashMultiset.create();
@@ -168,7 +168,7 @@ public class SingleSwitchFibInstaller {
 
         coreAppId = coreService.registerApplication(CoreService.CORE_APP_NAME);
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
-        vrouterAppId = coreService.registerApplication(APP_NAME);
+        fibAppId = coreService.registerApplication(APP_NAME);
 
         networkConfigRegistry.registerConfigFactory(mcastConfigFactory);
 
@@ -178,19 +178,13 @@ public class SingleSwitchFibInstaller {
 
         processRouterConfig();
 
-        // FIXME: There can be an issue when this component is deactivated before vRouter.
-        //        This will be addressed in CORD-710.
-        applicationService.registerDeactivateHook(vrouterAppId, () -> cleanUp());
+        applicationService.registerDeactivateHook(fibAppId, () -> cleanUp());
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-         // FIXME: This will also remove flows when an instance goes down.
-         //        This is a temporary solution and should be addressed in CORD-710.
-        cleanUp();
-
         asyncDeviceFetcher.shutdown();
         networkConfigService.removeListener(configListener);
 
@@ -295,7 +289,7 @@ public class SingleSwitchFibInstaller {
         int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
-                .fromApp(routerAppId)
+                .fromApp(fibAppId)
                 .makePermanent()
                 .withSelector(selector)
                 .withPriority(priority)
@@ -367,7 +361,7 @@ public class SingleSwitchFibInstaller {
                     .withId(nextId)
                     .addTreatment(treatment.build())
                     .withType(NextObjective.Type.SIMPLE)
-                    .fromApp(routerAppId);
+                    .fromApp(fibAppId);
             if (metabuilder != null) {
                 nextBuilder.withMeta(metabuilder.build());
             }
@@ -457,7 +451,7 @@ public class SingleSwitchFibInstaller {
                     .pushVlan().setVlanId(assignedVlan).build();
             fob.withMeta(tt);
         }
-        fob.permit().fromApp(routerAppId);
+        fob.permit().fromApp(fibAppId);
         sendFilteringObjective(install, fob, intf);
 
         if (controlPlaneConnectPoint != null) {
@@ -489,7 +483,7 @@ public class SingleSwitchFibInstaller {
                 .pushVlan().setVlanId(assignedVlan).build();
         fob.withMeta(tt);
 
-        fob.permit().fromApp(routerAppId);
+        fob.permit().fromApp(fibAppId);
         sendFilteringObjective(install, fob, intf);
     }
 

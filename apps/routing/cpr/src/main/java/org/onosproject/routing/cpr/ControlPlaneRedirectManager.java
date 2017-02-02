@@ -122,7 +122,7 @@ public class ControlPlaneRedirectManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationService applicationService;
 
-    private static final String APP_NAME = "org.onosproject.vrouter";
+    private static final String APP_NAME = "org.onosproject.cpr";
     private ApplicationId appId;
 
     private ConnectPoint controlPlaneConnectPoint;
@@ -137,7 +137,7 @@ public class ControlPlaneRedirectManager {
     private final InternalHostListener hostListener = new InternalHostListener();
 
     @Activate
-    public void activate() {
+    protected void activate() {
         this.appId = coreService.registerApplication(APP_NAME);
 
         networkConfigService.addListener(networkConfigListener);
@@ -147,8 +147,6 @@ public class ControlPlaneRedirectManager {
 
         processRouterConfig();
 
-
-        // FIXME There can be an issue when this component is deactivated before vRouter
         applicationService.registerDeactivateHook(this.appId, () -> {
             if (interfaceManager != null) {
                 interfaceManager.cleanup();
@@ -157,7 +155,7 @@ public class ControlPlaneRedirectManager {
     }
 
     @Deactivate
-    public void deactivate() {
+    protected void deactivate() {
         networkConfigService.removeListener(networkConfigListener);
         hostService.removeListener(hostListener);
         asyncDeviceFetcher.shutdown();

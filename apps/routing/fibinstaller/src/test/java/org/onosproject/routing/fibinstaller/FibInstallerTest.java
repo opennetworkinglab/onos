@@ -81,7 +81,7 @@ import static org.easymock.EasyMock.verify;
 /**
  * Unit tests for SingleSwitchFibInstaller.
  */
-public class SingleSwitchFibInstallerTest {
+public class FibInstallerTest {
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("of:0000000000000001");
 
@@ -118,12 +118,12 @@ public class SingleSwitchFibInstallerTest {
     private DeviceListener deviceListener;
 
     private RouterConfig routerConfig;
-    private SingleSwitchFibInstaller sSfibInstaller;
+    private FibInstaller sSfibInstaller;
     private InterfaceListener interfaceListener;
 
     @Before
     public void setUp() throws Exception {
-        sSfibInstaller = new SingleSwitchFibInstaller();
+        sSfibInstaller = new FibInstaller();
 
         sSfibInstaller.componentConfigService = createNiceMock(ComponentConfigService.class);
 
@@ -225,7 +225,7 @@ public class SingleSwitchFibInstallerTest {
                      .setVlanPcp((byte) 0);
         } else {
             metabuilder = DefaultTrafficSelector.builder();
-            metabuilder.matchVlanId(VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN));
+            metabuilder.matchVlanId(VlanId.vlanId(FibInstaller.ASSIGNED_VLAN));
         }
 
         treatment.setOutput(port);
@@ -391,7 +391,7 @@ public class SingleSwitchFibInstallerTest {
     private class TestRouteService extends RouteServiceAdapter {
         @Override
         public void addListener(RouteListener listener) {
-            SingleSwitchFibInstallerTest.this.routeListener = listener;
+            FibInstallerTest.this.routeListener = listener;
         }
     }
 
@@ -425,7 +425,7 @@ public class SingleSwitchFibInstallerTest {
 
         @Override
         public void addListener(DeviceListener listener) {
-            SingleSwitchFibInstallerTest.this.deviceListener = listener;
+            FibInstallerTest.this.deviceListener = listener;
         }
     }
 }
