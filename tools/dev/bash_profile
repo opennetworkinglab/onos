@@ -234,7 +234,7 @@ function cell {
 function cells {
     for cell in $(ls -1 $ONOS_ROOT/tools/test/cells); do
         printf "%-16s  %s\n" \
-            "$([ $cell = $ONOS_CELL ] && echo $cell '*' || echo $cell)" \
+            "$([ ! -z $ONOS_CELL ] && [ $cell = $ONOS_CELL ] && echo $cell '*' || echo $cell)" \
             "$(grep '^#' $ONOS_ROOT/tools/test/cells/$cell | head -n 1)"
     done
 }
