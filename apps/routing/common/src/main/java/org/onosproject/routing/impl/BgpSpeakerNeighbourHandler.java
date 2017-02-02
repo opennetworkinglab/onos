@@ -154,13 +154,14 @@ public class BgpSpeakerNeighbourHandler {
             case REPLY:
                 // Proxy replies over to our internal BGP speaker if the host
                 // is known to us
-                Host h = hostService.getHostsByMac(context.dstMac()).stream()
-                                                                    .findFirst()
-                                                                    .get();
-                if (h == null) {
+                Set<Host> hosts = hostService.getHostsByMac(context.dstMac());
+
+                if (hosts.isEmpty()) {
                     context.drop();
                 } else {
+                    Host h = hosts.stream().findFirst().get();
                     VlanId bgpSpeakerVlanId = h.vlan();
+
                     if (!bgpSpeakerVlanId.equals(VlanId.NONE)) {
                         context.packet().setVlanID(bgpSpeakerVlanId.toShort());
                     } else {
