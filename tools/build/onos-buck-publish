@@ -22,6 +22,8 @@ set -x
 # Prepare artifact publish commands
 cat ${ONOS_ROOT}/tools/build/publish-target-list | grep -v '#' >> $ARTIFACT_PUB
 sed -i.bak 's/^/onos-buck publish --to-maven-central --include-source --include-javadoc --sign /g' $ARTIFACT_PUB
+cp $ARTIFACT_PUB $ARTIFACT_PUB.bak
+( echo "set -e"; cat $ARTIFACT_PUB.bak ) >$ARTIFACT_PUB
 
 # Print commands to be run and then run them
 cat $ARTIFACT_PUB
@@ -34,6 +36,8 @@ echo "//tools/package:onos-features" >> $TEST_PUB
 # Prepare test commands
 cat ${ONOS_ROOT}/tools/build/publish-test-target-list | grep -v '#' >> $TEST_PUB
 sed -i.bak 's#^#onos-buck publish --to-maven-central --sign #g' $TEST_PUB
+cp $TEST_PUB $TEST_PUB.bak
+( echo "set -e"; cat $TEST_PUB.bak ) >$TEST_PUB
 
 # Print commands to be run and then run them
 cat $TEST_PUB
