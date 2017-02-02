@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.component.ComponentService;
@@ -47,9 +46,6 @@ public class Vrouter {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ComponentService componentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private ComponentConfigService componentConfigService;
-
     private ApplicationId appId;
 
     private List<String> baseComponents = Lists.newArrayList(DIRECT_HOST_MGR);
@@ -57,11 +53,6 @@ public class Vrouter {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_NAME);
-
-        componentConfigService.preSetProperty(
-                "org.onosproject.incubator.store.routing.impl.RouteStoreImpl",
-                "distributed", "true");
-
         baseComponents.forEach(name -> componentService.activate(appId, name));
 
         log.info("Started");
@@ -69,10 +60,6 @@ public class Vrouter {
 
     @Deactivate
     protected void deactivate() {
-        componentConfigService.preSetProperty(
-                "org.onosproject.incubator.store.routing.impl.RouteStoreImpl",
-                "distributed", "false");
-
         log.info("Stopped");
     }
 }

@@ -94,6 +94,10 @@ public class FpmManager implements FpmInfoService {
 
     @Activate
     protected void activate(ComponentContext context) {
+        componentConfigService.preSetProperty(
+                "org.onosproject.incubator.store.routing.impl.RouteStoreImpl",
+                "distributed", "true");
+
         componentConfigService.registerProperties(getClass());
         modified(context);
         startServer();
@@ -102,6 +106,10 @@ public class FpmManager implements FpmInfoService {
 
     @Deactivate
     protected void deactivate() {
+        componentConfigService.preSetProperty(
+                "org.onosproject.incubator.store.routing.impl.RouteStoreImpl",
+                "distributed", "false");
+
         stopServer();
         fpmRoutes.clear();
         componentConfigService.unregisterProperties(getClass(), false);
