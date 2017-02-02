@@ -96,7 +96,7 @@
     "commons-configuration": "mvn:commons-configuration:commons-configuration:1.10",
     "commons-io": "mvn:commons-io:commons-io:2.4",
     "commons-lang": "mvn:commons-lang:commons-lang:2.6",
-    "commons-lang3": "mvn:org.apache.commons:commons-lang3:3.4",
+    "commons-lang3": "mvn:org.apache.commons:commons-lang3:3.5",
     "commons-logging": "mvn:commons-logging:commons-logging:1.1.1",
     "commons-math3": "mvn:org.apache.commons:commons-math3:3.6.1",
     "commons-pool": "mvn:commons-pool:commons-pool:1.6",

@@ -200,10 +200,10 @@ remote_jar (
 
 remote_jar (
   name = 'commons-lang3',
-  out = 'commons-lang3-3.4.jar',
-  url = 'mvn:org.apache.commons:commons-lang3:jar:3.4',
-  sha1 = '5fe28b9518e58819180a43a850fbc0dd24b7c050',
-  maven_coords = 'org.apache.commons:commons-lang3:3.4',
+  out = 'commons-lang3-3.5.jar',
+  url = 'mvn:org.apache.commons:commons-lang3:jar:3.5',
+  sha1 = '6c6c702c89bfff3cd9e80b04d668c5e190d588c6',
+  maven_coords = 'org.apache.commons:commons-lang3:3.5',
   visibility = [ 'PUBLIC' ],
 )
 

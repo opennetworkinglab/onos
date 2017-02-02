@@ -21,7 +21,7 @@
     <feature name="onos-thirdparty-base" version="@FEATURE-VERSION"
              description="ONOS 3rd party dependencies">
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
-        <bundle>mvn:org.apache.commons/commons-lang3/3.4</bundle>
+        <bundle>mvn:org.apache.commons/commons-lang3/3.5</bundle>
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
         <bundle>mvn:com.google.guava/guava/19.0</bundle>
         <bundle>mvn:io.netty/netty/3.10.5.Final</bundle>
