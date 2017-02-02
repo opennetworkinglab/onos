@@ -38,6 +38,9 @@ import org.onosproject.provider.lisp.mapping.util.MappingEntryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.onosproject.mapping.MappingStore.Type.MAP_CACHE;
+import static org.onosproject.mapping.MappingStore.Type.MAP_DATABASE;
+
 /**
  * Provider which uses a LISP controller to manage EID-RLOC mapping.
  */
@@ -137,14 +140,14 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                     LispMapReply reply = (LispMapReply) msg;
 
                     MappingEntry replyMe = new MappingEntryBuilder(deviceId, reply).build();
-                    providerService.mappingAdded(replyMe, false);
+                    providerService.mappingAdded(replyMe, MAP_CACHE);
                     break;
 
                 case LISP_MAP_NOTIFY:
                     LispMapNotify notify = (LispMapNotify) msg;
 
                     MappingEntry notifyMe = new MappingEntryBuilder(deviceId, notify).build();
-                    providerService.mappingAdded(notifyMe, true);
+                    providerService.mappingAdded(notifyMe, MAP_DATABASE);
                     break;
 
                 default:

@@ -25,7 +25,7 @@ public class MappingProviderServiceAdapter implements MappingProviderService {
     }
 
     @Override
-    public void mappingAdded(MappingEntry mappingEntry, boolean isMapDatabase) {
+    public void mappingAdded(MappingEntry mappingEntry, MappingStore.Type type) {
 
     }
 }

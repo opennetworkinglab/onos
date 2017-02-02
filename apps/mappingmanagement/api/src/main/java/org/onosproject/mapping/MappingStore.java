@@ -21,4 +21,17 @@ import org.onosproject.store.Store;
  * Interface of a distributed store for managing mapping information.
  */
 public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> {
+
+    enum Type {
+
+        /**
+         * Signifies that mapping information should be stored in map database.
+         */
+        MAP_DATABASE,
+
+        /**
+         * Signifies that mapping information should be stored in map cache.
+         */
+        MAP_CACHE
+    }
 }

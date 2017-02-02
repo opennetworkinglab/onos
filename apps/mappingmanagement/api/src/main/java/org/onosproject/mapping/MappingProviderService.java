@@ -26,8 +26,8 @@ public interface MappingProviderService extends ProviderService<MappingProvider>
     /**
      * Signals that a new mapping has been received.
      *
-     * @param mappingEntry  newly added mapping entry
-     * @param isMapDatabase indicate that where this map entry should be stored
+     * @param mappingEntry newly added mapping entry
+     * @param type         indicates that where this map entry should be stored
      */
-    void mappingAdded(MappingEntry mappingEntry, boolean isMapDatabase);
+    void mappingAdded(MappingEntry mappingEntry, MappingStore.Type type);
 }
