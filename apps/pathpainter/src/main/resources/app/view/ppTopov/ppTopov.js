@@ -15,8 +15,7 @@
  */
 
 /*
- Sample Demo module. This contains the "business logic" for the topology
- overlay that we are implementing.
+ Module containing the "business logic" for the Path Painter topology overlay.
  */
 
 (function () {
@@ -36,6 +35,7 @@
 
     // internal state
     var currentMode = null;
+    var selected = false;
 
 
     // === ---------------------------
@@ -46,11 +46,17 @@
     // === Main API functions
 
     function clear() {
-        wss.sendEvent(clearMessage);
-        flash.flash('Cleared source and destination');
+        if (selected) {
+            selected = false;
+            wss.sendEvent(clearMessage);
+            flash.flash('Cleared source and destination');
+            return true;
+        }
+        return false;
     }
 
     function setSrc(node) {
+        selected = true;
         wss.sendEvent(srcMessage, {
             id: node.id,
             type: node.type
@@ -59,6 +65,7 @@
     }
 
     function setDst(node) {
+        selected = true;
         wss.sendEvent(dstMessage, {
             id: node.id,
             type: node.type

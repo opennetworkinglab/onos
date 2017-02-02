@@ -1,6 +1,6 @@
 // path painter topology overlay - client side
 //
-// This is the glue that binds our business logic (in ppTopovDemo.js)
+// This is the glue that binds our business logic (in ppTopov.js)
 // to the overlay framework.
 
 (function () {
@@ -122,12 +122,10 @@
 
         hooks: {
             // hook for handling escape key
-            // TODO: Must return true to consume ESC, false otherwise.
+            // Must return true to consume ESC, false otherwise.
             escape: function () {
                 selectionCallback();
-                pps.setSrc();
-                pps.setDst();
-                // FIXME: should explicitly return true or false
+                return pps.clear();
             },
 
             // hooks for when the selection changes...

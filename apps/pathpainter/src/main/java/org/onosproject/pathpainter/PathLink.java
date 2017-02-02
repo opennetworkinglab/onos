@@ -24,7 +24,7 @@ import org.onosproject.ui.topo.LinkHighlight.Flavor;
 import java.util.Set;
 
 /**
- * Bi-directional link capable of different hilights.
+ * Bi-directional link capable of different highlights.
  */
 public class PathLink extends BiLink {
 

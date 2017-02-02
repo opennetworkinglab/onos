@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Skeletal ONOS UI Topology-Overlay application component.
+ * ONOS UI PathPainter Topology-Overlay application component.
  */
 @Component(immediate = true)
 public class PathPainter {
