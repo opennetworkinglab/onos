@@ -38,6 +38,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.intent.PathIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,10 +80,15 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
             rules.addAll(createReverseRules(intent));
         }
 
-        return Collections.singletonList(new FlowRuleIntent(appId,
-                                                            intent.key(),
-                                                            rules,
-                                                            intent.resources()));
+        return Collections.singletonList(
+                new FlowRuleIntent(appId,
+                                   intent.key(),
+                                   rules,
+                                   intent.resources(),
+                                   PathIntent.ProtectionType.PRIMARY,
+                                   intent.resourceGroup()
+                )
+        );
     }
 
     /**

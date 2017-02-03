@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ResourceGroup;
 
 import java.util.Collections;
 
@@ -46,15 +47,44 @@ public final class OpticalOduIntent extends Intent {
      * @param signalType CltSignalType signal type
      * @param isBidirectional indicate if intent is bidirectional
      * @param priority priority to use for flows from this intent
+     * @deprecated 1.9.1
+     */
+    @Deprecated
+    protected OpticalOduIntent(ApplicationId appId,
+                               Key key,
+                               ConnectPoint src,
+                               ConnectPoint dst,
+                               CltSignalType signalType,
+                               boolean isBidirectional,
+                               int priority) {
+        super(appId, key, Collections.emptyList(), priority, null);
+        this.src = checkNotNull(src);
+        this.dst = checkNotNull(dst);
+        this.signalType = checkNotNull(signalType);
+        this.isBidirectional = isBidirectional;
+    }
+
+    /**
+     * Creates an optical ODU intent between the specified connection points.
+     *
+     * @param appId application identification
+     * @param key intent key
+     * @param src the source transponder port
+     * @param dst the destination transponder port
+     * @param signalType CltSignalType signal type
+     * @param isBidirectional indicate if intent is bidirectional
+     * @param priority priority to use for flows from this intent
+     * @param resourceGroup resource group for this intent
      */
     protected OpticalOduIntent(ApplicationId appId,
-                                        Key key,
-                                        ConnectPoint src,
-                                        ConnectPoint dst,
-                                        CltSignalType signalType,
-                                        boolean isBidirectional,
-                                        int priority) {
-        super(appId, key, Collections.emptyList(), priority);
+                               Key key,
+                               ConnectPoint src,
+                               ConnectPoint dst,
+                               CltSignalType signalType,
+                               boolean isBidirectional,
+                               int priority,
+                               ResourceGroup resourceGroup) {
+        super(appId, key, Collections.emptyList(), priority, resourceGroup);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
@@ -93,6 +123,11 @@ public final class OpticalOduIntent extends Intent {
         @Override
         public Builder priority(int priority) {
             return (Builder) super.priority(priority);
+        }
+
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
         }
 
         /**
@@ -153,7 +188,8 @@ public final class OpticalOduIntent extends Intent {
                     dst,
                     signalType,
                     isBidirectional,
-                    priority
+                    priority,
+                    resourceGroup
             );
         }
     }
@@ -217,6 +253,7 @@ public final class OpticalOduIntent extends Intent {
                 .add("dst", dst)
                 .add("signalType", signalType)
                 .add("isBidirectional", isBidirectional)
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 

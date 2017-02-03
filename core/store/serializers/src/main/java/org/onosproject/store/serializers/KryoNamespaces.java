@@ -86,6 +86,7 @@ import org.onosproject.net.OtuPort;
 import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -469,6 +470,7 @@ public final class KryoNamespaces {
                     ContinuousResourceId.class,
                     ResourceAllocation.class,
                     ResourceConsumerId.class,
+                    ResourceGroup.class,
                     // Constraints
                     BandwidthConstraint.class,
                     LinkTypeConstraint.class,

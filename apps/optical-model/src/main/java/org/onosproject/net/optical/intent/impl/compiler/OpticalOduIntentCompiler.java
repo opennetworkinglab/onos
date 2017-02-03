@@ -47,6 +47,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalOduIntent;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.resource.Resource;
@@ -175,8 +176,13 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
                 rules.addAll(createRules(intent, intent.getDst(), intent.getSrc(), path, slotsMap, true));
             }
 
-            return Collections.singletonList(new FlowRuleIntent(appId, intent.key(),
-                    rules, ImmutableSet.copyOf(path.links())));
+            return Collections.singletonList(
+                    new FlowRuleIntent(appId,
+                                       intent.key(),
+                                       rules,
+                                       ImmutableSet.copyOf(path.links()),
+                                       PathIntent.ProtectionType.PRIMARY,
+                                       intent.resourceGroup()));
         }
 
         throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);

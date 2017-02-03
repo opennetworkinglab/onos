@@ -61,6 +61,7 @@ public class AddHostToHostIntentCommand extends ConnectivityIntentCommand {
                 .treatment(treatment)
                 .constraints(constraints)
                 .priority(priority())
+                .resourceGroup(resourceGroup())
                 .build();
         service.submit(intent);
         print("Host to Host intent submitted:\n%s", intent.toString());

@@ -40,6 +40,13 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect ingress", P1, intent.ingressPoint());
         assertEquals("incorrect egress", P2, intent.egressPoint());
+
+        intent = createWithResourceGroup();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", P1, intent.ingressPoint());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
     }
 
     @Test
@@ -59,6 +66,17 @@ public class PointToPointIntentTest extends ConnectivityIntentTest {
                 .treatment(NOP)
                 .ingressPoint(P1)
                 .egressPoint(P2)
+                .build();
+    }
+
+    protected PointToPointIntent createWithResourceGroup() {
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P1)
+                .egressPoint(P2)
+                .resourceGroup(RESOURCE_GROUP)
                 .build();
     }
 

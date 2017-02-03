@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flowobjective.Objective;
 
 import java.util.Collection;
@@ -54,12 +55,14 @@ public final class FlowObjectiveIntent extends Intent {
      * @param devices    list of target devices; in same order as the objectives
      * @param objectives backing flow objectives
      * @param resources  backing network resources
+     * @deprecated 1.9.1
      */
+    @Deprecated
     public FlowObjectiveIntent(ApplicationId appId,
                                List<DeviceId> devices,
                                List<Objective> objectives,
                                Collection<NetworkResource> resources) {
-        this(appId, null, devices, objectives, resources);
+        this(appId, null, devices, objectives, resources, null);
     }
 
     /**
@@ -71,13 +74,35 @@ public final class FlowObjectiveIntent extends Intent {
      * @param devices    list of target devices; in same order as the objectives
      * @param objectives backing flow objectives
      * @param resources  backing network resources
+     * @deprecated 1.9.1
      */
+    @Deprecated
     public FlowObjectiveIntent(ApplicationId appId,
                                Key key,
                                List<DeviceId> devices,
                                List<Objective> objectives,
                                Collection<NetworkResource> resources) {
-        super(appId, key, resources, DEFAULT_INTENT_PRIORITY);
+        this(appId, key, devices, objectives, resources, null);
+    }
+
+    /**
+     * Creates a flow objective intent with the specified objectives and
+     * resources.
+     *
+     * @param appId      application id
+     * @param key        intent key
+     * @param devices    list of target devices; in same order as the objectives
+     * @param objectives backing flow objectives
+     * @param resources  backing network resources
+     * @param resourceGroup resource goup for this intent
+     */
+    public FlowObjectiveIntent(ApplicationId appId,
+                               Key key,
+                               List<DeviceId> devices,
+                               List<Objective> objectives,
+                               Collection<NetworkResource> resources,
+                               ResourceGroup resourceGroup) {
+        super(appId, key, resources, DEFAULT_INTENT_PRIORITY, resourceGroup);
         checkArgument(devices.size() == objectives.size(),
                       "Number of devices and objectives does not match");
         this.objectives = ImmutableList.copyOf(objectives);
@@ -117,6 +142,7 @@ public final class FlowObjectiveIntent extends Intent {
                 .add("resources", resources())
                 .add("device", devices())
                 .add("objectives", objectives())
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 }

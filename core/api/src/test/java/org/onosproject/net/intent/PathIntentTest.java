@@ -73,6 +73,21 @@ public class PathIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect action", NOP, intent.treatment());
         assertEquals("incorrect path", PATH1, intent.path());
         assertEquals("incorrect key", KEY, intent.key());
+
+        intent = createAnother();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect action", NOP, intent.treatment());
+        assertEquals("incorrect path", PATH2, intent.path());
+        assertEquals("incorrect key", KEY, intent.key());
+
+        intent = createWithResourceGroup();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect action", NOP, intent.treatment());
+        assertEquals("incorrect path", PATH2, intent.path());
+        assertEquals("incorrect key", KEY, intent.key());
+        assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
     }
 
     @Override
@@ -90,9 +105,21 @@ public class PathIntentTest extends ConnectivityIntentTest {
     protected PathIntent createAnother() {
         return PathIntent.builder()
                 .appId(APPID)
+                .key(KEY)
                 .selector(MATCH)
                 .treatment(NOP)
                 .path(PATH2)
+                .build();
+    }
+
+    protected PathIntent createWithResourceGroup() {
+        return PathIntent.builder()
+                .appId(APPID)
+                .key(KEY)
+                .selector(MATCH)
+                .treatment(NOP)
+                .path(PATH2)
+                .resourceGroup(RESOURCE_GROUP)
                 .build();
     }
 

@@ -182,6 +182,7 @@ public class HostToHostIntentCompiler
                 .applyTreatmentOnEgress(true)
                 .constraints(intent.constraints())
                 .priority(intent.priority())
+                .resourceGroup(intent.resourceGroup())
                 .build();
     }
 

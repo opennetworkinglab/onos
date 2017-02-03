@@ -57,6 +57,7 @@ import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.intent.IntentSetMultimap;
@@ -252,6 +253,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                     .dst(dstCP)
                     .signalType(ochPorts.getLeft().signalType())
                     .bidirectional(intent.isBidirectional())
+                    .resourceGroup(intent.resourceGroup())
                     .build();
 
             if (!supportsMultiplexing) {
@@ -328,7 +330,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             rules.add(connectPorts(higherIntent.getDst(), lowerIntent.getDst(), higherIntent.priority(), slots));
         }
 
-        return new FlowRuleIntent(appId, higherIntent.key(), rules, higherIntent.resources());
+        return new FlowRuleIntent(appId, higherIntent.key(), rules,
+                                  higherIntent.resources(),
+                                  PathIntent.ProtectionType.PRIMARY,
+                                  higherIntent.resourceGroup());
     }
 
     /**

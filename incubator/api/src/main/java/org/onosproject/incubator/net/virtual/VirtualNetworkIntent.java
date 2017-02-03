@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -72,33 +73,38 @@ public final class VirtualNetworkIntent extends ConnectivityIntent {
         }
 
         @Override
-        public VirtualNetworkIntent.Builder appId(ApplicationId appId) {
-            return (VirtualNetworkIntent.Builder) super.appId(appId);
+        public Builder appId(ApplicationId appId) {
+            return (Builder) super.appId(appId);
         }
 
         @Override
-        public VirtualNetworkIntent.Builder key(Key key) {
-            return (VirtualNetworkIntent.Builder) super.key(key);
+        public Builder key(Key key) {
+            return (Builder) super.key(key);
         }
 
         @Override
-        public VirtualNetworkIntent.Builder selector(TrafficSelector selector) {
-            return (VirtualNetworkIntent.Builder) super.selector(selector);
+        public Builder selector(TrafficSelector selector) {
+            return (Builder) super.selector(selector);
         }
 
         @Override
-        public VirtualNetworkIntent.Builder treatment(TrafficTreatment treatment) {
-            return (VirtualNetworkIntent.Builder) super.treatment(treatment);
+        public Builder treatment(TrafficTreatment treatment) {
+            return (Builder) super.treatment(treatment);
         }
 
         @Override
-        public VirtualNetworkIntent.Builder constraints(List<Constraint> constraints) {
-            return (VirtualNetworkIntent.Builder) super.constraints(constraints);
+        public Builder constraints(List<Constraint> constraints) {
+            return (Builder) super.constraints(constraints);
         }
 
         @Override
-        public VirtualNetworkIntent.Builder priority(int priority) {
-            return (VirtualNetworkIntent.Builder) super.priority(priority);
+        public Builder priority(int priority) {
+            return (Builder) super.priority(priority);
+        }
+
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
         }
 
         /**
@@ -150,7 +156,8 @@ public final class VirtualNetworkIntent extends ConnectivityIntent {
                     ingressPoint,
                     egressPoint,
                     constraints,
-                    priority
+                    priority,
+                    resourceGroup
             );
         }
     }
@@ -180,9 +187,10 @@ public final class VirtualNetworkIntent extends ConnectivityIntent {
                                  ConnectPoint ingressPoint,
                                  ConnectPoint egressPoint,
                                  List<Constraint> constraints,
-                                 int priority) {
+                                 int priority,
+                                 ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), selector, treatment, constraints,
-              priority);
+              priority, resourceGroup);
 
         checkNotNull(networkId, NETWORK_ID_NULL);
         checkArgument(!ingressPoint.equals(egressPoint),
@@ -245,6 +253,7 @@ public final class VirtualNetworkIntent extends ConnectivityIntent {
                 .add("ingress", ingressPoint)
                 .add("egress", egressPoint)
                 .add("constraints", constraints())
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 

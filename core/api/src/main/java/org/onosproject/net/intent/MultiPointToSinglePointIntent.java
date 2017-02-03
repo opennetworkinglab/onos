@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.slf4j.Logger;
@@ -66,10 +67,10 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                                           Set<FilteredConnectPoint> ingressPoints,
                                           FilteredConnectPoint egressPoint,
                                           List<Constraint> constraints,
-                                          int priority
-    ) {
+                                          int priority,
+                                          ResourceGroup resourceGroup) {
         super(appId, key, ImmutableSet.of(), selector, treatment, constraints,
-              priority);
+              priority, resourceGroup);
 
         checkNotNull(ingressPoints);
         checkArgument(!ingressPoints.isEmpty(), "Ingress point set cannot be empty");
@@ -169,6 +170,11 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
             return (Builder) super.priority(priority);
         }
 
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
+        }
+
         /**
          * Sets the ingress point of the single point to multi point intent
          * that will be built.
@@ -245,7 +251,8 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                     ingressPoints,
                     egressPoint,
                     constraints,
-                    priority
+                    priority,
+                    resourceGroup
             );
         }
     }
@@ -307,6 +314,7 @@ public final class MultiPointToSinglePointIntent extends ConnectivityIntent {
                 .add("filteredIngressCPs", filteredIngressPoints())
                 .add("filteredEgressCP", filteredEgressPoint())
                 .add("constraints", constraints())
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 }
