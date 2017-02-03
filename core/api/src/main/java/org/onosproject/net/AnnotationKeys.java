@@ -101,6 +101,7 @@ public final class AnnotationKeys {
 
     /**
      * Annotation key for latency.
+     * The value of this key is expected to be latency in microsecond.
      */
     public static final String LATENCY = "latency";
 
