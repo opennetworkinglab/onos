@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -69,6 +68,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
+import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
  * Handles multicast-related events.
@@ -375,19 +375,14 @@ public class McastHandler {
             return;
         }
 
-        // Reuse unicast VLAN if the port has subnet configured
-        Ip4Prefix portSubnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, port);
-        VlanId unicastVlan = srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
-        final VlanId finalVlanId = (unicastVlan != null) ? unicastVlan : assignedVlan;
-
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(deviceId, port, finalVlanId);
+                filterObjBuilder(deviceId, port, assignedVlan);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
-                        deviceId, port.toLong(), finalVlanId),
+                        deviceId, port.toLong(), assignedVlan),
                 (objective, error) ->
                         log.warn("Failed to add filter on {}/{}, vlan {}: {}",
-                                deviceId, port.toLong(), finalVlanId, error));
+                                deviceId, port.toLong(), assignedVlan, error));
         srManager.flowObjectiveService.filter(deviceId, filtObjBuilder.add(context));
     }
 
@@ -763,15 +758,11 @@ public class McastHandler {
         }
         // Reuse unicast VLAN if the port has subnet configured
         if (cp != null) {
-            Ip4Prefix portSubnet = srManager.deviceConfiguration
-                    .getPortIPv4Subnet(cp.deviceId(), cp.port());
-            VlanId unicastVlan = srManager.getSubnetAssignedVlanId(cp.deviceId(), portSubnet);
-            if (unicastVlan != null) {
-                return unicastVlan;
-            }
+            VlanId untaggedVlan = srManager.getUntaggedVlanId(cp);
+            return (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
         }
-        // By default, use VLAN_NO_SUBNET
-        return VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
+        // Use DEFAULT_VLAN if none of the above matches
+        return SegmentRoutingManager.INTERNAL_VLAN;
     }
 
     /**

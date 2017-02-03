@@ -16,32 +16,32 @@
 
 package org.onosproject.segmentrouting.storekey;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
 /**
- * Key of Subnet to NextObjective store.
+ * Key of VLAN to NextObjective store.
  */
-public class SubnetNextObjectiveStoreKey {
+public class VlanNextObjectiveStoreKey {
     private final DeviceId deviceId;
-    private final IpPrefix prefix;
+    private final VlanId vlanId;
 
     /**
-     * Constructs the key of subnet next objective store.
+     * Constructs the key of VLAN next objective store.
      *
      * @param deviceId device ID
-     * @param prefix subnet information
+     * @param vlanId VLAN information
      */
-    public SubnetNextObjectiveStoreKey(DeviceId deviceId,
-                                       IpPrefix prefix) {
+    public VlanNextObjectiveStoreKey(DeviceId deviceId,
+                                     VlanId vlanId) {
         this.deviceId = deviceId;
-        this.prefix = prefix;
+        this.vlanId = vlanId;
     }
 
     /**
-     * Gets device id in this SubnetNextObjectiveStoreKey.
+     * Gets device id in this VlanNextObjectiveStoreKey.
      *
      * @return device id
      */
@@ -50,12 +50,12 @@ public class SubnetNextObjectiveStoreKey {
     }
 
     /**
-     * Gets subnet information in this SubnetNextObjectiveStoreKey.
+     * Gets vlan information in this VlanNextObjectiveStoreKey.
      *
-     * @return subnet information
+     * @return vlan id
      */
-    public IpPrefix prefix() {
-        return this.prefix;
+    public VlanId vlanId() {
+        return this.vlanId;
     }
 
     @Override
@@ -63,22 +63,22 @@ public class SubnetNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SubnetNextObjectiveStoreKey)) {
+        if (!(o instanceof VlanNextObjectiveStoreKey)) {
             return false;
         }
-        SubnetNextObjectiveStoreKey that =
-                (SubnetNextObjectiveStoreKey) o;
+        VlanNextObjectiveStoreKey that =
+                (VlanNextObjectiveStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
-                Objects.equals(this.prefix, that.prefix));
+                Objects.equals(this.vlanId, that.vlanId));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(deviceId, prefix);
+        return Objects.hash(deviceId, vlanId);
     }
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " Subnet: " + prefix;
+        return "deviceId: " + deviceId + " vlanId: " + vlanId;
     }
 }

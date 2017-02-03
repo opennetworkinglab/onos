@@ -135,8 +135,7 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
             // ARP reply for unknown host, Flood in the subnet.
             } else {
                 // Don't flood to non-edge ports
-                if (pkt.vlan().equals(
-                        VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET))) {
+                if (pkt.vlan().equals(SegmentRoutingManager.INTERNAL_VLAN)) {
                     return;
                 }
                 flood(pkt);

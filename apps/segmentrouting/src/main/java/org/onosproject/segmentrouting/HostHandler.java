@@ -16,10 +16,10 @@
 
 package org.onosproject.segmentrouting;
 
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+
+import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
  * Handles host-related events.
@@ -258,15 +260,8 @@ public class HostHandler {
     private ForwardingObjective.Builder hostFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId vlanId,
             PortNumber outport) {
-        // Get assigned VLAN for the subnets
-        VlanId outvlan = null;
-        // FIXME L2 forwarding should consider also IPv6
-        Ip4Prefix subnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, outport);
-        if (subnet == null) {
-            outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
-        } else {
-            outvlan = srManager.getSubnetAssignedVlanId(deviceId, subnet);
-        }
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, outport));
+        VlanId outvlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
 
         // match rule
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();

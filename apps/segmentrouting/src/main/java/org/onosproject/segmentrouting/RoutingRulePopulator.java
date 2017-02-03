@@ -19,13 +19,13 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.Objective;
@@ -35,7 +35,6 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -62,12 +61,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.packet.Ethernet.TYPE_IPV6;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
+import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
  * Populator of segment routing flow rules.
@@ -203,13 +204,9 @@ public class RoutingRulePopulator {
 
         // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
         // for switch pipelines that need it, provide outgoing vlan as metadata
-        VlanId outvlan;
-        Ip4Prefix subnet = srManager.deviceConfiguration.getPortIPv4Subnet(deviceId, outPort);
-        if (subnet == null) {
-            outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
-        } else {
-            outvlan = srManager.getSubnetAssignedVlanId(deviceId, subnet);
-        }
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, outPort));
+        VlanId outvlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+
         TrafficSelector meta = DefaultTrafficSelector.builder()
                                     .matchVlanId(outvlan).build();
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
@@ -307,8 +304,7 @@ public class RoutingRulePopulator {
         // if needed by the switch pipeline. Since neighbor sets are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(
-            VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
+        metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
 
         int nextId = srManager.getNextObjectiveId(deviceId, ns, metabuilder.build());
         if (nextId <= 0) {
@@ -404,8 +400,7 @@ public class RoutingRulePopulator {
         // if needed by the switch pipeline. Since mpls next-hops are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(
-                VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
+        metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
 
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             // If the next hop is the destination router for the segment, do pop
@@ -679,7 +674,6 @@ public class RoutingRulePopulator {
         return;
     }
 
-
     private FilteringObjective.Builder buildFilteringObjective(DeviceId deviceId,
                                                                PortNumber portnum) {
         MacAddress deviceMac;
@@ -691,23 +685,9 @@ public class RoutingRulePopulator {
         }
         // suppressed ports still have filtering rules pushed by SR using default vlan
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
-        boolean isSuppressed = false;
-        SegmentRoutingAppConfig appConfig = srManager.cfgService
-                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
-        if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
-            isSuppressed = true;
-        }
 
-        Ip4Prefix portSubnet = config.getPortIPv4Subnet(deviceId, portnum);
-        VlanId assignedVlan = (portSubnet == null || isSuppressed)
-                ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
-                : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
-
-        if (assignedVlan == null) {
-            log.warn("Assigned vlan is null for {} in {} - Processing "
-                    + "SinglePortFilters aborted", portnum, deviceId);
-            return null;
-        }
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        VlanId assignedVlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
 
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
         fob.withKey(Criteria.matchInPort(portnum))
@@ -870,22 +850,20 @@ public class RoutingRulePopulator {
      * @param deviceId switch ID to set the rules
      */
     public void populateSubnetBroadcastRule(DeviceId deviceId) {
-        config.getSubnets(deviceId).forEach(subnet -> {
-            if (subnet.isIp4()) {
-                if (subnet.prefixLength() == 0 || subnet.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) {
-                    return;
-                }
-            } else {
-                if (subnet.prefixLength() == 0 || subnet.prefixLength() == IpPrefix.MAX_INET6_MASK_LENGTH) {
-                    return;
-                }
-            }
-            int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);
-            VlanId vlanId = srManager.getSubnetAssignedVlanId(deviceId, subnet);
+        Set<Interface> interfaces = srManager.interfaceService.getInterfaces();
+        Set<VlanId> vlans =
+                interfaces.stream()
+                        .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
+                                !intf.vlanUntagged().equals(VlanId.NONE))
+                        .map(Interface::vlanUntagged)
+                        .collect(Collectors.toSet());
 
-            if (nextId < 0 || vlanId == null) {
-                log.error("Cannot install subnet {} broadcast rule in dev:{} due"
-                        + "to vlanId:{} or nextId:{}", subnet, deviceId, vlanId, nextId);
+        vlans.forEach(vlanId -> {
+            int nextId = srManager.getVlanNextObjectiveId(deviceId, vlanId);
+
+            if (nextId < 0) {
+                log.error("Cannot install vlan {} broadcast rule in dev:{} due"
+                        + "to vlanId:{} or nextId:{}", vlanId, deviceId, vlanId, nextId);
                 return;
             }
 
@@ -903,9 +881,9 @@ public class RoutingRulePopulator {
                     .fromApp(srManager.appId)
                     .makePermanent();
             ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Subnet broadcast rule for {} populated", subnet),
+                    (objective) -> log.debug("Vlan broadcast rule for {} populated", vlanId),
                     (objective, error) ->
-                            log.warn("Failed to populate subnet broadcast rule for {}: {}", subnet, error));
+                            log.warn("Failed to populate vlan broadcast rule for {}: {}", vlanId, error));
             srManager.flowObjectiveService.forward(deviceId, fob.add(context));
         });
     }

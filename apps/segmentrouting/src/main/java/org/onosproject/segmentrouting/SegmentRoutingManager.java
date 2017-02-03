@@ -26,7 +26,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -88,7 +87,7 @@ import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
-import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -102,8 +101,6 @@ import org.opencord.cordconfig.CordConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,7 +110,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -224,17 +220,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     /**
      * Per device next objective ID store with (device id + subnet) as key.
      */
-    public EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
-            subnetNextObjStore = null;
+    public EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
+            vlanNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + port) as key.
      */
     public EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
-    // Per device, per-subnet assigned-vlans store, with (device id + subnet
-    // IPv4 prefix) as key
-    private EventuallyConsistentMap<SubnetAssignedVidStoreKey, VlanId>
-            subnetVidStore = null;
+
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
 
@@ -298,14 +291,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * Segment Routing App ID.
      */
     public static final String APP_NAME = "org.onosproject.segmentrouting";
-    /**
-     * The starting value of per-subnet VLAN ID assignment.
-     */
-    private static final short ASSIGNED_VLAN_START = 4093;
+
     /**
      * The default VLAN ID assigned to the interfaces without subnet config.
      */
-    public static final short ASSIGNED_VLAN_NO_SUBNET = 4094;
+    public static final VlanId INTERNAL_VLAN = VlanId.vlanId((short) 4094);
 
     @Activate
     protected void activate() {
@@ -321,11 +311,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .build();
         log.trace("Current size {}", nsNextObjStore.size());
 
-        log.debug("Creating EC map subnetnextobjectivestore");
-        EventuallyConsistentMapBuilder<SubnetNextObjectiveStoreKey, Integer>
-                subnetNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
-        subnetNextObjStore = subnetNextObjMapBuilder
-                .withName("subnetnextobjectivestore")
+        log.debug("Creating EC map vlannextobjectivestore");
+        EventuallyConsistentMapBuilder<VlanNextObjectiveStoreKey, Integer>
+                vlanNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
+        vlanNextObjStore = vlanNextObjMapBuilder
+                .withName("vlannextobjectivestore")
                 .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -351,14 +341,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 storageService.eventuallyConsistentMapBuilder();
         policyStore = policyMapBuilder
                 .withName("policystore")
-                .withSerializer(createSerializer())
-                .withTimestampProvider((k, v) -> new WallClockTimestamp())
-                .build();
-
-        EventuallyConsistentMapBuilder<SubnetAssignedVidStoreKey, VlanId>
-            subnetVidStoreMapBuilder = storageService.eventuallyConsistentMapBuilder();
-        subnetVidStore = subnetVidStoreMapBuilder
-                .withName("subnetvidstore")
                 .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -413,7 +395,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
                 .register(NeighborSetNextObjectiveStoreKey.class,
-                        SubnetNextObjectiveStoreKey.class,
+                        VlanNextObjectiveStoreKey.class,
                         SubnetAssignedVidStoreKey.class,
                         NeighborSet.class,
                         Tunnel.class,
@@ -450,11 +432,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         groupHandlerMap.clear();
 
         nsNextObjStore.destroy();
-        subnetNextObjStore.destroy();
+        vlanNextObjStore.destroy();
         portNextObjStore.destroy();
         tunnelStore.destroy();
         policyStore.destroy();
-        subnetVidStore.destroy();
         log.info("Stopped");
     }
 
@@ -539,69 +520,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the vlan-id assigned to the subnet configured for a device.
-     * If no vlan-id has been assigned, a new one is assigned out of a pool of ids,
-     * if and only if this controller instance is the master for the device.
-     * <p>
-     * USAGE: The assigned vlans are meant to be applied to untagged packets on those
-     * switches/pipelines that need this functionality. These vids are meant
-     * to be used internally within a switch, and thus need to be unique only
-     * on a switch level. Note that packets never go out on the wire with these
-     * vlans. Currently, vlan ids are assigned from value 4093 down.
-     * Vlan id 4094 expected to be used for all ports that are not assigned subnets.
-     * Vlan id 4095 is reserved and unused. Only a single vlan id is assigned
-     * per subnet.
+     * Returns untagged VLAN configured on given connect point.
      *
-     * @param deviceId switch dpid
-     * @param subnet IP prefix for which assigned vlan is desired
-     * @return VlanId assigned for the subnet on the device, or
-     *         null if no vlan assignment was found and this instance is not
-     *         the master for the device.
+     * @param connectPoint connect point
+     * @return untagged VLAN or null if not configured
      */
-    // TODO: We should avoid assigning VLAN IDs that are used by VLAN cross-connection.
-    public VlanId getSubnetAssignedVlanId(DeviceId deviceId, IpPrefix subnet) {
-        VlanId assignedVid = subnetVidStore.get(new SubnetAssignedVidStoreKey(
-                                                        deviceId, subnet));
-        if (assignedVid != null) {
-            log.debug("Query for subnet:{} on device:{} returned assigned-vlan "
-                    + "{}", subnet, deviceId, assignedVid);
-            return assignedVid;
-        }
-        //check mastership for the right to assign a vlan
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            log.warn("This controller instance is not the master for device {}. "
-                    + "Cannot assign vlan-id for subnet {}", deviceId, subnet);
-            return null;
-        }
-        // vlan assignment is expensive but done only once
-        // FIXME for now we will do assignment considering only the ipv4 subnet.
-        Set<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId)
-                .stream()
-                .filter(IpPrefix::isIp4)
-                .map(IpPrefix::getIp4Prefix)
-                .collect(Collectors.toSet());
-        Set<Short> assignedVlans = new HashSet<>();
-        Set<Ip4Prefix> unassignedSubnets = new HashSet<>();
-        for (Ip4Prefix sub : configuredSubnets) {
-            VlanId v = subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId,
-                                                                        sub));
-            if (v != null) {
-                assignedVlans.add(v.toShort());
-            } else {
-                unassignedSubnets.add(sub);
-            }
-        }
-        short nextAssignedVlan = ASSIGNED_VLAN_START;
-        if (!assignedVlans.isEmpty()) {
-            nextAssignedVlan = (short) (Collections.min(assignedVlans) - 1);
-        }
-        for (Ip4Prefix unsub : unassignedSubnets) {
-            subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
-                    VlanId.vlanId(nextAssignedVlan--));
-            log.info("Assigned vlan: {} to subnet: {} on device: {}",
-                    nextAssignedVlan + 1, unsub, deviceId);
-        }
-        return subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId, subnet));
+    public VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
+        return interfaceService.getInterfacesByPort(connectPoint).stream()
+                .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
+                .map(Interface::vlanUntagged)
+                .findFirst().orElse(null);
     }
 
     /**
@@ -648,19 +576,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /**
      * Returns the next objective ID for the given subnet prefix. It is expected
+     * Returns the next objective ID for the given vlan id. It is expected
      * that the next-objective has been pre-created from configuration.
      *
      * @param deviceId Device ID
-     * @param prefix Subnet
+     * @param vlanId VLAN ID
      * @return next objective ID or -1 if it was not found
      */
-    public int getSubnetNextObjectiveId(DeviceId deviceId, IpPrefix prefix) {
+    public int getVlanNextObjectiveId(DeviceId deviceId, VlanId vlanId) {
         if (groupHandlerMap.get(deviceId) != null) {
-            log.trace("getSubnetNextObjectiveId query in device {}", deviceId);
-            return groupHandlerMap
-                    .get(deviceId).getSubnetNextObjectiveId(prefix);
+            log.trace("getVlanNextObjectiveId query in device {}", deviceId);
+            return groupHandlerMap.get(deviceId).getVlanNextObjectiveId(vlanId);
         } else {
-            log.warn("getSubnetNextObjectiveId query - groupHandler for "
+            log.warn("getVlanNextObjectiveId query - groupHandler for "
                     + "device {} not found", deviceId);
             return -1;
         }
@@ -963,7 +891,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             xConnectHandler.init(deviceId);
             cordConfigHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
-            groupHandler.createGroupsFromSubnetConfig();
+            groupHandler.createGroupsFromVlanConfig();
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
         }
 
@@ -977,20 +905,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .forEach(entry -> {
                     nsNextObjStore.remove(entry.getKey());
                 });
-        subnetNextObjStore.entrySet().stream()
+        vlanNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
-                    subnetNextObjStore.remove(entry.getKey());
+                    vlanNextObjStore.remove(entry.getKey());
                 });
         portNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
                     portNextObjStore.remove(entry.getKey());
-                });
-        subnetVidStore.entrySet().stream()
-                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
-                .forEach(entry -> {
-                    subnetVidStore.remove(entry.getKey());
                 });
         groupHandlerMap.remove(device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
@@ -1028,29 +951,30 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // to switch ports, link-events should take care of any re-routing or
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
-        Ip4Prefix configuredSubnet = deviceConfiguration.getPortIPv4Subnet(device.id(),
-                                                                           port.number());
-        if (configuredSubnet == null) {
+        VlanId untaggedVlan = getUntaggedVlanId(new ConnectPoint(device.id(), port.number()));
+        VlanId vlanId = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+
+        if (vlanId.equals(INTERNAL_VLAN)) {
             log.debug("Not handling port updated event for unconfigured port "
                     + "dev/port: {}/{}", device.id(), port.number());
             return;
         }
-        processEdgePort(device, port, configuredSubnet);
+        processEdgePort(device, port, vlanId);
     }
 
-    private void processEdgePort(Device device, Port port, Ip4Prefix subnet) {
+    private void processEdgePort(Device device, Port port, VlanId vlanId) {
         boolean portUp = port.isEnabled();
         if (portUp) {
             log.info("Device:EdgePort {}:{} is enabled in subnet: {}", device.id(),
-                     port.number(), subnet);
+                     port.number(), vlanId);
         } else {
             log.info("Device:EdgePort {}:{} is disabled in subnet: {}", device.id(),
-                     port.number(), subnet);
+                     port.number(), vlanId);
         }
 
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
-            groupHandler.processEdgePort(port.number(), subnet, portUp);
+            groupHandler.processEdgePort(port.number(), vlanId, portUp);
         } else {
             log.warn("Group handler not found for dev:{}. Not handling edge port"
                     + " {} event for port:{}", device.id(),

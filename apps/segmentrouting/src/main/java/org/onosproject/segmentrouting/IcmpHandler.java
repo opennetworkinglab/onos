@@ -387,7 +387,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                 /*
                  * We don't have to flood towards spine facing ports.
                  */
-                if (pkt.vlan().equals(VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET))) {
+                if (pkt.vlan().equals(SegmentRoutingManager.INTERNAL_VLAN)) {
                     return;
                 }
                 log.debug("Flooding the reply to the subnet");

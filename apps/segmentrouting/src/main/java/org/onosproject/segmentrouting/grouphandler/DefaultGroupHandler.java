@@ -15,15 +15,16 @@
  */
 package org.onosproject.segmentrouting.grouphandler;
 
+
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.RandomUtils;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -42,7 +43,7 @@ import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.storekey.SubnetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
@@ -57,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -88,8 +90,8 @@ public class DefaultGroupHandler {
     protected EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
             nsNextObjStore = null;
     // distributed store for (device+subnet-ip-prefix) mapped to next-id
-    protected EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
-            subnetNextObjStore = null;
+    protected EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
+            vlanNextObjStore = null;
     // distributed store for (device+port+treatment) mapped to next-id
     protected EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
@@ -124,7 +126,7 @@ public class DefaultGroupHandler {
         }
         this.flowObjectiveService = flowObjService;
         this.nsNextObjStore = srManager.nsNextObjStore;
-        this.subnetNextObjStore = srManager.subnetNextObjStore;
+        this.vlanNextObjStore = srManager.vlanNextObjStore;
         this.portNextObjStore = srManager.portNextObjStore;
         this.srManager = srManager;
 
@@ -247,8 +249,7 @@ public class DefaultGroupHandler {
                 // if needed by the switch pipeline. Since hashed next-hops are always to
                 // other neighboring routers, there is no subnet assigned on those ports.
                 TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
-                metabuilder.matchVlanId(
-                    VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
+                metabuilder.matchVlanId(INTERNAL_VLAN);
 
                 NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
                         .withId(nextId)
@@ -363,20 +364,20 @@ public class DefaultGroupHandler {
      * Should only be called by the master instance for this device/port.
      *
      * @param port the port on this device that needs to be added/removed to a bcast group
-     * @param subnet the subnet corresponding  to the broadcast group
+     * @param vlanId the vlan id corresponding to the broadcast group
      * @param portUp true if port is enabled, false if disabled
      */
-    public void processEdgePort(PortNumber port, Ip4Prefix subnet, boolean portUp) {
+    public void processEdgePort(PortNumber port, VlanId vlanId, boolean portUp) {
         //get the next id for the subnet and edit it.
-        Integer nextId = getSubnetNextObjectiveId(subnet);
+        Integer nextId = getVlanNextObjectiveId(vlanId);
         if (nextId == -1) {
             if (portUp) {
                 log.debug("**Creating flooding group for first port enabled in"
-                        + " subnet {} on dev {} port {}", subnet, deviceId, port);
-                createBcastGroupFromSubnet(subnet, Collections.singletonList(port));
+                        + " subnet {} on dev {} port {}", vlanId, deviceId, port);
+                createBcastGroupFromVlan(vlanId, Collections.singleton(port));
             } else {
                 log.warn("Could not find flooding group for subnet {} on dev:{} when"
-                        + " removing port:{}", subnet, deviceId, port);
+                        + " removing port:{}", vlanId, deviceId, port);
             }
             return;
         }
@@ -390,8 +391,9 @@ public class DefaultGroupHandler {
         tBuilder.popVlan();
         tBuilder.setOutput(port);
 
-        VlanId assignedVlanId =
-                srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, port));
+        VlanId assignedVlanId = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+
         TrafficSelector metadata =
                 DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
 
@@ -460,18 +462,18 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective of type broadcast associated with the subnet,
+     * Returns the next objective of type broadcast associated with the vlan,
      * or -1 if no such objective exists. Note that this method does NOT create
      * the next objective as a side-effect. It is expected that is objective is
      * created at startup from network configuration. Typically this is used
      * for L2 flooding within the subnet configured on the switch.
      *
-     * @param prefix subnet information
+     * @param vlanId vlan id
      * @return int if found or -1
      */
-    public int getSubnetNextObjectiveId(IpPrefix prefix) {
-        Integer nextId = subnetNextObjStore.
-                get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
+    public int getVlanNextObjectiveId(VlanId vlanId) {
+        Integer nextId = vlanNextObjStore.
+                get(new VlanNextObjectiveStoreKey(deviceId, vlanId));
 
         return (nextId != null) ? nextId : -1;
     }
@@ -733,43 +735,43 @@ public class DefaultGroupHandler {
      * Creates broadcast groups for all ports in the same subnet for
      * all configured subnets.
      */
-    public void createGroupsFromSubnetConfig() {
-        Map<IpPrefix, List<PortNumber>> subnetPortMap;
-        try {
-            subnetPortMap = this.deviceConfig.getSubnetPortsMap(this.deviceId);
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage()
-                     + " Not creating broadcast groups for device: " + deviceId);
-            return;
-        }
-        // Construct a broadcast group for each subnet
-        subnetPortMap.forEach((subnet, ports) -> {
-            if (subnet.isIp4()) {
-                createBcastGroupFromSubnet(subnet.getIp4Prefix(), ports);
-            }
+    public void createGroupsFromVlanConfig() {
+        Set<Interface> interfaces = srManager.interfaceService.getInterfaces();
+        Set<VlanId> vlans =
+        interfaces.stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
+                        !intf.vlanUntagged().equals(VlanId.NONE))
+                .map(Interface::vlanUntagged)
+                .collect(Collectors.toSet());
+
+        vlans.forEach(vlanId -> {
+            Set<PortNumber> ports = interfaces.stream()
+                    .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
+                            intf.vlanUntagged().equals(vlanId))
+                    .map(Interface::connectPoint)
+                    .map(ConnectPoint::port)
+                    .collect(Collectors.toSet());
+            createBcastGroupFromVlan(vlanId, ports);
         });
     }
 
     /**
-     * Creates a single broadcast group from a given subnet and list of ports.
+     * Creates a single broadcast group from a given vlan id and list of ports.
      *
-     * @param subnet a configured subnet
+     * @param vlanId vlan id
      * @param ports list of ports in the subnet
      */
-    public void createBcastGroupFromSubnet(Ip4Prefix subnet, List<PortNumber> ports) {
-        SubnetNextObjectiveStoreKey key =
-                new SubnetNextObjectiveStoreKey(deviceId, subnet);
+    public void createBcastGroupFromVlan(VlanId vlanId, Set<PortNumber> ports) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
 
-        if (subnetNextObjStore.containsKey(key)) {
+        if (vlanNextObjStore.containsKey(key)) {
             log.debug("Broadcast group for device {} and subnet {} exists",
-                      deviceId, subnet);
+                      deviceId, vlanId);
             return;
         }
 
-        VlanId assignedVlanId =
-                srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
         TrafficSelector metadata =
-                DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
+                DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
 
         int nextId = flowObjectiveService.allocateNextId();
 
@@ -787,10 +789,10 @@ public class DefaultGroupHandler {
 
         NextObjective nextObj = nextObjBuilder.add();
         flowObjectiveService.next(deviceId, nextObj);
-        log.debug("createBcastGroupFromSubnet: Submited next objective {} in device {}",
+        log.debug("createBcastGroupFromVlan: Submited next objective {} in device {}",
                   nextId, deviceId);
 
-        subnetNextObjStore.put(key, nextId);
+        vlanNextObjStore.put(key, nextId);
     }
 
     /**
@@ -870,8 +872,8 @@ public class DefaultGroupHandler {
                 portNextObjStore.entrySet()) {
             removeGroup(entry.getValue());
         }
-        for (Map.Entry<SubnetNextObjectiveStoreKey, Integer> entry:
-                subnetNextObjStore.entrySet()) {
+        for (Map.Entry<VlanNextObjectiveStoreKey, Integer> entry:
+                vlanNextObjStore.entrySet()) {
             removeGroup(entry.getValue());
         }
         // should probably clean local stores port-neighbor
