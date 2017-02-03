@@ -92,6 +92,7 @@ public class VirtualNetworkManagerTest extends TestDeviceParams {
     @Before
     public void setUp() throws Exception {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         coreService = new TestCoreService();

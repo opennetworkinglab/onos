@@ -245,6 +245,7 @@ public class VplsTest {
     @Before
     public void setUp() throws Exception {
         idGenerator = new TestIdGenerator();
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         applicationService = createMock(ApplicationService.class);

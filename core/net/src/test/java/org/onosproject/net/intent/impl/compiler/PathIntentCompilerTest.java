@@ -176,6 +176,7 @@ public class PathIntentCompilerTest {
         sut.coreService = coreService;
         sut.resourceService = new MockResourceService();
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intent = PathIntent.builder()

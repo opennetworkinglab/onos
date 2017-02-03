@@ -54,6 +54,7 @@ public class PacketLinkRealizedByOpticalTest {
             }
         };
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 

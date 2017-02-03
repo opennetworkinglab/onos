@@ -25,10 +25,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MockIdGenerator implements IdGenerator {
 
     private static boolean generatorIsBound = false;
+    private static MockIdGenerator idGenerator;
     public static void bindNewGenerator() {
         if (!generatorIsBound) {
             generatorIsBound = true;
-            Intent.bindIdGenerator(new MockIdGenerator());
+            idGenerator = new MockIdGenerator();
+            Intent.unbindIdGenerator(idGenerator);
+            Intent.bindIdGenerator(idGenerator);
         }
     }
     private AtomicLong nextId = new AtomicLong(0);

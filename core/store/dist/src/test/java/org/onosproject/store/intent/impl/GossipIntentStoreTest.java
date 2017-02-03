@@ -58,6 +58,7 @@ public class GossipIntentStoreTest {
         intentStore.partitionService = new WorkPartitionServiceAdapter();
         intentStore.clusterService = new ClusterServiceAdapter();
         idGenerator = new MockIdGenerator();
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
         builder1 = HostToHostIntent
                         .builder()

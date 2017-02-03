@@ -98,6 +98,7 @@ public class MplsPathIntentCompilerTest {
         sut.coreService = coreService;
         sut.resourceService = new MockResourceService();
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intent = MplsPathIntent.builder()

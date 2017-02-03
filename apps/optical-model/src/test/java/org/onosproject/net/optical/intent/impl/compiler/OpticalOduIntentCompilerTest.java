@@ -274,6 +274,7 @@ public class OpticalOduIntentCompilerTest {
         sut.resourceService = new MockResourceService();
         sut.topologyService = new MockTopologyService();
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intentExtensionService = createMock(IntentExtensionService.class);

@@ -89,13 +89,13 @@ public class IntentCleanupTest {
         assertTrue("store should be empty",
                    Sets.newHashSet(cleanup.store.getIntents()).isEmpty());
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 
     @After
     public void tearDown() {
         cleanup.deactivate();
-
         Intent.unbindIdGenerator(idGenerator);
     }
 

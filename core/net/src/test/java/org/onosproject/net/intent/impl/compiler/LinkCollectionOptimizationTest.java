@@ -65,6 +65,7 @@ public class LinkCollectionOptimizationTest extends AbstractLinkCollectionTest {
                 .andReturn(appId);
         sut.coreService = coreService;
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intentExtensionService = createMock(IntentExtensionService.class);

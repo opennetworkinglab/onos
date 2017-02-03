@@ -167,6 +167,7 @@ public class IntentManager
         batchExecutor = newSingleThreadExecutor(groupedThreads("onos/intent", "batch", log));
         workerExecutor = newFixedThreadPool(numThreads, groupedThreads("onos/intent", "worker-%d", log));
         idGenerator = coreService.getIdGenerator("intent-ids");
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
         log.info("Started");
     }

@@ -72,6 +72,7 @@ public class IntentCleanupTestMock {
         assertTrue("store should be empty",
                    Sets.newHashSet(cleanup.store.getIntents()).isEmpty());
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 

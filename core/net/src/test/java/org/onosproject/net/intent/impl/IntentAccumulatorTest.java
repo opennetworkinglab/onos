@@ -57,6 +57,7 @@ public class IntentAccumulatorTest {
     @Before
     public void localSetup() {
         mockGenerator = new MockIdGenerator();
+        Intent.unbindIdGenerator(mockGenerator);
         Intent.bindIdGenerator(mockGenerator);
 
         intent1 = new MockIntent(1L);

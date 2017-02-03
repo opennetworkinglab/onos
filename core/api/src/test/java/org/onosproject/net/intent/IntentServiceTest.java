@@ -47,6 +47,7 @@ public class IntentServiceTest {
     public void setUp() {
         service = createIntentService();
         service.addListener(listener);
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 

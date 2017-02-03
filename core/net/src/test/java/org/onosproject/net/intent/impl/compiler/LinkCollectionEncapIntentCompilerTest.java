@@ -65,6 +65,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
         expect(coreService.registerApplication("org.onosproject.net.intent")).andReturn(appId);
         sut.coreService = coreService;
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intentExtensionService = createMock(IntentExtensionService.class);

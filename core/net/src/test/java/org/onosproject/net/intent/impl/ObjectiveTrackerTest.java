@@ -89,6 +89,7 @@ public class ObjectiveTrackerTest {
         deviceListener = TestUtils.getField(tracker, "deviceListener");
         resourceListener = TestUtils.getField(tracker, "resourceListener");
         mockGenerator = new MockIdGenerator();
+        Intent.unbindIdGenerator(mockGenerator);
         Intent.bindIdGenerator(mockGenerator);
     }
 

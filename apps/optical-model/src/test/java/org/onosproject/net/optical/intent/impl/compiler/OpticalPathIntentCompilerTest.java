@@ -81,6 +81,7 @@ public class OpticalPathIntentCompilerTest {
                 .andReturn(appId);
         sut.coreService = coreService;
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intent = OpticalPathIntent.builder()

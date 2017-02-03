@@ -80,6 +80,7 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
                 .andReturn(appId);
         sut.coreService = coreService;
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intent = LinkCollectionIntent.builder()

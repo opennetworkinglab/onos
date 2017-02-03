@@ -377,6 +377,7 @@ public class OpticalCircuitIntentCompilerTest {
         sut.intentService = new TestIntentService();
         sut.intentSetMultimap = new MockIntentSetMultimap();
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         intentExtensionService = createMock(IntentExtensionService.class);

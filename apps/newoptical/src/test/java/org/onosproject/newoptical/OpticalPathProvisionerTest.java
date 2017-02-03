@@ -248,6 +248,7 @@ public class OpticalPathProvisionerTest {
                 return counter++;
             }
         };
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 

@@ -72,6 +72,7 @@ public class OpticalConnectivityTest {
             }
         };
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
     }
 

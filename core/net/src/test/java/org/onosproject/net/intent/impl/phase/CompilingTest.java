@@ -88,6 +88,7 @@ public class CompilingTest {
 
         idGenerator = new MockIdGenerator();
 
+        Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
 
         // Intent creation should be placed after binding an ID generator
