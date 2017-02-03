@@ -34,8 +34,10 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.McastConfig;
+import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
@@ -1108,7 +1110,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 switch (event.type()) {
                     case CONFIG_ADDED:
                     case CONFIG_UPDATED:
-                        icmpHandler.updateUPstreamCP(event);
+                        updateUPstreamCP();
                     case CONFIG_REGISTERED:
                     case CONFIG_UNREGISTERED:
                     case CONFIG_REMOVED:
@@ -1122,7 +1124,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 switch (event.type()) {
                     case CONFIG_ADDED:
                     case CONFIG_UPDATED:
-                        icmpHandler.updateVRouterCP(event);
+                        updateVRouterCP(event);
                     case CONFIG_REGISTERED:
                     case CONFIG_UNREGISTERED:
                     case CONFIG_REMOVED:
@@ -1132,6 +1134,50 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 }
             }
         }
+    }
+
+    /////////////////////////////////////////////////////////////////
+    //    XXX Neighbour hacking, temporary workaround will be      //
+    //    removed as soon as possible, when the bridging will      //
+    //    be implemented. For now, it's fine to leave this         //
+    /////////////////////////////////////////////////////////////////
+
+    // XXX Neighbour hacking. To store upstream connect
+    // point and vRouter connect point
+    ConnectPoint upstreamCP = null;
+    ConnectPoint vRouterCP = null;
+
+    // XXX Neighbour hacking. To update the Upstream CP
+    public void updateUPstreamCP() {
+        Set<ConnectPoint> portSubjects = cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
+        upstreamCP = null;
+        portSubjects.stream().forEach(subject -> {
+            InterfaceConfig config = cfgService.getConfig(subject, InterfaceConfig.class);
+            Set<Interface> networkInterfaces;
+            try {
+                networkInterfaces = config.getInterfaces();
+            } catch (ConfigException e) {
+                log.error("Error loading port configuration");
+                return;
+            }
+            networkInterfaces.forEach(networkInterface -> {
+                if (networkInterface.name().equals("internet-router")) {
+                    upstreamCP = subject;
+                }
+            });
+        });
+
+    }
+
+    // XXX Neighbour hacking. To update the Upstream CP
+    public void updateVRouterCP(NetworkConfigEvent event) {
+        RouterConfig config = (RouterConfig) event.config().get();
+        if (config == null) {
+            log.warn("Router config not available");
+            vRouterCP = null;
+            return;
+        }
+        vRouterCP = config.getControlPlaneConnectPoint();
     }
 
     private class InternalHostListener implements HostListener {

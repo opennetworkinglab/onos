@@ -81,8 +81,8 @@ public class RouteHandler {
         MacAddress nextHopMac = route.nextHopMac();
         ConnectPoint location = route.location();
 
-        srManager.deviceConfiguration.removeSubnet(location, prefix.getIp4Prefix());
-        srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(prefix.getIp4Prefix()));
+        srManager.deviceConfiguration.removeSubnet(location, prefix);
+        srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(prefix));
         srManager.routingRulePopulator.revokeRoute(
                 location.deviceId(), prefix, nextHopMac, location.port());
     }
