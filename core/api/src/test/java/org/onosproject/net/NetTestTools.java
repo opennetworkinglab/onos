@@ -234,6 +234,12 @@ public final class NetTestTools {
                 .build();
     }
 
+    public static TrafficSelector ethDstSelector(String macAddress) {
+        return DefaultTrafficSelector.builder()
+                .matchEthDst(MacAddress.valueOf(macAddress))
+                .build();
+    }
+
     /**
      * Builds an empty treatment.
      *

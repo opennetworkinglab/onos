@@ -24,6 +24,7 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -66,6 +67,7 @@ class AbstractLinkCollectionTest {
 
     final ConnectPoint of1p1 = connectPoint("of1", 1);
     final ConnectPoint of1p2 = connectPoint("of1", 2);
+    final ConnectPoint of1p3 = connectPoint("of1", 3);
     final ConnectPoint of2p1 = connectPoint("of2", 1);
     final ConnectPoint of2p2 = connectPoint("of2", 2);
     final ConnectPoint of2p3 = connectPoint("of2", 3);
@@ -124,6 +126,9 @@ class AbstractLinkCollectionTest {
     final TrafficSelector mpls100Selector = mplsSelector("100");
     final TrafficSelector mpls200Selector = mplsSelector("200");
     final TrafficSelector ipPrefixSelector = ipPrefixDstSelector("192.168.100.0/24");
+    final TrafficSelector ethDstSelector = ethDstSelector("C0:FF:EE:C0:FF:EE");
+    final ResourceGroup resourceGroup1 = ResourceGroup.of(1L);
+    final ResourceGroup resourceGroup2 = ResourceGroup.of(1L);
 
     final List<Constraint> constraintsForVlan = vlanConstraint();
     final List<Constraint> constraintsForMPLS = mplsConstraint();
