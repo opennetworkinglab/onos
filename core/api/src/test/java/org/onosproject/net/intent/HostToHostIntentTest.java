@@ -20,6 +20,7 @@ import org.onlab.util.DataRateUnit;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import com.google.common.collect.ImmutableList;
@@ -41,6 +42,7 @@ public class HostToHostIntentTest extends IntentTest {
     private final HostId id1 = hid("12:34:56:78:91:ab/1");
     private final HostId id2 = hid("12:34:56:78:92:ab/1");
     private final HostId id3 = hid("12:34:56:78:93:ab/1");
+    private final ResourceGroup resourceGrouop = ResourceGroup.of(0L);
 
     private static final ApplicationId APPID = new TestApplicationId("foo");
 
@@ -154,6 +156,18 @@ public class HostToHostIntentTest extends IntentTest {
 
     }
 
+    @Test
+    public void testResourceGroup() {
+        final HostToHostIntent intent = (HostToHostIntent) createWithResourceGroup();
+        assertThat("incorrect app id", intent.appId(), is(APPID));
+        assertThat("incorrect host one", intent.one(), is(id1));
+        assertThat("incorrect host two", intent.two(), is(id3));
+        assertThat("incorrect selector", intent.selector(), is(selector));
+        assertThat("incorrect treatment", intent.treatment(), is(treatment));
+        assertThat("incorrect resource group", intent.resourceGroup(), is(resourceGrouop));
+
+    }
+
     @Override
     protected Intent createOne() {
         return HostToHostIntent.builder()
@@ -173,6 +187,17 @@ public class HostToHostIntentTest extends IntentTest {
                 .two(id3)
                 .selector(selector)
                 .treatment(treatment)
+                .build();
+    }
+
+    protected Intent createWithResourceGroup() {
+        return HostToHostIntent.builder()
+                .appId(APPID)
+                .one(id1)
+                .two(id3)
+                .selector(selector)
+                .treatment(treatment)
+                .resourceGroup(resourceGrouop)
                 .build();
     }
 }

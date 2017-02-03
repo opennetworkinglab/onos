@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.FlowRule;
 
 import java.util.Collection;
@@ -43,7 +44,9 @@ public class FlowRuleIntent extends Intent {
      * @param appId application id
      * @param flowRules flow rules to be set
      * @param resources network resource to be set
+     * @deprecated 1.9.1
      */
+    @Deprecated
     public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules, Collection<NetworkResource> resources) {
         this(appId, null, flowRules, resources);
     }
@@ -55,10 +58,12 @@ public class FlowRuleIntent extends Intent {
      * @param flowRules flow rules to be set
      * @param resources network resource to be set
      * @param type protection type
+     * @deprecated 1.9.1
      */
+    @Deprecated
     public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules, Collection<NetworkResource> resources,
                           PathIntent.ProtectionType type) {
-        this(appId, null, flowRules, resources, type);
+        this(appId, null, flowRules, resources, type, null);
     }
 
     /**
@@ -69,10 +74,13 @@ public class FlowRuleIntent extends Intent {
      * @param key       key
      * @param flowRules flow rules
      * @param resources network resources
+     * @deprecated 1.9.1
      */
+    @Deprecated
     public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
                           Collection<NetworkResource> resources) {
-        this(appId, key, flowRules, resources, PathIntent.ProtectionType.PRIMARY);
+        this(appId, key, flowRules, resources,
+             PathIntent.ProtectionType.PRIMARY, null);
     }
 
     /**
@@ -84,10 +92,32 @@ public class FlowRuleIntent extends Intent {
      * @param flowRules flow rules
      * @param resources network resources
      * @param primary   primary protection type
+     * @deprecated 1.9.1
+     */
+    @Deprecated
+    public FlowRuleIntent(ApplicationId appId,
+                          Key key,
+                          Collection<FlowRule> flowRules,
+                          Collection<NetworkResource> resources,
+                          PathIntent.ProtectionType primary) {
+        this(appId, key, flowRules, resources, primary, null);
+    }
+
+    /**
+     * Creates a flow rule intent with the specified key, flow rules to be set, and
+     * required network resources.
+     *
+     * @param appId     application id
+     * @param key       key
+     * @param flowRules flow rules
+     * @param resources network resources
+     * @param primary   primary protection type
+     * @param resourceGroup resource group for this intent
      */
     public FlowRuleIntent(ApplicationId appId, Key key, Collection<FlowRule> flowRules,
-                          Collection<NetworkResource> resources, PathIntent.ProtectionType primary) {
-        super(appId, key, resources, DEFAULT_INTENT_PRIORITY);
+                          Collection<NetworkResource> resources, PathIntent.ProtectionType primary,
+                          ResourceGroup resourceGroup) {
+        super(appId, key, resources, DEFAULT_INTENT_PRIORITY, resourceGroup);
         this.flowRules = ImmutableList.copyOf(checkNotNull(flowRules));
         this.type = primary;
     }
@@ -101,7 +131,7 @@ public class FlowRuleIntent extends Intent {
      */
     public FlowRuleIntent(FlowRuleIntent intent, PathIntent.ProtectionType type) {
         this(intent.appId(), intent.key(), intent.flowRules(),
-              intent.resources(), type);
+              intent.resources(), type, intent.resourceGroup());
     }
 
     /**
@@ -139,6 +169,7 @@ public class FlowRuleIntent extends Intent {
                 .add("appId", appId())
                 .add("resources", resources())
                 .add("flowRule", flowRules)
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 }

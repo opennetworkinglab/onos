@@ -28,6 +28,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -180,6 +181,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--hashed", description = "Hashed path selection",
             required = false, multiValued = false)
     private boolean hashedPathSelection = false;
+
+    // Resource Group
+    @Option(name = "-r", aliases = "--resourceGroup", description = "Resource Group Id",
+            required = false, multiValued = false)
+    private String resourceGroupId = null;
 
 
     /**
@@ -407,6 +413,18 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             appIdForIntent = service.getAppId(appId);
         }
         return appIdForIntent;
+    }
+
+    protected ResourceGroup resourceGroup() {
+        if (resourceGroupId != null) {
+            if (resourceGroupId.toLowerCase().startsWith("0x")) {
+                return ResourceGroup.of(Long.parseUnsignedLong(resourceGroupId.substring(2), 16));
+            } else {
+                return ResourceGroup.of(Long.parseUnsignedLong(resourceGroupId));
+            }
+        } else {
+            return null;
+        }
     }
 
     /**

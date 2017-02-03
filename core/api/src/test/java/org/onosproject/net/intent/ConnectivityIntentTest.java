@@ -26,6 +26,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -64,6 +65,8 @@ public abstract class ConnectivityIntentTest extends IntentTest {
 
     public static final Set<FilteredConnectPoint> FPS1 = itemSet(new FilteredConnectPoint[]{FP1, FP3});
     public static final Set<FilteredConnectPoint> FPS2 = itemSet(new FilteredConnectPoint[]{FP2, FP3});
+
+    public static final ResourceGroup RESOURCE_GROUP = ResourceGroup.of(0L);
 
     public static final Map<ConnectPoint, TrafficSelector> VLANMATCHES = Maps.newHashMap();
     static {

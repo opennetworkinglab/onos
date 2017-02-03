@@ -22,6 +22,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -92,6 +93,11 @@ public final class PointToPointIntent extends ConnectivityIntent {
             return (Builder) super.priority(priority);
         }
 
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
+        }
+
         /**
          * Sets the ingress point of the point to point intent that will be built.
          *
@@ -140,7 +146,6 @@ public final class PointToPointIntent extends ConnectivityIntent {
             return this;
         }
 
-
         /**
          * Builds a point to point intent from the accumulated parameters.
          *
@@ -156,7 +161,8 @@ public final class PointToPointIntent extends ConnectivityIntent {
                     ingressPoint,
                     egressPoint,
                     constraints,
-                    priority
+                    priority,
+                    resourceGroup
             );
         }
     }
@@ -179,15 +185,16 @@ public final class PointToPointIntent extends ConnectivityIntent {
      *        {@code egressPoints} or {@code appId} is null.
      */
     private PointToPointIntent(ApplicationId appId,
-                              Key key,
-                              TrafficSelector selector,
-                              TrafficTreatment treatment,
-                              FilteredConnectPoint ingressPoint,
-                              FilteredConnectPoint egressPoint,
-                              List<Constraint> constraints,
-                              int priority) {
+                               Key key,
+                               TrafficSelector selector,
+                               TrafficTreatment treatment,
+                               FilteredConnectPoint ingressPoint,
+                               FilteredConnectPoint egressPoint,
+                               List<Constraint> constraints,
+                               int priority,
+                               ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), selector, treatment, constraints,
-                priority);
+                priority, resourceGroup);
 
         checkArgument(!ingressPoint.equals(egressPoint),
                 "ingress and egress should be different (ingress: %s, egress: %s)", ingressPoint, egressPoint);
@@ -258,6 +265,7 @@ public final class PointToPointIntent extends ConnectivityIntent {
                 .add("ingress", filteredIngressPoint())
                 .add("egress", filteredEgressPoint())
                 .add("constraints", constraints())
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 

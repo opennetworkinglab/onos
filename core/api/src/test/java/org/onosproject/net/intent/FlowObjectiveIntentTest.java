@@ -24,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -59,6 +60,7 @@ public class FlowObjectiveIntentTest extends IntentTest {
     private static final List<Objective> OBJECTIVES = ImmutableList.of(FO1, FO2);
     private static final Collection<NetworkResource> RESOURCES = ImmutableSet.of();
     private static final List<DeviceId> DEVICE = ImmutableList.of(DeviceId.NONE, DeviceId.NONE);
+    private static final ResourceGroup RESOURCE_GROUP = ResourceGroup.of(0L);
 
     /**
      * Tests basics of construction and getters.
@@ -66,11 +68,12 @@ public class FlowObjectiveIntentTest extends IntentTest {
     @Test
     public void basics() {
         FlowObjectiveIntent intent =
-                new FlowObjectiveIntent(APP_ID, KEY, DEVICE, OBJECTIVES, RESOURCES);
+                new FlowObjectiveIntent(APP_ID, KEY, DEVICE, OBJECTIVES, RESOURCES, RESOURCE_GROUP);
         assertEquals("incorrect app id", APP_ID, intent.appId());
         assertEquals("incorrect key", KEY, intent.key());
         assertEquals("incorrect objectives", OBJECTIVES, intent.objectives());
         assertEquals("incorrect resources", RESOURCES, intent.resources());
+        assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
         assertTrue("should be installable", intent.isInstallable());
     }
 

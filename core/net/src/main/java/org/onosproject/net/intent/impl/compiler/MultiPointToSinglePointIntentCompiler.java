@@ -122,6 +122,7 @@ public class MultiPointToSinglePointIntentCompiler
                 .filteredEgressPoints(ImmutableSet.of(intent.filteredEgressPoint()))
                 .priority(intent.priority())
                 .constraints(intent.constraints())
+                .resourceGroup(intent.resourceGroup())
                 .build();
 
         return Collections.singletonList(result);

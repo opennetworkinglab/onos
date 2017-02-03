@@ -46,6 +46,13 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect ingress", P2, intent.ingressPoint());
         assertEquals("incorrect egress", PS1, intent.egressPoints());
+
+        intent = createWithResourceGroup();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", P2, intent.ingressPoint());
+        assertEquals("incorrect egress", PS1, intent.egressPoints());
+        assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
     }
 
     @Test
@@ -61,7 +68,6 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect filtered ingress", FP1, intent.filteredIngressPoint());
         assertEquals("incorrect filtered egress", FPS2, intent.filteredEgressPoints());
-
     }
 
     @Override
@@ -83,6 +89,17 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
                 .treatment(NOP)
                 .ingressPoint(P2)
                 .egressPoints(PS1)
+                .build();
+    }
+
+    protected SinglePointToMultiPointIntent createWithResourceGroup() {
+        return SinglePointToMultiPointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoint(P2)
+                .egressPoints(PS1)
+                .resourceGroup(RESOURCE_GROUP)
                 .build();
     }
 

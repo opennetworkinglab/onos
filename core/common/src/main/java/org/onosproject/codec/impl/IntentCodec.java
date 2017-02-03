@@ -19,6 +19,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
@@ -45,6 +46,7 @@ public final class IntentCodec extends JsonCodec<Intent> {
     protected static final String STATE = "state";
     protected static final String PRIORITY = "priority";
     protected static final String RESOURCES = "resources";
+    protected static final String RESOURCE_GROUP = "resourceGroup";
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Intent";
     private static final String E_APP_ID_NOT_FOUND =
@@ -59,6 +61,9 @@ public final class IntentCodec extends JsonCodec<Intent> {
                 .put(ID, intent.id().toString())
                 .put(APP_ID, UrlEscapers.urlPathSegmentEscaper()
                         .escape(intent.appId().name()));
+        if (intent.resourceGroup() != null) {
+            result.put(RESOURCE_GROUP, intent.resourceGroup().toString());
+        }
 
         final ArrayNode jsonResources = result.putArray(RESOURCES);
 
@@ -112,6 +117,14 @@ public final class IntentCodec extends JsonCodec<Intent> {
         JsonNode priorityJson = json.get(IntentCodec.PRIORITY);
         if (priorityJson != null) {
             builder.priority(priorityJson.asInt());
+        }
+
+        JsonNode resourceGroup = json.get(IntentCodec.RESOURCE_GROUP);
+        if (resourceGroup != null) {
+            String resourceGroupId = resourceGroup.asText();
+            builder.resourceGroup(ResourceGroup.of(
+                    Long.parseUnsignedLong(resourceGroupId.substring(2), 16)
+            ));
         }
     }
 }

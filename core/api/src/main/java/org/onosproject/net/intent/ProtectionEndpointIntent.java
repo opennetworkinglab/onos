@@ -23,6 +23,7 @@ import javax.annotation.concurrent.Immutable;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription;
 
 import com.google.common.annotations.Beta;
@@ -39,13 +40,47 @@ public class ProtectionEndpointIntent extends Intent {
     private final DeviceId deviceId;
     private final ProtectedTransportEndpointDescription description;
 
-
+    /**
+     * Creates a ProtectionEndpointIntent by specific resource and description.
+     *
+     * @param appId application identification
+     * @param key intent key
+     * @param resources network resource to be set
+     * @param priority priority to use for flows from this intent
+     * @param deviceId target device id
+     * @param description protected transport endpoint description of the intent
+     * @deprecated 1.9.1
+     */
+    @Deprecated
     protected ProtectionEndpointIntent(ApplicationId appId, Key key,
-                                    Collection<NetworkResource> resources,
-                                    int priority,
-                                    DeviceId deviceId,
-                                    ProtectedTransportEndpointDescription description) {
-        super(appId, key, resources, priority);
+                                       Collection<NetworkResource> resources,
+                                       int priority,
+                                       DeviceId deviceId,
+                                       ProtectedTransportEndpointDescription description) {
+        super(appId, key, resources, priority, null);
+
+        this.deviceId = checkNotNull(deviceId);
+        this.description = checkNotNull(description);
+    }
+
+    /**
+     * Creates a ProtectionEndpointIntent by specific resource and description.
+     *
+     * @param appId application identification
+     * @param key intent key
+     * @param resources network resource to be set
+     * @param priority priority to use for flows from this intent
+     * @param deviceId target device id
+     * @param description protected transport endpoint description of the intent
+     * @param resourceGroup resource group for this intent
+     */
+    protected ProtectionEndpointIntent(ApplicationId appId, Key key,
+                                       Collection<NetworkResource> resources,
+                                       int priority,
+                                       DeviceId deviceId,
+                                       ProtectedTransportEndpointDescription description,
+                                       ResourceGroup resourceGroup) {
+        super(appId, key, resources, priority, resourceGroup);
 
         this.deviceId = checkNotNull(deviceId);
         this.description = checkNotNull(description);
@@ -146,6 +181,11 @@ public class ProtectionEndpointIntent extends Intent {
             return this;
         }
 
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
+        }
+
         public Builder deviceId(DeviceId deviceId) {
             this.deviceId = deviceId;
             return this;
@@ -163,7 +203,8 @@ public class ProtectionEndpointIntent extends Intent {
                                                 resources,
                                                 priority,
                                                 deviceId,
-                                                description);
+                                                description,
+                                                resourceGroup);
         }
 
     }

@@ -93,7 +93,9 @@ public class PathIntentFlowObjectiveCompiler
                                                         intent.key(),
                                                         devices,
                                                         objectives,
-                                                        intent.resources()));
+                                                        intent.resources(),
+                                                        intent.resourceGroup()
+        ));
     }
 
     @Override

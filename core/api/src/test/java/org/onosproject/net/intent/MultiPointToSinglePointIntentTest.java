@@ -56,6 +56,14 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", VLANMATCH1, intent.selector());
         assertEquals("incorrect ingress", PS1, intent.ingressPoints());
         assertEquals("incorrect egress", P2, intent.egressPoint());
+
+        intent = createWithResourceGroup();
+        assertEquals("incorrect id", APPID, intent.appId());
+        assertEquals("incorrect match", MATCH, intent.selector());
+        assertEquals("incorrect ingress", PS1, intent.ingressPoints());
+        assertEquals("incorrect egress", P2, intent.egressPoint());
+        assertEquals("incorrect resource group", RESOURCE_GROUP, intent.resourceGroup());
+
     }
 
     /**
@@ -106,6 +114,17 @@ public class MultiPointToSinglePointIntentTest extends ConnectivityIntentTest {
                 .treatment(NOP)
                 .ingressPoints(PS1)
                 .egressPoint(P2)
+                .build();
+    }
+
+    protected MultiPointToSinglePointIntent createWithResourceGroup() {
+        return MultiPointToSinglePointIntent.builder()
+                .appId(APPID)
+                .selector(MATCH)
+                .treatment(NOP)
+                .ingressPoints(PS1)
+                .egressPoint(P2)
+                .resourceGroup(RESOURCE_GROUP)
                 .build();
     }
 

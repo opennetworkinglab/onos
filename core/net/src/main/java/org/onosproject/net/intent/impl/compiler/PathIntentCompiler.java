@@ -88,7 +88,9 @@ public class PathIntentCompiler
                                                    intent.key(),
                                                    rules,
                                                    intent.resources(),
-                                                   intent.type()));
+                                                   intent.type(),
+                                                   intent.resourceGroup()
+        ));
     }
 
     @Override

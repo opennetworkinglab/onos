@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.slf4j.Logger;
@@ -67,9 +68,10 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
                                           FilteredConnectPoint ingressPoint,
                                           Set<FilteredConnectPoint> egressPoints,
                                           List<Constraint> constraints,
-                                          int priority) {
+                                          int priority,
+                                          ResourceGroup resourceGroup) {
         super(appId, key, ImmutableList.of(), selector, treatment, constraints,
-              priority);
+              priority, resourceGroup);
         checkNotNull(egressPoints);
         checkNotNull(ingressPoint);
         checkArgument(!egressPoints.isEmpty(), "Egress point set cannot be empty");
@@ -159,6 +161,11 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
             return (Builder) super.priority(priority);
         }
 
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
+        }
+
         /**
          * Sets the ingress point of the single point to multi point intent
          * that will be built.
@@ -221,7 +228,6 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
             return this;
         }
 
-
         /**
          * Builds a single point to multi point intent from the
          * accumulated parameters.
@@ -238,7 +244,8 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
                     ingressPoint,
                     egressPoints,
                     constraints,
-                    priority
+                    priority,
+                    resourceGroup
             );
         }
     }
@@ -308,6 +315,7 @@ public final class SinglePointToMultiPointIntent extends ConnectivityIntent {
                 .add("filteredIngressCPs", filteredIngressPoint())
                 .add("filteredEgressCP", filteredEgressPoints())
                 .add("constraints", constraints())
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 

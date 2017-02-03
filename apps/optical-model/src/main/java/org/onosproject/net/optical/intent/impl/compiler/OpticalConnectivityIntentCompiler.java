@@ -197,6 +197,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 .lambda(lambda)
                 .signalType(signalType)
                 .bidirectional(parentIntent.isBidirectional())
+                .resourceGroup(parentIntent.resourceGroup())
                 .build();
     }
 

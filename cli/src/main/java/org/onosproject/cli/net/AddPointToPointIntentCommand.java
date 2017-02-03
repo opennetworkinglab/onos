@@ -96,6 +96,7 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
                 .egressPoint(egress)
                 .constraints(constraints)
                 .priority(priority())
+                .resourceGroup(resourceGroup())
                 .build();
         service.submit(intent);
         print("Point to point intent submitted:\n%s", intent.toString());

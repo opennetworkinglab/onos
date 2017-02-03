@@ -54,6 +54,7 @@ public class TwoWayP2PIntentCompiler
                         .egressPoint(intent.two())
                         .constraints(intent.constraints())
                         .priority(intent.priority())
+                        .resourceGroup(intent.resourceGroup())
                         .build(),
                 PointToPointIntent.builder()
                         .appId(intent.appId())
@@ -64,6 +65,7 @@ public class TwoWayP2PIntentCompiler
                         .egressPoint(intent.one())
                         .constraints(intent.constraints())
                         .priority(intent.priority())
+                        .resourceGroup(intent.resourceGroup())
                         .build());
     }
 }

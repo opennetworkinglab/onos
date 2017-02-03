@@ -180,6 +180,7 @@ public class VirtualNetworkIntentCompiler
                 .constraints(intent.constraints())
                 .selector(intent.selector())
                 .treatment(intent.treatment())
+                .resourceGroup(intent.resourceGroup())
                 .build();
         log.debug("Submitting physical intent: " + physicalIntent);
         intentService.submit(physicalIntent);

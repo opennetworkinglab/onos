@@ -19,6 +19,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.ResourceGroup;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -47,6 +48,7 @@ public abstract class Intent {
     public static final int MIN_PRIORITY = 1;
 
     private final Collection<NetworkResource> resources;
+    private final ResourceGroup resourceGroup;
 
     private static IdGenerator idGenerator;
 
@@ -59,16 +61,18 @@ public abstract class Intent {
         this.key = null;
         this.resources = null;
         this.priority = DEFAULT_INTENT_PRIORITY;
+        this.resourceGroup = null;
     }
 
     /**
      * Creates a new intent.
-     *
      * @param appId     application identifier
      * @param key       optional key
      * @param resources required network resources (optional)
      * @param priority  flow rule priority
+     * @deprecated 1.9.1
      */
+    @Deprecated
     protected Intent(ApplicationId appId,
                      Key key,
                      Collection<NetworkResource> resources,
@@ -80,6 +84,30 @@ public abstract class Intent {
         this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
         this.priority = priority;
         this.resources = checkNotNull(resources);
+        this.resourceGroup = null;
+    }
+
+    /**
+     * Creates a new intent.
+     * @param appId     application identifier
+     * @param key       optional key
+     * @param resources required network resources (optional)
+     * @param priority  flow rule priority
+     * @param resourceGroup the resource group for intent
+     */
+    protected Intent(ApplicationId appId,
+                     Key key,
+                     Collection<NetworkResource> resources,
+                     int priority,
+                     ResourceGroup resourceGroup) {
+        checkState(idGenerator != null, "Id generator is not bound.");
+        checkArgument(priority <= MAX_PRIORITY && priority >= MIN_PRIORITY);
+        this.id = IntentId.valueOf(idGenerator.getNewId());
+        this.appId = checkNotNull(appId, "Application ID cannot be null");
+        this.key = (key != null) ? key : Key.of(id.fingerprint(), appId);
+        this.priority = priority;
+        this.resources = checkNotNull(resources);
+        this.resourceGroup = resourceGroup;
     }
 
     /**
@@ -90,6 +118,7 @@ public abstract class Intent {
         protected Key key;
         protected int priority = Intent.DEFAULT_INTENT_PRIORITY;
         protected Collection<NetworkResource> resources;
+        protected ResourceGroup resourceGroup;
 
         /**
          * Creates a new empty builder.
@@ -106,7 +135,8 @@ public abstract class Intent {
         protected Builder(Intent intent) {
             this.appId(intent.appId())
                     .key(intent.key())
-                    .priority(intent.priority());
+                    .priority(intent.priority())
+                    .resourceGroup(intent.resourceGroup());
         }
 
         /**
@@ -152,6 +182,17 @@ public abstract class Intent {
             this.resources = resources;
             return this;
         }
+
+        /**
+         * Sets the resource group for this intent.
+         *
+         * @param resourceGroup the resource group
+         * @return this builder
+         */
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            this.resourceGroup = resourceGroup;
+            return this;
+        }
     }
 
     /**
@@ -188,6 +229,15 @@ public abstract class Intent {
      */
     public Collection<NetworkResource> resources() {
         return resources;
+    }
+
+    /**
+     * Returns the resource group for this intent.
+     *
+     * @return the resource group; may be null
+     */
+    public ResourceGroup resourceGroup() {
+        return resourceGroup;
     }
 
     /**

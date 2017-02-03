@@ -21,6 +21,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -50,7 +51,9 @@ public class PathIntent extends ConnectivityIntent {
      * @param constraints  optional list of constraints
      * @param priority  priority to use for the generated flows
      * @throws NullPointerException {@code path} is null
+     * @deprecated 1.9.1
      */
+    @Deprecated
     protected PathIntent(ApplicationId appId,
                          Key key,
                          TrafficSelector selector,
@@ -59,7 +62,7 @@ public class PathIntent extends ConnectivityIntent {
                          List<Constraint> constraints,
                          int priority) {
         this(appId, key, selector, treatment, path, constraints, priority,
-             ProtectionType.PRIMARY);
+             ProtectionType.PRIMARY, null);
     }
 
     /**
@@ -75,6 +78,7 @@ public class PathIntent extends ConnectivityIntent {
      * @param constraints  optional list of constraints
      * @param priority  priority to use for the generated flows
      * @param type      PRIMARY or BACKUP
+     * @param resourceGroup resource group for this intent
      * @throws NullPointerException {@code path} is null
      */
     protected PathIntent(ApplicationId appId,
@@ -84,9 +88,10 @@ public class PathIntent extends ConnectivityIntent {
                          Path path,
                          List<Constraint> constraints,
                          int priority,
-                         ProtectionType type) {
+                         ProtectionType type,
+                         ResourceGroup resourceGroup) {
         super(appId, key, resources(path.links()), selector, treatment, constraints,
-              priority);
+              priority, resourceGroup);
         PathIntent.validate(path.links());
         this.path = path;
         this.type = type;
@@ -151,6 +156,11 @@ public class PathIntent extends ConnectivityIntent {
             return (Builder) super.priority(priority);
         }
 
+        @Override
+        public Builder resourceGroup(ResourceGroup resourceGroup) {
+            return (Builder) super.resourceGroup(resourceGroup);
+        }
+
         /**
          * Sets the path of the intent that will be built.
          *
@@ -182,7 +192,8 @@ public class PathIntent extends ConnectivityIntent {
                     path,
                     constraints,
                     priority,
-                    type == null ? ProtectionType.PRIMARY : type
+                    type == null ? ProtectionType.PRIMARY : type,
+                    resourceGroup
             );
         }
     }
@@ -237,6 +248,7 @@ public class PathIntent extends ConnectivityIntent {
                 .add("constraints", constraints())
                 .add("path", path)
                 .add("type", type)
+                .add("resourceGroup", resourceGroup())
                 .toString();
     }
 

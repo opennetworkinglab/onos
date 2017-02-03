@@ -259,7 +259,8 @@ public class PointToPointIntentCompiler
                                                          intent.key(),
                                                          createFailoverFlowRules(intent),
                                                          asList(ingressPoint.deviceId()),
-                                                         PathIntent.ProtectionType.FAILOVER);
+                                                         PathIntent.ProtectionType.FAILOVER,
+                                                         intent.resourceGroup());
             intentList.add(frIntent);
         } else {
             updateFailoverGroup(intent, links);
@@ -320,6 +321,7 @@ public class PointToPointIntentCompiler
                 .constraints(intent.constraints())
                 .priority(intent.priority())
                 .setType(type)
+                .resourceGroup(intent.resourceGroup())
                 .build();
     }
 
@@ -353,6 +355,7 @@ public class PointToPointIntentCompiler
                 .constraints(intent.constraints())
                 .priority(intent.priority())
                 .cost(cost)
+                .resourceGroup(intent.resourceGroup())
                 .build();
     }
 
