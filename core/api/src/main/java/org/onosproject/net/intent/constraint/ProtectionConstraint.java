@@ -17,31 +17,16 @@
 package org.onosproject.net.intent.constraint;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.Link;
-import org.onosproject.net.Path;
-import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.ResourceContext;
 
 /**
  * Constraint that determines whether to employ path protection.
  */
 @Beta
-public class ProtectionConstraint implements Constraint {
+public final class ProtectionConstraint extends MarkerConstraint {
+
     private static final ProtectionConstraint PROTECTION_CONSTRAINT = new ProtectionConstraint();
-
-    // doesn't use LinkResourceService
-    @Override
-    public double cost(Link link, ResourceContext context) {
-        return 1;
-    }
-
-    // doesn't use LinkResourceService
-    @Override
-    public boolean validate(Path path, ResourceContext context) {
-        return true;
-    }
 
     /**
      * Determines whether to utilize path protection for the given intent.

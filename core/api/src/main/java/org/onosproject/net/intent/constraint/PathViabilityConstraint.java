@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,21 @@
  */
 package org.onosproject.net.intent.constraint;
 
+import org.onosproject.net.Link;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.ResourceContext;
+
 /**
- * A constraint for intent.hashCode() based path selection.
+ * Abstract Constraint for constraints intended to influence
+ * only path viability and not influence individual link cost
+ * during path computation.
  */
-public final class HashedPathSelectionConstraint extends MarkerConstraint {
+public abstract class PathViabilityConstraint implements Constraint {
+
+    @Override
+    public final double cost(Link link, ResourceContext context) {
+        // random value, should never be used.
+        return 1.0;
+    }
 
 }

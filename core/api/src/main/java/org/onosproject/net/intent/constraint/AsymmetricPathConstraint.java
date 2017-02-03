@@ -16,51 +16,11 @@
 package org.onosproject.net.intent.constraint;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.Link;
-import org.onosproject.net.Path;
-import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.ResourceContext;
-
-import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Constraint that serves as a request for asymmetric bi-directional path.
  */
 @Beta
-public class AsymmetricPathConstraint implements Constraint {
+public final class AsymmetricPathConstraint extends MarkerConstraint {
 
-    // doesn't use LinkResourceService
-    @Override
-    public double cost(Link link, ResourceContext context) {
-        return 1;
-    }
-
-    // doesn't use LinkResourceService
-    @Override
-    public boolean validate(Path path, ResourceContext context) {
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(true);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return toStringHelper(this).toString();
-    }
 }

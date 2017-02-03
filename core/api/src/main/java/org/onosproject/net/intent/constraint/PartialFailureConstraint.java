@@ -15,30 +15,15 @@
  */
 package org.onosproject.net.intent.constraint;
 
-import org.onosproject.net.Link;
-import org.onosproject.net.Path;
 import org.onosproject.net.intent.ConnectivityIntent;
-import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.ResourceContext;
 
 /**
  * A constraint that allows intents that can only be partially compiled
  * (i.e. MultiPointToSinglePointIntent or SinglePointToMultiPointIntent)
  * to be installed when some endpoints or paths are not found.
  */
-public class PartialFailureConstraint implements Constraint {
-    // doesn't use LinkResourceService
-    @Override
-    public double cost(Link link, ResourceContext context) {
-        return 1;
-    }
-
-    // doesn't use LinkResourceService
-    @Override
-    public boolean validate(Path path, ResourceContext context) {
-        return true;
-    }
+public final class PartialFailureConstraint extends MarkerConstraint {
 
     public static boolean intentAllowsPartialFailure(Intent intent) {
         if (intent instanceof ConnectivityIntent) {
@@ -47,22 +32,6 @@ public class PartialFailureConstraint implements Constraint {
                     .anyMatch(c -> c instanceof PartialFailureConstraint);
         }
         return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return 1;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        return true;
     }
 
     @Override

@@ -37,6 +37,8 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
+import org.onosproject.net.intent.constraint.MarkerConstraint;
+import org.onosproject.net.intent.constraint.PathViabilityConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.Resource;
@@ -360,7 +362,10 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
 
             // iterate over all constraints in order and return the weight of
             // the first one with fast fail over the first failure
-            Iterator<Constraint> it = constraints.iterator();
+            Iterator<Constraint> it = constraints.stream()
+                    .filter(c -> !(c instanceof MarkerConstraint))
+                    .filter(c -> !(c instanceof PathViabilityConstraint))
+                    .iterator();
 
             if (!it.hasNext()) {
                 return DEFAULT_HOP_WEIGHT;
@@ -369,10 +374,11 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
             double cost = it.next().cost(edge.link(), resourceService::isAvailable);
             while (it.hasNext() && cost > 0) {
                 if (it.next().cost(edge.link(), resourceService::isAvailable) < 0) {
+                    // TODO shouldn't this be non-viable?
                     cost = -1;
                 }
             }
-            return new ScalarWeight(cost);
+            return ScalarWeight.toWeight(cost);
 
         }
     }
