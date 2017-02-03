@@ -12,6 +12,7 @@ COMPILE_DEPS = [
 
 BUNDLES = [
     '//apps/segmentrouting:onos-apps-segmentrouting',
+    '//apps/routing-api:onos-apps-routing-api',
     '//lib:cord-config'
 ]
 
