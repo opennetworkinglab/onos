@@ -66,5 +66,20 @@ public enum ObjectiveError {
     /**
      * An unknown error occurred.
      */
-    UNKNOWN
+    UNKNOWN,
+
+    /**
+     * Flow/Group installation retry threshold exceeded.
+     */
+    INSTALLATIONTHRESHOLDEXCEEDED,
+
+    /**
+     * Installation timeout.
+     */
+    INSTALLATIONTIMEOUT,
+
+    /**
+     * Group already exists.
+     */
+    GROUPEXISTS
 }

@@ -265,7 +265,8 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() == null ||
-                flowObjectiveStore.getNextGroup(fwd.nextId()) != null) {
+                flowObjectiveStore.getNextGroup(fwd.nextId()) != null ||
+                fwd.op() == Objective.Operation.REMOVE) {
             // fast path
             return false;
         }
