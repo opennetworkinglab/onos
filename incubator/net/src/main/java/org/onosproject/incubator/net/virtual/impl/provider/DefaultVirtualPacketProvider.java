@@ -110,7 +110,9 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
 
     @Deactivate
     public void deactivate() {
-        packetService.removeProcessor(processor);
+        if (processor != null) {
+            packetService.removeProcessor(processor);
+        }
     }
 
     @Modified
