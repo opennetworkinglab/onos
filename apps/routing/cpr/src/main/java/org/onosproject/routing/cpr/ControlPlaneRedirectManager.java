@@ -308,8 +308,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
-                        ip.ipAddress().toIpPrefix(),
                         null,
+                        ip.ipAddress().toIpPrefix(),
                         NEIGHBOR_SOLICITATION,
                         null
                 );
@@ -319,8 +319,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
-                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         null,
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         NEIGHBOR_SOLICITATION,
                         null
                 );
@@ -331,8 +331,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
-                        Ip6Address.valueOf(getSolicitNodeAddress(ip.ipAddress().toOctets())).toIpPrefix(),
                         null,
+                        Ip6Address.valueOf(getSolicitNodeAddress(ip.ipAddress().toOctets())).toIpPrefix(),
                         NEIGHBOR_SOLICITATION,
                         null
                 );
@@ -343,10 +343,10 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
+                        null,
                         Ip6Address.valueOf(
                                 getSolicitNodeAddress(getLinkLocalAddress(intf.mac().toBytes()))
                         ).toIpPrefix(),
-                        null,
                         NEIGHBOR_SOLICITATION,
                         null
                 );
@@ -356,8 +356,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
-                        null,
                         ip.ipAddress().toIpPrefix(),
+                        null,
                         NEIGHBOR_SOLICITATION,
                         intf.mac()
                 );
@@ -367,8 +367,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
-                        null,
                         Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
+                        null,
                         NEIGHBOR_SOLICITATION,
                         intf.mac()
                 );
@@ -378,8 +378,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
-                        ip.ipAddress().toIpPrefix(),
                         null,
+                        ip.ipAddress().toIpPrefix(),
                         NEIGHBOR_ADVERTISEMENT,
                         null
                 );
@@ -389,8 +389,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         intf.connectPoint().port(),
                         intf.vlan(),
-                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         null,
+                        Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
                         NEIGHBOR_ADVERTISEMENT,
                         null
                 );
@@ -400,8 +400,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
-                        null,
                         ip.ipAddress().toIpPrefix(),
+                        null,
                         NEIGHBOR_ADVERTISEMENT,
                         intf.mac()
                 );
@@ -411,8 +411,8 @@ public class ControlPlaneRedirectManager {
                 selector = buildNdpSelector(
                         controlPlanePort,
                         intf.vlan(),
-                        null,
                         Ip6Address.valueOf(getLinkLocalAddress(intf.mac().toBytes())).toIpPrefix(),
+                        null,
                         NEIGHBOR_ADVERTISEMENT,
                         intf.mac()
                 );
@@ -447,7 +447,7 @@ public class ControlPlaneRedirectManager {
 
         // create nextObjectives for forwarding to the controlPlaneConnectPoint
         DeviceId deviceId = intf.connectPoint().deviceId();
-        PortNumber controlPlanePort = intf.connectPoint().port();
+        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
         int cpNextId;
         if (intf.vlan() == VlanId.NONE) {
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
@@ -616,7 +616,7 @@ public class ControlPlaneRedirectManager {
             selector.matchIPv6Src(srcIp);
         }
         if (dstIp != null) {
-            selector.matchIPv6Dst(srcIp);
+            selector.matchIPv6Dst(dstIp);
         }
         if (srcMac != null) {
             selector.matchEthSrc(srcMac);
@@ -688,11 +688,15 @@ public class ControlPlaneRedirectManager {
                 return;
             }
 
-            // Generate L3 Unicast groups and store it in the map
+            // Generate L3 Unicast group for the traffic towards vRouter
+            // XXX This approach will change with the HA design
             int toRouterL3Unicast = createPeerGroup(peer.mac(), peerIntf.get().mac(),
-                    peer.vlan(), peer.location().deviceId(), peerIntf.get().connectPoint().port());
+                    peer.vlan(), peer.location().deviceId(), controlPlaneConnectPoint.port());
+            // Generate L3 Unicast group for the traffic towards the upStream
+            // XXX This approach will change with the HA design
             int toPeerL3Unicast = createPeerGroup(peerIntf.get().mac(), peer.mac(),
                     peer.vlan(), peer.location().deviceId(), peer.location().port());
+            // Store the next objectives in the map
             peerNextId.put(peer, ImmutableSortedSet.of(toRouterL3Unicast, toPeerL3Unicast));
 
             // From peer to router

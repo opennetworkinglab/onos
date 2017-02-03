@@ -16,6 +16,7 @@ osgi_jar_with_tests (
 )
 
 BUNDLES = [
+    '//apps/routing/common:onos-apps-routing-common',
     '//apps/routing/cpr:onos-apps-routing-cpr',
     '//apps/routing-api:onos-apps-routing-api',
 ]
