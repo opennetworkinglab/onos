@@ -15,12 +15,41 @@
  */
 package org.onosproject.mapping;
 
+import org.slf4j.Logger;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Default implementation of MappingEntry.
  */
 public class DefaultMappingEntry extends DefaultMapping implements MappingEntry {
+
+    private static final Logger log = getLogger(DefaultMappingEntry.class);
+
+    private MappingEntryState state;
+
+    /**
+     * Creates a mapping entry specified with the mapping, state information.
+     *
+     * @param mapping mapping
+     * @param state   mapping state
+     */
+    public DefaultMappingEntry(Mapping mapping, MappingEntryState state) {
+        super(mapping);
+        this.state = state;
+    }
+
     @Override
     public MappingEntryState state() {
-        return null;
+        return state;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("mapping", super.toString())
+                .add("state", state)
+                .toString();
     }
 }

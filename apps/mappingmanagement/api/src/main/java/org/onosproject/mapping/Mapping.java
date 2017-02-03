@@ -45,14 +45,28 @@ public interface Mapping {
     DeviceId deviceId();
 
     /**
-     * {@inheritDoc}
+     * Obtains the mapping key that is used for query the mapping entry.
      *
+     * @return mapping key
+     */
+    MappingKey key();
+
+    /**
+     * Obtains the mapping value that is queried using the mapping key.
+     *
+     * @return mapping value
+     */
+    MappingValue value();
+
+    /**
+     * {@inheritDoc}
+     * <p>
      * Equality for mappings only considers 'match equality'. This means that
      * two mappings with the same match conditions will be equal.
      *
-     * @param   obj   the reference object with which to compare.
-     * @return  {@code true} if this object is the same as the obj
-     *          argument; {@code false} otherwise.
+     * @param obj the reference object with which to compare.
+     * @return {@code true} if this object is the same as the obj
+     * argument; {@code false} otherwise.
      */
     boolean equals(Object obj);
 
@@ -60,6 +74,14 @@ public interface Mapping {
      * A mapping builder.
      */
     interface Builder {
+
+        /**
+         * Assigns an id value to this mapping.
+         *
+         * @param id a long value
+         * @return this builder object
+         */
+        Builder withId(long id);
 
         /**
          * Assigns the application that built this mapping to this object.
@@ -79,6 +101,22 @@ public interface Mapping {
          * @return this builder object
          */
         Builder forDevice(DeviceId deviceId);
+
+        /**
+         * Sets the mapping key for this mapping.
+         *
+         * @param key mapping key
+         * @return this builder object
+         */
+        Builder withKey(MappingKey key);
+
+        /**
+         * Sets the mapping value for this mapping.
+         *
+         * @param value mapping value
+         * @return this builder object
+         */
+        Builder withValue(MappingValue value);
 
         /**
          * Builds a mapping object.
