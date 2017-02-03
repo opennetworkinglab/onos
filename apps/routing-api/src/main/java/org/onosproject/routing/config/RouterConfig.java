@@ -28,7 +28,10 @@ import java.util.List;
 
 /**
  * Routing configuration.
+ *
+ * @deprecated in Junco release. Use RoutersConfig instead.
  */
+@Deprecated
 public class RouterConfig extends Config<ApplicationId> {
 
     private static final String CP_CONNECT_POINT = "controlPlaneConnectPoint";

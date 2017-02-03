@@ -46,6 +46,7 @@ import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.LocalIpPrefixEntry;
 import org.onosproject.routing.config.ReactiveRoutingConfig;
 import org.onosproject.routing.config.RouterConfig;
+import org.onosproject.routing.config.RoutersConfig;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,15 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
         }
     };
 
+    private ConfigFactory<ApplicationId, RoutersConfig> routersConfigFactory =
+            new ConfigFactory<ApplicationId, RoutersConfig>(
+                    SubjectFactories.APP_SUBJECT_FACTORY, RoutersConfig.class, "routers", true) {
+                @Override
+                public RoutersConfig createConfig() {
+                    return new RoutersConfig();
+                }
+            };
+
     private ConfigFactory<ApplicationId, ReactiveRoutingConfig>
             reactiveRoutingConfigFactory =
             new ConfigFactory<ApplicationId, ReactiveRoutingConfig>(
@@ -125,6 +135,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
         configService.addListener(configListener);
         registry.registerConfigFactory(bgpConfigFactory);
         registry.registerConfigFactory(routerConfigFactory);
+        registry.registerConfigFactory(routersConfigFactory);
         registry.registerConfigFactory(reactiveRoutingConfigFactory);
         setUpConfiguration();
         log.info("Routing configuration service started");
@@ -134,6 +145,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     public void deactivate() {
         registry.unregisterConfigFactory(bgpConfigFactory);
         registry.unregisterConfigFactory(routerConfigFactory);
+        registry.unregisterConfigFactory(routersConfigFactory);
         registry.unregisterConfigFactory(reactiveRoutingConfigFactory);
         configService.removeListener(configListener);
         log.info("Routing configuration service stopped");
