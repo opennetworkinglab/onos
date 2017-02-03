@@ -151,8 +151,12 @@ public class SimpleVirtualFlowRuleStore
 
     @Override
     public int getFlowRuleCount(NetworkId networkId) {
-
         int sum = 0;
+
+        if (flowEntries.get(networkId) == null) {
+            return 0;
+        }
+
         for (ConcurrentMap<FlowId, List<StoredFlowEntry>> ft :
                 flowEntries.get(networkId).values()) {
             for (List<StoredFlowEntry> fes : ft.values()) {

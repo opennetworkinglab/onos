@@ -40,6 +40,7 @@ import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
@@ -54,6 +55,7 @@ import org.onosproject.incubator.net.virtual.impl.provider.VirtualProviderManage
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowObjectiveStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowRuleStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualGroupStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualPacketStore;
@@ -833,7 +835,8 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
                 .add(ClusterService.class, new ClusterServiceAdapter())
                 .add(VirtualNetworkFlowRuleStore.class, new SimpleVirtualFlowRuleStore())
                 .add(VirtualNetworkPacketStore.class, new SimpleVirtualPacketStore())
-                .add(VirtualNetworkGroupStore.class, new SimpleVirtualGroupStore());
+                .add(VirtualNetworkGroupStore.class, new SimpleVirtualGroupStore())
+                .add(VirtualNetworkFlowObjectiveStore.class, new SimpleVirtualFlowObjectiveStore());
 
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowRuleService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PacketService.class);

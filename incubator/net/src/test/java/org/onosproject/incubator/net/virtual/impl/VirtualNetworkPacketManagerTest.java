@@ -33,13 +33,18 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
+import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkPacketStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.impl.provider.VirtualProviderManager;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
+import org.onosproject.incubator.net.virtual.provider.VirtualFlowRuleProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowObjectiveStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowRuleStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualPacketStore;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetTestTools;
@@ -49,6 +54,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.FlowObjectiveServiceAdapter;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -57,6 +64,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestStorageService;
 
 import java.nio.ByteBuffer;
@@ -95,12 +103,17 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
 
     private ApplicationId appId = new TestApplicationId("VirtualPacketManagerTest");
 
+    private VirtualFlowRuleProvider flowRuleProvider = new TestFlowRuleProvider();
+    private SimpleVirtualFlowRuleStore flowRuleStore;
+    private SimpleVirtualFlowObjectiveStore flowObjectiveStore;
+
     @Before
     public void setUp() throws TestUtils.TestUtilsException {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
         TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
-        TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
+        StorageService storageService = new TestStorageService();
+        TestUtils.setField(virtualNetworkManagerStore, "storageService", storageService);
         virtualNetworkManagerStore.activate();
 
         manager = new VirtualNetworkManager();
@@ -109,8 +122,15 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
         manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 
+        flowObjectiveStore = new SimpleVirtualFlowObjectiveStore();
+        TestUtils.setField(flowObjectiveStore, "storageService", storageService);
+        flowObjectiveStore.activate();
+        flowRuleStore = new SimpleVirtualFlowRuleStore();
+        flowRuleStore.activate();
+
         providerRegistryService = new VirtualProviderManager();
         providerRegistryService.registerProvider(provider);
+        providerRegistryService.registerProvider(flowRuleProvider);
 
         testDirectory = new TestServiceDirectory()
                 .add(VirtualNetworkStore.class, virtualNetworkManagerStore)
@@ -118,6 +138,8 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
                 .add(VirtualProviderRegistryService.class, providerRegistryService)
                 .add(EventDeliveryService.class, eventDeliveryService)
                 .add(ClusterService.class, new ClusterServiceAdapter())
+                .add(VirtualNetworkFlowRuleStore.class, flowRuleStore)
+                .add(VirtualNetworkFlowObjectiveStore.class, flowObjectiveStore)
                 .add(VirtualNetworkPacketStore.class, packetStore);
         TestUtils.setField(manager, "serviceDirectory", testDirectory);
 
@@ -371,6 +393,29 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
                 }
             }
             return false;
+        }
+    }
+
+    private class TestFlowRuleProvider extends AbstractVirtualProvider
+            implements VirtualFlowRuleProvider {
+
+        protected TestFlowRuleProvider() {
+            super(new ProviderId("test", "org.onosproject.virtual.testprovider"));
+        }
+
+        @Override
+        public void applyFlowRule(NetworkId networkId, FlowRule... flowRules) {
+
+        }
+
+        @Override
+        public void removeFlowRule(NetworkId networkId, FlowRule... flowRules) {
+
+        }
+
+        @Override
+        public void executeBatch(NetworkId networkId, FlowRuleBatchOperation batch) {
+
         }
     }
 }
