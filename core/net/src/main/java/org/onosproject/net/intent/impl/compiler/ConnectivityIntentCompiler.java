@@ -193,7 +193,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
             Iterator<Constraint> it = constraints.iterator();
 
             if (!it.hasNext()) {
-                return new ScalarWeight(HOP_WEIGHT_VALUE);
+                return DEFAULT_HOP_WEIGHT;
             }
 
             double cost = it.next().cost(edge.link(), resourceService::isAvailable);
