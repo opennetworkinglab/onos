@@ -813,16 +813,44 @@ public class FlowEntryBuilder {
                 builder.matchIPDst(ip4Prefix);
                 break;
             case TCP_SRC:
-                builder.matchTcpSrc(TpPort.tpPort(match.get(MatchField.TCP_SRC).getPort()));
+                if (match.isPartiallyMasked(MatchField.TCP_SRC)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.TCP_SRC);
+                    builder.matchTcpSrcMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                              TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchTcpSrc(TpPort.tpPort(match.get(MatchField.TCP_SRC).getPort()));
+                }
                 break;
             case TCP_DST:
-                builder.matchTcpDst(TpPort.tpPort(match.get(MatchField.TCP_DST).getPort()));
+                if (match.isPartiallyMasked(MatchField.TCP_DST)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.TCP_DST);
+                    builder.matchTcpDstMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                              TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchTcpDst(TpPort.tpPort(match.get(MatchField.TCP_DST).getPort()));
+                }
                 break;
             case UDP_SRC:
-                builder.matchUdpSrc(TpPort.tpPort(match.get(MatchField.UDP_SRC).getPort()));
+                if (match.isPartiallyMasked(MatchField.UDP_SRC)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.UDP_SRC);
+                    builder.matchUdpSrcMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                              TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchUdpSrc(TpPort.tpPort(match.get(MatchField.UDP_SRC).getPort()));
+                }
                 break;
             case UDP_DST:
-                builder.matchUdpDst(TpPort.tpPort(match.get(MatchField.UDP_DST).getPort()));
+                if (match.isPartiallyMasked(MatchField.UDP_DST)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.UDP_DST);
+                    builder.matchUdpDstMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                              TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchUdpDst(TpPort.tpPort(match.get(MatchField.UDP_DST).getPort()));
+                }
                 break;
             case MPLS_LABEL:
                 builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
@@ -832,10 +860,24 @@ public class FlowEntryBuilder {
                 builder.matchMplsBos(match.get(MatchField.MPLS_BOS).getValue());
                 break;
             case SCTP_SRC:
-                builder.matchSctpSrc(TpPort.tpPort(match.get(MatchField.SCTP_SRC).getPort()));
+                if (match.isPartiallyMasked(MatchField.SCTP_SRC)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.SCTP_SRC);
+                    builder.matchSctpSrcMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                               TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchSctpSrc(TpPort.tpPort(match.get(MatchField.SCTP_SRC).getPort()));
+                }
                 break;
             case SCTP_DST:
-                builder.matchSctpDst(TpPort.tpPort(match.get(MatchField.SCTP_DST).getPort()));
+                if (match.isPartiallyMasked(MatchField.SCTP_DST)) {
+                    Masked<org.projectfloodlight.openflow.types.TransportPort> maskedPort =
+                            match.getMasked(MatchField.SCTP_DST);
+                    builder.matchSctpDstMasked(TpPort.tpPort(maskedPort.getValue().getPort()),
+                                               TpPort.tpPort(maskedPort.getMask().getPort()));
+                } else {
+                    builder.matchSctpDst(TpPort.tpPort(match.get(MatchField.SCTP_DST).getPort()));
+                }
                 break;
             case ICMPV4_TYPE:
                 byte icmpType = (byte) match.get(MatchField.ICMPV4_TYPE).getType();

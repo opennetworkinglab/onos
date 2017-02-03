@@ -90,20 +90,38 @@ public interface Criterion {
         /** TCP source port. */
         TCP_SRC,
 
+        /** TCP source port with masking. */
+        TCP_SRC_MASKED,
+
         /** TCP destination port. */
         TCP_DST,
+
+        /** TCP destination port with masking. */
+        TCP_DST_MASKED,
 
         /** UDP source port. */
         UDP_SRC,
 
+        /** UDP source port with masking. */
+        UDP_SRC_MASKED,
+
         /** UDP destination port. */
         UDP_DST,
+
+        /** UDP destination port with masking. */
+        UDP_DST_MASKED,
 
         /** SCTP source port. */
         SCTP_SRC,
 
+        /** SCTP source port with masking. */
+        SCTP_SRC_MASKED,
+
         /** SCTP destination port. */
         SCTP_DST,
+
+        /** SCTP destination port with masking. */
+        SCTP_DST_MASKED,
 
         /** ICMP type. */
         ICMPV4_TYPE,

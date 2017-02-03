@@ -308,30 +308,66 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.TCP_SRC,
                                   TransportPort.of(tcpPortCriterion.tcpPort().toInt()));
                 break;
+            case TCP_SRC_MASKED:
+                tcpPortCriterion = (TcpPortCriterion) c;
+                mBuilder.setMasked(MatchField.TCP_SRC,
+                                   TransportPort.of(tcpPortCriterion.tcpPort().toInt()),
+                                   TransportPort.of(tcpPortCriterion.mask().toInt()));
+                break;
             case TCP_DST:
                 tcpPortCriterion = (TcpPortCriterion) c;
                 mBuilder.setExact(MatchField.TCP_DST,
                                   TransportPort.of(tcpPortCriterion.tcpPort().toInt()));
+                break;
+            case TCP_DST_MASKED:
+                tcpPortCriterion = (TcpPortCriterion) c;
+                mBuilder.setMasked(MatchField.TCP_DST,
+                                   TransportPort.of(tcpPortCriterion.tcpPort().toInt()),
+                                   TransportPort.of(tcpPortCriterion.mask().toInt()));
                 break;
             case UDP_SRC:
                 udpPortCriterion = (UdpPortCriterion) c;
                 mBuilder.setExact(MatchField.UDP_SRC,
                                   TransportPort.of(udpPortCriterion.udpPort().toInt()));
                 break;
+            case UDP_SRC_MASKED:
+                udpPortCriterion = (UdpPortCriterion) c;
+                mBuilder.setMasked(MatchField.UDP_SRC,
+                                   TransportPort.of(udpPortCriterion.udpPort().toInt()),
+                                   TransportPort.of(udpPortCriterion.mask().toInt()));
+                break;
             case UDP_DST:
                 udpPortCriterion = (UdpPortCriterion) c;
                 mBuilder.setExact(MatchField.UDP_DST,
                                   TransportPort.of(udpPortCriterion.udpPort().toInt()));
+                break;
+            case UDP_DST_MASKED:
+                udpPortCriterion = (UdpPortCriterion) c;
+                mBuilder.setMasked(MatchField.UDP_DST,
+                                   TransportPort.of(udpPortCriterion.udpPort().toInt()),
+                                   TransportPort.of(udpPortCriterion.mask().toInt()));
                 break;
             case SCTP_SRC:
                 sctpPortCriterion = (SctpPortCriterion) c;
                 mBuilder.setExact(MatchField.SCTP_SRC,
                                   TransportPort.of(sctpPortCriterion.sctpPort().toInt()));
                 break;
+            case SCTP_SRC_MASKED:
+                sctpPortCriterion = (SctpPortCriterion) c;
+                mBuilder.setMasked(MatchField.SCTP_SRC,
+                                   TransportPort.of(sctpPortCriterion.sctpPort().toInt()),
+                                   TransportPort.of(sctpPortCriterion.mask().toInt()));
+                break;
             case SCTP_DST:
                 sctpPortCriterion = (SctpPortCriterion) c;
                 mBuilder.setExact(MatchField.SCTP_DST,
                                   TransportPort.of(sctpPortCriterion.sctpPort().toInt()));
+                break;
+            case SCTP_DST_MASKED:
+                sctpPortCriterion = (SctpPortCriterion) c;
+                mBuilder.setMasked(MatchField.SCTP_DST,
+                                   TransportPort.of(sctpPortCriterion.sctpPort().toInt()),
+                                   TransportPort.of(sctpPortCriterion.mask().toInt()));
                 break;
             case ICMPV4_TYPE:
                 IcmpTypeCriterion icmpType = (IcmpTypeCriterion) c;

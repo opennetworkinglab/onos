@@ -132,6 +132,12 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.EXTENSION, new FormatUnknown());
         formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.TCP_SRC_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.TCP_DST_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.UDP_SRC_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.UDP_DST_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.SCTP_SRC_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.SCTP_DST_MASKED, new FormatUnknown());
 
     }
 
