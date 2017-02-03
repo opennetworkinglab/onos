@@ -353,6 +353,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "requestInterceptsEnabled", "false");
         compCfgService.preSetProperty("org.onosproject.dhcprelay.DhcpRelay",
                                       "arpEnabled", "false");
+        compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
+                                      "greedyLearningIpv6", "true");
+
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();

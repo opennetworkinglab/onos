@@ -206,21 +206,20 @@ public class HostMonitor implements TimerTask {
         }
     }
 
-    private void sendProbe(ConnectPoint connectPoint,
-                           IpAddress targetIp,
-                           IpAddress sourceIp, MacAddress sourceMac,
-                           VlanId vlan) {
+    public void sendProbe(ConnectPoint connectPoint,
+                          IpAddress targetIp,
+                          IpAddress sourceIp,
+                          MacAddress sourceMac,
+                          VlanId vlan) {
         Ethernet probePacket;
 
         if (targetIp.isIp4()) {
             // IPv4: Use ARP
             probePacket = buildArpRequest(targetIp, sourceIp, sourceMac, vlan);
         } else {
-            /*
-             * IPv6: Use Neighbor Discovery. According to the NDP protocol,
-             * we should use the solicitation node address as IPv6 destination
-             * and the multicast mac address as Ethernet destination.
-             */
+             // IPv6: Use Neighbor Discovery. According to the NDP protocol,
+             // we should use the solicitation node address as IPv6 destination
+             // and the multicast mac address as Ethernet destination.
             byte[] destIp = IPv6.getSolicitNodeAddress(targetIp.toOctets());
             probePacket = NeighborSolicitation.buildNdpSolicit(
                     targetIp.toOctets(),

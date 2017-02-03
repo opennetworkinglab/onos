@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -60,6 +61,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static org.onlab.packet.IPv6.getLinkLocalAddress;
+import static org.onosproject.net.link.ProbedLinkProvider.DEFAULT_MAC;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
@@ -104,7 +107,6 @@ public class HostManager
 
     @Property(name = "allowDuplicateIps", boolValue = true,
             label = "Enable removal of duplicate ip address")
-
     private boolean allowDuplicateIps = true;
 
     @Property(name = "monitorHosts", boolValue = false,
@@ -114,6 +116,10 @@ public class HostManager
     @Property(name = "probeRate", longValue = 30000,
             label = "Set the probe Rate in milli seconds")
     private long probeRate = 30000;
+
+    @Property(name = "greedyLearningIpv6", boolValue = false,
+            label = "Enable/Disable greedy learning of IPv6 link local address")
+    private boolean greedyLearningIpv6 = false;
 
     private HostMonitor monitor;
 
@@ -195,6 +201,16 @@ public class HostManager
             allowDuplicateIps = flag;
             log.info("Removal of duplicate ip address is {}",
                      allowDuplicateIps ? "disabled" : "enabled");
+        }
+
+        flag = Tools.isPropertyEnabled(properties, "greedyLearningIpv6");
+        if (flag == null) {
+            log.info("greedy learning is not enabled " +
+                             "using current value of {}", greedyLearningIpv6);
+        } else {
+            greedyLearningIpv6 = flag;
+            log.info("Configured. greedyLearningIpv6 {}",
+                     greedyLearningIpv6 ? "enabled" : "disabled");
         }
 
     }
@@ -329,6 +345,43 @@ public class HostManager
                 hostDescription.ipAddress().forEach(ip -> {
                     monitor.addMonitoringFor(ip);
                 });
+            }
+
+            // Greedy learning of IPv6 host. We have to disable the greedy
+            // learning of configured hosts. Validate hosts each time will
+            // overwrite the learnt information with the configured informations.
+            if (greedyLearningIpv6) {
+                // Auto-generation of the IPv6 link local address
+                // using the mac address
+                Ip6Address targetIp6Address = Ip6Address.valueOf(
+                        getLinkLocalAddress(hostId.mac().toBytes())
+                );
+                // If we already know this guy we don't need to do other
+                if (!hostDescription.ipAddress().contains(targetIp6Address)) {
+                    Host host = store.getHost(hostId);
+                    // Configured host, skip it.
+                    if (host != null && host.configured()) {
+                        return;
+                    }
+                    // Host does not exist in the store or the target is not known
+                    if ((host == null || !host.ipAddresses().contains(targetIp6Address))) {
+                        // We generate ONOS ip from the ONOS default mac
+                        // We could use the mac generated for the link
+                        // discovery but maybe does not worth
+                        MacAddress onosMacAddress = MacAddress.valueOf(DEFAULT_MAC);
+                        Ip6Address onosIp6Address = Ip6Address.valueOf(
+                                getLinkLocalAddress(onosMacAddress.toBytes())
+                        );
+                        // We send a probe using the monitoring service
+                        monitor.sendProbe(
+                                hostDescription.location(),
+                                targetIp6Address,
+                                onosIp6Address,
+                                onosMacAddress,
+                                hostId.vlanId()
+                        );
+                    }
+                }
             }
         }
 
