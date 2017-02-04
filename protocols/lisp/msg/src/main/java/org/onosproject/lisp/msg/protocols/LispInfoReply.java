@@ -15,7 +15,7 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
-import org.onosproject.lisp.msg.types.LispNatLcafAddress;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress;
 
 /**
  * LISP info reply message interface.

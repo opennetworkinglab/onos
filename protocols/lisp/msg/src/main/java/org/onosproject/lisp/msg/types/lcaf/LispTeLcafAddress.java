@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -21,13 +21,13 @@ import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispTeRecord.TeRecordWriter;
+import org.onosproject.lisp.msg.types.LispAddressReader;
+import org.onosproject.lisp.msg.types.LispAddressWriter;
 
 import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.onosproject.lisp.msg.types.LispLcafAddress.COMMON_HEADER_SIZE;
 
 /**
  * Traffic Engineering (TE) type LCAF address class.
@@ -161,7 +161,7 @@ public final class LispTeLcafAddress extends LispLcafAddress {
             int lcafIndex = byteBuf.writerIndex();
             LispLcafAddress.serializeCommon(byteBuf, address);
 
-            TeRecordWriter writer = new TeRecordWriter();
+            LispTeRecord.TeRecordWriter writer = new LispTeRecord.TeRecordWriter();
 
             List<LispTeRecord> teRecords = address.getTeRecords();
             for (int i = 0; i < teRecords.size(); i++) {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 import com.google.common.testing.EqualsTester;
 import io.netty.buffer.ByteBuf;
@@ -24,9 +24,10 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestAddressBuilder;
-import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestLcafAddressReader;
-import org.onosproject.lisp.msg.types.LispSourceDestLcafAddress.SourceDestLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
+import org.onosproject.lisp.msg.types.lcaf.LispSourceDestLcafAddress.SourceDestAddressBuilder;
+import org.onosproject.lisp.msg.types.lcaf.LispSourceDestLcafAddress.SourceDestLcafAddressReader;
+import org.onosproject.lisp.msg.types.lcaf.LispSourceDestLcafAddress.SourceDestLcafAddressWriter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

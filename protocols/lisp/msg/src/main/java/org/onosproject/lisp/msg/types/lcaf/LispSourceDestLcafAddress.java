@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressReader;
-import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
+import org.onosproject.lisp.msg.types.LispAddressReader;
+import org.onosproject.lisp.msg.types.LispAddressWriter;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.Objects;
 

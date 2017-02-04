@@ -28,9 +28,9 @@ import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.DefaultInfoReplyB
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyReader;
 import org.onosproject.lisp.msg.protocols.DefaultLispInfoReply.InfoReplyWriter;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress;
 import org.onosproject.lisp.msg.protocols.LispInfoReply.InfoReplyBuilder;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress.NatAddressBuilder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

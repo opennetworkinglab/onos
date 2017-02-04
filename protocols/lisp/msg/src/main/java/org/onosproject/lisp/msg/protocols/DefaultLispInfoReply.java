@@ -24,9 +24,9 @@ import org.onosproject.lisp.msg.authentication.LispAuthenticationKeyEnum;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressReader;
-import org.onosproject.lisp.msg.types.LispLcafAddress.LcafAddressWriter;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress;
+import org.onosproject.lisp.msg.types.lcaf.LispLcafAddress.LcafAddressReader;
+import org.onosproject.lisp.msg.types.lcaf.LispLcafAddress.LcafAddressWriter;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

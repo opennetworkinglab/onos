@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 /**
  * LISP Canonical Address Format (LCAF) Enumeration class.

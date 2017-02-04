@@ -34,7 +34,7 @@ import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 import org.onosproject.lisp.msg.types.LispIpv6Address;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress.NatAddressBuilder;
 import org.onosproject.lisp.msg.types.LispNoAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

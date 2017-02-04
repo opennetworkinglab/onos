@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 import io.netty.buffer.ByteBuf;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAddressReader;
+import org.onosproject.lisp.msg.types.LispAddressWriter;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 import java.util.Objects;
 
@@ -161,7 +164,7 @@ public final class LispAsLcafAddress extends LispLcafAddress {
             LispLcafAddress.deserializeCommon(byteBuf);
 
             int asNumber = (int) byteBuf.readUnsignedInt();
-            LispAfiAddress address = new AfiAddressReader().readFrom(byteBuf);
+            LispAfiAddress address = new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
 
             return new AsAddressBuilder()
                             .withAsNumber(asNumber)
@@ -185,7 +188,7 @@ public final class LispAsLcafAddress extends LispLcafAddress {
 
             byteBuf.writeInt(address.getAsNumber());
 
-            new AfiAddressWriter().writeTo(byteBuf, address.getAddress());
+            new LispAfiAddress.AfiAddressWriter().writeTo(byteBuf, address.getAddress());
 
             LispLcafAddress.updateLength(lcafIndex, byteBuf);
         }

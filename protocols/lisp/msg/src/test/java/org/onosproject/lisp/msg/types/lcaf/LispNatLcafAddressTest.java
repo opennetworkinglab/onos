@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.lisp.msg.types;
+package org.onosproject.lisp.msg.types.lcaf;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
@@ -25,9 +25,11 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatAddressBuilder;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressReader;
-import org.onosproject.lisp.msg.types.LispNatLcafAddress.NatLcafAddressWriter;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispIpv4Address;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress.NatAddressBuilder;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress.NatLcafAddressReader;
+import org.onosproject.lisp.msg.types.lcaf.LispNatLcafAddress.NatLcafAddressWriter;
 
 import java.util.List;
 
