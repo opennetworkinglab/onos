@@ -111,7 +111,7 @@ public interface FlowRule {
 
     /**
      * Returns the hard timeout for this flow requested by an application.
-     * This paremeter configure switch's flow hard timeout.
+     * This parameter configure switch's flow hard timeout.
      * In case of controller-switch connection lost, this variable can be useful.
      * @return integer value of the hard Timeout
      */
@@ -275,6 +275,8 @@ public interface FlowRule {
      * Returns the third party original flow rule.
      *
      * @return FlowRuleExtPayLoad
+     * @deprecated in Junco release
      */
+    @Deprecated
     FlowRuleExtPayLoad payLoad();
 }

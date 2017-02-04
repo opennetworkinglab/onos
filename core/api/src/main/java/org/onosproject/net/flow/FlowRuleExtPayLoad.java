@@ -15,13 +15,16 @@
  */
 package org.onosproject.net.flow;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 import java.util.Arrays;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Represents for 3rd-party private original flow.
+ *
+ * @deprecated in Junco release
  */
+@Deprecated
 public final class FlowRuleExtPayLoad {
     private final byte[] payLoad;
 

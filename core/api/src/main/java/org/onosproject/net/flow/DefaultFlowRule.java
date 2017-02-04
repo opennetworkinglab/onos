@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow;
 
-import com.google.common.annotations.Beta;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashCode;
@@ -32,6 +31,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Default flow rule.
+ */
 public class DefaultFlowRule implements FlowRule {
 
     private final DeviceId deviceId;
@@ -53,6 +55,11 @@ public class DefaultFlowRule implements FlowRule {
     private final Integer tableId;
     private final FlowRuleExtPayLoad payLoad;
 
+    /**
+     * Creates a new flow rule from an existing rule.
+     *
+     * @param rule new flow rule
+     */
     public DefaultFlowRule(FlowRule rule) {
         this.deviceId = rule.deviceId();
         this.priority = rule.priority();
@@ -94,8 +101,6 @@ public class DefaultFlowRule implements FlowRule {
         this.payLoad = null;
     }
 
-
-
     /**
      * Support for the third party flow rule. Creates a flow rule of flow table.
      *
@@ -108,7 +113,9 @@ public class DefaultFlowRule implements FlowRule {
      * @param timeout the timeout for this flow requested by an application
      * @param permanent whether the flow is permanent i.e. does not time out
      * @param payLoad 3rd-party origin private flow
+     * @deprecated in Junco release. Use FlowRule.Builder instead.
      */
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, int timeout, boolean permanent,
@@ -130,7 +137,9 @@ public class DefaultFlowRule implements FlowRule {
      * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
      * @param permanent whether the flow is permanent i.e. does not time out
      * @param payLoad 3rd-party origin private flow
+     * @deprecated in Junco release. Use FlowRule.Builder instead.
      */
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, int timeout, int hardTimeout, boolean permanent,
@@ -178,8 +187,9 @@ public class DefaultFlowRule implements FlowRule {
      * @param timeout the timeout for this flow requested by an application
      * @param permanent whether the flow is permanent i.e. does not time out
      * @param payLoad 3rd-party origin private flow
-     *
+     * @deprecated in Junco release. Use FlowRule.Builder instead.
      */
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, GroupId groupId, int timeout,
@@ -202,8 +212,9 @@ public class DefaultFlowRule implements FlowRule {
      * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
      * @param permanent whether the flow is permanent i.e. does not time out
      * @param payLoad 3rd-party origin private flow
-     *
+     * @deprecated in Junco release. Use FlowRule.Builder instead.
      */
+    @Deprecated
     public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
                            TrafficTreatment treatment, int priority,
                            ApplicationId appId, GroupId groupId, int timeout, int hardTimeout,
@@ -272,7 +283,6 @@ public class DefaultFlowRule implements FlowRule {
         return treatment;
     }
 
-    @Override
     /*
      * The priority and statistics can change on a given treatment and selector
      *
@@ -280,6 +290,7 @@ public class DefaultFlowRule implements FlowRule {
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public int hashCode() {
         return Objects.hash(deviceId, selector, tableId, payLoad);
     }
@@ -289,7 +300,6 @@ public class DefaultFlowRule implements FlowRule {
         return Objects.hash(deviceId, selector, tableId, payLoad);
     }
 
-    @Override
     /*
      * The priority and statistics can change on a given treatment and selector
      *
@@ -297,6 +307,7 @@ public class DefaultFlowRule implements FlowRule {
      *
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -338,8 +349,6 @@ public class DefaultFlowRule implements FlowRule {
         return timeout;
     }
 
-
-
     @Override
     public int hardTimeout() {
         return hardTimeout;
@@ -360,15 +369,27 @@ public class DefaultFlowRule implements FlowRule {
         return tableId;
     }
 
-    @Beta
+    /**
+     * Returns the wallclock time that the flow was created.
+     *
+     * @return creation time in milliseconds since epoch
+     */
     public long created() {
         return created;
     }
 
+    /**
+     * Returns a default flow rule builder.
+     *
+     * @return builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Default flow rule builder.
+     */
     public static final class Builder implements FlowRule.Builder {
 
         private FlowId flowId;
