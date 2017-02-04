@@ -19,7 +19,6 @@ package org.onosproject.routing.cpr;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,7 +36,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
@@ -58,10 +56,13 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.routing.AsyncDeviceFetcher;
-import org.onosproject.routing.RouterInterfaceManager;
+import org.onosproject.routing.RouterInfo;
+import org.onosproject.routing.InterfaceProvisionRequest;
+import org.onosproject.routing.Router;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.RouterConfig;
+import org.onosproject.routing.config.RouterConfigHelper;
+import org.onosproject.routing.config.RoutersConfig;
+import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
 import java.util.Iterator;
@@ -69,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -122,15 +124,15 @@ public class ControlPlaneRedirectManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationService applicationService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingConfigurationService rs;
+
     private static final String APP_NAME = "org.onosproject.cpr";
     private ApplicationId appId;
 
-    private ConnectPoint controlPlaneConnectPoint;
-    private boolean ospfEnabled = false;
     private Map<Host, Set<Integer>> peerNextId = Maps.newConcurrentMap();
 
-    private RouterInterfaceManager interfaceManager;
-    private AsyncDeviceFetcher asyncDeviceFetcher;
+    private Map<DeviceId, Router> routers = new ConcurrentHashMap<>();
 
     private final InternalNetworkConfigListener networkConfigListener =
             new InternalNetworkConfigListener();
@@ -143,22 +145,16 @@ public class ControlPlaneRedirectManager {
         networkConfigService.addListener(networkConfigListener);
         hostService.addListener(hostListener);
 
-        asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
-
         processRouterConfig();
 
-        applicationService.registerDeactivateHook(this.appId, () -> {
-            if (interfaceManager != null) {
-                interfaceManager.cleanup();
-            }
-        });
+        applicationService.registerDeactivateHook(this.appId,
+                () -> routers.forEach((d, r) -> r.cleanup()));
     }
 
     @Deactivate
     protected void deactivate() {
         networkConfigService.removeListener(networkConfigListener);
         hostService.removeListener(hostListener);
-        asyncDeviceFetcher.shutdown();
     }
 
     /**
@@ -168,52 +164,48 @@ public class ControlPlaneRedirectManager {
         ApplicationId routingAppId =
                 coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
-        RouterConfig config = networkConfigService.getConfig(
-                routingAppId, RoutingService.ROUTER_CONFIG_CLASS);
+        Set<RoutersConfig.Router> routerConfigs =
+                RouterConfigHelper.getRouterConfigurations(networkConfigService, routingAppId);
 
-        if (config == null) {
-            log.warn("Router config not available");
-            return;
+        for (RoutersConfig.Router router : routerConfigs) {
+            DeviceId deviceId = router.controlPlaneConnectPoint().deviceId();
+
+            routers.compute(deviceId, (d, r) -> {
+                if (r == null) {
+                    return createRouter(RouterInfo.from(router));
+                } else {
+                    r.changeConfiguration(RouterInfo.from(router));
+                    return r;
+                }
+            });
         }
 
-        if (interfaceManager == null) {
-            controlPlaneConnectPoint = config.getControlPlaneConnectPoint();
-            ospfEnabled = config.getOspfEnabled();
-
-            DeviceId deviceId = config.getControlPlaneConnectPoint().deviceId();
-
-            asyncDeviceFetcher.getDevice(deviceId)
-                    .thenAccept(deviceId1 ->
-                            interfaceManager = createRouter(deviceId,
-                                    Sets.newHashSet(config.getInterfaces())));
-
-        } else {
-            interfaceManager.changeConfiguredInterfaces(Sets.newHashSet(config.getInterfaces()));
-        }
-    }
-
-    /**
-     * Cleans up after router config was removed.
-     */
-    private void removeRouterConfig() {
-        if (interfaceManager != null) {
-            interfaceManager.cleanup();
+        for (DeviceId deviceId : routers.keySet()) {
+            if (!configExists(deviceId, routerConfigs)) {
+                Router router = routers.remove(deviceId);
+                router.cleanup();
+            }
         }
     }
 
-    private RouterInterfaceManager createRouter(DeviceId deviceId, Set<String> configuredInterfaces) {
-        return new RouterInterfaceManager(deviceId,
-                configuredInterfaces,
+    private boolean configExists(DeviceId deviceId, Set<RoutersConfig.Router> config) {
+        return config.stream()
+                .anyMatch(r -> r.controlPlaneConnectPoint().deviceId().equals(deviceId));
+    }
+
+    private Router createRouter(RouterInfo info) {
+        return new Router(info,
                 interfaceService,
+                deviceService,
                 this::provisionInterface,
                 this::unprovisionInterface);
     }
 
-    private void provisionInterface(Interface intf) {
+    private void provisionInterface(InterfaceProvisionRequest intf) {
         updateInterfaceObjectives(intf, true);
     }
 
-    private void unprovisionInterface(Interface intf) {
+    private void unprovisionInterface(InterfaceProvisionRequest intf) {
         updateInterfaceObjectives(intf, false);
     }
 
@@ -223,7 +215,7 @@ public class ControlPlaneRedirectManager {
      * @param intf interface to change objectives for
      * @param install true to install the objectives, false to remove them
      */
-    private void updateInterfaceObjectives(Interface intf, boolean install) {
+    private void updateInterfaceObjectives(InterfaceProvisionRequest intf, boolean install) {
         updateInterfaceForwarding(intf, install);
         updateOspfForwarding(intf, install);
     }
@@ -231,14 +223,16 @@ public class ControlPlaneRedirectManager {
     /**
      * Installs or removes the basic forwarding flows for each interface.
      *
-     * @param intf the Interface on which event is received
+     * @param request provisioning request containing router and interface
      * @param install true to install the objectives, false to remove them
      */
-    private void updateInterfaceForwarding(Interface intf, boolean install) {
+    private void updateInterfaceForwarding(InterfaceProvisionRequest request, boolean install) {
+        Interface intf = request.intf();
         log.debug("{} interface objectives for {}", operation(install), intf);
 
         DeviceId deviceId = intf.connectPoint().deviceId();
-        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
+
+        PortNumber controlPlanePort = request.controlPlaneConnectPoint().port();
         for (InterfaceIpAddress ip : intf.ipAddresses()) {
             // create nextObjectives for forwarding to this interface and the
             // controlPlaneConnectPoint
@@ -426,13 +420,13 @@ public class ControlPlaneRedirectManager {
     /**
      * Installs or removes OSPF forwarding rules.
      *
-     * @param intf the interface on which event is received
+     * @param request provisioning request containing router and interface
      * @param install true to create an add objective, false to create a remove
      *            objective
      */
-    private void updateOspfForwarding(Interface intf, boolean install) {
+    private void updateOspfForwarding(InterfaceProvisionRequest request, boolean install) {
         // TODO IPv6 support has not been implemented yet
-
+        Interface intf = request.intf();
         log.debug("{} OSPF flows for {}", operation(install), intf);
 
         // OSPF to router
@@ -445,7 +439,7 @@ public class ControlPlaneRedirectManager {
 
         // create nextObjectives for forwarding to the controlPlaneConnectPoint
         DeviceId deviceId = intf.connectPoint().deviceId();
-        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
+        PortNumber controlPlanePort = request.controlPlaneConnectPoint().port();
         int cpNextId;
         if (intf.vlan() == VlanId.NONE) {
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
@@ -457,7 +451,7 @@ public class ControlPlaneRedirectManager {
         }
         flowObjectiveService.forward(intf.connectPoint().deviceId(),
                 buildForwardingObjective(toSelector, null, cpNextId,
-                        install ? ospfEnabled : install, ACL_PRIORITY));
+                        install ? request.info().ospfEnabled() : install, ACL_PRIORITY));
     }
 
     /**
@@ -640,18 +634,16 @@ public class ControlPlaneRedirectManager {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
+            if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS) ||
+                    event.configClass().equals(RoutersConfig.class)) {
                 switch (event.type()) {
                     case CONFIG_ADDED:
                     case CONFIG_UPDATED:
+                    case CONFIG_REMOVED:
                         processRouterConfig();
                         break;
                     case CONFIG_REGISTERED:
-                        break;
                     case CONFIG_UNREGISTERED:
-                        break;
-                    case CONFIG_REMOVED:
-                        removeRouterConfig();
                         break;
                 default:
                     break;
@@ -666,16 +658,19 @@ public class ControlPlaneRedirectManager {
     private class InternalHostListener implements HostListener {
 
         private Optional<Interface> getPeerInterface(Host peer) {
+            Router router = routers.get(peer.location().deviceId());
+
             return interfaceService.getInterfacesByPort(peer.location()).stream()
-                    .filter(intf -> interfaceManager.configuredInterfaces().isEmpty()
-                            || interfaceManager.configuredInterfaces().contains(intf.name()))
+                    .filter(intf -> router.info().interfaces().isEmpty()
+                            || router.info().interfaces().contains(intf.name()))
                     .filter(intf -> peer.vlan().equals(intf.vlan()))
                     .findFirst();
         }
 
         private void peerAdded(HostEvent event) {
             Host peer = event.subject();
-            if (interfaceManager == null) {
+            Router routerInfo = routers.get(peer.location().deviceId());
+            if (routerInfo == null) {
                 return;
             }
 
@@ -689,7 +684,7 @@ public class ControlPlaneRedirectManager {
             // Generate L3 Unicast group for the traffic towards vRouter
             // XXX This approach will change with the HA design
             int toRouterL3Unicast = createPeerGroup(peer.mac(), peerIntf.get().mac(),
-                    peer.vlan(), peer.location().deviceId(), controlPlaneConnectPoint.port());
+                    peer.vlan(), peer.location().deviceId(), routerInfo.info().controlPlaneConnectPoint().port());
             // Generate L3 Unicast group for the traffic towards the upStream
             // XXX This approach will change with the HA design
             int toPeerL3Unicast = createPeerGroup(peerIntf.get().mac(), peer.mac(),
@@ -712,6 +707,9 @@ public class ControlPlaneRedirectManager {
 
         private void peerRemoved(HostEvent event) {
             Host peer = event.subject();
+            if (routers.get(peer.location().deviceId()) == null) {
+                return;
+            }
             Optional<Interface> peerIntf = getPeerInterface(peer);
             if (!peerIntf.isPresent()) {
                 log.debug("Removing peer {}/{} on {} but the interface is not configured",

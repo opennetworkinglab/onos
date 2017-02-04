@@ -16,17 +16,16 @@
 
 package org.onosproject.routing;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceEvent;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -35,46 +34,58 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Manages which interfaces are part of the router when the configuration is
- * updated, and handles the provisioning/unprovisioning of interfaces when they
+ * Manages the configuration and provisioning of a single-device router.
+ * It maintains which interfaces are part of the router when the configuration
+ * changes, and handles the provisioning/unprovisioning of interfaces when they
  * are added/removed.
  */
-public class RouterInterfaceManager {
+public class Router {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Consumer<Interface> provisioner;
-    private final Consumer<Interface> unprovisioner;
+    private final Consumer<InterfaceProvisionRequest> provisioner;
+    private final Consumer<InterfaceProvisionRequest> unprovisioner;
 
-    private Set<String> configuredInterfaces = Collections.emptySet();
+    private RouterInfo info;
+
     private Set<Interface> provisioned = new HashSet<>();
 
     private InterfaceService interfaceService;
     private InterfaceListener listener = new InternalInterfaceListener();
 
-    private final DeviceId routerDeviceId;
+    private AsyncDeviceFetcher asyncDeviceFetcher;
+
+    private volatile boolean deviceAvailable = false;
 
     /**
      * Creates a new router interface manager.
      *
-     * @param deviceId router device ID
-     * @param configuredInterfaces names of interfaces configured for this router
+     * @param info router configuration information
      * @param interfaceService interface service
+     * @param deviceService device service
      * @param provisioner consumer that will provision new interfaces
      * @param unprovisioner consumer that will unprovision old interfaces
      */
-    public RouterInterfaceManager(DeviceId deviceId,
-                                  Set<String> configuredInterfaces,
-                                  InterfaceService interfaceService,
-                                  Consumer<Interface> provisioner,
-                                  Consumer<Interface> unprovisioner) {
-        this.routerDeviceId = checkNotNull(deviceId);
+    public Router(RouterInfo info,
+                  InterfaceService interfaceService,
+                  DeviceService deviceService,
+                  Consumer<InterfaceProvisionRequest> provisioner,
+                  Consumer<InterfaceProvisionRequest> unprovisioner) {
+        this.info = checkNotNull(info);
         this.provisioner = checkNotNull(provisioner);
         this.unprovisioner = checkNotNull(unprovisioner);
         this.interfaceService = checkNotNull(interfaceService);
-        this.configuredInterfaces = checkNotNull(configuredInterfaces);
 
-        provision();
+        this.asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
+        asyncDeviceFetcher.getDevice(info.deviceId())
+                .thenAccept(deviceId1 -> {
+                    deviceAvailable = true;
+                    provision();
+                }).whenComplete((v, t) -> {
+                    if (t != null) {
+                        log.error("Error provisioning: ", t);
+                    }
+                });
 
         interfaceService.addListener(listener);
     }
@@ -89,33 +100,34 @@ public class RouterInterfaceManager {
     }
 
     /**
-     * Retrieves the set of configured interface names.
+     * Retrieves the router configuration information.
      *
-     * @return interface names
+     * @return router configuration information
      */
-    public Set<String> configuredInterfaces() {
-        return configuredInterfaces;
+    public RouterInfo info() {
+        return info;
     }
 
     /**
-     * Changes the set of interfaces configured on the router.
+     * Changes the router configuration.
      *
-     * @param newConfiguredInterfaces new set of router interfaces
+     * @param newConfig new configuration
      */
-    public void changeConfiguredInterfaces(Set<String> newConfiguredInterfaces) {
-        Set<String> oldConfiguredInterfaces = configuredInterfaces;
-        configuredInterfaces = ImmutableSet.copyOf(newConfiguredInterfaces);
+    public void changeConfiguration(RouterInfo newConfig) {
+        Set<String> oldConfiguredInterfaces = info.interfaces();
+        info = newConfig;
+        Set<String> newConfiguredInterfaces = info.interfaces();
 
         if (newConfiguredInterfaces.isEmpty() && !oldConfiguredInterfaces.isEmpty()) {
             // Reverted to using all interfaces. Provision interfaces that
             // weren't previously in the configured list
-            getInterfacesForDevice(routerDeviceId)
+            getInterfacesForDevice(info.deviceId())
                     .filter(intf -> !oldConfiguredInterfaces.contains(intf.name()))
                     .forEach(this::provision);
         } else if (!newConfiguredInterfaces.isEmpty() && oldConfiguredInterfaces.isEmpty()) {
             // Began using an interface list. Unprovision interfaces that
             // are not in the new interface list.
-            getInterfacesForDevice(routerDeviceId)
+            getInterfacesForDevice(info.deviceId())
                     .filter(intf -> !newConfiguredInterfaces.contains(intf.name()))
                     .forEach(this::unprovision);
         } else {
@@ -124,39 +136,37 @@ public class RouterInterfaceManager {
             Set<String> toProvision = Sets.difference(newConfiguredInterfaces, oldConfiguredInterfaces);
 
             toUnprovision.forEach(name ->
-                    getInterfacesForDevice(routerDeviceId)
+                    getInterfacesForDevice(info.deviceId())
                             .filter(intf -> intf.name().equals(name))
                             .findFirst()
                             .ifPresent(this::unprovision)
             );
 
             toProvision.forEach(name ->
-                    getInterfacesForDevice(routerDeviceId)
+                    getInterfacesForDevice(info.deviceId())
                             .filter(intf -> intf.name().equals(name))
                             .findFirst()
                             .ifPresent(this::provision)
             );
         }
-
-        configuredInterfaces = newConfiguredInterfaces;
     }
 
     private void provision() {
-        getInterfacesForDevice(routerDeviceId)
-                .filter(this::shouldUse)
+        getInterfacesForDevice(info.deviceId())
+                .filter(this::shouldProvision)
                 .forEach(this::provision);
     }
 
     private void unprovision() {
-        getInterfacesForDevice(routerDeviceId)
-                .filter(this::shouldUse)
+        getInterfacesForDevice(info.deviceId())
+                .filter(this::shouldProvision)
                 .forEach(this::unprovision);
     }
 
     private void provision(Interface intf) {
-        if (!provisioned.contains(intf) && shouldUse(intf)) {
+        if (!provisioned.contains(intf) && shouldProvision(intf)) {
             log.info("Provisioning interface {}", intf);
-            provisioner.accept(intf);
+            provisioner.accept(InterfaceProvisionRequest.of(info, intf));
             provisioned.add(intf);
         }
     }
@@ -164,13 +174,14 @@ public class RouterInterfaceManager {
     private void unprovision(Interface intf) {
         if (provisioned.contains(intf)) {
             log.info("Unprovisioning interface {}", intf);
-            unprovisioner.accept(intf);
+            unprovisioner.accept(InterfaceProvisionRequest.of(info, intf));
             provisioned.remove(intf);
         }
     }
 
-    private boolean shouldUse(Interface intf) {
-        return configuredInterfaces.isEmpty() || configuredInterfaces.contains(intf.name());
+    private boolean shouldProvision(Interface intf) {
+        return deviceAvailable &&
+                (info.interfaces().isEmpty() || info.interfaces().contains(intf.name()));
     }
 
     private Stream<Interface> getInterfacesForDevice(DeviceId deviceId) {

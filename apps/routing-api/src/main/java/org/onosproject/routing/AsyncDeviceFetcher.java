@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Provides a means of asynchronously waiting on devices.
  */
@@ -37,7 +39,7 @@ public final class AsyncDeviceFetcher {
     private Map<DeviceId, CompletableFuture<DeviceId>> devices = new ConcurrentHashMap();
 
     private AsyncDeviceFetcher(DeviceService deviceService) {
-        this.deviceService = deviceService;
+        this.deviceService = checkNotNull(deviceService);
         deviceService.addListener(listener);
     }
 

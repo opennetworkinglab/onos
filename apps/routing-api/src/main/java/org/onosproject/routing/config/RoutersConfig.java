@@ -19,6 +19,7 @@ package org.onosproject.routing.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
@@ -50,19 +51,18 @@ public class RoutersConfig extends Config<ApplicationId> {
 
 
             JsonNode intfNode = routerNode.path(INTERFACES);
-            if (intfNode.isMissingNode() || !intfNode.isArray()) {
-                continue;
-            }
-            ArrayNode array = (ArrayNode) intfNode;
             Set<String> interfaces = new HashSet<>(array.size());
-            for (JsonNode intf : array) {
-                interfaces.add(intf.asText());
+            if (!intfNode.isMissingNode()) {
+                ArrayNode array = (ArrayNode) intfNode;
+                for (JsonNode intf : array) {
+                    interfaces.add(intf.asText());
+                }
             }
 
             routers.add(new Router(connectPoint, ospfEnabled, interfaces));
         }
 
-        return routers;
+        return ImmutableSet.copyOf(routers);
     }
 
     @Override

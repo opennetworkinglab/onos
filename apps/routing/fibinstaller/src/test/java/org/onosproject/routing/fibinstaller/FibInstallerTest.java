@@ -60,6 +60,7 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
+import org.onosproject.routing.config.RoutersConfig;
 import org.osgi.service.component.ComponentContext;
 
 import java.util.ArrayList;
@@ -189,6 +190,8 @@ public class FibInstallerTest {
         expect(networkConfigService.getConfig(
                 anyObject(ApplicationId.class), eq(RoutingService.ROUTER_CONFIG_CLASS))).
         andReturn(routerConfig);
+        expect(networkConfigService.getConfig(anyObject(ApplicationId.class), eq(RoutersConfig.class)))
+                .andReturn(null);
         replay(networkConfigService);
     }
 
