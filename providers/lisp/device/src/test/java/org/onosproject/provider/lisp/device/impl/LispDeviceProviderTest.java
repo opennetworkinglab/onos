@@ -22,6 +22,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.lisp.ctl.LispController;
+import org.onosproject.lisp.ctl.LispControllerAdapter;
 import org.onosproject.lisp.ctl.LispRouter;
 import org.onosproject.lisp.ctl.LispRouterListener;
 import org.onosproject.net.device.DeviceListener;

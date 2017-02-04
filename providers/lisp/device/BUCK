@@ -5,6 +5,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
+    '//protocols/lisp/api:onos-protocols-lisp-api-tests',
 ]
 
 osgi_jar_with_tests (
