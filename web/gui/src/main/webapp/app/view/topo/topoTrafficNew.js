@@ -143,8 +143,12 @@
                 tts.requestTrafficForMode(true);
             },
 
-            // intent visualization hook
-            showintent: function (info) {
+            // intent visualization hooks
+            acceptIntent: function (type) {
+                // accept any intent type except "Protected" intents
+                return (!type.startsWith('Protected'));
+            },
+            showIntent: function (info) {
                 $log.debug('^^ trafficOverlay.showintent() ^^', info);
                 tts.selectIntent(info);
             }

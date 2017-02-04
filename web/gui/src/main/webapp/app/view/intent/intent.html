@@ -28,7 +28,7 @@
             <div class="separator"></div>
 
             <div class="show-intent-btn">
-                <div ng-class="{active: !!selId}"
+                <div ng-class="{active: canShowIntent()}"
                      icon icon-id="topo" icon-size="42"
                      tooltip tt-msg="topoTip"
                      ng-click="showIntent()">

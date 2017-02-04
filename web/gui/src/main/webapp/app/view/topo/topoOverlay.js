@@ -113,18 +113,20 @@
         return d3.map(overlays).keys();
     }
 
-    // returns data on overlays that implement the showIntent callback
-    function listShowIntents() {
+    // Returns an array containing overlays that implement the showIntent and
+    // acceptIntent callbacks, and that accept the given intent type
+    function overlaysAcceptingIntents(intentType) {
         var result = [];
         angular.forEach(overlays, function (ov) {
-            var hooks = fs.isO(ov.hooks) || {},
-                sicb = fs.isF(hooks.showintent);
+            var ovid = ov.overlayId,
+                hooks = fs.isO(ov.hooks) || {},
+                aicb = fs.isF(hooks.acceptIntent),
+                sicb = fs.isF(hooks.showIntent);
 
-            if (sicb) {
+            if (sicb && aicb && aicb(intentType)) {
                 result.push({
-                    id: ov.overlayId,
-                    tt: ov.tooltip || '%' + ov.overlayId + '%',
-                    gid: ov._glyphId
+                    id: ovid,
+                    tt: ov.tooltip || '%' + ovid + '%'
                 });
             }
         });
@@ -304,7 +306,7 @@
 
     // Request from Intent View to visualize an intent on the topo view
     function showIntentHook(intentData) {
-        var cb = _hook('showintent');
+        var cb = _hook('showIntent');
         return cb && cb(intentData);
     }
 
@@ -446,7 +448,7 @@
                 register: register,
                 setApi: setApi,
                 list: list,
-                listOverlaysThatShowIntents: listShowIntents,
+                overlaysAcceptingIntents: overlaysAcceptingIntents,
                 augmentRbset: augmentRbset,
                 mkGlyphId: mkGlyphId,
                 tbSelection: tbSelection,

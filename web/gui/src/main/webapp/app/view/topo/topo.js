@@ -603,11 +603,13 @@
                 setMap: setMap
             });
 
+            // pull intent data from the query string...
             if (params.key && params.appId && params.appName) {
                 $scope.intentData = {
                     key: params.key,
                     appId: params.appId,
-                    appName: params.appName
+                    appName: params.appName,
+                    intentType: params.intentType
                 };
             }
 

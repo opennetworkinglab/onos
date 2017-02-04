@@ -252,7 +252,7 @@ public class TopoIntentFilter {
         return false;
     }
 
-    // Indicates whether the specified flow rules involvesthe given device.
+    // Indicates whether the specified flow rules involves the given device.
     private boolean rulesContainDevice(Collection<FlowRule> flowRules, DeviceId id) {
         for (FlowRule rule : flowRules) {
             if (rule.deviceId().equals(id)) {

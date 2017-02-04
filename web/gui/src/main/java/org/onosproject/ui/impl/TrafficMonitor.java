@@ -44,6 +44,7 @@ import org.onosproject.ui.impl.topo.util.TopoIntentFilter;
 import org.onosproject.ui.impl.topo.util.TrafficLink;
 import org.onosproject.ui.impl.topo.util.TrafficLink.StatsType;
 import org.onosproject.ui.impl.topo.util.TrafficLinkMap;
+import org.onosproject.ui.topo.AbstractTopoMonitor;
 import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.Highlights.Amount;
@@ -74,7 +75,7 @@ import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
  */
-public class TrafficMonitor {
+public class TrafficMonitor extends AbstractTopoMonitor {
 
     // 4 Kilo Bytes as threshold
     private static final double BPS_THRESHOLD = 4 * TopoUtils.KILO;
