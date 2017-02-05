@@ -25,18 +25,19 @@ package org.onosproject.lisp.msg.types.lcaf;
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22
  */
 public enum LispCanonicalAddressFormatEnum {
+    UNKNOWN(-1),                // Unknown Type
+    UNSPECIFIED(0),             // Unspecified Type
     LIST(1),                    // AFI LIST Type
     SEGMENT(2),                 // Instance ID Type
     AS(3),                      // AS Number Type
     APPLICATION_DATA(4),        // Application Data Type
+    GEO_COORDINATE(5),          // Geo Coordinate Type
     NAT(7),                     // NAT Traversal Type
     NONCE(8),                   // Nonce Locator Type
     MULTICAST(9),               // Multi-cast Info Type
     TRAFFIC_ENGINEERING(10),    // Explicit Locator Path Type
     SECURITY(11),               // Security Key Type
-    SOURCE_DEST(12),            // Source/Dest Key Type
-    UNSPECIFIED(0),             // Unspecified Type
-    UNKNOWN(-1);                // Unknown Type
+    SOURCE_DEST(12);            // Source/Dest Key Type
 
     private byte lispCode;
 

@@ -30,6 +30,7 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.APPLICATION_DATA;
+import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.GEO_COORDINATE;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.LIST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.MULTICAST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.NAT;
@@ -413,6 +414,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 return new LispSegmentLcafAddress.SegmentLcafAddressReader().readFrom(byteBuf);
             }
 
+            if (lcafType == GEO_COORDINATE.getLispCode()) {
+                return new LispGeoCoordinateLcafAddress.GeoCoordinateLcafAddressReader().readFrom(byteBuf);
+            }
+
             if (lcafType == NONCE.getLispCode()) {
                 return new LispNonceLcafAddress.NonceLcafAddressReader().readFrom(byteBuf);
             }
@@ -460,6 +465,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 case SEGMENT:
                     new LispSegmentLcafAddress.SegmentLcafAddressWriter().writeTo(byteBuf,
                             (LispSegmentLcafAddress) address);
+                    break;
+                case GEO_COORDINATE:
+                    new LispGeoCoordinateLcafAddress.GeoCoordinateLcafAddressWriter().writeTo(byteBuf,
+                            (LispGeoCoordinateLcafAddress) address);
                     break;
                 case NONCE:
                     new LispNonceLcafAddress.NonceLcafAddressWriter().writeTo(byteBuf,
