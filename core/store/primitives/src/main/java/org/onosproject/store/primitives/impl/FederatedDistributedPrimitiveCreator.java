@@ -15,16 +15,16 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicCounterMap;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -35,12 +35,12 @@ import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * {@code DistributedPrimitiveCreator} that federates responsibility for creating
@@ -86,6 +86,11 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     @Override
     public <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer) {
         return DistributedPrimitives.newSetFromMap(newAsyncConsistentMap(name, serializer));
+    }
+
+    @Override
+    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(String name, Serializer serializer) {
+        return getCreator(name).newAsyncAtomicCounterMap(name, serializer);
     }
 
     @Override

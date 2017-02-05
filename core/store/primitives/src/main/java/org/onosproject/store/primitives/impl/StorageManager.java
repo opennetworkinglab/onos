@@ -47,6 +47,7 @@ import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
+import org.onosproject.store.service.AtomicCounterMapBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
@@ -153,6 +154,12 @@ public class StorageManager implements StorageService, StorageAdminService {
         checkPermission(STORAGE_WRITE);
         return new DefaultConsistentMultimapBuilder<K, V>(
                 federatedPrimitiveCreator);
+    }
+
+    @Override
+    public <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultAtomicCounterMapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override

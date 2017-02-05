@@ -69,6 +69,14 @@ public interface StorageService {
     <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder();
 
     /**
+     * Creates a new {@code AtomicCounterMapBuilder}.
+     *
+     * @param <K> key type
+     * @return builder for an atomic counter map
+     */
+    <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder();
+
+    /**
      * Creates a new DistributedSetBuilder.
      *
      * @param <E> set element type

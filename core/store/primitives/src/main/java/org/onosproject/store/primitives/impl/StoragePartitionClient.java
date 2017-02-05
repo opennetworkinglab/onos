@@ -15,7 +15,8 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.transport.Transport;
 import io.atomix.copycat.client.ConnectionStrategies;
@@ -29,15 +30,9 @@ import io.atomix.manager.util.ResourceManagerTypeResolver;
 import io.atomix.resource.ResourceRegistry;
 import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
-
-import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import org.onlab.util.HexString;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
+import org.onosproject.store.primitives.resources.impl.AtomixAtomicCounterMap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
@@ -47,6 +42,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueue;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicCounterMap;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -60,8 +56,13 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
 import org.slf4j.Logger;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import java.util.Collection;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * StoragePartition client.
@@ -140,10 +141,10 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                     }
                 };
         AsyncConsistentMap<K, V> transcodedMap = DistributedPrimitives.<K, V, String, byte[]>newTranscodingMap(rawMap,
-                        key -> HexString.toHexString(serializer.encode(key)),
-                        string -> serializer.decode(HexString.fromHexString(string)),
-                        value -> value == null ? null : serializer.encode(value),
-                        bytes -> serializer.decode(bytes));
+            key -> HexString.toHexString(serializer.encode(key)),
+            string -> serializer.decode(HexString.fromHexString(string)),
+            value -> value == null ? null : serializer.encode(value),
+            bytes -> serializer.decode(bytes));
 
         return transcodedMap;
     }
@@ -166,9 +167,9 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 };
         AsyncConsistentTreeMap<V> transcodedMap =
                 DistributedPrimitives.<V, byte[]>newTranscodingTreeMap(
-                rawMap,
-                value -> value == null ? null : serializer.encode(value),
-                bytes -> serializer.decode(bytes));
+                    rawMap,
+                    value -> value == null ? null : serializer.encode(value),
+                    bytes -> serializer.decode(bytes));
         return transcodedMap;
     }
 
@@ -207,6 +208,19 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     @Override
     public <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer) {
         return DistributedPrimitives.newSetFromMap(this.<E, Boolean>newAsyncConsistentMap(name, serializer));
+    }
+
+    @Override
+    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(String name, Serializer serializer) {
+        AtomixAtomicCounterMap atomixAtomicCounterMap =
+                client.getResource(name, AtomixAtomicCounterMap.class)
+                        .join();
+        AsyncAtomicCounterMap<K> transcodedMap =
+                DistributedPrimitives.<K, String>newTranscodingAtomicCounterMap(
+                       atomixAtomicCounterMap,
+                        key -> HexString.toHexString(serializer.encode(key)),
+                        string -> serializer.decode(HexString.fromHexString(string)));
+        return transcodedMap;
     }
 
     @Override

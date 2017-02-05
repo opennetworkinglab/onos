@@ -19,6 +19,7 @@ import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
+import org.onosproject.store.service.AtomicCounterMapBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMultimapBuilder;
@@ -108,7 +109,13 @@ public class StorageServiceAdapter implements StorageService {
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         return null;
     }
+
     public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
+        return null;
+    }
+
+    @Override
+    public <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder() {
         return null;
     }
 }
