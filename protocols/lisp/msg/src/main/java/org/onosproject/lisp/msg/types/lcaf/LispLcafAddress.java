@@ -33,6 +33,7 @@ import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.LIST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.MULTICAST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.NAT;
+import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.NONCE;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.SEGMENT;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.SOURCE_DEST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.TRAFFIC_ENGINEERING;
@@ -412,6 +413,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 return new LispSegmentLcafAddress.SegmentLcafAddressReader().readFrom(byteBuf);
             }
 
+            if (lcafType == NONCE.getLispCode()) {
+                return new LispNonceLcafAddress.NonceLcafAddressReader().readFrom(byteBuf);
+            }
+
             if (lcafType == MULTICAST.getLispCode()) {
                 return new LispMulticastLcafAddress.MulticastLcafAddressReader().readFrom(byteBuf);
             }
@@ -455,6 +460,10 @@ public class LispLcafAddress extends LispAfiAddress {
                 case SEGMENT:
                     new LispSegmentLcafAddress.SegmentLcafAddressWriter().writeTo(byteBuf,
                             (LispSegmentLcafAddress) address);
+                    break;
+                case NONCE:
+                    new LispNonceLcafAddress.NonceLcafAddressWriter().writeTo(byteBuf,
+                            (LispNonceLcafAddress) address);
                     break;
                 case MULTICAST:
                     new LispMulticastLcafAddress.MulticastLcafAddressWriter().writeTo(byteBuf,

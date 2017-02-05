@@ -30,6 +30,7 @@ public enum LispCanonicalAddressFormatEnum {
     AS(3),                      // AS Number Type
     APPLICATION_DATA(4),        // Application Data Type
     NAT(7),                     // NAT Traversal Type
+    NONCE(8),                   // Nonce Locator Type
     MULTICAST(9),               // Multi-cast Info Type
     TRAFFIC_ENGINEERING(10),    // Explicit Locator Path Type
     SECURITY(11),               // Security Key Type
