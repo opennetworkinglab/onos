@@ -40,8 +40,7 @@ public final class ByteOperator {
             return false;
         }
 
-        int bitMask = getHex((int) Math.pow(2, index));
-        return (value & bitMask) == bitMask;
+        return (value & (0x1 << index)) != 0;
     }
 
     /**
@@ -53,15 +52,5 @@ public final class ByteOperator {
      */
     public static byte toBit(boolean value, int bit) {
         return (byte) (value ? bit : 0x00);
-    }
-
-    /**
-     * Convert decimal integer into hex integer.
-     *
-     * @param decimal decimal formatted integer
-     * @return hex formatted integer
-     */
-    public static int getHex(int decimal) {
-        return Integer.valueOf(String.valueOf(decimal), 16);
     }
 }

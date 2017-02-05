@@ -27,24 +27,12 @@ public class ByteOperatorTest {
 
     @Test
     public void testGetBit() {
-        byte eight = 0x08;
-        assertThat(ByteOperator.getBit(eight, 0), is(false));
-        assertThat(ByteOperator.getBit(eight, 1), is(false));
-        assertThat(ByteOperator.getBit(eight, 2), is(false));
-        assertThat(ByteOperator.getBit(eight, 3), is(true));
-        assertThat(ByteOperator.getBit(eight, 4), is(false));
-        assertThat(ByteOperator.getBit(eight, 5), is(false));
-        assertThat(ByteOperator.getBit(eight, 6), is(false));
-        assertThat(ByteOperator.getBit(eight, 7), is(false));
+        final byte[] number = new byte[] {1, 2, 4, 8, 16, 32, 64, -128};
 
-        byte one = 0x01;
-        assertThat(ByteOperator.getBit(one, 0), is(true));
-        assertThat(ByteOperator.getBit(one, 1), is(false));
-        assertThat(ByteOperator.getBit(one, 2), is(false));
-        assertThat(ByteOperator.getBit(one, 3), is(false));
-        assertThat(ByteOperator.getBit(one, 4), is(false));
-        assertThat(ByteOperator.getBit(one, 5), is(false));
-        assertThat(ByteOperator.getBit(one, 6), is(false));
-        assertThat(ByteOperator.getBit(one, 7), is(false));
+        for (int i = 0; i < number.length; i++) {
+            for (int j = 0; j < 8; j++) {
+                assertThat(ByteOperator.getBit(number[i], j), is(i == j));
+            }
+        }
     }
 }
