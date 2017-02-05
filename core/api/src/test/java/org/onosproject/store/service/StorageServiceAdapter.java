@@ -90,8 +90,14 @@ public class StorageServiceAdapter implements StorageService {
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         return null;
     }
+
     @Override
     public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
+        return null;
+    }
+
+    @Override
+    public <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder() {
         return null;
     }
 }

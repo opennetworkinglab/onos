@@ -93,7 +93,6 @@ public interface AtomicCounterMap<K> extends DistributedPrimitive {
      */
     long put(K key, long newValue);
 
-
     /**
      * If key is not already associated with a value or if key is associated with
      * zero, associate it with newValue. Returns the previous value associated with
@@ -137,4 +136,23 @@ public interface AtomicCounterMap<K> extends DistributedPrimitive {
      * @return true if the value was removed, false otherwise
      */
     boolean remove(K key, long value);
+
+    /**
+     * Returns the number of entries in the map.
+     *
+     * @return the number of entries in the map, including {@code 0} values
+     */
+    int size();
+
+    /**
+     * If the map is empty, returns true, otherwise false.
+     *
+     * @return true if the map is empty.
+     */
+    boolean isEmpty();
+
+    /**
+     * Clears all entries from the map.
+     */
+    void clear();
 }

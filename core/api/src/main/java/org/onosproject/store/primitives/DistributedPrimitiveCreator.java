@@ -15,9 +15,8 @@
  */
 package org.onosproject.store.primitives;
 
-import java.util.Set;
-
 import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AsyncAtomicCounterMap;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -27,6 +26,8 @@ import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncLeaderElector;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.WorkQueue;
+
+import java.util.Set;
 
 /**
  * Interface for entity that can create instances of different distributed primitives.
@@ -66,6 +67,17 @@ public interface DistributedPrimitiveCreator {
      */
     <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(
             String name, Serializer serializer);
+
+    /**
+     * Creates a new {@code AsyncAtomicCounterMap}.
+     *
+     * @param name counter map name
+     * @param serializer serializer to use for serializing/deserializing keys
+     * @param <K> key type
+     * @return atomic counter map
+     */
+    <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(
+        String name, Serializer serializer);
 
     /**
      * Creates a new {@code AsyncAtomicCounter}.
