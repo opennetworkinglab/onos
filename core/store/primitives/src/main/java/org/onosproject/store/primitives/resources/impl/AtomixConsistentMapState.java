@@ -401,7 +401,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
                     }
                 }
             }
-            // No violations detected. Add to pendingTranctions and mark
+            // No violations detected. Add to pendingTransactions and mark
             // modified keys as locked for updates.
             pendingTransactions.put(transaction.transactionId(), commit);
             transaction.updates().forEach(u -> preparedKeys.add(u.key()));

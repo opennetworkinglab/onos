@@ -250,6 +250,11 @@ public final class AtomixConsistentMapCommands {
         public TransactionPrepareAndCommit(MapTransaction<String, byte[]> mapTransaction) {
             super(mapTransaction);
         }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
     }
 
     /**
@@ -284,6 +289,11 @@ public final class AtomixConsistentMapCommands {
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
             super.readObject(buffer, serializer);
             transactionId = serializer.readObject(buffer);
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
@@ -326,6 +336,11 @@ public final class AtomixConsistentMapCommands {
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
             super.readObject(buffer, serializer);
             transactionId = serializer.readObject(buffer);
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
@@ -393,7 +408,7 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public CompactionMode compaction() {
-          return value == null ? CompactionMode.FULL : CompactionMode.QUORUM;
+          return value == null ? CompactionMode.TOMBSTONE : CompactionMode.QUORUM;
         }
 
         @Override
@@ -478,10 +493,9 @@ public final class AtomixConsistentMapCommands {
      */
     @SuppressWarnings("serial")
     public static class Clear extends MapCommand<MapEntryUpdateResult.Status> {
-
         @Override
         public CompactionMode compaction() {
-          return CompactionMode.FULL;
+          return CompactionMode.TOMBSTONE;
         }
     }
 
@@ -497,6 +511,11 @@ public final class AtomixConsistentMapCommands {
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
         }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
     }
 
     /**
@@ -510,6 +529,11 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
     }
 
