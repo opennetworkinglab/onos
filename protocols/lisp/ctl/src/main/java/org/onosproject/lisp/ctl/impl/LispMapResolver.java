@@ -23,7 +23,7 @@ import org.onosproject.lisp.msg.protocols.DefaultLispMapReply.DefaultReplyBuilde
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl;
 import org.onosproject.lisp.msg.protocols.LispEncapsulatedControl.EcmBuilder;
-import org.onosproject.lisp.msg.protocols.LispLocatorRecord;
+import org.onosproject.lisp.msg.protocols.LispLocator;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapReply.ReplyBuilder;
@@ -194,7 +194,7 @@ public final class LispMapResolver {
         MapRecordBuilder recordBuilder = new DefaultMapRecordBuilder();
         recordBuilder.withRecordTtl(MAP_REPLY_RECORD_TTL);
         recordBuilder.withLocators(Lists.newArrayList());
-        recordBuilder.withAuthoritative(false);
+        recordBuilder.withIsAuthoritative(false);
         recordBuilder.withMapVersionNumber(MAP_VERSION_NUMBER);
         recordBuilder.withAction(LispMapReplyAction.NativelyForward);
 
@@ -239,7 +239,7 @@ public final class LispMapResolver {
         for (LispMapRecord mapRecord : mapRecords) {
 
             // we only select the first locator record in all cases...
-            LispLocatorRecord locatorRecord = mapRecord.getLocators().get(0);
+            LispLocator locatorRecord = mapRecord.getLocators().get(0);
             if (locatorRecord != null) {
                 addresses.add(new InetSocketAddress(((LispIpAddress)
                                 locatorRecord.getLocatorAfi()).getAddress()

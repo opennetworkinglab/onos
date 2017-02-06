@@ -42,6 +42,14 @@ import static org.hamcrest.Matchers.is;
  */
 public final class DefaultLispMapRequestTest {
 
+    private static final String EID_IP_ADDRESS_1 = "192.168.1.1";
+    private static final String EID_IP_ADDRESS_2 = "192.168.1.1";
+
+    private static final String RLOC_IP_ADDRESS_1_1 = "10.1.1.1";
+    private static final String RLOC_IP_ADDRESS_1_2 = "10.1.1.2";
+    private static final String RLOC_IP_ADDRESS_2_1 = "20.1.1.1";
+    private static final String RLOC_IP_ADDRESS_2_2 = "20.1.1.2";
+
     private LispMapRequest request1;
     private LispMapRequest sameAsRequest1;
     private LispMapRequest request2;
@@ -51,10 +59,10 @@ public final class DefaultLispMapRequestTest {
 
         RequestBuilder builder1 = new DefaultRequestBuilder();
 
-        LispIpv4Address ipv4Eid1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Eid1 = new LispIpv4Address(IpAddress.valueOf(EID_IP_ADDRESS_1));
 
-        LispIpv4Address ipv4Rloc1 = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
-        LispIpv4Address ipv4Rloc2 = new LispIpv4Address(IpAddress.valueOf("10.1.1.2"));
+        LispIpv4Address ipv4Rloc1 = new LispIpv4Address(IpAddress.valueOf(RLOC_IP_ADDRESS_1_1));
+        LispIpv4Address ipv4Rloc2 = new LispIpv4Address(IpAddress.valueOf(RLOC_IP_ADDRESS_1_2));
 
         List<LispAfiAddress> rlocs1 = ImmutableList.of(ipv4Rloc1, ipv4Rloc2);
         List<LispEidRecord> records1 = ImmutableList.of(getEidRecord(), getEidRecord());
@@ -92,10 +100,10 @@ public final class DefaultLispMapRequestTest {
 
         RequestBuilder builder3 = new DefaultRequestBuilder();
 
-        LispIpv4Address ipv4Eid2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
+        LispIpv4Address ipv4Eid2 = new LispIpv4Address(IpAddress.valueOf(EID_IP_ADDRESS_2));
 
-        LispIpv4Address ipv4Rloc3 = new LispIpv4Address(IpAddress.valueOf("20.1.1.1"));
-        LispIpv4Address ipv4Rloc4 = new LispIpv4Address(IpAddress.valueOf("20.1.1.2"));
+        LispIpv4Address ipv4Rloc3 = new LispIpv4Address(IpAddress.valueOf(RLOC_IP_ADDRESS_2_1));
+        LispIpv4Address ipv4Rloc4 = new LispIpv4Address(IpAddress.valueOf(RLOC_IP_ADDRESS_2_2));
 
         List<LispAfiAddress> rlocs2 = ImmutableList.of(ipv4Rloc3, ipv4Rloc4);
 
@@ -114,7 +122,7 @@ public final class DefaultLispMapRequestTest {
     }
 
     private LispEidRecord getEidRecord() {
-        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("20.1.1.1"));
+        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(RLOC_IP_ADDRESS_2_1));
         return new LispEidRecord((byte) 24, eid);
     }
 

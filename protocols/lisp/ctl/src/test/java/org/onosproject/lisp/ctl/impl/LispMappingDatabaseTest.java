@@ -19,11 +19,11 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocator.DefaultLocatorBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispEidRecord;
-import org.onosproject.lisp.msg.protocols.LispLocatorRecord;
+import org.onosproject.lisp.msg.protocols.LispLocator;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
-import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.DefaultLocatorRecordBuilder;
 import org.onosproject.lisp.msg.protocols.LispMapRecord.MapRecordBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
@@ -37,53 +37,73 @@ import static org.hamcrest.Matchers.is;
  */
 public class LispMappingDatabaseTest {
 
+    private static final String LOCATOR_IP_1_1 = "123.1.1.1";
+    private static final String LOCATOR_IP_1_2 = "123.1.1.2";
+    private static final String LOCATOR_IP_1_3 = "123.1.1.3";
+
+    private static final String LOCATOR_IP_2_1 = "123.2.1.1";
+    private static final String LOCATOR_IP_2_2 = "123.2.1.2";
+
+    private static final String LOCATOR_IP_3_1 = "123.3.1.1";
+
+    private static final String EID_IP_1 = "10.1.1.1";
+    private static final String EID_IP_2 = "10.1.2.0";
+    private static final String EID_IP_3 = "10.2.0.0";
+
+    private static final String EID_IP_PREFIX_1_32 = "10.2.1.1";
+    private static final String EID_IP_PREFIX_1_24 = "10.2.1.0";
+    private static final String EID_IP_PREFIX_1_16 = "10.2.0.0";
+
+    private static final String EID_IP_PREFIX_2_32 = "10.1.2.1";
+    private static final String EID_IP_PREFIX_2_24 = "10.1.2.0";
+
     final LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
 
     @Before
     public void setup() {
 
         byte cidr1 = (byte) 32;
-        LispIpv4Address eid1 = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
+        LispIpv4Address eid1 = new LispIpv4Address(IpAddress.valueOf(EID_IP_1));
         LispEidRecord eidRecord1 = new LispEidRecord(cidr1, eid1);
 
-        LispIpv4Address locator11 = new LispIpv4Address(IpAddress.valueOf("123.1.1.1"));
-        LispIpv4Address locator12 = new LispIpv4Address(IpAddress.valueOf("123.1.1.2"));
-        LispIpv4Address locator13 = new LispIpv4Address(IpAddress.valueOf("123.1.1.3"));
+        LispIpv4Address locator11 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_1_1));
+        LispIpv4Address locator12 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_1_2));
+        LispIpv4Address locator13 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_1_3));
 
-        LispLocatorRecord locatorRecord11 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator11).build();
-        LispLocatorRecord locatorRecord12 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator12).build();
-        LispLocatorRecord locatorRecord13 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator13).build();
-        List<LispLocatorRecord> locatorRecords1 =
+        LispLocator locatorRecord11 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator11).build();
+        LispLocator locatorRecord12 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator12).build();
+        LispLocator locatorRecord13 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator13).build();
+        List<LispLocator> locatorRecords1 =
                 ImmutableList.of(locatorRecord11, locatorRecord12, locatorRecord13);
 
         byte cidr2 = (byte) 24;
-        LispIpv4Address eid2 = new LispIpv4Address(IpAddress.valueOf("10.1.2.0"));
+        LispIpv4Address eid2 = new LispIpv4Address(IpAddress.valueOf(EID_IP_2));
         LispEidRecord eidRecord2 = new LispEidRecord(cidr2, eid2);
 
-        LispIpv4Address locator21 = new LispIpv4Address(IpAddress.valueOf("123.2.1.1"));
-        LispIpv4Address locator22 = new LispIpv4Address(IpAddress.valueOf("123.2.1.2"));
+        LispIpv4Address locator21 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_2_1));
+        LispIpv4Address locator22 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_2_2));
 
-        LispLocatorRecord locatorRecord21 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator21).build();
-        LispLocatorRecord locatorRecord22 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator22).build();
+        LispLocator locatorRecord21 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator21).build();
+        LispLocator locatorRecord22 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator22).build();
 
-        List<LispLocatorRecord> locatorRecords2 =
-                    ImmutableList.of(locatorRecord21, locatorRecord22);
+        List<LispLocator> locatorRecords2 =
+                ImmutableList.of(locatorRecord21, locatorRecord22);
 
         byte cidr3 = (byte) 16;
-        LispIpv4Address eid3 = new LispIpv4Address(IpAddress.valueOf("10.2.0.0"));
+        LispIpv4Address eid3 = new LispIpv4Address(IpAddress.valueOf(EID_IP_3));
         LispEidRecord eidRecord3 = new LispEidRecord(cidr3, eid3);
 
-        LispIpv4Address locator31 = new LispIpv4Address(IpAddress.valueOf("123.3.1.1"));
+        LispIpv4Address locator31 = new LispIpv4Address(IpAddress.valueOf(LOCATOR_IP_3_1));
 
-        LispLocatorRecord locatorRecord31 = new DefaultLocatorRecordBuilder()
-                                            .withLocatorAfi(locator31).build();
+        LispLocator locatorRecord31 = new DefaultLocatorBuilder()
+                .withLocatorAfi(locator31).build();
 
-        List<LispLocatorRecord> locatorRecords3 = ImmutableList.of(locatorRecord31);
+        List<LispLocator> locatorRecords3 = ImmutableList.of(locatorRecord31);
 
         MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
         builder1.withMaskLength(cidr1);
@@ -114,54 +134,54 @@ public class LispMappingDatabaseTest {
     @Test
     public void test32MaskRange() {
         byte cidr32 = (byte) 32;
-        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.1.1"));
+        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_1));
         LispEidRecord record = new LispEidRecord(cidr32, eid);
         LispMapRecord mapRecord = mapDb.getMapRecordByEidRecord(record, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                    mapRecord.getLocatorCount(), is(3));
+                mapRecord.getLocatorCount(), is(3));
     }
 
     @Test
     public void test24MaskRange() {
         byte cidr32 = (byte) 32;
-        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.1.2.1"));
+        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_2_32));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
         LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
-        LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.1.2.0"));
+        LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_2_24));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
         LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                    mapRecord32.getLocatorCount(), is(2));
+                mapRecord32.getLocatorCount(), is(2));
         assertThat("Failed to fetch the RLOCs with /24 EID record",
-                    mapRecord24.getLocatorCount(), is(2));
+                mapRecord24.getLocatorCount(), is(2));
     }
 
     @Test
     public void test16MaskRange() {
         byte cidr32 = (byte) 32;
-        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf("10.2.1.1"));
+        LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_32));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
         LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
-        LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf("10.2.1.0"));
+        LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_24));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
         LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
 
         byte cidr16 = (byte) 16;
-        LispIpv4Address eid16 = new LispIpv4Address(IpAddress.valueOf("10.2.0.0"));
+        LispIpv4Address eid16 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_16));
         LispEidRecord record16 = new LispEidRecord(cidr16, eid16);
         LispMapRecord mapRecord16 = mapDb.getMapRecordByEidRecord(record16, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                    mapRecord32.getLocatorCount(), is(1));
+                mapRecord32.getLocatorCount(), is(1));
         assertThat("Failed to fetch the RLOCs with /24 EID record",
-                    mapRecord24.getLocatorCount(), is(1));
+                mapRecord24.getLocatorCount(), is(1));
         assertThat("Failed to fetch the RLOCs with /16 EID record",
-                    mapRecord16.getLocatorCount(), is(1));
+                mapRecord16.getLocatorCount(), is(1));
     }
 }

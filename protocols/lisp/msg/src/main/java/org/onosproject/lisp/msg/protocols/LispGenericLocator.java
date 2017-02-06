@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 package org.onosproject.lisp.msg.protocols;
 
 import io.netty.buffer.ByteBuf;
-import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.types.LispAfiAddress;
 
 /**
- * LISP locator record section which is part of LISP map record.
+ * A generic LISP locator used for both location and referral purposes.
  */
-public interface LispLocatorRecord {
+public interface LispGenericLocator {
 
     /**
      * Obtains priority value.
@@ -89,79 +89,74 @@ public interface LispLocatorRecord {
     void writeTo(ByteBuf byteBuf) throws LispWriterException;
 
     /**
-     * A builder of LISP locator record.
+     * A builder of LISP generic locator.
+     *
+     * @param <T> sub-builder type
      */
-    interface LocatorRecordBuilder {
+    interface GenericLocatorBuilder<T> {
 
         /**
          * Sets priority value.
          *
          * @param priority priority
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withPriority(byte priority);
+        T withPriority(byte priority);
 
         /**
          * Sets weight value.
          *
          * @param weight weight
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withWeight(byte weight);
+        T withWeight(byte weight);
 
         /**
          * Sets multi-cast priority value.
          *
          * @param priority priority
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withMulticastPriority(byte priority);
+        T withMulticastPriority(byte priority);
 
         /**
          * Sets multi-cast weight value.
          *
          * @param weight weight
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withMulticastWeight(byte weight);
+        T withMulticastWeight(byte weight);
 
         /**
          * Sets local locator flag.
          *
          * @param localLocator local locator flag
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withLocalLocator(boolean localLocator);
+        T withLocalLocator(boolean localLocator);
 
         /**
          * Sets RLOC probed flag.
          *
          * @param rlocProbed RLOC probed flag
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withRlocProbed(boolean rlocProbed);
+        T withRlocProbed(boolean rlocProbed);
 
         /**
          * Sets routed flag.
          *
          * @param routed routed flag
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withRouted(boolean routed);
+        T withRouted(boolean routed);
 
         /**
          * Sets locator AFI.
          *
          * @param locatorAfi locator AFI
-         * @return LocatorRecordBuilder object
+         * @return parameterized object
          */
-        LocatorRecordBuilder withLocatorAfi(LispAfiAddress locatorAfi);
-
-        /**
-         * Builds locator record.
-         *
-         * @return locator record instance
-         */
-        LispLocatorRecord build();
+        T withLocatorAfi(LispAfiAddress locatorAfi);
     }
 }

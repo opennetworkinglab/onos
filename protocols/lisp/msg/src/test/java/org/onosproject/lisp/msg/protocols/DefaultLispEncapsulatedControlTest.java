@@ -205,7 +205,7 @@ public final class DefaultLispEncapsulatedControlTest {
 
         return builder1
                 .withRecordTtl(100)
-                .withAuthoritative(true)
+                .withIsAuthoritative(true)
                 .withMapVersionNumber((short) 1)
                 .withMaskLength((byte) 0x01)
                 .withAction(LispMapReplyAction.NativelyForward)

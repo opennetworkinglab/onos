@@ -15,23 +15,12 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
-import io.netty.buffer.ByteBuf;
-import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.types.LispAfiAddress;
-
 import java.util.List;
 
 /**
- * LISP record section which is part of LISP map register message.
+ * LISP map record section which is part of LISP map register message.
  */
-public interface LispMapRecord {
-
-    /**
-     * Obtains record TTL value.
-     *
-     * @return record TTL value
-     */
-    int getRecordTtl();
+public interface LispMapRecord extends LispRecord {
 
     /**
      * Obtains locator count value.
@@ -41,120 +30,29 @@ public interface LispMapRecord {
     int getLocatorCount();
 
     /**
-     * Obtains address mask length.
+     * Obtains a collection of locators.
      *
-     * @return mask length
+     * @return a collection of locators
      */
-    byte getMaskLength();
-
-    /**
-     * Obtains LispMapReplyAction enum code.
-     *
-     * @return LispMapReplyAction enum code
-     */
-    LispMapReplyAction getAction();
-
-    /**
-     * Obtains authoritative flag.
-     *
-     * @return authoritative flag
-     */
-    boolean isAuthoritative();
-
-    /**
-     * Obtains map version number.
-     *
-     * @return map version number
-     */
-    short getMapVersionNumber();
-
-    /**
-     * Obtains EID prefix.
-     *
-     * @return EID prefix
-     */
-    LispAfiAddress getEidPrefixAfi();
-
-    /**
-     * Obtains a collection of locator records.
-     *
-     * @return a collection of locator records
-     */
-    List<LispLocatorRecord> getLocators();
-
-    /**
-     * Writes LISP message object into communication channel.
-     *
-     * @param byteBuf byte buffer
-     * @throws LispWriterException on error
-     */
-    void writeTo(ByteBuf byteBuf) throws LispWriterException;
+    List<LispLocator> getLocators();
 
     /**
      * A builder of LISP map record.
      */
-    interface MapRecordBuilder {
+    interface MapRecordBuilder extends RecordBuilder<MapRecordBuilder> {
 
         /**
-         * Sets record TTL value.
+         * Sets a collection of locators.
          *
-         * @param recordTtl record TTL
+         * @param locators a collection of locators
          * @return MapRecordBuilder object
          */
-        MapRecordBuilder withRecordTtl(int recordTtl);
+        MapRecordBuilder withLocators(List<LispLocator> locators);
 
         /**
-         * Sets mask length.
+         * Builds LISP map record object.
          *
-         * @param maskLength mask length
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withMaskLength(byte maskLength);
-
-        /**
-         * Sets LISP map reply action enum.
-         *
-         * @param action map reply action
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withAction(LispMapReplyAction action);
-
-        /**
-         * Sets authoritative flag.
-         *
-         * @param authoritative authoritative flag
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withAuthoritative(boolean authoritative);
-
-        /**
-         * Sets LISP map version number.
-         *
-         * @param mapVersionNumber map version number
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withMapVersionNumber(short mapVersionNumber);
-
-        /**
-         * Sets EID prefix.
-         *
-         * @param prefix EID prefix
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withEidPrefixAfi(LispAfiAddress prefix);
-
-        /**
-         * Sets a collection of locator records.
-         *
-         * @param records a collection of locator records
-         * @return MapRecordBuilder object
-         */
-        MapRecordBuilder withLocators(List<LispLocatorRecord> records);
-
-        /**
-         * Builds map record.
-         *
-         * @return map record instance
+         * @return LISP map record object
          */
         LispMapRecord build();
     }

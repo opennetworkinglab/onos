@@ -40,7 +40,7 @@ public class DefaultLispInfoRequest extends DefaultLispInfo
         implements LispInfoRequest {
 
     private static final Logger log =
-            LoggerFactory.getLogger(DefaultLispInfoRequest.class);
+                         LoggerFactory.getLogger(DefaultLispInfoRequest.class);
 
     static final InfoRequestWriter WRITER;
 

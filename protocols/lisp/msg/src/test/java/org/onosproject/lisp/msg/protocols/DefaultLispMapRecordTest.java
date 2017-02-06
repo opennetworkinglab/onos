@@ -37,6 +37,9 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.*;
  */
 public final class DefaultLispMapRecordTest {
 
+    private static final String IP_ADDRESS_1 = "192.168.1.1";
+    private static final String IP_ADDRESS_2 = "192.168.1.2";
+
     private LispMapRecord record1;
     private LispMapRecord sameAsRecord1;
     private LispMapRecord record2;
@@ -46,11 +49,11 @@ public final class DefaultLispMapRecordTest {
 
         MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
 
-        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_1));
 
         record1 = builder1
                         .withRecordTtl(100)
-                        .withAuthoritative(true)
+                        .withIsAuthoritative(true)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
                         .withAction(LispMapReplyAction.NativelyForward)
@@ -61,7 +64,7 @@ public final class DefaultLispMapRecordTest {
 
         sameAsRecord1 = builder2
                         .withRecordTtl(100)
-                        .withAuthoritative(true)
+                        .withIsAuthoritative(true)
                         .withMapVersionNumber((short) 1)
                         .withMaskLength((byte) 0x01)
                         .withAction(LispMapReplyAction.NativelyForward)
@@ -70,11 +73,11 @@ public final class DefaultLispMapRecordTest {
 
         MapRecordBuilder builder3 = new DefaultMapRecordBuilder();
 
-        LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
+        LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_2));
 
         record2 = builder3
                         .withRecordTtl(200)
-                        .withAuthoritative(false)
+                        .withIsAuthoritative(false)
                         .withMapVersionNumber((short) 2)
                         .withMaskLength((byte) 0x02)
                         .withAction(LispMapReplyAction.Drop)
@@ -93,7 +96,7 @@ public final class DefaultLispMapRecordTest {
     public void testConstruction() {
         DefaultLispMapRecord record = (DefaultLispMapRecord) record1;
 
-        LispIpv4Address ipv4Locator = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_1));
 
         assertThat(record.getRecordTtl(), is(100));
         assertThat(record.isAuthoritative(), is(true));

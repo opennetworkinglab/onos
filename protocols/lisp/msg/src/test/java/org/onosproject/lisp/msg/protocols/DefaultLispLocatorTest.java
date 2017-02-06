@@ -24,30 +24,33 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
-import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.DefaultLocatorRecordBuilder;
-import org.onosproject.lisp.msg.protocols.LispLocatorRecord.LocatorRecordBuilder;
-import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordWriter;
-import org.onosproject.lisp.msg.protocols.DefaultLispLocatorRecord.LocatorRecordReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocator.DefaultLocatorBuilder;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocator.LocatorReader;
+import org.onosproject.lisp.msg.protocols.DefaultLispLocator.LocatorWriter;
+import org.onosproject.lisp.msg.protocols.LispLocator.LocatorBuilder;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 /**
- * Unit tests for DefaultLispLocatorRecord class.
+ * Unit tests for DefaultLispLocator class.
  */
-public final class DefaultLispLocatorRecordTest {
+public final class DefaultLispLocatorTest {
 
-    private LispLocatorRecord record1;
-    private LispLocatorRecord sameAsRecord1;
-    private LispLocatorRecord record2;
+    private static final String IP_ADDRESS_1 = "192.168.1.1";
+    private static final String IP_ADDRESS_2 = "192.168.1.2";
+
+    private LispLocator record1;
+    private LispLocator sameAsRecord1;
+    private LispLocator record2;
 
     @Before
     public void setup() {
 
-        LocatorRecordBuilder builder1 = new DefaultLocatorRecordBuilder();
+        LispLocator.LocatorBuilder builder1 = new DefaultLocatorBuilder();
 
-        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_1));
 
         record1 = builder1
                         .withPriority((byte) 0x01)
@@ -60,7 +63,7 @@ public final class DefaultLispLocatorRecordTest {
                         .withLocatorAfi(ipv4Locator1)
                         .build();
 
-        LocatorRecordBuilder builder2 = new DefaultLocatorRecordBuilder();
+        LocatorBuilder builder2 = new DefaultLocatorBuilder();
 
         sameAsRecord1 = builder2
                         .withPriority((byte) 0x01)
@@ -73,9 +76,9 @@ public final class DefaultLispLocatorRecordTest {
                         .withLocatorAfi(ipv4Locator1)
                         .build();
 
-        LocatorRecordBuilder builder3 = new DefaultLocatorRecordBuilder();
+        LispLocator.LocatorBuilder builder3 = new DefaultLocatorBuilder();
 
-        LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf("192.168.1.2"));
+        LispIpv4Address ipv4Locator2 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_2));
 
         record2 = builder3
                         .withPriority((byte) 0x02)
@@ -98,9 +101,9 @@ public final class DefaultLispLocatorRecordTest {
 
     @Test
     public void testConstruction() {
-        DefaultLispLocatorRecord record = (DefaultLispLocatorRecord) record1;
+        DefaultLispLocator record = (DefaultLispLocator) record1;
 
-        LispIpv4Address ipv4Locator = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_1));
 
         assertThat(record.getPriority(), is((byte) 0x01));
         assertThat(record.getWeight(), is((byte) 0x01));
@@ -116,11 +119,11 @@ public final class DefaultLispLocatorRecordTest {
     public void testSerialization() throws LispReaderException, LispWriterException, LispParseError {
         ByteBuf byteBuf = Unpooled.buffer();
 
-        LocatorRecordWriter writer = new LocatorRecordWriter();
+        LocatorWriter writer = new LocatorWriter();
         writer.writeTo(byteBuf, record1);
 
-        LocatorRecordReader reader = new LocatorRecordReader();
-        LispLocatorRecord deserialized = reader.readFrom(byteBuf);
+        LocatorReader reader = new LocatorReader();
+        LispLocator deserialized = reader.readFrom(byteBuf);
 
         new EqualsTester()
                 .addEqualityGroup(record1, deserialized).testEquals();

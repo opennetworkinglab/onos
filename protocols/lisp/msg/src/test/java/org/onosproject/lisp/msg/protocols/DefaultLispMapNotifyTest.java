@@ -43,6 +43,8 @@ import static org.hamcrest.Matchers.is;
  */
 public final class DefaultLispMapNotifyTest {
 
+    private static final String IP_ADDRESS = "192.168.1.1";
+
     private LispMapNotify notify1;
     private LispMapNotify sameAsNotify1;
     private LispMapNotify notify2;
@@ -85,11 +87,11 @@ public final class DefaultLispMapNotifyTest {
     private LispMapRecord getMapRecord() {
         MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
 
-        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS));
 
         return builder1
                 .withRecordTtl(100)
-                .withAuthoritative(true)
+                .withIsAuthoritative(true)
                 .withMapVersionNumber((short) 1)
                 .withMaskLength((byte) 0x01)
                 .withAction(LispMapReplyAction.NativelyForward)

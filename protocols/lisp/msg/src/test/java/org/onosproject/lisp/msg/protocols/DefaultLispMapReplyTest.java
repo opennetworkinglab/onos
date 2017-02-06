@@ -43,6 +43,8 @@ import static org.onosproject.lisp.msg.protocols.DefaultLispMapReply.ReplyBuilde
  */
 public final class DefaultLispMapReplyTest {
 
+    private static final String IP_ADDRESS = "192.168.1.1";
+
     private LispMapReply reply1;
     private LispMapReply sameAsReply1;
     private LispMapReply reply2;
@@ -87,11 +89,11 @@ public final class DefaultLispMapReplyTest {
     private LispMapRecord getMapRecord() {
         MapRecordBuilder builder1 = new DefaultMapRecordBuilder();
 
-        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf("192.168.1.1"));
+        LispIpv4Address ipv4Locator1 = new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS));
 
         return builder1
                 .withRecordTtl(100)
-                .withAuthoritative(true)
+                .withIsAuthoritative(true)
                 .withMapVersionNumber((short) 1)
                 .withMaskLength((byte) 0x01)
                 .withAction(LispMapReplyAction.NativelyForward)
