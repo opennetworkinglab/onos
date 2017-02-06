@@ -15,6 +15,9 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import io.netty.buffer.ByteBuf;
+import org.onosproject.lisp.msg.exceptions.LispWriterException;
+
 /**
  * LISP signature interface.
  *
@@ -43,5 +46,129 @@ package org.onosproject.lisp.msg.protocols;
  */
 public interface LispSignature {
 
-    // TODO: need to implement LispSignature
+    /**
+     * Obtains record TTL value.
+     *
+     * @return record TTL value
+     */
+    int getRecordTtl();
+
+    /**
+     * Obtains signature expiration.
+     *
+     * @return signature expiration
+     */
+    int getSigExpiration();
+
+    /**
+     * Obtains signature inception.
+     *
+     * @return signature inception
+     */
+    int getSigInception();
+
+    /**
+     * Obtains key tag.
+     *
+     * @return key tag
+     */
+    short getKeyTag();
+
+    /**
+     * Obtains signature length.
+     *
+     * @return signature length.
+     */
+    short getSigLength();
+
+    /**
+     * Obtains signature algorithm.
+     *
+     * @return signature algorithm
+     */
+    byte getSigAlgorithm();
+
+    /**
+     * Obtains signature.
+     *
+     * @return signature
+     */
+    int getSignature();
+
+    /**
+     * Writes LISP object into communication channel.
+     *
+     * @param byteBuf byte buffer
+     * @throws LispWriterException on error
+     */
+    void writeTo(ByteBuf byteBuf) throws LispWriterException;
+
+    /**
+     * A builder for LISP signature.
+     */
+    interface SignatureBuilder {
+
+        /**
+         * Sets record TTL value.
+         *
+         * @param recordTtl record TTL
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withRecordTtl(int recordTtl);
+
+        /**
+         * Sets signature expiration.
+         *
+         * @param sigExpiration signature expiration
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withSigExpiration(int sigExpiration);
+
+        /**
+         * Sets signature inception.
+         *
+         * @param sigInception signature inception
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withSigInception(int sigInception);
+
+        /**
+         * Sets key tag.
+         *
+         * @param keyTag key tag
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withKeyTag(short keyTag);
+
+        /**
+         * Sets signature length.
+         *
+         * @param sigLength signature length
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withSigLength(short sigLength);
+
+        /**
+         * Sets signature algorithm.
+         *
+         * @param sigAlgorithm signature algorithm
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withSigAlgorithm(byte sigAlgorithm);
+
+        /**
+         * Sets signature.
+         *
+         * @param signature signature
+         * @return SignatureBuilder object
+         */
+        SignatureBuilder withSignature(int signature);
+
+        /**
+         * Builds LISP signature object.
+         *
+         * @return LISP signature object
+         */
+        LispSignature build();
+    }
 }
