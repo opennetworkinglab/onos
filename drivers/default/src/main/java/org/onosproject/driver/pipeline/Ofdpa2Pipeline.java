@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -91,6 +90,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static org.onlab.packet.MacAddress.BROADCAST;
+import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -362,7 +363,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
 
-        if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
+        if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
             // NOTE: it is possible that a filtering objective only has vidCriterion
             log.debug("filtering objective missing dstMac, cannot program TMAC table");
         } else {
@@ -1170,12 +1171,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         TrafficSelector.Builder filteredSelectorBuilder =
                 DefaultTrafficSelector.builder();
-        // Do not match MacAddress for subnet broadcast entry
-        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+
+        if (!ethCriterion.mac().equals(NONE) &&
+                !ethCriterion.mac().equals(BROADCAST)) {
             filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
             log.debug("processing L2 forwarding objective:{} -> next:{} in dev:{}",
                       fwd.id(), fwd.nextId(), deviceId);
         } else {
+            // Use wildcard DST_MAC if the MacAddress is None or Broadcast
             log.debug("processing L2 Broadcast forwarding objective:{} -> next:{} "
                     + "in dev:{} for vlan:{}",
                       fwd.id(), fwd.nextId(), deviceId, vlanIdCriterion.vlanId());
