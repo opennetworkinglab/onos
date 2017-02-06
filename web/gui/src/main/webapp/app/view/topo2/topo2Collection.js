@@ -63,6 +63,10 @@
                 return this.addModel(data);
             }
         },
+        remove: function (model) {
+            var index = _.indexOf(this.models, model);
+            this.models.splice(index, 1);
+        },
         get: function (id) {
 
             if (!id) {

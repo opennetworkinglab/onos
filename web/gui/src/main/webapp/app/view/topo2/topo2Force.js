@@ -150,10 +150,12 @@
 
     function modelEvent(data) {
         $log.debug('>> topo2UiModelEvent event:', data);
+
         // TODO: Interpret the event and update our topo model state (if needed)
         // To Decide: Can we assume that the server will only send events
         //    related to objects that we are currently showing?
         //    (e.g. filtered by subregion contents?)
+        t2rs.update(data);
     }
 
     function showMastership(masterId) {

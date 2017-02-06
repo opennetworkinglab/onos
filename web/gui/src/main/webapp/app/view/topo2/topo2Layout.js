@@ -22,7 +22,8 @@
 (function () {
     'use strict';
 
-    var instance;
+    var instance,
+        updateTimer;
 
     // default settings for force layout
     var defaultSettings = {
@@ -89,10 +90,10 @@
     angular.module('ovTopo2')
     .factory('Topo2LayoutService',
         [
-            '$log', 'WebSocketService', 'SvgUtilService', 'Topo2RegionService',
+            '$log', '$timeout', 'WebSocketService', 'SvgUtilService', 'Topo2RegionService',
             'Topo2D3Service', 'Topo2ViewService', 'Topo2SelectService', 'Topo2ZoomService',
             'Topo2ViewController',
-            function ($log, wss, sus, t2rs, t2d3, t2vs, t2ss, t2zs,
+            function ($log, $timeout, wss, sus, t2rs, t2d3, t2vs, t2ss, t2zs,
                       ViewController) {
 
                 var Layout = ViewController.extend({
@@ -189,11 +190,12 @@
                         t2zs.panAndZoom([x, y], scale, 1000);
                     },
                     tick: function () {
+
                         this.link
-                            .attr("x1", function (d) { return d.source.x; })
-                            .attr("y1", function (d) { return d.source.y; })
-                            .attr("x2", function (d) { return d.target.x; })
-                            .attr("y2", function (d) { return d.target.y; });
+                            .attr("x1", function (d) { return d.get('source').x; })
+                            .attr("y1", function (d) { return d.get('source').y; })
+                            .attr("x2", function (d) { return d.get('target').x; })
+                            .attr("y2", function (d) { return d.get('target').y; });
 
                         this.node
                             .attr({
@@ -209,6 +211,13 @@
                         this.force.start();
                     },
                     update: function () {
+
+                        if (updateTimer) {
+                            $timeout.cancel(updateTimer);
+                        }
+                        updateTimer = $timeout(this._update.bind(this), 150);
+                    },
+                    _update: function () {
                         this.updateNodes();
                         this.updateLinks();
                     },
@@ -237,26 +246,13 @@
                         entering.filter('.device').each(t2d3.nodeEnter);
                         entering.filter('.sub-region').each(t2d3.nodeEnter);
                         entering.filter('.host').each(t2d3.hostEnter);
-
-                        // operate on exiting nodes:
-                        // Note that the node is removed after 2 seconds.
-                        // Sub element animations should be shorter than 2 seconds.
-                        // var exiting = this.node.exit()
-                        //     .transition()
-                        //     .duration(300)
-                        //     .style('opacity', 0)
-                        //     .remove();
-
-                        // exiting node specifics:
-                        // exiting.filter('.host').each(t2d3.hostExit);
-                        // exiting.filter('.device').each(t2d3.nodeExit);
                     },
                     updateLinks: function () {
 
                         var regionLinks = t2rs.regionLinks();
 
                         this.link = this.elements.linkG.selectAll('.link')
-                            .data(regionLinks);
+                            .data(regionLinks, function (d) { return d.get('key'); });
 
                         // operate on entering links:
                         var entering = this.link.enter()
@@ -275,9 +271,13 @@
 
                         // operate on exiting links:
                         this.link.exit()
-                            .style('opacity', 1)
+                            .attr('stroke-dasharray', '3 3')
+                            .style('opacity', 0.5)
                             .transition()
-                            .duration(300)
+                            .duration(1500)
+                            .attr({
+                                'stroke-dasharray': '3 12',
+                            })
                             .style('opacity', 0.0)
                             .remove();
                     },
@@ -336,7 +336,6 @@
                         d.fixed = true;
                         d3.select(this).classed('fixed', true);
                         instance.sendUpdateMeta(d);
-                        $log.debug(d);
                         t2ss.clickConsumed(true);
                     },
                     transitionDownRegion: function () {

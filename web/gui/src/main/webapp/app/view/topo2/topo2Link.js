@@ -59,8 +59,6 @@
         var attrs = angular.extend({}, linkPoints, {
             key: this.get('id'),
             class: 'link',
-            srcPort: this.get('srcPort'),
-            tgtPort: this.get('dstPort'),
             position: {
                 x1: 0,
                 y1: 0,

@@ -44,14 +44,6 @@
         }
     };
 
-    function devGlyphColor(d) {
-        var o = this.get('online'),
-            id = this.get('master'),
-            otag = o ? 'online' : 'offline';
-        return o ? sus.cat7().getColor(id, 0, ts.theme()) :
-            dColTheme[ts.theme()][otag];
-    }
-
     angular.module('ovTopo2')
     .factory('Topo2NodeModel', [
         'Topo2Model', 'FnService', 'Topo2PrefsService',
@@ -117,10 +109,10 @@
                     });
                 },
                 mouseoverHandler: function () {
-                    this.set('hovered', true);
+                    this.set('hovered', true, { silent: true });
                 },
                 mouseoutHandler: function () {
-                    this.set('hovered', false);
+                    this.set('hovered', false, { silent: true });
                 },
                 icon: function () {
                     return 'unknown';
@@ -146,15 +138,23 @@
                         box = text.node().getBBox();
                     return box.width + labelPad * 2;
                 },
+                devGlyphColor: function () {
+                    var o = this.get('online'),
+                        id = this.get('master'),
+                        otag = o ? 'online' : 'offline';
+                    return o ? sus.cat7().getColor(id, 0, ts.theme()) :
+                        dColTheme[ts.theme()][otag];
+                },
                 addLabelElements: function (label) {
                     var rect = this.el.append('rect')
                         .attr('class', 'node-container');
                     var glythRect = this.el.append('rect')
+                        .attr('class', 'icon-rect')
                         .attr('y', -halfDevIcon)
                         .attr('x', -halfDevIcon)
                         .attr('width', devIconDim)
                         .attr('height', devIconDim)
-                        .style('fill', devGlyphColor.bind(this));
+                        .style('fill', this.devGlyphColor.bind(this));
 
                     var text = this.el.append('text').text(label)
                         .attr('text-anchor', 'left')

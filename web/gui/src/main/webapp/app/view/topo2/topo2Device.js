@@ -60,11 +60,11 @@
                     events: {
                         'click': 'onClick'
                     },
-                    onChange: function () {
-
-                        // Update class names when the model changes
+                    onChange: function (change) {
                         if (this.el) {
                             this.el.attr('class', this.svgClassName());
+                            var rect = this.el.select('.icon-rect');
+                            rect.style('fill', this.devGlyphColor());
                         }
                     },
                     nodeType: 'device',

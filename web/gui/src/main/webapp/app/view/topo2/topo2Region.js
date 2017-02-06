@@ -104,6 +104,9 @@
                 getLink: function (linkId) {
                     return this.model.get('links').get(linkId);
                 },
+                getDevice: function (deviceId) {
+                    return this.model.get('devices').get(deviceId);
+                },
                 filterRegionNodes: function (predicate) {
                     var nodes = this.regionNodes();
                     return _.filter(nodes, predicate);
@@ -144,12 +147,14 @@
                 },
 
                 update: function (event) {
+
                     if (this[event.type]) {
                         this[event.type](event);
-                        this.layout.update();
                     } else {
                         $log.error("Unhanded topology update", event);
                     }
+
+                    this.layout.update()
                 },
 
                 // Topology update event handlers
@@ -162,6 +167,22 @@
                 LINK_REMOVED: function (event) {
                     var link = this.getLink(event.subject);
                     link.remove();
+                    this.model.get('links').remove(link);
+                },
+                DEVICE_ADDED_OR_UPDATED: function (event) {
+
+                    var device;
+
+                    if (event.memo === 'added') {
+                        device = this.model.get('devices').add(event.data);
+                        $log('Added device', device)
+                    } else if (event.memo === 'updated') {
+                        device = this.getDevice(event.subject);
+                        device.set(event.data);
+                    }
+                },
+                DEVICE_REMOVED: function (event) {
+                    device.remove();
                 }
             });
 
