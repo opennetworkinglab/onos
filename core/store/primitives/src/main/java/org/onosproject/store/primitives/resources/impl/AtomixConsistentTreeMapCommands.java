@@ -243,7 +243,7 @@ public final class AtomixConsistentTreeMapCommands {
 
         @Override
         public CompactionMode compaction() {
-            return value == null ? CompactionMode.FULL : CompactionMode.QUORUM;
+            return value == null ? CompactionMode.TOMBSTONE : CompactionMode.QUORUM;
         }
 
         @Override
@@ -335,7 +335,7 @@ public final class AtomixConsistentTreeMapCommands {
             extends TreeCommand<MapEntryUpdateResult.Status> {
         @Override
         public CompactionMode compaction() {
-            return CompactionMode.FULL;
+            return CompactionMode.TOMBSTONE;
         }
     }
 
@@ -351,6 +351,11 @@ public final class AtomixConsistentTreeMapCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
         }
 
         @Override
@@ -373,6 +378,11 @@ public final class AtomixConsistentTreeMapCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
