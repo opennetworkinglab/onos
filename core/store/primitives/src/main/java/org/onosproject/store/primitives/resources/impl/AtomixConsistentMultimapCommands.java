@@ -291,7 +291,7 @@ public final class AtomixConsistentMultimapCommands {
 
         @Override
         public CompactionMode compaction() {
-            return CompactionMode.FULL;
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
@@ -352,7 +352,7 @@ public final class AtomixConsistentMultimapCommands {
 
         @Override
         public CompactionMode compaction() {
-            return CompactionMode.FULL;
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
@@ -479,7 +479,7 @@ public final class AtomixConsistentMultimapCommands {
 
         @Override
         public CompactionMode compaction() {
-            return CompactionMode.FULL;
+            return CompactionMode.QUORUM;
         }
 
         @Override
@@ -514,6 +514,10 @@ public final class AtomixConsistentMultimapCommands {
      */
     @SuppressWarnings("serial")
     public static class Clear extends MultimapCommand<Void> {
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
+        }
     }
 
     /**
