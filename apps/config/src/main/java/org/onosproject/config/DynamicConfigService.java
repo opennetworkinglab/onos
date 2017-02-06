@@ -16,8 +16,8 @@
 
 package org.onosproject.config;
 
-import org.onosproject.config.model.ResourceIdentifier;
 import org.onosproject.config.model.DataNode;
+import org.onosproject.config.model.ResourceId;
 import org.onosproject.event.ListenerService;
 
 /**
@@ -36,7 +36,7 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the new node could not be created
      */
-    void createNode(ResourceIdentifier path, DataNode node);
+    void createNode(ResourceId path, DataNode node);
 
     /**
      * Creates a new node in the dynamic config store.
@@ -50,7 +50,7 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the new node could not be created
      */
-    void createNodeRecursive(ResourceIdentifier path, DataNode node);
+    void createNodeRecursive(ResourceId path, DataNode node);
 
     /**
      * Reads the requested node form the dynamic config store.
@@ -65,7 +65,7 @@ public interface DynamicConfigService
      * @return a recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the requested node could not be read
      */
-    DataNode readNode(ResourceIdentifier path, Filter filter);
+    DataNode readNode(ResourceId path, Filter filter);
 
     /**
      * Returns the number of children under the node at the given path.
@@ -78,7 +78,7 @@ public interface DynamicConfigService
      * @return the number of children after applying the filtering conditions if any
      * @throws FailedException if the request failed
      */
-    Integer getNumberOfChildren(ResourceIdentifier path, Filter filter);
+    Integer getNumberOfChildren(ResourceId path, Filter filter);
 
     /**
      * Updates an existing node in the dynamic config store.
@@ -90,7 +90,7 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the update request failed
      */
-    void updateNode(ResourceIdentifier path, DataNode node);
+    void updateNode(ResourceId path, DataNode node);
 
     /**
      * Updates an existing node in the dynamic config store.
@@ -104,7 +104,7 @@ public interface DynamicConfigService
      * @throws FailedException if the update request failed for any reason
      *
      */
-    void updateNodeRecursive(ResourceIdentifier path, DataNode node);
+    void updateNodeRecursive(ResourceId path, DataNode node);
 
     /**
      * Replaces nodes in the dynamic config store.
@@ -117,7 +117,7 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the replace request failed
      */
-    void replaceNode(ResourceIdentifier path, DataNode node);
+    void replaceNode(ResourceId path, DataNode node);
 
     /**
      * Removes a leaf node from the dynamic config store.
@@ -129,7 +129,7 @@ public interface DynamicConfigService
      * @param path data structure with absolute path to the intended node
      * @throws FailedException if the delete request failed
      */
-    void deleteNode(ResourceIdentifier path);
+    void deleteNode(ResourceId path);
 
     /**
      * Removes a subtree from the dynamic config store.
@@ -141,7 +141,7 @@ public interface DynamicConfigService
      * @param path data structure with absolute path to the intended node
      * @throws FailedException if the delete request failed
      */
-    void deleteNodeRecursive(ResourceIdentifier path);
+    void deleteNodeRecursive(ResourceId path);
 
     /**
      * Adds a listener to be notified when a leaf or subtree rooted at the
@@ -151,7 +151,7 @@ public interface DynamicConfigService
      * @param listener listener to be notified
      * @throws FailedException if the listener could not be added
      */
-    void addConfigListener(ResourceIdentifier path, DynamicConfigListener listener);
+    void addConfigListener(ResourceId path, DynamicConfigListener listener);
 
     /**
      * Removes a previously added listener.
@@ -160,7 +160,7 @@ public interface DynamicConfigService
      * @param listener listener to unregister
      * @throws FailedException if the listener could not be removed
      */
-    void removeConfigListener(ResourceIdentifier path, DynamicConfigListener listener);
+    void removeConfigListener(ResourceId path, DynamicConfigListener listener);
 
     /**
      * Registers an RPC handler.

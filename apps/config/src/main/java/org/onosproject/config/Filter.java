@@ -16,102 +16,189 @@
 package org.onosproject.config;
 
 
-import org.onosproject.config.model.ResourceIdentifier;
+import org.onosproject.config.model.ResourceId;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
  * Abstraction for Filters that can be used while traversing the dynamic config store.
  * This abstraction allows to select entries of interest based on various criteria
  * defined by this interface.
- * NOTE: Only criteria based on {@code ResourceIdentifier} are supported currently.
- * This is a placeholder for a filter; Set of ResourceIdentifier becomes inefficient when
+ * NOTE: Only criteria based on {@code ResourceId} are supported currently.
+ * This is a placeholder for a filter; Set of ResourceId becomes inefficient when
  * using a large number of filtering criteria;
  */
-public interface Filter {
-    enum TraversalMode {
-        /**
-         * Traversal types.
-         */
+public class Filter {
+    /**
+     * Traversal modes.
+     */
+    public enum TraversalMode {
         SUB_TREE(-1),
         NODE_ONLY(0),
         GIVEN_DEPTH;
-
         /**
-         * variable indicating the depth of traversal.
-         * depth = -1 => if the node is pointing to a subtree, the entire subtree will be traversed;
-         * if the node points to a leaf, just the leaf will be retrieved.
-         * depth = 0 => tree will not be traversed; will retrieve just the specific node,
-         * irrespective of it being a subtree root or a leaf node
-         * depth = any other integer => that many levels of the subtree will be traversed;
-         * if depth > the number of levels of children, the entire subtree will
-         * be traversed and end the traversal, without throwing any errors.
+         * SUB_TREE => if the node points to a subtree, the entire subtree will
+         * be traversed; if pointing to a leaf, just the leaf will be retrieved.
+         * NODE_ONLY => tree will not be traversed; will retrieve just the
+         * specific node, irrespective of it being a subtree root or a leaf node
+         * GIVEN_DEPTH => as many levels of the subtree as indicated by depth
+         * field of filter that  will be traversed; if depth > the number of
+         * levels of children, the entire subtree will be traversed and end
+         * the traversal, without throwing any errors.
          */
-        int depth;
-
+        int val;
         TraversalMode() {
 
         }
-
-        TraversalMode(int depth) {
-            this.depth = depth;
+        TraversalMode(int val) {
+            this.val = val;
         }
-
-        int depth() {
-            return depth;
+        int val() {
+            return val;
         }
     }
 
-    /**
-     * Adds the traversal depth to the Filter object.
-     * Various interpretations of depth are as mentioned.
-     * Default traversal mode is to read just the given node(NODE_ONLY).
-     *
-     * @param depth new criteria
+    /** Filtering criteria.
      */
-    void addDepth(TraversalMode depth);
+    Set<ResourceId> criteria = new LinkedHashSet<ResourceId>();
+    /** Traversal mode; default is to read just the given node(NODE_ONLY).
+     */
+    TraversalMode mode = TraversalMode.NODE_ONLY;
+    /** depth of traversal; default value is 0.
+     */
+    int depth = TraversalMode.NODE_ONLY.val();
 
     /**
-     * Adds new ResourceIdentifier filtering criteria to a Filter object.
-     * If the same ResourceIdentifier is already part of the criteria
+     * Creates a new Filter object.
+     */
+    public Filter() {
+
+    }
+    /**
+     * Creates a new Filter object.
+     *
+     * @param criteria  set of filtering criteria
+     * @param mode traversal mode
+     * @param depth depth of traversal
+     */
+    public Filter(Set<ResourceId> criteria, TraversalMode mode, int depth) {
+        this.criteria = criteria;
+        this.mode = mode;
+        this.depth = depth;
+
+    }
+
+    /**
+     * Returns the traversal mode.
+     *
+     *@return traversal mode
+     */
+    TraversalMode mode() {
+        return mode;
+    }
+
+    /**
+     * Sets the traversal mode.
+     *
+     * @param mode traversal mode
+     */
+    void mode(TraversalMode mode) {
+        this.mode = mode;
+    }
+
+    /**
+     * Returns the depth.
+     *
+     *@return depth
+     */
+    int depth() {
+        return depth;
+    }
+
+    /**
+     * Sets the depth.
+     *
+     * @param depth of traversal
+     */
+    void mode(int depth) {
+        this.depth = depth;
+    }
+    /**
+     * Adds a new ResourceId filtering criterion to a Filter object.
+     * If the same ResourceId is already part of the criteria
      * for the object, it will not be added again, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceIdentifier.
+     * This will not check for the validity of the ResourceId.
      *
-     * @param add new criteria
+     * @param add new criterion
      */
-    void addCriteria(Set<ResourceIdentifier> add);
+    void addCriteria(ResourceId add) {
+        criteria.add(add);
+    }
 
     /**
-     * Removes the given ResourceIdentifier filtering criteria from a Filter object.
-     * If the ResourceIdentifier was NOT already part of the criteria for
+     * Adds new ResourceId filtering criteria to a Filter object.
+     * If the same ResourceId is already part of the criteria
+     * for the object, it will not be added again, but will not throw any exceptions.
+     * This will not check for the validity of the ResourceId.
+     *
+     * @param addAll new criteria
+     */
+    void addCriteria(Set<ResourceId> addAll) {
+        criteria.addAll(addAll);
+    }
+
+    /**
+     * Removes the given ResourceId filtering criterion from a Filter object.
+     * If the ResourceId was NOT already part of the criteria for
      * the object, it will not be removed, but will not throw any exceptions.
-     * This will not check for the validity of the ResourceIdentifier.
+     * This will not check for the validity of the ResourceId.
      *
-     * @param remove criteria to be removed
+     * @param remove criterion to be removed
      */
-    void removeCriteria(Set<ResourceIdentifier> remove);
+    void removeCriteria(ResourceId remove) {
+        criteria.remove(remove);
+    }
 
     /**
-     * Method to list all the ResourceIdentifier criteria that are in place for a Filter.
+     * Removes the given ResourceId filtering criteria from a Filter object.
+     * If the ResourceId was NOT already part of the criteria for
+     * the object, it will not be removed, but will not throw any exceptions.
+     * This will not check for the validity of the ResourceId.
      *
-     * @return Set of ResourceIdentifier criteria for this entity
+     * @param removeAll criteria to be removed
      */
-    Set<ResourceIdentifier> getCriteria();
+    void removeCriteria(Set<ResourceId> removeAll) {
+        criteria.removeAll(removeAll);
+    }
+
+    /**
+     * Returns the criteria that are in place for a Filter.
+     *
+     * @return Set of ResourceId criteria
+     */
+    Set<ResourceId> criteria() {
+        return this.criteria;
+    }
 
     /**
      * Method to create a filter that include all entries rejected by the criteria.
      *
-     * @param original filter object with a criteria set
+     * @param original Filter object with a criteria set
      * @return Filter object with negated criteria set
      * @throws InvalidFilterException if the received Filter object
      * was null or if it had an empty criteria set
      */
-    Filter negateFilter(Filter original);
+    Filter negateFilter(Filter original) {
+        throw new FailedException("Not yet implemented");
+    }
 
     /**
-     * Method to check if the Filter has an empty criteria set.
+     * Returns if the Filter has an empty criteria set.
      *
-     * @return {@code true} if criteria set is empty, {@code true} otherwise.
+     * @return {@code true} if criteria set is empty, {@code false} otherwise.
      */
-    boolean isEmptyFilter();
+    boolean isEmptyFilter() {
+        return criteria.isEmpty();
+    }
 }

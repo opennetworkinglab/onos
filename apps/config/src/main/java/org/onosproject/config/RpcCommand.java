@@ -15,7 +15,7 @@
  */
 package org.onosproject.config;
 
-import org.onosproject.config.model.ResourceIdentifier;
+import org.onosproject.config.model.ResourceId;
 /**
  * Abstract implementation of an RPC command.
  */
@@ -23,14 +23,14 @@ public abstract class RpcCommand {
     /**
      * Identifier of an RPC command.
      */
-    ResourceIdentifier cmdId;
+    ResourceId cmdId;
 
     /**
      * Creates an instance of RpcCommand.
      *
      * @param cmdId of RPC command
      */
-    public RpcCommand(ResourceIdentifier cmdId) {
+    public RpcCommand(ResourceId cmdId) {
         this.cmdId = cmdId;
     }
 
@@ -39,7 +39,7 @@ public abstract class RpcCommand {
      *
      * @return cmdId
      */
-    public ResourceIdentifier cmdId() {
+    public ResourceId cmdId() {
         return this.cmdId;
     }
     /**

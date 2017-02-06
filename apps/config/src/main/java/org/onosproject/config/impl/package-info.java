@@ -16,8 +16,5 @@
 
 /**
  * Dynamic config service App and Store implementation.
- * Work in progress; would change considerably based on
- * the DataNode and ResourceId implementations.
- * These are to be looked upon as placeholders
  */
 package org.onosproject.config.impl;

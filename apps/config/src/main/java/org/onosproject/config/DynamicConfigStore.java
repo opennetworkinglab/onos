@@ -16,7 +16,7 @@
 package org.onosproject.config;
 
 import org.onosproject.config.model.DataNode;
-import org.onosproject.config.model.ResourceIdentifier;
+import org.onosproject.config.model.ResourceId;
 import org.onosproject.store.Store;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +38,7 @@ public interface DynamicConfigStore
      * successfully added or completed exceptionally with
      * {@code FailedException} if node addition failed
      */
-    CompletableFuture<Boolean> addNode(ResourceIdentifier path, DataNode node);
+    CompletableFuture<Boolean> addNode(ResourceId path, DataNode node);
 
     /**
      * Adds a new node in the dynamic config store.
@@ -52,7 +52,7 @@ public interface DynamicConfigStore
      * successfully added or completed exceptionally with
      * {@code FailedException} if the node addition failed
      */
-    CompletableFuture<Boolean> addRecursive(ResourceIdentifier path, DataNode node);
+    CompletableFuture<Boolean> addRecursive(ResourceId path, DataNode node);
 
     /**
      * Reads the requested node from the dynamic config store.
@@ -66,7 +66,7 @@ public interface DynamicConfigStore
      * DataNode if after applying the filter, the result is an empty list of nodes)
      * or completed with {@code FailedException} if the node could not be read
      */
-    CompletableFuture<DataNode> readNode(ResourceIdentifier path, Filter filter);
+    CompletableFuture<DataNode> readNode(ResourceId path, Filter filter);
 
     /**
      * Updates an existing node in the dynamic config store.
@@ -79,7 +79,7 @@ public interface DynamicConfigStore
      * successfully updated or completed exceptionally with
      * {@code FailedException} if the update request failed
      */
-    CompletableFuture<Boolean> updateNode(ResourceIdentifier path, DataNode node);
+    CompletableFuture<Boolean> updateNode(ResourceId path, DataNode node);
 
     /**
      * Updates an existing node in the dynamic config store.
@@ -93,7 +93,7 @@ public interface DynamicConfigStore
      * successfully updated or completed exceptionally with
      * {@code FailedException} if the update request failed
      */
-    CompletableFuture<Boolean> updateNodeRecursive(ResourceIdentifier path, DataNode node);
+    CompletableFuture<Boolean> updateNodeRecursive(ResourceId path, DataNode node);
 
     /**
      * Replaces nodes in the dynamic config store.
@@ -107,7 +107,7 @@ public interface DynamicConfigStore
      * successfully replaced or completed exceptionally with
      * {@code FailedException} if the replace request failed
      */
-    CompletableFuture<Boolean> replaceNode(ResourceIdentifier path, DataNode node);
+    CompletableFuture<Boolean> replaceNode(ResourceId path, DataNode node);
 
     /**
      * Removes  a node from the dynamic config store.
@@ -120,7 +120,7 @@ public interface DynamicConfigStore
      * successfully deleted or completed exceptionally with
      * {@code FailedException} if the delete request failed
      */
-    CompletableFuture<Boolean> deleteNode(ResourceIdentifier path);
+    CompletableFuture<Boolean> deleteNode(ResourceId path);
 
     /**
      * Removes a subtree from the dynamic config store.
@@ -133,5 +133,5 @@ public interface DynamicConfigStore
      * successful or completed exceptionally with
      * {@code FailedException} if the delete request failed
      */
-    CompletableFuture<Boolean> deleteNodeRecursive(ResourceIdentifier path);
+    CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path);
 }

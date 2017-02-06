@@ -16,13 +16,14 @@
 package org.onosproject.config.model;
 
 /**
- * Created by sdn on 12/15/16.
+ * Constants used in model package.
  */
-public class SchemaIdentifier {
-    String name;
-    String nameSpace;
-    SchemaIdentifier(String nm, String nmspc) {
-        this.name = nm;
-        this.nameSpace = nmspc;
+final class ModelConstants {
+    private ModelConstants() {
+
     }
+    static final String INCOMPLETE_SCHEMA_INFO = "Schema info is not complete";
+    static final String LEAF_IS_TERMINAL = "Leaf must be the terminal node";
+    static final String NON_KEY_LEAF = "Leaf list is not a key of list";
+    static final String NO_KEY_SET = "Resource Identifier is empty";
 }

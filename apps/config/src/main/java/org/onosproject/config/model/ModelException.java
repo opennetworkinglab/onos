@@ -16,27 +16,23 @@
 package org.onosproject.config.model;
 
 /**
- * Hollow definition of ResourceIdentifier for ConfigService APIs.
+ * Exceptions for use by the {@code DynamicConfigService}.
  */
-public interface ResourceIdentifier {
-    //will remove this when the corresponding changes in onos-yang-tools become available
+public class ModelException extends RuntimeException {
 
     /**
-     * Returns the node key used to uniquely identify the branch in the
-     * logical tree.
-     *
-     * @return node key uniquely identifying the branch
+     * Constructs a new runtime exception with no error message.
      */
-    NodeKey nodeKey();
+    public ModelException() {
+        super();
+    }
 
     /**
-     * Returns the descendent resource identifier.
+     * Constructs a new runtime exception with the given error message.
      *
-     * @return descendent resource identifier
+     * @param message error message
      */
-    ResourceIdentifier descendentIdentifier();
-
-    String getBase();
-    String asString();
-    //DefaultResourceIdentifier asResId(NodeKey nkey);
+    public ModelException(String message) {
+        super(message);
+    }
 }

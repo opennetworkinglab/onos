@@ -16,18 +16,18 @@
 package org.onosproject.config;
 
 
-import org.onosproject.config.model.ResourceIdentifier;
+import org.onosproject.config.model.ResourceId;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes a DynamicConfig change event.
  */
-public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, ResourceIdentifier> {
+public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, ResourceId> {
 
     /**
      * Type of configuration events.
      * A configuration instance could be a leaf node or a subtree,
-     * identified by the subject, ResourceIdentifier.
+     * identified by the subject, ResourceId.
      */
     public enum Type {
         /**
@@ -57,7 +57,7 @@ public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, R
      * @param type  config node type
      * @param path  config node path
      */
-    public DynamicConfigEvent(Type type, ResourceIdentifier path) {
+    public DynamicConfigEvent(Type type, ResourceId path) {
         super(type, path);
     }
 }
