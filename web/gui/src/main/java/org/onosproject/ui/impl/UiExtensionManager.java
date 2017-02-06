@@ -172,7 +172,8 @@ public class UiExtensionManager
 
         UiTopoOverlayFactory topoOverlayFactory =
                 () -> ImmutableList.of(
-                        new TrafficOverlay()
+                        new TrafficOverlay(),
+                        new ProtectedIntentOverlay()
                 );
 
         UiTopoMapFactory topoMapFactory =

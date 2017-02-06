@@ -55,8 +55,8 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
@@ -124,6 +124,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
     private static final String TOPO_STOP = "topoStop";
 
+    //Protected Intents events
+    private static final String SEL_PROTECTED_INTENT = "selectProtectedIntent";
+    private static final String CANCEL_PROTECTED_INTENT_HIGHLIGHT = "cancelProtectedIntentHighlight";
+
     // outgoing event types
     private static final String SHOW_SUMMARY = "showSummary";
     private static final String SHOW_DETAILS = "showDetails";
@@ -186,6 +190,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private TopoOverlayCache overlayCache;
     private TrafficMonitor traffic;
+    private ProtectedIntentMonitor protectedIntentMonitor;
 
     private TimerTask summaryTask = null;
     private boolean summaryRunning = false;
@@ -198,6 +203,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         super.init(connection, directory);
         appId = directory.get(CoreService.class).registerApplication(MY_APP_ID);
         traffic = new TrafficMonitor(TRAFFIC_PERIOD, servicesBundle, this);
+        protectedIntentMonitor = new ProtectedIntentMonitor(TRAFFIC_PERIOD, servicesBundle, this);
     }
 
     @Override
@@ -236,8 +242,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new ReqPrevIntent(),
                 new ReqSelectedIntentTraffic(),
                 new SelIntent(),
+                new SelProtectedIntent(),
 
-                new CancelTraffic()
+                new CancelTraffic(),
+                new CancelProtectedIntentHighlight()
         );
     }
 
@@ -629,6 +637,23 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    private final class SelProtectedIntent extends RequestHandler {
+        private SelProtectedIntent() {
+            super(SEL_PROTECTED_INTENT);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            Intent intent = findIntentByPayload(payload);
+            if (intent == null) {
+                log.warn("Unable to find protected intent from payload {}", payload);
+            } else {
+                log.debug("starting to monitor protected intent {}", intent.key());
+                protectedIntentMonitor.monitor(intent);
+            }
+        }
+    }
+
     private final class CancelTraffic extends RequestHandler {
         private CancelTraffic() {
             super(CANCEL_TRAFFIC);
@@ -637,6 +662,17 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(ObjectNode payload) {
             traffic.stopMonitoring();
+        }
+    }
+
+    private final class CancelProtectedIntentHighlight extends RequestHandler {
+        private CancelProtectedIntentHighlight() {
+            super(CANCEL_PROTECTED_INTENT_HIGHLIGHT);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            protectedIntentMonitor.stopMonitoring();
         }
     }
 
@@ -666,7 +702,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         nodes.sort(NODE_COMPARATOR);
         for (ControllerNode node : nodes) {
             sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node),
-                    messageType));
+                                        messageType));
         }
     }
 
@@ -916,7 +952,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             String me = this.toString();
             String miniMe = me.replaceAll("^.*@", "me@");
             log.debug("Time: {}; this: {}, processing items ({} events)",
-                    now, miniMe, items.size());
+                      now, miniMe, items.size());
             // End-of-Debugging
 
             try {

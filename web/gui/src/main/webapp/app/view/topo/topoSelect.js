@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss, tov, tps, tts, ns, sus;
+    var $log, fs, wss, tov, tps, tts, ns, sus, tpis;
 
     // api to topoForce
     var api;
@@ -306,9 +306,9 @@
     .factory('TopoSelectService',
         ['$log', 'FnService', 'WebSocketService', 'TopoOverlayService',
             'TopoPanelService', 'TopoTrafficService', 'NavService',
-            'SvgUtilService',
+            'SvgUtilService', 'TopoProtectedIntentsService',
 
-        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_, _sus_) {
+        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_, _sus_, _tpis_) {
             $log = _$log_;
             fs = _fs_;
             wss = _wss_;
@@ -317,6 +317,7 @@
             tts = _tts_;
             ns = _ns_;
             sus = _sus_;
+            tpis= _tpis_;
 
             function initSelect(_api_) {
                 api = _api_;

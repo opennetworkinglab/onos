@@ -24,7 +24,7 @@
 
     // injected refs
     var $log, $timeout, fs, sus, ts, flash, wss, tov,
-        tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg;
+        tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg, tpis;
 
     // configuration
     var linkConfig = {
@@ -1052,9 +1052,10 @@
             'TopoOverlayService', 'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
+            'TopoProtectedIntentsService',
 
         function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_, _tov_,
-                  _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
+                  _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_, _tpis_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
@@ -1071,6 +1072,7 @@
             tos = _tos_;
             fltr = _fltr_;
             tls = _tls_;
+            tpis = _tpis_;
 
             ts.addListener(updateLinksAndNodes);
 
@@ -1093,6 +1095,7 @@
                 td3.initD3(mkD3Api());
                 tss.initSelect(mkSelectApi());
                 tts.initTraffic(mkTrafficApi());
+                tpis.initProtectedIntents(mkTrafficApi());
                 tos.initOblique(mkObliqueApi(uplink, fltr));
                 fltr.initFilter(mkFilterApi());
                 tls.initLink(mkLinkApi(svg, uplink), td3);
@@ -1136,6 +1139,7 @@
                 tls.destroyLink();
                 tos.destroyOblique();
                 tts.destroyTraffic();
+                tpis.destroyProtectedIntents();
                 tss.destroySelect();
                 td3.destroyD3();
                 tms.destroyModel();
