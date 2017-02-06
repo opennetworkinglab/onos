@@ -74,6 +74,11 @@ public final class AtomixWorkQueueCommands {
         }
 
         @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
+
+        @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .add("items", items)
@@ -108,6 +113,11 @@ public final class AtomixWorkQueueCommands {
 
         public int maxTasks() {
             return maxTasks;
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
         }
 
         @Override
@@ -150,6 +160,11 @@ public final class AtomixWorkQueueCommands {
         }
 
         @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
+
+        @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .toString();
@@ -165,6 +180,11 @@ public final class AtomixWorkQueueCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
@@ -200,6 +220,11 @@ public final class AtomixWorkQueueCommands {
         }
 
         @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
+        }
+
+        @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .add("taskIds", taskIds)
@@ -216,6 +241,11 @@ public final class AtomixWorkQueueCommands {
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
         }
 
         @Override
