@@ -489,7 +489,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
             final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
             if (!((Device.Type.ROADM.equals(sw.deviceType())) ||
-                    (Device.Type.OTN.equals(sw.deviceType())))) {
+                    (Device.Type.OTN.equals(sw.deviceType())) ||
+                    (Device.Type.OPTICAL_AMPLIFIER.equals(sw.deviceType())))) {
                   sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
             }
 
@@ -497,6 +498,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             switch (sw.deviceType()) {
                 case ROADM:
                 case OTN:
+                case OPTICAL_AMPLIFIER:
                     opsw = (OpenFlowOpticalSwitch) sw;
                     List<OFPortDesc> ports = opsw.getPorts();
                     LOG.debug("SW ID {} , ETH- ODU CLT Ports {}", opsw.getId(), ports);

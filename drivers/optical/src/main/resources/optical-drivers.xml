@@ -70,5 +70,14 @@
             impl="org.onosproject.driver.optical.handshaker.OplinkSwitchHandshaker"/>
     </driver>
 
+    <driver name="oplk-edfa" extends="default"
+            manufacturer="Oplink a Molex company" hwVersion="edfa" swVersion="of-agent-1.0">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.optical.handshaker.OplinkEdfaHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.OplinkEdfaLambdaQuery"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.driver.optical.power.OplinkEdfaPowerConfig"/>
+    </driver>
 </drivers>
 
