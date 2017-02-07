@@ -105,6 +105,10 @@ public class Ofdpa2GroupHandler {
     protected static final int SUBTYPE_MASK = 0x00ffffff;
     protected static final int TYPE_VLAN_MASK = 0x0000ffff;
 
+    protected static final int THREE_BIT_MASK = 0x0fff;
+    protected static final int FOUR_BIT_MASK = 0xffff;
+    protected static final int PORT_LEN = 16;
+
     protected static final int PORT_LOWER_BITS_MASK = 0x3f;
     protected static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
 
@@ -585,8 +589,9 @@ public class Ofdpa2GroupHandler {
             int l2gk = l2InterfaceGroupKey(deviceId, l2InterfaceGroupVlan, portNum.toLong());
             final GroupKey l2InterfaceGroupKey =
                     new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2gk));
-            int l2InterfaceGroupId = L2_INTERFACE_TYPE | (l2InterfaceGroupVlan.toShort() << 16) |
-                    (int) portNum.toLong();
+            int l2InterfaceGroupId = L2_INTERFACE_TYPE |
+                    ((l2InterfaceGroupVlan.toShort() & THREE_BIT_MASK) << PORT_LEN) |
+                    ((int) portNum.toLong() & FOUR_BIT_MASK);
             GroupBucket l2InterfaceGroupBucket =
                     DefaultGroupBucket.createIndirectGroupBucket(newTreatment.build());
             GroupDescription l2InterfaceGroupDescription =
