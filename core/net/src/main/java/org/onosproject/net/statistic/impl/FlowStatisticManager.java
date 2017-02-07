@@ -279,11 +279,12 @@ public class FlowStatisticManager implements FlowStatisticService {
 
         // current and previous set is not empty!
         boolean isAllInstType = (instType == null ? true : false); // null is all inst type
+        boolean isAllLiveType = (liveType == null ? true : false); // null is all live type
 
         Map<FlowRule, FlowEntry> currentMap;
         Map<FlowRule, FlowEntry> previousMap;
 
-        if (isAllInstType) {
+        if (isAllLiveType) {
             currentMap = typedStatistics.currentAll();
             previousMap = typedStatistics.previousAll();
         } else {
