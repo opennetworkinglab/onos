@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.netty.buffer.ByteBuf;
 import org.onlab.packet.DeserializationException;
+import org.onlab.util.ByteOperator;
 import org.onosproject.lisp.msg.exceptions.LispParseError;
 import org.onosproject.lisp.msg.exceptions.LispReaderException;
 import org.onosproject.lisp.msg.exceptions.LispWriterException;
+import org.onosproject.lisp.msg.protocols.DefaultLispReferral.ReferralWriter;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.onosproject.lisp.msg.types.LispAfiAddress.AfiAddressWriter;
 
 import java.util.List;
 
@@ -180,15 +183,73 @@ public final class DefaultLispReferralRecord extends AbstractLispRecord
         }
     }
 
+    /**
+     * A LISP message reader for ReferralRecord portion.
+     */
     public static final class ReferralRecordReader
                                 implements LispMessageReader<LispReferralRecord> {
+
+        private static final int INCOMPLETE_INDEX = 3;
+        private static final int AUTHORITATIVE_INDEX = 4;
+
+        private static final int REPLY_ACTION_SHIFT_BIT = 5;
+        private static final int RESERVED_SKIP_LENGTH = 1;
 
         @Override
         public LispReferralRecord readFrom(ByteBuf byteBuf)
                                             throws LispParseError, LispReaderException,
                                                         DeserializationException {
-            // TODO: need to implement serialization logic
-            return null;
+
+            // Record TTL -> 32 bits
+            int recordTtl = byteBuf.readInt();
+
+            // referral count -> 8 bits
+            int referralCount = byteBuf.readUnsignedByte();
+
+            // EID mask length -> 8 bits
+            byte maskLength = (byte) byteBuf.readUnsignedByte();
+
+            byte actionWithFlag = (byte) byteBuf.readUnsignedByte();
+
+            // action -> 3 bits
+            int actionByte = actionWithFlag >> REPLY_ACTION_SHIFT_BIT;
+            LispMapReplyAction action = LispMapReplyAction.valueOf(actionByte);
+            if (action == null) {
+                action = LispMapReplyAction.NoAction;
+            }
+
+            // authoritative flag -> 1 bit
+            boolean authoritative = ByteOperator.getBit((byte)
+                                    (actionWithFlag >> AUTHORITATIVE_INDEX), 0);
+
+            // incomplete flag -> 1 bit
+            boolean incomplete = ByteOperator.getBit((byte)
+                                 (actionWithFlag >> INCOMPLETE_INDEX), 0);
+
+            // let's skip the reserved field
+            byteBuf.skipBytes(RESERVED_SKIP_LENGTH);
+
+            // Map version number -> 12 bits, we treat Rsvd field is all zero
+            short mapVersionNumber = (short) byteBuf.readUnsignedShort();
+
+            LispAfiAddress eidPrefixAfi =
+                    new LispAfiAddress.AfiAddressReader().readFrom(byteBuf);
+
+            List<LispReferral> referrals = Lists.newArrayList();
+            for (int i = 0; i < referralCount; i++) {
+                referrals.add(new DefaultLispReferral.ReferralReader().readFrom(byteBuf));
+            }
+
+            return new DefaultReferralRecordBuilder()
+                            .withRecordTtl(recordTtl)
+                            .withMaskLength(maskLength)
+                            .withAction(action)
+                            .withIsAuthoritative(authoritative)
+                            .withIsIncomplete(incomplete)
+                            .withMapVersionNumber(mapVersionNumber)
+                            .withReferrals(referrals)
+                            .withEidPrefixAfi(eidPrefixAfi)
+                            .build();
         }
     }
 
@@ -198,10 +259,60 @@ public final class DefaultLispReferralRecord extends AbstractLispRecord
     public static final class ReferralRecordWriter
                                 implements LispMessageWriter<LispReferralRecord> {
 
+        private static final int REPLY_ACTION_SHIFT_BIT = 5;
+        private static final int INCOMPLETE_SHIFT_BIT = 3;
+        private static final int AUTHORITATIVE_SHIFT_BIT = 4;
+
+        private static final int ENABLE_BIT = 1;
+        private static final int DISABLE_BIT = 0;
+
+        private static final int UNUSED_ZERO = 0;
+
         @Override
         public void writeTo(ByteBuf byteBuf, LispReferralRecord message)
                                                     throws LispWriterException {
-            // TODO: need to implement serialization logic
+            // record TTL
+            byteBuf.writeInt(message.getRecordTtl());
+
+            // referral count
+            byteBuf.writeByte((byte) message.getReferrals().size());
+
+            // EID mask length
+            byteBuf.writeByte(message.getMaskLength());
+
+            // reply action
+            byte action = (byte) (message.getAction().getAction() << REPLY_ACTION_SHIFT_BIT);
+
+            // authoritative bit
+            byte authoritative = DISABLE_BIT;
+            if (message.isAuthoritative()) {
+                authoritative = ENABLE_BIT << AUTHORITATIVE_SHIFT_BIT;
+            }
+
+            // incomplete bit
+            byte incomplete = DISABLE_BIT;
+            if (message.isIncomplete()) {
+                incomplete = ENABLE_BIT << INCOMPLETE_SHIFT_BIT;
+            }
+
+            byteBuf.writeByte((byte) (action + authoritative + incomplete));
+
+            // fill zero into reserved field
+            byteBuf.writeByte((short) UNUSED_ZERO);
+
+            // map version number
+            byteBuf.writeShort(message.getMapVersionNumber());
+
+            // EID prefix AFI with EID prefix
+            AfiAddressWriter afiAddressWriter = new AfiAddressWriter();
+            afiAddressWriter.writeTo(byteBuf, message.getEidPrefixAfi());
+
+            // serialize referrals
+            ReferralWriter referralWriter = new ReferralWriter();
+            List<LispReferral> referrals = message.getReferrals();
+            for (int i = 0; i < referrals.size(); i++) {
+                referralWriter.writeTo(byteBuf, referrals.get(i));
+            }
         }
     }
 }
