@@ -291,12 +291,6 @@ public class DistributedTopologyStore
     public TopologyEvent updateTopology(ProviderId providerId,
                                         GraphDescription graphDescription,
                                         List<Event> reasons) {
-        // First off, make sure that what we're given is indeed newer than
-        // what we already have.
-        if (current != null && graphDescription.timestamp() < current.time()) {
-            return null;
-        }
-
         // Have the default topology construct self from the description data.
         DefaultTopology newTopology =
                 new DefaultTopology(providerId, graphDescription, this::isBroadcastPoint);
@@ -304,6 +298,11 @@ public class DistributedTopologyStore
 
         // Promote the new topology to current and return a ready-to-send event.
         synchronized (this) {
+            // Make sure that what we're given is indeed newer than what we
+            // already have.
+            if (current != null && newTopology.time() < current.time()) {
+                return null;
+            }
             current = newTopology;
             return new TopologyEvent(TOPOLOGY_CHANGED, current, reasons);
         }
