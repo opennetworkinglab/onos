@@ -1,0 +1,14 @@
+BUNDLES = [
+  '//apps/netconf/client:onos-apps-netconf-client',
+]
+
+onos_app (
+  app_name = 'org.onosproject.netconf',
+  title = 'NETCONF Application Module',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  description = """This application provides an interface for monitoring and modifying datastores
+                   of NETCONF devices using Yang data. It uses the YangRuntime to serialize outbound
+                   messages from Yang into NETCONF and deserialize received messages.""",
+  included_bundles = BUNDLES,
+)

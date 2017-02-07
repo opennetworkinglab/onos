@@ -1,0 +1,9 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:onos-yang-runtime-api',
+  '//protocols/netconf/api:onos-protocols-netconf-api'
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+)

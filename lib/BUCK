@@ -1115,6 +1115,15 @@ remote_jar (
 )
 
 remote_jar (
+  name = 'onos-yang-runtime-api',
+  out = 'onos-yang-runtime-api-1.12-b2.jar',
+  url = 'mvn:org.onosproject:onos-yang-runtime-api:jar:1.12-b2',
+  sha1 = 'e3c540648727b13962a67e4ef09252b1b78511ae',
+  maven_coords = 'org.onosproject:onos-yang-runtime-api:jar:NON-OSGI:1.12-b2',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
   name = 'snmp-core',
   out = 'snmp-core-1.3-20161021.1.jar',
   url = 'mvn:org.onosproject:snmp-core:jar:1.3-20161021.1',

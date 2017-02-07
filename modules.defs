@@ -177,7 +177,8 @@ ONOS_APPS = [
     '//apps/yms:onos-apps-yms-oar',
     '//apps/ofagent:onos-apps-ofagent-oar',
     '//apps/mappingmanagement:onos-apps-mappingmanagement-oar',
-    '//apps/config:onos-apps-config-oar'
+    '//apps/config:onos-apps-config-oar',
+    '//apps/netconf:onos-apps-netconf-oar'
 
 ]
 
