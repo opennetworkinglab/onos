@@ -15,7 +15,9 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -110,6 +112,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -519,8 +522,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return tunnelHandler.getTunnel(tunnelId);
     }
 
+    // TODO Consider moving these to InterfaceService
     /**
      * Returns untagged VLAN configured on given connect point.
+     * <p>
+     * Only returns the first match if there are multiple untagged VLAN configured
+     * on the connect point.
      *
      * @param connectPoint connect point
      * @return untagged VLAN or null if not configured
@@ -530,6 +537,64 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
                 .map(Interface::vlanUntagged)
                 .findFirst().orElse(null);
+    }
+
+    /**
+     * Returns tagged VLAN configured on given connect point.
+     * <p>
+     * Returns all matches if there are multiple tagged VLAN configured
+     * on the connect point.
+     *
+     * @param connectPoint connect point
+     * @return tagged VLAN or empty set if not configured
+     */
+    public Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
+        Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
+        return interfaces.stream()
+                .map(Interface::vlanTagged)
+                .flatMap(vlanIds -> vlanIds.stream())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns native VLAN configured on given connect point.
+     * <p>
+     * Only returns the first match if there are multiple native VLAN configured
+     * on the connect point.
+     *
+     * @param connectPoint connect point
+     * @return native VLAN or null if not configured
+     */
+    public VlanId getNativeVlanId(ConnectPoint connectPoint) {
+        Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
+        return interfaces.stream()
+                .filter(intf -> !intf.vlanNative().equals(VlanId.NONE))
+                .map(Interface::vlanNative)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Returns vlan port map of given device.
+     *
+     * @param deviceId device id
+     * @return vlan-port multimap
+     */
+    public Multimap<VlanId, PortNumber> getVlanPortMap(DeviceId deviceId) {
+        HashMultimap<VlanId, PortNumber> vlanPortMap = HashMultimap.create();
+
+        interfaceService.getInterfaces().stream()
+                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                .forEach(intf -> {
+                    vlanPortMap.put(intf.vlanUntagged(), intf.connectPoint().port());
+                    intf.vlanTagged().forEach(vlanTagged -> {
+                        vlanPortMap.put(vlanTagged, intf.connectPoint().port());
+                    });
+                    vlanPortMap.put(intf.vlanNative(), intf.connectPoint().port());
+                });
+        vlanPortMap.removeAll(VlanId.NONE);
+
+        return vlanPortMap;
     }
 
     /**

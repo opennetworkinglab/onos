@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -737,20 +738,8 @@ public class DefaultGroupHandler {
      */
     public void createGroupsFromVlanConfig() {
         Set<Interface> interfaces = srManager.interfaceService.getInterfaces();
-        Set<VlanId> vlans =
-        interfaces.stream()
-                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
-                        !intf.vlanUntagged().equals(VlanId.NONE))
-                .map(Interface::vlanUntagged)
-                .collect(Collectors.toSet());
 
-        vlans.forEach(vlanId -> {
-            Set<PortNumber> ports = interfaces.stream()
-                    .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
-                            intf.vlanUntagged().equals(vlanId))
-                    .map(Interface::connectPoint)
-                    .map(ConnectPoint::port)
-                    .collect(Collectors.toSet());
+        srManager.getVlanPortMap(deviceId).asMap().forEach((vlanId, ports) -> {
             createBcastGroupFromVlan(vlanId, ports);
         });
     }
@@ -761,7 +750,7 @@ public class DefaultGroupHandler {
      * @param vlanId vlan id
      * @param ports list of ports in the subnet
      */
-    public void createBcastGroupFromVlan(VlanId vlanId, Set<PortNumber> ports) {
+    public void createBcastGroupFromVlan(VlanId vlanId, Collection<PortNumber> ports) {
         VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
 
         if (vlanNextObjStore.containsKey(key)) {
@@ -782,7 +771,9 @@ public class DefaultGroupHandler {
 
         ports.forEach(port -> {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-            tBuilder.popVlan();
+            if (toPopVlan(port, vlanId)) {
+                tBuilder.popVlan();
+            }
             tBuilder.setOutput(port);
             nextObjBuilder.addTreatment(tBuilder.build());
         });
@@ -793,6 +784,18 @@ public class DefaultGroupHandler {
                   nextId, deviceId);
 
         vlanNextObjStore.put(key, nextId);
+    }
+
+    /**
+     * Determine if we should pop given vlan before sending packets to the given port.
+     *
+     * @param portNumber port number
+     * @param vlanId vlan id
+     * @return true if the vlan id is not contained in any vlanTagged config
+     */
+    private boolean toPopVlan(PortNumber portNumber, VlanId vlanId) {
+        return srManager.interfaceService.getInterfacesByPort(new ConnectPoint(deviceId, portNumber))
+                .stream().noneMatch(intf -> intf.vlanTagged().contains(vlanId));
     }
 
     /**

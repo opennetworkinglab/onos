@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.net.ConnectPoint;
@@ -57,12 +58,15 @@ public class RouteHandler {
     private void processRouteAddedInternal(ResolvedRoute route) {
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
+        // TODO ResolvedRoute does not contain VLAN information.
+        //      Therefore we only support untagged nexthop for now.
+        VlanId nextHopVlan = VlanId.NONE;
         ConnectPoint location = route.location();
 
         srManager.deviceConfiguration.addSubnet(location, prefix);
         srManager.defaultRoutingHandler.populateSubnet(location, ImmutableSet.of(prefix));
         srManager.routingRulePopulator.populateRoute(location.deviceId(), prefix,
-                nextHopMac, location.port());
+                nextHopMac, nextHopVlan, location.port());
     }
 
     protected void processRouteUpdated(RouteEvent event) {
@@ -79,11 +83,14 @@ public class RouteHandler {
     private void processRouteRemovedInternal(ResolvedRoute route) {
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
+        // TODO ResolvedRoute does not contain VLAN information.
+        //      Therefore we only support untagged nexthop for now.
+        VlanId nextHopVlan = VlanId.NONE;
         ConnectPoint location = route.location();
 
         srManager.deviceConfiguration.removeSubnet(location, prefix);
         srManager.defaultRoutingHandler.revokeSubnet(ImmutableSet.of(prefix));
         srManager.routingRulePopulator.revokeRoute(
-                location.deviceId(), prefix, nextHopMac, location.port());
+                location.deviceId(), prefix, nextHopMac, nextHopVlan, location.port());
     }
 }

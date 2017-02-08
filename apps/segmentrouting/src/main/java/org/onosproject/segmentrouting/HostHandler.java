@@ -108,7 +108,7 @@ public class HostHandler {
                 // Populate IP table entry
                 if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.populateRoute(
-                            deviceId, ip.toIpPrefix(), mac, port);
+                            deviceId, ip.toIpPrefix(), mac, vlanId, port);
                 }
             });
         }
@@ -145,7 +145,7 @@ public class HostHandler {
             ips.forEach(ip -> {
                 if (srManager.deviceConfiguration.inSameSubnet(location, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
-                            deviceId, ip.toIpPrefix(), mac, port);
+                            deviceId, ip.toIpPrefix(), mac, vlanId, port);
                 }
             });
         }
@@ -183,7 +183,7 @@ public class HostHandler {
             prevIps.forEach(ip -> {
                 if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     srManager.routingRulePopulator.revokeRoute(
-                            prevDeviceId, ip.toIpPrefix(), mac, prevPort);
+                            prevDeviceId, ip.toIpPrefix(), mac, vlanId, prevPort);
                 }
             });
         }
@@ -206,7 +206,7 @@ public class HostHandler {
             newIps.forEach(ip -> {
                 if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     srManager.routingRulePopulator.populateRoute(
-                            newDeviceId, ip.toIpPrefix(), mac, newPort);
+                            newDeviceId, ip.toIpPrefix(), mac, vlanId, newPort);
                 }
             });
         }
@@ -231,7 +231,7 @@ public class HostHandler {
                 if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
                     log.info("revoking previous IP rule:{}", ip);
                     srManager.routingRulePopulator.revokeRoute(
-                            prevDeviceId, ip.toIpPrefix(), mac, prevPort);
+                            prevDeviceId, ip.toIpPrefix(), mac, vlanId, prevPort);
                 }
             });
         }
@@ -242,7 +242,7 @@ public class HostHandler {
                 if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
                     log.info("populating new IP rule:{}", ip);
                     srManager.routingRulePopulator.populateRoute(
-                            newDeviceId, ip.toIpPrefix(), mac, newPort);
+                            newDeviceId, ip.toIpPrefix(), mac, vlanId, newPort);
                 }
             });
         }
@@ -256,43 +256,66 @@ public class HostHandler {
      *
      * @param deviceId Device that host attaches to
      * @param mac MAC address of the host
-     * @param vlanId VLAN ID of the host
+     * @param hostVlanId VLAN ID of the host
      * @param outport Port that host attaches to
      * @return Forwarding objective builder
      */
     private ForwardingObjective.Builder bridgingFwdObjBuilder(
-            DeviceId deviceId, MacAddress mac, VlanId vlanId,
+            DeviceId deviceId, MacAddress mac, VlanId hostVlanId,
             PortNumber outport) {
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, outport));
-        VlanId outvlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
 
-        // match rule
+        // Create host selector
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         sbuilder.matchEthDst(mac);
-        /*
-         * Note: for untagged packets, match on the assigned VLAN.
-         *       for tagged packets, match on its incoming VLAN.
-         */
-        if (vlanId.equals(VlanId.NONE)) {
-            sbuilder.matchVlanId(outvlan);
-        } else {
-            sbuilder.matchVlanId(vlanId);
-        }
 
+        // Create host treatment
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        tbuilder.immediate().popVlan();
         tbuilder.immediate().setOutput(outport);
 
-        // for switch pipelines that need it, provide outgoing vlan as metadata
-        TrafficSelector meta = DefaultTrafficSelector.builder()
-                .matchVlanId(outvlan).build();
+        // Create host meta
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+
+        // Adjust the selector, treatment and meta according to VLAN configuration
+        if (taggedVlans.contains(hostVlanId)) {
+            sbuilder.matchVlanId(hostVlanId);
+            mbuilder.matchVlanId(hostVlanId);
+        } else if (hostVlanId.equals(VlanId.NONE)) {
+            if (untaggedVlan != null) {
+                sbuilder.matchVlanId(untaggedVlan);
+                mbuilder.matchVlanId(untaggedVlan);
+                tbuilder.immediate().popVlan();
+            } else if (nativeVlan != null) {
+                sbuilder.matchVlanId(nativeVlan);
+                mbuilder.matchVlanId(nativeVlan);
+                tbuilder.immediate().popVlan();
+            } else {
+                // TODO: This check is turned off for now since vRouter still assumes that
+                // hosts are internally tagged with INTERNAL_VLAN.
+                // We should turn this back on when we move forward to the bridging CPR approach.
+                //
+                //log.warn("Untagged host {}/{} is not allowed on {} without untagged or native vlan",
+                //        mac, hostVlanId, connectPoint);
+                //return null;
+                sbuilder.matchVlanId(INTERNAL_VLAN);
+                mbuilder.matchVlanId(INTERNAL_VLAN);
+                tbuilder.immediate().popVlan();
+            }
+        } else {
+            log.warn("Tagged host {}/{} is not allowed on {} without VLAN listed in tagged vlan",
+                    mac, hostVlanId, connectPoint);
+            return null;
+        }
 
         // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outport,
                 tbuilder.build(),
-                meta);
+                mbuilder.build());
         if (portNextObjId == -1) {
-            // warning log will come from getPortNextObjective method
+            // Warning log will come from getPortNextObjective method
             return null;
         }
 

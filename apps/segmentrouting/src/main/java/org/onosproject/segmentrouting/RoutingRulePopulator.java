@@ -25,7 +25,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
-import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.Objective;
@@ -61,7 +60,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -115,16 +113,16 @@ public class RoutingRulePopulator {
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
      * @param hostMac MAC address of the next hop
+     * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
      */
     public void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                                      MacAddress hostMac, PortNumber outPort) {
+                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
         log.debug("Populate IP table entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = routingFwdObjBuilder(
-                    deviceId, prefix, hostMac, outPort);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, hostVlanId, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
@@ -148,16 +146,16 @@ public class RoutingRulePopulator {
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
      * @param hostMac MAC address of the next hop
+     * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
      */
     public void revokeRoute(DeviceId deviceId, IpPrefix prefix,
-            MacAddress hostMac, PortNumber outPort) {
+            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
         log.debug("Revoke IP table entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = routingFwdObjBuilder(
-                    deviceId, prefix, hostMac, outPort);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, hostVlanId, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
@@ -183,42 +181,69 @@ public class RoutingRulePopulator {
      * @param deviceId device ID
      * @param prefix prefix that need to be routed
      * @param hostMac MAC address of the nexthop
+     * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the nexthop attaches to
      * @return forwarding objective builder
      * @throws DeviceConfigNotFoundException if given device is not configured
      */
     private ForwardingObjective.Builder routingFwdObjBuilder(
             DeviceId deviceId, IpPrefix prefix,
-            MacAddress hostMac, PortNumber outPort)
+            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort)
             throws DeviceConfigNotFoundException {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
 
-        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
-        TrafficSelector selector = sbuilder.build();
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, outPort);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
 
+        // Create route selector
+        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
+
+        // Create route treatment
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         tbuilder.deferred()
                 .setEthDst(hostMac)
                 .setEthSrc(deviceMac)
                 .setOutput(outPort);
-        TrafficTreatment treatment = tbuilder.build();
 
-        // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
-        // for switch pipelines that need it, provide outgoing vlan as metadata
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, outPort));
-        VlanId outvlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+        // Create route meta
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
 
-        TrafficSelector meta = DefaultTrafficSelector.builder()
-                                    .matchVlanId(outvlan).build();
-        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
-                                                             treatment, meta);
-        if (portNextObjId == -1) {
-            // warning log will come from getPortNextObjective method
+        // Adjust the meta according to VLAN configuration
+        if (taggedVlans.contains(hostVlanId)) {
+            tbuilder.setVlanId(hostVlanId);
+        } else if (hostVlanId.equals(VlanId.NONE)) {
+            if (untaggedVlan != null) {
+                mbuilder.matchVlanId(untaggedVlan);
+            } else if (nativeVlan != null) {
+                mbuilder.matchVlanId(nativeVlan);
+            } else {
+                // TODO: This check is turned off for now since vRouter still assumes that
+                // hosts are internally tagged with INTERNAL_VLAN.
+                // We should turn this back on when we move forward to the bridging CPR approach.
+                //
+                //log.warn("Untagged nexthop {}/{} is not allowed on {} without untagged or native vlan",
+                //        hostMac, hostVlanId, connectPoint);
+                //return null;
+                mbuilder.matchVlanId(INTERNAL_VLAN);
+            }
+        } else {
+            log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed in tagged vlan",
+                    hostMac, hostVlanId, connectPoint);
             return null;
         }
+
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
+                                                             tbuilder.build(), mbuilder.build());
+        if (portNextObjId == -1) {
+            // Warning log will come from getPortNextObjective method
+            return null;
+        }
+
         return DefaultForwardingObjective.builder()
-                .withSelector(selector)
+                .withSelector(sbuilder.build())
                 .nextStep(portNextObjId)
                 .fromApp(srManager.appId).makePermanent()
                 .withPriority(getPriorityFromPrefix(prefix))
@@ -638,7 +663,40 @@ public class RoutingRulePopulator {
      * @return true if no errors occurred during the build of the filtering objective
      */
     public boolean populateSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
-        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum);
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+
+        if (taggedVlans.size() != 0) {
+            // Filter for tagged vlans
+            if (!srManager.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
+                populateSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId))) {
+                return false;
+            }
+            if (nativeVlan != null) {
+                // Filter for native vlan
+                if (!populateSinglePortFiltersInternal(deviceId, portnum, true, nativeVlan)) {
+                    return false;
+                }
+            }
+        } else if (untaggedVlan != null) {
+            // Filter for untagged vlan
+            if (!populateSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan)) {
+                return false;
+            }
+        } else {
+            // Unconfigure port, use INTERNAL_VLAN
+            if (!populateSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean populateSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
+                                                      boolean pushVlan, VlanId vlanId) {
+        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
         if (fob == null) {
             // error encountered during build
             return false;
@@ -659,12 +717,43 @@ public class RoutingRulePopulator {
      *
      * @param deviceId device identifier
      * @param portnum port identifier
+     * @return true if no errors occurred during the destruction of the filtering objective
      */
-    public void revokeSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
-        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum);
+    public boolean revokeSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+
+        if (taggedVlans.size() != 0) {
+            // Filter for tagged vlans
+            if (!srManager.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
+                    revokeSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId))) {
+                return false;
+            }
+            // Filter for native vlan
+            if (nativeVlan == null ||
+                    !revokeSinglePortFiltersInternal(deviceId, portnum, true, nativeVlan)) {
+                return false;
+            }
+        // Filter for untagged vlan
+        } else if (untaggedVlan == null ||
+                !revokeSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan)) {
+            return false;
+        // Unconfigure port, use INTERNAL_VLAN
+        } else if (!revokeSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean revokeSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
+                                                    boolean pushVlan, VlanId vlanId) {
+        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
         if (fob == null) {
             // error encountered during build
-            return;
+            return false;
         }
         log.info("Removing filtering objectives for dev/port:{}/{}", deviceId, portnum);
         ObjectiveContext context = new DefaultObjectiveContext(
@@ -673,11 +762,11 @@ public class RoutingRulePopulator {
             log.warn("Failed to remove filter for {}/{}: {}",
                      deviceId, portnum, error));
         srManager.flowObjectiveService.filter(deviceId, fob.remove(context));
-        return;
+        return true;
     }
 
-    private FilteringObjective.Builder buildFilteringObjective(DeviceId deviceId,
-                                                               PortNumber portnum) {
+    private FilteringObjective.Builder buildFilteringObjective(DeviceId deviceId, PortNumber portnum,
+                                                               boolean pushVlan, VlanId vlanId) {
         MacAddress deviceMac;
         try {
             deviceMac = config.getDeviceMac(deviceId);
@@ -688,17 +777,20 @@ public class RoutingRulePopulator {
         // suppressed ports still have filtering rules pushed by SR using default vlan
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
 
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        VlanId assignedVlan = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
-
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
         fob.withKey(Criteria.matchInPort(portnum))
             .addCondition(Criteria.matchEthDst(deviceMac))
-            .addCondition(Criteria.matchVlanId(VlanId.NONE))
             .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
-        TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                .pushVlan().setVlanId(assignedVlan).build();
-        fob.withMeta(tt);
+
+        if (pushVlan) {
+            fob.addCondition(Criteria.matchVlanId(VlanId.NONE));
+            TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                    .pushVlan().setVlanId(vlanId).build();
+            fob.withMeta(tt);
+        } else {
+            fob.addCondition(Criteria.matchVlanId(vlanId));
+        }
+
         fob.permit().fromApp(srManager.appId);
         return fob;
     }
@@ -852,15 +944,7 @@ public class RoutingRulePopulator {
      * @param deviceId switch ID to set the rules
      */
     public void populateSubnetBroadcastRule(DeviceId deviceId) {
-        Set<Interface> interfaces = srManager.interfaceService.getInterfaces();
-        Set<VlanId> vlans =
-                interfaces.stream()
-                        .filter(intf -> intf.connectPoint().deviceId().equals(deviceId) &&
-                                !intf.vlanUntagged().equals(VlanId.NONE))
-                        .map(Interface::vlanUntagged)
-                        .collect(Collectors.toSet());
-
-        vlans.forEach(vlanId -> {
+        srManager.getVlanPortMap(deviceId).asMap().forEach((vlanId, ports) -> {
             int nextId = srManager.getVlanNextObjectiveId(deviceId, vlanId);
 
             if (nextId < 0) {
