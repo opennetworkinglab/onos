@@ -86,7 +86,11 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
         .tetopologytype.DefaultTeTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology
         .tetopologytype.TeTopology;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.Cost;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.Delay;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.NotOptimized;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeGlobalId;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeOptimizationCriterion;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTopologyId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
 import org.slf4j.Logger;
@@ -324,7 +328,20 @@ public final class NetworkConverter {
         TeTopologyKey teTopoKey = new TeTopologyKey(nt.teTopologyId().providerId(),
                                                     nt.teTopologyId().clientId(),
                                                     Long.valueOf(nt.teTopologyId().topologyId()));
-        // TODO: add code to set configBuilder.optimizationCriterion
+        switch (teTopologyService.teTopology(teTopoKey).optimization()) {
+        case LEAST_COST:
+            configBuilder = configBuilder.optimizationCriterion(Cost.class);
+            break;
+        case SHORTEST_DELAY:
+            configBuilder = configBuilder.optimizationCriterion(Delay.class);
+            break;
+        case NOT_OPTIMIZED:
+            configBuilder = configBuilder.optimizationCriterion(NotOptimized.class);
+            break;
+        default:
+            configBuilder = configBuilder.optimizationCriterion(TeOptimizationCriterion.class);
+            break;
+        }
 
         teBuilder = teBuilder.config(configBuilder.build());
 
@@ -549,9 +566,11 @@ public final class NetworkConverter {
      * corresponding YANG Object (YO) format.
      *
      * @param event TE Topology event from the core
+     * @param teTopologyService TE Topology Service object
      * @return YANG Object converted from event
      */
-    public static IetfTeTopologyEvent teTopoEvent2YangIetfTeTopoEvent(TeTopologyEvent event) {
+    public static IetfTeTopologyEvent teTopoEvent2YangIetfTeTopoEvent(TeTopologyEvent event,
+                                                                      TeTopologyService teTopologyService) {
         IetfTeTopologyEvent yangEvent = null;
         IetfTeTopologyEventSubject eventSubject = new IetfTeTopologyEventSubject();
 
@@ -560,7 +579,7 @@ public final class NetworkConverter {
             NetworkLinkEventSubject eventData = (NetworkLinkEventSubject) event.subject();
             TeTopologyEventTypeEnum linkEventType = teTopoEventType2YangTeTopoEventType(event.type());
             TeLinkEvent yangLinkEvent = LinkConverter
-                    .teNetworkLink2yangTeLinkEvent(linkEventType, eventData);
+                    .teNetworkLink2yangTeLinkEvent(linkEventType, eventData, teTopologyService);
             eventSubject.teLinkEvent(yangLinkEvent);
             yangEvent = new IetfTeTopologyEvent(IetfTeTopologyEvent.Type.TE_LINK_EVENT, eventSubject);
         } else if (yangEventType == IetfTeTopologyEvent.Type.TE_NODE_EVENT) {

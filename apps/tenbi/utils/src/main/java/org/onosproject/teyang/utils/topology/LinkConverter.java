@@ -283,9 +283,10 @@ public final class LinkConverter {
      * TE Link State object conversion from TE Topology subsystem to YANG.
      *
      * @param teLink TE link object
+     * @param teTopologyService TE Topology Service object
      * @return TE Link State YANG object
      */
-    private static State teLink2YangState(TeLink teLink) {
+    private static State teLink2YangState(TeLink teLink, TeTopologyService teTopologyService) {
         TeLinkAttributes
             .TeLinkAttributesBuilder attrBuilder =
                         DefaultTeLinkAttributes
@@ -365,7 +366,11 @@ public final class LinkConverter {
             InformationSourceState.InformationSourceStateBuilder issBuilder = DefaultInformationSourceState.builder();
 
             Topology.TopologyBuilder topologyBuilder = DefaultTopology.builder();
-            // TODO: pass teTopologyService and retrieve linkRef and NetworkRef from there
+            topologyBuilder = topologyBuilder
+                    .linkRef(teTopologyService.linkKey(teLink.sourceTeLinkId())
+                            .linkId())
+                    .networkRef(teTopologyService
+                            .linkKey(teLink.sourceTeLinkId()).networkId());
 
             issBuilder = issBuilder.topology(topologyBuilder.build());
             yangStateBuilder.informationSourceState(issBuilder.build());
@@ -429,10 +434,8 @@ public final class LinkConverter {
             TeLink teData = teSubsNetworkLink.teLink();
             TeBuilder yangTeBuilder = DefaultTe.builder()
                                                .config(teLink2YangConfig(teData, teTopologyService))
-                                               .state(teLink2YangState(teData));
-            // ignoring supportingTeLinkId when converting from core to yang?
-            // if (teData.supportingTeLinkId() != null) {
-            // }
+                                               .state(teLink2YangState(teData, teTopologyService));
+
             AugmentedNtLinkBuilder linkAugmentBuilder =
                     DefaultAugmentedNtLink.builder()
                                           .te(yangTeBuilder.build());
@@ -580,8 +583,33 @@ public final class LinkConverter {
      * @return TeTopologyKey the TE TopologyKey
      */
     public static TeTopologyKey findTopologyId(Networks yangNetworks, Object networkRef) {
-        // TODO: add implementation
-        return null;
+        if (networkRef == null) {
+            return null;
+        }
+        NetworkId networkId = NetworkId.fromString((String) networkRef);
+
+        TeTopologyKey topologyId = null;
+        Network targetTeNetwork = null;
+        if (yangNetworks.network() != null
+                && !yangNetworks.network().isEmpty() && networkId != null) {
+            for (Network ynetItem : yangNetworks.network()) {
+                if (ynetItem.networkId() != null) {
+                    if (ynetItem.networkId().equals(networkId)) {
+                        targetTeNetwork = ynetItem;
+                        break;
+                    }
+                }
+            }
+        }
+        if (targetTeNetwork != null && targetTeNetwork
+                .yangAugmentedInfo(AugmentedNwNetwork.class) != null) {
+            AugmentedNwNetwork augmentTeIds = (AugmentedNwNetwork) targetTeNetwork
+                    .yangAugmentedInfo(AugmentedNwNetwork.class);
+            topologyId = new TeTopologyKey(augmentTeIds.providerId().uint32(),
+                                                   augmentTeIds.clientId().uint32(),
+                                                   Long.valueOf(augmentTeIds.teTopologyId().string()));
+        }
+        return topologyId;
     }
 
     private static TeLink yangLinkAttr2TeLinkAttributes(TeLinkAttributes yangLinkAtrr,
@@ -975,10 +1003,12 @@ public final class LinkConverter {
      *
      * @param eventType Link event type
      * @param linkData  TE Topology link event data
+     * @param teTopologyService TE Topology Service object
      * @return YANG Object converted from linkData
      */
     public static TeLinkEvent teNetworkLink2yangTeLinkEvent(TeTopologyEventTypeEnum eventType,
-                                                            NetworkLinkEventSubject linkData) {
+                                                            NetworkLinkEventSubject linkData,
+                                                            TeTopologyService teTopologyService) {
         TeLinkEvent.TeLinkEventBuilder teLinkEventBuilder = new DefaultTeLinkEvent.TeLinkEventBuilder();
 
         TeTopologyEventType yangEventType = new TeTopologyEventType(eventType);
@@ -990,7 +1020,7 @@ public final class LinkConverter {
 
         if (linkData != null && linkData.networkLink() != null) {
             NetworkLink link = linkData.networkLink();
-            State yangTeLinkState = teLink2YangState(link.teLink());
+            State yangTeLinkState = teLink2YangState(link.teLink(), teTopologyService);
 
             teLinkEventBuilder.operStatus(yangTeLinkState.operStatus());
             teLinkEventBuilder.informationSource(yangTeLinkState.informationSource());
@@ -1088,7 +1118,20 @@ public final class LinkConverter {
         TeLinkTpKey peerTeLinkKey = oldTeLink.peerTeLinkKey();
 
         TeTopologyKey underlayTopologyId = null;
-        // TODO: add code to retrieve underlayTopologyId
+        KeyId networkRef = null;
+        if (yangTeLinkAttrs.underlay() != null &&
+                yangTeLinkAttrs.underlay().primaryPath() != null &&
+                yangTeLinkAttrs.underlay().primaryPath().networkRef() != null) {
+            networkRef = (KeyId) yangTeLinkAttrs.underlay().primaryPath().networkRef();
+        }
+
+        if (networkRef != null && teTopologyService.network(networkRef) != null
+                && teTopologyService.network(networkRef).teTopologyId() != null) {
+            long clientId = teTopologyService.network(networkRef).teTopologyId().clientId();
+            long providerId = teTopologyService.network(networkRef).teTopologyId().providerId();
+            long topologyId = Long.valueOf(teTopologyService.network(networkRef).teTopologyId().topologyId());
+            underlayTopologyId = new TeTopologyKey(providerId, clientId, topologyId);
+        }
 
         TeLink updatedTeLink = yangLinkAttr2TeLinkAttributes(yangTeLinkAttrs, opStatus, teNodeIdSrc, teNodeIdDest,
                                                              teLinkKey,

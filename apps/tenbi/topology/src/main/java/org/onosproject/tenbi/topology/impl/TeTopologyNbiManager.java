@@ -196,7 +196,7 @@ public class TeTopologyNbiManager
         @Override
         public void event(TeTopologyEvent event) {
             IetfTeTopologyEvent yangEvent = NetworkConverter
-                    .teTopoEvent2YangIetfTeTopoEvent(event);
+                    .teTopoEvent2YangIetfTeTopoEvent(event, teTopologyService);
             post(yangEvent);
         }
     }
