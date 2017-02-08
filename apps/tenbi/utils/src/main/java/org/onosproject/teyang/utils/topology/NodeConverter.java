@@ -27,11 +27,16 @@ import org.onlab.packet.Ip4Address;
 import org.onosproject.tetopology.management.api.EncodingType;
 import org.onosproject.tetopology.management.api.KeyId;
 import org.onosproject.tetopology.management.api.SwitchingType;
+import org.onosproject.tetopology.management.api.TeConstants;
 import org.onosproject.tetopology.management.api.TeStatus;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeTopologyService;
 import org.onosproject.tetopology.management.api.link.ElementType;
+import org.onosproject.tetopology.management.api.link.NetworkLink;
+import org.onosproject.tetopology.management.api.link.NetworkLinkKey;
+import org.onosproject.tetopology.management.api.link.TeIpv4;
 import org.onosproject.tetopology.management.api.link.TeLinkId;
+import org.onosproject.tetopology.management.api.link.TeLinkTpGlobalKey;
 import org.onosproject.tetopology.management.api.link.TePathAttributes;
 import org.onosproject.tetopology.management.api.link.UnderlayAbstractPath;
 import org.onosproject.tetopology.management.api.node.CommonNodeData;
@@ -45,7 +50,9 @@ import org.onosproject.tetopology.management.api.node.NetworkNodeKey;
 import org.onosproject.tetopology.management.api.node.TeNode;
 import org.onosproject.tetopology.management.api.node.TeNodeKey;
 import org.onosproject.tetopology.management.api.node.TerminationPoint;
+import org.onosproject.tetopology.management.api.node.TtpKey;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.DomainName;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.IpAddress;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.NetworkId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.Networks;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.rev20151208.ietfnetwork.NodeId;
@@ -64,6 +71,8 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.topo
                .ietfnetworktopology.networks.network.node.DefaultAugmentedNdNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.DefaultTeNodeEvent;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.TeNodeEvent;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.connectivitymatrixentryattributes.DefaultUnderlay;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.connectivitymatrixentryattributes.Underlay;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourcepernodeattributes.DefaultInformationSourceState;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourcepernodeattributes.InformationSourceState;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.informationsourcepernodeattributes.informationsourcestate.DefaultTopology;
@@ -73,6 +82,12 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110
                .ietftetopology.networks.network.node.DefaultAugmentedNwNode;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.networks.network.node.terminationpoint.AugmentedNtTerminationPoint;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.DefaultTeSrlgs;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkconnectivityattributes.TeSrlgs;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.DefaultPrimaryPath;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.PrimaryPath;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.primarypath.DefaultPathElement;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.telinkunderlayattributes.primarypath.PathElement;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.DefaultTe;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.DefaultTe.TeBuilder;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.Te;
@@ -82,6 +97,8 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.te.DefaultTunnelTerminationPoint;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.te.State;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.te.TunnelTerminationPoint;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.te.tunnelterminationpoint.DefaultSupportingTunnelTerminationPoint;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeaugment.te.tunnelterminationpoint.SupportingTunnelTerminationPoint;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeconfigattributes.DefaultTeNodeAttributes;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeconfigattributes.TeNodeAttributes;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeconfigattributes.TeNodeAttributes.TeNodeAttributesBuilder;
@@ -96,10 +113,17 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodeinfoattributes.UnderlayTopology;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodetunnelterminationattributes.DefaultLocalLinkConnectivities;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodetunnelterminationattributes.LocalLinkConnectivities;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodetunnelterminationattributes.locallinkconnectivities.DefaultLocalLinkConnectivity;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.topology.rev20170110.ietftetopology.tenodetunnelterminationattributes.locallinkconnectivities.DefaultLocalLinkConnectivity.LocalLinkConnectivityBuilder;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.Srlg;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeAdminStatus;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeNodeId;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TeTopologyEventType;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.AsNumber;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.DefaultAsNumber;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.DefaultUnnumberedLink;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.Ipv4Address;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.UnnumberedLink;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.tetopologyeventtype.TeTopologyEventTypeEnum;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev20130715.ietfyangtypes.DottedQuad;
 
@@ -191,7 +215,55 @@ public final class NodeConverter {
                                                   // one item in constrainingElements list
                           .tpRef(((TeLinkId) teCmEntry.getValue().constrainingElements().get(0)).value())
                                          .build());
-            // TODO: add more attributes to connectivityMatrixConfigBuilder--
+            if (teCmEntry.getValue().teAttributes() != null) {
+                connectivityMatrixConfigBuilder = connectivityMatrixConfigBuilder
+                        .teDefaultMetric(teCmEntry.getValue().teAttributes().cost())
+                        .teDelayMetric(teCmEntry.getValue().teAttributes().delay());
+            }
+
+            TeSrlgs.TeSrlgsBuilder teSrlgsBuilder = DefaultTeSrlgs.builder();
+            if (teCmEntry.getValue().teAttributes().srlgs() != null) {
+                for (Long val : teCmEntry.getValue().teAttributes().srlgs()) {
+                    Srlg srlg = new Srlg(val);
+                    teSrlgsBuilder = teSrlgsBuilder.addToValue(srlg);
+                }
+                connectivityMatrixConfigBuilder = connectivityMatrixConfigBuilder
+                        .teSrlgs(teSrlgsBuilder.build());
+            }
+
+            Underlay.UnderlayBuilder underlayBuilder = DefaultUnderlay.builder();
+            PrimaryPath.PrimaryPathBuilder primaryPathBuilder = DefaultPrimaryPath.builder();
+
+            PathElement.PathElementBuilder pathElementBuilder = DefaultPathElement.builder();
+            if (teCmEntry.getValue().underlayPath() != null &&
+                    teCmEntry.getValue().underlayPath().pathElements() != null &&
+                    !teCmEntry.getValue().underlayPath().pathElements().isEmpty()) {
+                for (org.onosproject.tetopology.management.api.link.PathElement patel : teCmEntry.getValue()
+                        .underlayPath().pathElements()) {
+                    pathElementBuilder = pathElementBuilder.pathElementId(patel.pathElementId());
+                    if (patel.type() instanceof AsNumber) {
+                        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
+                            .explicitroutesubobject.type.AsNumber
+                            .AsNumberBuilder asNumberBuilder = new DefaultAsNumber.AsNumberBuilder();
+                        asNumberBuilder = asNumberBuilder.asNumber(((AsNumber) patel.type()).asNumber());
+                        pathElementBuilder = pathElementBuilder.type(asNumberBuilder.build());
+                    } else if (patel.type() instanceof UnnumberedLink) {
+                        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
+                            .explicitroutesubobject.type.UnnumberedLink
+                            .UnnumberedLinkBuilder unNumberBuilder = DefaultUnnumberedLink.builder();
+                        unNumberBuilder = unNumberBuilder.interfaceId(((UnnumberedLink) patel.type()).interfaceId());
+                        unNumberBuilder = unNumberBuilder.routerId(IpAddress.fromString(((UnnumberedLink) patel.type())
+                                                                                        .routerId().toString()));
+                        pathElementBuilder = pathElementBuilder.type(unNumberBuilder.build());
+                    }
+                    primaryPathBuilder = primaryPathBuilder
+                            .addToPathElement(pathElementBuilder.build());
+                }
+            }
+
+            underlayBuilder = underlayBuilder.primaryPath(primaryPathBuilder.build());
+            connectivityMatrixConfigBuilder = connectivityMatrixConfigBuilder
+                    .underlay(underlayBuilder.build());
 
             yangConnectivityMatricesBuilder = yangConnectivityMatricesBuilder
                     .addToConnectivityMatrix(connectivityMatrixConfigBuilder.build());
@@ -340,7 +412,21 @@ public final class NodeConverter {
         LocalLinkConnectivities.LocalLinkConnectivitiesBuilder
             localLinkConnectivitiesBuilder = DefaultLocalLinkConnectivities.builder();
         if (teTunnelTp.localLinkConnectivityList() != null && !teTunnelTp.localLinkConnectivityList().isEmpty()) {
-            // TODO: add more attributes to localLinkConnectivitiesBuilder (add connectivity matrices.--
+            for (LocalLinkConnectivity llcn : teTunnelTp.localLinkConnectivityList()) {
+                // convert teLinkId to networkLinkKey
+                if (llcn != null && llcn.constrainingElements() != null
+                        && !llcn.constrainingElements().isEmpty()) {
+                    TeLinkId telinkId = (TeLinkId) llcn.constrainingElements().get(0);
+                    TeLinkTpGlobalKey globalKey = new TeLinkTpGlobalKey(teNodeKey, telinkId.value());
+                    NetworkLinkKey netLinkKey = teTopologyService.linkKey(globalKey);
+                    NetworkLink networkLink = teTopologyService
+                            .network(netLinkKey.networkId()).links().get(netLinkKey.linkId());
+                    LocalLinkConnectivityBuilder llcBuilder = DefaultLocalLinkConnectivity.builder();
+                    llcBuilder = llcBuilder.linkTpRef(networkLink.source().tpId());
+                    localLinkConnectivitiesBuilder.addToLocalLinkConnectivity(llcBuilder.build());
+                }
+            }
+
 
             ttpConfigBuilder = ttpConfigBuilder.localLinkConnectivities(localLinkConnectivitiesBuilder.build());
             ttpStateBuilder = ttpStateBuilder.localLinkConnectivities(localLinkConnectivitiesBuilder.build());
@@ -348,7 +434,25 @@ public final class NodeConverter {
 
         tunnelTpBuilder = tunnelTpBuilder.config(ttpConfigBuilder.build())
                                          .state(ttpStateBuilder.build());
-        // TODO: add supporting ttp.--
+        SupportingTunnelTerminationPoint.SupportingTunnelTerminationPointBuilder
+        supportTtpBuilder = DefaultSupportingTunnelTerminationPoint.builder();
+        if (teTunnelTp.supportingTtpId() != null) {
+            TeTopologyKey teTopologyKey = new TeTopologyKey(teTunnelTp.supportingTtpId().providerId(),
+                                                            teTunnelTp.supportingTtpId().clientId(),
+                                                            teTunnelTp.supportingTtpId().topologyId());
+
+            TeNodeKey teNodeKeySup = new TeNodeKey(teTopologyKey, teTunnelTp.supportingTtpId().teNodeId());
+            NetworkNodeKey networkNodeKey = teTopologyService.nodeKey(teNodeKeySup);
+            NetworkId netId = NetworkId.fromString(networkNodeKey.networkId().toString());
+
+            supportTtpBuilder = supportTtpBuilder
+                    .nodeRef(NodeId.fromString(networkNodeKey.nodeId().toString()))
+                    .networkRef(netId)
+                    .tunnelTpRef(ByteUtils.longToBytes(teTunnelTp.supportingTtpId().ttpId()));
+
+            tunnelTpBuilder = tunnelTpBuilder.addToSupportingTunnelTerminationPoint(supportTtpBuilder.build());
+        }
+
 
         return tunnelTpBuilder.build();
     }
@@ -505,7 +609,41 @@ public final class NodeConverter {
             ElementType from = new TeLinkId(Long.valueOf(((String) cmYang.from().tpRef()))); // is this correct?
 
             UnderlayAbstractPath underlayPath = null; // ignore
-            // TODO: add pathElements and underlayPath.--
+            List<org.onosproject.tetopology.management.api.link.PathElement> pathElements = Lists.newArrayList();
+            Boolean loose = false;
+            long longTeNodeId = TeConstants.NIL_LONG_VALUE;
+            if (cmYang != null && cmYang.underlay() != null && cmYang.underlay().primaryPath() != null
+                    && cmYang.underlay().primaryPath().pathElement() != null
+                    && !cmYang.underlay().primaryPath().pathElement().isEmpty()) {
+                for (PathElement yangPathEl : cmYang.underlay().primaryPath().pathElement()) {
+                    ElementType type = null;
+                    if (yangPathEl.type() instanceof UnnumberedLink) {
+                        String rS = ((UnnumberedLink) (yangPathEl.type())).routerId().toString();
+                        org.onlab.packet.IpAddress routerId = org.onlab.packet.IpAddress.valueOf(rS);
+                        long interfaceId = ((UnnumberedLink) yangPathEl.type()).interfaceId();
+                        type = new org.onosproject.tetopology.management.api.link.UnnumberedLink(routerId, interfaceId);
+                        longTeNodeId = Long.valueOf(((UnnumberedLink) yangPathEl.type()).routerId().toString());
+                    } else if (yangPathEl.type() instanceof Ipv4Address) {
+                        short v4PrefixLength = ((Ipv4Address) yangPathEl.type())
+                                .v4PrefixLength();
+
+                        Ip4Address v4Address = Ip4Address
+                                .valueOf(((Ipv4Address) yangPathEl.type())
+                                        .v4Address().string());
+
+                        loose = ((Ipv4Address) yangPathEl.type()).v4Loose();
+                        type = new TeIpv4(v4Address, v4PrefixLength);
+                    }
+                    org.onosproject.tetopology.management.api.link.PathElement
+                        patel = new org.onosproject.tetopology.management.api.link
+                                    .PathElement(yangPathEl.pathElementId(),
+                                                 longTeNodeId,
+                                                 type,
+                                                 loose);
+                    pathElements.add(patel);
+                }
+            }
+            underlayPath = new UnderlayAbstractPath(pathElements, loose);
 
             List<ElementType> mergingList = Lists.newArrayList(); // empty merging list for now
 
@@ -610,7 +748,69 @@ public final class NodeConverter {
 
             float[] availAdaptBandwidth = null; // how to find availableBandwidth?
 
-            // TODO: add supportTtp and pass it below instead of null.--
+            TeTopologyKey teTopologyKey = null;
+
+            Object networkRefObj = null;
+            NetworkId networkId = null;
+            if (ttpYang != null && ttpYang.supportingTunnelTerminationPoint() != null
+                    && !ttpYang.supportingTunnelTerminationPoint().isEmpty()
+                    && ttpYang.supportingTunnelTerminationPoint().get(0) != null) {
+                networkRefObj = ttpYang.supportingTunnelTerminationPoint()
+                        .get(0).networkRef();
+            }
+            if (networkRefObj != null) {
+                teTopologyKey = LinkConverter.findTopologyId(yangNetworks,
+                                                             networkRefObj);
+                networkId = NetworkId.fromString((String) networkRefObj);
+            }
+
+            Network teNetworkFound = null;
+            if (yangNetworks.network() != null
+                    && !yangNetworks.network().isEmpty()
+                    && networkId != null) {
+                for (Network ynetItem : yangNetworks.network()) {
+                    if (ynetItem.networkId() != null) {
+                        if (ynetItem.networkId().equals(networkId)) {
+                            teNetworkFound = ynetItem;
+                            break;
+                        }
+                    }
+                }
+            }
+            TeNodeId teNodeIdSupport = null;
+            if (teNetworkFound != null
+                    && ttpYang != null
+                    && ttpYang.supportingTunnelTerminationPoint() != null
+                    && ttpYang.supportingTunnelTerminationPoint().get(0) != null) {
+
+                String s = ((String) ttpYang.supportingTunnelTerminationPoint().get(0).nodeRef());
+                int integ = Integer.valueOf(s);
+                NodeId nodeId = NodeId.fromString(DottedQuad.of(Ip4Address.valueOf(integ).toString()).toString());
+                teNodeIdSupport = LinkConverter
+                        .findTeNodeId(teNetworkFound,
+                                      nodeId);
+            }
+
+            long tenIdLong = -1;
+            if (teNodeIdSupport != null) {
+                tenIdLong = Ip4Address
+                        .valueOf(teNodeIdSupport.dottedQuad().string()).toInt();
+            }
+
+            TeNodeKey teNodeKey = null;
+            if (teTopologyKey != null && tenIdLong != -1) {
+                teNodeKey = new TeNodeKey(teTopologyKey, tenIdLong);
+            }
+            TtpKey supportTtpKey = null;
+            if (teNodeKey != null && ttpYang != null
+                    && ttpYang.supportingTunnelTerminationPoint() != null
+                    && !ttpYang.supportingTunnelTerminationPoint().isEmpty()
+                    && ttpYang.supportingTunnelTerminationPoint().get(0) != null) {
+                supportTtpKey = new TtpKey(teNodeKey,
+                                           ByteUtils.bytesToLong((byte[]) ttpYang
+                                                                        .supportingTunnelTerminationPoint().get(0)
+                                                                        .tunnelTpRef()));
+            }
 
             org.onosproject.tetopology.management.api.node.
                 TunnelTerminationPoint ttpTe = new
@@ -622,7 +822,7 @@ public final class NodeConverter {
                                               interLayerLockList,
                                               localLinkConnectivityList,
                                               availAdaptBandwidth,
-                                              null);
+                                              supportTtpKey);
 
             ttpsMap.put(ByteUtils.bytesToLong(ttpYang.tunnelTpId()), ttpTe);
         }
