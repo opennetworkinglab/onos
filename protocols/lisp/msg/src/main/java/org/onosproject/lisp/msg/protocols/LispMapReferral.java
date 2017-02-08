@@ -15,6 +15,8 @@
  */
 package org.onosproject.lisp.msg.protocols;
 
+import java.util.List;
+
 /**
  * LISP map referral message interface.
  * <p>
@@ -50,7 +52,55 @@ package org.onosproject.lisp.msg.protocols;
  * +-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * }</pre>
  */
-public interface LispMapReferral {
+public interface LispMapReferral extends LispMessage {
 
-    // TODO: need to implement LispMapReferral
+    /**
+     * Obtains record count value.
+     *
+     * @return record count value
+     */
+    int getRecordCount();
+
+    /**
+     * Obtains nonce value.
+     *
+     * @return nonce
+     */
+    long getNonce();
+
+    /**
+     * Obtains a collection of referral records.
+     *
+     * @return a collection of referral records
+     */
+    List<LispReferralRecord> getReferralRecords();
+
+    /**
+     * A builder of LISP map referral message.
+     */
+    interface MapReferralBuilder extends Builder {
+
+        /**
+         * Sets nonce value.
+         *
+         * @param nonce nonce value
+         * @return MapReferralBuilder object
+         */
+        MapReferralBuilder withNonce(long nonce);
+
+        /**
+         * Sets a collection of referral records.
+         *
+         * @param records a collection of referral records
+         * @return MapReferralBuilder object
+         */
+        MapReferralBuilder withReferralRecords(List<LispReferralRecord> records);
+
+        /**
+         * Builds LISP map referral message.
+         *
+         * @return LISP map referral message
+         */
+        LispMapReferral build();
+    }
 }
