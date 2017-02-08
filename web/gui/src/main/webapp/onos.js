@@ -91,10 +91,10 @@
             '$log', '$scope', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
             'PanelService', 'FlashService', 'QuickHelpService', 'EeService',
-            'WebSocketService',
+            'WebSocketService', 'SpriteService',
 
             function (_$log_, $scope, $route, $routeParams, $location,
-                      ks, ts, gs, vs, ps, flash, qhs, ee, wss) {
+                      ks, ts, gs, vs, ps, flash, qhs, ee, wss, ss) {
                 var self = this;
                 $log = _$log_;
 
@@ -112,6 +112,7 @@
                 ks.installOn(d3.select('body'));
                 ks.bindQhs(qhs);
                 gs.init();
+                ss.init();
                 vs.init();
                 ps.init();
                 saucy(ee, ks);

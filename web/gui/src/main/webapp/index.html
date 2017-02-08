@@ -69,6 +69,8 @@
     <script src="app/fw/svg/map.js"></script>
     <script src="app/fw/svg/zoom.js"></script>
     <script src="app/fw/svg/svgUtil.js"></script>
+    <script src="app/fw/svg/sprite.js"></script>
+    <script src="app/fw/svg/spriteData.js"></script>
 
     <script src="app/fw/remote/remote.js"></script>
     <script src="app/fw/remote/urlfn.js"></script>
@@ -104,6 +106,7 @@
     <link rel="stylesheet" href="app/fw/mast/mast-theme.css">
     <link rel="stylesheet" href="app/fw/svg/glyph.css">
     <link rel="stylesheet" href="app/fw/svg/glyph-theme.css">
+    <link rel="stylesheet" href="app/fw/svg/sprite-theme.css">
     <link rel="stylesheet" href="app/fw/svg/icon.css">
     <link rel="stylesheet" href="app/fw/svg/icon-theme.css">
     <link rel="stylesheet" href="app/fw/layer/panel.css">
@@ -264,7 +267,7 @@
 <script>
     <!-- Inject user agent info into html element to allow CSS sensitivity. -->
     (function () {
-        var t = !!('ontouchstart' in window) || !!('onmsgesturechange' in window);
+        var t = ('ontouchstart' in window) || ('onmsgesturechange' in window);
         d3.select(document.documentElement)
             .attr('data-useragent', navigator.userAgent)
             .attr('data-platform', navigator.platform)
