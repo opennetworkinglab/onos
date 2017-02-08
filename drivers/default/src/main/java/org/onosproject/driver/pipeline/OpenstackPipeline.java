@@ -133,7 +133,8 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     }
 
     private void initializePipeline() {
-        connectTables(SRC_VNI_TABLE, ACL_TABLE); // Table 0 -> Table 1
+        //TODO: For now, we do not support security group feature temporarily.
+        connectTables(SRC_VNI_TABLE, JUMP_TABLE); // Table 0 -> Table 3
         //FIXME CT table needs to be reconstructed using OVS 2.5 connection tracking feature.
         connectTables(CT_TABLE, JUMP_TABLE);  // Table 2 -> Table 3
         setUpTableMissEntry(ACL_TABLE);
