@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.restconf.restconfmanager;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,15 +21,17 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.glassfish.jersey.server.ChunkedOutput;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.event.ListenerTracker;
-import org.onosproject.restconf.api.RestconfException;
-import org.onosproject.restconf.api.RestconfService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -36,25 +39,30 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+import org.onosproject.config.FailedException;
+import org.onosproject.config.DynamicConfigService;
+import org.onosproject.config.Filter;
+import org.onosproject.restconf.api.RestconfException;
+import org.onosproject.restconf.api.RestconfService;
+import org.onosproject.yang.model.ResourceData;
+import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.DataNode;
+import static org.onosproject.restconf.utils.RestconfUtils.convertUriToRid;
+import static org.onosproject.restconf.utils.RestconfUtils.convertJsonToDataNode;
+import static org.onosproject.restconf.utils.RestconfUtils.convertDataNodeToJson;
+
 /*
- * Skeletal ONOS RESTCONF Server application. The RESTCONF Manager
- * implements the main logic of the RESTCONF Server.
+ * ONOS RESTCONF application. The RESTCONF Manager
+ * implements the main logic of the RESTCONF application.
  *
  * The design of the RESTCONF subsystem contains 2 major bundles:
- *
- * 1. RESTCONF Protocol Proxy (RPP). This bundle is implemented as a
- *    JAX-RS application. It acts as the frond-end of the RESTCONF server.
- *    It intercepts/handles HTTP requests that are sent to the RESTCONF
- *    Root Path. It then calls the RESTCONF Manager to process the requests.
- *
- * 2. RESTCONF Manager. This bundle module is the back-end of the server.
+ *    This bundle module is the back-end of the server.
  *    It provides the main logic of the RESTCONF server. It interacts with
- *    the YMS (YANG Management System) to run operations on the YANG data
- *    objects (i.e., data resources).
+ *    the Dynamic Config Service and yang runtime service to run operations
+ *    on the YANG data objects (i.e., resource id, yang data node).
  */
 
 /**
@@ -77,6 +85,11 @@ public class RestconfManager implements RestconfService {
     private final int maxNumOfWorkerThreads = 5;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+
+    private static final DynamicConfigService  DYNAMIC_CONFIG_SERVICE =
+            DefaultServiceDirectory.getService(DynamicConfigService.class);
 
     private ListenerTracker listeners;
 
@@ -104,23 +117,58 @@ public class RestconfManager implements RestconfService {
     @Override
     public ObjectNode runGetOperationOnDataResource(String uri)
             throws RestconfException {
-
-        return null;
+        ResourceId rid = convertUriToRid(uri);
+        // TODO: define Filter (if there is any requirement).
+        Filter filter = new Filter();
+        DataNode dataNode;
+        try {
+            dataNode = DYNAMIC_CONFIG_SERVICE.readNode(rid, filter);
+        } catch (FailedException e) {
+            log.error("ERROR: DynamicConfigService: ", e);
+            throw new RestconfException("ERROR: DynamicConfigService",
+                                        INTERNAL_SERVER_ERROR);
+        }
+        ObjectNode rootNode = convertDataNodeToJson(rid, dataNode);
+        return rootNode;
     }
 
     @Override
     public void runPostOperationOnDataResource(String uri, ObjectNode rootNode)
             throws RestconfException {
+        ResourceData resourceData = convertJsonToDataNode(uri, rootNode);
+        ResourceId rid = resourceData.resourceId();
+        List<DataNode> dataNodeList = resourceData.dataNodes();
+        // TODO: Error message needs to be fixed
+        if (dataNodeList.size() > 1) {
+            log.warn("ERROR: There are more than one Data Node can be proceed");
+        }
+        DataNode dataNode = dataNodeList.get(0);
+        try {
+            DYNAMIC_CONFIG_SERVICE.createNode(rid, dataNode);
+        } catch (FailedException e) {
+            log.error("ERROR: DynamicConfigService: ", e);
+            throw new RestconfException("ERROR: DynamicConfigService",
+                                        INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
     public void runPutOperationOnDataResource(String uri, ObjectNode rootNode)
             throws RestconfException {
+        runPostOperationOnDataResource(uri, rootNode);
     }
 
     @Override
     public void runDeleteOperationOnDataResource(String uri)
             throws RestconfException {
+        ResourceId rid = convertUriToRid(uri);
+        try {
+            DYNAMIC_CONFIG_SERVICE.deleteNode(rid);
+        } catch (FailedException e) {
+            log.error("ERROR: DynamicConfigService: ", e);
+            throw new RestconfException("ERROR: DynamicConfigService",
+                                        INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override

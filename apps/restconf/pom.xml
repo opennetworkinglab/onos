@@ -32,6 +32,7 @@
         <module>api</module>
         <module>restconfmgr</module>
         <module>app</module>
+        <module>utils</module>
     </modules>
 
     <description>RESTCONF Application Module</description>
