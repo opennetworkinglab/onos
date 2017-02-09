@@ -25,6 +25,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.ui.RequestHandler;
@@ -40,6 +41,7 @@ import org.onosproject.ui.table.cell.NumberFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
 
 /**
  * Message handler for flow view related messages.
@@ -84,6 +86,12 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 new FlowDataRequest(),
                 new DetailRequestHandler()
         );
+    }
+
+    private StringBuilder removeTrailingComma(StringBuilder sb) {
+        int pos = sb.lastIndexOf(COMMA);
+        sb.delete(pos, sb.length());
+        return sb;
     }
 
     // handler for flow table requests
@@ -168,33 +176,53 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             @Override
             public String format(Object value) {
                 FlowEntry flow = (FlowEntry) value;
-                List<Instruction> instructions = flow.treatment().allInstructions();
-
-                if (instructions.isEmpty()
-                        && flow.treatment().metered() == null
-                        && flow.treatment().tableTransition() == null) {
+                TrafficTreatment treatment = flow.treatment();
+                List<Instruction> imm = treatment.immediate();
+                List<Instruction> def = treatment.deferred();
+                if (imm.isEmpty() &&
+                        def.isEmpty() &&
+                        treatment.metered() == null &&
+                        treatment.tableTransition() == null) {
                     return "(No traffic treatment instructions for this flow)";
                 }
+
                 StringBuilder sb = new StringBuilder("Treatment Instructions: ");
-                for (Instruction i : instructions) {
-                    sb.append(i).append(COMMA);
+                formatInstructs(sb, imm, "immediate:");
+                formatInstructs(sb, def, "deferred:");
+
+                if (treatment.metered() != null) {
+                    sb.append("metered:")
+                            .append(treatment.metered())
+                            .append(COMMA);
                 }
-                if (flow.treatment().metered() != null) {
-                    sb.append(flow.treatment().metered().toString()).append(COMMA);
+
+                if (treatment.tableTransition() != null) {
+                    sb.append("transition:")
+                            .append(treatment.tableTransition())
+                            .append(COMMA);
                 }
-                if (flow.treatment().tableTransition() != null) {
-                    sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
+
+                if (treatment.writeMetadata() != null) {
+                    sb.append("metadata:")
+                            .append(treatment.writeMetadata())
+                            .append(COMMA);
                 }
-                removeTrailingComma(sb);
+
+                sb.append("cleared:").append(treatment.clearedDeferred());
 
                 return sb.toString();
             }
         }
 
-        private StringBuilder removeTrailingComma(StringBuilder sb) {
-            int pos = sb.lastIndexOf(COMMA);
-            sb.delete(pos, sb.length());
-            return sb;
+        private void formatInstructs(StringBuilder sb,
+                                     List<Instruction> instructs,
+                                     String type) {
+            if (!instructs.isEmpty()) {
+                sb.append(type);
+                for (Instruction i : instructs) {
+                    sb.append(i).append(COMMA);
+                }
+            }
         }
     }
 
@@ -233,9 +261,7 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             for (Criterion c : criteria) {
                 sb.append(c).append(COMMA);
             }
-            int pos = sb.lastIndexOf(COMMA);
-            sb.delete(pos, sb.length());
-
+            removeTrailingComma(sb);
             return sb.toString();
         }
 
@@ -246,14 +272,13 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 sb.append(inst).append(COMMA);
             }
             if (flow.treatment().metered() != null) {
-                sb.append(flow.treatment().metered().toString()).append(COMMA);
+                sb.append(flow.treatment().metered()).append(COMMA);
             }
             if (flow.treatment().tableTransition() != null) {
-                sb.append(flow.treatment().tableTransition().toString()).append(COMMA);
+                sb.append(flow.treatment().tableTransition()).append(COMMA);
             }
-            int pos = sb.lastIndexOf(COMMA);
-            sb.delete(pos, sb.length());
 
+            removeTrailingComma(sb);
             return sb.toString();
         }
 
