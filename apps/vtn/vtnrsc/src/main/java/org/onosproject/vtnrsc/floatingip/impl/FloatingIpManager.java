@@ -246,7 +246,7 @@ public class FloatingIpManager implements FloatingIpService {
     @Override
     public void removeListener(FloatingIpListener listener) {
         checkNotNull(listener, LISTENER_NOT_NULL);
-        listeners.add(listener);
+        listeners.remove(listener);
     }
 
     /**
