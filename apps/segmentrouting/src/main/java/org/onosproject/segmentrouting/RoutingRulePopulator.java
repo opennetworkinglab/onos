@@ -123,7 +123,7 @@ public class RoutingRulePopulator {
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = getForwardingObjectiveBuilder(
+            fwdBuilder = routingFwdObjBuilder(
                     deviceId, prefix, hostMac, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
@@ -156,7 +156,7 @@ public class RoutingRulePopulator {
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = getForwardingObjectiveBuilder(
+            fwdBuilder = routingFwdObjBuilder(
                     deviceId, prefix, hostMac, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
@@ -175,8 +175,10 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Returns a forwarding objective that points packets destined to a
-     * given prefix to given port on given device with given destination MAC.
+     * Returns a forwarding objective builder for routing rules.
+     * <p>
+     * The forwarding objective routes packets destined to a given prefix to
+     * given port on given device with given destination MAC.
      *
      * @param deviceId device ID
      * @param prefix prefix that need to be routed
@@ -185,7 +187,7 @@ public class RoutingRulePopulator {
      * @return forwarding objective builder
      * @throws DeviceConfigNotFoundException if given device is not configured
      */
-    private ForwardingObjective.Builder getForwardingObjectiveBuilder(
+    private ForwardingObjective.Builder routingFwdObjBuilder(
             DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, PortNumber outPort)
             throws DeviceConfigNotFoundException {
@@ -599,7 +601,7 @@ public class RoutingRulePopulator {
      * @param deviceId  the switch dpid for the router
      * @return PortFilterInfo information about the processed ports
      */
-    public PortFilterInfo populateRouterMacVlanFilters(DeviceId deviceId) {
+    public PortFilterInfo populateVlanMacFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
@@ -709,14 +711,14 @@ public class RoutingRulePopulator {
      *
      * @param deviceId the switch dpid for the router
      */
-    public void populateRouterIpPunts(DeviceId deviceId) {
+    public void populateIpPunts(DeviceId deviceId) {
         Ip4Address routerIpv4;
         Ip6Address routerIpv6;
         try {
             routerIpv4 = config.getRouterIpv4(deviceId);
             routerIpv6 = config.getRouterIpv6(deviceId);
         } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateRouterIpPunts.");
+            log.warn(e.getMessage() + " Aborting populateIpPunts.");
             return;
         }
 

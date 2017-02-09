@@ -93,7 +93,7 @@ public class HostHandler {
             log.debug("Populate L2 table entry for host {} at {}:{}",
                     mac, deviceId, port);
             ForwardingObjective.Builder fob =
-                    hostFwdObjBuilder(deviceId, mac, vlanId, port);
+                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port);
             if (fob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -130,7 +130,7 @@ public class HostHandler {
         if (accepted(host)) {
             // Revoke bridging table entry
             ForwardingObjective.Builder fob =
-                    hostFwdObjBuilder(deviceId, mac, vlanId, port);
+                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port);
             if (fob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -168,7 +168,7 @@ public class HostHandler {
         if (accepted(event.prevSubject())) {
             // Revoke previous bridging table entry
             ForwardingObjective.Builder prevFob =
-                    hostFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort);
+                    bridgingFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort);
             if (prevFob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -191,7 +191,7 @@ public class HostHandler {
         if (accepted(event.subject())) {
             // Populate new bridging table entry
             ForwardingObjective.Builder newFob =
-                    hostFwdObjBuilder(newDeviceId, mac, vlanId, newPort);
+                    bridgingFwdObjBuilder(newDeviceId, mac, vlanId, newPort);
             if (newFob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -249,7 +249,10 @@ public class HostHandler {
     }
 
     /**
-     * Generates the forwarding objective builder for the host rules.
+     * Generates a forwarding objective builder for bridging rules.
+     * <p>
+     * The forwarding objective bridges packets destined to a given MAC to
+     * given port on given device.
      *
      * @param deviceId Device that host attaches to
      * @param mac MAC address of the host
@@ -257,7 +260,7 @@ public class HostHandler {
      * @param outport Port that host attaches to
      * @return Forwarding objective builder
      */
-    private ForwardingObjective.Builder hostFwdObjBuilder(
+    private ForwardingObjective.Builder bridgingFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId vlanId,
             PortNumber outport) {
         VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, outport));

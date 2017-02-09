@@ -643,14 +643,14 @@ public class DefaultRoutingHandler {
      * @param deviceId Switch ID to set the rules
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
-        rulePopulator.populateRouterIpPunts(deviceId);
+        rulePopulator.populateIpPunts(deviceId);
         rulePopulator.populateArpNdpPunts(deviceId);
 
         // Although device is added, sometimes device store does not have the
         // ports for this device yet. It results in missing filtering rules in the
         // switch. We will attempt it a few times. If it still does not work,
         // user can manually repopulate using CLI command sr-reroute-network
-        PortFilterInfo firstRun = rulePopulator.populateRouterMacVlanFilters(deviceId);
+        PortFilterInfo firstRun = rulePopulator.populateVlanMacFilters(deviceId);
         if (firstRun == null) {
             firstRun = new PortFilterInfo(0, 0, 0);
         }
@@ -829,7 +829,7 @@ public class DefaultRoutingHandler {
         @Override
         public void run() {
             log.info("RETRY FILTER ATTEMPT {} ** dev:{}", ++counter, devId);
-            PortFilterInfo thisRun = rulePopulator.populateRouterMacVlanFilters(devId);
+            PortFilterInfo thisRun = rulePopulator.populateVlanMacFilters(devId);
             boolean sameResult = prevRun.equals(thisRun);
             log.debug("dev:{} prevRun:{} thisRun:{} sameResult:{}", devId, prevRun,
                       thisRun, sameResult);

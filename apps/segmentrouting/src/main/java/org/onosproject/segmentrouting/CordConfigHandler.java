@@ -124,7 +124,7 @@ public class CordConfigHandler {
             // Add olt to the subnet of agent
             log.info("push subnet for olt {}", agentSubnet);
             srManager.deviceConfiguration.addSubnet(connectPoint, agentSubnet);
-            srManager.routingRulePopulator.populateRouterMacVlanFilters(connectPoint.deviceId());
+            srManager.routingRulePopulator.populateVlanMacFilters(connectPoint.deviceId());
 
             // Add host information for olt
             log.info("push host info for olt {}", macAddress);
@@ -175,7 +175,7 @@ public class CordConfigHandler {
             // Remove olt to the subnet of agent
             log.info("delete subnet for olt {}", agentSubnet);
             srManager.deviceConfiguration.removeSubnet(connectPoint, agentSubnet);
-            srManager.routingRulePopulator.populateRouterMacVlanFilters(connectPoint.deviceId());
+            srManager.routingRulePopulator.populateVlanMacFilters(connectPoint.deviceId());
         });
     }
 

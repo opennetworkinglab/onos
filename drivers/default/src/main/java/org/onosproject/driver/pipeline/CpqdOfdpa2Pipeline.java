@@ -790,251 +790,59 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      */
     @Override
     protected void initializePipeline() {
-        processPortTable();
-        processVlanTable();
-        processTmacTable();
-        processIpTable();
-        processMulticastIpTable();
-        processMplsTable();
-        processBridgingTable();
-        processAclTable();
+        initTableMiss(PORT_TABLE, VLAN_TABLE, null);
+        initTableMiss(VLAN_TABLE, ACL_TABLE, null);
+        initTableMiss(TMAC_TABLE, BRIDGING_TABLE, null);
+        initTableMiss(UNICAST_ROUTING_TABLE, ACL_TABLE, null);
+        initTableMiss(MULTICAST_ROUTING_TABLE, ACL_TABLE, null);
+        initTableMiss(MPLS_TABLE_0, MPLS_TABLE_1, null);
+        initTableMiss(MPLS_TABLE_1, ACL_TABLE, null);
+        initTableMiss(BRIDGING_TABLE, ACL_TABLE, null);
+        initTableMiss(ACL_TABLE, -1, null);
     }
 
-    protected void processPortTable() {
+    /**
+     * Install table-miss flow entry.
+     *
+     * If treatment exists, use it directly.
+     * Else if treatment does not exist but nextTable > 0, transit to next table.
+     * Else apply empty treatment.
+     *
+     * @param thisTable this table ID
+     * @param nextTable next table ID
+     * @param treatment traffic treatment to apply.
+     */
+    private void initTableMiss(int thisTable, int nextTable, TrafficTreatment treatment) {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(VLAN_TABLE);
-        FlowRule tmisse = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(PORT_TABLE).build();
-        ops = ops.add(tmisse);
+        TrafficSelector selector = DefaultTrafficSelector.builder().build();
 
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized port table on {}", deviceId);
+        if (treatment == null) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+            if (nextTable > 0) {
+                tBuilder.transition(nextTable);
             }
+            treatment = tBuilder.build();
+        }
 
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize port table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processVlanTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder().wipeDeferred();
-        treatment.transition(ACL_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
+                .withSelector(selector)
+                .withTreatment(treatment)
                 .withPriority(LOWEST_PRIORITY)
                 .fromApp(driverId)
                 .makePermanent()
-                .forTable(VLAN_TABLE).build();
+                .forTable(thisTable).build();
         ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized vlan table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize vlan table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processTmacTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(BRIDGING_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(TMAC_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized tmac table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize tmac table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processIpTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(ACL_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(UNICAST_ROUTING_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized IP table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize unicast IP table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processMulticastIpTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(ACL_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(MULTICAST_ROUTING_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized multicast IP table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize multicast IP table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processMplsTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector = DefaultTrafficSelector.builder();
-        treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(MPLS_TABLE_1);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(MPLS_TABLE_0).build();
-        ops =  ops.add(rule);
-
-        treatment.transition(ACL_TABLE);
-        rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(MPLS_TABLE_1).build();
-        ops = ops.add(rule);
 
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized MPLS tables on {}", deviceId);
+                log.info("Initialized table {} on {}", thisTable, deviceId);
             }
-
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize MPLS tables on {}", deviceId);
+                log.warn("Failed to initialize table {} on {}", thisTable, deviceId);
             }
         }));
     }
-
-    private void processBridgingTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(ACL_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(BRIDGING_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized Bridging table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize Bridging table on {}", deviceId);
-            }
-        }));
-    }
-
-    protected void processAclTable() {
-        //table miss entry - catch all to executed action-set
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(ACL_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized Acl table on {}", deviceId);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize Acl table on {}", deviceId);
-            }
-        }));
-    }
-
 }
