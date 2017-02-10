@@ -96,6 +96,7 @@ public class Router {
         asyncDeviceFetcher.shutdown();
 
         interfaceService.removeListener(listener);
+        asyncDeviceFetcher.shutdown();
 
         unprovision();
     }

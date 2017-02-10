@@ -72,9 +72,8 @@ import org.onosproject.routing.NextHopGroupKey;
 import org.onosproject.routing.Router;
 import org.onosproject.routing.RouterInfo;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.RouterConfigHelper;
+import org.onosproject.routing.config.RoutingConfiguration;
 import org.onosproject.routing.config.RoutersConfig;
-import org.onosproject.routing.config.RoutingConfigurationService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,9 +125,6 @@ public class FibInstaller {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationService applicationService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingConfigurationService rs;
-
     @Property(name = "routeToNextHop", boolValue = false,
             label = "Install a /32 or /128 route to each next hop")
     private boolean routeToNextHop = false;
@@ -168,6 +164,8 @@ public class FibInstaller {
         componentConfigService.registerProperties(getClass());
         modified(context);
 
+        RoutingConfiguration.register(networkConfigRegistry);
+
         coreAppId = coreService.registerApplication(CoreService.CORE_APP_NAME);
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
         fibAppId = coreService.registerApplication(APP_NAME);
@@ -186,6 +184,8 @@ public class FibInstaller {
     @Deactivate
     protected void deactivate() {
         networkConfigService.removeListener(configListener);
+
+        RoutingConfiguration.unregister(networkConfigRegistry);
 
         componentConfigService.unregisterProperties(getClass(), false);
 
@@ -207,7 +207,7 @@ public class FibInstaller {
 
     private void processRouterConfig() {
         Set<RoutersConfig.Router> routerConfigs =
-                RouterConfigHelper.getRouterConfigurations(networkConfigService, routerAppId);
+                RoutingConfiguration.getRouterConfigurations(networkConfigService, routerAppId);
         if (routerConfigs.isEmpty()) {
             log.info("Router config not available");
             return;

@@ -48,8 +48,8 @@ import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigEvent.Type;
 import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.NetworkConfigServiceAdapter;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -98,7 +98,7 @@ public class ControlPlaneRedirectManagerTest {
 
     private DeviceService deviceService;
     private FlowObjectiveService flowObjectiveService;
-    private NetworkConfigService networkConfigService;
+    private NetworkConfigRegistry networkConfigService;
     private final Set<Interface> interfaces = Sets.newHashSet();
     static Device dev3 = NetTestTools.device("0000000000000001");
     private static final int OSPF_IP_PROTO = 0x59;
@@ -588,7 +588,7 @@ public class ControlPlaneRedirectManagerTest {
 
     }
 
-    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
+    private class TestNetworkConfigService extends NetworkConfigRegistryAdapter {
 
         @Override
         public void addListener(NetworkConfigListener listener) {
