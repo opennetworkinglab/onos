@@ -13,37 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping;
-
-import org.onosproject.mapping.address.MappingAddress;
+package org.onosproject.mapping.address;
 
 /**
- * Abstraction of network mapping key.
+ * Presentation of a single mapping selection.
  */
-public interface MappingKey {
+public interface MappingAddress {
 
     /**
-     * Returns a mapping address.
-     *
-     * @return a mapping address
+     * Types of address to which the mapping criterion may apply.
      */
-    MappingAddress address();
+    enum Type {
 
-    interface Builder {
+        /** IPv4 Address. */
+        IPV4,
 
-        /**
-         * Specifies a mapping address.
-         *
-         * @param address mapping address
-         * @return a mapping key builder
-         */
-        Builder withAddress(MappingAddress address);
+        /** IPv6 Address. */
+        IPV6,
 
-        /**
-         * Builds an immutable mapping key.
-         *
-         * @return a mapping key
-         */
-        MappingKey build();
+        /** Autonomous System Number. */
+        AS,
+
+        /** Ethernet Address (MAC Address). */
+        ETH,
+
+        /** Distinguished Name. */
+        DN,
+
+        /** Extension Address. */
+        EXTENSION
     }
+
+    /**
+     * Returns the type of mapping address.
+     *
+     * @return type of mapping address
+     */
+    Type type();
 }

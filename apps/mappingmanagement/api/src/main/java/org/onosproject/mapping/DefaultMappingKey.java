@@ -15,8 +15,14 @@
  */
 package org.onosproject.mapping;
 
+import org.onosproject.mapping.address.MappingAddress;
+
 /**
  * Default mapping key implementation.
  */
 public class DefaultMappingKey implements MappingKey {
+    @Override
+    public MappingAddress address() {
+        return null;
+    }
 }

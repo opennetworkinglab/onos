@@ -13,25 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping;
-
-import org.onosproject.mapping.address.MappingAddress;
-import org.onosproject.mapping.instructions.MappingInstruction;
-
-import java.util.List;
 
 /**
- * Default mapping value implementation.
+ * Mapping address package.
  */
-public class DefaultMappingValue implements MappingValue {
-
-    @Override
-    public MappingAddress address() {
-        return null;
-    }
-
-    @Override
-    public List<MappingInstruction> instructions() {
-        return null;
-    }
-}
+package org.onosproject.mapping.address;

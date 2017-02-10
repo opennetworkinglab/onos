@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping;
-
-import org.onosproject.mapping.address.MappingAddress;
-import org.onosproject.mapping.instructions.MappingInstruction;
-
-import java.util.List;
+package org.onosproject.mapping.instructions;
 
 /**
- * Default mapping value implementation.
+ * Unit tests for the MappingInstructions class.
  */
-public class DefaultMappingValue implements MappingValue {
-
-    @Override
-    public MappingAddress address() {
-        return null;
-    }
-
-    @Override
-    public List<MappingInstruction> instructions() {
-        return null;
-    }
+public class MappingInstructionsTest {
 }
