@@ -35,8 +35,8 @@
     .factory('Topo2RegionService', [
         '$log', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
-        'Topo2BreadcrumbService', 'Topo2ViewController',
-        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController) {
+        'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService',
+        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController, t2sls) {
 
             Model = _Model_;
 
@@ -71,6 +71,14 @@
                     // Hide Breadcrumbs if there are no subregions configured in the root region
                     if (this.isRootRegion() && !this.model.get('subregions').models.length) {
                         t2bcs.hide();
+                    }
+
+                    // TODO: This should load the sprite layer from the region data
+                    if (this.model.get('id') === 'c01') {
+                        t2sls.loadLayout('segmentRouting');
+                        t2sls.show();
+                    } else {
+                        t2sls.hide();
                     }
                 },
                 isRootRegion: function () {

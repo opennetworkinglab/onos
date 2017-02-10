@@ -237,7 +237,7 @@
 
     // Returns the layout with the given ID, or undefined otherwise.
     function layout(id) {
-        layouts.get(id);
+        return layouts.get(id);
     }
 
     // Returns a count of registered sprites and layouts.

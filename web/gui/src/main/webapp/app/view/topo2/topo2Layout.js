@@ -157,9 +157,10 @@
                             .on("start", function () {
 
                                 // TODO: Find a better way to do this
-                                setTimeout(function () {
-                                    _this.centerLayout();
-                                }, 500);
+                                // TODO: BROKEN - Click and dragging and element triggers this event
+//                                setTimeout(function () {
+//                                    _this.centerLayout();
+//                                }, 500);
                             })
                             .start();
 

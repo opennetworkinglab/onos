@@ -91,7 +91,7 @@
     angular.module('ovTopo2')
     .factory('Topo2HostsPanelService', [
         'Topo2DetailsPanelService', 'GlyphService', 'FlashService', 'ListService',
-        function (_ps_, _gs_, _wss_, _flash_, _ls_) {
+        function (_ps_, _gs_, _flash_, _ls_) {
 
             panel = _ps_;
             gs = _gs_;
