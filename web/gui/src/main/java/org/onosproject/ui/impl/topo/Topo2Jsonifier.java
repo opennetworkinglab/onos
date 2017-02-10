@@ -364,6 +364,7 @@ public class Topo2Jsonifier {
         }
     }
 
+    // FIXME: need to handle geo vs. grid location...
     private void addGeoLocation(ObjectNode node, Annotated a) {
         List<String> lngLat = getAnnotValues(a, LONGITUDE, LATITUDE);
         if (lngLat != null) {

@@ -183,7 +183,7 @@
 
                     if (event.memo === 'added') {
                         device = this.model.get('devices').add(event.data);
-                        $log('Added device', device)
+                        $log.debug('Added device', device);
                     } else if (event.memo === 'updated') {
                         device = this.getDevice(event.subject);
                         device.set(event.data);

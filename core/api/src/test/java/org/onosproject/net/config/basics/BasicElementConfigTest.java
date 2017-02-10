@@ -33,6 +33,8 @@ public class BasicElementConfigTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String E1 = "e1";
+    private static final String GEO = "geo";
+    private static final String GRID = "grid";
 
     // concrete subclass of abstract class we are testing
     private static class ElmCfg extends BasicElementConfig<String> {
@@ -103,5 +105,47 @@ public class BasicElementConfigTest {
         cfg.uiType("someOtherType");
         print(cfg);
         assertEquals("not other type", "someOtherType", cfg.uiType());
+    }
+
+    @Test
+    public void defaultGridCoords() {
+        print(cfg);
+        assertEquals("gridx", 0.0, cfg.gridX(), ZERO_THRESHOLD);
+        assertEquals("gridy", 0.0, cfg.gridY(), ZERO_THRESHOLD);
+    }
+
+    @Test
+    public void someGridCoords() {
+        cfg.gridX(35.0).gridY(49.7);
+        print(cfg);
+        assertEquals("gridx", 35.0, cfg.gridX(), ZERO_THRESHOLD);
+        assertEquals("gridy", 49.7, cfg.gridY(), ZERO_THRESHOLD);
+    }
+
+    @Test
+    public void defaultLocationType() {
+        print(cfg);
+        assertEquals("not geo", GEO, cfg.locType());
+    }
+
+    @Test
+    public void geoLocationType() {
+        cfg.locType(GEO);
+        print(cfg);
+        assertEquals("not geo", GEO, cfg.locType());
+    }
+
+    @Test
+    public void gridLocationType() {
+        cfg.locType(GRID);
+        print(cfg);
+        assertEquals("not grid", GRID, cfg.locType());
+    }
+
+    @Test
+    public void otherLocationType() {
+        cfg.locType("foobar");
+        print(cfg);
+        assertEquals("not geo", GEO, cfg.locType());
     }
 }

@@ -17,8 +17,8 @@ package org.onosproject.net.config.basics;
 
 /**
  * Basic configuration for network elements, e.g. devices, hosts. Such elements
- * can have a friendly name, geo-coordinates, logical rack coordinates and
- * an owner entity.
+ * can have a friendly name, geo-coordinates (or grid-coordinates),
+ * logical rack coordinates and an owner entity.
  */
 public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
@@ -33,6 +33,11 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     public static final String UI_TYPE = "uiType";
 
     /**
+     * Key for location type (geo or grid).
+     */
+    public static final String LOC_TYPE = "locType";
+
+    /**
      * Key for latitude.
      */
     public static final String LATITUDE = "latitude";
@@ -41,6 +46,17 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      * Key for longitude.
      */
     public static final String LONGITUDE = "longitude";
+
+    /**
+     * Key for grid X coordinate.
+     */
+    public static final String GRID_X = "gridx";
+
+    /**
+     * Key for grid Y coordinate.
+     */
+    public static final String GRID_Y = "gridy";
+
 
     /**
      * Key for rack address.
@@ -58,6 +74,8 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     protected static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
 
     private static final double DEFAULT_COORD = 0.0;
+    private static final String LOC_TYPE_GEO = "geo";
+    private static final String LOC_TYPE_GRID = "grid";
 
     /**
      * Returns friendly label for the element. If not set, returns the
@@ -99,6 +117,28 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      */
     public BasicElementConfig uiType(String uiType) {
         return (BasicElementConfig) setOrClear(UI_TYPE, uiType);
+    }
+
+    /**
+     * Returns the location type (geo or grid) for the element in
+     * the Topology View. If not set, returns the default of "geo".
+     *
+     * @return location type (string)
+     */
+    public String locType() {
+        return get(LOC_TYPE, LOC_TYPE_GEO);
+    }
+
+    /**
+     * Sets the location type (geo or grid) for the element in
+     * the Topology View. If null is passsed, it will default to "geo".
+     *
+     * @param locType the UI type; null for default
+     * @return self
+     */
+    public BasicElementConfig locType(String locType) {
+        String lt = LOC_TYPE_GRID.equals(locType) ? LOC_TYPE_GRID : LOC_TYPE_GEO;
+        return (BasicElementConfig) setOrClear(LOC_TYPE, lt);
     }
 
     private boolean doubleIsZero(double value) {
@@ -153,6 +193,44 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      */
     public BasicElementConfig longitude(Double longitude) {
         return (BasicElementConfig) setOrClear(LONGITUDE, longitude);
+    }
+
+    /**
+     * Returns element grid x-coordinate.
+     *
+     * @return element x-coordinate
+     */
+    public double gridX() {
+        return get(GRID_X, DEFAULT_COORD);
+    }
+
+    /**
+     * Sets the element grid x-coordinate.
+     *
+     * @param x new x-coordinate; null to clear
+     * @return self
+     */
+    public BasicElementConfig gridX(Double x) {
+        return (BasicElementConfig) setOrClear(GRID_X, x);
+    }
+
+    /**
+     * Returns element grid y-coordinate.
+     *
+     * @return element y-coordinate
+     */
+    public double gridY() {
+        return get(GRID_Y, DEFAULT_COORD);
+    }
+
+    /**
+     * Sets the element grid y-coordinate.
+     *
+     * @param y new y-coordinate; null to clear
+     * @return self
+     */
+    public BasicElementConfig gridY(Double y) {
+        return (BasicElementConfig) setOrClear(GRID_Y, y);
     }
 
     /**

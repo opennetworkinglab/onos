@@ -32,6 +32,8 @@ import org.onosproject.provider.nil.TopologySimulator;
 @Command(scope = "onos", name = "null-create-device",
         description = "Adds a simulated device to the custom topology simulation")
 public class CreateNullDevice extends AbstractShellCommand {
+    private static final String GEO = "geo";
+    private static final String GRID = "grid";
 
     @Argument(index = 0, name = "type", description = "Device type, e.g. switch, roadm",
             required = true, multiValued = false)
@@ -45,13 +47,19 @@ public class CreateNullDevice extends AbstractShellCommand {
             required = true, multiValued = false)
     Integer portCount = null;
 
-    @Argument(index = 3, name = "latitude", description = "Geo latitude",
+    @Argument(index = 3, name = "latOrY",
+            description = "Geo latitude / Grid y-coord",
             required = true, multiValued = false)
-    Double latitude = null;
+    Double latOrY = null;
 
-    @Argument(index = 4, name = "longitude", description = "Geo longitude",
+    @Argument(index = 4, name = "longOrX",
+            description = "Geo longitude / Grid x-coord",
             required = true, multiValued = false)
-    Double longitude = null;
+    Double longOrX = null;
+
+    @Argument(index = 5, name = "locType", description = "Location type {geo|grid}",
+            required = false, multiValued = false)
+    String locType = GEO;
 
     @Override
     protected void execute() {
@@ -64,13 +72,23 @@ public class CreateNullDevice extends AbstractShellCommand {
             return;
         }
 
+        if (!(GEO.equals(locType) || GRID.equals(locType))) {
+            error("locType must be 'geo' or 'grid'.");
+            return;
+        }
+
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
         DeviceId deviceId = sim.nextDeviceId();
         BasicDeviceConfig cfg = cfgService.addConfig(deviceId, BasicDeviceConfig.class);
         cfg.name(name)
-                .latitude(latitude)
-                .longitude(longitude)
-                .apply();
+                .locType(locType);
+
+        if (GEO.equals(locType)) {
+            cfg.latitude(latOrY).longitude(longOrX);
+        } else {
+            cfg.gridX(longOrX).gridY(latOrY);
+        }
+        cfg.apply();
 
         sim.createDevice(deviceId, name, Device.Type.valueOf(type.toUpperCase()), portCount);
     }
