@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.incubator.net.routing.RouteEvent.Type.ROUTE_ADDED;
 import static org.onosproject.incubator.net.routing.RouteEvent.Type.ROUTE_REMOVED;
+import static org.onosproject.incubator.net.routing.RouteTools.createBinaryString;
 
 /**
  * Route store based on distributed storage.
@@ -237,21 +238,6 @@ public class DistributedRouteStore extends AbstractStore<RouteEvent, RouteStoreD
     private InvertedRadixTree<Route> getDefaultLocalRouteTable(IpAddress ip) {
         RouteTableId routeTableId = (ip.isIp4()) ? IPV4 : IPV6;
         return localRouteTables.get(routeTableId);
-    }
-
-    private static String createBinaryString(IpPrefix ipPrefix) {
-        byte[] octets = ipPrefix.address().toOctets();
-        StringBuilder result = new StringBuilder(ipPrefix.prefixLength());
-        result.append("0");
-        for (int i = 0; i < ipPrefix.prefixLength(); i++) {
-            int byteOffset = i / Byte.SIZE;
-            int bitOffset = i % Byte.SIZE;
-            int mask = 1 << (Byte.SIZE - 1 - bitOffset);
-            byte value = octets[byteOffset];
-            boolean isSet = ((value & mask) != 0);
-            result.append(isSet ? "1" : "0");
-        }
-        return result.toString();
     }
 
     private class RouteTableListener implements MapEventListener<IpPrefix, Route> {

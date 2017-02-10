@@ -51,6 +51,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.incubator.net.routing.RouteTools.createBinaryString;
+
 /**
  * Reactive routing configuration manager.
  */
@@ -195,36 +197,6 @@ public class ReactiveRoutingConfiguration implements
     @Override
     public Set<ConnectPoint> getBgpPeerConnectPoints() {
         return ImmutableSet.copyOf(bgpPeerConnectPoints);
-    }
-
-    /**
-     * Creates the binary string representation of an IP prefix.
-     * The prefix can be either IPv4 or IPv6.
-     * The string length is equal to the prefix length + 1.
-     *
-     * For each string, we put a extra "0" in the front. The purpose of
-     * doing this is to store the default route inside InvertedRadixTree.
-     *
-     * @param ipPrefix the IP prefix to use
-     * @return the binary string representation
-     */
-    private static String createBinaryString(IpPrefix ipPrefix) {
-        if (ipPrefix.prefixLength() == 0) {
-            return "0";
-        }
-
-        byte[] octets = ipPrefix.address().toOctets();
-        StringBuilder result = new StringBuilder(ipPrefix.prefixLength());
-        for (int i = 0; i < ipPrefix.prefixLength(); i++) {
-            int byteOffset = i / Byte.SIZE;
-            int bitOffset = i % Byte.SIZE;
-            int mask = 1 << (Byte.SIZE - 1 - bitOffset);
-            byte value = octets[byteOffset];
-            boolean isSet = ((value & mask) != 0);
-            result.append(isSet ? "1" : "0");
-        }
-
-        return "0" + result.toString();
     }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
