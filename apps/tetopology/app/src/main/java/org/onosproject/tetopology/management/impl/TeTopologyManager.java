@@ -391,8 +391,9 @@ public class TeTopologyManager
                         break;
                     case NETWORK_REMOVED:
                         post(new TeTopologyEvent(NETWORK_REMOVED,
-                                                 new DefaultNetwork(event.networkKey(),
-                                                                    null, null, null, null, false, null)));
+                                                 new DefaultNetwork(event.networkKey(), null, null,
+                                                                    null, null, false, null,
+                                                                    NOT_OPTIMIZED)));
                         break;
                     case NODE_ADDED:
                     case NODE_UPDATED:

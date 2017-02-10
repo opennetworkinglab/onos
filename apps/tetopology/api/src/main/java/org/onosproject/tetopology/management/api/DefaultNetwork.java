@@ -15,18 +15,19 @@
  */
 package org.onosproject.tetopology.management.api;
 
+import java.util.List;
+import java.util.Map;
+
+import org.onosproject.net.DeviceId;
+import org.onosproject.tetopology.management.api.link.NetworkLink;
+import org.onosproject.tetopology.management.api.node.NetworkNode;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.onosproject.net.DeviceId;
-import org.onosproject.tetopology.management.api.link.NetworkLink;
-import org.onosproject.tetopology.management.api.node.NetworkNode;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Default Network implementation.
@@ -39,22 +40,24 @@ public class DefaultNetwork implements Network {
     private final TeTopologyId teTopologyId;
     private final boolean serverProvided;
     private final DeviceId ownerId;
+    private final OptimizationType optimization;
 
     /**
      * Creates an instance of DefaultNetwork.
      *
-     * @param networkId            network identifier
+     * @param networkId network identifier
      * @param supportingNetworkIds supporting network identifier
-     * @param nodes                list of nodes within the network
-     * @param links                list of links within the network
-     * @param teTopologyId         TE topology identifier
-     * @param serverProvided       whether the network is received from server
-     * @param ownerId              the the controller identifier owning this topology
+     * @param nodes list of nodes within the network
+     * @param links list of links within the network
+     * @param teTopologyId TE topology identifier associated with the network
+     * @param serverProvided whether the network is received from server
+     * @param ownerId the the controller identifier owning this topology
+     * @param optimization TE topology optimization criteria
      */
     public DefaultNetwork(KeyId networkId, List<KeyId> supportingNetworkIds,
                           Map<KeyId, NetworkNode> nodes, Map<KeyId, NetworkLink> links,
                           TeTopologyId teTopologyId, boolean serverProvided,
-                          DeviceId ownerId) {
+                          DeviceId ownerId, OptimizationType optimization) {
         this.networkId = networkId;
         this.supportingNetworkIds = supportingNetworkIds != null ?
                 Lists.newArrayList(supportingNetworkIds) : null;
@@ -63,6 +66,7 @@ public class DefaultNetwork implements Network {
         this.teTopologyId = teTopologyId;
         this.serverProvided = serverProvided;
         this.ownerId = ownerId;
+        this.optimization = optimization;
     }
 
 
@@ -121,9 +125,15 @@ public class DefaultNetwork implements Network {
     }
 
     @Override
+    public OptimizationType optimization() {
+        return optimization;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hashCode(networkId, supportingNetworkIds,
-                                nodes, links, serverProvided, teTopologyId, ownerId);
+                                nodes, links, serverProvided, teTopologyId,
+                                ownerId, optimization);
     }
 
     @Override
@@ -139,7 +149,8 @@ public class DefaultNetwork implements Network {
                     Objects.equal(links, that.links) &&
                     Objects.equal(serverProvided, that.serverProvided) &&
                     Objects.equal(teTopologyId, that.teTopologyId) &&
-                    Objects.equal(ownerId, that.ownerId);
+                    Objects.equal(ownerId, that.ownerId)
+                    && Objects.equal(optimization, that.optimization);
         }
         return false;
     }
@@ -154,6 +165,8 @@ public class DefaultNetwork implements Network {
                 .add("serverProvided", serverProvided)
                 .add("teTopologyId", teTopologyId)
                 .add("ownerId", ownerId)
+                .add("optimization", optimization)
                 .toString();
     }
+
 }

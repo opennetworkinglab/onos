@@ -25,6 +25,7 @@ import org.onosproject.tetopology.management.api.DefaultNetwork;
 import org.onosproject.tetopology.management.api.EncodingType;
 import org.onosproject.tetopology.management.api.KeyId;
 import org.onosproject.tetopology.management.api.Network;
+import org.onosproject.tetopology.management.api.OptimizationType;
 import org.onosproject.tetopology.management.api.SwitchingType;
 import org.onosproject.tetopology.management.api.TeConstants;
 import org.onosproject.tetopology.management.api.TeStatus;
@@ -253,15 +254,18 @@ public final class DefaultBuilder {
     }
 
     private static Network networkBuilder(TeTopologyId teTopologyId, KeyId supportingNetworkId,
-                                         Map<KeyId, NetworkNode> nodes, Map<KeyId, NetworkLink> links,
-                                         boolean serverProvided, DeviceId ownerId) {
+                                          Map<KeyId, NetworkNode> nodes,
+                                          Map<KeyId, NetworkLink> links,
+                                          boolean serverProvided,
+                                          DeviceId ownerId,
+                                          OptimizationType optType) {
         KeyId networkId = TeMgrUtil.toNetworkId(teTopologyId);
         List<KeyId> supportingNetworkIds = null;
         if (supportingNetworkId != null) {
             supportingNetworkIds = Lists.newArrayList(supportingNetworkId);
         }
         return new DefaultNetwork(networkId, supportingNetworkIds, nodes, links, teTopologyId,
-                              serverProvided, ownerId);
+                                  serverProvided, ownerId, optType);
     }
 
     /**
@@ -318,10 +322,10 @@ public final class DefaultBuilder {
                                   ODU4);
         links.put(networkLink.linkId(), networkLink);
         DeviceId ownerId = DeviceId.deviceId(DOMAIN_ID);
-        TeTopologyId topologyId = new TeTopologyId(PROVIDER_ID, CLIENT_ID, Long
-                .toString(ABSTRACT_TOPOLOGY_ID));
+        TeTopologyId topologyId = new TeTopologyId(PROVIDER_ID, CLIENT_ID,
+                                                   Long.toString(ABSTRACT_TOPOLOGY_ID));
         network = networkBuilder(topologyId, null, nodes, links, false,
-                                 ownerId);
+                                 ownerId, OptimizationType.NOT_OPTIMIZED);
         return network;
     }
 

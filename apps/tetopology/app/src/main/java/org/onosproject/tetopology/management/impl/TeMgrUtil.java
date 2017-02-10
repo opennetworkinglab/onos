@@ -229,7 +229,8 @@ public final class TeMgrUtil {
             }
         }
         return new DefaultNetwork(networkId, null, nodes, links,
-                                  topologyId, false, teTopology.ownerId());
+                                  topologyId, false, teTopology.ownerId(),
+                                  teTopology.optimization());
     }
 
 }

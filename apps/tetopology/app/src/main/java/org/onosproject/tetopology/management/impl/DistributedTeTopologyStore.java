@@ -15,6 +15,7 @@
  */
 package org.onosproject.tetopology.management.impl;
 
+import static org.onosproject.tetopology.management.api.OptimizationType.NOT_OPTIMIZED;
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_ADDED;
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_REMOVED;
 import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_UPDATED;
@@ -752,20 +753,19 @@ public class DistributedTeTopologyStore
         }
         TeTopologyId topologyId = null;
         DeviceId ownerId = null;
+        OptimizationType opt = NOT_OPTIMIZED;
         if (curNetwork.teTopologyKey() != null &&
                 teTopologyMap.get(curNetwork.teTopologyKey()) != null) {
             topologyId = new TeTopologyId(curNetwork.teTopologyKey().providerId(),
                                           curNetwork.teTopologyKey().clientId(),
-                                          teTopologyMap
-                                                  .get(curNetwork
-                                                          .teTopologyKey())
+                                          teTopologyMap.get(curNetwork.teTopologyKey())
                                                   .teTopologyId());
             ownerId = teTopologyMap.get(curNetwork.teTopologyKey())
                     .topologyData().ownerId();
-
+            opt = teTopologyMap.get(curNetwork.teTopologyKey()).topologyData().optimization();
         }
         return new DefaultNetwork(networkId, supportingNetworkIds, nodes, links,
-                                  topologyId, curNetwork.serverProvided(), ownerId);
+                                  topologyId, curNetwork.serverProvided(), ownerId, opt);
     }
 
     @Override
@@ -851,7 +851,9 @@ public class DistributedTeTopologyStore
                 flags.set(TeTopology.BIT_CUSTOMIZED);
             }
             CommonTopologyData common = new CommonTopologyData(network.networkId(),
-                    OptimizationType.NOT_OPTIMIZED, flags, network.ownerId());
+                                                               network.optimization(),
+                                                               flags,
+                                                               network.ownerId());
             intTopo.setTopologydata(common);
             teTopologyMap.put(topoKey, intTopo);
         }

@@ -94,6 +94,13 @@ public interface Network extends TeTopologyEventSubject {
     TeTopologyId teTopologyId();
 
     /**
+     * Returns the topology optimization criteria.
+     *
+     * @return the optimization
+     */
+    OptimizationType optimization();
+
+    /**
      * Returns the controller identifier owning this abstracted topology.
      *
      * @return the controller id
