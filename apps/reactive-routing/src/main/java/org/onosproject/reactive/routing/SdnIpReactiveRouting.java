@@ -48,9 +48,7 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.routing.IntentRequestListener;
 import org.onosproject.intentsync.IntentSynchronizationService;
-import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -89,7 +87,7 @@ public class SdnIpReactiveRouting {
     protected IntentSynchronizationService intentSynchronizer;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingConfigurationService config;
+    protected ReactiveRoutingConfigurationService config;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.routing.config;
+package org.onosproject.reactive.routing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-
-import java.util.Set;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
-import org.onosproject.routing.config.LocalIpPrefixEntry.IpPrefixType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 /**
  * Configuration object for prefix config.
@@ -63,7 +61,7 @@ public class ReactiveRoutingConfig extends Config<ApplicationId> {
 
             prefixes.add(new LocalIpPrefixEntry(
                     IpPrefix.valueOf(jsonNode.get(IPPREFIX).asText()),
-                    IpPrefixType.valueOf(jsonNode.get(TYPE).asText()),
+                    LocalIpPrefixEntry.IpPrefixType.valueOf(jsonNode.get(TYPE).asText()),
                     IpAddress.valueOf(jsonNode.get(GATEWAYIP).asText())));
         });
 
@@ -89,7 +87,7 @@ public class ReactiveRoutingConfig extends Config<ApplicationId> {
 
             prefixes.add(new LocalIpPrefixEntry(
                     IpPrefix.valueOf(jsonNode.get(IPPREFIX).asText()),
-                    IpPrefixType.valueOf(jsonNode.get(TYPE).asText()),
+                    LocalIpPrefixEntry.IpPrefixType.valueOf(jsonNode.get(TYPE).asText()),
                     IpAddress.valueOf(jsonNode.get(GATEWAYIP).asText())));
         });
 

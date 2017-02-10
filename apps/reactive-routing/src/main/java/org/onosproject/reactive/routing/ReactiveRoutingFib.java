@@ -38,7 +38,6 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.routing.IntentRequestListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

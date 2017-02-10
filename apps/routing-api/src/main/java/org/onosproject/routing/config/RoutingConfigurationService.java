@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,58 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.routing.config;
 
-import java.util.Set;
-
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onosproject.net.ConnectPoint;
-
 /**
- * Provides information about the routing configuration.
+ * Routing configuration service. Going away very soon.
+ *
+ * @deprecated in Junco release
  */
+@Deprecated
 public interface RoutingConfigurationService {
 
-    String REACTIVE_ROUTING_APP_ID = "org.onosproject.reactive.routing";
-
-    Class<ReactiveRoutingConfig> CONFIG_CLASS = ReactiveRoutingConfig.class;
-
-
-    MacAddress getVirtualGatewayMacAddress();
-
     /**
-     * Evaluates whether an IP address is a virtual gateway IP address.
-     *
-     * @param ipAddress the IP address to evaluate
-     * @return true if the IP address is a virtual gateway address, otherwise false
+     * Empty method to pacify checkstyle.
      */
-    boolean isVirtualGatewayIpAddress(IpAddress ipAddress);
-
-    /**
-     * Evaluates whether an IP address belongs to local SDN network.
-     *
-     * @param ipAddress the IP address to evaluate
-     * @return true if the IP address belongs to local SDN network, otherwise false
-     */
-    boolean isIpAddressLocal(IpAddress ipAddress);
-
-    /**
-     * Evaluates whether an IP prefix belongs to local SDN network.
-     *
-     * @param ipPrefix the IP prefix to evaluate
-     * @return true if the IP prefix belongs to local SDN network, otherwise false
-     */
-    boolean isIpPrefixLocal(IpPrefix ipPrefix);
-
-    /**
-     * Retrieves the entire set of connect points connected to BGP peers in the
-     * network.
-     *
-     * @return the set of connect points connected to BGP peers
-     */
-    Set<ConnectPoint> getBgpPeerConnectPoints();
-
-
+    default void nothing() {
+    }
 }
