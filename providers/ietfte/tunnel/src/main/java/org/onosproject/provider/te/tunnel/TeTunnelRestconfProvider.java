@@ -216,7 +216,7 @@ public class TeTunnelRestconfProvider extends AbstractProvider
             return;
         }
 
-        IetfTe ietfTe = buildIetfTe(optTunnel.get());
+        IetfTe ietfTe = buildIetfTe(optTunnel.get(), true);
 
         YangCompositeEncoding encoding = codecHandler.
                 encodeCompositeOperation(RESTCONF_ROOT, null, ietfTe,

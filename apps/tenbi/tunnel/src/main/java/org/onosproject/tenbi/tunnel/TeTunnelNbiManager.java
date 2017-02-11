@@ -93,7 +93,7 @@ public class TeTunnelNbiManager
         List<Tunnel> tunnels = new ArrayList<>();
         Collection<TeTunnel> teTunnels = tunnelService.getTeTunnels();
         teTunnels.forEach(teTunnel -> {
-            Tunnel tunnel = te2YangTunnelConverter(teTunnel);
+            Tunnel tunnel = te2YangTunnelConverter(teTunnel, false);
             tunnels.add(tunnel);
         });
         IetfTe newIetfTe = buildIetfTeWithTunnels(tunnels);

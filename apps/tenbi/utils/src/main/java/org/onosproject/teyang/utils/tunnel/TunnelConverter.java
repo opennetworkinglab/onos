@@ -32,37 +32,27 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev201607
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.DefaultTe;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.Te;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.Type;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type
-        .DefaultDynamic;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type
-        .DefaultExplicit;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type
-        .explicit.DefaultExplicitRouteObjects;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type
-        .explicit.ExplicitRouteObjects;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type.DefaultDynamic;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type.DefaultExplicit;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type.explicit.DefaultExplicitRouteObjects;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.pathparamsconfig.type.explicit.ExplicitRouteObjects;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.Config;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties
-        .DefaultPrimaryPaths;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.DefaultPrimaryPaths;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.DefaultState;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.PrimaryPaths;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.State;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping
-        .DefaultTunnels;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.DefaultTunnels;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.Tunnels;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.tunnels
-        .DefaultTunnel;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.tunnels
-        .Tunnel;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.tunnels.DefaultTunnel;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelsgrouping.tunnels.Tunnel;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProt1Forn;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtBidir1To1;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtReroute;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
-        .LspProtRerouteExtra;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtRerouteExtra;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtUnidir1To1;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.LspProtUnprotected;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
-        .PathSignalingRsvpte;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.PathSignalingRsvpte;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.PathSignalingSr;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.RouteIncludeEro;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.StateDown;
@@ -70,15 +60,15 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TunnelP2Mp;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TunnelP2p;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.TunnelType;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
-        .explicitroutesubobject.type.DefaultUnnumberedLink;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes
-        .explicitroutesubobject.type.UnnumberedLink;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.DefaultUnnumberedLink;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.types.rev20160705.ietftetypes.explicitroutesubobject.type.UnnumberedLink;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.packet.ONOSLLDP.DEFAULT_NAME;
 import static org.onosproject.tetunnel.api.tunnel.TeTunnel.LspProtectionType;
 import static org.onosproject.tetunnel.api.tunnel.path.TeRouteSubobject.Type.UNNUMBERED_LINK;
 import static org.onosproject.teyang.utils.tunnel.BasicConverter.bytesToLong;
@@ -128,8 +118,8 @@ public final class TunnelConverter {
                 .build();
     }
 
-    public static IetfTe buildIetfTe(TeTunnel teTunnel) {
-        Tunnel tunnel = te2YangTunnelConverter(teTunnel);
+    public static IetfTe buildIetfTe(TeTunnel teTunnel, boolean isConfig) {
+        Tunnel tunnel = te2YangTunnelConverter(teTunnel, isConfig);
         return buildIetfTeWithTunnels(Lists.newArrayList(tunnel));
     }
 
@@ -138,28 +128,38 @@ public final class TunnelConverter {
      * defined in YANG model.
      *
      * @param tunnel te tunnel defined in APP
+     * @param isConfig true if tunnel is to be built with config attributes;
+     *                 false if built with state attributes
      * @return tunnel defined in YANG model
      */
-    public static Tunnel te2YangTunnelConverter(TeTunnel tunnel) {
+    public static Tunnel te2YangTunnelConverter(TeTunnel tunnel, boolean isConfig) {
         List<PrimaryPaths> pathsList = new ArrayList<>();
-        //TODO add path info after yang tool change to guava from google-collect
+
+        if (tunnel.primaryPaths() != null) {
+            tunnel.primaryPaths()
+                    .forEach(tePath -> pathsList.add(te2YangPrimaryPath(tePath)));
+        }
+
         tunnel.primaryPaths()
                 .forEach(tePath -> pathsList.add(te2YangPrimaryPath(tePath)));
 
         Tunnel.TunnelBuilder builder = new DefaultTunnel
                 .TunnelBuilder()
                 .type(te2YangTunnelType(tunnel.type()))
-                .name(tunnel.name())
+                .name(validName(tunnel.name()))
                 .identifier(tunnel.teTunnelKey().teTunnelId())
                 .state(te2YangTunnelState(tunnel))
                 .primaryPaths(pathsList);
+        Tunnel.TunnelBuilder tunnelBuilder = isConfig ?
+                builder.config(te2YangTunnelConfig(tunnel)) :
+                builder.state(te2YangTunnelState(tunnel));
 
-        return builder.build();
+        return tunnelBuilder.build();
     }
 
     private static State te2YangTunnelState(TeTunnel tunnel) {
         State.StateBuilder stateBuilder = new DefaultState.StateBuilder();
-        stateBuilder.name(tunnel.name())
+        stateBuilder.name(validName(tunnel.name()))
                 .identifier((int) tunnel.teTunnelKey().teTunnelId())
                 .source((longToIp(tunnel.srcNode().teNodeId())))
                 .destination((longToIp(tunnel.dstNode().teNodeId())))
@@ -171,6 +171,33 @@ public final class TunnelConverter {
                 .type(te2YangTunnelType(tunnel.type()))
                 .build();
         return stateBuilder.build();
+    }
+
+    private static Config te2YangTunnelConfig(TeTunnel tunnel) {
+        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.te.
+                rev20160705.ietfte.tunnelproperties.DefaultConfig.ConfigBuilder
+                configBuilder = new org.onosproject.yang.gen.v1.urn.ietf.params.
+                xml.ns.yang.ietf.te.rev20160705.ietfte.tunnelproperties.
+                DefaultConfig.ConfigBuilder();
+
+        configBuilder.name(validName(tunnel.name()))
+                .identifier((int) tunnel.teTunnelKey().teTunnelId())
+                .source((longToIp(tunnel.srcNode().teNodeId())))
+                .destination((longToIp(tunnel.dstNode().teNodeId())))
+                .srcTpId(longToByte(tunnel.srcTp().ttpId()))
+                .dstTpId(longToByte(tunnel.dstTp().ttpId()))
+                .adminStatus(te2YangStateType(tunnel.adminStatus()))
+                .lspProtectionType(
+                        te2YangProtectionType(tunnel.lspProtectionType()))
+                .type(te2YangTunnelType(tunnel.type()))
+                .build();
+        return configBuilder.build();
+    }
+
+    private static String validName(String name) {
+        //for name is a required attribute, here we give a default name if not
+        //configured
+        return isNullOrEmpty(name) ? DEFAULT_NAME : name;
     }
 
     private static PrimaryPaths te2YangPrimaryPath(TePath tePath) {
