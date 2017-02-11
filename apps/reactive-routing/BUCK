@@ -5,6 +5,10 @@ COMPILE_DEPS = [
     '//apps/intentsync:onos-apps-intentsync',
 ]
 
+BUNDLES = [
+    '//apps/routing-api:onos-apps-routing-api',
+]
+
 osgi_jar (
     deps = COMPILE_DEPS,
 )
@@ -14,5 +18,6 @@ onos_app (
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'SDN-IP reactive routing application.',
+    included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.intentsynchronizer' ],
 )

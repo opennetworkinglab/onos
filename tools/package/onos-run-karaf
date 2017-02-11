@@ -63,7 +63,7 @@ if [ ! -d $ONOS_DIR -o "$oldMD5" != "$newMD5" -o -d $ONOS_DIR -a -n "$clean" ]; 
       "partitions": [ { "id": 1, "members": [ "$IP" ] } ]
     }
 EOF
-
+    cp -r $ONOS_ROOT/tools/package/config/* $ONOS_HOME/config/
 else
     # Otherwise, run using the previous installation
     echo "Running previous installation..."
