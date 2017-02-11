@@ -16,6 +16,7 @@
 package org.onosproject.config;
 
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.ResourceId;
 
 import java.util.LinkedHashSet;
@@ -29,6 +30,7 @@ import java.util.Set;
  * This is a placeholder for a filter; Set of ResourceId becomes inefficient when
  * using a large number of filtering criteria;
  */
+@Beta
 public class Filter {
     /**
      * Traversal modes.

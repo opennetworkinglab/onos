@@ -16,6 +16,7 @@
 
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.DataNode;
 import org.onosproject.config.model.ResourceId;
 import org.onosproject.event.ListenerService;
@@ -23,6 +24,7 @@ import org.onosproject.event.ListenerService;
 /**
  * Service for storing and distributing dynamic configuration data.
  */
+@Beta
 public interface DynamicConfigService
         extends ListenerService<DynamicConfigEvent, DynamicConfigListener> {
     /**

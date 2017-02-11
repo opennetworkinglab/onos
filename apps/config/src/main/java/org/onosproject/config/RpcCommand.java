@@ -15,10 +15,12 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.ResourceId;
 /**
  * Abstract implementation of an RPC command.
  */
+@Beta
 public abstract class RpcCommand {
     /**
      * Identifier of an RPC command.

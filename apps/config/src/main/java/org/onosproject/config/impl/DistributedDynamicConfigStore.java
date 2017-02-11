@@ -15,6 +15,7 @@
  */
 package org.onosproject.config.impl;
 
+import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,6 +55,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Implementation of the dynamic config store.
  */
+@Beta
 @Component(immediate = true)
 @Service
 public class DistributedDynamicConfigStore

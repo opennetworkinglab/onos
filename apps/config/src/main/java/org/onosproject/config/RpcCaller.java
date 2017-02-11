@@ -15,10 +15,13 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Service for entities that would invoke RPCs and receive RPC responses,
  * through the Dynamic Config brokerage.
  */
+@Beta
 public interface RpcCaller {
     /*
      * Receives an RPC response.

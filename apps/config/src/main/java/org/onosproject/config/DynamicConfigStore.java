@@ -15,6 +15,7 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.DataNode;
 import org.onosproject.config.model.ResourceId;
 import org.onosproject.store.Store;
@@ -24,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Store interface for storing and distributing dynamic configuration data.
  */
+@Beta
 public interface DynamicConfigStore
         extends Store<DynamicConfigEvent, DynamicConfigStoreDelegate> {
     /**

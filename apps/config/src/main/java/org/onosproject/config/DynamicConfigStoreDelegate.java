@@ -15,10 +15,12 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.store.StoreDelegate;
 
 /**
  * Dynamic configuration store delegate.
  */
+@Beta
 public interface DynamicConfigStoreDelegate extends StoreDelegate<DynamicConfigEvent> {
 }

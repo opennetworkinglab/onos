@@ -15,6 +15,7 @@
  */
 package org.onosproject.config.impl;
 
+import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,6 +46,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Demo application to use the DynamicConfig Service and DynamicConfigStore.
  *
  */
+@Beta
 @Component(immediate = true)
 @Service
 public class DynamicConfigManager

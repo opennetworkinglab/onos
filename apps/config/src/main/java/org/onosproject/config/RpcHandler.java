@@ -15,10 +15,13 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
+
 /**
  *  Service for entities that would execute RPC methods invoked through
  *  Dynamic Config RPC brokerage.
  */
+@Beta
 public interface RpcHandler {
     /*
      * Executes the RPC.

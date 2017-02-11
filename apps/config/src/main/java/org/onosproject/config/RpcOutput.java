@@ -15,11 +15,13 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.DataNode;
 
 /**
  * Abstraction for RPC output.
  */
+@Beta
 public class RpcOutput {
     public enum Status {
         /**

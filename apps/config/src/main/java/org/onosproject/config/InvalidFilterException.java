@@ -15,9 +15,12 @@
  */
 package org.onosproject.config;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Exceptions for use by the {@code ConfigFilter}.
  */
+@Beta
 public class InvalidFilterException extends RuntimeException {
 
     /**

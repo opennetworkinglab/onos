@@ -16,12 +16,14 @@
 package org.onosproject.config;
 
 
+import com.google.common.annotations.Beta;
 import org.onosproject.config.model.ResourceId;
 import org.onosproject.event.AbstractEvent;
 
 /**
  * Describes a DynamicConfig change event.
  */
+@Beta
 public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, ResourceId> {
 
     /**
