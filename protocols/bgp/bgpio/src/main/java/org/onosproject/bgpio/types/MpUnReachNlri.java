@@ -161,7 +161,7 @@ public class MpUnReachNlri implements BgpValueType {
                         routeDistinguisher = RouteDistinguisher.read(tempCb);
                     }
                     while (tempCb.readableBytes() > 0) {
-                        short totNlriLen = tempCb.getByte(tempCb.readerIndex());
+                        short totNlriLen = tempCb.getUnsignedByte(tempCb.readerIndex());
                         if (totNlriLen >= BgpFlowSpecNlri.FLOW_SPEC_LEN) {
                            if (tempCb.readableBytes() < 2) {
                                 Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
