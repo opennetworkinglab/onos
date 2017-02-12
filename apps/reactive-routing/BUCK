@@ -14,5 +14,5 @@ onos_app (
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'SDN-IP reactive routing application.',
-    required_apps = [ 'org.onosproject.intentsynchronizer' ],
+    required_apps = [ 'org.onosproject.intentsynchronizer', 'org.onosproject.sdnip' ],
 )
