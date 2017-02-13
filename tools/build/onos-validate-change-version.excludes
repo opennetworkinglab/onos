@@ -35,3 +35,5 @@
 \./pom.xml.versionsBackup
 \./tools/build/buck-publish-api
 \./tools/build/buck-plugin/BUCK
+\./apps/ofagent/pom.xml
+\.core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixAtomicCounterMapCommands.java
