@@ -20,8 +20,12 @@ import com.google.common.annotations.Beta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * NETCONF session object that allows NETCONF operations on top with the physical
@@ -315,17 +319,45 @@ public interface NetconfSession {
     String getSessionId();
 
     /**
-     * Gets the capabilities of the Netconf server associated to this session.
+     * Gets the capabilities of the remote Netconf device associated to this
+     * session.
+     *
+     * @return Network capabilities as strings in a Set.
+     *
+     * @since 1.10.0
+     * Note: default implementation provided with the interface
+     * will be removed when {@code getServerCapabilities()} reaches
+     * deprecation grace period.
+     */
+    default Set<String> getDeviceCapabilitiesSet() {
+        // default implementation should be removed in the future
+        Set<String> capabilities = new LinkedHashSet<>();
+        Matcher capabilityMatcher =
+                Pattern.compile("<capability>\\s*(.*?)\\s*</capability>")
+                       .matcher(getServerCapabilities());
+        while (capabilityMatcher.find()) {
+            capabilities.add(capabilityMatcher.group(1));
+        }
+        return capabilities;
+    }
+
+    /**
+     * Gets the capabilities of the Netconf server (remote device) associated
+     * to this session.
      *
      * @return Network capabilities as a string.
+     * @deprecated 1.10.0 use {@link #getDeviceCapabilitiesSet()} instead
      */
+    @Deprecated
     String getServerCapabilities();
 
     /**
      * Sets the ONOS side capabilities.
      *
      * @param capabilities list of capabilities the device has.
+     * @deprecated 1.10.0 use {@link #setOnosCapabilities(Iterable)} instead
      */
+    @Deprecated
     void setDeviceCapabilities(List<String> capabilities);
 
     /**
@@ -339,6 +371,17 @@ public interface NetconfSession {
     default void checkAndReestablish() throws NetconfException {
         Logger log = LoggerFactory.getLogger(NetconfSession.class);
         log.error("Not implemented/exposed by the underlying session implementation");
+    }
+    /**
+     * Sets the ONOS side capabilities.
+     *
+     * @param capabilities list of capabilities ONOS has.
+     *
+     * @since 1.10.0
+     */
+    default void setOnosCapabilities(Iterable<String> capabilities) {
+        // default implementation should be removed in the future
+        // no-op
     }
 
     /**

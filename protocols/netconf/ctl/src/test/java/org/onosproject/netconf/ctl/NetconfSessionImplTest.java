@@ -15,7 +15,9 @@
  */
 package org.onosproject.netconf.ctl;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
@@ -24,6 +26,7 @@ import static org.onosproject.netconf.TargetConfig.CANDIDATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -51,6 +54,8 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Unit tests for NetconfSession.
@@ -86,6 +91,20 @@ public class NetconfSessionImplTest {
                     + "</edit-config>\n"
                     + "</rpc>]]>]]>";
 
+    static final List<String> DEFAULT_CAPABILITIES = ImmutableList.<String>builder()
+            .add("urn:ietf:params:netconf:base:1.0")
+            .add("urn:ietf:params:netconf:base:1.1")
+            .add("urn:ietf:params:netconf:capability:writable-running:1.0")
+            .add("urn:ietf:params:netconf:capability:candidate:1.0")
+            .add("urn:ietf:params:netconf:capability:startup:1.0")
+            .add("urn:ietf:params:netconf:capability:rollback-on-error:1.0")
+            .add("urn:ietf:params:netconf:capability:interleave:1.0")
+            .add("urn:ietf:params:netconf:capability:notification:1.0")
+            .add("urn:ietf:params:netconf:capability:validate:1.0")
+            .add("urn:ietf:params:netconf:capability:validate:1.1")
+            .build();
+
+
     private static NetconfSession session1;
     private static NetconfSession session2;
     private static SshServer sshServerNetconf;
@@ -93,7 +112,7 @@ public class NetconfSessionImplTest {
     @BeforeClass
     public static void setUp() throws Exception {
         sshServerNetconf = SshServer.setUpDefaultServer();
-        List<NamedFactory<UserAuth>> userAuthFactories = new ArrayList<NamedFactory<UserAuth>>();
+        List<NamedFactory<UserAuth>> userAuthFactories = new ArrayList<>();
         userAuthFactories.add(new UserAuthPassword.Factory());
         sshServerNetconf.setUserAuthFactories(userAuthFactories);
         sshServerNetconf.setPasswordAuthenticator(
@@ -120,11 +139,13 @@ public class NetconfSessionImplTest {
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("0"));
+        assertThat(session1.getDeviceCapabilitiesSet(), containsInAnyOrder(DEFAULT_CAPABILITIES.toArray()));
 
         session2 = new NetconfSessionImpl(deviceInfo);
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session2.getSessionId());
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("0"));
+        assertThat(session2.getDeviceCapabilitiesSet(), containsInAnyOrder(DEFAULT_CAPABILITIES.toArray()));
     }
 
     @AfterClass
@@ -262,8 +283,8 @@ public class NetconfSessionImplTest {
         NCCopyConfigCallable testCopyConfig1 = new NCCopyConfigCallable(session1, RUNNING, "candidate");
         NCCopyConfigCallable testCopyConfig2 = new NCCopyConfigCallable(session1, RUNNING, "startup");
 
-        FutureTask<Boolean> futureCopyConfig1 = new FutureTask<Boolean>(testCopyConfig1);
-        FutureTask<Boolean> futureCopyConfig2 = new FutureTask<Boolean>(testCopyConfig2);
+        FutureTask<Boolean> futureCopyConfig1 = new FutureTask<>(testCopyConfig1);
+        FutureTask<Boolean> futureCopyConfig2 = new FutureTask<>(testCopyConfig2);
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         log.info("Starting concurrent execution of copy-config through same session");
@@ -288,8 +309,8 @@ public class NetconfSessionImplTest {
         NCCopyConfigCallable testCopySession1 = new NCCopyConfigCallable(session1, RUNNING, "candidate");
         NCCopyConfigCallable testCopySession2 = new NCCopyConfigCallable(session2, RUNNING, "candidate");
 
-        FutureTask<Boolean> futureCopySession1 = new FutureTask<Boolean>(testCopySession1);
-        FutureTask<Boolean> futureCopySession2 = new FutureTask<Boolean>(testCopySession2);
+        FutureTask<Boolean> futureCopySession1 = new FutureTask<>(testCopySession1);
+        FutureTask<Boolean> futureCopySession2 = new FutureTask<>(testCopySession2);
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         log.info("Starting concurrent execution of copy-config through 2 different sessions");
@@ -311,20 +332,17 @@ public class NetconfSessionImplTest {
 
 
     public static String getTestHelloReply(Optional<Long> sessionId) {
+        return getTestHelloReply(DEFAULT_CAPABILITIES, sessionId);
+    }
+
+    public static String getTestHelloReply(Collection<String> capabilities, Optional<Long> sessionId) {
         StringBuffer sb = new StringBuffer();
 
         sb.append("<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
         sb.append("<capabilities>");
-        sb.append("<capability>urn:ietf:params:netconf:base:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:base:1.1</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:writable-running:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:candidate:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:startup:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:rollback-on-error:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:interleave:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:notification:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:validate:1.0</capability>");
-        sb.append("<capability>urn:ietf:params:netconf:capability:validate:1.1</capability>");
+        capabilities.forEach(capability -> {
+            sb.append("<capability>").append(capability).append("</capability>");
+        });
         sb.append("</capabilities>");
         if (sessionId.isPresent()) {
             sb.append("<session-id>");

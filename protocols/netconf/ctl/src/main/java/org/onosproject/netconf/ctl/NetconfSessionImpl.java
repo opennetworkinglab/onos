@@ -33,17 +33,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Implementation of a NETCONF session to talk to a device.
@@ -85,16 +88,27 @@ public class NetconfSessionImpl implements NetconfSession {
     private static final String SUBSCRIPTION_SUBTREE_FILTER_OPEN =
             "<filter xmlns:base10=\"urn:ietf:params:xml:ns:netconf:base:1.0\" base10:type=\"subtree\">";
 
-    private static Pattern msgIdPattern = Pattern.compile("(message-id=\"[0-9]+\")");
+    private static final String INTERLEAVE_CAPABILITY_STRING = "urn:ietf:params:netconf:capability:interleave:1.0";
 
+    private static final String CAPABILITY_REGEX = "<capability>\\s*(.*?)\\s*</capability>";
+    private static final Pattern CAPABILITY_REGEX_PATTERN = Pattern.compile(CAPABILITY_REGEX);
+
+    private static final String SESSION_ID_REGEX = "<session-id>\\s*(.*?)\\s*</session-id>";
+    private static final Pattern SESSION_ID_REGEX_PATTERN = Pattern.compile(SESSION_ID_REGEX);
+
+    private String sessionID;
     private final AtomicInteger messageIdInteger = new AtomicInteger(0);
     private Connection netconfConnection;
     private NetconfDeviceInfo deviceInfo;
     private Session sshSession;
     private boolean connectionActive;
-    private List<String> deviceCapabilities =
+    private Iterable<String> onosCapabilities =
             Collections.singletonList("urn:ietf:params:netconf:base:1.0");
-    private String serverCapabilities;
+
+    /* NOTE: the "serverHelloResponseOld" is deprecated in 1.10.0 and should eventually be removed */
+    @Deprecated
+    private String serverHelloResponseOld;
+    private final Set<String> deviceCapabilities = new LinkedHashSet<>();
     private NetconfStreamHandler streamHandler;
     private Map<Integer, CompletableFuture<String>> replies;
     private List<String> errorReplies;
@@ -178,7 +192,7 @@ public class NetconfSessionImpl implements NetconfSession {
 
     @Beta
     private void startSubscriptionConnection(String filterSchema) throws NetconfException {
-        if (!serverCapabilities.contains("interleave")) {
+        if (!deviceCapabilities.contains(INTERLEAVE_CAPABILITY_STRING)) {
             throw new NetconfException("Device" + deviceInfo + "does not support interleave");
         }
         String reply = sendRequest(createSubscriptionString(filterSchema));
@@ -237,7 +251,20 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     private void sendHello() throws NetconfException {
-        serverCapabilities = sendRequest(createHelloString());
+        serverHelloResponseOld = sendRequest(createHelloString());
+        Matcher capabilityMatcher = CAPABILITY_REGEX_PATTERN.matcher(serverHelloResponseOld);
+        while (capabilityMatcher.find()) {
+            deviceCapabilities.add(capabilityMatcher.group(1));
+        }
+        sessionID = String.valueOf(-1);
+        Matcher sessionIDMatcher = SESSION_ID_REGEX_PATTERN.matcher(serverHelloResponseOld);
+        if (sessionIDMatcher.find()) {
+            sessionID = sessionIDMatcher.group(1);
+        } else {
+            throw new NetconfException("Missing SessionID in server hello " +
+                                               "reponse.");
+        }
+
     }
 
     private String createHelloString() {
@@ -246,7 +273,7 @@ public class NetconfSessionImpl implements NetconfSession {
         hellobuffer.append("\n");
         hellobuffer.append("<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         hellobuffer.append("  <capabilities>\n");
-        deviceCapabilities.forEach(
+        onosCapabilities.forEach(
                 cap -> hellobuffer.append("    <capability>")
                         .append(cap)
                         .append("</capability>\n"));
@@ -594,28 +621,31 @@ public class NetconfSessionImpl implements NetconfSession {
 
     @Override
     public String getSessionId() {
-        if (serverCapabilities.contains("<session-id>")) {
-            String[] outer = serverCapabilities.split("<session-id>");
-            Preconditions.checkArgument(outer.length != 1,
-                                        "Error in retrieving the session id");
-            String[] value = outer[1].split("</session-id>");
-            Preconditions.checkArgument(value.length != 1,
-                                        "Error in retrieving the session id");
-            return value[0];
-        } else {
-            return String.valueOf(-1);
-        }
+        return sessionID;
     }
 
+    @Override
+    public Set<String> getDeviceCapabilitiesSet() {
+        return Collections.unmodifiableSet(deviceCapabilities);
+    }
+
+    @Deprecated
     @Override
     public String getServerCapabilities() {
-        return serverCapabilities;
+        return serverHelloResponseOld;
+    }
+
+    @Deprecated
+    @Override
+    public void setDeviceCapabilities(List<String> capabilities) {
+        onosCapabilities = capabilities;
     }
 
     @Override
-    public void setDeviceCapabilities(List<String> capabilities) {
-        deviceCapabilities = capabilities;
+    public void setOnosCapabilities(Iterable<String> capabilities) {
+        onosCapabilities = capabilities;
     }
+
 
     @Override
     public void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) {
