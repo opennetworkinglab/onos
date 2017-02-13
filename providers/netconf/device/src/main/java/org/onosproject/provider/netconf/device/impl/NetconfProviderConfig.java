@@ -38,6 +38,7 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
     private static final String PORT = "port";
     private static final String NAME = "username";
     private static final String PASSWORD = "password";
+    private static final String SSHKEY = "sshkey";
 
     public Set<NetconfDeviceAddress> getDevicesAddresses() throws ConfigException {
         Set<NetconfDeviceAddress> devicesAddresses = Sets.newHashSet();
@@ -49,7 +50,8 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
                 int port = node.path(PORT).asInt(DEFAULT_TCP_PORT);
                 String name = node.path(NAME).asText();
                 String password = node.path(PASSWORD).asText();
-                devicesAddresses.add(new NetconfDeviceAddress(ipAddr, port, name, password));
+                String sshkey = node.path(SSHKEY).asText();
+                devicesAddresses.add(new NetconfDeviceAddress(ipAddr, port, name, password, sshkey));
 
             }
         } catch (IllegalArgumentException e) {
@@ -64,12 +66,22 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
         private final int port;
         private final String name;
         private final String password;
+        private final String sshkey;
 
         public NetconfDeviceAddress(IpAddress ip, int port, String name, String password) {
             this.ip = ip;
             this.port = port;
             this.name = name;
             this.password = password;
+            this.sshkey = "";
+        }
+
+        public NetconfDeviceAddress(IpAddress ip, int port, String name, String password, String sshkey) {
+            this.ip = ip;
+            this.port = port;
+            this.name = name;
+            this.password = password;
+            this.sshkey = sshkey;
         }
 
         public IpAddress ip() {
@@ -86,6 +98,10 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
 
         public String password() {
             return password;
+        }
+
+        public String sshkey() {
+            return sshkey;
         }
     }
 

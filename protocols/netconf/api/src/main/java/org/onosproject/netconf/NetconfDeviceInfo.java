@@ -22,7 +22,6 @@ import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
@@ -39,7 +38,7 @@ public class NetconfDeviceInfo {
     private String password;
     private IpAddress ipAddress;
     private int port;
-    private File keyFile;
+    private char[] key;
     private DeviceId deviceId;
 
 
@@ -80,7 +79,7 @@ public class NetconfDeviceInfo {
         this.password = password;
         this.ipAddress = ipAddress;
         this.port = port;
-        this.keyFile = new File(keyString);
+        this.key = keyString.toCharArray();
     }
 
     /**
@@ -120,12 +119,12 @@ public class NetconfDeviceInfo {
     }
 
     /**
-     * Exposes the keyFile of the controller.
+     * Exposes the key of the controller.
      *
      * @return int port address
      */
-    public File getKeyFile() {
-        return keyFile;
+    public char[] getKey() {
+        return key;
     }
 
     /**
