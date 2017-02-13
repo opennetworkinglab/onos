@@ -318,10 +318,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                             UNKNOWN, UNKNOWN,
                             cid, false,
                             annotations);
-                    deviceKeyAdminService.addKey(
-                            DeviceKey.createDeviceKeyUsingUsernamePassword(
-                                    DeviceKeyId.deviceKeyId(deviceId.toString()),
-                                    null, addr.name(), addr.password()));
+                    storeDeviceKey(addr, deviceId);
+
                     if (deviceService.getDevice(deviceId) == null) {
                         providerService.deviceConnected(deviceId, deviceDescription);
                     }
@@ -408,15 +406,26 @@ public class NetconfDeviceProvider extends AbstractProvider
                             UNKNOWN, UNKNOWN,
                             cid, false,
                             annotations);
-                    deviceKeyAdminService.addKey(
-                            DeviceKey.createDeviceKeyUsingUsernamePassword(
-                                    DeviceKeyId.deviceKeyId(deviceId.toString()),
-                                    null, addr.name(), addr.password()));
+                    storeDeviceKey(addr, deviceId);
                     checkAndUpdateDevice(deviceId, deviceDescription);
                 });
             } catch (ConfigException e) {
                 log.error("Cannot read config error " + e);
             }
+        }
+    }
+
+    private void storeDeviceKey(NetconfProviderConfig.NetconfDeviceAddress addr, DeviceId deviceId) {
+        if (addr.sshkey().equals("")) {
+            deviceKeyAdminService.addKey(
+                    DeviceKey.createDeviceKeyUsingUsernamePassword(
+                            DeviceKeyId.deviceKeyId(deviceId.toString()),
+                            null, addr.name(), addr.password()));
+        } else {
+            deviceKeyAdminService.addKey(
+                    DeviceKey.createDeviceKeyUsingSshKey(
+                            DeviceKeyId.deviceKeyId(deviceId.toString()),
+                            null, addr.name(), addr.password(), addr.sshkey()));
         }
     }
 

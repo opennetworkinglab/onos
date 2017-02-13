@@ -26,9 +26,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.key.DeviceKeyService;
 import org.onosproject.net.key.UsernamePassword;
@@ -201,15 +203,31 @@ public class NetconfControllerImpl implements NetconfController {
                 }
             }
             try {
-                UsernamePassword deviceKey = deviceKeyService.getDeviceKey(
-                        DeviceKeyId.deviceKeyId(deviceId.toString())).asUsernamePassword();
+                DeviceKey deviceKey = deviceKeyService.getDeviceKey(
+                                DeviceKeyId.deviceKeyId(deviceId.toString()));
+                NetconfDeviceInfo deviceInfo = null;
+                if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
+                    UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
 
-                NetconfDeviceInfo deviceInfo = new NetconfDeviceInfo(deviceKey.username(),
-                                                                     deviceKey.password(),
-                                                                     IpAddress.valueOf(ip),
-                                                                     port);
+                    deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
+                            usernamepasswd.password(),
+                            IpAddress.valueOf(ip),
+                            port);
+
+                } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
+                    String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
+                    String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
+                    String sshkey =   deviceKey.annotations().value(AnnotationKeys.SSHKEY);
+
+                    deviceInfo = new NetconfDeviceInfo(username,
+                            password,
+                            IpAddress.valueOf(ip),
+                            port,
+                            sshkey);
+                } else {
+                    log.error("Unknown device key for device {}", deviceId);
+                }
                 NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
-
                 netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
                 return netconfDevicedevice;
             } catch (NullPointerException e) {

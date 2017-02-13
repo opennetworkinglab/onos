@@ -161,6 +161,11 @@ public final class AnnotationKeys {
     public static final String REST_SERVER = "restServer";
 
     /**
+     * Annotation key for the sshkey.
+     */
+    public static final String SSHKEY = "sshkey";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.
