@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Port;
@@ -64,6 +63,8 @@ import java.util.Deque;
 import java.util.List;
 
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
+import static org.onlab.packet.MacAddress.BROADCAST;
+import static org.onlab.packet.MacAddress.NONE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -168,7 +169,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             }
         }
 
-        if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
+        if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
             log.debug("filtering objective missing dstMac, cannot program TMAC table");
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
@@ -639,7 +640,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         TrafficSelector.Builder filteredSelectorBuilder =
                 DefaultTrafficSelector.builder();
         // Do not match MacAddress for subnet broadcast entry
-        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+        if (!ethCriterion.mac().equals(NONE) && !ethCriterion.mac().equals(BROADCAST)) {
             filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
             log.debug("processing L2 forwarding objective:{} -> next:{} in dev:{}",
                     fwd.id(), fwd.nextId(), deviceId);
