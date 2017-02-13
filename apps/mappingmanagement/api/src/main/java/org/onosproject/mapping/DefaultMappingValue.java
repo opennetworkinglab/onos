@@ -15,7 +15,7 @@
  */
 package org.onosproject.mapping;
 
-import org.onosproject.mapping.address.MappingAddress;
+import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.instructions.MappingInstruction;
 
 import java.util.List;

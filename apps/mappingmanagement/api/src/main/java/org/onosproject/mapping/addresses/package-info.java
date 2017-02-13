@@ -17,4 +17,4 @@
 /**
  * Mapping address package.
  */
-package org.onosproject.mapping.address;
+package org.onosproject.mapping.addresses;

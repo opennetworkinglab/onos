@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping.address;
+package org.onosproject.mapping.addresses;
 
 /**
  * Presentation of a single mapping selection.
  */
 public interface MappingAddress {
+
+    String TYPE_SEPARATOR = ":";
 
     /**
      * Types of address to which the mapping criterion may apply.
