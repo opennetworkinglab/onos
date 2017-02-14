@@ -24,7 +24,7 @@ package org.onosproject.net;
  * </p>
  */
 public enum OduSignalType {
-    /** bit rate in Mbps. */
+    // bit rate in Mbps
     ODU0(1_250),
     ODU1(2_500),
     ODU2(10_000),

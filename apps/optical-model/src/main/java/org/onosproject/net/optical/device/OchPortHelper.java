@@ -99,7 +99,7 @@ public final class OchPortHelper {
         builder.set(SIGNAL_TYPE, signalType.toString());
 
         DefaultAnnotations annotations = builder.build();
-        long portSpeed = 0; // FIXME assign appropriate value
+        long portSpeed = signalType.bitRate();
         return new DefaultPortDescription(number, isEnabled, Port.Type.OCH, portSpeed, annotations);
     }
 
