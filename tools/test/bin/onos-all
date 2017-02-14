@@ -1,0 +1,28 @@
+#!/bin/bash
+
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) (ONOS CLI commands)
+
+summary:
+ Issue ONOS CLI commands to all the nodes defined in the current cell.
+
+_EOF_
+}
+
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+
+if [ "$#" -eq 0 ]; then
+  echo "Expecting ONOS CLI commands"
+  _usage
+  exit 1
+fi
+
+[ "$1" = "-h" ] && _usage && exit 0
+[ "$1" = "--help" ] && _usage && exit 0
+
+for node in $nodes; do
+  echo "Issuing command on $node.."
+  ssh -p 8101 -o StrictHostKeyChecking=no $node "$@"
+done
