@@ -482,6 +482,7 @@ public class ProtectedTransportIntentCompiler
             .reduce(Sets::intersection);
 
          if (!common.isPresent() || common.get().isEmpty()) {
+             log.error("No common label available for: {}", path);
              throw new IntentCompilationException("No common label available for: " + path);
          }
          return common.get();
