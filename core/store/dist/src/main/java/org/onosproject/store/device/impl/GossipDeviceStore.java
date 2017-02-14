@@ -616,6 +616,7 @@ public class GossipDeviceStore
                 final DeviceDescriptions descs = device.get(providerId);
                 List<PortDescription> mergedList =
                         FluentIterable.from(portDescriptions)
+                                .filter(input -> input.portNumber() != null)
                                 .transform(input ->
                                     // lookup merged port description
                                     descs.getPortDesc(input.portNumber()).value()
