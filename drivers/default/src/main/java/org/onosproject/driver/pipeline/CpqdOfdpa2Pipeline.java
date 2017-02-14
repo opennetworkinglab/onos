@@ -21,6 +21,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
@@ -51,7 +52,13 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanId
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.packet.PacketPriority;
 import org.slf4j.Logger;
@@ -61,10 +68,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
+import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.FOUR_BIT_MASK;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -81,12 +90,52 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     private final Logger log = getLogger(getClass());
 
     /**
+     * Table that determines whether VLAN is popped before punting to controller.
+     * <p>
+     * This is a non-OFDPA table to emulate OFDPA packet in behavior.
+     * VLAN will be popped before punting if the VLAN is internally assigned.
+     * <p>
+     * Also note that 63 is the max table number in CpqD.
+     */
+    private static final int PUNT_TABLE = 63;
+
+    /**
+     * A static indirect group that pop vlan and punt to controller.
+     * <p>
+     * The purpose of using a group instead of immediate action is that this
+     * won't affect another copy on the data plane when write action exists.
+     */
+    private static final int POP_VLAN_PUNT_GROUP_ID = 0xc0000000;
+
+    /**
      * Determines whether this pipeline support copy ttl instructions or not.
      *
      * @return true if copy ttl instructions are supported
      */
     protected boolean supportCopyTtl() {
         return true;
+    }
+
+    /**
+     * Determines whether this pipeline support push mpls to vlan-tagged packets or not.
+     * <p>
+     * If not support, pop vlan before push entering unicast and mpls table.
+     * Side effect: HostService learns redundant hosts with same MAC but
+     * different VLAN. No known side effect on the network reachability.
+     *
+     * @return true if push mpls to vlan-tagged packets is supported
+     */
+    protected boolean supportTaggedMpls() {
+        return false;
+    }
+
+    /**
+     * Determines whether this pipeline support punt action in group bucket.
+     *
+     * @return true if punt action in group bucket is supported
+     */
+    protected boolean supportPuntGroup() {
+        return false;
     }
 
     @Override
@@ -258,11 +307,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
-
-            // Emulating OFDPA behavior by popping off internal assigned VLAN
-            // before sending to controller
-            rules.add(buildArpPunt(assignedVlan, applicationId));
-            rules.add(buildIcmpV6Punt(assignedVlan, applicationId));
         }
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
@@ -279,6 +323,20 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         }
 
         for (PortNumber pnum : portnums) {
+            // NOTE: Emulating OFDPA behavior by popping off internal assigned
+            //       VLAN before sending to controller
+            if (supportPuntGroup() && vidCriterion.vlanId() == VlanId.NONE) {
+                GroupKey groupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(
+                        POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK)));
+                Group group = groupService.getGroup(deviceId, groupKey);
+                if (group != null) {
+                    rules.add(buildPuntTableRule(pnum, assignedVlan));
+                } else {
+                    log.info("popVlanPuntGroup not found in dev:{}", deviceId);
+                    return Collections.emptyList();
+                }
+            }
+
             // create rest of flowrule
             selector.matchInPort(pnum);
             FlowRule rule = DefaultFlowRule.builder()
@@ -296,7 +354,37 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     }
 
     /**
+     * Creates punt table entry that matches IN_PORT and VLAN_VID and points to
+     * a group that pop vlan and punt.
+     *
+     * @param portNumber port number
+     * @param assignedVlan internally assigned vlan id
+     * @return punt table flow rule
+     */
+    private FlowRule buildPuntTableRule(PortNumber portNumber, VlanId assignedVlan) {
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                .matchInPort(portNumber)
+                .matchVlanId(assignedVlan);
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder()
+                .group(new DefaultGroupId(POP_VLAN_PUNT_GROUP_ID));
+
+        return DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(tbuilder.build())
+                .withPriority(PacketPriority.CONTROL.priorityValue())
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(PUNT_TABLE).build();
+    }
+
+    /**
      * Builds a punt to the controller rule for the arp protocol.
+     * <p>
+     * NOTE: CpqD cannot punt correctly in group bucket. The current impl will
+     *       pop VLAN before sending to controller disregarding whether
+     *       it's an internally assigned VLAN or a natural VLAN.
+     *       Therefore, trunk port is not supported in CpqD.
      *
      * @param assignedVlan the internal assigned vlan id
      * @param applicationId the application id
@@ -322,6 +410,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     /**
      * Builds a punt to the controller rule for the icmp v6 messages.
+     * <p>
+     * NOTE: CpqD cannot punt correctly in group bucket. The current impl will
+     *       pop VLAN before sending to controller disregarding whether
+     *       it's an internally assigned VLAN or a natural VLAN.
+     *       Therefore, trunk port is not supported in CpqD.
      *
      * @param assignedVlan the internal assigned vlan id
      * @param applicationId the application id
@@ -388,20 +481,16 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
         List<FlowRule> rules = new ArrayList<FlowRule>();
         for (PortNumber pnum : portnums) {
-            // for unicast IP packets
+            // TMAC rules for unicast IP packets
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
             selector.matchVlanId(vidCriterion.vlanId());
             selector.matchEthType(Ethernet.TYPE_IPV4);
             selector.matchEthDst(ethCriterion.mac());
-            /*
-             * Note: CpqD switches do not handle MPLS-related operation properly
-             * for a packet with VLAN tag. We pop VLAN here as a workaround.
-             * Side effect: HostService learns redundant hosts with same MAC but
-             * different VLAN. No known side effect on the network reachability.
-             */
-            treatment.popVlan();
+            if (!supportTaggedMpls()) {
+                treatment.popVlan();
+            }
             treatment.transition(UNICAST_ROUTING_TABLE);
             FlowRule rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
@@ -412,15 +501,17 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
             rules.add(rule);
-            //for MPLS packets
+
+            // TMAC rules for MPLS packets
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
             selector.matchVlanId(vidCriterion.vlanId());
             selector.matchEthType(Ethernet.MPLS_UNICAST);
             selector.matchEthDst(ethCriterion.mac());
-            // workaround here again
-            treatment.popVlan();
+            if (!supportTaggedMpls()) {
+                treatment.popVlan();
+            }
             treatment.transition(MPLS_TABLE_0);
             rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
@@ -431,21 +522,17 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
             rules.add(rule);
-            /*
-             * TMAC rules for IPv6 packets
-             */
+
+            // TMAC rules for IPv6 packets
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
             selector.matchVlanId(vidCriterion.vlanId());
             selector.matchEthType(Ethernet.TYPE_IPV6);
             selector.matchEthDst(ethCriterion.mac());
-            /*
-             * workaround here again, we are removing
-             * the vlan tag before to go through the
-             * rest of the pipeline
-             */
-            treatment.popVlan();
+            if (!supportTaggedMpls()) {
+                treatment.popVlan();
+            }
             treatment.transition(UNICAST_ROUTING_TABLE);
             rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
@@ -467,13 +554,9 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
         selector.matchEthDst(ethCriterion.mac());
-        /*
-         * Note: CpqD switches do not handle MPLS-related operation properly
-         * for a packet with VLAN tag. We pop VLAN here as a workaround.
-         * Side effect: HostService learns redundant hosts with same MAC but
-         * different VLAN. No known side effect on the network reachability.
-         */
-        treatment.popVlan();
+        if (!supportTaggedMpls()) {
+            treatment.popVlan();
+        }
         treatment.transition(UNICAST_ROUTING_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -742,7 +825,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 if (ins instanceof OutputInstruction) {
                     OutputInstruction o = (OutputInstruction) ins;
                     if (o.port() == PortNumber.CONTROLLER) {
-                        ttBuilder.add(o);
+                        ttBuilder.transition(PUNT_TABLE);
                     } else {
                         log.warn("Only allowed treatments in versatile forwarding "
                                 + "objectives are punts to the controller");
@@ -799,6 +882,15 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         initTableMiss(MPLS_TABLE_1, ACL_TABLE, null);
         initTableMiss(BRIDGING_TABLE, ACL_TABLE, null);
         initTableMiss(ACL_TABLE, -1, null);
+
+        if (supportPuntGroup()) {
+            initTableMiss(PUNT_TABLE, -1,
+                    DefaultTrafficTreatment.builder().punt().build());
+            initPopVlanPuntGroup();
+        } else {
+            initTableMiss(PUNT_TABLE, -1,
+                    DefaultTrafficTreatment.builder().popVlan().punt().build());
+        }
     }
 
     /**
@@ -844,5 +936,31 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 log.warn("Failed to initialize table {} on {}", thisTable, deviceId);
             }
         }));
+    }
+
+    /**
+     * Builds a indirect group contains pop_vlan and punt actions.
+     * <p>
+     * Using group instead of immediate action to ensure that
+     * the copy of packet on the data plane is not affected by the pop vlan action.
+     */
+    private void initPopVlanPuntGroup() {
+        GroupKey groupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(
+                POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK)));
+        TrafficTreatment bucketTreatment = DefaultTrafficTreatment.builder()
+                .popVlan().punt().build();
+        GroupBucket bucket =
+                DefaultGroupBucket.createIndirectGroupBucket(bucketTreatment);
+        GroupDescription groupDesc =
+                new DefaultGroupDescription(
+                        deviceId,
+                        GroupDescription.Type.INDIRECT,
+                        new GroupBuckets(Collections.singletonList(bucket)),
+                        groupKey,
+                        POP_VLAN_PUNT_GROUP_ID,
+                        driverId);
+        groupService.addGroup(groupDesc);
+
+        log.info("Initialized pop vlan punt group on {}", deviceId);
     }
 }

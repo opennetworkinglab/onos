@@ -17,6 +17,7 @@
 package org.onosproject.driver.pipeline;
 
 import org.onosproject.net.behaviour.PipelinerContext;
+
 /**
  * Driver for software switch emulation of the OFDPA pipeline.
  * The software switch is the OVS OF 1.3 switch. Unfortunately the OVS switch
@@ -26,6 +27,7 @@ import org.onosproject.net.behaviour.PipelinerContext;
  * on incoming untagged packets.
  */
 public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
+
     @Override
     protected void initDriverId() {
         driverId = coreService.registerApplication(
@@ -41,5 +43,15 @@ public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
     @Override
     protected boolean supportCopyTtl() {
         return false;
+    }
+
+    @Override
+    protected boolean supportTaggedMpls() {
+        return true;
+    }
+
+    @Override
+    protected boolean supportPuntGroup() {
+        return true;
     }
 }

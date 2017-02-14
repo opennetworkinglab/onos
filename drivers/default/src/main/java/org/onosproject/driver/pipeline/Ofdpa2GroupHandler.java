@@ -164,6 +164,18 @@ public class Ofdpa2GroupHandler {
         return true;
     }
 
+    /**
+     * Determines whether this pipeline requires popping VLAN before pushing MPLS.
+     * <p>
+     * If required, pop vlan before push mpls and add an arbitrary vlan back afterward.
+     * MPLS interface group will substitute the arbitrary VLAN with expected VLAN later on.
+     *
+     * @return true if this pipeline requires popping VLAN before pushing MPLS
+     */
+    protected boolean requireVlanPopBeforeMplsPush() {
+        return false;
+    }
+
     protected void init(DeviceId deviceId, PipelinerContext context) {
         this.deviceId = deviceId;
         this.flowObjectiveStore = context.store();
@@ -940,6 +952,9 @@ public class Ofdpa2GroupHandler {
                 }
                 // we need to add another group to this chain - the L3VPN group
                 TrafficTreatment.Builder l3vpnTtb = DefaultTrafficTreatment.builder();
+                if (requireVlanPopBeforeMplsPush()) {
+                    l3vpnTtb.popVlan();
+                }
                 l3vpnTtb.pushMpls()
                         .setMpls(innermostLabel)
                         .group(new DefaultGroupId(onelabelGroupInfo.nextGroupDesc.givenGroupId()));
@@ -948,6 +963,9 @@ public class Ofdpa2GroupHandler {
                 }
                 if (supportSetMplsBos()) {
                     l3vpnTtb.setMplsBos(true);
+                }
+                if (requireVlanPopBeforeMplsPush()) {
+                    l3vpnTtb.pushVlan().setVlanId(VlanId.vlanId(VlanId.RESERVED));
                 }
 
                 GroupBucket l3vpnGrpBkt  =
