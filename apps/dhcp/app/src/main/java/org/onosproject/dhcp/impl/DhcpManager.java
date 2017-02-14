@@ -165,7 +165,7 @@ public class DhcpManager implements DhcpService {
     private static Ip4Address routerAddress = Ip4Address.valueOf("10.0.0.2");
     private static Ip4Address domainServer = Ip4Address.valueOf("10.0.0.2");
     private static Ip4Address myIP = Ip4Address.valueOf("10.0.0.2");
-    private static MacAddress myMAC = valueOf("4f:4f:4f:4f:4f:4f");
+    private static MacAddress myMAC = valueOf("4e:4f:4f:4f:4f:4f");
     private static final Ip4Address IP_BROADCAST = Ip4Address.valueOf("255.255.255.255");
 
     protected Timeout timeout;
