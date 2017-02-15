@@ -27,8 +27,10 @@ import static org.hamcrest.Matchers.is;
  */
 public class DefaultMappingEntryTest {
 
-    private static final MappingKey MAPPING_KEY = new DefaultMappingKey();
-    private static final MappingValue MAPPING_VALUE = new DefaultMappingValue();
+    private static final MappingKey MAPPING_KEY =
+                         new MappingTestMocks.MockMappingKey();
+    private static final MappingValue MAPPING_VALUE =
+                         new MappingTestMocks.MockMappingValue();
 
     /**
      * Creates a new mapping entry from an unique value.

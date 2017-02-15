@@ -81,42 +81,6 @@ public final class MappingInstructions {
     }
 
     /**
-     * Creates no action mapping instruction.
-     *
-     * @return an action mapping instruction
-     */
-    public static ActionMappingInstruction noAction() {
-        return new ActionMappingInstruction.NoActionMappingInstruction();
-    }
-
-    /**
-     * Creates native forward mapping instruction.
-     *
-     * @return an action mapping instruction
-     */
-    public static ActionMappingInstruction nativeForwardAction() {
-        return new ActionMappingInstruction.NativeForwardMappingInstruction();
-    }
-
-    /**
-     * Creates forward mapping instruction.
-     *
-     * @return an action mapping instruction
-     */
-    public static ActionMappingInstruction forwardAction() {
-        return new ActionMappingInstruction.ForwardMappingInstruction();
-    }
-
-    /**
-     * Creates drop mapping instruction.
-     *
-     * @return an action mapping instruction
-     */
-    public static ActionMappingInstruction dropAction() {
-        return new ActionMappingInstruction.DropMappingInstruction();
-    }
-
-    /**
      * Creates an extension mapping instruction.
      *
      * @param extension extension mapping instruction

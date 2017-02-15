@@ -127,8 +127,8 @@ public class DefaultMapping implements Mapping {
         private MappingId id;
         private ApplicationId appId;
         private DeviceId deviceId;
-        private MappingKey key = new DefaultMappingKey();
-        private MappingValue value = new DefaultMappingValue();
+        private MappingKey key = DefaultMappingKey.builder().build();
+        private MappingValue value = DefaultMappingValue.builder().build();
 
         @Override
         public Mapping.Builder withId(long id) {

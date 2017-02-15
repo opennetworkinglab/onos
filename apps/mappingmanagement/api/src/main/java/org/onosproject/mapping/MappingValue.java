@@ -15,8 +15,7 @@
  */
 package org.onosproject.mapping;
 
-import org.onosproject.mapping.addresses.MappingAddress;
-import org.onosproject.mapping.instructions.MappingInstruction;
+import org.onosproject.mapping.actions.MappingAction;
 
 import java.util.List;
 
@@ -26,36 +25,36 @@ import java.util.List;
 public interface MappingValue {
 
     /**
-     * Obtains a mapping address.
+     * Obtains a mapping action.
      *
-     * @return a mapping address
+     * @return a mapping action
      */
-    MappingAddress address();
+    MappingAction action();
 
     /**
      * Obtains a collection of mapping instructions.
      *
      * @return a collection of mapping instructions
      */
-    List<MappingInstruction> instructions();
+    List<MappingTreatment> treatments();
 
     interface Builder {
 
         /**
-         * Specifies the mapping address.
+         * Specifies a mapping action.
          *
-         * @param address mapping address
+         * @param action mapping action
          * @return a mapping value builder
          */
-        Builder withAddress(MappingAddress address);
+        Builder withAction(MappingAction action);
 
         /**
-         * Specifies a collection of mapping instructions.
+         * Specifies a collection of mapping treatment.
          *
-         * @param instructions a collection of mapping instructions
+         * @param treatment a mapping treatment
          * @return a mapping value builder
          */
-        Builder withInstructions(List<MappingInstruction> instructions);
+        Builder add(MappingTreatment treatment);
 
         /**
          * Builds an immutable mapping value.

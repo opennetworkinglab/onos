@@ -13,38 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping.instructions;
+package org.onosproject.mapping.actions;
 
 /**
- * Presentation of a single mapping instruction.
+ * Presentation of a single mapping action.
  */
-public interface MappingInstruction {
+public interface MappingAction {
 
     /**
-     * Represents the type of mapping instruction.
+     * Represents the type of mapping action.
      */
     enum Type {
 
         /**
-         * Signifies that the traffic should be uni-casted with TE parameters.
+         * Signifies that the traffic requires no action.
          */
-        UNICAST,
+        NO_ACTION,
 
         /**
-         * Signifies that the traffic should be multi-casted with TE parameters.
+         * Signifies that the traffic requires native forwarding.
          */
-        MULTICAST,
+        NATIVE_FORWARD,
 
         /**
-         * Signifies that an extension instruction will be used.
+         * Signifies that the traffic requires forwarding with mapping information.
          */
-        EXTENSION
+        FORWARD,
+
+        /**
+         * Signifies that the traffic should be dropped.
+         */
+        DROP
     }
 
     /**
-     * Returns the type of mapping instruction.
+     * Returns the type of mapping action.
      *
-     * @return type of mapping instruction
+     * @return type of mapping action
      */
     Type type();
 }

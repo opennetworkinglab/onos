@@ -28,6 +28,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class MappingEventTest extends AbstractEventTest {
 
+    private static final String DEVICE_ID_1 = "lisp:10.1.1.1";
+    private static final String DEVICE_ID_2 = "lisp:10.1.1.2";
+
     private MappingEvent event1;
     private MappingEvent sameAsEvent1;
     private MappingEvent event2;
@@ -45,16 +48,16 @@ public class MappingEventTest extends AbstractEventTest {
 
         return builder
                 .withId(mid)
-                .withKey(new DefaultMappingKey())
-                .withValue(new DefaultMappingValue())
+                .withKey(new MappingTestMocks.MockMappingKey())
+                .withValue(new MappingTestMocks.MockMappingValue())
                 .forDevice(deviceId)
                 .build();
     }
 
     @Before
     public void setup() {
-        final Mapping mapping1 = mockMapping(1, "lisp:10.1.1.1");
-        final Mapping mapping2 = mockMapping(2, "lisp:10.1.1.2");
+        final Mapping mapping1 = mockMapping(1, DEVICE_ID_1);
+        final Mapping mapping2 = mockMapping(2, DEVICE_ID_2);
 
         event1 = new MappingEvent(MappingEvent.Type.MAPPING_ADDED, mapping1);
         sameAsEvent1 = new MappingEvent(MappingEvent.Type.MAPPING_ADDED, mapping1);
@@ -79,7 +82,7 @@ public class MappingEventTest extends AbstractEventTest {
     @Test
     public void testConstructor() {
         final long time = System.currentTimeMillis();
-        final Mapping mapping = mockMapping(1, "lisp:10.1.1.1");
+        final Mapping mapping = mockMapping(1, DEVICE_ID_1);
         final MappingEvent event = new MappingEvent(MappingEvent.Type.MAPPING_UPDATED, mapping);
         validateEvent(event, MappingEvent.Type.MAPPING_UPDATED, mapping, time,
                 time + TimeUnit.SECONDS.toMillis(30));
