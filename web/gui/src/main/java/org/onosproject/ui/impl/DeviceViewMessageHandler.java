@@ -57,6 +57,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String DEV_DATA_REQ = "deviceDataRequest";
     private static final String DEV_DATA_RESP = "deviceDataResponse";
     private static final String DEVICES = "devices";
+    private static final String DEVICE = "device";
 
     private static final String DEV_DETAILS_REQ = "deviceDetailsRequest";
     private static final String DEV_DETAILS_RESP = "deviceDetailsResponse";
@@ -217,6 +218,10 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
+
+            // use the codec context to get a JSON of the device. See ONOS-5976.
+            rootNode.set(DEVICE, getJsonCodecContext().encode(device, Device.class));
+
             sendMessage(DEV_DETAILS_RESP, rootNode);
         }
 

@@ -32,7 +32,8 @@
         bottom,
         iconDiv,
         wSize,
-        editingName = false;
+        editingName = false,
+        device;
 
     // constants
     var topPdg = 28,
@@ -173,10 +174,21 @@
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
         top.select('h2').html(details.name);
 
-        propOrder.forEach(function (prop, i) {
-            // properties are split into two tables
-            addProp(i < propSplit ? leftTbl : rightTbl, i, details[prop]);
-        });
+        // === demonstrate use of JsonCodec object see ONOS-5976
+        addProp(leftTbl,  0, device.id);
+        addProp(leftTbl,  1, device.type);
+        addProp(leftTbl,  2, details['masterid']);
+        addProp(leftTbl,  3, details['chassid']);
+        addProp(rightTbl, 4, device.mfr);
+        addProp(rightTbl, 5, device.hw);
+        addProp(rightTbl, 6, device.sw);
+        addProp(rightTbl, 7, details['protocol']);
+        addProp(rightTbl, 8, device.serial);
+
+        // propOrder.forEach(function (prop, i) {
+        //     // properties are split into two tables
+        //     addProp(i < propSplit ? leftTbl : rightTbl, i, details[prop]);
+        // });
     }
 
     function addPortRow(tbody, port) {
@@ -234,6 +246,7 @@
 
     function respDetailsCb(data) {
         $scope.panelData = data.details;
+        device = data.device;
         $scope.$apply();
     }
 
