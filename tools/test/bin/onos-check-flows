@@ -3,7 +3,7 @@
 # Checks ONOS summary data
 # -----------------------------------------------------------------------------
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 for i in {1..6}; do
