@@ -150,7 +150,7 @@ public class WorkPartitionManager implements WorkPartitionService {
         try {
             rebalance();
         } catch (Exception e) {
-            log.warn("Exception caught during rebalance task. Will retry in " +
+            log.warn("{} caught during rebalance task. Will retry in " +
                      RETRY_AFTER_DELAY_SEC + " seconds", e.getMessage());
             scheduleRebalance(RETRY_AFTER_DELAY_SEC);
         }
