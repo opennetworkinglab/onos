@@ -431,15 +431,36 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     private Intent findIntentByPayload(ObjectNode payload) {
+        Intent intent;
+        Key key;
         int appId = Integer.parseInt(string(payload, APP_ID));
         String appName = string(payload, APP_NAME);
         ApplicationId applicId = new DefaultApplicationId(appId, appName);
-        long intentKey = Long.decode(string(payload, KEY));
+        String stringKey = string(payload, KEY);
+        try {
+            // FIXME: If apps use different string key, but they contains
+            // same numeric value (e.g. "020", "0x10", "16", "#10")
+            // and one intent using long key (e.g. 16L)
+            // this function might return wrong intent.
 
-        Key key = Key.of(intentKey, applicId);
+            long longKey = Long.decode(stringKey);
+            key = Key.of(longKey, applicId);
+            intent = intentService.getIntent(key);
+
+            if (intent == null) {
+                // Intent might using string key, not long key
+                key = Key.of(stringKey, applicId);
+                intent = intentService.getIntent(key);
+            }
+        } catch (NumberFormatException ex) {
+            // string key
+            key = Key.of(stringKey, applicId);
+            intent = intentService.getIntent(key);
+        }
+
         log.debug("Attempting to select intent by key={}", key);
 
-        return intentService.getIntent(key);
+        return intent;
     }
 
     private final class RemoveIntent extends RequestHandler {
