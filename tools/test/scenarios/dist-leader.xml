@@ -18,27 +18,27 @@
           description="ONOS LeaderElector distributed primitive Test">
     <group name="Distributed-Primitive-Leader">
 
-        <step name="Distributed-Primitive-Leader.Activate-Distributed-Primitives-App"
-            exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
-
-        <step name="Distributed-Primitive-Leader.Test-Initial-No-Leader" requires="Distributed-Primitive-Leader.Activate-Distributed-Primitives-App"
+        <step name="Distributed-Primitive-Leader.Test-Initial-No-Leader"
+              requires="Distributed-Primitives-Setup"
               exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
-        <step name="Distributed-Primitive-Leader.Test-Leader-Run" requires="Distributed-Primitive-Leader.Test-Initial-No-Leader"
+        <step name="Distributed-Primitive-Leader.Test-Leader-Run"
+              requires="Distributed-Primitive-Leader.Test-Initial-No-Leader"
               exec="onos-execute-expect ${OCI} leader-test test-elector run foo --expect leader=${OCI}#term=[0-9][0-9]*#candidates=${OCI}"/>
 
-        <step name="Distributed-Primitive-Leader.Test-Leader-Withdraw" requires="Distributed-Primitive-Leader.Test-Leader-Run"
+        <step name="Distributed-Primitive-Leader.Test-Leader-Withdraw"
+              requires="Distributed-Primitive-Leader.Test-Leader-Run"
               exec="onos ${OCI} leader-test test-elector withdraw foo"/>
 
-        <step name="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw" requires="Distributed-Primitive-Leader.Test-Leader-Withdraw"
+        <step name="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw"
+              requires="Distributed-Primitive-Leader.Test-Leader-Withdraw"
               exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
         <!--Check with check logs-->
-        <step name="Distributed-Primitive-Leader.Check-Log-Exceptions" requires="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw"
+        <step name="Distributed-Primitive-Leader.Check-Log-Exceptions"
+            requires="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw"
               exec="onos-check-logs ${OCI}"/>
 
-        <step name="Distributed-Primitive-Leader.Teardown-Distributed-Primitives-Test-App" requires="Distributed-Primitive-Leader.Check-Log-Exceptions"
-              exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives"/>
     </group>
 </scenario>
 

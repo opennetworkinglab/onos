@@ -18,45 +18,51 @@
           description="ONOS WorkQueue distributed primitive Test">
     <group name="Distributed-Primitive-WorkQueue">
 
-        <step name="Distributed-Primitive-WorkQueue.Activate-Distributed-Primitives-App"
-            exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
-
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddOne" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddOne"
+              requires="Distributed-Primitives-Setup"
               exec="onos-execute-expect ${OCI} work-queue-test stc-test-work-queue add foo --expect Done"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-Pending-1" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-Pending-1"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalPending --expect 1"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-1" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-1"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalInProgress --expect 0"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-1" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-1"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalCompleted --expect 0"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddMultiple" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddMultiple"
+              requires="^"
               exec="onos-execute-expect ${OCI} work-queue-test stc-test-work-queue addMultiple bar car --expect Done"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-TakeAndComplete" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-TakeAndComplete"
+              requires="^"
               exec="onos-execute-expect ${OCI} work-queue-test stc-test-work-queue takeAndComplete 3 --expect Done"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-Pending-2" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-Pending-2"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalPending --expect 0"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-2" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-InProgress-2"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalInProgress --expect 0"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-2" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-TotalCompleted-2"
+              requires="^"
               exec="onos-cluster-execute-expect work-queue-test stc-test-work-queue totalCompleted --expect 3"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Destroy" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Test-Queue-Destroy"
+              requires="^"
               exec="onos ${OCI} work-queue-test stc-test-work-queue destroy"/>
 
         <!--Check with check logs-->
-        <step name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions" requires="^"
+        <step name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions"
+              requires="^"
               exec="onos-check-logs ${OCI}"/>
 
-        <step name="Distributed-Primitive-WorkQueue.Teardown-Distributed-Primitives-Test-App" requires="^"
-              exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives"/>
     </group>
 </scenario>
 

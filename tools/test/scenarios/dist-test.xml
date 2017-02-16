@@ -18,21 +18,32 @@
           description="ONOS distributed primitives setup">
     <group name="Distributed-Primitives">
 
-        <import file="${ONOS_SCENARIOS}/dist-map.xml"/>
-        <dependency name="Distributed-Primitive-Map" requires="Setup"/>
+        <import file="${ONOS_SCENARIOS}/dist-setup.xml"/>
+        <dependency name="Distributed-Primitives-Setup" requires="Setup"/>
 
-        <import file="${ONOS_SCENARIOS}/dist-value.xml"/>
-        <dependency name="Distributed-Primitive-Value" requires="Distributed-Primitive-Map"/>
+        <group name="Distributed-Primitives-Internal" requires="Distributed-Primitives-Setup">
 
-        <import file="${ONOS_SCENARIOS}/dist-counter.xml"/>
-        <dependency name="Distributed-Primitive-Counter" requires="Distributed-Primitive-Value"/>
+            <import file="${ONOS_SCENARIOS}/dist-map.xml"/>
+            <dependency name="Distributed-Primitive-Map"/>
 
-        <import file="${ONOS_SCENARIOS}/dist-leader.xml"/>
-        <dependency name="Distributed-Primitive-Leader" requires="Distributed-Primitive-Counter"/>
+            <import file="${ONOS_SCENARIOS}/dist-value.xml"/>
+            <dependency name="Distributed-Primitive-Value"/>
 
-        <import file="${ONOS_SCENARIOS}/dist-work-queue.xml"/>
-        <dependency name="Distributed-Primitive-WorkQueue" requires="Distributed-Primitive-Leader"/>
+            <import file="${ONOS_SCENARIOS}/dist-counter.xml"/>
+            <dependency name="Distributed-Primitive-Counter"/>
+
+            <import file="${ONOS_SCENARIOS}/dist-leader.xml"/>
+            <dependency name="Distributed-Primitive-Leader"/>
+
+            <import file="${ONOS_SCENARIOS}/dist-work-queue.xml"/>
+            <dependency name="Distributed-Primitive-WorkQueue"/>
+
+        </group>
+
+        <import file="${ONOS_SCENARIOS}/dist-teardown.xml"/>
+        <dependency name="Distributed-Primitives-Teardown" requires="Distributed-Primitives-Internal"/>
 
     </group>
+
 </scenario>
 
