@@ -35,9 +35,10 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
-                RACK_ADDRESS, OWNER, TYPE, DRIVER, MANUFACTURER, HW_VERSION,
-                SW_VERSION, SERIAL, MANAGEMENT_ADDRESS, DEVICE_KEY_ID);
+        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
+                GRID_Y, GRID_X, UI_TYPE, RACK_ADDRESS, OWNER, TYPE, DRIVER,
+                MANUFACTURER, HW_VERSION, SW_VERSION, SERIAL,
+                MANAGEMENT_ADDRESS, DEVICE_KEY_ID);
     }
 
     /**

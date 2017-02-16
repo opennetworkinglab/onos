@@ -36,8 +36,8 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
         // Location and IP addresses can be absent, but if present must be valid.
         this.location();
         this.ipAddresses();
-        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, UI_TYPE,
-                RACK_ADDRESS, OWNER, IPS, LOCATION);
+        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
+                GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATION);
     }
 
     /**

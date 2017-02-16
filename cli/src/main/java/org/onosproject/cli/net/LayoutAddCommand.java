@@ -28,24 +28,28 @@ import static org.onosproject.net.region.RegionId.regionId;
 import static org.onosproject.ui.model.topo.UiTopoLayoutId.layoutId;
 
 /**
- * Creates a new UI layout.
+ * Add a new UI layout.
  */
 @Command(scope = "onos", name = "layout-add",
-        description = "Creates a new UI layout")
+        description = "Adds a new UI layout.")
 public class LayoutAddCommand extends AbstractShellCommand {
 
-    private static final String FMT = "id=%s, name=%s, type=%s";
-    private static final String FMT_MASTER = "  master=%s";
+    private static final char CODE_GEO = '@';
+    private static final char CODE_GRID = '+';
 
     @Argument(index = 0, name = "id", description = "Layout ID",
             required = true, multiValued = false)
     String id = null;
 
-    @Argument(index = 1, name = "id", description = "Region ID (optional)",
+    @Argument(index = 1, name = "bgref", description = "Background Ref",
+            required = true, multiValued = false)
+    String backgroundRef = null;
+
+    @Argument(index = 2, name = "rid", description = "Region ID (optional)",
             required = false, multiValued = false)
     String regionId = null;
 
-    @Argument(index = 2, name = "id", description = "Parent layout ID (optional)",
+    @Argument(index = 3, name = "plid", description = "Parent layout ID (optional)",
             required = false, multiValued = false)
     String parentId = null;
 
@@ -60,6 +64,28 @@ public class LayoutAddCommand extends AbstractShellCommand {
         UiTopoLayoutId pid = parentId == null ? UiTopoLayoutId.DEFAULT_ID : layoutId(parentId);
 
         UiTopoLayout layout = new UiTopoLayout(layoutId(id)).region(region).parent(pid);
+        setAppropriateBackground(layout, backgroundRef);
         service.addLayout(layout);
+    }
+
+    private void setAppropriateBackground(UiTopoLayout layout, String bgRef) {
+        /*
+         * A note about the format of bgref.. it should be one of:
+         *    "."               - signifies no background
+         *    "@{map-id}"       - signifies geo background (map)
+         *    "+{sprite-id}"    - signifies grid background (sprite)
+         *
+         *    For example, "!", "@bayareaGEO", "+segmentRouting"
+         */
+        char type = bgRef.charAt(0);
+
+        if (type == CODE_GEO) {
+            // GEO (map) reference
+            layout.geomap(bgRef.substring(1));
+
+        } else if (type == CODE_GRID) {
+            // Grid (sprite) reference
+            layout.sprites(bgRef.substring(1));
+        }
     }
 }

@@ -47,6 +47,8 @@ public final class TopoConstants {
         public static final String PROTOCOL = "Protocol";
         public static final String LATITUDE = "Latitude";
         public static final String LONGITUDE = "Longitude";
+        public static final String GRID_Y = "Grid Y";
+        public static final String GRID_X = "Grid X";
         public static final String PORTS = "Ports";
 
         // host details

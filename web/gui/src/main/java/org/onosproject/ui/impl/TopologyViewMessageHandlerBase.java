@@ -365,7 +365,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 double lng = Double.parseDouble(slng);
                 double lat = Double.parseDouble(slat);
                 ObjectNode loc = objectNode()
-                        .put("type", "lnglat")
+                        .put("type", "geo")
                         .put("lng", lng)
                         .put("lat", lat);
                 payload.set("location", loc);

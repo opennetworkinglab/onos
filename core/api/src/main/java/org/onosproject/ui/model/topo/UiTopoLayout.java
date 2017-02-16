@@ -202,7 +202,7 @@ public class UiTopoLayout {
 
     /**
      * Sets the name of the sprites definition for this layout. This is the
-     * symbolic name for a "json" file containing a definition of sprites,
+     * symbolic name for a definition of sprites,
      * which render as a symbolic background (e.g. a campus, or floor plan),
      * to be displayed in the topology view, for this layout.
      * <p>

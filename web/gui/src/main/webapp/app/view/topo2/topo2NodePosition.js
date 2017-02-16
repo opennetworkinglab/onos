@@ -93,7 +93,7 @@
         var loc = el.get('location'),
             coord;
 
-        if (loc && loc.type === 'lnglat') {
+        if (loc && loc.type === 'geo') {
 
             if (loc.lat === 0 && loc.lng === 0) {
                 return false;
@@ -106,6 +106,9 @@
 
             return true;
         }
+
+        // TODO: handle case where loc.type === 'grid'
+        //  implying loc.gridX and loc.gridY hold values
     }
 
     function coordFromLngLat(loc) {

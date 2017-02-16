@@ -19,25 +19,19 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.SparseAnnotations;
-import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
-import org.slf4j.Logger;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementations of merge policies for various sources of device configuration
  * information. This includes applications, providers, and network configurations.
  */
-public final class BasicDeviceOperator implements ConfigOperator {
-
-    protected static final double DEFAULT_COORD = -1.0;
-    private static final Logger log = getLogger(BasicDeviceOperator.class);
+public final class BasicDeviceOperator extends BasicElementOperator {
 
     private BasicDeviceOperator() {
     }
@@ -46,83 +40,76 @@ public final class BasicDeviceOperator implements ConfigOperator {
      * Generates a DeviceDescription containing fields from a DeviceDescription and
      * a DeviceConfig.
      *
-     * @param bdc   the device config entity from network config
+     * @param cfg   the device config entity from network config
      * @param descr a DeviceDescription
      * @return DeviceDescription based on both sources
      */
-    public static DeviceDescription combine(BasicDeviceConfig bdc, DeviceDescription descr) {
-        if (bdc == null || descr == null) {
+    public static DeviceDescription combine(BasicDeviceConfig cfg, DeviceDescription descr) {
+        if (cfg == null || descr == null) {
             return descr;
         }
 
         Device.Type type = descr.type();
-        if (bdc.type() != null && bdc.type() != type) {
-            type = bdc.type();
+        if (cfg.type() != null && cfg.type() != type) {
+            type = cfg.type();
         }
         String manufacturer = descr.manufacturer();
-        if (bdc.manufacturer() != null && !bdc.manufacturer().equals(manufacturer)) {
-            manufacturer = bdc.manufacturer();
+        if (cfg.manufacturer() != null && !cfg.manufacturer().equals(manufacturer)) {
+            manufacturer = cfg.manufacturer();
         }
         String hwVersion = descr.hwVersion();
-        if (bdc.hwVersion() != null && !bdc.hwVersion().equals(hwVersion)) {
-            hwVersion = bdc.hwVersion();
+        if (cfg.hwVersion() != null && !cfg.hwVersion().equals(hwVersion)) {
+            hwVersion = cfg.hwVersion();
         }
         String swVersion = descr.swVersion();
-        if (bdc.swVersion() != null && !bdc.swVersion().equals(swVersion)) {
-            swVersion = bdc.swVersion();
+        if (cfg.swVersion() != null && !cfg.swVersion().equals(swVersion)) {
+            swVersion = cfg.swVersion();
         }
         String serial = descr.serialNumber();
-        if (bdc.serial() != null && !bdc.serial().equals(serial)) {
-            serial = bdc.serial();
+        if (cfg.serial() != null && !cfg.serial().equals(serial)) {
+            serial = cfg.serial();
         }
 
-        SparseAnnotations sa = combine(bdc, descr.annotations());
+        SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultDeviceDescription(descr.deviceUri(), type, manufacturer,
-                                            hwVersion, swVersion,
-                                            serial, descr.chassisId(),
-                                            descr.isDefaultAvailable(), sa);
+                hwVersion, swVersion,
+                serial, descr.chassisId(),
+                descr.isDefaultAvailable(), sa);
     }
 
     /**
      * Generates an annotation from an existing annotation and DeviceConfig.
      *
-     * @param bdc the device config entity from network config
+     * @param cfg the device config entity from network config
      * @param an  the annotation
      * @return annotation combining both sources
      */
-    public static SparseAnnotations combine(BasicDeviceConfig bdc, SparseAnnotations an) {
-        DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-        if (!Objects.equals(bdc.driver(), an.value(AnnotationKeys.DRIVER))) {
-            newBuilder.set(AnnotationKeys.DRIVER, bdc.driver());
+    public static SparseAnnotations combine(BasicDeviceConfig cfg, SparseAnnotations an) {
+        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        if (!Objects.equals(cfg.driver(), an.value(AnnotationKeys.DRIVER))) {
+            builder.set(AnnotationKeys.DRIVER, cfg.driver());
         }
-        if (bdc.name() != null) {
-            newBuilder.set(AnnotationKeys.NAME, bdc.name());
+
+        combineElementAnnotations(cfg, builder);
+
+        if (cfg.managementAddress() != null) {
+            builder.set(AnnotationKeys.MANAGEMENT_ADDRESS, cfg.managementAddress());
         }
-        if (bdc.uiType() != null) {
-            newBuilder.set(AnnotationKeys.UI_TYPE, bdc.uiType());
-        }
-        if (bdc.geoCoordsSet()) {
-            newBuilder.set(AnnotationKeys.LATITUDE, Double.toString(bdc.latitude()));
-            newBuilder.set(AnnotationKeys.LONGITUDE, Double.toString(bdc.longitude()));
-        }
-        if (bdc.rackAddress() != null) {
-            newBuilder.set(AnnotationKeys.RACK_ADDRESS, bdc.rackAddress());
-        }
-        if (bdc.owner() != null) {
-            newBuilder.set(AnnotationKeys.OWNER, bdc.owner());
-        }
-        if (bdc.managementAddress() != null) {
-            newBuilder.set(AnnotationKeys.MANAGEMENT_ADDRESS, bdc.managementAddress());
-        }
-        DefaultAnnotations newAnnotations = newBuilder.build();
-        return DefaultAnnotations.union(an, newAnnotations);
+
+        return DefaultAnnotations.union(an, builder.build());
     }
 
+    /**
+     * Returns a description of the given device.
+     *
+     * @param device the device
+     * @return a description of the device
+     */
     public static DeviceDescription descriptionOf(Device device) {
         checkNotNull(device, "Must supply non-null Device");
         return new DefaultDeviceDescription(device.id().uri(), device.type(),
-                                            device.manufacturer(), device.hwVersion(),
-                                            device.swVersion(), device.serialNumber(),
-                                            device.chassisId(), (SparseAnnotations) device.annotations());
+                device.manufacturer(), device.hwVersion(),
+                device.swVersion(), device.serialNumber(),
+                device.chassisId(), (SparseAnnotations) device.annotations());
     }
 }

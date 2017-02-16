@@ -110,6 +110,7 @@ public class BasicElementConfigTest {
     @Test
     public void defaultGridCoords() {
         print(cfg);
+        assertFalse("grid not origin?", cfg.gridCoordsSet());
         assertEquals("gridx", 0.0, cfg.gridX(), ZERO_THRESHOLD);
         assertEquals("gridy", 0.0, cfg.gridY(), ZERO_THRESHOLD);
     }
@@ -118,6 +119,7 @@ public class BasicElementConfigTest {
     public void someGridCoords() {
         cfg.gridX(35.0).gridY(49.7);
         print(cfg);
+        assertTrue("grid at origin?", cfg.gridCoordsSet());
         assertEquals("gridx", 35.0, cfg.gridX(), ZERO_THRESHOLD);
         assertEquals("gridy", 49.7, cfg.gridY(), ZERO_THRESHOLD);
     }

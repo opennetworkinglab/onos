@@ -24,6 +24,8 @@ package org.onosproject.net;
  */
 public final class AnnotationKeys {
 
+    private static final double DEFAULT_VALUE = 1.0;
+
     // Prohibit instantiation
     private AnnotationKeys() {
     }
@@ -47,14 +49,34 @@ public final class AnnotationKeys {
     public static final String UI_TYPE = "uiType";
 
     /**
-     * Annotation key for latitude (e.g. latitude of device).
+     * Annotation key for UI location type of device/host
+     * (either 'geo' or 'grid').
+     */
+    public static final String LOC_TYPE = "locType";
+
+    /**
+     * Annotation key for latitude (e.g. latitude of device/host
+     * in a geo-layout).
      */
     public static final String LATITUDE = "latitude";
 
     /**
-     * Annotation key for longitude (e.g. longitude of device).
+     * Annotation key for longitude (e.g. longitude of device/host
+     * in a geo-layout).
      */
     public static final String LONGITUDE = "longitude";
+
+    /**
+     * Annotation key for grid-Y (e.g. y-coordinate of device/host
+     * in a grid-layout).
+     */
+    public static final String GRID_Y = "gridY";
+
+    /**
+     * Annotation key for grid-X (e.g. x-coordinate of device/host
+     * in a grid-layout).
+     */
+    public static final String GRID_X = "gridX";
 
     /**
      * Annotation key for southbound protocol.
@@ -168,7 +190,7 @@ public final class AnnotationKeys {
     /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
-     * If parsing fails, the returned value will be 1.0.
+     * If parsing fails, the returned value will be {@value DEFAULT_VALUE}.
      *
      * @param annotated annotated object whose annotated value is obtained
      * @param key       key of annotation
@@ -179,7 +201,7 @@ public final class AnnotationKeys {
         try {
             value = Double.parseDouble(annotated.annotations().value(key));
         } catch (NumberFormatException e) {
-            value = 1.0;
+            value = DEFAULT_VALUE;
         }
         return value;
     }

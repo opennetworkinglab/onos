@@ -63,6 +63,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.AnnotationKeys.GRID_X;
+import static org.onosproject.net.AnnotationKeys.GRID_Y;
 import static org.onosproject.net.AnnotationKeys.LATITUDE;
 import static org.onosproject.net.AnnotationKeys.LONGITUDE;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
@@ -196,7 +198,18 @@ public class Topo2Jsonifier {
                 .put("region", nullIsEmpty(layout.regionId()))
                 .put("regionName", UiRegion.safeName(layout.region()));
         addCrumbs(result, crumbs);
+        addBgRef(result, layout);
         return result;
+    }
+
+    private void addBgRef(ObjectNode result, UiTopoLayout layout) {
+        String map = layout.geomap();
+        String spr = layout.sprites();
+        if (map != null) {
+            result.put("bgType", "geo").put("bgId", map);
+        } else if (spr != null) {
+            result.put("bgType", "grid").put("bgId", spr);
+        }
     }
 
     private void addCrumbs(ObjectNode result, List<UiTopoLayout> crumbs) {
@@ -342,7 +355,7 @@ public class Topo2Jsonifier {
         Device d = device.backingDevice();
 
         addProps(node, d);
-        addGeoLocation(node, d);
+        addGeoGridLocation(node, d);
         addMetaUi(node, device.idAsString());
 
         return node;
@@ -364,25 +377,31 @@ public class Topo2Jsonifier {
         }
     }
 
-    // FIXME: need to handle geo vs. grid location...
-    private void addGeoLocation(ObjectNode node, Annotated a) {
+    private void addGeoGridLocation(ObjectNode node, Annotated a) {
         List<String> lngLat = getAnnotValues(a, LONGITUDE, LATITUDE);
-        if (lngLat != null) {
-            try {
-                double lng = Double.parseDouble(lngLat.get(0));
-                double lat = Double.parseDouble(lngLat.get(1));
-                ObjectNode loc = objectNode()
-                        .put("type", "lnglat")
-                        .put("lng", lng)
-                        .put("lat", lat);
-                node.set("location", loc);
+        List<String> gridYX = getAnnotValues(a, GRID_Y, GRID_X);
 
-            } catch (NumberFormatException e) {
-                log.warn("Invalid geo data: longitude={}, latitude={}",
-                        lngLat.get(0), lngLat.get(1));
-            }
-        } else {
-            log.debug("No geo lng/lat for {}", a);
+        if (lngLat != null) {
+            attachLocation(node, "geo", "lng", "lat", lngLat);
+        } else if (gridYX != null) {
+            attachLocation(node, "grid", "gridY", "gridX", gridYX);
+        }
+    }
+
+    private void attachLocation(ObjectNode node, String locType,
+                                String keyA, String keyB, List<String> values) {
+        try {
+            double valA = Double.parseDouble(values.get(0));
+            double valB = Double.parseDouble(values.get(1));
+            ObjectNode loc = objectNode()
+                    .put("type", locType)
+                    .put(keyA, valA)
+                    .put(keyB, valB);
+            node.set("location", loc);
+
+        } catch (NumberFormatException e) {
+            log.warn("Invalid {} data: long/Y={}, lat/X={}",
+                    locType, values.get(0), values.get(1));
         }
     }
 
@@ -429,7 +448,8 @@ public class Topo2Jsonifier {
         Host h = host.backingHost();
 
         addIps(node, h);
-        addGeoLocation(node, h);
+        addProps(node, h);
+        addGeoGridLocation(node, h);
         addMetaUi(node, host.idAsString());
 
         return node;
@@ -466,7 +486,7 @@ public class Topo2Jsonifier {
                 .put("nHosts", region.hostCount());
 
         Region r = region.backingRegion();
-        addGeoLocation(node, r);
+        addGeoGridLocation(node, r);
         addProps(node, r);
 
         addMetaUi(node, region.idAsString());

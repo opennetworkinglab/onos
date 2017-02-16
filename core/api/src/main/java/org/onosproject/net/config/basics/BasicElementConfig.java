@@ -48,15 +48,14 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     public static final String LONGITUDE = "longitude";
 
     /**
-     * Key for grid X coordinate.
-     */
-    public static final String GRID_X = "gridx";
-
-    /**
      * Key for grid Y coordinate.
      */
-    public static final String GRID_Y = "gridy";
+    public static final String GRID_Y = "gridY";
 
+    /**
+     * Key for grid X coordinate.
+     */
+    public static final String GRID_X = "gridX";
 
     /**
      * Key for rack address.
@@ -196,22 +195,17 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     }
 
     /**
-     * Returns element grid x-coordinate.
+     * Returns true if the grid coordinates (gridY and gridX) are set on
+     * this element; false otherwise.
+     * <p>
+     * It is assumed that elements will not be placed at {@code (0,0)}.
+     * If you really need to position the element there, consider setting the
+     * coordinates to something like {@code (0.000001, 0.000001)} instead.
      *
-     * @return element x-coordinate
+     * @return true if grid coordinates are set; false otherwise.
      */
-    public double gridX() {
-        return get(GRID_X, DEFAULT_COORD);
-    }
-
-    /**
-     * Sets the element grid x-coordinate.
-     *
-     * @param x new x-coordinate; null to clear
-     * @return self
-     */
-    public BasicElementConfig gridX(Double x) {
-        return (BasicElementConfig) setOrClear(GRID_X, x);
+    public boolean gridCoordsSet() {
+        return !doubleIsZero(gridY()) || !doubleIsZero(gridX());
     }
 
     /**
@@ -231,6 +225,25 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      */
     public BasicElementConfig gridY(Double y) {
         return (BasicElementConfig) setOrClear(GRID_Y, y);
+    }
+
+    /**
+     * Returns element grid x-coordinate.
+     *
+     * @return element x-coordinate
+     */
+    public double gridX() {
+        return get(GRID_X, DEFAULT_COORD);
+    }
+
+    /**
+     * Sets the element grid x-coordinate.
+     *
+     * @param x new x-coordinate; null to clear
+     * @return self
+     */
+    public BasicElementConfig gridX(Double x) {
+        return (BasicElementConfig) setOrClear(GRID_X, x);
     }
 
     /**

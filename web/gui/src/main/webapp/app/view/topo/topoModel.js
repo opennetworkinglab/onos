@@ -115,7 +115,7 @@
         var loc = node.location,
             coord;
 
-        if (loc && loc.type === 'lnglat') {
+        if (loc && loc.type === 'geo') {
             coord = coordFromLngLat(loc);
             node.fixed = true;
             node.px = node.x = coord[0];

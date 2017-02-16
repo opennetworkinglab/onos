@@ -36,7 +36,7 @@ import static com.google.common.collect.Lists.newArrayList;
         description = "List layout details")
 public class LayoutListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "id=%s, region=%s, parent=%s";
+    private static final String FMT = "id=%s, bgref=%s, region=%s, parent=%s";
 
     @Argument(index = 0, name = "id", description = "Layout ID",
             required = false, multiValued = false)
@@ -68,7 +68,17 @@ public class LayoutListCommand extends AbstractShellCommand {
     }
 
     private void printLayout(UiTopoLayout layout) {
-        print(FMT, layout.id(), layout.regionId(),
-              layout.parent() != null ? layout.parent().id() : "none");
+        String map = layout.geomap();
+        String spr = layout.sprites();
+        String bgRef = ".";
+        if (map != null) {
+            bgRef = "@" + map;
+        } else if (spr != null) {
+            bgRef = "+" + spr;
+        }
+
+        String pid = layout.parent() != null ? layout.parent().id() : "(none)";
+
+        print(FMT, layout.id(), bgRef, layout.regionId(), pid);
     }
 }
