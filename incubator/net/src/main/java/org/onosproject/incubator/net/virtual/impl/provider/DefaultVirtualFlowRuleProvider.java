@@ -190,12 +190,12 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
      * @param flowRule A virtual flow rule to be translated
      * @return A flow rule for a specific virtual network
      */
-    private FlowRule virtualize(FlowRule flowRule) {
+    private FlowRule virtualizeFlowRule(FlowRule flowRule) {
         return frm.getVirtualRule(flowRule);
     }
 
     private FlowEntry virtualize(FlowEntry flowEntry) {
-        FlowRule vRule = virtualize(flowEntry);
+        FlowRule vRule = virtualizeFlowRule(flowEntry);
         FlowEntry vEntry = new DefaultFlowEntry(vRule, flowEntry.state(),
                                                 flowEntry.life(),
                                                 flowEntry.packets(),
