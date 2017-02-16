@@ -704,8 +704,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             log.trace("Rcvd pktin: {}", ethernet);
             if (ethernet.getEtherType() == TYPE_ARP) {
-                log.warn("{} - we are still receiving ARP packets from {}",
-                         context.inPacket().receivedFrom());
+                log.warn("Receive unexpected ARP packet on {}", context.inPacket().receivedFrom());
                 log.debug("{}", ethernet);
                 return;
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
