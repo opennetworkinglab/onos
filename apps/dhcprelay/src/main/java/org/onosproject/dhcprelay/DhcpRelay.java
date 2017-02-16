@@ -168,6 +168,15 @@ public class DhcpRelay {
         }
     }
 
+    /**
+     * Checks if this app has been configured.
+     *
+     * @return true if all information we need have been initialized
+     */
+    private boolean configured() {
+        return (dhcpServerConnectPoint != null) && (dhcpServerIp != null) && (dhcpServerMac != null);
+    }
+
     private void updateConfig() {
         DhcpRelayConfig cfg = cfgService.getConfig(appId, DhcpRelayConfig.class);
 
@@ -240,6 +249,11 @@ public class DhcpRelay {
 
         @Override
         public void process(PacketContext context) {
+            if (!configured()) {
+                log.info("Missing DHCP rely server config. Abort packet processing");
+                return;
+            }
+
             // process the packet and get the payload
             Ethernet packet = context.inPacket().parsed();
 
@@ -355,23 +369,31 @@ public class DhcpRelay {
                 //add the gatewayip as virtual interface ip for server to understand the lease to be assigned
                 //and forward the packet to dhcp server.
                 Ethernet ethernetPacketDiscover = processDhcpPacketFrmClient(context, packet, clientServerInterfaces);
-                forwardPacket(ethernetPacketDiscover);
+                if (ethernetPacketDiscover != null) {
+                    forwardPacket(ethernetPacketDiscover);
+                }
                 break;
             case DHCPOFFER:
                 //reply to dhcp client.
                 Ethernet ethernetPacketOffer = processDhcpPacketFrmServer(packet);
-                sendReply(ethernetPacketOffer, dhcpPayload);
+                if (ethernetPacketOffer != null) {
+                    sendReply(ethernetPacketOffer, dhcpPayload);
+                }
                 break;
             case DHCPREQUEST:
                 //add the gatewayip as virtual interface ip for server to understand the lease to be assigned
                 //and forward the packet to dhcp server.
                 Ethernet ethernetPacketRequest = processDhcpPacketFrmClient(context, packet, clientServerInterfaces);
-                forwardPacket(ethernetPacketRequest);
+                if (ethernetPacketRequest != null) {
+                    forwardPacket(ethernetPacketRequest);
+                }
                 break;
             case DHCPACK:
                 //reply to dhcp client.
                 Ethernet ethernetPacketAck = processDhcpPacketFrmServer(packet);
-                sendReply(ethernetPacketAck, dhcpPayload);
+                if (ethernetPacketAck != null) {
+                    sendReply(ethernetPacketAck, dhcpPayload);
+                }
                 break;
             default:
                 break;
@@ -386,6 +408,12 @@ public class DhcpRelay {
             relayAgentIP = clientInterfaces.iterator().next().ipAddressesList().get(0).
                     ipAddress().getIp4Address();
             relayAgentMAC = clientInterfaces.iterator().next().mac();
+
+            if (relayAgentIP == null || relayAgentMAC == null) {
+                log.info("Missing DHCP rely agent config. Abort packet processing");
+                return null;
+            }
+
             // get dhcp header.
             Ethernet etherReply = (Ethernet) ethernetPacket.clone();
             etherReply.setSourceMACAddress(relayAgentMAC);
@@ -404,6 +432,11 @@ public class DhcpRelay {
 
         //build the DHCP offer/ack with proper client port.
         private Ethernet processDhcpPacketFrmServer(Ethernet ethernetPacket) {
+
+            if (relayAgentIP == null || relayAgentMAC == null) {
+                log.info("Missing DHCP rely agent config. Abort packet processing");
+                return null;
+            }
 
             // get dhcp header.
             Ethernet etherReply = (Ethernet) ethernetPacket.clone();
@@ -430,19 +463,13 @@ public class DhcpRelay {
             MacAddress descMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
             Host host = hostService.getHost(HostId.hostId(descMac,
                     VlanId.vlanId(ethPacket.getVlanID())));
-            //handle the concurrent host offline scenario
-            if (host == null) {
-                return;
-            }
-            ConnectPoint dhcpRequestor = new ConnectPoint(host.location().elementId(),
-                                                    host.location().port());
 
-            //send Packetout to requestor host.
-            if (dhcpRequestor != null) {
+            // Send packet out to requestor if the host information is available
+            if (host != null) {
                 TrafficTreatment t = DefaultTrafficTreatment.builder()
-                        .setOutput(dhcpRequestor.port()).build();
+                        .setOutput(host.location().port()).build();
                 OutboundPacket o = new DefaultOutboundPacket(
-                        dhcpRequestor.deviceId(), t, ByteBuffer.wrap(ethPacket.serialize()));
+                        host.location().deviceId(), t, ByteBuffer.wrap(ethPacket.serialize()));
                 packetService.emit(o);
             }
         }
