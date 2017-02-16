@@ -18,75 +18,91 @@
           description="ONOS ConsistentMap distributed primitive Test">
     <group name="Distributed-Primitive-Map">
 
-        <step name="Distributed-Primitive-Map.Activate-Distributed-Primitives-App"
-            exec="onos ${OCI} app activate org.onosproject.distributedprimitives"/>
-
-        <step name="Distributed-Primitive-Map.Test-Map-Get" requires="Distributed-Primitive-Map.Activate-Distributed-Primitives-App"
+        <step name="Distributed-Primitive-Map.Test-Map-Get"
+              requires="Distributed-Primitives-Setup"
               exec="onos-cluster-execute-expect map-test foo get a --expect null"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Put" requires="Distributed-Primitive-Map.Test-Map-Get"
+        <step name="Distributed-Primitive-Map.Test-Map-Put"
+              requires="Distributed-Primitive-Map.Test-Map-Get"
               exec="onos-execute-expect ${OCI} map-test foo put a b --expect null"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-Put" requires="Distributed-Primitive-Map.Test-Map-Put"
+        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-Put"
+              requires="Distributed-Primitive-Map.Test-Map-Put"
               exec="onos-cluster-execute-expect map-test foo get a --expect b"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Present" requires="Distributed-Primitive-Map.Test-Map-Updated-After-Put"
+        <step name="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Present"
+              requires="Distributed-Primitive-Map.Test-Map-Updated-After-Put"
               exec="onos-execute-expect ${OCI} map-test foo putIfAbsent a c --expect b"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Absent" requires="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Present"
+        <step name="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Absent"
+              requires="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Present"
               exec="onos-execute-expect ${OCI} map-test foo putIfAbsent b c --expect null"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-PutIfAbsent" requires="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Absent"
+        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-PutIfAbsent"
+              requires="Distributed-Primitive-Map.Test-Map-PutIfAbsent-When-Key-Absent"
               exec="onos-cluster-execute-expect map-test foo get b --expect c"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-PutAndGet" requires="Distributed-Primitive-Map.Test-Map-Updated-After-PutIfAbsent"
+        <step name="Distributed-Primitive-Map.Test-Map-Updated-After-PutAndGet"
+              requires="Distributed-Primitive-Map.Test-Map-Updated-After-PutIfAbsent"
               exec="onos-execute-expect ${OCI} map-test foo putAndGet b d --expect d"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Absent" requires="Distributed-Primitive-Map.Test-Map-Updated-After-PutAndGet"
+        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Absent"
+              requires="Distributed-Primitive-Map.Test-Map-Updated-After-PutAndGet"
               exec="onos-execute-expect ${OCI} map-test foo replace c e --expect null"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Present" requires="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Absent"
+        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Present"
+              requires="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Absent"
               exec="onos-execute-expect ${OCI} map-test foo replace b e --expect d"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Not-Match" requires="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Present"
+        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Not-Match"
+              requires="Distributed-Primitive-Map.Test-Map-Replace-When-Key-Present"
               exec="onos-execute-expect ${OCI} map-test foo replace b x f --expect false"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Match" requires="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Not-Match"
+        <step name="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Match"
+              requires="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Not-Match"
               exec="onos-execute-expect ${OCI} map-test foo replace b e f --expect true"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-ContainsValue-False-Case" requires="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Match"
+        <step name="Distributed-Primitive-Map.Test-Map-ContainsValue-False-Case"
+              requires="Distributed-Primitive-Map.Test-Map-Replace-When-Value-Does-Match"
               exec="onos-cluster-execute-expect map-test foo containsValue x --expect false"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-ContainsValue-True-Case" requires="Distributed-Primitive-Map.Test-Map-ContainsValue-False-Case"
+        <step name="Distributed-Primitive-Map.Test-Map-ContainsValue-True-Case"
+              requires="Distributed-Primitive-Map.Test-Map-ContainsValue-False-Case"
               exec="onos-cluster-execute-expect map-test foo containsValue f --expect true"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Size" requires="Distributed-Primitive-Map.Test-Map-ContainsValue-True-Case"
+        <step name="Distributed-Primitive-Map.Test-Map-Size"
+              requires="Distributed-Primitive-Map.Test-Map-ContainsValue-True-Case"
               exec="onos-cluster-execute-expect map-test foo size --expect 2"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-IsEmpty" requires="Distributed-Primitive-Map.Test-Map-Size"
+        <step name="Distributed-Primitive-Map.Test-Map-IsEmpty"
+              requires="Distributed-Primitive-Map.Test-Map-Size"
               exec="onos-cluster-execute-expect map-test foo isEmpty --expect false"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Remove" requires="Distributed-Primitive-Map.Test-Map-IsEmpty"
+        <step name="Distributed-Primitive-Map.Test-Map-Remove"
+              requires="Distributed-Primitive-Map.Test-Map-IsEmpty"
               exec="onos-execute-expect ${OCI} map-test foo remove b --expect f"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Not-Match" requires="Distributed-Primitive-Map.Test-Map-Remove"
+        <step name="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Not-Match"
+              requires="Distributed-Primitive-Map.Test-Map-Remove"
               exec="onos-execute-expect ${OCI} map-test foo remove a c --expect false"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Match" requires="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Not-Match"
+        <step name="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Match"
+              requires="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Not-Match"
               exec="onos-execute-expect ${OCI} map-test foo remove a b --expect true"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Clear" requires="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Match"
+        <step name="Distributed-Primitive-Map.Test-Map-Clear"
+              requires="Distributed-Primitive-Map.Test-Map-Remove-Key-Value-Does-Match"
               exec="onos ${OCI} map-test foo clear"/>
 
-        <step name="Distributed-Primitive-Map.Test-Map-Cleared" requires="Distributed-Primitive-Map.Test-Map-Clear"
+        <step name="Distributed-Primitive-Map.Test-Map-Cleared"
+              requires="Distributed-Primitive-Map.Test-Map-Clear"
               exec="onos-execute-expect ${OCI} map-test foo isEmpty --expect true"/>
 
         <!--Check with check logs-->
-        <step name="Distributed-Primitive-Map.Check-Log-Exceptions" requires="Distributed-Primitive-Map.Test-Map-Cleared"
+        <step name="Distributed-Primitive-Map.Check-Log-Exceptions"
+              requires="Distributed-Primitive-Map.Test-Map-Cleared"
               exec="onos-check-logs ${OCI}"/>
 
-        <step name="Distributed-Primitive-Map.Teardown-Distributed-Primitives-Test-App" requires="Distributed-Primitive-Map.Check-Log-Exceptions"
-              exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives"/>
     </group>
 </scenario>
 
