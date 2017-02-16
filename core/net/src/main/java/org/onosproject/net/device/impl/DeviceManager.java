@@ -58,6 +58,7 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.PortConfigOperator;
 import org.onosproject.net.config.PortConfigOperatorRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.PortAnnotationConfig;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceDescription;
@@ -148,6 +149,9 @@ public class DeviceManager
         = synchronizedListMultimap(
            newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));
 
+    // not part of portOps. must be executed at the end
+    private PortAnnotationOperator portAnnotationOp;
+
     /**
      * Local storage for connectivity status of devices.
      */
@@ -165,6 +169,9 @@ public class DeviceManager
 
     @Activate
     public void activate() {
+        portAnnotationOp = new PortAnnotationOperator(networkConfigService);
+        portOpsIndex.put(PortAnnotationConfig.class, portAnnotationOp);
+
         backgroundService = newSingleThreadScheduledExecutor(
                              groupedThreads("onos/device", "manager-background", log));
         localNodeId = clusterService.getLocalNode().id();
@@ -976,7 +983,7 @@ public class DeviceManager
         for (PortConfigOperator portOp : portOps) {
             work = portOp.combine(cpt, work);
         }
-        return work;
+        return portAnnotationOp.combine(cpt, work);
     }
 
 }

@@ -1,0 +1,11 @@
+{
+  "ports" : {
+    "of:0000000000000001/2" : {
+      "annotations" : {
+        "entries" : {
+          "foo" : "bar"
+        }
+      }
+    }
+  }
+}

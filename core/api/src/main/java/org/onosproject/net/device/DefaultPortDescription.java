@@ -88,6 +88,19 @@ public class DefaultPortDescription extends AbstractDescription
              annotations);
     }
 
+    /**
+     * Creates a port description using the supplied information.
+     *
+     * @param base port description to copy fields from
+     * @param annotations to be used in the copied description.
+     *        Note: Annotations on {@code base} will be ignored.
+     * @return copied port description
+     */
+    public static DefaultPortDescription copyReplacingAnnotation(PortDescription base,
+                                                                 SparseAnnotations annotations) {
+        return new DefaultPortDescription(base, annotations);
+    }
+
     @Override
     public PortNumber portNumber() {
         return number;

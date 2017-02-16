@@ -232,6 +232,15 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.AnnotatePortCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="annotationKeysCompleter"/>
+                <null/>
+            </completers>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.AnnotateLinkCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>

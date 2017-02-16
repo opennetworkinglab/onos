@@ -36,6 +36,7 @@ import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.config.basics.BasicRegionConfig;
 import org.onosproject.net.config.basics.BasicUiTopoLayoutConfig;
+import org.onosproject.net.config.basics.PortAnnotationConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
@@ -111,6 +112,14 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
                 @Override
                 public BasicUiTopoLayoutConfig createConfig() {
                     return new BasicUiTopoLayoutConfig();
+                }
+            },
+            new ConfigFactory<ConnectPoint, PortAnnotationConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                    PortAnnotationConfig.class,
+                    PortAnnotationConfig.CONFIG_KEY) {
+                @Override
+                public PortAnnotationConfig createConfig() {
+                    return new PortAnnotationConfig();
                 }
             }
     );

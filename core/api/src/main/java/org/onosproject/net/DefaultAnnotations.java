@@ -24,6 +24,7 @@ import java.util.Set;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Maps.transformValues;
 
 /**
  * Represents a set of simple annotations that can be used to add arbitrary
@@ -242,6 +243,18 @@ public final class DefaultAnnotations implements SparseAnnotations {
                 base.keys().forEach(key -> set(key, base.value(key)));
 
             }
+            return this;
+        }
+
+        /**
+         * Adds all entries in specified map.
+         * Any previous entries with same key will be overwritten.
+         *
+         * @param entries annotation key and value entries
+         * @return self
+         */
+        public Builder putAll(Map<String, String> entries) {
+            builder.putAll(transformValues(entries, v -> (v == null) ? REMOVED : v));
             return this;
         }
 
