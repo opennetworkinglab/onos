@@ -468,6 +468,10 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
      * otherwise null
      */
     private ModTunnelIdInstruction getModTunnelIdInstruction(TrafficTreatment treatment) {
+        if (treatment == null) {
+            return null;
+        }
+
         L2ModificationInstruction l2ModificationInstruction;
         for (Instruction instruction : treatment.allInstructions()) {
             if (instruction.type() == L2MODIFICATION) {
