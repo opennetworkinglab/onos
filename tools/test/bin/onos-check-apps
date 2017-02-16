@@ -6,7 +6,7 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
 for attempt in {1..30}; do

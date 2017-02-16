@@ -1,6 +1,6 @@
 #!/bin/bash
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 url=$1

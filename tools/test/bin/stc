@@ -12,7 +12,7 @@ SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 # Download the STC binary if needed
 if [ ! -f $JAR ]; then
     printf "Downloading STC binary..."
-    aux=/tmp/stc-$$.log
+    aux=/tmp/stc/stc-$$.log
     mvn dependency:get -Dartifact=org.onosproject:onos-stc:$VER -Dtransitive=false -B >$aux || fgrep '[ERROR]' $aux
     rm -f $aux
     [ -f $JAR ] && printf "Done.\n"

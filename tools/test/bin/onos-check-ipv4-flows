@@ -3,7 +3,7 @@
 # Checks ONOS flows
 # -----------------------------------------------------------------------------
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 want_present=0

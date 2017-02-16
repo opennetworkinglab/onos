@@ -13,7 +13,7 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 ip=$1
 cmd=""

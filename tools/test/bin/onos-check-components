@@ -3,7 +3,7 @@
 # Checks whether all ONOS components are either ACTIVE or DISABLED.
 # -----------------------------------------------------------------------------
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 for attempt in {1..30}; do

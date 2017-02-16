@@ -12,14 +12,16 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 cmd=""
 for a in ${*:1}; do shift; if [ "$a" = "--expect" ]; then break; fi; cmd="$cmd $a"; done
 expect="${@: -1}"
 echo $cmd
-echo $expect
+echo "expect ${expect}"
 node_count=`onos $OC1 nodes | wc -l`
+# FIMXE: This only works if nodes are sequential
+# For dynamic clustering we could grab the IPs from 'nodes'
 for i in `seq 1 $node_count`; do
     node_var="OC$i"
     onos ${!node_var} $cmd > $aux

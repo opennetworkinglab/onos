@@ -3,7 +3,7 @@
 # Checks whether all and only the ONOS instances configured active.
 # -----------------------------------------------------------------------------
 
-aux=/tmp/stc-$$.log
+aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
 onos ${1:-$OCI} "onos:nodes" > $aux
