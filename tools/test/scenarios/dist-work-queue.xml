@@ -58,10 +58,13 @@
               requires="^"
               exec="onos ${OCI} work-queue-test stc-test-work-queue destroy"/>
 
-        <!--Check with check logs-->
-        <step name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions"
-              requires="^"
-              exec="onos-check-logs ${OCI}"/>
+        <group name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions"
+               requires="Distributed-Primitive-WorkQueue.Test-Queue-Destroy">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-WorkQueue.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
 
     </group>
 </scenario>

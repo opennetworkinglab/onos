@@ -50,10 +50,13 @@
               requires="Distributed-Primitive-Value.Test-Value-Updated-After-CAS"
               exec="onos ${OCI} value-test test-value set null"/>
 
-        <!--Check with check logs-->
-        <step name="Distributed-Primitive-Value.Check-Log-Exceptions"
-              requires="Distributed-Primitive-Value.Destroy-Value"
-              exec="onos-check-logs ${OCI}"/>
+        <group name="Distributed-Primitive-Value.Check-Log-Exceptions"
+               requires="Distributed-Primitive-Value.Destroy-Value">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-Value.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
 
     </group>
 </scenario>
