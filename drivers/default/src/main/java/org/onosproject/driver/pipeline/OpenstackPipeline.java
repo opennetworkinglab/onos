@@ -16,7 +16,6 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -33,11 +32,9 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
-import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -58,36 +55,31 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
         implements Pipeliner {
 
     private final Logger log = getLogger(getClass());
-    private CoreService coreService;
-    private ServiceDirectory serviceDirectory;
     protected FlowObjectiveStore flowObjectiveStore;
     protected DeviceId deviceId;
     protected ApplicationId appId;
     protected FlowRuleService flowRuleService;
 
-    protected static final int SRC_VNI_TABLE = 0;
-    protected static final int ACL_TABLE = 1;
-    protected static final int CT_TABLE = 2;
-    protected static final int JUMP_TABLE = 3;
-    protected static final int ROUTING_TABLE = 4;
-    protected static final int FORWARDING_TABLE = 5;
-    protected static final int DUMMY_TABLE = 10;
-    protected static final int LAST_TABLE = FORWARDING_TABLE;
+    private static final int SRC_VNI_TABLE = 0;
+    private static final int JUMP_TABLE = 1;
+    private static final int ROUTING_TABLE = 2;
+    private static final int FORWARDING_TABLE = 3;
+    private static final int DUMMY_TABLE = 10;
+    private static final int LAST_TABLE = FORWARDING_TABLE;
 
     private static final int DROP_PRIORITY = 0;
     private static final int HIGH_PRIORITY = 30000;
     private static final int TIME_OUT = 0;
-    private static final int DHCP_SERVER_PORT = 67;
     private static final String VIRTUAL_GATEWAY_MAC = "fe:00:00:00:00:02";
 
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
         super.init(deviceId, context);
-        this.serviceDirectory = context.directory();
+        ServiceDirectory serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
-        coreService = serviceDirectory.get(CoreService.class);
+        CoreService coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         flowObjectiveStore = context.store();
 
@@ -134,10 +126,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
 
     private void initializePipeline() {
         //TODO: For now, we do not support security group feature temporarily.
-        connectTables(SRC_VNI_TABLE, JUMP_TABLE); // Table 0 -> Table 3
-        //FIXME CT table needs to be reconstructed using OVS 2.5 connection tracking feature.
-        connectTables(CT_TABLE, JUMP_TABLE);  // Table 2 -> Table 3
-        setUpTableMissEntry(ACL_TABLE);
+        connectTables(SRC_VNI_TABLE, JUMP_TABLE); // Table 0 -> Table 1
         setupJumpTable();
     }
 
@@ -155,25 +144,6 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
                 .fromApp(appId)
                 .makePermanent()
                 .forTable(fromTable)
-                .build();
-
-        applyRules(true, flowRule);
-    }
-
-    private void setUpTableMissEntry(int table) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-
-        treatment.drop();
-
-        FlowRule flowRule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DROP_PRIORITY)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(table)
                 .build();
 
         applyRules(true, flowRule);
@@ -242,7 +212,8 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
                 .withSelector(forwardingObjective.selector())
                 .withTreatment(forwardingObjective.treatment())
                 .withPriority(forwardingObjective.priority())
-                .fromApp(forwardingObjective.appId());
+                .fromApp(forwardingObjective.appId())
+                .forTable(SRC_VNI_TABLE);
 
         if (forwardingObjective.permanent()) {
             ruleBuilder.makePermanent();
@@ -250,31 +221,13 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
             ruleBuilder.makeTemporary(TIME_OUT);
         }
 
-        //ARP & DHCP Rule
-        EthTypeCriterion ethCriterion =
-                (EthTypeCriterion) forwardingObjective.selector().getCriterion(Criterion.Type.ETH_TYPE);
-        UdpPortCriterion udpPortCriterion = (UdpPortCriterion) forwardingObjective
-                .selector().getCriterion(Criterion.Type.UDP_DST);
-        if (ethCriterion != null) {
-            if (ethCriterion.ethType().toShort() == Ethernet.TYPE_ARP ||
-                    ethCriterion.ethType().toShort() == Ethernet.TYPE_LLDP) {
-                ruleBuilder.forTable(SRC_VNI_TABLE);
-                return ruleBuilder.build();
-            } else if (udpPortCriterion != null && udpPortCriterion.udpPort().toInt() == DHCP_SERVER_PORT) {
-                ruleBuilder.forTable(SRC_VNI_TABLE);
-                return ruleBuilder.build();
-            }
-        }
-
-        return null;
+        return ruleBuilder.build();
     }
 
     private FlowRule processSpecific(ForwardingObjective forwardingObjective) {
         log.debug("Processing specific forwarding objective");
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-
-
         Optional<Instruction> group = forwardingObjective.treatment().immediate().stream()
                 .filter(i -> i.type() == Instruction.Type.GROUP).findAny();
         int tableType = tableType(forwardingObjective);
@@ -301,7 +254,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
         return ruleBuilder.build();
     }
 
-    int tableType(ForwardingObjective fo) {
+    private int tableType(ForwardingObjective fo) {
 
         IPCriterion ipSrc = (IPCriterion) fo.selector().getCriterion(Criterion.Type.IPV4_SRC);
         IPCriterion ipDst = (IPCriterion) fo.selector().getCriterion(Criterion.Type.IPV4_DST);
@@ -316,22 +269,17 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
         // TODO: Add the Connection Tracking Table
         if (inPort != null) {
             return SRC_VNI_TABLE;
-        } else if (output.isPresent()) {
-            return FORWARDING_TABLE;
-        } else if ((ipSrc != null && ipSrc.ip().prefixLength() == 32 &&
-                ipDst != null && ipDst.ip().prefixLength() == 32) ||
-                (ipSrc != null && ipSrc.ip().prefixLength() == 32 && ipDst == null) ||
-                (ipDst != null && ipDst.ip().prefixLength() == 32 && ipSrc == null)) {
-            return ACL_TABLE;
-        } else if ((tunnelId != null && ipSrc != null && ipDst != null) || group.isPresent()) {
+        } else if ((tunnelId != null && ipSrc != null && ipDst != null) ||
+                (ipSrc != null && group.isPresent())) {
             return ROUTING_TABLE;
+        } else if (output.isPresent() || (ipDst != null && group.isPresent())) {
+            return FORWARDING_TABLE;
         }
 
         return DUMMY_TABLE;
     }
 
-    int nextTable(int baseTable) {
-
+    private int nextTable(int baseTable) {
         return baseTable + 1;
     }
 
