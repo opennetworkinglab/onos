@@ -36,6 +36,7 @@ public class LayoutAddCommand extends AbstractShellCommand {
 
     private static final char CODE_GEO = '@';
     private static final char CODE_GRID = '+';
+    private static final String ROOT = "root";
 
     @Argument(index = 0, name = "id", description = "Layout ID",
             required = true, multiValued = false)
@@ -59,6 +60,12 @@ public class LayoutAddCommand extends AbstractShellCommand {
     protected void execute() {
         UiTopoLayoutService service = get(UiTopoLayoutService.class);
         RegionService regionService = get(RegionService.class);
+
+        if (ROOT.equals(id)) {
+            // set the background for the root layout
+            setAppropriateBackground(service.getRootLayout(), backgroundRef);
+            return;
+        }
 
         Region region = regionId == null ? null : regionService.getRegion(regionId(regionId));
         UiTopoLayoutId pid = parentId == null ? UiTopoLayoutId.DEFAULT_ID : layoutId(parentId);

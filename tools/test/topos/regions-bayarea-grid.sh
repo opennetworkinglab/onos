@@ -266,10 +266,12 @@ EOF
 
 onos ${host} <<-EOF
 
+layout-add root @bayareaGEO
+
 layout-add lC01 +segmentRouting c01
-layout-add lC02 @bayareaGEO c02
-layout-add lC03 . c03
-layout-add lC04 . c04
+layout-add lC02 +segmentRouting c02
+layout-add lC03 +segmentRouting c03
+layout-add lC04 . c04         # testing no-background
 
 layouts
 
