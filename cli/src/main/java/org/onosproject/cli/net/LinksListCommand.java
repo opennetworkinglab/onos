@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
@@ -25,8 +26,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.LinkKey.linkKey;
+
+import java.util.Comparator;
 
 /**
  * Lists all infrastructure links.
@@ -50,9 +53,11 @@ public class LinksListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(this, links));
         } else {
-            for (Link link : links) {
+            Tools.stream(links)
+                .sorted(Comparator.comparing(link -> linkKey(link).toString()))
+                .forEach(link -> {
                 print(linkString(link));
-            }
+            });
         }
     }
 
