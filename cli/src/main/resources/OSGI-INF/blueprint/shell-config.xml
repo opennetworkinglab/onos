@@ -777,6 +777,19 @@
             </optional-completers>
         </command>
 
+        <command>
+            <action class="org.onosproject.cli.net.ConfigureLinkCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="peerConnectPointCompleter"/>
+                <null/>
+            </completers>
+            <optional-completers>
+                <entry key="--type" value-ref="linkTypeCompleter"/>
+            </optional-completers>
+        </command>
+
+
     </command-bundle>
 
     <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>
@@ -825,4 +838,7 @@
 
     <bean id="peerConnectPointCompleter" class="org.onosproject.cli.net.completer.PeerConnectPointCompleter"/>
     <bean id="interfaceNameCompleter" class="org.onosproject.cli.net.completer.InterfaceNameCompleter"/>
+
+    <bean id="linkTypeCompleter" class="org.onosproject.cli.net.completer.LinkTypeCompleter"/>
+
 </blueprint>
