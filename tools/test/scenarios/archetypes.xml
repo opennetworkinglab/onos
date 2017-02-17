@@ -23,9 +23,14 @@
         <step name="Build-App" requires="Create-App" exec="mvn clean install"/>
         <step name="Install-App" requires="^"
               exec="onos-app ${OCI} install! target/test-app-1.2.3.oar"/>
-        <step name="Verify-App" requires="^" delay="5"
-              exec="onos ${OCI} scr:details org.test.app.AppComponent"
-              FIXME="onos-check-components ${OCI} org.test.app.AppComponent"/>
+        <group name="Verify-App"
+            requires="Install-App" delay="5" >
+            <parallel var="${OC#}">
+                <step name="Verify-App-${#}"
+                      exec="onos ${OC#} scr:details org.test.app.AppComponent"
+                      FIXME="onos-check-components ${OC#} org.test.app.AppComponent"/>
+            </parallel>
+        </group>
 
         <step name="Create-App-CLI-Overlay" requires="Install-App"
               exec="onos-create-app cli org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
@@ -33,8 +38,13 @@
               exec="mvn clean install"/>
         <step name="Reinstall-App-With-CLI" requires="^,~Verify-App"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-CLI" requires="^" delay="2"
-              exec="onos ${OCI} sample"/>
+        <group name="Verify-CLI"
+            requires="Reinstall-App-With-CLI" delay="2" >
+            <parallel var="${OC#}">
+                <step name="Verify-CLI-${#}"
+                      exec="onos ${OC#} sample" include="Hello World"/>
+            </parallel>
+        </group>
 
         <step name="Create-App-UI-Overlay" requires="Reinstall-App-With-CLI"
               exec="onos-create-app ui org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
@@ -42,8 +52,13 @@
               exec="mvn clean install"/>
         <step name="Reinstall-App-With-UI" requires="^,~Verify-CLI"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-UI" requires="^" delay="2"
-              exec="onos-check-views ${OCI} id=sample"/>
+        <group name="Verify-UI"
+            requires="Reinstall-App-With-UI" delay="2" >
+            <parallel var="${OC#}">
+                <step name="Verify-UI-${#}"
+                      exec="onos-check-views ${OC#} id=sample"/>
+            </parallel>
+        </group>
 
         <step name="Create-App-UI-Table-Overlay" requires="Reinstall-App-With-UI"
               exec="onos-create-app uitab org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
@@ -51,8 +66,13 @@
               exec="mvn clean install"/>
         <step name="Reinstall-App-With-UI-Table" requires="^,~Verify-UI"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-UI-Table" requires="^" delay="2"
-              exec="onos-check-views ${OCI} id=sample"/>
+        <group name="Verify-UI-Table"
+            requires="Reinstall-App-With-UI-Table" delay="2" >
+            <parallel var="${OC#}">
+                <step name="Verify-UI-Table-${#}"
+                      exec="onos-check-views ${OC#} id=sample"/>
+            </parallel>
+        </group>
 
         <step name="Create-App-UI-Topo-Overlay" requires="Reinstall-App-With-UI-Table"
               exec="onos-create-app uitopo org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
@@ -60,21 +80,32 @@
               exec="mvn clean install"/>
         <step name="Reinstall-App-With-UI-Topo" requires="^,~Verify-UI-Table"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-UI-Topo" requires="^" delay="2"
-              exec="onos-check-views ${OCI} id=sample"/>
+        <group name="Verify-UI-Topo"
+            requires="Reinstall-App-With-UI-Topo" delay="2" >
+            <parallel var="${OC#}">
+                <step name="Verify-UI-Topo-${#}"
+                      exec="onos-check-views ${OC#} id=sample"/>
+            </parallel>
+        </group>
 
-        <step name="Create-REST-Overlay" requires="^"
+        <step name="Create-REST-Overlay" requires="Verify-UI-Topo"
               exec="onos-create-app rest org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
         <step name="Build-REST-App" requires="^"
               exec="mvn clean install"/>
         <step name="Install-REST-App" requires="^,~Verify-UI-Topo"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <step name="Verify-REST-CLI" requires="^" delay="2"
-              exec="onos ${OCI} sample"/>
-        <step name="Verify-REST-App" requires="^" delay="2"
-              exec="curl --fail -isS --user ${ONOS_WEB_USER}:${ONOS_WEB_PASS} http://${OCI}:8181/onos/test-app/sample"/>
+        <group name="Verify-REST"
+            requires="Install-REST-App" delay="2" >
+            <parallel var="${OC#}">
+                <step name="Verify-REST-CLI-${#}"
+                      exec="onos ${OC#} sample" include="Hello World"/>
+                <step name="Verify-REST-App-${#}"
+                      exec="curl-with-retry http://${OC#}:8181/onos/test-app/sample"
+                      include="{&quot;hello&quot;:&quot;world&quot;}"/>
+            </parallel>
+        </group>
 
-        <step name="Uninstall-App" requires="^"
+        <step name="Uninstall-App" requires="Verify-REST"
               exec="onos-app ${OCI} uninstall org.foo.app"/>
 
         <parallel var="${OC#}">
