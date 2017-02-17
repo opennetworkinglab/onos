@@ -81,7 +81,7 @@ public final class BasicLinkOperator implements ConfigOperator {
         if (cfg.metric() != DEF_METRIC) {
             b.set(AnnotationKeys.METRIC, String.valueOf(cfg.metric()));
         }
-        if (cfg.latency() != DEF_DURATION) {
+        if (!cfg.latency().equals(DEF_DURATION)) {
             b.set(AnnotationKeys.LATENCY, cfg.latency().toString());
         }
         if (cfg.bandwidth() != DEF_BANDWIDTH) {
