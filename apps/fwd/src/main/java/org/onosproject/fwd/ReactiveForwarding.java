@@ -695,7 +695,7 @@ public class ReactiveForwarding {
             if (srcHost != null && dstHost != null) {
                 DeviceId srcId = srcHost.location().deviceId();
                 DeviceId dstId = dstHost.location().deviceId();
-                log.trace("SRC ID is " + srcId + ", DST ID is " + dstId);
+                log.trace("SRC ID is {}, DST ID is {}", srcId, dstId);
 
                 cleanFlowRules(sd, egress.deviceId());
 
@@ -739,8 +739,8 @@ public class ReactiveForwarding {
 
     // Removes flow rules off specified device with specific SrcDstPair
     private void cleanFlowRules(SrcDstPair pair, DeviceId id) {
-        log.trace("Searching for flow rules to remove from: " + id);
-        log.trace("Removing flows w/ SRC=" + pair.src + ", DST=" + pair.dst);
+        log.trace("Searching for flow rules to remove from: {}", id);
+        log.trace("Removing flows w/ SRC={}, DST={}", pair.src, pair.dst);
         for (FlowEntry r : flowRuleService.getFlowEntries(id)) {
             boolean matchesSrc = false, matchesDst = false;
             for (Instruction i : r.treatment().allInstructions()) {
@@ -760,7 +760,7 @@ public class ReactiveForwarding {
                 }
             }
             if (matchesDst && matchesSrc) {
-                log.trace("Removed flow rule from device: " + id);
+                log.trace("Removed flow rule from device: {}", id);
                 flowRuleService.removeFlowRules((FlowRule) r);
             }
         }

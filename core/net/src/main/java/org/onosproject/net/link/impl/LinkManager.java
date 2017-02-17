@@ -260,7 +260,7 @@ public class LinkManager
             if (isAllowed(cfg) && isAllowed(cfgTwo)) {
                 return BasicLinkOperator.combine(cfg, linkDescription);
             } else {
-                log.trace("Link " + linkDescription.toString() + " is not allowed");
+                log.trace("Link {} is not allowed", linkDescription);
                 return null;
             }
         }
