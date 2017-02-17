@@ -293,11 +293,17 @@ public class ECLinkStore
 
     private LinkDescription createOrUpdateLinkInternal(LinkDescription current, LinkDescription updated) {
         if (current != null) {
-            // we only allow transition from INDIRECT -> DIRECT
+            Type type;
+            if (current.type() == DIRECT && updated.type() == Type.INDIRECT) {
+                // mask transition from DIRECT -> INDIRECT, likely to be triggered by BDDP
+                type = Type.DIRECT;
+            } else {
+                type = updated.type();
+            }
             return new DefaultLinkDescription(
                     current.src(),
                     current.dst(),
-                    current.type() == DIRECT ? DIRECT : updated.type(),
+                    type,
                     current.isExpected(),
                     union(current.annotations(), updated.annotations()));
         }
@@ -324,7 +330,7 @@ public class ECLinkStore
                 return newLink;
             } else if (existingLink.state() != newLink.state() ||
                     existingLink.isExpected() != newLink.isExpected() ||
-                    (existingLink.type() == INDIRECT && newLink.type() == DIRECT) ||
+                    (existingLink.type() !=  newLink.type()) ||
                     !AnnotationsUtil.isEqual(existingLink.annotations(), newLink.annotations())) {
                 eventType.set(LINK_UPDATED);
                 return newLink;
