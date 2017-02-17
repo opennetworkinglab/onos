@@ -44,13 +44,22 @@
                     loadLayout: function (id) {
                         this.container.selectAll("*").remove();
                         this.layout = ss.layout(id);
+
+                        this.width = this.layout.data.w;
+                        this.height = this.layout.data.h;
+
                         this.renderLayout();
                     },
                     createSpriteDefs: function () {
                        this.defs = this.svg.append('defs')
                             .attr('id', 'sprites');
                     },
-
+                    getWidth: function () {
+                        return this.width;
+                    },
+                    getHeight: function () {
+                        return this.height;
+                    },
                     renderSprite: function (spriteData) {
 
                         var id = spriteData.sprite.data.id,

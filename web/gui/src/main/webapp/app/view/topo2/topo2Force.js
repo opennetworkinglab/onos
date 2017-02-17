@@ -130,6 +130,7 @@
     function currentLayout(data) {
         $log.debug('>> topo2CurrentLayout event:', data);
         t2bcs.addBreadcrumb(data.crumbs);
+        t2rs.addLayout(data);
     }
 
     function currentRegion(data) {
