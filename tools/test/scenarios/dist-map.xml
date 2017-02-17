@@ -98,10 +98,13 @@
               requires="Distributed-Primitive-Map.Test-Map-Clear"
               exec="onos-execute-expect ${OCI} map-test foo isEmpty --expect true"/>
 
-        <!--Check with check logs-->
-        <step name="Distributed-Primitive-Map.Check-Log-Exceptions"
-              requires="Distributed-Primitive-Map.Test-Map-Cleared"
-              exec="onos-check-logs ${OCI}"/>
+        <group name="Distributed-Primitive-Map.Check-Log-Exceptions"
+               requires="Distributed-Primitive-Map.Test-Map-Cleared">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-Map.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
 
     </group>
 </scenario>

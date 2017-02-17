@@ -34,10 +34,13 @@
               requires="Distributed-Primitive-Leader.Test-Leader-Withdraw"
               exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
-        <!--Check with check logs-->
-        <step name="Distributed-Primitive-Leader.Check-Log-Exceptions"
-            requires="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw"
-              exec="onos-check-logs ${OCI}"/>
+        <group name="Distributed-Primitive-Leader.Check-Log-Exceptions"
+               requires="Distributed-Primitive-Leader.Test-No-Leader-After-Withdraw">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-Leader.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
 
     </group>
 </scenario>

@@ -78,10 +78,13 @@
               requires="Distributed-Primitive-Counter.Test-Counter-Reset"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
-        <!--Check with check logs-->
-        <step name="Distributed-Primitive-Counter.Check-Log-Exceptions"
-              requires="Distributed-Primitive-Counter.Test-Counter-Get-After-Reset"
-              exec="onos-check-logs ${OCI}"/>
+        <group name="Distributed-Primitive-Counter.Check-Log-Exceptions"
+	       requires="Distributed-Primitive-Counter.Test-Counter-Get-After-Reset">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-Counter.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
 
     </group>
 </scenario>
