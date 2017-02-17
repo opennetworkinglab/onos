@@ -1220,3 +1220,12 @@ remote_jar (
   visibility = [ 'PUBLIC' ],
 )
 
+remote_jar (
+  name = 'sshd-core',
+  out = 'sshd-core-0.14.0.jar',
+  url = 'mvn:org.apache.sshd:sshd-core:jar:0.14.0',
+  sha1 = 'cb12fa1b1b07fb5ce3aa4f99b189743897bd4fca',
+  maven_coords = 'org.apache.sshd:sshd-core:0.14.0',
+  visibility = [ 'PUBLIC' ],
+)
+

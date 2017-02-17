@@ -8,6 +8,7 @@ TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//utils/osgi:onlab-osgi-tests',
     '//core/api:onos-api-tests',
+    '//lib:sshd-core'
 ]
 
 osgi_jar_with_tests (

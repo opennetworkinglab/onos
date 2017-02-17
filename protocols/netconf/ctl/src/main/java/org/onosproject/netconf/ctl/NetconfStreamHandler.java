@@ -29,10 +29,23 @@ public interface NetconfStreamHandler {
     /**
      * Sends the request on the stream that is used to communicate to and from the device.
      *
+     * If this request does not contain a messageId then this will throw a NoSuchElementException
+     *
      * @param request request to send to the physical device
      * @return a CompletableFuture of type String that will contain the response for the request.
+     * @deprecated - use method with messageId parameter instead
      */
+    @Deprecated
     CompletableFuture<String> sendMessage(String request);
+
+    /**
+     * Sends the request on the stream that is used to communicate to and from the device.
+     *
+     * @param request request to send to the physical device
+     * @param messageId The identifier of the message - should be unique for the session
+     * @return a CompletableFuture of type String that will contain the response for the request.
+     */
+    CompletableFuture<String> sendMessage(String request, int messageId);
 
     /**
      * Adds a listener for netconf events on the handled stream.

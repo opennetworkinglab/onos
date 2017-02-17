@@ -24,22 +24,27 @@ import java.util.concurrent.CompletableFuture;
  * NETCONF session object that allows NETCONF operations on top with the physical
  * device on top of an SSH connection.
  */
-// TODO change return type of methdos to <Capability, XMLdoc, string or yang obj>
+// TODO change return type of methods to <Capability, XMLdoc, string or yang obj>
 public interface NetconfSession {
 
     /**
      * Executes an asynchronous RPC to the server and obtains a future to be completed.
      *
+     * The caller must ensure that the message-id in any request is unique
+     * for the session
+     *
+     * @deprecated  - 1.10.0 do not remove needs reworking
      * @param request the XML containing the RPC for the server.
      * @return Server response or ERROR
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
+    @Deprecated
     CompletableFuture<String> request(String request) throws NetconfException;
 
 
     /**
-     * Retrives the requested configuration, different from get-config.
+     * Retrieves the requested configuration, different from get-config.
      *
      * @param request the XML containing the request to the server.
      * @return device running configuration
@@ -49,7 +54,7 @@ public interface NetconfSession {
     String get(String request) throws NetconfException;
 
     /**
-     * Retrives the requested data.
+     * Retrieves the requested data.
      *
      * @param filterSchema XML subtrees to include in the reply
      * @param withDefaultsMode with-defaults mode
