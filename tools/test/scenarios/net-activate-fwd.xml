@@ -17,8 +17,13 @@
     <group name="Net-Activate-Fwd">
         <step name="Activate-Fwd-Apps"
               exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
-        <step name="Check-Fwd-Apps-Activated" requires="Activate-Fwd-Apps"
-              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd includes"/>
+        <group name="Check-Fwd-Apps-Activated"
+               requires="Activate-Fwd-Apps">
+            <parallel var="${OC#}">
+                <step name="Check-Fwd-Apps-Activated-${#}"
+                      exec="onos-check-apps ${#} drivers,openflow,proxyarp,fwd includes"/>
+            </parallel>
+        </group>
 
         <parallel var="${OTD#}">
             <step name="Check-Fwd-Flows-${#}" requires="Check-Fwd-Apps-Activated"

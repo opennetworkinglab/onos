@@ -8,9 +8,8 @@ url=$1
 
 echo curl-with-retry: $*
 
-set -x
-for i in {1..3}; do
-    curl -f -uonos:rocks ${url} >$aux
+for i in {1..5}; do
+    curl -f -isS -uonos:rocks ${url} >$aux
     if [ $? = 0 ]; then
         cat $aux
         exit 0
