@@ -384,7 +384,10 @@ public class IntentManager
                 // related resources.
                 Long remainingIntents =
                         Tools.stream(store.getIntents())
-                             .filter(i -> i.resourceGroup().equals(intent.resourceGroup()))
+                             .filter(i -> {
+                                 return i.resourceGroup() != null
+                                     && i.resourceGroup().equals(intent.resourceGroup());
+                             })
                              .count();
                 if (remainingIntents == 0) {
                     removeResource = true;
