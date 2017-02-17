@@ -15,14 +15,13 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.openstackinterface.OpenstackRouter;
-import org.onosproject.openstackinterface.OpenstackRouterInterface;
-import org.onosproject.openstackinterface.web.OpenstackRouterCodec;
-import org.onosproject.openstackinterface.web.OpenstackRouterInterfaceCodec;
-import org.onosproject.openstacknetworking.api.OpenstackRoutingService;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
+import org.openstack4j.core.transport.ObjectMapperSingleton;
+import org.openstack4j.openstack.networking.domain.NeutronRouter;
+import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +32,17 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
-import static com.google.common.base.Preconditions.checkNotNull;
+
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static javax.ws.rs.core.Response.created;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * Handles REST API call of Neturon L3 plugin.
@@ -46,142 +52,140 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OpensatckRouterWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final OpenstackRouterInterfaceCodec ROUTER_INTERFACE_CODEC
-            = new OpenstackRouterInterfaceCodec();
-    private static final OpenstackRouterCodec ROUTER_CODEC
-            = new OpenstackRouterCodec();
+    private static final String MESSAGE_ROUTER = "Received router %s request";
+    private static final String MESSAGE_ROUTER_IFACE = "Received router interface %s request";
+    private static final String ROUTERS = "routers";
 
+    private final OpenstackRouterAdminService adminService =
+            DefaultServiceDirectory.getService(OpenstackRouterAdminService.class);
+
+    @Context
+    private UriInfo uriInfo;
+
+    /**
+     * Creates a router from the JSON input stream.
+     *
+     * @param input router JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is invalid or duplicated router already exists
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createRouter(InputStream input) {
-        checkNotNull(input);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode routerNode = (ObjectNode) mapper.readTree(input);
+        log.trace(String.format(MESSAGE_ROUTER, "CREATE"));
 
-            OpenstackRouter openstackRouter
-                    = ROUTER_CODEC.decode(routerNode, this);
+        final NeutronRouter osRouter = readRouter(input);
+        adminService.createRouter(osRouter);
 
-            OpenstackRoutingService routingService
-                    = getService(OpenstackRoutingService.class);
-            routingService.createRouter(openstackRouter);
+        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                .path(ROUTERS)
+                .path(osRouter.getId());
 
-            log.debug("REST API CREATE router is called {}", input.toString());
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("Create Router failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        return created(locationBuilder.build()).build();
     }
 
+    /**
+     * Updates the router with the specified identifier.
+     *
+     * @param id router identifier
+     * @param input router JSON input stream
+     * @return 200 OK with the updated router, 400 BAD_REQUEST if the requested
+     * router does not exist
+     */
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateRouter(@PathParam("id") String id, InputStream input) {
-        checkNotNull(input);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode routerNode = (ObjectNode) mapper.readTree(input);
+        log.trace(String.format(MESSAGE_ROUTER, "UPDATE " + id));
 
-            OpenstackRouter or = ROUTER_CODEC.decode(routerNode, this);
+        final NeutronRouter osRouter = readRouter(input);
+        osRouter.setId(id);
+        adminService.updateRouter(osRouter);
 
-            OpenstackRouter.Builder osBuilder = new OpenstackRouter.Builder()
-                    .tenantId(or.tenantId())
-                    .id(id)
-                    .name(or.name())
-                    .status(OpenstackRouter.RouterStatus.ACTIVE)
-                    .adminStateUp(Boolean.valueOf(or.adminStateUp()))
-                    .gatewayExternalInfo(or.gatewayExternalInfo());
-
-            OpenstackRoutingService routingService
-                    = getService(OpenstackRoutingService.class);
-            routingService.updateRouter(osBuilder.build());
-
-            log.debug("REST API UPDATE router is called from router {}", input.toString());
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("Updates Router failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        return status(Response.Status.OK).build();
     }
 
+    /**
+     * Updates the router with the specified router interface.
+     *
+     * @param id router identifier
+     * @param input router interface JSON input stream
+     * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
+     * requested router does not exist
+     */
     @PUT
     @Path("{id}/add_router_interface")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addRouterInterface(@PathParam("id") String id, InputStream input) {
-        checkNotNull(input);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode routerIfNode = (ObjectNode) mapper.readTree(input);
+        log.trace(String.format(MESSAGE_ROUTER_IFACE, "UPDATE " + id));
 
-            OpenstackRouterInterface openstackRouterInterface
-                    = ROUTER_INTERFACE_CODEC.decode(routerIfNode, this);
+        final NeutronRouterInterface osRouterIface = readRouterInterface(input);
+        adminService.addRouterInterface(osRouterIface);
 
-            OpenstackRoutingService routingService
-                    = getService(OpenstackRoutingService.class);
-            routingService.addRouterInterface(openstackRouterInterface);
-
-            log.debug("REST API AddRouterInterface is called from router {} portId: {}, subnetId: {}, tenantId: {}",
-                    openstackRouterInterface.id(), openstackRouterInterface.portId(),
-                    openstackRouterInterface.subnetId(), openstackRouterInterface.tenantId());
-
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("AddRouterInterface failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        return status(Response.Status.OK).build();
     }
 
-    @DELETE
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteRouter(@PathParam("id") String id) {
-        checkNotNull(id);
-        OpenstackRoutingService routingService
-                = getService(OpenstackRoutingService.class);
-        routingService.removeRouter(id);
-
-        log.debug("REST API DELETE routers is called {}", id);
-        return Response.noContent().build();
-    }
-
+    /**
+     * Updates the router with the specified router interface.
+     *
+     * @param id router identifier
+     * @param input router interface JSON input stream
+     * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
+     * requested router does not exist
+     */
     @PUT
     @Path("{id}/remove_router_interface")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeRouterInterface(@PathParam("id") String id, InputStream input) {
-        checkNotNull(id);
-        checkNotNull(input);
+        log.trace(String.format(MESSAGE_ROUTER_IFACE, "DELETE " + id));
+
+        final NeutronRouterInterface osRouterIface = readRouterInterface(input);
+        adminService.removeRouterInterface(osRouterIface.getPortId());
+
+        return status(Response.Status.OK).build();
+    }
+
+    /**
+     * Removes the router.
+     *
+     * @param id router identifier
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the router does not exist
+     */
+    @DELETE
+    @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteRouter(@PathParam("id") String id) {
+        log.trace(String.format(MESSAGE_ROUTER, "DELETE " + id));
+
+        adminService.removeRouter(id);
+        return noContent().build();
+    }
+
+    private NeutronRouter readRouter(InputStream input) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode routerIfNode = (ObjectNode) mapper.readTree(input);
-
-            OpenstackRouterInterface openstackRouterInterface
-                    = ROUTER_INTERFACE_CODEC.decode(routerIfNode, this);
-
-            OpenstackRoutingService routingService
-                    = getService(OpenstackRoutingService.class);
-            routingService.removeRouterInterface(openstackRouterInterface);
-
-            log.debug("REST API RemoveRouterInterface is called from router {} portId: {}, subnetId: {}," +
-                    "tenantId: {}", openstackRouterInterface.id(), openstackRouterInterface.portId(),
-                    openstackRouterInterface.subnetId(), openstackRouterInterface.tenantId());
-
-            return Response.status(Response.Status.OK).build();
+            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
+            log.trace(mapper().writeValueAsString(jsonTree));
+            return ObjectMapperSingleton.getContext(NeutronRouter.class)
+                    .readerFor(NeutronRouter.class)
+                    .readValue(jsonTree);
         } catch (Exception e) {
-            log.error("RemoveRouterInterface failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private NeutronRouterInterface readRouterInterface(InputStream input) {
+        try {
+            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
+            log.trace(mapper().writeValueAsString(jsonTree));
+            return ObjectMapperSingleton.getContext(NeutronRouterInterface.class)
+                    .readerFor(NeutronRouterInterface.class)
+                    .readValue(jsonTree);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
         }
     }
 }

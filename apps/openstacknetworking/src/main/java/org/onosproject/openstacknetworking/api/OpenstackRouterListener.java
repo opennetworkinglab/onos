@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.openstacknetworking.api;
+
+import org.onosproject.event.EventListener;
 
 /**
- * Implements OpenStack L3 service plugin, which routes packets between subnets,
- * forwards packets from internal networks to external ones, and accesses instances
- * from external networks through floating IPs.
+ * Listener for OpenStack router event.
  */
-package org.onosproject.openstacknetworking.api;
+public interface OpenstackRouterListener extends EventListener<OpenstackRouterEvent> {
+}

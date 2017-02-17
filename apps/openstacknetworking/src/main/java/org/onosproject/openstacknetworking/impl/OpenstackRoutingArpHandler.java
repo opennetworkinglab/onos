@@ -32,39 +32,41 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.openstackinterface.OpenstackInterfaceService;
-import org.onosproject.openstackinterface.OpenstackPort;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.DEVICE_OWNER_FLOATING_IP;
-import static org.onosproject.openstacknetworking.api.Constants.DEVICE_OWNER_ROUTER_GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Handle ARP, ICMP and NAT packets from gateway nodes.
+ * Handle ARP requests from gateway nodes.
  */
 @Component(immediate = true)
 public class OpenstackRoutingArpHandler {
+
     private final Logger log = getLogger(getClass());
+
+    private static final String DEVICE_OWNER_ROUTER_GW = "network:router_gateway";
+    private static final String DEVICE_OWNER_FLOATING_IP = "network:floatingip";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackInterfaceService openstackService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ScalableGatewayService gatewayService;
 
-    private final ExecutorService executorService =
-            newSingleThreadExecutor(groupedThreads("onos/openstackrouting", "packet-event", log));
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNetworkService osNetworkService;
+
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
 
@@ -77,21 +79,25 @@ public class OpenstackRoutingArpHandler {
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(packetProcessor);
+        eventExecutor.shutdown();
         log.info("Stopped");
     }
 
     private void processArpPacket(PacketContext context, Ethernet ethernet) {
         ARP arp = (ARP) ethernet.getPayload();
-        log.trace("arpEvent called from {} to {}",
-                Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
-                Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
-
         if (arp.getOpCode() != ARP.OP_REQUEST) {
             return;
         }
 
+        if (log.isTraceEnabled()) {
+            log.trace("ARP request received from {} for {}",
+                    Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
+                    Ip4Address.valueOf(arp.getTargetProtocolAddress()).toString());
+        }
+
         IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-        if (getTargetMacForTargetIp(targetIp.getIp4Address()) == MacAddress.NONE) {
+        if (!isServiceIp(targetIp.getIp4Address())) {
+            log.trace("Unknown target ARP request for {}, ignore it", targetIp);
             return;
         }
 
@@ -107,6 +113,8 @@ public class OpenstackRoutingArpHandler {
                 context.inPacket().receivedFrom().deviceId(),
                 treatment,
                 ByteBuffer.wrap(ethReply.serialize())));
+
+        context.block();
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
@@ -125,19 +133,20 @@ public class OpenstackRoutingArpHandler {
             Ethernet ethernet = pkt.parsed();
             if (ethernet != null &&
                     ethernet.getEtherType() == Ethernet.TYPE_ARP) {
-                executorService.execute(() -> processArpPacket(context, ethernet));
+                eventExecutor.execute(() -> processArpPacket(context, ethernet));
             }
         }
     }
 
-    // TODO make a cache for the MAC, not a good idea to REST call every time it gets ARP request
-    private MacAddress getTargetMacForTargetIp(Ip4Address targetIp) {
-        OpenstackPort port = openstackService.ports().stream()
-                .filter(p -> p.deviceOwner().equals(DEVICE_OWNER_ROUTER_GATEWAY) ||
-                        p.deviceOwner().equals(DEVICE_OWNER_FLOATING_IP))
-                .filter(p -> p.fixedIps().containsValue(targetIp.getIp4Address()))
-                .findAny().orElse(null);
-
-        return port == null ? MacAddress.NONE : port.macAddress();
+    private boolean isServiceIp(IpAddress targetIp) {
+        // FIXME use floating IP and external gateway information of router instead
+        // once openstack4j fixed
+        return osNetworkService.ports().stream()
+                .filter(osPort -> Objects.equals(osPort.getDeviceOwner(),
+                        DEVICE_OWNER_ROUTER_GW) ||
+                        Objects.equals(osPort.getDeviceOwner(),
+                                DEVICE_OWNER_FLOATING_IP))
+                .flatMap(osPort -> osPort.getFixedIps().stream())
+                .anyMatch(ip -> IpAddress.valueOf(ip.getIpAddress()).equals(targetIp));
     }
 }

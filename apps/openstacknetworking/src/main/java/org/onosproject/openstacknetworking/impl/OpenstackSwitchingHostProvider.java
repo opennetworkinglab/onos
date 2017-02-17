@@ -16,19 +16,17 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
-import org.onosproject.dhcp.DhcpService;
-import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -48,36 +46,35 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.openstackinterface.OpenstackInterfaceService;
-import org.onosproject.openstackinterface.OpenstackNetwork;
-import org.onosproject.openstackinterface.OpenstackPort;
-import org.onosproject.openstackinterface.OpenstackSubnet;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
+import org.openstack4j.model.network.Network;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
+import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
+import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
 
 @Service
 @Component(immediate = true)
-public final class OpenstackSwitchingHostManager extends AbstractProvider
-        implements HostProvider {
+public final class OpenstackSwitchingHostProvider extends AbstractProvider implements HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String PORT_NAME_PREFIX_VM = "tap";
+    private static final String ERR_ADD_HOST = "Failed to add host: ";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -89,24 +86,21 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
     protected HostProviderRegistry hostProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DhcpService dhcpService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackInterfaceService openstackService;
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNodeService openstackNodeService;
+    protected OpenstackNodeService osNodeService;
 
     private final ExecutorService deviceEventExecutor =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "device-event"));
+            Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
     private final ExecutorService configEventExecutor =
-            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "config-event"));
+            Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "config-event"));
     private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
     private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
@@ -115,15 +109,15 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
     /**
      * Creates OpenStack switching host provider.
      */
-    public OpenstackSwitchingHostManager() {
-        super(new ProviderId("host", SWITCHING_APP_ID));
+    public OpenstackSwitchingHostProvider() {
+        super(new ProviderId("host", OPENSTACK_NETWORKING_APP_ID));
     }
 
     @Activate
     protected void activate() {
-        coreService.registerApplication(SWITCHING_APP_ID);
+        coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
-        openstackNodeService.addListener(internalNodeListener);
+        osNodeService.addListener(internalNodeListener);
         hostProvider = hostProviderRegistry.register(this);
 
         log.info("Started");
@@ -132,8 +126,8 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
     @Deactivate
     protected void deactivate() {
         hostProviderRegistry.unregister(this);
+        osNodeService.removeListener(internalNodeListener);
         deviceService.removeListener(internalDeviceListener);
-        openstackNodeService.removeListener(internalNodeListener);
 
         deviceEventExecutor.shutdown();
         configEventExecutor.shutdown();
@@ -148,127 +142,102 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
 
     private void processPortAdded(Port port) {
         // TODO check the node state is COMPLETE
-        OpenstackPort osPort = openstackService.port(port);
+        org.openstack4j.model.network.Port osPort = osNetworkService.port(port);
         if (osPort == null) {
-            log.warn("Failed to get OpenStack port for {}", port);
+            log.warn(ERR_ADD_HOST + "OpenStack port for {} not found", port);
             return;
         }
 
-        OpenstackNetwork osNet = openstackService.network(osPort.networkId());
+        Network osNet = osNetworkService.network(osPort.getNetworkId());
         if (osNet == null) {
-            log.warn("Failed to get OpenStack network {}",
-                    osPort.networkId());
+            log.warn(ERR_ADD_HOST + "OpenStack network {} not found",
+                    osPort.getNetworkId());
             return;
         }
 
-        Map.Entry<String, Ip4Address> fixedIp = osPort.fixedIps().entrySet().stream().findFirst().get();
-
-        OpenstackSubnet openstackSubnet = openstackService.subnets().stream()
-                .filter(n -> n.networkId().equals(osPort.networkId()) &&
-                n.id().equals(fixedIp.getKey()))
-                .findFirst().orElse(null);
-        if (openstackSubnet == null) {
-            log.warn("Failed to find subnet for {}", osPort);
+        if (osPort.getFixedIps().isEmpty()) {
+            log.warn(ERR_ADD_HOST + "no fixed IP for port {}", osPort.getId());
             return;
         }
 
-        registerDhcpInfo(osPort, openstackSubnet);
+        MacAddress macAddr = MacAddress.valueOf(osPort.getMacAddress());
+        Set<IpAddress> fixedIps = osPort.getFixedIps().stream()
+                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
+                .collect(Collectors.toSet());
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                .set(NETWORK_ID, osPort.networkId())
-                .set(SUBNET_ID, fixedIp.getKey())
-                .set(PORT_ID, osPort.id())
-                .set(VXLAN_ID, osNet.segmentId())
-                .set(TENANT_ID, osNet.tenantId())
-                // TODO remove gateway IP from host annotation
-                .set(GATEWAY_IP, openstackSubnet.gatewayIp());
+                .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
+                .set(ANNOTATION_PORT_ID, osPort.getId())
+                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()));
 
         HostDescription hostDesc = new DefaultHostDescription(
-                osPort.macAddress(),
+                macAddr,
                 VlanId.NONE,
                 new HostLocation(connectPoint, System.currentTimeMillis()),
-                Sets.newHashSet(osPort.fixedIps().values()),
+                fixedIps,
                 annotations.build());
 
-        HostId hostId = HostId.hostId(osPort.macAddress());
+        HostId hostId = HostId.hostId(macAddr);
         hostProvider.hostDetected(hostId, hostDesc, false);
     }
 
     private void processPortRemoved(Port port) {
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
-        removeHosts(connectPoint);
-    }
-
-    private void removeHosts(ConnectPoint connectPoint) {
-        hostService.getConnectedHosts(connectPoint).stream()
-                .forEach(host -> {
-                    dhcpService.removeStaticMapping(host.mac());
+        hostService.getConnectedHosts(connectPoint).forEach(host -> {
                     hostProvider.hostVanished(host.id());
                 });
-    }
-
-    private void registerDhcpInfo(OpenstackPort openstackPort, OpenstackSubnet openstackSubnet) {
-        checkNotNull(openstackPort);
-        checkNotNull(openstackSubnet);
-        checkArgument(!openstackPort.fixedIps().isEmpty());
-
-        Ip4Address ipAddress = openstackPort.fixedIps().values().stream().findFirst().get();
-        IpPrefix subnetPrefix = IpPrefix.valueOf(openstackSubnet.cidr());
-        Ip4Address broadcast = Ip4Address.makeMaskedAddress(
-                ipAddress,
-                subnetPrefix.prefixLength());
-
-        // TODO: supports multiple DNS servers
-        Ip4Address domainServer = openstackSubnet.dnsNameservers().isEmpty() ?
-                DNS_SERVER_IP : openstackSubnet.dnsNameservers().get(0);
-
-        IpAssignment ipAssignment = IpAssignment.builder()
-                .ipAddress(ipAddress)
-                .leasePeriod(DHCP_INFINITE_LEASE)
-                .timestamp(new Date())
-                .subnetMask(Ip4Address.makeMaskPrefix(subnetPrefix.prefixLength()))
-                .broadcast(broadcast)
-                .domainServer(domainServer)
-                .assignmentStatus(Option_RangeNotEnforced)
-                .routerAddress(Ip4Address.valueOf(openstackSubnet.gatewayIp()))
-                .build();
-
-        dhcpService.setStaticMapping(openstackPort.macAddress(), ipAssignment);
     }
 
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
-        public void event(DeviceEvent event) {
+        public boolean isRelevant(DeviceEvent event) {
             Device device = event.subject();
             if (!mastershipService.isLocalMaster(device.id())) {
                 // do not allow to proceed without mastership
-                return;
+                return false;
             }
-
             Port port = event.port();
             if (port == null) {
-                return;
+                return false;
             }
-
             String portName = port.annotations().value(PORT_NAME);
             if (Strings.isNullOrEmpty(portName) ||
                     !portName.startsWith(PORT_NAME_PREFIX_VM)) {
-                // handles VM connected port event only
-                return;
+                // handles Nova created port event only
+                return false;
             }
+            return true;
+        }
 
+        @Override
+        public void event(DeviceEvent event) {
             switch (event.type()) {
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
-                        deviceEventExecutor.execute(() -> processPortRemoved(event.port()));
+                        deviceEventExecutor.execute(() -> {
+                            log.debug("Instance port {} is removed from {}",
+                                     event.port().annotations().value(PORT_NAME),
+                                     event.subject().id());
+                            processPortRemoved(event.port());
+                        });
                     } else if (event.port().isEnabled()) {
-                        deviceEventExecutor.execute(() -> processPortAdded(event.port()));
+                        deviceEventExecutor.execute(() -> {
+                            log.debug("Instance Port {} is detected from {}",
+                                     event.port().annotations().value(PORT_NAME),
+                                     event.subject().id());
+                            processPortAdded(event.port());
+                        });
                     }
                     break;
                 case PORT_ADDED:
-                    deviceEventExecutor.execute(() -> processPortAdded(event.port()));
+                    deviceEventExecutor.execute(() -> {
+                        log.debug("Instance port {} is detected from {}",
+                                 event.port().annotations().value(PORT_NAME),
+                                 event.subject().id());
+                        processPortAdded(event.port());
+                    });
                     break;
                 default:
                     break;
@@ -280,40 +249,46 @@ public final class OpenstackSwitchingHostManager extends AbstractProvider
 
         @Override
         public void event(OpenstackNodeEvent event) {
-            OpenstackNode node = event.node();
+            OpenstackNode osNode = event.subject();
             // TODO check leadership of the node and make only the leader process
 
             switch (event.type()) {
                 case COMPLETE:
-                    log.info("COMPLETE node {} detected", node.hostname());
-
-                    // adds existing VMs running on the complete state node
-                    deviceService.getPorts(node.intBridge()).stream()
-                            .filter(port -> port.annotations().value(PORT_NAME)
-                                    .startsWith(PORT_NAME_PREFIX_VM) &&
-                                    port.isEnabled())
-                            .forEach(port -> {
-                                deviceEventExecutor.execute(() -> processPortAdded(port));
-                                log.info("VM is detected on {}", port);
-                            });
-
-                    // removes stale VMs
-                    hostService.getHosts().forEach(host -> {
-                        if (deviceService.getPort(host.location().deviceId(),
-                                host.location().port()) == null) {
-                            deviceEventExecutor.execute(() -> removeHosts(host.location()));
-                            log.info("Removed stale VM {}", host.location());
-                        }
+                    deviceEventExecutor.execute(() -> {
+                        log.info("COMPLETE node {} is detected", osNode.hostname());
+                        processCompleteNode(event.subject());
                     });
                     break;
                 case INCOMPLETE:
-                    log.warn("{} is changed to INCOMPLETE state", node);
+                    log.warn("{} is changed to INCOMPLETE state", osNode);
                     break;
                 case INIT:
                 case DEVICE_CREATED:
                 default:
                     break;
             }
+        }
+
+        private void processCompleteNode(OpenstackNode osNode) {
+            deviceService.getPorts(osNode.intBridge()).stream()
+                    .filter(port -> port.annotations().value(PORT_NAME)
+                            .startsWith(PORT_NAME_PREFIX_VM) &&
+                            port.isEnabled())
+                    .forEach(port -> {
+                        log.debug("Instance port {} is detected from {}",
+                                  port.annotations().value(PORT_NAME),
+                                  osNode.hostname());
+                        processPortAdded(port);
+                    });
+
+            Tools.stream(hostService.getHosts())
+                    .filter(host -> deviceService.getPort(
+                            host.location().deviceId(),
+                            host.location().port()) == null)
+                    .forEach(host -> {
+                        log.info("Remove stale host {}", host.id());
+                        hostProvider.hostVanished(host.id());
+                });
         }
     }
 }

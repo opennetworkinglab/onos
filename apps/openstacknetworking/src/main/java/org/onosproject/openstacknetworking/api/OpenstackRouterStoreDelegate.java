@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,10 @@
  */
 package org.onosproject.openstacknetworking.api;
 
-import org.onosproject.net.Host;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Handles switch update requests from OpenStack and  CLI.
+ * OpenStack router store delegate abstraction.
  */
-public interface OpenstackSwitchingService {
-    /**
-     * Handles to purge data plane flow of existing VM.
-     *
-     * @param host VM Host information
-     */
-    void purgeVmFlow(Host host);
-
-    /**
-     * Handles to reinstall data plane flow of existing VM.
-     *
-     * @param host VM Host information
-     */
-    void reinstallVmFlow(Host host);
+public interface OpenstackRouterStoreDelegate extends StoreDelegate<OpenstackRouterEvent> {
 }

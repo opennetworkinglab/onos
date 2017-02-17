@@ -23,7 +23,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Describes OpenStack node init state event.
  */
-public class OpenstackNodeEvent extends AbstractEvent<OpenstackNodeEvent.NodeState, Object> {
+public class OpenstackNodeEvent extends AbstractEvent<OpenstackNodeEvent.NodeState, OpenstackNode> {
 
     public enum NodeState {
         /**
@@ -67,12 +67,8 @@ public class OpenstackNodeEvent extends AbstractEvent<OpenstackNodeEvent.NodeSta
         public abstract void process(OpenstackNodeService nodeService, OpenstackNode node);
     }
 
-    public OpenstackNodeEvent(NodeState state, Object subject) {
-        super(state, subject);
-    }
-
-    public OpenstackNode node() {
-        return (OpenstackNode) subject();
+    public OpenstackNodeEvent(NodeState state, OpenstackNode node) {
+        super(state, node);
     }
 
     @Override

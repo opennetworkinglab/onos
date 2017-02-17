@@ -16,12 +16,12 @@
 
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.openstackinterface.OpenstackFloatingIP;
-import org.onosproject.openstackinterface.web.OpenstackFloatingIpCodec;
-import org.onosproject.openstacknetworking.api.OpenstackFloatingIpService;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
+import org.openstack4j.core.transport.ObjectMapperSingleton;
+import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +32,17 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static javax.ws.rs.core.Response.created;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * Handles REST API call of Neutron L3 plugin.
@@ -45,89 +51,84 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class OpenstackFloatingIpWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final OpenstackFloatingIpCodec FLOATING_IP_CODEC = new OpenstackFloatingIpCodec();
+    private static final String MESSAGE = "Received floating IP %s request";
+    private static final String FLOATING_IPS = "floatingips";
+
+    private final OpenstackRouterAdminService adminService =
+            DefaultServiceDirectory.getService(OpenstackRouterAdminService.class);
+
+    @Context
+    private UriInfo uriInfo;
 
     /**
-     * Create FloatingIP.
+     * Creates a floating IP from the JSON input stream.
      *
-     * @param input JSON data describing FloatingIP
-     * @return 200 OK
+     * @param input floating ip JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is invalid or duplicated floating ip already exists
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFloatingIp(InputStream input) {
-        checkNotNull(input);
+        log.trace(String.format(MESSAGE, "CREATE"));
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode floatingIpNode = (ObjectNode) mapper.readTree(input);
+        final NeutronFloatingIP floatingIp = readFloatingIp(input);
+        adminService.createFloatingIp(floatingIp);
 
-            OpenstackFloatingIP osFloatingIp = FLOATING_IP_CODEC.decode(floatingIpNode, this);
-            OpenstackFloatingIpService floatingIpService =
-                    getService(OpenstackFloatingIpService.class);
-            floatingIpService.createFloatingIp(osFloatingIp);
+        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                .path(FLOATING_IPS)
+                .path(floatingIp.getId());
 
-            log.debug("REST API CREATE floatingip called");
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("createFloatingIp failed with {}", e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        return created(locationBuilder.build()).build();
     }
 
     /**
-     * Update FloatingIP.
+     * Updates the floating IP with the specified identifier.
      *
-     * @param id    FloatingIP identifier
-     * @param input JSON data describing FloatingIP
-     * @return 200 OK
+     * @param id    floating ip identifier
+     * @param input floating ip JSON input stream
+     * @return 200 OK with the updated floating ip, 400 BAD_REQUEST if the requested
+     * floating ip does not exist
      */
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateFloatingIp(@PathParam("id") String id, InputStream input) {
-        checkNotNull(id);
-        checkNotNull(input);
+        log.trace(String.format(MESSAGE, "UPDATE " + id));
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode floatingIpNode = (ObjectNode) mapper.readTree(input);
+        final NeutronFloatingIP floatingIp = readFloatingIp(input);
+        adminService.updateFloatingIp(floatingIp);
 
-            OpenstackFloatingIP osFloatingIp = FLOATING_IP_CODEC.decode(floatingIpNode, this);
-            OpenstackFloatingIpService floatingIpService =
-                    getService(OpenstackFloatingIpService.class);
-            floatingIpService.updateFloatingIp(osFloatingIp);
-
-            log.debug("REST API UPDATE floatingip called {}", id);
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("updateFloatingIp failed with {}", e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        return status(Response.Status.OK).build();
     }
 
     /**
-     * Delete FloatingIP.
+     * Removes the floating IP.
      *
-     * @param id FloatingIP identifier
-     * @return 204 OK
+     * @param id floating ip identifier
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the floating ip does not exist
      */
     @DELETE
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteFloatingIp(@PathParam("id") String id) {
-        checkNotNull(id);
+        log.trace(String.format(MESSAGE, "DELETE " + id));
 
-        OpenstackFloatingIpService floatingIpService =
-                getService(OpenstackFloatingIpService.class);
-        floatingIpService.deleteFloatingIp(id);
-
-        log.debug("REST API DELETE floatingip is called {}", id);
-        return Response.noContent().build();
+        adminService.removeFloatingIp(id);
+        return noContent().build();
     }
 
+    private NeutronFloatingIP readFloatingIp(InputStream input) {
+        try {
+            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
+            log.trace(mapper().writeValueAsString(jsonTree));
+            return ObjectMapperSingleton.getContext(NeutronFloatingIP.class)
+                    .readerFor(NeutronFloatingIP.class)
+                    .readValue(jsonTree);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
+        }
+    }
 }

@@ -15,12 +15,12 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.openstackinterface.OpenstackPort;
-import org.onosproject.openstackinterface.web.OpenstackPortCodec;
-import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
+import org.openstack4j.core.transport.ObjectMapperSingleton;
+import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,60 +31,103 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static javax.ws.rs.core.Response.created;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.status;
 
 /**
  * Handles Rest API call from Neutron ML2 plugin.
  */
 @Path("ports")
 public class OpenstackPortWebResource extends AbstractWebResource {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final OpenstackPortCodec PORT_CODEC
-            = new OpenstackPortCodec();
+    private static final String MESSAGE = "Received ports %s request";
+    private static final String PORTS = "ports";
 
+    private final OpenstackNetworkAdminService adminService =
+            DefaultServiceDirectory.getService(OpenstackNetworkAdminService.class);
+
+    @Context
+    private UriInfo uriInfo;
+
+    /**
+     * Creates a port from the JSON input stream.
+     *
+     * @param input port JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is invalid or duplicated port already exists
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPorts(InputStream input) {
-        return Response.status(Response.Status.OK).build();
+        log.trace(String.format(MESSAGE, "CREATE"));
+
+        final NeutronPort port = readPort(input);
+        adminService.createPort(port);
+        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                .path(PORTS)
+                .path(port.getId());
+
+        return created(locationBuilder.build()).build();
     }
 
-    @Path("{portUUID}")
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deletePorts(@PathParam("portUUID") String id) {
-        return Response.noContent().build();
-    }
-
+    /**
+     * Updates the port with the specified identifier.
+     *
+     * @param id    port identifier
+     * @param input port JSON input stream
+     * @return 200 OK with the updated port, 400 BAD_REQUEST if the requested
+     * port does not exist
+     */
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updatePorts(@PathParam("id") String id, InputStream input) {
-        checkNotNull(input);
-        checkNotNull(id);
+    public Response updatePort(@PathParam("id") String id, InputStream input) {
+        log.trace(String.format(MESSAGE, "UPDATE " + id));
 
+        final NeutronPort port = readPort(input);
+        adminService.updatePort(port);
+
+        return status(Response.Status.OK).build();
+    }
+
+    /**
+     * Removes the port with the given id.
+     *
+     * @param id port identifier
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the port does not exist
+     */
+    @DELETE
+    @Path("{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deletePorts(@PathParam("id") String id) {
+        log.trace(String.format(MESSAGE, "DELETE " + id));
+
+        adminService.removePort(id);
+        return noContent().build();
+    }
+
+    private NeutronPort readPort(InputStream input) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode portNode = (ObjectNode) mapper.readTree(input);
-            OpenstackPort osPort = PORT_CODEC.decode(portNode, this);
-
-            OpenstackSecurityGroupService sgService
-                    = getService(OpenstackSecurityGroupService.class);
-            sgService.updateSecurityGroup(osPort);
-
-            return Response.status(Response.Status.OK).build();
-        } catch (IOException e) {
-            log.error("UpdatePort post process failed due to {}", e.getMessage());
-
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage())
-                    .build();
+            JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
+            log.trace(mapper().writeValueAsString(jsonTree));
+            return ObjectMapperSingleton.getContext(NeutronPort.class)
+                    .readerFor(NeutronPort.class)
+                    .readValue(jsonTree);
+        } catch (Exception e) {
+            throw new IllegalArgumentException();
         }
     }
 }
