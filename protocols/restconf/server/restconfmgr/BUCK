@@ -5,6 +5,8 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
     '//core/store/serializers:onos-core-serializers',
+    '//incubator/api:onos-incubator-api',
+    '//apps/restconf/api:onos-apps-restconf-api',
     '//protocols/restconf/server/api:onos-protocols-restconf-server-api',
     '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
     '//apps/yms/api:onos-apps-yms-api',

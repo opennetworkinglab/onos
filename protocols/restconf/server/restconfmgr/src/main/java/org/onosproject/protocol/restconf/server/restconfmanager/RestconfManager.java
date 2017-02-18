@@ -84,6 +84,9 @@ import static org.onosproject.yms.ydt.YmsOperationType.QUERY_REQUEST;
  *    It provides the main logic of the RESTCONF server. It interacts with
  *    the YMS (YANG Management System) to run operations on the YANG data
  *    objects (i.e., data resources).
+ *
+ * NOTE: This implementation will be obsolete and will be replaced by the
+ *       RESTCONF application.
  */
 
 /**

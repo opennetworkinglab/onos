@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.onosproject.protocol.restconf.server.api.Patch;
 import org.onosproject.protocol.restconf.server.api.RestconfException;
-import org.onosproject.protocol.restconf.server.api.RestconfService;
+import org.onosproject.protocol.restconf.server.api.RestconfServiceBroker;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
@@ -62,7 +62,7 @@ public class RestconfWebResource extends AbstractWebResource {
     @Context
     UriInfo uriInfo;
 
-    private final RestconfService service = get(RestconfService.class);
+    private final RestconfServiceBroker service = get(RestconfServiceBroker.class);
     private final Logger log = getLogger(getClass());
 
     /**

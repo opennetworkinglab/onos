@@ -1,11 +1,11 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,14 +19,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ChunkedOutput;
 
 /**
- * Abstraction of RESTCONF Server functionality according to the
- * RESTCONF RFC (no official RFC number yet).
- * <p>
- * NOTE: This interface will be obsolete and will be replaced by the one
- * in the RESTCONF application.
+ * Representation of a RESTCONF service broker. The broker
+ * provides services to the RESTCONF protocol proxy.
  */
-@Deprecated
-public interface RestconfService {
+public interface RestconfServiceBroker {
     /**
      * Processes a GET request against a data resource. The
      * target data resource is identified by its URI. If the
