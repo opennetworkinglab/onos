@@ -302,7 +302,7 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
      * @param request the packet request
      */
     private void pushRule(Device device, PacketRequest request) {
-        if (!device.type().equals(Device.Type.SWITCH)) {
+        if (!device.type().equals(Device.Type.VIRTUAL)) {
             return;
         }
 
@@ -325,7 +325,7 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
      * @param request the packet request
      */
     private void removeRule(Device device, PacketRequest request) {
-        if (!device.type().equals(Device.Type.SWITCH)) {
+        if (!device.type().equals(Device.Type.VIRTUAL)) {
             return;
         }
         ForwardingObjective forwarding = createBuilder(request)
