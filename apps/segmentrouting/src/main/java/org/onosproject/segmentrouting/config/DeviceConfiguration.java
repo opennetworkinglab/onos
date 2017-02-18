@@ -456,7 +456,7 @@ public class DeviceConfiguration implements DeviceProperties {
                         .collect(Collectors.toSet());
 
         if (subnets.isEmpty()) {
-            log.info(NO_SUBNET, connectPoint);
+            log.debug(NO_SUBNET, connectPoint);
             return Collections.emptySet();
         } else if (subnets.size() > 2) {
             log.warn(TOO_MANY_SUBNET, connectPoint);

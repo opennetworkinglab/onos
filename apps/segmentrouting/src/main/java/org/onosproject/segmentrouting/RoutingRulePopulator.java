@@ -509,11 +509,11 @@ public class RoutingRulePopulator {
         fwdObjs.addAll(fwdObjsMpls);
         // Generates the transit rules used by the MPLS Pwaas. For now it is
         // the only case !BoS supported.
-        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
+        /*fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
         if (fwdObjsMpls.isEmpty()) {
             return false;
         }
-        fwdObjs.addAll(fwdObjsMpls);
+        fwdObjs.addAll(fwdObjsMpls);*/
 
         for (ForwardingObjective fwdObj : fwdObjs) {
             log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
@@ -595,9 +595,11 @@ public class RoutingRulePopulator {
      * that need to internally assign vlans to untagged packets, this method
      * provides per-subnet vlan-ids as metadata.
      * <p>
-     * Note that the vlan assignment is only done by the master-instance for a switch.
-     * However we send the filtering objective from slave-instances as well, so
-     * that drivers can obtain other information (like Router MAC and IP).
+     * Note that the vlan assignment and filter programming should only be done by
+     * the master for a switch. This method is typically called at deviceAdd and
+     * programs filters only for the enabled ports of the device. For port-updates,
+     * that enable/disable ports after device add, singlePortFilter methods should
+     * be called.
      *
      * @param deviceId  the switch dpid for the router
      * @return PortFilterInfo information about the processed ports
@@ -606,73 +608,117 @@ public class RoutingRulePopulator {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
 
-        MacAddress deviceMac;
-        try {
-            deviceMac = config.getDeviceMac(deviceId);
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateRouterMacVlanFilters.");
-            return null;
-        }
-
         List<Port> devPorts = srManager.deviceService.getPorts(deviceId);
         if (devPorts == null || devPorts.isEmpty()) {
             log.warn("Device {} ports not available. Unable to add MacVlan filters",
                      deviceId);
             return null;
         }
-        int disabledPorts = 0, suppressedPorts = 0, filteredPorts = 0;
+        int disabledPorts = 0, errorPorts = 0, filteredPorts = 0;
         for (Port port : devPorts) {
-            ConnectPoint connectPoint = new ConnectPoint(deviceId, port.number());
-            // TODO: Handles dynamic port events when we are ready for dynamic config
             if (!port.isEnabled()) {
                 disabledPorts++;
                 continue;
             }
-
-            boolean isSuppressed = false;
-            SegmentRoutingAppConfig appConfig = srManager.cfgService
-                    .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
-            if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
-                isSuppressed = true;
-                suppressedPorts++;
-                continue;
+            if (populateSinglePortFilters(deviceId, port.number())) {
+                filteredPorts++;
+            } else {
+                errorPorts++;
             }
-
-            Ip4Prefix portSubnet = config.getPortIPv4Subnet(deviceId, port.number());
-            VlanId assignedVlan = (portSubnet == null || isSuppressed)
-                    ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
-                    : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
-
-            if (assignedVlan == null) {
-                log.warn("Assigned vlan is null for {} in {} - Aborting populateRouterMacVlanFilters.",
-                         port.number(), deviceId);
-                return null;
-            }
-
-            FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-            fob.withKey(Criteria.matchInPort(port.number()))
-                .addCondition(Criteria.matchEthDst(deviceMac))
-                .addCondition(Criteria.matchVlanId(VlanId.NONE))
-                .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
-            // vlan assignment is valid only if this instance is master
-            if (srManager.mastershipService.isLocalMaster(deviceId)) {
-                TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                        .pushVlan().setVlanId(assignedVlan).build();
-                fob.withMeta(tt);
-            }
-            fob.permit().fromApp(srManager.appId);
-            log.debug("Sending filtering objective for dev/port:{}/{}", deviceId, port);
-            filteredPorts++;
-            ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Filter for {} populated", connectPoint),
-                (objective, error) ->
-                log.warn("Failed to populate filter for {}: {}", connectPoint, error));
-            srManager.flowObjectiveService.filter(deviceId, fob.add(context));
         }
-        log.info("Filtering on dev:{}, disabledPorts:{}, suppressedPorts:{}, filteredPorts:{}",
-                  deviceId, disabledPorts, suppressedPorts, filteredPorts);
+        log.info("Filtering on dev:{}, disabledPorts:{}, errorPorts:{}, filteredPorts:{}",
+                  deviceId, disabledPorts, errorPorts, filteredPorts);
         return srManager.defaultRoutingHandler.new PortFilterInfo(disabledPorts,
-                                                       suppressedPorts, filteredPorts);
+                                                       errorPorts, filteredPorts);
+    }
+
+    /**
+     * Creates filtering objectives for a single port. Should only be called
+     * by the master for a switch.
+     *
+     * @param deviceId device identifier
+     * @param portnum  port identifier for port to be filtered
+     * @return true if no errors occurred during the build of the filtering objective
+     */
+    public boolean populateSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
+        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum);
+        if (fob == null) {
+            // error encountered during build
+            return false;
+        }
+        log.info("Sending filtering objectives for dev/port:{}/{}", deviceId, portnum);
+        ObjectiveContext context = new DefaultObjectiveContext(
+            (objective) -> log.debug("Filter for {}/{} populated", deviceId, portnum),
+            (objective, error) ->
+            log.warn("Failed to populate filter for {}/{}: {}",
+                     deviceId, portnum, error));
+        srManager.flowObjectiveService.filter(deviceId, fob.add(context));
+        return true;
+    }
+
+    /**
+     * Removes filtering objectives for a single port. Should only be called
+     * by the master for a switch.
+     *
+     * @param deviceId device identifier
+     * @param portnum port identifier
+     */
+    public void revokeSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
+        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum);
+        if (fob == null) {
+            // error encountered during build
+            return;
+        }
+        log.info("Removing filtering objectives for dev/port:{}/{}", deviceId, portnum);
+        ObjectiveContext context = new DefaultObjectiveContext(
+            (objective) -> log.debug("Filter for {}/{} removed", deviceId, portnum),
+            (objective, error) ->
+            log.warn("Failed to remove filter for {}/{}: {}",
+                     deviceId, portnum, error));
+        srManager.flowObjectiveService.filter(deviceId, fob.remove(context));
+        return;
+    }
+
+
+    private FilteringObjective.Builder buildFilteringObjective(DeviceId deviceId,
+                                                               PortNumber portnum) {
+        MacAddress deviceMac;
+        try {
+            deviceMac = config.getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Processing SinglePortFilters aborted");
+            return null;
+        }
+        // suppressed ports still have filtering rules pushed by SR using default vlan
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
+        boolean isSuppressed = false;
+        SegmentRoutingAppConfig appConfig = srManager.cfgService
+                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+        if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
+            isSuppressed = true;
+        }
+
+        Ip4Prefix portSubnet = config.getPortIPv4Subnet(deviceId, portnum);
+        VlanId assignedVlan = (portSubnet == null || isSuppressed)
+                ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
+                : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
+
+        if (assignedVlan == null) {
+            log.warn("Assigned vlan is null for {} in {} - Processing "
+                    + "SinglePortFilters aborted", portnum, deviceId);
+            return null;
+        }
+
+        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+        fob.withKey(Criteria.matchInPort(portnum))
+            .addCondition(Criteria.matchEthDst(deviceMac))
+            .addCondition(Criteria.matchVlanId(VlanId.NONE))
+            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                .pushVlan().setVlanId(assignedVlan).build();
+        fob.withMeta(tt);
+        fob.permit().fromApp(srManager.appId);
+        return fob;
     }
 
     /**

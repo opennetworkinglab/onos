@@ -360,17 +360,13 @@ public class DefaultGroupHandler {
     /**
      * Adds or removes a port that has been configured with a subnet to a broadcast group
      * for bridging. Note that this does not create the broadcast group itself.
+     * Should only be called by the master instance for this device/port.
      *
      * @param port the port on this device that needs to be added/removed to a bcast group
      * @param subnet the subnet corresponding  to the broadcast group
      * @param portUp true if port is enabled, false if disabled
-     * @param isMaster true if local instance is the master
      */
-    public void processEdgePort(PortNumber port, Ip4Prefix subnet,
-                                boolean portUp, boolean isMaster) {
-        if (!isMaster) {
-            return;
-        }
+    public void processEdgePort(PortNumber port, Ip4Prefix subnet, boolean portUp) {
         //get the next id for the subnet and edit it.
         Integer nextId = getSubnetNextObjectiveId(subnet);
         if (nextId == -1) {

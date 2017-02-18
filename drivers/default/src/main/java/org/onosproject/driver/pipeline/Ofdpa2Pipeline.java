@@ -387,8 +387,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
                                                          vidCriterion, assignedVlan,
                                                          applicationId)) {
-                log.debug("adding MAC filtering rules in TMAC table: {} for dev: {}",
-                          tmacRule, deviceId);
+                log.debug("{} MAC filtering rules in TMAC table: {} for dev: {}",
+                          (install) ? "adding" : "removing", tmacRule, deviceId);
                 ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
             }
         }
@@ -420,42 +420,17 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             });
 
             for (FlowRule filteringRule : filteringRules) {
-                log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
-                        filteringRule, deviceId);
+                log.debug("{} VLAN filtering rule in VLAN table: {} for dev: {}",
+                          (install) ? "adding" : "removing", filteringRule, deviceId);
                 ops = install ? ops.add(filteringRule) : ops.remove(filteringRule);
             }
 
             ops.newStage();
 
             for (FlowRule assignmentRule : assignmentRules) {
-                log.debug("adding VLAN assignment rule in VLAN table: {} for dev: {}",
-                        assignmentRule, deviceId);
+                log.debug("{} VLAN assignment rule in VLAN table: {} for dev: {}",
+                        (install) ? "adding" : "removing", assignmentRule, deviceId);
                 ops = install ? ops.add(assignmentRule) : ops.remove(assignmentRule);
-            }
-        }
-
-        for (IPCriterion ipaddr : ips) {
-            // since we ignore port information for IP rules, and the same (gateway) IP
-            // can be configured on multiple ports, we make sure that we send
-            // only a single rule to the switch.
-            if (!sentIpFilters.contains(ipaddr)) {
-                sentIpFilters.add(ipaddr);
-                log.debug("adding IP filtering rules in ACL table {} for dev: {}",
-                          ipaddr, deviceId);
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-                selector.matchEthType(Ethernet.TYPE_IPV4);
-                selector.matchIPDst(ipaddr.ip());
-                treatment.setOutput(PortNumber.CONTROLLER);
-                FlowRule rule = DefaultFlowRule.builder()
-                        .forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(HIGHEST_PRIORITY)
-                        .fromApp(applicationId)
-                        .makePermanent()
-                        .forTable(ACL_TABLE).build();
-                ops = install ? ops.add(rule) : ops.remove(rule);
             }
         }
 
@@ -463,7 +438,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Applied {} filtering rules in device {}",
+                log.debug("Applied {} filtering rules in device {}",
                          ops.stages().get(0).size(), deviceId);
                 pass(filt);
             }
@@ -776,7 +751,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *             the flow rule
      */
     protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
-        log.info("Processing versatile forwarding objective:{} in dev:{}",
+        log.debug("Processing versatile forwarding objective:{} in dev:{}",
                  fwd.id(), deviceId);
 
         EthTypeCriterion ethType =

@@ -88,6 +88,10 @@ public class DefaultHost extends AbstractElement implements Host {
         return mac;
     }
 
+    /**
+     * Returns an unmodifiable set of IP addresses currently bound to the
+     * host MAC address.
+     */
     @Override
     public Set<IpAddress> ipAddresses() {
         return Collections.unmodifiableSet(ips);

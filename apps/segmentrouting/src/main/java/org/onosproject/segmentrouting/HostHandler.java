@@ -39,6 +39,7 @@ import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import java.util.Set;
 
 /**
@@ -83,7 +84,7 @@ public class HostHandler {
         DeviceId deviceId = location.deviceId();
         PortNumber port = location.port();
         Set<IpAddress> ips = host.ipAddresses();
-        log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+        log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
         if (accepted(host)) {
             // Populate bridging table entry
@@ -122,7 +123,7 @@ public class HostHandler {
         DeviceId deviceId = location.deviceId();
         PortNumber port = location.port();
         Set<IpAddress> ips = host.ipAddresses();
-        log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
+        log.info("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
 
         if (accepted(host)) {
             // Revoke bridging table entry
@@ -159,7 +160,7 @@ public class HostHandler {
         DeviceId newDeviceId = newLocation.deviceId();
         PortNumber newPort = newLocation.port();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.debug("Host {}/{} is moved from {}:{} to {}:{}",
+        log.info("Host {}/{} is moved from {}:{} to {}:{}",
                 mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
 
         if (accepted(event.prevSubject())) {
@@ -220,12 +221,13 @@ public class HostHandler {
         DeviceId newDeviceId = newLocation.deviceId();
         PortNumber newPort = newLocation.port();
         Set<IpAddress> newIps = event.subject().ipAddresses();
-        log.debug("Host {}/{} is updated", mac, vlanId);
+        log.info("Host {}/{} is updated", mac, vlanId);
 
         if (accepted(event.prevSubject())) {
             // Revoke previous IP table entry
-            prevIps.forEach(ip -> {
+            Sets.difference(prevIps, newIps).forEach(ip -> {
                 if (srManager.deviceConfiguration.inSameSubnet(prevLocation, ip)) {
+                    log.info("revoking previous IP rule:{}", ip);
                     srManager.routingRulePopulator.revokeRoute(
                             prevDeviceId, ip.toIpPrefix(), mac, prevPort);
                 }
@@ -234,8 +236,9 @@ public class HostHandler {
 
         if (accepted(event.subject())) {
             // Populate new IP table entry
-            newIps.forEach(ip -> {
+            Sets.difference(newIps, prevIps).forEach(ip -> {
                 if (srManager.deviceConfiguration.inSameSubnet(newLocation, ip)) {
+                    log.info("populating new IP rule:{}", ip);
                     srManager.routingRulePopulator.populateRoute(
                             newDeviceId, ip.toIpPrefix(), mac, newPort);
                 }

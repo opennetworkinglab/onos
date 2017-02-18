@@ -499,7 +499,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public void rerouteNetwork() {
         cfgListener.configureNetwork();
         for (Device device : deviceService.getDevices()) {
-            defaultRoutingHandler.populatePortAddressingRules(device.id());
+            if (mastershipService.isLocalMaster(device.id())) {
+                defaultRoutingHandler.populatePortAddressingRules(device.id());
+            }
         }
         defaultRoutingHandler.startPopulationProcess();
     }
@@ -952,13 +954,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     deviceId);
             groupHandlerMap.put(deviceId, groupHandler);
         }
-        // Also, in some cases, drivers may need extra
-        // information to process rules (eg. Router IP/MAC); and so, we send
-        // port addressing rules to the driver as well irrespective of whether
-        // this instance is the master or not.
-        defaultRoutingHandler.populatePortAddressingRules(deviceId);
 
         if (mastershipService.isLocalMaster(deviceId)) {
+            defaultRoutingHandler.populatePortAddressingRules(deviceId);
             hostHandler.init(deviceId);
             xConnectHandler.init(deviceId);
             cordConfigHandler.init(deviceId);
@@ -1004,19 +1002,32 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     + "dev: {} port: {}", device.id(), port.number());
             return;
         }
-        /* XXX create method for single port filtering rules which are needed
-           for both switch-to-switch ports and edge ports
-        if (defaultRoutingHandler != null) {
-            defaultRoutingHandler.populatePortAddressingRules(
-                ((Device) event.subject()).id());
-        }*/
+
+        if (!mastershipService.isLocalMaster(device.id()))  {
+            log.debug("Not master for dev:{} .. not handling port updated event"
+                    + "for port {}", device.id(), port.number());
+            return;
+        }
+
+        // first we handle filtering rules associated with the port
+        if (port.isEnabled()) {
+            log.info("Switchport {}/{} enabled..programming filters",
+                     device.id(), port.number());
+            defaultRoutingHandler.populateSinglePortFilteringRules(device.id(),
+                                                                    port.number());
+        } else {
+            log.info("Switchport {}/{} disabled..removing filters",
+                     device.id(), port.number());
+            defaultRoutingHandler.revokeSinglePortFilteringRules(device.id(),
+                                                                  port.number());
+        }
 
         // portUpdated calls are for ports that have gone down or up. For switch
         // to switch ports, link-events should take care of any re-routing or
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
-         Ip4Prefix configuredSubnet = deviceConfiguration.getPortIPv4Subnet(device.id(),
-                                                                        port.number());
+        Ip4Prefix configuredSubnet = deviceConfiguration.getPortIPv4Subnet(device.id(),
+                                                                           port.number());
         if (configuredSubnet == null) {
             log.debug("Not handling port updated event for unconfigured port "
                     + "dev/port: {}/{}", device.id(), port.number());
@@ -1037,8 +1048,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
-            groupHandler.processEdgePort(port.number(), subnet, portUp,
-                                  mastershipService.isLocalMaster(device.id()));
+            groupHandler.processEdgePort(port.number(), subnet, portUp);
         } else {
             log.warn("Group handler not found for dev:{}. Not handling edge port"
                     + " {} event for port:{}", device.id(),
@@ -1196,8 +1206,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /////////////////////////////////////////////////////////////////
     //    XXX Neighbour hacking, temporary workaround will be      //
-    //    removed as soon as possible, when the bridging will      //
-    //    be implemented. For now, it's fine to leave this         //
+    //    removed as soon as possible, when bridging based         //
+    //    control plane redirect is implemented.                   //
     /////////////////////////////////////////////////////////////////
 
     // XXX Neighbour hacking. To store upstream connect

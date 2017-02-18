@@ -27,6 +27,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
@@ -52,8 +53,9 @@ import static org.onlab.util.Tools.groupedThreads;
  * routing rule population.
  */
 public class DefaultRoutingHandler {
-    private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 4;
-    private static final int RETRY_INTERVAL_MS = 500;
+    private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 5;
+    private static final int RETRY_INTERVAL_MS = 250;
+    private static final int RETRY_INTERVAL_SCALE = 1;
     private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
@@ -634,7 +636,9 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Populates filtering rules for permitting Router DstMac and VLAN.
+     * Populates filtering rules for port, and punting rules
+     * for gateway IPs, loopback IPs and arp/ndp traffic.
+     * Should only be called by the master instance for this device/port.
      *
      * @param deviceId Switch ID to set the rules
      */
@@ -652,6 +656,28 @@ public class DefaultRoutingHandler {
         }
         executorService.schedule(new RetryFilters(deviceId, firstRun),
                                  RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Populates filtering rules for a port that has been enabled.
+     * Should only be called by the master instance for this device/port.
+     *
+     * @param devId device identifier
+     * @param portnum port identifier
+     */
+    public void populateSinglePortFilteringRules(DeviceId devId, PortNumber portnum) {
+        rulePopulator.populateSinglePortFilters(devId, portnum);
+    }
+
+    /**
+     * Revokes filtering rules for a port that has been disabled.
+     * Should only be called by the master instance for this device/port.
+     *
+     * @param devId device identifier
+     * @param portnum port identifier
+     */
+    public void revokeSinglePortFilteringRules(DeviceId devId, PortNumber portnum) {
+        rulePopulator.revokeSinglePortFilters(devId, portnum);
     }
 
     /**
@@ -743,21 +769,20 @@ public class DefaultRoutingHandler {
     /**
      * Utility class used to temporarily store information about the ports on a
      * device processed for filtering objectives.
-     *
      */
     public final class PortFilterInfo {
-        int disabledPorts = 0, suppressedPorts = 0, filteredPorts = 0;
+        int disabledPorts = 0, errorPorts = 0, filteredPorts = 0;
 
-        public PortFilterInfo(int disabledPorts, int suppressedPorts,
+        public PortFilterInfo(int disabledPorts, int errorPorts,
                            int filteredPorts) {
             this.disabledPorts = disabledPorts;
             this.filteredPorts = filteredPorts;
-            this.suppressedPorts = suppressedPorts;
+            this.errorPorts = errorPorts;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(disabledPorts, filteredPorts, suppressedPorts);
+            return Objects.hash(disabledPorts, filteredPorts, errorPorts);
         }
 
         @Override
@@ -771,14 +796,14 @@ public class DefaultRoutingHandler {
             PortFilterInfo other = (PortFilterInfo) obj;
             return ((disabledPorts == other.disabledPorts) &&
                     (filteredPorts == other.filteredPorts) &&
-                    (suppressedPorts == other.suppressedPorts));
+                    (errorPorts == other.errorPorts));
         }
 
         @Override
         public String toString() {
             MoreObjects.ToStringHelper helper = toStringHelper(this)
                     .add("disabledPorts", disabledPorts)
-                    .add("suppressedPorts", suppressedPorts)
+                    .add("errorPorts", errorPorts)
                     .add("filteredPorts", filteredPorts);
             return helper.toString();
         }
@@ -809,7 +834,10 @@ public class DefaultRoutingHandler {
             log.debug("dev:{} prevRun:{} thisRun:{} sameResult:{}", devId, prevRun,
                       thisRun, sameResult);
             if (thisRun == null || !sameResult || (sameResult && --constantAttempts > 0)) {
-                executorService.schedule(this, RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
+                // exponentially increasing intervals for retries
+                executorService.schedule(this,
+                    RETRY_INTERVAL_MS * (int) Math.pow(counter, RETRY_INTERVAL_SCALE),
+                    TimeUnit.MILLISECONDS);
                 if (!sameResult) {
                     constantAttempts = MAX_CONSTANT_RETRY_ATTEMPTS; //reset
                 }
