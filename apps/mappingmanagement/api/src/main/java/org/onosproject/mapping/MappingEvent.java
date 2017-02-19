@@ -22,6 +22,9 @@ import org.onosproject.event.AbstractEvent;
  */
 public class MappingEvent extends AbstractEvent<MappingEvent.Type, Mapping> {
 
+    /**
+     * Type of mapping events.
+     */
     public enum Type {
 
         /**
@@ -54,10 +57,28 @@ public class MappingEvent extends AbstractEvent<MappingEvent.Type, Mapping> {
         /**
          * Signifies that a request to remove flow rule has been added to the store.
          */
-        MAPPING_REMOVE_REQUESTED,
+        MAPPING_REMOVE_REQUESTED
     }
 
+    /**
+     * Creates an event of a given type and for the specified mapping and the
+     * current time.
+     *
+     * @param type    mapping event type
+     * @param mapping event mapping subject
+     */
     public MappingEvent(Type type, Mapping mapping) {
         super(type, mapping);
+    }
+
+    /**
+     * Creates an event of a given type and for the specified mapping and time.
+     *
+     * @param type    mapping event type
+     * @param mapping event mapping subject
+     * @param time    occurrence time
+     */
+    public MappingEvent(Type type, Mapping mapping, long time) {
+        super(type, mapping, time);
     }
 }

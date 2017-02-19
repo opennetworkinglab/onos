@@ -32,6 +32,10 @@ public class DefaultMappingEntryTest {
     private static final MappingValue MAPPING_VALUE =
                          new MappingTestMocks.MockMappingValue();
 
+    private final MappingEntry entry1 = makeMappingEntry(1);
+    private final MappingEntry sameAsEntry1 = makeMappingEntry(1);
+    private final MappingEntry entry2 = makeMappingEntry(2);
+
     /**
      * Creates a new mapping entry from an unique value.
      *
@@ -49,10 +53,6 @@ public class DefaultMappingEntryTest {
 
         return new DefaultMappingEntry(mapping, MappingEntry.MappingEntryState.ADDED);
     }
-
-    final MappingEntry entry1 = makeMappingEntry(1);
-    final MappingEntry sameAsEntry1 = makeMappingEntry(1);
-    final MappingEntry entry2 = makeMappingEntry(2);
 
     /**
      * Tests the equals, hashCode and toString methods using Guava EqualsTester.

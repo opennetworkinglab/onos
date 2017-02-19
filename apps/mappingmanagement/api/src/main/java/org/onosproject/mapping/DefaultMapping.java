@@ -122,6 +122,18 @@ public class DefaultMapping implements Mapping {
                 .toString();
     }
 
+    /**
+     * Returns a default mapping builder.
+     *
+     * @return builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Default mapping builder.
+     */
     public static final class Builder implements Mapping.Builder {
 
         private MappingId id;

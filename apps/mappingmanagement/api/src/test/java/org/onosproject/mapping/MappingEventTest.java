@@ -77,6 +77,18 @@ public class MappingEventTest extends AbstractEventTest {
     }
 
     /**
+     * Tests the constructor where a time is passed in.
+     */
+    @Test
+    public void testTimeConstructor() {
+        final long time = 123L;
+        final Mapping mapping = mockMapping(1, DEVICE_ID_1);
+        final MappingEvent event =
+                new MappingEvent(MappingEvent.Type.MAPPING_REMOVE_REQUESTED, mapping, time);
+        validateEvent(event, MappingEvent.Type.MAPPING_REMOVE_REQUESTED, mapping, time);
+    }
+
+    /**
      * Tests creation of a MappingEvent.
      */
     @Test

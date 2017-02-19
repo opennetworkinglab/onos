@@ -40,6 +40,15 @@ public class DefaultMappingEntry extends DefaultMapping implements MappingEntry 
         this.state = state;
     }
 
+    /**
+     * Creates a mapping entry specified with the mapping.
+     *
+     * @param mapping mapping
+     */
+    public DefaultMappingEntry(Mapping mapping) {
+        this(mapping, MappingEntryState.PENDING_ADD);
+    }
+
     @Override
     public MappingEntryState state() {
         return state;
