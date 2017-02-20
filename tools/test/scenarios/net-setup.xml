@@ -29,7 +29,7 @@
               exec="onos-netcfg ${OC1} ${ONOS_ROOT}/tools/test/topos/${ONOS_TOPO}.json"/>
 
         <step name="Start-Mininet"
-              requires="Install-Apps,Config-Topo,Push-Topos,Stop-Mininet-If-Needed"
+              requires="Config-Topo,Push-Topos,Stop-Mininet-If-Needed"
               exec="onos-mininet start topos/topo ${ONOS_TOPO}.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"
