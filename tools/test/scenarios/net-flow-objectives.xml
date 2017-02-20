@@ -69,9 +69,9 @@
         <step name="Net-Flow-Objectives.Ping-XY" requires="Net-Flow-Objectives.Objective-1F,
                                                            Net-Flow-Objectives.Objective-1R,
                                                            Net-Flow-Objectives.Objective-19F,
-                                                           Net-Flow-Objectives.Objective-19R
+                                                           Net-Flow-Objectives.Objective-19R,
                                                            Net-Flow-Objectives.Objective-7F,
-                                                           Net-Flow-Objectives.Objective-7R
+                                                           Net-Flow-Objectives.Objective-7R,
                                                            Net-Flow-Objectives.Objective-4F,
                                                            Net-Flow-Objectives.Objective-4R"
               exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>

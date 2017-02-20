@@ -17,7 +17,7 @@
     <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
     <group name="Net-Pingall">
 
-        <step name="Ping-All" requires="Check-Apps"
+        <step name="Ping-All" requires="Check-Fwd-Apps-Activated"
               exec="onos-mininet sendAndExpect pingall --expect ${OPALL}/${OPALL} received"/>
 
         <step name="Check-Summary-For-Hosts" requires="~Ping-All"
