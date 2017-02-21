@@ -17,12 +17,14 @@
     <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
     <import file="${ONOS_SCENARIOS}/net-prerequisites.xml"/>
     <import file="${ONOS_SCENARIOS}/setup.xml"/>
+    <import file="${ONOS_SCENARIOS}/maps-cli.xml"/>
     <import file="${ONOS_SCENARIOS}/dist-test.xml"/>
     <import file="${ONOS_SCENARIOS}/smoke-internal.xml"/>
 
     <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
     <dependency name="Net-Smoke" requires="Setup"/>
     <dependency name="Archetypes" requires="Setup"/>
+    <dependency name="Maps-Cli" requires="Setup"/>
     <dependency name="Drivers-Test" requires="Setup"/>
     <dependency name="Meta-App" requires="Setup"/>
     <dependency name="Netcfg" requires="Setup"/>

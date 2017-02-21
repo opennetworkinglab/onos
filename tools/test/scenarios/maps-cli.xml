@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright 2017-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="maps-cli"
+          description="maps CLI command test">
+    <group name="Maps-Cli">
+
+        <!-- Shell script based checks -->
+        <!-- Check map known to have 0 entries -->
+        <step name="Maps-Cli.Find-Intent-Mapping-Shell"
+              exec="onos-find-map ${OCI} onos-intent-mapping intentMapping"/>
+        <step name="Maps-Cli.Check-Intent-Mapping-Shell" requires="^"
+              exec="test ${intentMappingSize} -eq 0"/>
+
+        <!-- Check map known to have at least 50 entries -->
+        <step name="Maps-Cli.Find-Intent-Mapping2-Shell"
+              exec="onos-find-map ${OCI} onos-app-ids appIdsMapping"/>
+        <step name="Maps-Cli.Check-App-Ids-Mapping-Shell" requires="^"
+              exec="test ${appIdsMappingSize} -gt 50"/>
+
+        <!-- Python based checks -->
+        <!-- Check map known to have 0 entries -->
+        <step name="Maps-Cli.Find-Intent-Mapping-Python"
+              exec="onos-find-and-check-map ${OCI} onos-intent-mapping yes"/>
+        <!-- Check map known to have more than 0 entries -->
+        <step name="Maps-Cli.Find-App-Id-Mapping"
+              exec="onos-find-and-check-map ${OCI} onos-app-ids no"/>
+
+    </group>
+</scenario>

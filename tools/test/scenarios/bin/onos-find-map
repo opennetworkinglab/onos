@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# -----------------------------------------------------------------------------
+# Invokes the ONOS CLI and looks for a 'maps' entry with the given name
+# -----------------------------------------------------------------------------
+
+NODE=$1
+MAP=$2
+ID=$3
+
+map_text=`( onos ${NODE} onos:maps ) | grep ${MAP}`
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+map_size=`echo ${map_text} | sed s#^.*size=##`
+echo "@stc ${ID}Size=${map_size}"
