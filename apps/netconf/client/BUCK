@@ -1,9 +1,23 @@
+APPS = [
+  'org.onosproject.yang',
+]
+
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
+  '//lib:onos-yang-model',
   '//lib:onos-yang-runtime',
-  '//protocols/netconf/api:onos-protocols-netconf-api'
+  '//protocols/netconf/api:onos-protocols-netconf-api',
+  '//utils/osgi:onlab-osgi',
 ]
 
 osgi_jar_with_tests (
   deps = COMPILE_DEPS,
+)
+
+onos_app (
+  title = 'Dynamic Config Netconf App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  description = 'Netconf support for Dynamic configuration service.',
+  required_apps = APPS,
 )
