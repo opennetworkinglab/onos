@@ -11,7 +11,7 @@ node=$(find_node ${1:-$OCI})
 
 remote=$ONOS_USER@$node
 
-ssh -t $remote "
+ssh -t -t $remote "
     # Wait until we reach the run-level 100
     for i in {1..90}; do
         $ONOS_INSTALL_DIR/bin/onos bundle:list 2>/dev/null | \
