@@ -36,13 +36,13 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
 public class OplinkRoadmLambdaQuery extends AbstractHandlerBehaviour implements LambdaQuery {
 
-    private static final int LAMBDA_COUNT = 88;
-    private static final int CENTER_OFFSET = 29;
+    private static final int MIN_CHANNEL = -28;
+    private static final int MAX_CHANNEL = 59;
 
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {
-        return IntStream.rangeClosed(1, LAMBDA_COUNT)
-                .mapToObj(x -> OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, x - CENTER_OFFSET))
+        return IntStream.rangeClosed(MIN_CHANNEL, MAX_CHANNEL)
+                .mapToObj(x -> OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, x))
                 .collect(Collectors.toSet());
     }
 }

@@ -51,7 +51,7 @@
             manufacturer="Oplink a Molex company" hwVersion="ROADM"
             swVersion="of-agent">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.optical.handshaker.OplinkRoadm"/>
+                   impl="org.onosproject.driver.optical.handshaker.OplinkRoadmHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.OplinkRoadmLambdaQuery"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
