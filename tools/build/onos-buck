@@ -41,5 +41,9 @@ popd > /dev/null
 
 BUCK=$ROOT_DIR/bin/buck
 
+if [ "${ONOS_NO_BUCKD:-1}" == "1" ]; then
+  export NO_BUCKD=1
+fi
+
 # Finally, run the Buck command...
-NO_BUCKD=1 $BUCK "$@"
+$BUCK "$@"
