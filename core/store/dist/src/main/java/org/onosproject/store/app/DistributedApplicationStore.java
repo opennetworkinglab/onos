@@ -308,8 +308,14 @@ public class DistributedApplicationStore extends ApplicationArchive
     }
 
     private boolean hasPrerequisites(ApplicationDescription app) {
-        return !app.requiredApps().stream().map(this::getId)
-                .anyMatch(id -> id == null || getApplication(id) == null);
+        for (String required : app.requiredApps()) {
+            ApplicationId id = getId(required);
+            if (id == null || getApplication(id) == null) {
+                log.error("{} required for {} not available", required, app.name());
+                return false;
+            }
+        }
+        return true;
     }
 
     private Application create(ApplicationDescription appDesc, boolean updateTime) {
