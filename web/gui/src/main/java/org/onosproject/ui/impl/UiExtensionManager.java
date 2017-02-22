@@ -135,7 +135,7 @@ public class UiExtensionManager
 
                 // FIXME: leave commented out for now, while still under development
                 // (remember to also comment out inclusions in index.html)
-//                new UiView(NETWORK, "topo2", "New-Topo"),
+                new UiView(NETWORK, "topo2", "New-Topo"),
 
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),

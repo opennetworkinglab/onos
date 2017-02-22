@@ -41,7 +41,7 @@
         var prefs = currentMap(),
             mapId = prefs.mapid,
             mapFilePath = prefs.mapfilepath,
-            mapScale = prefs.mapscale,
+            mapScale = prefs.mapscale || 1,
             loadMap = ms.loadMapInto,
             promise, cfilter;
 
@@ -94,8 +94,8 @@
 
     function setMap(map) {
         ps.setPrefs('topo_mapid', map);
-        setUpMap();
         opacifyMap(true);
+        return setUpMap();
     }
 
     // TODO: -- START -- Move to dedicated module
@@ -119,6 +119,14 @@
         return on;
     }
     // TODO: -- END -- Move to dedicated module
+
+    function show() {
+        sus.visible(mapG, true);
+    }
+
+    function hide() {
+        sus.visible(mapG, false);
+    }
 
     function toggle(x) {
         return _togSvgLayer(x, mapG, 'bg', 'background map');
@@ -156,7 +164,11 @@
 
                 return {
                     init: init,
+                    setMap: setMap,
                     openMapSelection: openMapSelection,
+
+                    show: show,
+                    hide: hide,
                     toggle: toggle,
 
                     resetZoom: resetZoom

@@ -35,8 +35,9 @@
     .factory('Topo2RegionService', [
         '$log', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
-        'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService',
-        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController, t2sls) {
+        'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
+        'Topo2MapConfigService',
+        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController, t2sls, t2ms, t2mcs) {
 
             Model = _Model_;
 
@@ -47,7 +48,23 @@
                 },
                 addLayout: function (data) {
 
-                    // TODO: Dynamically change the Geo Map from the layout data
+                    var _this = this;
+
+                    if (data.bgType === 'geo') {
+                        t2ms.setMap({
+                            mapid: data.bgId,
+
+                            // TODO: The following value will be specified in the Topo2CurrentLayout Payload
+                            mapfilepath: "*bayarea"
+                        }).then(function () {
+                            _.each(_this.regionNodes(), function (node) {
+                                node.resetPosition();
+                            });
+                        });
+                        t2ms.show();
+                    } else {
+                        t2ms.hide();
+                    }
 
                     if (data.bgType === 'grid') {
                         t2sls.loadLayout(data.bgId);

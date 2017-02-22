@@ -41,6 +41,9 @@ import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
+import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiTopoMap;
+import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.impl.topo.model.UiModelEvent;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
@@ -104,6 +107,7 @@ public class Topo2Jsonifier {
     private PortStatisticsService portStatsService;
     private TopologyService topologyService;
     private TunnelService tunnelService;
+    private UiExtensionService uiextService;
 
 
     // NOTE: we'll stick this here for now, but maybe there is a better home?
@@ -132,6 +136,7 @@ public class Topo2Jsonifier {
         portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
         tunnelService = directory.get(TunnelService.class);
+        uiextService = directory.get(UiExtensionService.class);
     }
 
     // for unit testing
@@ -203,12 +208,53 @@ public class Topo2Jsonifier {
     }
 
     private void addBgRef(ObjectNode result, UiTopoLayout layout) {
-        String map = layout.geomap();
-        String spr = layout.sprites();
-        if (map != null) {
-            result.put("bgType", "geo").put("bgId", map);
-        } else if (spr != null) {
-            result.put("bgType", "grid").put("bgId", spr);
+        String mapId = layout.geomap();
+        String sprId = layout.sprites();
+
+        if (mapId != null) {
+            result.put("bgType", "geo").put("bgId", mapId);
+            addMapParameters(result, mapId);
+        } else if (sprId != null) {
+            result.put("bgType", "grid").put("bgId", sprId);
+        }
+    }
+
+    private void addMapParameters(ObjectNode result, String mapId) {
+
+        // TODO: This ought to be written more efficiently.
+
+        // ALSO: Should retrieving a UiTopoMap by ID be something that
+        //       the UiExtensionService provides, along with other
+        //       useful lookups?
+        //
+        //       Or should it remain very basic / general?
+        //
+        //       return uiextService.getTopoMap(String mapId);
+
+        final UiTopoMap[] map = {null};
+
+        uiextService.getExtensions().forEach(ext -> {
+            UiTopoMapFactory factory = ext.topoMapFactory();
+
+            // TODO: use .stream().filter(...) here
+            if (map[0] == null && factory != null) {
+                List<UiTopoMap> topoMaps = factory.geoMaps();
+
+                topoMaps.forEach(m -> {
+                    if (map[0] == null && m.id().equals(mapId)) {
+                        map[0] = m;
+                    }
+                });
+            }
+        });
+
+        UiTopoMap m = map[0];
+        if (m != null) {
+            result.put("bgDesc", m.description())
+                    .put("bgFilePath", m.filePath())
+                    .put("bgDefaultScale", m.scale());
+        } else {
+            result.put("bgWarn", "no map registered with id: " + mapId);
         }
     }
 
