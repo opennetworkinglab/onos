@@ -25,18 +25,22 @@ import org.onosproject.lisp.ctl.LispMessageListener;
 import org.onosproject.lisp.ctl.LispRouterId;
 import org.onosproject.lisp.ctl.LispRouterListener;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
+import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingProvider;
 import org.onosproject.mapping.MappingProviderRegistry;
 import org.onosproject.mapping.MappingProviderService;
+import org.onosproject.mapping.MappingStore;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.lisp.mapping.util.MappingEntryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static org.onosproject.mapping.MappingStore.Type.MAP_CACHE;
 import static org.onosproject.mapping.MappingStore.Type.MAP_DATABASE;
@@ -138,21 +142,33 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
 
                 case LISP_MAP_REPLY:
                     LispMapReply reply = (LispMapReply) msg;
-
-                    MappingEntry replyMe = new MappingEntryBuilder(deviceId, reply).build();
-                    providerService.mappingAdded(replyMe, MAP_CACHE);
+                    processMappings(deviceId, reply.getMapRecords(), MAP_CACHE);
                     break;
 
                 case LISP_MAP_NOTIFY:
                     LispMapNotify notify = (LispMapNotify) msg;
-
-                    MappingEntry notifyMe = new MappingEntryBuilder(deviceId, notify).build();
-                    providerService.mappingAdded(notifyMe, MAP_DATABASE);
+                    processMappings(deviceId, notify.getMapRecords(), MAP_DATABASE);
                     break;
 
                 default:
                     log.warn("Unhandled message type: {}", msg.getType());
             }
+        }
+
+        /**
+         * Converts map records into mapping, notifies to provider.
+         *
+         * @param deviceId device identifier
+         * @param records  a collection of map records
+         * @param type     MappingStore type
+         */
+        private void processMappings(DeviceId deviceId,
+                                     List<LispMapRecord> records,
+                                     MappingStore.Type type) {
+            records.forEach(r -> {
+                MappingEntry me = new MappingEntryBuilder(deviceId, r).build();
+                providerService.mappingAdded(me, type);
+            });
         }
     }
 }
