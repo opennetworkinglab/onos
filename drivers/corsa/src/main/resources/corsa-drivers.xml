@@ -41,7 +41,7 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.drivers.corsa.CorsaSwitchHandshaker"/>
     </driver>
-    <driver name="corsa-v39"
+    <driver name="corsa-v39" extends="abstract"
             manufacturer="Corsa" hwVersion="CDP6420-A00" swVersion="corsa-ovs-datapath 1.4.97">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.drivers.corsa.CorsaPipelineV39"/>
