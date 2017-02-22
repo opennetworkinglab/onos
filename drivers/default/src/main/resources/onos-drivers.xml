@@ -230,5 +230,17 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.HpPipeline"/>
     </driver>
+    <!-- The abstract driver is meant as a base driver containing classes that are
+       ~ present in the default drivers module. These classes are needed by other
+       ~ drivers but not loaded by any of the base ones.
+       ~ The abstract driver is NOT meant to be used by itself with any device.
+       ~ Policies will be put in place in the DriverManager so that this driver
+       ~ is not assigned to any device from the southbound or the net-cfg.
+    -->
+    <driver name="abstract"
+            manufacturer="abstract" hwVersion="abstract" swVersion="abstract">
+        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
+                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
+    </driver>
 </drivers>
 

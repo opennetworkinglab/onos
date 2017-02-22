@@ -15,19 +15,19 @@
  */
 package org.onosproject.cli.net;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableList;
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.driver.Behaviour;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverAdminService;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverAdminService;
-
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.ImmutableList;
 
 /**
  * Lists device drivers.
@@ -73,18 +73,27 @@ public class DriversListCommand extends AbstractShellCommand {
         if (outputJson()) {
             json(driver);
         } else {
-            List<String> parents = Optional.ofNullable(driver.parents())
-                                            .orElse(ImmutableList.of())
-                    .stream()
-                    .map(Driver::name)
-                    .collect(Collectors.toList());
+            List<Driver> parents = Optional.ofNullable(driver.parents())
+                    .orElse(ImmutableList.of());
 
-            print(FMT, driver.name(), parents,
-                       driver.manufacturer(), driver.hwVersion(), driver.swVersion());
-            driver.behaviours().forEach(b -> print(FMT_B, b.getCanonicalName(),
-                                                   driver.implementation(b).getCanonicalName()));
+            List<String> parentsNames = parents.stream()
+                    .map(Driver::name).collect(Collectors.toList());
+
+            print(FMT, driver.name(), parentsNames,
+                  driver.manufacturer(), driver.hwVersion(), driver.swVersion());
+            driver.behaviours().forEach(b -> printBehaviour(b, driver));
+            parents.stream().forEach(parent -> {
+                print("   Inherited from %s", parent.name());
+                parent.behaviours()
+                        .forEach(b -> printBehaviour(b, parent));
+            });
             driver.properties().forEach((k, v) -> print(FMT_P, k, v));
         }
+    }
+
+    private void printBehaviour(Class<? extends Behaviour> behaviour, Driver driver) {
+        print(FMT_B, behaviour.getCanonicalName(),
+              driver.implementation(behaviour).getCanonicalName());
     }
 
 }
