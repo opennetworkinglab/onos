@@ -123,7 +123,8 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             }
 
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
-            if (Device.Type.ROADM.equals(srcDevice.type())) {
+            if (Device.Type.ROADM.equals(srcDevice.type()) ||
+                    Device.Type.ROADM_OTN.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId())
                         .key(key())
