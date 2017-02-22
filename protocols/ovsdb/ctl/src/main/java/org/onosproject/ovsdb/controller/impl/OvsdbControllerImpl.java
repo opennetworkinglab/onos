@@ -342,7 +342,7 @@ public class OvsdbControllerImpl implements OvsdbController {
         OvsdbSet ofPortSet = (OvsdbSet) intf.getOpenFlowPortColumn().data();
         @SuppressWarnings("unchecked")
         Set<Integer> ofPorts = ofPortSet.set();
-        while (ofPorts == null || ofPorts.isEmpty()) {
+        if (ofPorts == null || ofPorts.isEmpty()) {
             log.debug("The ofport is null in {}", intf.getName());
             return -1;
         }
