@@ -102,7 +102,7 @@ public class UiWebSocket
 
         // FIXME: this is temporary to prevent unhandled events being set to GUI...
         //         while Topo2 is still under development
-//        topoSession.enableEvent(false);
+        topoSession.enableEvent(false);
     }
 
     @Override
