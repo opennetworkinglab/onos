@@ -598,16 +598,10 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
             Collector<MapEntryValue,
                     HashMultiset<byte[]>,
                     HashMultiset<byte[]>> {
-        private HashMultiset<byte[]> multiset = null;
 
         @Override
         public Supplier<HashMultiset<byte[]>> supplier() {
-            return () -> {
-                if (multiset == null) {
-                    multiset = HashMultiset.create();
-                }
-                return multiset;
-            };
+            return HashMultiset::create;
         }
 
         @Override
@@ -627,7 +621,7 @@ public class AtomixConsistentSetMultimapState extends ResourceStateMachine
         @Override
         public Function<HashMultiset<byte[]>,
                 HashMultiset<byte[]>> finisher() {
-            return (unused) -> multiset;
+            return Function.identity();
         }
 
         @Override

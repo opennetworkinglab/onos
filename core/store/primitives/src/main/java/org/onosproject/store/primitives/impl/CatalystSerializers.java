@@ -15,14 +15,13 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import io.atomix.catalyst.serializer.Serializer;
 import io.atomix.catalyst.serializer.TypeSerializerFactory;
 import io.atomix.manager.util.ResourceManagerTypeResolver;
 import io.atomix.variables.internal.LongCommands;
-
-import java.util.Arrays;
-import java.util.Optional;
-
 import org.onlab.util.Match;
 import org.onosproject.cluster.Leader;
 import org.onosproject.cluster.Leadership;
@@ -56,8 +55,8 @@ import org.onosproject.store.service.Task;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.WorkQueueStats;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Serializer utility for Atomix Catalyst.
@@ -111,6 +110,7 @@ public final class CatalystSerializers {
         serializer.register(ImmutableList.of().getClass(), factory);
         serializer.register(ImmutableList.of("a").getClass(), factory);
         serializer.register(Arrays.asList().getClass(), factory);
+        serializer.register(HashMultiset.class, factory);
         serializer.register(Optional.class, factory);
 
         serializer.resolve(new LongCommands.TypeResolver());

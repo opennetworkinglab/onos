@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.serializers;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -274,6 +275,7 @@ public final class KryoNamespaces {
                       HashSet.class,
                       LinkedHashSet.class
             )
+            .register(HashMultiset.class)
             .register(Maps.immutableEntry("a", "b").getClass())
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
             .register(Collections.singletonList(1).getClass())
