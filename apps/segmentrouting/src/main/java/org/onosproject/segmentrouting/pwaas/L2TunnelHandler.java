@@ -1280,7 +1280,7 @@ public class L2TunnelHandler {
         /**
          * The reverse direction of the pseudo wire.
          */
-        REV;
+        REV
     }
 
 }

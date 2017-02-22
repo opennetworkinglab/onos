@@ -130,7 +130,7 @@ public class TeTopologyEvent
         /**
          * Designates removal of a TE link.
          */
-        TE_LINK_REMOVED;
+        TE_LINK_REMOVED
     }
 
     /**

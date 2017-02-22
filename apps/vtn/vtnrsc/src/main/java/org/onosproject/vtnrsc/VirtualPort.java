@@ -37,7 +37,7 @@ public interface VirtualPort {
         /**
          * Signifies that a virtualPort is currently unavailable.
          */
-        DOWN;
+        DOWN
     }
 
     /**

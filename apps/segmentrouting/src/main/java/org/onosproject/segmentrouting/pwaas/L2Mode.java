@@ -28,5 +28,5 @@ public enum L2Mode {
      * Tagged mode. In this case the packet need
      * the sd tag.
      */
-    TAGGED;
+    TAGGED
 }

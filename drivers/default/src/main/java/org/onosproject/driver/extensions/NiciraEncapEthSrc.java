@@ -35,7 +35,7 @@ public class NiciraEncapEthSrc extends AbstractExtension implements ExtensionTre
     private MacAddress encapEthSrc;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
-    .register(new MacAddressSerializer(), MacAddress.class).register(byte[].class).build();;
+    .register(new MacAddressSerializer(), MacAddress.class).register(byte[].class).build();
 
     /**
      * Creates a new nshEncapEthSrc instruction.

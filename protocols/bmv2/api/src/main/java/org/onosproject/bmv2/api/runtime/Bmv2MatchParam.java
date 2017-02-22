@@ -50,6 +50,6 @@ public interface Bmv2MatchParam {
         /**
          * Valid match type.
          */
-        VALID;
+        VALID
     }
 }

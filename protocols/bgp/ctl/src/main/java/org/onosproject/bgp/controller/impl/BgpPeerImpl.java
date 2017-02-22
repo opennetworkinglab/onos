@@ -449,7 +449,7 @@ public class BgpPeerImpl implements BgpPeer {
     @Override
     public final void setConnected(boolean connected) {
         this.connected = connected;
-    };
+    }
 
     @Override
     public final void setChannel(Channel channel) {
@@ -464,12 +464,12 @@ public class BgpPeerImpl implements BgpPeer {
                 channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
             }
         }
-    };
+    }
 
     @Override
     public final Channel getChannel() {
         return this.channel;
-    };
+    }
 
     @Override
     public String channelId() {

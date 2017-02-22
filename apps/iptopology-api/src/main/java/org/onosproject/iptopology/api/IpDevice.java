@@ -34,7 +34,7 @@ public interface IpDevice extends Element {
         /**
          * Signifies that the device is non-pseudo device.
          */
-        NONPSEUDO;
+        NONPSEUDO
     }
 
     /**

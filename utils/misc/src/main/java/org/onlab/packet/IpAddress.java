@@ -35,7 +35,7 @@ public class IpAddress implements Comparable<IpAddress> {
     private static final int BIT_MASK = 0x000000ff;
 
     // IP Versions
-    public enum Version { INET, INET6 };
+    public enum Version { INET, INET6 }
 
     // lengths of address, in bytes
     public static final int INET_BYTE_LENGTH = 4;

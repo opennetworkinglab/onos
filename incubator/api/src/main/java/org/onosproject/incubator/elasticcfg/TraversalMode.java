@@ -28,5 +28,5 @@ public enum TraversalMode {
     /**
      * Tree will NOT be traversed.
      */
-    NON_RECURSIVE;
+    NON_RECURSIVE
 }

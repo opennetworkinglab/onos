@@ -48,7 +48,7 @@ public class Ethernet extends BasePacket {
     public static final short TYPE_VLAN = EthType.EtherType.VLAN.ethType().toShort();
     public static final short TYPE_BSN = EthType.EtherType.BDDP.ethType().toShort();
 
-    public static final short MPLS_UNICAST = EthType.EtherType.MPLS_UNICAST.ethType().toShort();;
+    public static final short MPLS_UNICAST = EthType.EtherType.MPLS_UNICAST.ethType().toShort();
     public static final short MPLS_MULTICAST = EthType.EtherType.MPLS_MULTICAST.ethType().toShort();
 
 

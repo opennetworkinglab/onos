@@ -204,7 +204,7 @@ public interface Alarm {
          * correct the problem in order to prevent it from becoming a more
          * serious service affecting fault.
          */
-        WARNING;
+        WARNING
 
     }
 

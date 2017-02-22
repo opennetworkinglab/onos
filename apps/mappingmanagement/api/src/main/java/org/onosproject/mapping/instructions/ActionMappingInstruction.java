@@ -45,7 +45,7 @@ public abstract class ActionMappingInstruction implements MappingInstruction {
         /**
          * Signifies that the traffic should be dropped.
          */
-        DROP;
+        DROP
     }
 
     public abstract ActionType subtype();

@@ -38,5 +38,5 @@ public enum OspfLinkType {
     /**
      * Indicates a Virtual link to another area border router.
      */
-    VIRTUAL_LINK;
+    VIRTUAL_LINK
 }

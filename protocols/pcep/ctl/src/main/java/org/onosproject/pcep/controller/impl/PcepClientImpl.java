@@ -132,7 +132,7 @@ public class PcepClientImpl implements PcepClientDriver {
     @Override
     public final void setConnected(boolean connected) {
         this.connected = connected;
-    };
+    }
 
     @Override
     public final void setChannel(Channel channel) {
@@ -147,7 +147,7 @@ public class PcepClientImpl implements PcepClientDriver {
                 channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
             }
         }
-    };
+    }
 
     @Override
     public String channelId() {
