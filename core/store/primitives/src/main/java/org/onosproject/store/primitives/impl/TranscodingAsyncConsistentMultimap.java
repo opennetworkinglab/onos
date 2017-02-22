@@ -221,8 +221,8 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
 
     @Override
     public CompletableFuture<Multiset<V1>> values() {
-        return backingMap.values().thenApply(s -> s.stream().map(valueDecoder)
-                .collect(new MultisetCollector<>()));
+        return backingMap.values().thenApply(s ->
+            s.stream().map(valueDecoder).collect(new MultisetCollector<>()));
     }
 
     @Override

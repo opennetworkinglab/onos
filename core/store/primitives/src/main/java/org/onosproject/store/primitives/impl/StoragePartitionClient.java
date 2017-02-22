@@ -192,16 +192,14 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         return super.name();
                     }
                 };
-        AsyncConsistentMultimap<K, V> trancodedMap =
-                DistributedPrimitives.<K, V, String, byte[]>newTranscodingMultimap(
+        AsyncConsistentMultimap<K, V> transcodedMap =
+                DistributedPrimitives.newTranscodingMultimap(
                         rawMap,
                         key -> HexString.toHexString(serializer.encode(key)),
-                        string -> serializer.decode(
-                                HexString.fromHexString(string)),
-                        value -> value == null ? null :
-                                serializer.encode(value),
+                        string -> serializer.decode(HexString.fromHexString(string)),
+                        value -> serializer.encode(value),
                         bytes -> serializer.decode(bytes));
-        return trancodedMap;
+        return transcodedMap;
 
     }
 

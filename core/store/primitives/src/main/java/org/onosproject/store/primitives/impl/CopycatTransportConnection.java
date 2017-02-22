@@ -15,7 +15,9 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 import io.atomix.catalyst.concurrent.Listener;
 import io.atomix.catalyst.concurrent.Listeners;
 import io.atomix.catalyst.concurrent.ThreadContext;
@@ -26,6 +28,11 @@ import io.atomix.catalyst.transport.MessageHandler;
 import io.atomix.catalyst.transport.TransportException;
 import io.atomix.catalyst.util.Assert;
 import io.atomix.catalyst.util.reference.ReferenceCounted;
+import org.apache.commons.io.IOUtils;
+import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.MessagingException;
+import org.onosproject.store.cluster.messaging.MessagingService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,15 +45,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.IOUtils;
-import org.onlab.util.Tools;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.MessagingException;
-import org.onosproject.store.cluster.messaging.MessagingService;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * {@link Connection} implementation for CopycatTransport.
@@ -148,7 +147,13 @@ public class CopycatTransportConnection implements Connection {
                 Throwable t = context.serializer().readObject(input);
                 context.execute(() -> future.completeExceptionally(t));
             } else {
-                context.execute(() -> future.complete(context.serializer().readObject(input)));
+                context.execute(() -> {
+                    try {
+                        future.complete(context.serializer().readObject(input));
+                    } catch (SerializationException e) {
+                        future.completeExceptionally(e);
+                    }
+                });
             }
         } catch (IOException e) {
             context.execute(() -> future.completeExceptionally(e));
