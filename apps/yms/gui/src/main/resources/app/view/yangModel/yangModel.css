@@ -21,3 +21,32 @@
 
 #ov-yang-model div.ctrl-btns {
 }
+
+
+
+#yang-model-details-panel.floatpanel {
+    z-index: 0;
+}
+
+
+#yang-model-details-panel .container {
+    padding: 8px 12px;
+}
+
+#yang-model-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#yang-model-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
+
+
+#yang-model-details-panel .data {
+    font-size: 12pt;
+}
+

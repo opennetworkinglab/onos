@@ -36,7 +36,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     private static final String TABLE_REQ = "yangModelDataRequest";
     private static final String TABLE_RESP = "yangModelDataResponse";
-    private static final String MODELS = "models";
+    private static final String MODELS = "yangModels";
 
     private static final String DETAILS_REQ = "yangModelDetailsRequest";
     private static final String DETAILS_RESP = "yangModelDetailsResponse";
@@ -76,7 +76,8 @@ public class YangModelMessageHandler extends UiMessageHandler {
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
-                new TableDataHandler()
+                new TableDataHandler(),
+                new DetailRequestHandler()
         );
     }
 

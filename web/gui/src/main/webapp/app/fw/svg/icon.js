@@ -75,7 +75,8 @@
         nav_links: 'ports',
         nav_hosts: 'endstation',
         nav_intents: 'relatedIntents',
-        nav_tunnels: 'ports'  // TODO: use tunnel glyph, when available
+        nav_tunnels: 'ports',  // TODO: use tunnel glyph, when available
+        nav_yang: 'yang'
     };
 
     function ensureIconLibDefs() {
