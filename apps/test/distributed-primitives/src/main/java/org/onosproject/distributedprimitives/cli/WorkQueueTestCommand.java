@@ -24,6 +24,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.DistributedPrimitive;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Task;
@@ -105,7 +106,7 @@ public class WorkQueueTestCommand extends AbstractShellCommand {
 
     private <T> T get(CompletableFuture<T> future) {
         try {
-            return future.get(1, TimeUnit.SECONDS);
+            return future.get(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             throw Throwables.propagate(e);
         }
