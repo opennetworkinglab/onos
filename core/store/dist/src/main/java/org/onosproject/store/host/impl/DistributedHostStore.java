@@ -119,6 +119,11 @@ public class DistributedHostStore
             return true;
         }
 
+        // Avoid overriding configured hosts
+        if (existingHost.configured()) {
+            return false;
+        }
+
         if (!Objects.equals(existingHost.providerId(), providerId) ||
                 !Objects.equals(existingHost.mac(), hostDescription.hwAddress()) ||
                 !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||

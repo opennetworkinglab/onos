@@ -399,9 +399,6 @@ public class HostManager
             });
         }
 
-
-
-
         // returns a HostDescription made from the union of the BasicHostConfig
         // annotations if it exists
         private HostDescription validateHost(HostDescription hostDescription, HostId hostId) {
@@ -416,6 +413,12 @@ public class HostManager
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             Host host = store.getHost(hostId);
+
+            // Disallow removing inexistent host or host provided by others
+            if (host == null || !host.providerId().equals(provider().id())) {
+                return;
+            }
+
             if (monitorHosts) {
                 host.ipAddresses().forEach(ip -> {
                     monitor.stopMonitoring(ip);

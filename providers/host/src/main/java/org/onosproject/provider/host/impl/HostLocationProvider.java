@@ -616,9 +616,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     // Signals host vanish for all specified hosts.
     private void removeHosts(Set<Host> hosts) {
         for (Host host : hosts) {
-            if (host.providerId().equals(HostLocationProvider.this.id())) {
-                providerService.hostVanished(host.id());
-            }
+            providerService.hostVanished(host.id());
         }
     }
 
