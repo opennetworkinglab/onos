@@ -42,7 +42,7 @@ public class YangModelUiComponent {
     private static final ClassLoader CL =
             YangModelUiComponent.class.getClassLoader();
     private static final String VIEW_ID = "yangModel";
-    private static final String NAV_LABEL = "Yang Models";
+    private static final String NAV_LABEL = "YANG Models";
     private static final String NAV_ICON = "nav_yang";
     private static final String HELP_URL =
             "https://wiki.onosproject.org/display/ONOS/YANG+Models+in+ONOS";

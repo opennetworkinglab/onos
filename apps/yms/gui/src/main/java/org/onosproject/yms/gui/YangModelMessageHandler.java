@@ -24,7 +24,6 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
-import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private YmsService ymsService;
+//    private YmsService ymsService;
     // TODO: fill out other fields as necessary
 
 
@@ -63,7 +62,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
-        ymsService = directory.get(YmsService.class);
+//        ymsService = directory.get(YmsService.class);
         // TODO: addListeners(); ???
     }
 
