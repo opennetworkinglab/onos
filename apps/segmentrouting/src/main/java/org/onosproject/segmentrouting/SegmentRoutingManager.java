@@ -442,6 +442,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cordConfigService.removeListener(cordConfigListener);
         routeService.removeListener(routeListener);
 
+        neighbourResolutionService.unregisterNeighbourHandlers(appId);
+
         processor = null;
         linkListener = null;
         deviceListener = null;
@@ -1054,7 +1056,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param portToRegister connect point to register
      */
     public void registerConnectPoint(ConnectPoint portToRegister) {
-        this.neighbourResolutionService.registerNeighbourHandler(
+        neighbourResolutionService.registerNeighbourHandler(
                 portToRegister,
                 neighbourHandler,
                 appId
