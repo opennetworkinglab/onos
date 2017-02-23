@@ -49,12 +49,12 @@ public class DriversListCommand extends AbstractShellCommand {
         DriverAdminService service = get(DriverAdminService.class);
 
         if (driverName != null) {
-            printDriver(service.getDriver(driverName));
+            printDriver(service.getDriver(driverName), true);
         } else {
             if (outputJson()) {
                 json(service.getDrivers());
             } else {
-                service.getDrivers().forEach(this::printDriver);
+                service.getDrivers().forEach(d -> printDriver(d, true));
             }
         }
     }
@@ -69,24 +69,27 @@ public class DriversListCommand extends AbstractShellCommand {
         print("%s", result.toString());
     }
 
-    private void printDriver(Driver driver) {
+    private void printDriver(Driver driver, boolean first) {
         if (outputJson()) {
             json(driver);
         } else {
+
             List<Driver> parents = Optional.ofNullable(driver.parents())
                     .orElse(ImmutableList.of());
 
             List<String> parentsNames = parents.stream()
                     .map(Driver::name).collect(Collectors.toList());
 
-            print(FMT, driver.name(), parentsNames,
-                  driver.manufacturer(), driver.hwVersion(), driver.swVersion());
+            if (first) {
+                print(FMT, driver.name(), parentsNames,
+                      driver.manufacturer(), driver.hwVersion(), driver.swVersion());
+            } else {
+                print("   Inherited from %s", driver.name());
+            }
+
             driver.behaviours().forEach(b -> printBehaviour(b, driver));
-            parents.stream().forEach(parent -> {
-                print("   Inherited from %s", parent.name());
-                parent.behaviours()
-                        .forEach(b -> printBehaviour(b, parent));
-            });
+            //recursion call to print each parent
+            parents.stream().forEach(parent -> printDriver(parent, false));
             driver.properties().forEach((k, v) -> print(FMT_P, k, v));
         }
     }
