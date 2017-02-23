@@ -219,7 +219,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
 
-            // use the codec context to get a JSON of the device. See ONOS-5976.
+            // NOTE: ... an alternate way of getting all the details of an item:
+            // Use the codec context to get a JSON of the device. See ONOS-5976.
             rootNode.set(DEVICE, getJsonCodecContext().encode(device, Device.class));
 
             sendMessage(DEV_DETAILS_RESP, rootNode);
