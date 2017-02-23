@@ -38,7 +38,6 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
 import org.slf4j.Logger;
@@ -49,6 +48,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.*;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -134,30 +134,29 @@ public final class OpenstackSwitchingHandler {
                 install);
 
         // switching rules for the instPorts in the remote node
-        for (OpenstackNode osNode : osNodeService.completeNodes()) {
-            if (osNode.intBridge().equals(instPort.deviceId())) {
-                continue;
-            }
+        osNodeService.completeNodes().stream()
+                .filter(osNode -> osNode.type() == COMPUTE)
+                .filter(osNode -> !osNode.intBridge().equals(instPort.deviceId()))
+                .forEach(osNode -> {
+                    TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
+                            .extension(buildExtension(
+                                    deviceService,
+                                    osNode.intBridge(),
+                                    osNodeService.dataIp(instPort.deviceId()).get().getIp4Address()),
+                                    osNode.intBridge())
+                            .setOutput(osNodeService.tunnelPort(osNode.intBridge()).get())
+                            .build();
 
-            TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                    .extension(buildExtension(
-                            deviceService,
+                    RulePopulatorUtil.setRule(
+                            flowObjectiveService,
+                            appId,
                             osNode.intBridge(),
-                            osNodeService.dataIp(instPort.deviceId()).get().getIp4Address()),
-                            osNode.intBridge())
-                    .setOutput(osNodeService.tunnelPort(osNode.intBridge()).get())
-                    .build();
-
-            RulePopulatorUtil.setRule(
-                    flowObjectiveService,
-                    appId,
-                    osNode.intBridge(),
-                    selector,
-                    treatmentToRemote,
-                    ForwardingObjective.Flag.SPECIFIC,
-                    PRIORITY_SWITCHING_RULE,
-                    install);
-        }
+                            selector,
+                            treatmentToRemote,
+                            ForwardingObjective.Flag.SPECIFIC,
+                            PRIORITY_SWITCHING_RULE,
+                            install);
+                });
     }
 
     private void setTunnelTagFlowRules(InstancePort instPort, boolean install) {
