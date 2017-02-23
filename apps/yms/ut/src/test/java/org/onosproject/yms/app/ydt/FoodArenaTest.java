@@ -22,11 +22,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.onosproject.yms.app.ydt.YdtAppNodeOperationType.DELETE_ONLY;
 import static org.onosproject.yms.app.ydt.YdtTestUtils.foodArenaYdt;
+import static org.onosproject.yms.app.ydt.YdtTestUtils.getYdtBuilder;
 import static org.onosproject.yms.app.ydt.YdtTestUtils.validateLeafContents;
 import static org.onosproject.yms.app.ydt.YdtTestUtils.validateNodeContents;
 import static org.onosproject.yms.app.ydt.YdtTestUtils.walkINTree;
+import static org.onosproject.yms.ydt.YdtContextOperationType.DELETE;
 import static org.onosproject.yms.ydt.YdtContextOperationType.MERGE;
+import static org.onosproject.yms.ydt.YdtContextOperationType.NONE;
 
 public class FoodArenaTest {
 
@@ -53,6 +58,19 @@ public class FoodArenaTest {
         YangRequestWorkBench ydtBuilder = foodArenaYdt();
         validateTree(ydtBuilder);
         walkINTree(ydtBuilder, EXPECTED);
+    }
+
+    /**
+     * Creates and validates food arena ydt.
+     */
+    @Test
+    public void foodArenaDeleteOperationTest() throws IOException {
+
+        YangRequestWorkBench ydtBuilder;
+        ydtBuilder = getYdtBuilder("foodarena", "food", "ydt.food", NONE);
+        ydtBuilder.addChild("food", "ydt.food", DELETE);
+        YdtAppContext appRootNode = ydtBuilder.getAppRootNode();
+        assertEquals(appRootNode.getFirstChild().getOperationType(), DELETE_ONLY);
     }
 
     /**
