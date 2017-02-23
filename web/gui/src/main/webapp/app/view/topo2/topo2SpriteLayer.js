@@ -36,10 +36,14 @@
             function (ViewController, ss) {
 
                 var SpriteLayer = ViewController.extend({
+
+                    id: 'topo-sprites',
+                    displayName: 'Sprite Layer',
+
                     init: function(svg, zoomLayer) {
                         this.svg = svg;
                         this.createSpriteDefs();
-                        this.container = zoomLayer.append('g').attr('id', 'topo-sprites');
+                        this.container = zoomLayer.append('g').attr('id', this.id);
                     },
                     loadLayout: function (id) {
                         this.container.selectAll("*").remove();
@@ -111,27 +115,6 @@
                                 .attr('x', spriteData.x)
                                 .attr('y', spriteData.y);
                         });
-                    },
-
-                    hide: function () {
-                        if (this.visible) {
-                            this.container
-                                .style('opacity', 1)
-                                .transition()
-                                .duration(400)
-                                .style('opacity', 0);
-                        }
-                        this.visible = false;
-                    },
-                    show: function () {
-                        if (!this.visible) {
-                            this.container
-                                .style('opacity', 0)
-                                .transition()
-                                .duration(400)
-                                .style('opacity', 1);
-                        }
-                        this.visible = true;
                     }
                 });
 

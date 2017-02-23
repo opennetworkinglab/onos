@@ -29,12 +29,12 @@
     var MapSelectionDialog;
 
     // internal state
-    var mapG, zoomLayer, zoomer;
+    var instance, mapG, zoomLayer, zoomer;
 
     function init(_zoomLayer_, _zoomer_) {
         zoomLayer = _zoomLayer_;
         zoomer = _zoomer_;
-        return setUpMap();
+        return setUpMap.bind(this)();
     }
 
     function setUpMap() {
@@ -50,9 +50,13 @@
         if (mapG.empty()) {
             mapG = zoomLayer.append('g').attr('id', 'topo-map');
         } else {
-            mapG.each(function (d, i) {
+            mapG.each(function () {
                 d3.selectAll(this.childNodes).remove();
             });
+        }
+
+        if (!ps.getPrefs('topo_prefs')[this.prefs.visible]) {
+            this.hide();
         }
 
         if (mapFilePath === '*countries') {
@@ -65,10 +69,6 @@
             adjustScale: mapScale,
             shading: ''
         });
-
-        if (!ps.getPrefs('topo_prefs').bg) {
-            toggle(false);
-        }
 
         return promise;
     }
@@ -86,55 +86,13 @@
         );
     }
 
-    function opacifyMap(b) {
-        mapG.transition()
-            .duration(1000)
-            .attr('opacity', b ? 1 : 0);
-    }
-
     function setMap(map) {
         ps.setPrefs('topo_mapid', map);
-        opacifyMap(true);
-        return setUpMap();
-    }
-
-    // TODO: -- START -- Move to dedicated module
-    var prefsState = {};
-
-    function updatePrefsState(what, b) {
-        prefsState[what] = b ? 1 : 0;
-        ps.setPrefs('topo_prefs', prefsState);
-    }
-
-    function _togSvgLayer(x, G, tag, what) {
-        var on = (x === 'keyev') ? !sus.visible(G) : Boolean(x),
-            verb = on ? 'Show' : 'Hide';
-        sus.visible(G, on);
-        updatePrefsState(tag, on);
-
-        if (x === 'keyev') {
-            flash.flash(verb + ' ' + what);
-        }
-
-        return on;
-    }
-    // TODO: -- END -- Move to dedicated module
-
-    function show() {
-        sus.visible(mapG, true);
-    }
-
-    function hide() {
-        sus.visible(mapG, false);
-    }
-
-    function toggle(x) {
-        return _togSvgLayer(x, mapG, 'bg', 'background map');
+        return setUpMap.bind(this)();
     }
 
     function openMapSelection() {
 
-        // TODO: Create a view class with extend method
         MapSelectionDialog.prototype.currentMap = currentMap;
 
         new MapSelectionDialog({
@@ -149,31 +107,32 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2MapService',
-        ['$location', 'PrefsService', 'MapService', 'FlashService',
-            'SvgUtilService', 'Topo2CountryFilters', 'Topo2MapDialog',
-            function (_$loc_, _ps_, _ms_, _flash_, _sus_, _t2cf_, _t2md_) {
+    .factory('Topo2MapService', [
+        '$location', 'Topo2ViewController', 'PrefsService', 'MapService', 'FlashService',
+        'SvgUtilService', 'Topo2CountryFilters', 'Topo2MapDialog',
 
-                $loc = _$loc_;
-                ps = _ps_;
-                ms = _ms_;
-                flash = _flash_;
-                sus = _sus_;
-                countryFilters = _t2cf_;
-                MapSelectionDialog = _t2md_;
+        function (_$loc_, ViewController, _ps_, _ms_, _flash_, _sus_, _t2cf_, _t2md_) {
 
-                return {
-                    init: init,
-                    setMap: setMap,
-                    openMapSelection: openMapSelection,
+            $loc = _$loc_;
+            ps = _ps_;
+            ms = _ms_;
+            flash = _flash_;
+            sus = _sus_;
+            countryFilters = _t2cf_;
+            MapSelectionDialog = _t2md_;
 
-                    show: show,
-                    hide: hide,
-                    toggle: toggle,
+            var MapLayer = ViewController.extend({
 
-                    resetZoom: resetZoom
-                };
-            }
-        ]);
+                id: 'topo-map',
+                displayName: 'Map',
 
+                init: init,
+                setMap: setMap,
+                openMapSelection: openMapSelection,
+                resetZoom: resetZoom
+            });
+
+            return instance || new MapLayer();
+        }
+    ]);
 })();

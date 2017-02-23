@@ -53,22 +53,26 @@
                     if (data.bgType === 'geo') {
                         t2ms.setMap({
                             mapid: data.bgId,
-
-                            // TODO: The following value will be specified in the Topo2CurrentLayout Payload
-                            mapfilepath: "*bayarea"
+                            mapfilepath: data.bgFilePath
                         }).then(function () {
                             _.each(_this.regionNodes(), function (node) {
                                 node.resetPosition();
                             });
                         });
-                        t2ms.show();
+
+                        if (t2ms.enabled()) {
+                            t2ms.show();
+                        }
                     } else {
                         t2ms.hide();
                     }
 
                     if (data.bgType === 'grid') {
                         t2sls.loadLayout(data.bgId);
-                        t2sls.show();
+
+                        if (t2sls.enabled()) {
+                            t2sls.show();
+                        }
                     } else {
                         t2sls.hide();
                     }
