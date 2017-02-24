@@ -23,14 +23,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
-import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.NextHop;
+import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteAdminService;
-import org.onosproject.incubator.net.routing.RouteConfig;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
@@ -38,11 +36,6 @@ import org.onosproject.incubator.net.routing.RouteStore;
 import org.onosproject.incubator.net.routing.RouteStoreDelegate;
 import org.onosproject.incubator.net.routing.RouteTableId;
 import org.onosproject.net.Host;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -85,25 +78,10 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry netcfgRegistry;
-
     @GuardedBy(value = "this")
     private Map<RouteListener, ListenerQueue> listeners = new HashMap<>();
 
     private ThreadFactory threadFactory;
-
-    private final ConfigFactory<ApplicationId, RouteConfig> routeConfigFactory =
-            new ConfigFactory<ApplicationId, RouteConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY,
-                    RouteConfig.class, "routes", true) {
-                @Override
-                public RouteConfig createConfig() {
-                    return new RouteConfig();
-                }
-            };
-    private final InternalNetworkConfigListener netcfgListener =
-            new InternalNetworkConfigListener();
 
     @Activate
     protected void activate() {
@@ -111,8 +89,6 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
 
         routeStore.setDelegate(delegate);
         hostService.addListener(hostListener);
-        netcfgRegistry.addListener(netcfgListener);
-        netcfgRegistry.registerConfigFactory(routeConfigFactory);
     }
 
     @Deactivate
@@ -121,8 +97,6 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
 
         routeStore.unsetDelegate(delegate);
         hostService.removeListener(hostListener);
-        netcfgRegistry.removeListener(netcfgListener);
-        netcfgRegistry.unregisterConfigFactory(routeConfigFactory);
     }
 
     /**
@@ -355,50 +329,4 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
         }
     }
 
-    private class InternalNetworkConfigListener implements NetworkConfigListener {
-        @Override
-        public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(RouteConfig.class)) {
-                switch (event.type()) {
-                    case CONFIG_ADDED:
-                        processRouteConfigAdded(event);
-                        break;
-                    case CONFIG_UPDATED:
-                        processRouteConfigUpdated(event);
-                        break;
-                    case CONFIG_REMOVED:
-                        processRouteConfigRemoved(event);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        private void processRouteConfigAdded(NetworkConfigEvent event) {
-            log.info("processRouteConfigAdded {}", event);
-            Set<Route> routes = ((RouteConfig) event.config().get()).getRoutes();
-            update(routes);
-        }
-
-        private void processRouteConfigUpdated(NetworkConfigEvent event) {
-            log.info("processRouteConfigUpdated {}", event);
-            Set<Route> routes = ((RouteConfig) event.config().get()).getRoutes();
-            Set<Route> prevRoutes = ((RouteConfig) event.prevConfig().get()).getRoutes();
-            Set<Route> pendingRemove = prevRoutes.stream()
-                    .filter(prevRoute -> routes.stream()
-                            .noneMatch(route -> route.prefix().equals(prevRoute.prefix())))
-                    .collect(Collectors.toSet());
-            Set<Route> pendingUpdate = routes.stream()
-                    .filter(route -> !pendingRemove.contains(route)).collect(Collectors.toSet());
-            update(pendingUpdate);
-            withdraw(pendingRemove);
-        }
-
-        private void processRouteConfigRemoved(NetworkConfigEvent event) {
-            log.info("processRouteConfigRemoved {}", event);
-            Set<Route> prevRoutes = ((RouteConfig) event.prevConfig().get()).getRoutes();
-            withdraw(prevRoutes);
-        }
-    }
 }

@@ -16,6 +16,7 @@
 
 package org.onosproject.incubator.net.routing;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -28,7 +29,6 @@ import java.util.Set;
  * Route configuration object for Route Service.
  */
 public class RouteConfig extends Config<ApplicationId> {
-    private static final String ROUTES = "routes";
     private static final String PREFIX = "prefix";
     private static final String NEXTHOP = "nextHop";
 
@@ -49,5 +49,18 @@ public class RouteConfig extends Config<ApplicationId> {
             }
         });
         return routes.build();
+    }
+
+    @Override
+    public boolean isValid() {
+        array.forEach(routeNode -> {
+            if (!routeNode.isObject()) {
+                throw new IllegalArgumentException("Not object node");
+            }
+            ObjectNode route = (ObjectNode) routeNode;
+            isIpPrefix(route, PREFIX, FieldPresence.MANDATORY);
+            isIpAddress(route, NEXTHOP, FieldPresence.MANDATORY);
+        });
+        return true;
     }
 }
