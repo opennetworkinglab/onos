@@ -45,12 +45,6 @@ public final class DropMappingAction implements MappingAction {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof DropMappingAction) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof DropMappingAction;
     }
 }
