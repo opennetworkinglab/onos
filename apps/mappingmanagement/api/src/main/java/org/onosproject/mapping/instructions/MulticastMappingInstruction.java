@@ -40,6 +40,11 @@ public abstract class MulticastMappingInstruction implements MappingInstruction 
         PRIORITY
     }
 
+    /**
+     * Obtains the subtype.
+     *
+     * @return subtype
+     */
     public abstract MulticastType subtype();
 
     @Override
@@ -55,6 +60,12 @@ public abstract class MulticastMappingInstruction implements MappingInstruction 
         private final MulticastType subtype;
         private final int weight;
 
+        /**
+         * Default constructor for weight mapping instruction.
+         *
+         * @param subType multicast subtype
+         * @param weight  weight value
+         */
         WeightMappingInstruction(MulticastType subType, int weight) {
             this.subtype = subType;
             this.weight = weight;
@@ -106,6 +117,12 @@ public abstract class MulticastMappingInstruction implements MappingInstruction 
         private final MulticastType subtype;
         private final int priority;
 
+        /**
+         * Default constructor for priority mapping instruction.
+         *
+         * @param subType  multicast subtype
+         * @param priority priority value
+         */
         PriorityMappingInstruction(MulticastType subType, int priority) {
             this.subtype = subType;
             this.priority = priority;

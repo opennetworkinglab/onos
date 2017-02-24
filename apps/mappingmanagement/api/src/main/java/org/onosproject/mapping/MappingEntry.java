@@ -20,6 +20,9 @@ package org.onosproject.mapping;
  */
 public interface MappingEntry extends Mapping {
 
+    /**
+     * Represents the type of mapping entry state.
+     */
     enum MappingEntryState {
 
         /**

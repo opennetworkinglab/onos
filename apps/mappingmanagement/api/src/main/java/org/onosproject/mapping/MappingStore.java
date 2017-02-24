@@ -22,6 +22,9 @@ import org.onosproject.store.Store;
  */
 public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> {
 
+    /**
+     * Represents the type of mapping store.
+     */
     enum Type {
 
         /**

@@ -102,15 +102,31 @@ public final class MappingInstructions {
         private final ExtensionTreatment extensionTreatment;
         private final DeviceId deviceId;
 
+        /**
+         * Defaults constructor for extension mapping instruction wrapper.
+         *
+         * @param extension extension treatment
+         * @param deviceId  device identifier
+         */
         ExtensionMappingInstructionWrapper(ExtensionTreatment extension, DeviceId deviceId) {
             this.extensionTreatment = extension;
             this.deviceId = deviceId;
         }
 
+        /**
+         * Obtains the extension treatment.
+         *
+         * @return extension treatment
+         */
         public ExtensionTreatment extensionMappingInstruction() {
             return extensionTreatment;
         }
 
+        /**
+         * Obtains the device identifier.
+         *
+         * @return device identifer
+         */
         public DeviceId deviceId() {
             return deviceId;
         }

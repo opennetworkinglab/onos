@@ -74,6 +74,12 @@ public final class DefaultMappingKey implements MappingKey {
         return new Builder();
     }
 
+    /**
+     * Returns a new mapping key builder.
+     *
+     * @param key mapping key
+     * @return mapping key builder
+     */
     public static MappingKey.Builder builder(MappingKey key) {
         return new Builder(key);
     }
