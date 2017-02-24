@@ -239,6 +239,13 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                         processPortAdded(event.port());
                     });
                     break;
+                case PORT_REMOVED:
+                    deviceEventExecutor.execute(() -> {
+                        log.debug("Instance port {} is removed from {}",
+                                event.port().annotations().value(PORT_NAME),
+                                event.subject().id());
+                        processPortRemoved(event.port());
+                    });
                 default:
                     break;
             }

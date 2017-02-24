@@ -189,7 +189,7 @@ public class OpenstackNetworkManager
         checkArgument(!Strings.isNullOrEmpty(osPort.getNetworkId()), ERR_NULL_PORT_NET_ID);
 
         osNetworkStore.updatePort(osPort);
-        log.info(String.format(MSG_SUBNET, osPort.getId(), MSG_UPDATED));
+        log.info(String.format(MSG_PORT, osPort.getId(), MSG_UPDATED));
     }
 
     @Override
@@ -202,7 +202,7 @@ public class OpenstackNetworkManager
             }
             Port osPort = osNetworkStore.removePort(portId);
             if (osPort != null) {
-                log.info(String.format(MSG_SUBNET, osPort.getId(), MSG_REMOVED));
+                log.info(String.format(MSG_PORT, osPort.getId(), MSG_REMOVED));
             }
         }
     }
