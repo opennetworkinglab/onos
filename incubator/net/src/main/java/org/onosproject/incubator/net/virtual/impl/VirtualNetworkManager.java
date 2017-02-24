@@ -73,6 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -467,6 +468,24 @@ public class VirtualNetworkManager
          */
         public Class serviceClass() {
             return serviceClass;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(networkId, serviceClass);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ServiceKey) {
+                ServiceKey that = (ServiceKey) obj;
+                return Objects.equals(this.networkId, that.networkId) &&
+                        Objects.equals(this.serviceClass, that.serviceClass);
+            }
+            return false;
         }
     }
 
