@@ -39,6 +39,7 @@ import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
+import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -450,6 +451,16 @@ public class DefaultVirtualFlowRuleProviderTest {
         @Override
         public void removeVirtualPort(NetworkId networkId, DeviceId deviceId,
                                       PortNumber portNumber) {
+
+        }
+
+        @Override
+        public void addListener(VirtualNetworkListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(VirtualNetworkListener listener) {
 
         }
     }

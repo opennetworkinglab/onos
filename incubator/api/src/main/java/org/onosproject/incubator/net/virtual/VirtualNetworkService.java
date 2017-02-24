@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.virtual;
 import com.google.common.annotations.Beta;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
 import java.util.Set;
@@ -26,7 +27,8 @@ import java.util.Set;
  * Service for querying virtual network inventory.
  */
 @Beta
-public interface VirtualNetworkService {
+public interface VirtualNetworkService
+        extends ListenerService<VirtualNetworkEvent, VirtualNetworkListener> {
 
     /**
      * The topic used for obtaining globally unique ids.

@@ -34,6 +34,7 @@ import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.DeviceId;
@@ -300,6 +301,16 @@ public class AbstractVirtualListenerManagerTest {
         @Override
         public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
             return null;
+        }
+
+        @Override
+        public void addListener(VirtualNetworkListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(VirtualNetworkListener listener) {
+
         }
     }
 
