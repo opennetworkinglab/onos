@@ -1196,27 +1196,26 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             llOptionalTlv = new LinkedList<PcepValueType>();
 
-            if (lspSigType != WITH_SIGNALLING) {
-                String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
-                String pccTunnelIdString = tunnel.annotations().value(PCC_TUNNEL_ID);
-                short localLspId = 0;
-                short pccTunnelId = 0;
+            // Lsp Identifier tlv is required for all modes of lsp
+            String localLspIdString = tunnel.annotations().value(LOCAL_LSP_ID);
+            String pccTunnelIdString = tunnel.annotations().value(PCC_TUNNEL_ID);
+            short localLspId = 0;
+            short pccTunnelId = 0;
 
-                if (localLspIdString != null) {
-                    localLspId = Short.valueOf(localLspIdString);
-                }
-
-                if (pccTunnelIdString != null) {
-                    pccTunnelId = Short.valueOf(pccTunnelIdString);
-                }
-
-                tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src())
-                        .ip().getIp4Address().toInt()),
-                        localLspId, pccTunnelId,
-                        ((IpTunnelEndPoint) tunnel.src()).ip().getIp4Address().toInt(),
-                        (((IpTunnelEndPoint) tunnel.dst()).ip().getIp4Address().toInt()));
-                llOptionalTlv.add(tlv);
+            if (localLspIdString != null) {
+                localLspId = Short.valueOf(localLspIdString);
             }
+
+            if (pccTunnelIdString != null) {
+                pccTunnelId = Short.valueOf(pccTunnelIdString);
+            }
+
+            tlv = new StatefulIPv4LspIdentifiersTlv((((IpTunnelEndPoint) tunnel.src())
+                    .ip().getIp4Address().toInt()),
+                    localLspId, pccTunnelId,
+                    ((IpTunnelEndPoint) tunnel.src()).ip().getIp4Address().toInt(),
+                    (((IpTunnelEndPoint) tunnel.dst()).ip().getIp4Address().toInt()));
+            llOptionalTlv.add(tlv);
 
             if (tunnel.tunnelName().value() != null) {
                 tlv = new SymbolicPathNameTlv(tunnel.tunnelName().value().getBytes());
@@ -1419,8 +1418,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             // SR-TE also needs PCUpd msg after receiving PCRpt with status GOING-UP even
             // though there are no labels to download for SR-TE.
-            if ((pcepLspStatus == PcepLspStatus.GOING_UP)
-                    && (LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)) == SR_WITHOUT_SIGNALLING)) {
+            if (((pcepLspStatus == PcepLspStatus.GOING_UP)
+                    && (LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)) == SR_WITHOUT_SIGNALLING))
+                // For PCInit tunnel up, few PCC expects PCUpd message after PCInit message,
+                || ((tunnel.state() == State.INIT)
+                    && (pcepLspStatus == PcepLspStatus.DOWN)
+                    && (tunnel.annotations().value(PCE_INIT) != null
+                        && tunnel.annotations().value(PCE_INIT).equals("true"))
+                    && (LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)) == WITH_SIGNALLING))) {
+
                 // Query again to get latest tunnel updated with protocol values from PCRpt msg.
                 updateTunnel(service.tunnelQueryById(tunnel.tunnelId()), tunnel.path());
             }
