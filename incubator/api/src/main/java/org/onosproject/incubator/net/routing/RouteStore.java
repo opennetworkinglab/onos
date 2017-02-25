@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.onosproject.incubator.net.routing;
 
+import com.google.common.annotations.Beta;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
@@ -26,7 +28,7 @@ import java.util.Set;
 /**
  * Unicast route store.
  */
-public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
+public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate> {
 
     /**
      * Adds or updates the given route in the store.
@@ -50,20 +52,12 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
     Set<RouteTableId> getRouteTables();
 
     /**
-     * Returns the routes for a particular route table.
+     * Returns the routes in the given route table, grouped by prefix.
      *
-     * @param table route table
-     * @return collection of route in the table
+     * @param table route table ID
+     * @return routes
      */
-    Collection<Route> getRoutes(RouteTableId table);
-
-    /**
-     * Performs a longest prefix match with the given IP address.
-     *
-     * @param ip IP to look up
-     * @return longest prefix match route
-     */
-    Route longestPrefixMatch(IpAddress ip);
+    Collection<RouteSet> getRoutes(RouteTableId table);
 
     /**
      * Returns the routes that point to the given next hop IP address.
@@ -71,7 +65,18 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      * @param ip IP address of the next hop
      * @return routes for the given next hop
      */
+    // TODO think about including route table info
     Collection<Route> getRoutesForNextHop(IpAddress ip);
+
+    /**
+     * Returns the set of routes in the default route table for the given prefix.
+     *
+     * @param prefix IP prefix
+     * @return route set
+     */
+    // TODO needs to be generalizable across route tables
+    @Beta
+    RouteSet getRoutes(IpPrefix prefix);
 
     /**
      * Updates a next hop information in the store.
@@ -79,6 +84,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      * @param ip IP address
      * @param nextHopData Information of the next hop
      */
+    @Deprecated
     void updateNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
@@ -87,6 +93,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      * @param ip IP address
      * @param nextHopData Information of the next hop
      */
+    @Deprecated
     void removeNextHop(IpAddress ip, NextHopData nextHopData);
 
     /**
@@ -95,6 +102,7 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      * @param ip next hop IP
      * @return Information of the next hop
      */
+    @Deprecated
     NextHopData getNextHop(IpAddress ip);
 
     /**
@@ -102,5 +110,17 @@ public interface RouteStore extends Store<RouteEvent, RouteStoreDelegate> {
      *
      * @return next hops
      */
+    @Deprecated
     Map<IpAddress, NextHopData> getNextHops();
+
+    /**
+     * Performs a longest prefix match with the given IP address.
+     *
+     * @param ip IP to look up
+     * @return longest prefix match route
+     * @deprecated in Kingfisher release. Now handled by the manager instead of
+     * the store
+     */
+    @Deprecated
+    Route longestPrefixMatch(IpAddress ip);
 }

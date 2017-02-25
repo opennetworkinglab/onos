@@ -21,6 +21,7 @@ import org.onosproject.event.ListenerService;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -32,8 +33,26 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      * Returns all routes for all route tables in the system.
      *
      * @return map of route table name to routes in that table
+     * @deprecated in Kingfisher release. Use {@link #getRoutes(RouteTableId)}
+     * instead.
      */
+    @Deprecated
     Map<RouteTableId, Collection<Route>> getAllRoutes();
+
+    /**
+     * Returns information about all routes in the given route table.
+     *
+     * @param id route table ID
+     * @return collection of route information
+     */
+    Collection<RouteInfo> getRoutes(RouteTableId id);
+
+    /**
+     * Returns the set of route tables in the system.
+     *
+     * @return collection of route table IDs.
+     */
+    Collection<RouteTableId> getRouteTables();
 
     /**
      * Performs a longest prefix match on the given IP address. The call will
@@ -42,8 +61,19 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      *
      * @param ip IP address
      * @return longest prefix matched route
+     * @deprecated in Kingfisher release. Use {{@link #longestPrefixLookup(IpAddress)}}
+     * instead.
      */
+    @Deprecated
     Route longestPrefixMatch(IpAddress ip);
+
+    /**
+     * Performs a longest prefix lookup on the given IP address.
+     *
+     * @param ip IP address to look up
+     * @return most specific matching route, if one exists
+     */
+    Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip);
 
     /**
      * Returns the routes for the given next hop.
@@ -51,6 +81,7 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      * @param nextHop next hop IP address
      * @return routes for this next hop
      */
+    @Deprecated
     Collection<Route> getRoutesForNextHop(IpAddress nextHop);
 
     /**
@@ -58,6 +89,7 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
      *
      * @return set of next hops
      */
+    @Deprecated
     Set<NextHop> getNextHops();
 
 }

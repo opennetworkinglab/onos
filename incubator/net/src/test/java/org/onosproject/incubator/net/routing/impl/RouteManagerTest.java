@@ -215,10 +215,10 @@ public class RouteManagerTest {
     public void testRouteUpdate() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
         Route updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP2);
-        ResolvedRoute resolvedRoute = new ResolvedRoute(updatedRoute, MAC1, CP1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
         ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
 
-        verifyRouteRemoveThenAdd(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
+        verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
 
         // Different prefix pointing to the same next hop.
         // In this case we expect to receive a ROUTE_UPDATED event.
@@ -234,36 +234,7 @@ public class RouteManagerTest {
         resolvedRoute = new ResolvedRoute(route, MAC3, CP1);
         updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4, CP1);
 
-        verifyRouteRemoveThenAdd(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
-    }
-
-    /**
-     * Tests updating a route and verifies that the route listener receives a
-     * route remove event followed by a route add event.
-     *
-     * @param original original route
-     * @param updated updated route
-     * @param resolvedRoute resolved route before update
-     * @param updatedResolvedRoute resolved route that is expected to be sent to
-     *                             the route listener
-     */
-    private void verifyRouteRemoveThenAdd(Route original, Route updated,
-                                          ResolvedRoute resolvedRoute,
-                                          ResolvedRoute updatedResolvedRoute) {
-        // First add the original route
-        addRoute(original);
-
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                new ResolvedRoute(original, resolvedRoute.nextHopMac(), resolvedRoute.location())));
-        expectLastCall().once();
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, updatedResolvedRoute));
-        expectLastCall().once();
-
-        replay(routeListener);
-
-        routeManager.update(Collections.singleton(updated));
-
-        verify(routeListener);
+        verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
     }
 
     /**
@@ -345,6 +316,7 @@ public class RouteManagerTest {
         expect(hostService.getHostsByIp(anyObject(IpAddress.class))).andReturn(
                 Collections.emptySet()).anyTimes();
         hostService.startMonitoringIp(V4_NEXT_HOP1);
+        expectLastCall().anyTimes();
         replay(hostService);
 
         // Initially when we add the route, no route event will be sent because
@@ -361,8 +333,17 @@ public class RouteManagerTest {
                 new ResolvedRoute(route, MAC1, CP1)));
         replay(routeListener);
 
-        // Send in the host event
         Host host = createHost(MAC1, V4_NEXT_HOP1);
+
+        // Set up the host service with a host
+        reset(hostService);
+        expect(hostService.getHostsByIp(V4_NEXT_HOP1)).andReturn(
+                Collections.singleton(host)).anyTimes();
+        hostService.startMonitoringIp(V4_NEXT_HOP1);
+        expectLastCall().anyTimes();
+        replay(hostService);
+
+        // Send in the host event
         hostListener.event(new HostEvent(HostEvent.Type.HOST_ADDED, host));
 
         verify(routeListener);

@@ -24,11 +24,13 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.incubator.net.routing.InternalRouteEvent;
 import org.onosproject.incubator.net.routing.NextHopData;
 import org.onosproject.incubator.net.routing.Route;
-import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteSet;
 import org.onosproject.incubator.net.routing.RouteStore;
 import org.onosproject.incubator.net.routing.RouteStoreDelegate;
 import org.onosproject.incubator.net.routing.RouteTableId;
@@ -52,7 +54,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 @Service
 @Component
-public class RouteStoreImpl extends AbstractStore<RouteEvent, RouteStoreDelegate>
+public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStoreDelegate>
         implements RouteStore {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -155,7 +157,7 @@ public class RouteStoreImpl extends AbstractStore<RouteEvent, RouteStoreDelegate
     }
 
     @Override
-    public Collection<Route> getRoutes(RouteTableId table) {
+    public Collection<RouteSet> getRoutes(RouteTableId table) {
         return currentRouteStore.getRoutes(table);
     }
 
@@ -167,6 +169,11 @@ public class RouteStoreImpl extends AbstractStore<RouteEvent, RouteStoreDelegate
     @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
         return currentRouteStore.getRoutesForNextHop(ip);
+    }
+
+    @Override
+    public RouteSet getRoutes(IpPrefix prefix) {
+        return currentRouteStore.getRoutes(prefix);
     }
 
     @Override

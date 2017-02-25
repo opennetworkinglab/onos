@@ -16,70 +16,56 @@
 
 package org.onosproject.incubator.store.routing.impl;
 
-import com.google.common.collect.Maps;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.incubator.net.routing.InternalRouteEvent;
 import org.onosproject.incubator.net.routing.NextHopData;
-import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
-import org.onosproject.incubator.net.routing.RouteEvent;
+import org.onosproject.incubator.net.routing.RouteSet;
 import org.onosproject.incubator.net.routing.RouteStore;
 import org.onosproject.incubator.net.routing.RouteStoreDelegate;
 import org.onosproject.incubator.net.routing.RouteTableId;
 import org.onosproject.store.AbstractStore;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.SetEvent;
+import org.onosproject.store.service.SetEventListener;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.incubator.net.routing.RouteEvent.Type.ROUTE_ADDED;
-import static org.onosproject.incubator.net.routing.RouteEvent.Type.ROUTE_REMOVED;
-import static org.onosproject.incubator.net.routing.RouteTools.createBinaryString;
 
 /**
  * Route store based on distributed storage.
  */
-public class DistributedRouteStore extends AbstractStore<RouteEvent, RouteStoreDelegate>
+public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, RouteStoreDelegate>
         implements RouteStore {
-    public StorageService storageService;
+
+    protected StorageService storageService;
 
     private static final RouteTableId IPV4 = new RouteTableId("ipv4");
     private static final RouteTableId IPV6 = new RouteTableId("ipv6");
     private static final Logger log = LoggerFactory.getLogger(DistributedRouteStore.class);
-    private final MapEventListener<IpPrefix, Route> routeTableListener = new RouteTableListener();
-    private final MapEventListener<IpAddress, NextHopData> nextHopListener = new NextHopListener();
+    private final SetEventListener<RouteTableId> masterRouteTableListener =
+            new MasterRouteTableListener();
+    private final RouteStoreDelegate ourDelegate = new InternalRouteStoreDelegate();
 
-    // TODO: ConsistentMap may not scale with high frequency route update
-    private final Map<RouteTableId, ConsistentMap<IpPrefix, Route>> routeTables =
-            Maps.newHashMap();
-    // NOTE: We cache local route tables with InvertedRadixTree for longest prefix matching
-    private final Map<RouteTableId, InvertedRadixTree<Route>> localRouteTables =
-            Maps.newHashMap();
-    private ConsistentMap<IpAddress, NextHopData> nextHops;
+    // Stores the route tables that have been created
+    private DistributedSet<RouteTableId> masterRouteTable;
+    // Local memory map to store route table object
+    private Map<RouteTableId, RouteTable> routeTables;
 
-    /**
-     * Constructs a distributed route store.
-     *
-     * @param storageService storage service should be passed from RouteStoreImpl
-     */
+    private ExecutorService executor;
+
     public DistributedRouteStore(StorageService storageService) {
         this.storageService = storageService;
     }
@@ -88,19 +74,26 @@ public class DistributedRouteStore extends AbstractStore<RouteEvent, RouteStoreD
      * Sets up distributed route store.
      */
     public void activate() {
-        // Creates and stores maps
-        ConsistentMap<IpPrefix, Route> ipv4RouteTable = createRouteTable(IPV4);
-        ConsistentMap<IpPrefix, Route> ipv6RouteTable = createRouteTable(IPV6);
-        routeTables.put(IPV4, ipv4RouteTable);
-        routeTables.put(IPV6, ipv6RouteTable);
-        localRouteTables.put(IPV4, createLocalRouteTable());
-        localRouteTables.put(IPV6, createLocalRouteTable());
-        nextHops = createNextHopTable();
+        routeTables = new ConcurrentHashMap<>();
+        executor = Executors.newSingleThreadExecutor();
 
-        // Adds map listeners
-        routeTables.values().forEach(routeTable ->
-                routeTable.addListener(routeTableListener, Executors.newSingleThreadExecutor()));
-        nextHops.addListener(nextHopListener, Executors.newSingleThreadExecutor());
+        KryoNamespace masterRouteTableSerializer = KryoNamespace.newBuilder()
+                .register(RouteTableId.class)
+                .build();
+
+        masterRouteTable = storageService.<RouteTableId>setBuilder()
+                .withName("onos-master-route-table")
+                .withSerializer(Serializer.using(masterRouteTableSerializer))
+                .build()
+                .asDistributedSet();
+
+        masterRouteTable.forEach(this::createRouteTable);
+
+        masterRouteTable.addListener(masterRouteTableListener);
+
+        // Add default tables (add is idempotent)
+        masterRouteTable.add(IPV4);
+        masterRouteTable.add(IPV6);
 
         log.info("Started");
     }
@@ -109,257 +102,115 @@ public class DistributedRouteStore extends AbstractStore<RouteEvent, RouteStoreD
      * Cleans up distributed route store.
      */
     public void deactivate() {
-        routeTables.values().forEach(routeTable -> {
-            routeTable.removeListener(routeTableListener);
-            routeTable.destroy();
-        });
-        nextHops.removeListener(nextHopListener);
-        nextHops.destroy();
+        masterRouteTable.removeListener(masterRouteTableListener);
 
-        routeTables.clear();
-        localRouteTables.clear();
-        nextHops.clear();
+        routeTables.values().forEach(RouteTable::shutdown);
 
         log.info("Stopped");
     }
 
     @Override
     public void updateRoute(Route route) {
-        getDefaultRouteTable(route).put(route.prefix(), route);
+        getDefaultRouteTable(route).update(route);
     }
 
     @Override
     public void removeRoute(Route route) {
-        getDefaultRouteTable(route).remove(route.prefix());
-
-        if (getRoutesForNextHop(route.nextHop()).isEmpty()) {
-            nextHops.remove(route.nextHop());
-        }
+        getDefaultRouteTable(route).remove(route);
     }
 
     @Override
     public Set<RouteTableId> getRouteTables() {
-        return routeTables.keySet();
+        return ImmutableSet.copyOf(masterRouteTable);
     }
 
     @Override
-    public Collection<Route> getRoutes(RouteTableId table) {
-        ConsistentMap<IpPrefix, Route> routeTable = routeTables.get(table);
-        return (routeTable != null) ?
-                routeTable.values().stream().map(Versioned::value).collect(Collectors.toSet()) :
-                Collections.emptySet();
+    public Collection<RouteSet> getRoutes(RouteTableId table) {
+        RouteTable routeTable = routeTables.get(table);
+        if (routeTable == null) {
+            return Collections.emptySet();
+        } else {
+            return ImmutableSet.copyOf(routeTable.getRoutes());
+        }
     }
 
     @Override
     public Route longestPrefixMatch(IpAddress ip) {
-        Iterable<Route> prefixes = getDefaultLocalRouteTable(ip)
-                .getValuesForKeysPrefixing(createBinaryString(ip.toIpPrefix()));
-        Iterator<Route> it = prefixes.iterator();
-
-        Route route = null;
-        while (it.hasNext()) {
-            route = it.next();
-        }
-
-        return route;
+        // Not supported
+        return null;
     }
 
     @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
-        return getDefaultRouteTable(ip).values().stream()
-                .filter(route -> route.nextHop().equals(ip))
-                .collect(Collectors.toList());
+        return getDefaultRouteTable(ip).getRoutesForNextHop(ip);
+    }
+
+    @Override
+    public RouteSet getRoutes(IpPrefix prefix) {
+        return getDefaultRouteTable(prefix.address()).getRoutes(prefix);
     }
 
     @Override
     public void updateNextHop(IpAddress ip, NextHopData nextHopData) {
-        checkNotNull(ip);
-        checkNotNull(nextHopData);
-        Collection<Route> routes = getRoutesForNextHop(ip);
-        if (!routes.isEmpty() && !nextHopData.equals(getNextHop(ip))) {
-            nextHops.put(ip, nextHopData);
-        }
+        // Not supported
     }
 
     @Override
     public void removeNextHop(IpAddress ip, NextHopData nextHopData) {
-        checkNotNull(ip);
-        checkNotNull(nextHopData);
-        nextHops.remove(ip, nextHopData);
+        // Not supported
     }
 
     @Override
     public NextHopData getNextHop(IpAddress ip) {
-        return Versioned.valueOrNull(nextHops.get(ip));
+        // Not supported
+        return null;
     }
 
     @Override
     public Map<IpAddress, NextHopData> getNextHops() {
-        return nextHops.asJavaMap();
+        // Not supported
+        return Collections.emptyMap();
     }
 
-    private ConsistentMap<IpPrefix, Route> createRouteTable(RouteTableId tableId) {
-        KryoNamespace routeTableSerializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(Route.class)
-                .register(Route.Source.class)
-                .build();
-        return storageService.<IpPrefix, Route>consistentMapBuilder()
-                .withName("onos-routes-" + tableId.name())
-                .withRelaxedReadConsistency()
-                .withSerializer(Serializer.using(routeTableSerializer))
-                .build();
+    private void createRouteTable(RouteTableId tableId) {
+        routeTables.computeIfAbsent(tableId, id -> new DefaultRouteTable(id, ourDelegate, storageService));
     }
 
-    private ConcurrentInvertedRadixTree<Route> createLocalRouteTable() {
-        return new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
+    private void destroyRouteTable(RouteTableId tableId) {
+        RouteTable table = routeTables.remove(tableId);
+        if (table != null) {
+            table.destroy();
+        }
     }
 
-    private ConsistentMap<IpAddress, NextHopData> createNextHopTable() {
-        KryoNamespace.Builder nextHopSerializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(NextHopData.class);
-        return storageService.<IpAddress, NextHopData>consistentMapBuilder()
-                .withName("onos-nexthops")
-                .withRelaxedReadConsistency()
-                .withSerializer(Serializer.using(nextHopSerializer.build()))
-                .build();
-    }
-
-    private Map<IpPrefix, Route> getDefaultRouteTable(Route route) {
+    private RouteTable getDefaultRouteTable(Route route) {
         return getDefaultRouteTable(route.prefix().address());
     }
 
-    private Map<IpPrefix, Route> getDefaultRouteTable(IpAddress ip) {
+    private RouteTable getDefaultRouteTable(IpAddress ip) {
         RouteTableId routeTableId = (ip.isIp4()) ? IPV4 : IPV6;
-        return routeTables.get(routeTableId).asJavaMap();
+        return routeTables.getOrDefault(routeTableId, EmptyRouteTable.instance());
     }
 
-    private InvertedRadixTree<Route> getDefaultLocalRouteTable(IpAddress ip) {
-        RouteTableId routeTableId = (ip.isIp4()) ? IPV4 : IPV6;
-        return localRouteTables.get(routeTableId);
-    }
-
-    private class RouteTableListener implements MapEventListener<IpPrefix, Route> {
+    private class InternalRouteStoreDelegate implements RouteStoreDelegate {
         @Override
-        public void event(MapEvent<IpPrefix, Route> event) {
-            Route route, prevRoute;
-            NextHopData nextHopData, prevNextHopData;
-            switch (event.type()) {
-                case INSERT:
-                    route = checkNotNull(event.newValue().value());
-                    nextHopData = getNextHop(route.nextHop());
-
-                    // Update local cache
-                    getDefaultLocalRouteTable(route.nextHop())
-                            .put(createBinaryString(route.prefix()), route);
-
-                    // Send ROUTE_ADDED only when the next hop is resolved
-                    if (nextHopData != null) {
-                        notifyDelegate(new RouteEvent(ROUTE_ADDED,
-                                new ResolvedRoute(route,
-                                        nextHopData.mac(), nextHopData.location())));
-                    }
-                    break;
-                case UPDATE:
-                    route = checkNotNull(event.newValue().value());
-                    prevRoute = checkNotNull(event.oldValue().value());
-                    nextHopData = getNextHop(route.nextHop());
-                    prevNextHopData = getNextHop(prevRoute.nextHop());
-
-                    // Update local cache
-                    getDefaultLocalRouteTable(route.nextHop())
-                            .put(createBinaryString(route.prefix()), route);
-
-                    if (nextHopData == null && prevNextHopData != null) {
-                        notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                                new ResolvedRoute(prevRoute,
-                                        prevNextHopData.mac(), prevNextHopData.location())));
-                    } else if (nextHopData != null && prevNextHopData != null) {
-                        notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
-                                new ResolvedRoute(route,
-                                        nextHopData.mac(), nextHopData.location()),
-                                new ResolvedRoute(prevRoute,
-                                        prevNextHopData.mac(), prevNextHopData.location())));
-                    }
-
-                    cleanupNextHop(prevRoute.nextHop());
-                    break;
-                case REMOVE:
-                    prevRoute = checkNotNull(event.oldValue().value());
-                    prevNextHopData = getNextHop(prevRoute.nextHop());
-
-                    // Update local cache
-                    getDefaultLocalRouteTable(prevRoute.nextHop())
-                            .remove(createBinaryString(prevRoute.prefix()));
-
-                    // Send ROUTE_REMOVED only when the next hop is resolved
-                    if (prevNextHopData != null) {
-                       notifyDelegate(new RouteEvent(ROUTE_REMOVED,
-                               new ResolvedRoute(prevRoute,
-                                       prevNextHopData.mac(), prevNextHopData.location())));
-                    }
-
-                    cleanupNextHop(prevRoute.nextHop());
-                    break;
-                default:
-                    log.warn("Unknown MapEvent type: {}", event.type());
-            }
-        }
-
-        /**
-         * Cleanup a nexthop when there is no routes reference to it.
-         */
-        private void cleanupNextHop(IpAddress ip) {
-            if (getDefaultRouteTable(ip).values().stream().noneMatch(route ->
-                    route.nextHop().equals(ip))) {
-                nextHops.remove(ip);
-            }
+        public void notify(InternalRouteEvent event) {
+            executor.execute(() -> DistributedRouteStore.this.notifyDelegate(event));
         }
     }
 
-    private class NextHopListener implements MapEventListener<IpAddress, NextHopData> {
+    private class MasterRouteTableListener implements SetEventListener<RouteTableId> {
         @Override
-        public void event(MapEvent<IpAddress, NextHopData> event) {
-            NextHopData nextHopData, oldNextHopData;
-            Collection<Route> routes = getRoutesForNextHop(event.key());
-
+        public void event(SetEvent<RouteTableId> event) {
             switch (event.type()) {
-                case INSERT:
-                    nextHopData = checkNotNull(event.newValue().value());
-                    routes.forEach(route ->
-                        notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
-                                new ResolvedRoute(route,
-                                        nextHopData.mac(), nextHopData.location())))
-                    );
-                    break;
-                case UPDATE:
-                    nextHopData = checkNotNull(event.newValue().value());
-                    oldNextHopData = checkNotNull(event.oldValue().value());
-                    routes.forEach(route -> {
-                        if (oldNextHopData == null) {
-                            notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
-                                    new ResolvedRoute(route,
-                                            nextHopData.mac(), nextHopData.location())));
-                        } else if (!oldNextHopData.equals(nextHopData)) {
-                            notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
-                                    new ResolvedRoute(route,
-                                            nextHopData.mac(), nextHopData.location()),
-                                    new ResolvedRoute(route,
-                                            oldNextHopData.mac(), oldNextHopData.location())));
-                        }
-                    });
-                    break;
-                case REMOVE:
-                    oldNextHopData = checkNotNull(event.oldValue().value());
-                    routes.forEach(route ->
-                        notifyDelegate(new RouteEvent(RouteEvent.Type.ROUTE_REMOVED,
-                                new ResolvedRoute(route,
-                                        oldNextHopData.mac(), oldNextHopData.location())))
-                    );
-                    break;
-                default:
-                    log.warn("Unknown MapEvent type: {}", event.type());
+            case ADD:
+                executor.execute(() -> createRouteTable(event.entry()));
+                break;
+            case REMOVE:
+                executor.execute(() -> destroyRouteTable(event.entry()));
+                break;
+            default:
+                break;
             }
         }
     }

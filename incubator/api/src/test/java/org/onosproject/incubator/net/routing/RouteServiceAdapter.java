@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -42,7 +43,22 @@ public class RouteServiceAdapter implements RouteAdminService {
     }
 
     @Override
+    public Collection<RouteInfo> getRoutes(RouteTableId id) {
+        return null;
+    }
+
+    @Override
+    public Collection<RouteTableId> getRouteTables() {
+        return null;
+    }
+
+    @Override
     public Route longestPrefixMatch(IpAddress ip) {
+        return null;
+    }
+
+    @Override
+    public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
         return null;
     }
 

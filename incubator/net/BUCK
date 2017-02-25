@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//incubator/api:onos-incubator-api',
     '//incubator/store:onos-incubator-store',
     '//utils/rest:onlab-rest',
+    '//lib:concurrent-trees',
 ]
 
 TEST_DEPS = [
@@ -12,7 +13,6 @@ TEST_DEPS = [
     '//core/api:onos-api-tests',
     '//core/common:onos-core-common-tests',
     '//core/store/serializers:onos-core-serializers',
-    '//lib:concurrent-trees',
 ]
 
 osgi_jar_with_tests (

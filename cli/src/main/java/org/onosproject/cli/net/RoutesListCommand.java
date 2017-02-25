@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,32 +20,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
+import org.onosproject.incubator.net.routing.RouteInfo;
 import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.incubator.net.routing.RouteTableId;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Command to show the routes in the routing tables.
  */
 @Command(scope = "onos", name = "routes",
-        description = "Lists all routes in the route store")
+        description = "Lists routes in the route store")
 public class RoutesListCommand extends AbstractShellCommand {
 
-    @Option(name = "-s", aliases = "--summary",
-            description = "Show summary of routes")
-    private boolean summary = false;
-
-    private static final String FORMAT_SUMMARY =
-            "Number of routes in table %s: %s";
     private static final String FORMAT_HEADER =
-        "   Network            Next Hop        Source";
+        "    Network            Next Hop        Source";
     private static final String FORMAT_ROUTE =
-        "   %-18s %-15s %-10s";
+            "%-1s   %-18s %-15s %-10s";
 
     private static final String FORMAT_TABLE = "Table: %s";
     private static final String FORMAT_TOTAL = "   Total: %d";
@@ -54,38 +51,38 @@ public class RoutesListCommand extends AbstractShellCommand {
     protected void execute() {
         RouteService service = AbstractShellCommand.get(RouteService.class);
 
-        Map<RouteTableId, Collection<Route>> allRoutes = service.getAllRoutes();
-
-        if (summary) {
-            if (outputJson()) {
-                ObjectMapper mapper = new ObjectMapper();
-                ObjectNode result = mapper.createObjectNode();
-                result.put("totalRoutes4", allRoutes.get(new RouteTableId("ipv4")).size());
-                result.put("totalRoutes6", allRoutes.get(new RouteTableId("ipv6")).size());
-                print("%s", result);
-            } else {
-                allRoutes.forEach((id, routes) -> print(FORMAT_SUMMARY, id, routes.size()));
-            }
-
-            return;
-        }
-
         if (outputJson()) {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode result = mapper.createObjectNode();
-            result.set("routes4", json(allRoutes.get(new RouteTableId("ipv4"))));
-            result.set("routes6", json(allRoutes.get(new RouteTableId("ipv6"))));
+            result.set("routes4", json(service.getRoutes(new RouteTableId("ipv4"))));
+            result.set("routes6", json(service.getRoutes(new RouteTableId("ipv6"))));
             print("%s", result);
         } else {
-            allRoutes.forEach((id, routes) -> {
+            service.getRouteTables().forEach(id -> {
                 print(FORMAT_TABLE, id);
                 print(FORMAT_HEADER);
-                routes.forEach(r -> print(FORMAT_ROUTE, r.prefix(), r.nextHop(), r.source()));
-                print(FORMAT_TOTAL, routes.size());
+                Collection<RouteInfo> tableRoutes = service.getRoutes(id);
+
+                tableRoutes.stream()
+                        .sorted(Comparator.comparing(r -> r.prefix().address()))
+                        .forEach(this::print);
+
+                print(FORMAT_TOTAL, tableRoutes.size());
                 print("");
             });
         }
+    }
 
+    private void print(RouteInfo routeInfo) {
+        routeInfo.allRoutes()
+                .forEach(r -> print(FORMAT_ROUTE, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
+                        r.prefix(), r.nextHop(), Route.Source.UNDEFINED));
+    }
+
+
+
+    private boolean isBestRoute(Optional<ResolvedRoute> bestRoute, ResolvedRoute route) {
+        return Objects.equals(bestRoute.orElse(null), route);
     }
 
     /**
@@ -94,13 +91,14 @@ public class RoutesListCommand extends AbstractShellCommand {
      * @param routes the routes with the data
      * @return JSON array with the routes
      */
-    private JsonNode json(Collection<Route> routes) {
+    private JsonNode json(Collection<RouteInfo> routes) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
 
-        for (Route route : routes) {
-            result.add(json(mapper, route));
-        }
+        routes.stream()
+                .flatMap(ri -> ri.allRoutes().stream())
+                .forEach(r -> result.add(json(mapper, r)));
+
         return result;
     }
 
@@ -111,7 +109,7 @@ public class RoutesListCommand extends AbstractShellCommand {
      * @param route the route with the data
      * @return JSON object for the route
      */
-    private ObjectNode json(ObjectMapper mapper, Route route) {
+    private ObjectNode json(ObjectMapper mapper, ResolvedRoute route) {
         ObjectNode result = mapper.createObjectNode();
 
         result.put("prefix", route.prefix().toString());
