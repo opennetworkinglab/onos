@@ -16,6 +16,23 @@
 
 package org.onosproject.yms.app.ych;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.onosproject.yms.ych.YangProtocolEncodingFormat.XML;
+import static org.onosproject.yms.ydt.YmsOperationType.QUERY_CONFIG_REQUEST;
+import static org.onosproject.yms.ydt.YmsOperationType.QUERY_REQUEST;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Test;
 import org.onosproject.yang.gen.v1.ych.combined.rev20160524.CombinedOpParam;
 import org.onosproject.yang.gen.v1.ych.combined.rev20160524.combined.AsNum;
@@ -45,10 +62,11 @@ import org.onosproject.yang.gen.v1.ych.combined.rev20160524.combined.attributes.
 import org.onosproject.yang.gen.v1.ych.combined.rev20160524.combined.attributes.bgpparameters.optionalcapabilities.cparameters.DefaultAs4BytesCapability;
 import org.onosproject.yang.gen.v1.ych.empty.container.rev20160524.EmptyContainerOpParam;
 import org.onosproject.yang.gen.v1.ych.empty.container.rev20160524.emptycontainer.EmptyContainer;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.YchPurchasingsupervisor.OnosYangOpType;
 import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.YchPurchasingsupervisorOpParam;
 import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.ychpurchasingsupervisor.DefaultYchPurchasingSupervisor;
 import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.ychpurchasingsupervisor.YchPurchasingSupervisor;
-import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.YchPurchasingsupervisor.OnosYangOpType;
+import org.onosproject.yang.gen.v1.ych.purchasing.supervisor.rev20160524.ychpurchasingsupervisor.ychpurchasingsupervisor.DefaultYchIsManager;
 import org.onosproject.yang.gen.v1.ydt.customs.supervisor.rev20160524.CustomssupervisorOpParam;
 import org.onosproject.yang.gen.v1.ydt.material.supervisor.rev20160524.MaterialsupervisorOpParam;
 import org.onosproject.yang.gen.v1.ydt.material.supervisor.rev20160524.materialsupervisor.DefaultSupervisor;
@@ -61,21 +79,6 @@ import org.onosproject.yms.app.ysr.DefaultYangSchemaRegistry;
 import org.onosproject.yms.app.ysr.TestYangSchemaNodeProvider;
 import org.onosproject.yms.ych.YangCompositeEncoding;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.onosproject.yms.ych.YangProtocolEncodingFormat.XML;
-import static org.onosproject.yms.ydt.YmsOperationType.QUERY_CONFIG_REQUEST;
-import static org.onosproject.yms.ydt.YmsOperationType.QUERY_REQUEST;
-
 /**
  * Unit test case for default codec handler.
  */
@@ -87,6 +90,7 @@ public class DefaultYangCodecHandlerTest {
     private static final String EMPTY_CONTAINER = "EmptyContainerOpParam";
     private static final String LOGISTIC_MOD = "LogisticsManagerOpParam";
     private static final String MERCHA_MOD = "MerchandisersupervisorOpParam";
+    private static final String PURCH_MOD = "YchPurchasingsupervisorOpParam";
 
     /**
      * Returns the xml string for customssupervisor module.
@@ -97,6 +101,19 @@ public class DefaultYangCodecHandlerTest {
         return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
                 "<supervisor xmlns=\"ydt.customs-supervisor\">" +
                 "Customssupervisor</supervisor>" +
+                "</filter>";
+    }
+
+    /**
+     * Returns the xml string for purchasesupervisor with empty selection node.
+     *
+     * @return the xml string for purchasesupervisor with empty selection node
+     */
+    private static String purchaseXmlEmptySelectionNode() {
+        return "<filter xmlns=\"ydt.filter-type\" type=\"subtree\">" +
+                "<ych-purchasing-supervisor xmlns=\"ych.purchasing-supervisor\">" +
+                "<ych-purchasing-specialist/>" +
+                "</ych-purchasing-supervisor>" +
                 "</filter>";
     }
 
@@ -242,8 +259,45 @@ public class DefaultYangCodecHandlerTest {
                 "<ych-purchasing-specialist>purchasingSpecialist" +
                 "</ych-purchasing-specialist>" +
                 "<ych-purchasing-support>support</ych-purchasing-support>" +
+                "<ych-is-manager/>" +
                 "</ych-purchasing-supervisor>" +
                 "</config>";
+    }
+
+    /**
+     * Returns the xml string for ych-purchasingsupervisor module with BitSet options.
+     *
+     * @return the XML string for ych-purchasingsupervisor module
+     */
+    private static String purchaseXmlOptions(BitSet options) {
+        boolean isFirst = true;
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("<config xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
+        sb.append("xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+        sb.append("<ych-purchasing-supervisor xmlns=\"ych.purchasing-supervisor\" " +
+                "nc:operation=\"create\">");
+        sb.append("<ych-purchasing-support>support</ych-purchasing-support>");
+        if (options == null || options.isEmpty()) {
+            sb.append("<ych-purchasing-options/>");
+        } else {
+            sb.append("<ych-purchasing-options>");
+            for (int i = 0; i < 4; i++) {
+                if (options.get(i)) {
+                    if (isFirst) {
+                        isFirst = false;
+                    } else {
+                        sb.append(' ');
+                    }
+                    sb.append("option" + i);
+                }
+            }
+            sb.append("</ych-purchasing-options>");
+        }
+        sb.append("</ych-purchasing-supervisor>");
+        sb.append("</config>");
+
+        return sb.toString();
     }
 
     /**
@@ -815,6 +869,7 @@ public class DefaultYangCodecHandlerTest {
                         .YchPurchasingSupervisorBuilder()
                         .ychPurchasingSpecialist("purchasingSpecialist")
                         .ychPurchasingSupport("support")
+                        .ychIsManager(DefaultYchIsManager.builder().build())
                         .yangYchPurchasingSupervisorOpType(OnosYangOpType.CREATE).build();
         Object object = YchPurchasingsupervisorOpParam.builder()
                 .ychPurchasingSupervisor(supervisor).build();
@@ -1419,5 +1474,131 @@ public class DefaultYangCodecHandlerTest {
         List<Object> objectList = defaultYangCodecHandler.decode(sb.toString(),
                                                                  XML, null);
         processMerchandiserObj(objectList);
+    }
+
+    @Test
+    public void proceessCodecDecodeFunctionForPresenceContainer() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler defaultYangCodecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+
+        // Verify the received object list
+        List<Object> objectList = defaultYangCodecHandler.decode(purchaseXml(),
+                                                                 XML, null);
+        assertNotNull(objectList);
+        Iterator<Object> iterator = objectList.iterator();
+        while (iterator.hasNext()) {
+            Object object = iterator.next();
+            if (object.getClass().getSimpleName().equals(PURCH_MOD)) {
+                YchPurchasingsupervisorOpParam purchasingsupervisorOpParam =
+                        (YchPurchasingsupervisorOpParam) object;
+                assertEquals(AM_OBJ + "purchasing-specialist: leaf value", "purchasingSpecialist",
+                             purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingSpecialist());
+                assertEquals(AM_OBJ + "purchasing-support: leaf value", "support",
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingSupport());
+                assertNotNull(AM_OBJ + "purchasing-manager: leaf value",
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychIsManager());
+            } else {
+                assertEquals(AM_OBJ, PURCH_MOD, object.getClass().getSimpleName());
+            }
+        }
+    }
+
+    @Test
+    public void proceessCodecDecodeFunctionForSelectionNode() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler defaultYangCodecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+
+        // Verify the received object list
+        List<Object> objectList = defaultYangCodecHandler.decode(
+                purchaseXmlEmptySelectionNode(), XML, null);
+        assertNotNull(objectList);
+        Iterator<Object> iterator = objectList.iterator();
+        while (iterator.hasNext()) {
+            Object object = iterator.next();
+            if (object.getClass().getSimpleName().equals(PURCH_MOD)) {
+                YchPurchasingsupervisorOpParam purchasingsupervisorOpParam =
+                        (YchPurchasingsupervisorOpParam) object;
+                assertNull(AM_OBJ + "purchasing-specialist: leaf value not empty",
+                         purchasingsupervisorOpParam.
+                         ychPurchasingSupervisor().ychPurchasingSpecialist());
+            } else {
+                assertEquals(AM_OBJ, PURCH_MOD, object.getClass().getSimpleName());
+            }
+        }
+    }
+
+    @Test
+    public void proceessCodecDecodeFunctionForBitmaskContainer() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler defaultYangCodecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+
+        BitSet purchaseOptions = new BitSet(4);
+        purchaseOptions.set(1); //option1
+        purchaseOptions.set(3); //option3
+
+        // Verify the received object list
+        List<Object> objectList = defaultYangCodecHandler.decode(
+                purchaseXmlOptions(purchaseOptions), XML, null);
+        assertNotNull(objectList);
+        Iterator<Object> iterator = objectList.iterator();
+        while (iterator.hasNext()) {
+            Object object = iterator.next();
+            if (object.getClass().getSimpleName().equals(PURCH_MOD)) {
+                YchPurchasingsupervisorOpParam purchasingsupervisorOpParam =
+                        (YchPurchasingsupervisorOpParam) object;
+                assertEquals(AM_OBJ + "purchasing-support: leaf value", "support",
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingSupport());
+                assertEquals(AM_OBJ + "ych-puchasing-options: leaf value",
+                        purchaseOptions,
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingOptions());
+            } else {
+                assertEquals(AM_OBJ, PURCH_MOD, object.getClass().getSimpleName());
+            }
+        }
+    }
+
+    @Test
+    public void proceessCodecDecodeFunctionForEmptyBitmask() {
+        testYangSchemaNodeProvider.processSchemaRegistry(null);
+        DefaultYangSchemaRegistry schemaRegistry =
+                testYangSchemaNodeProvider.getDefaultYangSchemaRegistry();
+
+        YangCodecRegistry.initializeDefaultCodec();
+        DefaultYangCodecHandler defaultYangCodecHandler =
+                new DefaultYangCodecHandler(schemaRegistry);
+
+        // Verify the received object list
+        List<Object> objectList = defaultYangCodecHandler.decode(
+                purchaseXmlOptions(null), XML, null);
+        assertNotNull(objectList);
+        Iterator<Object> iterator = objectList.iterator();
+        while (iterator.hasNext()) {
+            Object object = iterator.next();
+            if (object.getClass().getSimpleName().equals(PURCH_MOD)) {
+                YchPurchasingsupervisorOpParam purchasingsupervisorOpParam =
+                        (YchPurchasingsupervisorOpParam) object;
+                assertEquals(AM_OBJ + "purchasing-support: leaf value", "support",
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingSupport());
+                assertNull(AM_OBJ + "ych-puchasing-options: leaf value empty",
+                        purchasingsupervisorOpParam.ychPurchasingSupervisor().ychPurchasingOptions());
+            } else {
+                assertEquals(AM_OBJ, PURCH_MOD, object.getClass().getSimpleName());
+            }
+        }
     }
 }

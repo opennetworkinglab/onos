@@ -73,8 +73,8 @@ class XmlCodecListener implements XmlListener {
 
         /*
          * When new module has to be added, and if curnode has reference of
-         * previous module, then we need to traverse back to parent(logical root
-         * node).
+         * previous module, then we need to traverse back to parent(logical
+         * root node).
          */
         if (ydtExtBuilder.getRootNode() == ydtExtBuilder.getCurNode()
                 .getParent() && prevNodeNamespace != null &&
@@ -82,11 +82,15 @@ class XmlCodecListener implements XmlListener {
             ydtExtBuilder.traverseToParent();
         }
 
-        if (nodeType == OBJECT_NODE && element.content() == null || element
-                .content().isEmpty()) {
-            nodeType = TEXT_NODE;
-        }
-        if (nodeType == OBJECT_NODE) {
+        if (nodeType == OBJECT_NODE &&
+                (element.content() == null || element.content().isEmpty())) {
+            if (ydtExtBuilder != null) {
+                if (ydtExtBuilder.getCurNode() == ydtExtBuilder.getRootNode()) {
+                    ydtExtBuilder.addChild(null, nameSpace, opType);
+                }
+                ydtExtBuilder.addNode(element.getName(), nameSpace);
+            }
+        } else if (nodeType == OBJECT_NODE) {
             if (ydtExtBuilder != null) {
                 if (ydtExtBuilder.getCurNode() == ydtExtBuilder.getRootNode()) {
                     ydtExtBuilder.addChild(null, nameSpace, opType);
@@ -94,7 +98,6 @@ class XmlCodecListener implements XmlListener {
                 ydtExtBuilder.addChild(element.getName(), nameSpace, opType);
             }
         } else if (nodeType == TEXT_NODE) {
-
             if (ydtExtBuilder != null) {
                 if (ydtExtBuilder.getCurNode() == ydtExtBuilder.getRootNode()) {
                     ydtExtBuilder.addChild(null, nameSpace, opType);

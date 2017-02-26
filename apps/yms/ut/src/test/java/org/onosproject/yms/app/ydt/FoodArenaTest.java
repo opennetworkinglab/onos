@@ -70,7 +70,7 @@ public class FoodArenaTest {
         ydtBuilder = getYdtBuilder("foodarena", "food", "ydt.food", NONE);
         ydtBuilder.addChild("food", "ydt.food", DELETE);
         YdtAppContext appRootNode = ydtBuilder.getAppRootNode();
-        assertEquals(appRootNode.getFirstChild().getOperationType(), DELETE_ONLY);
+        assertEquals(DELETE_ONLY, appRootNode.getFirstChild().getOperationType());
     }
 
     /**

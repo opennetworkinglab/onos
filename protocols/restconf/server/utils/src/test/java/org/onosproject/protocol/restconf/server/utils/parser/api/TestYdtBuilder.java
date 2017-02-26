@@ -182,4 +182,9 @@ public class TestYdtBuilder implements YdtBuilder {
     public YdtContextOperationType getYdtDefaultOpType() {
         return ydtDefaultOpType;
     }
+
+    @Override
+    public void addNode(String name, String namespace) throws IllegalArgumentException {
+        addChild(name, namespace, SINGLE_INSTANCE_NODE, null);
+    }
 }

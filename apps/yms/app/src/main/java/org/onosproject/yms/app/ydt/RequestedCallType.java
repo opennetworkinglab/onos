@@ -35,5 +35,9 @@ enum RequestedCallType {
      * Requested Node is of type multi instance leaf/node.
      */
     MULTI_INSTANCE,
-}
 
+    /**
+     * Requested Node is of type container but is empty.
+     */
+    EMPTY_CONTAINER,
+}

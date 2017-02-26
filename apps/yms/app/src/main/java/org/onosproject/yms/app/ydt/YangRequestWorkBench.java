@@ -522,6 +522,14 @@ public class YangRequestWorkBench implements YdtExtendedBuilder {
         addLeaf(name, namespace, null, valueSet, MULTI_INSTANCE_LEAF);
     }
 
+    @Override
+    public void addNode(String name, String namespace)
+            throws IllegalArgumentException {
+        addChild(name, namespace, RequestedCardinality.UNKNOWN,
+                null, RequestedCallType.EMPTY_CONTAINER);
+    }
+
+
     /**
      * Adds a last leaf with list of values/single value to YANG data tree.
      * This method is used by all protocols which knows the nature

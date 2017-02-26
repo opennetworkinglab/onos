@@ -199,6 +199,18 @@ public interface YdtBuilder extends Ydt {
             throws IllegalArgumentException;
 
     /**
+     * Adds a child node or leaf node based on schema.
+     *
+     * @param name      name of child/leaf to be added
+     * @param namespace namespace of child/leaf to be added, if it's null, parent's
+     *                  namespace will be applied to child
+     * @throws IllegalArgumentException when method has been passed an illegal
+     *                                  or inappropriate argument.
+     */
+    void addNode(String name, String namespace)
+            throws IllegalArgumentException;
+
+    /**
      * Adds an instance of a child list node, or adds a child leaf list with
      * multiple instance.
      * In case the name and namespace identifies the child list node, then

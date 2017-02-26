@@ -24,5 +24,20 @@ module ych-purchasingsupervisor {
             type string;
             description "name of the support person";
         }
+
+        leaf ych-purchasing-options {
+            type bits {
+                bit "option0";
+                bit "option1";
+                bit "option2";
+                bit "option3";
+            }
+            description
+            "A bit mask that may have 0, 1, many or all options present";
+        }
+
+        container ych-is-manager {
+            presence "If node is present denotes that supervisor is a manager";
+        }
     }
 }

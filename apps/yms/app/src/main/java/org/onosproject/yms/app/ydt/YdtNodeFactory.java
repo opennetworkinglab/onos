@@ -186,6 +186,19 @@ final class YdtNodeFactory {
                         throw new YdtException(E_MULTI_INS);
                 }
 
+            case EMPTY_CONTAINER:
+                switch (nodeType) {
+
+                case YANG_SINGLE_INSTANCE_NODE:
+                    return new YdtSingleInstanceNode(node);
+
+                case YANG_SINGLE_INSTANCE_LEAF_NODE:
+                    return new YdtSingleInstanceLeafNode(node);
+
+                default:
+                    return null;
+            }
+
             default:
                 return null;
         }
