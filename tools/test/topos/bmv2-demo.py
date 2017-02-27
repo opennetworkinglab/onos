@@ -161,7 +161,7 @@ def main(args):
     # net.hosts[0].startIperfClient(net.hosts[-1], flowBw="200k", numFlows=100, duration=10)
 
     print "Setting netcfg..."
-    call(("onos-netcfg", onosIp,
+    call(("%s/tools/test/bin/onos-netcfg" % ONOS_ROOT, onosIp,
           "%s/tools/test/topos/bmv2-demo-cfg.json" % ONOS_ROOT))
 
     if not args.onos_ip:
