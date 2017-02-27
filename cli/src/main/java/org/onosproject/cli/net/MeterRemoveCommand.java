@@ -64,5 +64,8 @@ public class MeterRemoveCommand extends AbstractShellCommand {
                 .fromApp(coreService.registerApplication(appId));
         MeterRequest meterRequest = builder.remove();
         service.withdraw(meterRequest, meterId);
+        log.info("Requested meter removal: {}", meterRequest.toString());
+
+        print("Requested meter removal: %s", meterRequest.toString());
     }
 }
