@@ -21,6 +21,7 @@ import com.google.common.collect.Multiset;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.ConsistentMultimap;
+import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Synchronous;
 import org.onosproject.store.service.Versioned;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -142,6 +144,16 @@ public class DefaultConsistentMultimap<K, V>
         throw new UnsupportedOperationException("This operation is not yet " +
                                                         "supported.");
         //FIXME implement this when a new version of ConsistentMapBackedJavaMap is made for multimaps
+    }
+
+    @Override
+    public void addListener(MultimapEventListener<K, V> listener, Executor executor) {
+        complete(asyncMultimap.addListener(listener, executor));
+    }
+
+    @Override
+    public void removeListener(MultimapEventListener<K, V> listener) {
+        complete(asyncMultimap.removeListener(listener));
     }
 
     private <T> T complete(CompletableFuture<T> future) {

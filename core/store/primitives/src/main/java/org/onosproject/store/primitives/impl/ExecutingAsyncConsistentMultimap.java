@@ -15,15 +15,16 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import com.google.common.collect.Multiset;
+import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.MultimapEventListener;
+import org.onosproject.store.service.Versioned;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-
-import com.google.common.collect.Multiset;
-import org.onosproject.store.service.AsyncConsistentMultimap;
-import org.onosproject.store.service.Versioned;
 
 /**
  * {@link org.onosproject.store.service.AsyncConsistentMultimap} that executes asynchronous callbacks on a provided
@@ -122,6 +123,16 @@ public class ExecutingAsyncConsistentMultimap<K, V>
     @Override
     public CompletableFuture<Collection<Map.Entry<K, V>>> entries() {
         return asyncFuture(delegateMap.entries());
+    }
+
+    @Override
+    public CompletableFuture<Void> addListener(MultimapEventListener<K, V> listener, Executor executor) {
+        return asyncFuture(delegateMap.addListener(listener, executor));
+    }
+
+    @Override
+    public CompletableFuture<Void> removeListener(MultimapEventListener<K, V> listener) {
+        return asyncFuture(delegateMap.removeListener(listener));
     }
 
     @Override

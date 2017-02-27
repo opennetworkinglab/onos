@@ -21,6 +21,7 @@ import com.google.common.collect.Multiset;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -131,6 +132,14 @@ public class TestConsistentMultimap<K, V> implements ConsistentMultimap<K, V> {
     @Override
     public Map<K, Collection<V>> asMap() {
         return null;
+    }
+
+    @Override
+    public void addListener(MultimapEventListener<K, V> listener, Executor executor) {
+    }
+
+    @Override
+    public void removeListener(MultimapEventListener<K, V> listener) {
     }
 
     @Override

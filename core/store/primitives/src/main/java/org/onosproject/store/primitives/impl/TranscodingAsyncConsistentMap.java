@@ -16,6 +16,17 @@
 
 package org.onosproject.store.primitives.impl;
 
+import com.google.common.collect.Maps;
+import org.onlab.util.Tools;
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
+import org.onosproject.store.service.Versioned;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,18 +38,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import org.onlab.util.Tools;
-import org.onosproject.store.primitives.MapUpdate;
-import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.service.AsyncConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.TransactionLog;
-import org.onosproject.store.service.Version;
-import org.onosproject.store.service.Versioned;
-
-import com.google.common.collect.Maps;
 
 /**
  * An {@code AsyncConsistentMap} that maps its operations to operations on a
@@ -259,11 +258,13 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
 
     @Override
     public CompletableFuture<Void> removeListener(MapEventListener<K1, V1> listener) {
-        InternalBackingMapEventListener backingMapListener = listeners.remove(listener);
-        if (backingMapListener != null) {
-            return backingMap.removeListener(backingMapListener);
-        } else {
-            return CompletableFuture.completedFuture(null);
+        synchronized (listeners) {
+            InternalBackingMapEventListener backingMapListener = listeners.remove(listener);
+            if (backingMapListener != null) {
+                return backingMap.removeListener(backingMapListener);
+            } else {
+                return CompletableFuture.completedFuture(null);
+            }
         }
     }
 

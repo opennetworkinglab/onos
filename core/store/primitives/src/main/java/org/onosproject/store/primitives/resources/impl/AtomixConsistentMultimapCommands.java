@@ -563,6 +563,44 @@ public final class AtomixConsistentMultimapCommands {
     }
 
     /**
+     * Change listen.
+     */
+    @SuppressWarnings("serial")
+    public static class Listen implements Command<Void>, CatalystSerializable {
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.QUORUM;
+        }
+    }
+
+    /**
+     * Change unlisten.
+     */
+    @SuppressWarnings("serial")
+    public static class Unlisten implements Command<Void>, CatalystSerializable {
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+        }
+
+        @Override
+        public CompactionMode compaction() {
+            return CompactionMode.TOMBSTONE;
+        }
+    }
+
+    /**
      * Multimap command type resolver.
      */
     @SuppressWarnings("serial")
@@ -584,6 +622,8 @@ public final class AtomixConsistentMultimapCommands {
             registry.register(Put.class, -1012);
             registry.register(RemoveAll.class, -1013);
             registry.register(MultiRemove.class, -1014);
+            registry.register(Listen.class, -1015);
+            registry.register(Unlisten.class, -1016);
         }
     }
 }

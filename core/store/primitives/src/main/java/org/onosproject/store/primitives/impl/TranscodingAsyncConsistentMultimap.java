@@ -21,6 +21,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.MultimapEvent;
+import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
@@ -28,6 +30,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -60,6 +63,8 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
             Versioned<Collection<? extends V1>>> versionedValueCollectionDecode;
     private final Function<Collection<? extends V1>, Collection<V2>>
             valueCollectionEncode;
+    private final Map<MultimapEventListener<K1, V1>, InternalBackingMultimapEventListener> listeners =
+            Maps.newIdentityHashMap();
 
      public TranscodingAsyncConsistentMultimap(
             AsyncConsistentMultimap<K2, V2> backingMap,
@@ -244,6 +249,27 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
     }
 
     @Override
+    public CompletableFuture<Void> addListener(MultimapEventListener<K1, V1> listener, Executor executor) {
+        synchronized (listeners) {
+            InternalBackingMultimapEventListener backingMapListener =
+                    listeners.computeIfAbsent(listener, k -> new InternalBackingMultimapEventListener(listener));
+            return backingMap.addListener(backingMapListener, executor);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Void> removeListener(MultimapEventListener<K1, V1> listener) {
+        synchronized (listeners) {
+            InternalBackingMultimapEventListener backingMapListener = listeners.remove(listener);
+            if (backingMapListener != null) {
+                return backingMap.removeListener(backingMapListener);
+            } else {
+                return CompletableFuture.completedFuture(null);
+            }
+        }
+    }
+
+    @Override
     public void addStatusChangeListener(Consumer<Status> listener) {
         backingMap.addStatusChangeListener(listener);
     }
@@ -288,6 +314,23 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
         @Override
         public Set<Characteristics> characteristics() {
             return EnumSet.of(Characteristics.UNORDERED);
+        }
+    }
+
+    private class InternalBackingMultimapEventListener implements MultimapEventListener<K2, V2> {
+
+        private final MultimapEventListener<K1, V1> listener;
+
+        InternalBackingMultimapEventListener(MultimapEventListener<K1, V1> listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void event(MultimapEvent<K2, V2> event) {
+            listener.event(new MultimapEvent(event.name(),
+                    keyDecoder.apply(event.key()),
+                    valueDecoder.apply(event.newValue()),
+                    valueDecoder.apply(event.oldValue())));
         }
     }
 }

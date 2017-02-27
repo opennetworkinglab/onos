@@ -17,10 +17,12 @@
 package org.onosproject.store.service;
 
 import com.google.common.collect.Multiset;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 /**
  * This provides a synchronous version of the functionality provided by
@@ -203,4 +205,29 @@ public interface ConsistentMultimap<K, V> extends DistributedPrimitive {
      * empty.
      */
     Map<K, Collection<V>> asMap();
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     */
+    default void addListener(MultimapEventListener<K, V> listener) {
+        addListener(listener, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Registers the specified listener to be notified whenever the map is updated.
+     *
+     * @param listener listener to notify about map events
+     * @param executor executor to use for handling incoming map events
+     */
+    void addListener(MultimapEventListener<K, V> listener, Executor executor);
+
+    /**
+     * Unregisters the specified listener such that it will no longer
+     * receive map change notifications.
+     *
+     * @param listener listener to unregister
+     */
+    void removeListener(MultimapEventListener<K, V> listener);
 }
