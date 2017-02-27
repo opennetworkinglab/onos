@@ -435,7 +435,7 @@ public class VirtualNetworkManager
     /**
      * Service key class.
      */
-    private class ServiceKey {
+    private static class ServiceKey {
         final NetworkId networkId;
         final Class serviceClass;
 

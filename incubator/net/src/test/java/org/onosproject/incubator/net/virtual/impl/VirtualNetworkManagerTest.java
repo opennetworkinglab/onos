@@ -23,11 +23,14 @@ import org.junit.Test;
 import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
+import org.onosproject.event.EventDeliveryService;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -37,23 +40,42 @@ import org.onosproject.incubator.net.virtual.VirtualHost;
 import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
+import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
-import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
+import org.onosproject.incubator.net.virtual.VirtualNetworkPacketStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.incubator.net.virtual.impl.provider.DefaultVirtualFlowRuleProvider;
+import org.onosproject.incubator.net.virtual.impl.provider.DefaultVirtualGroupProvider;
 import org.onosproject.incubator.net.virtual.impl.provider.DefaultVirtualNetworkProvider;
+import org.onosproject.incubator.net.virtual.impl.provider.DefaultVirtualPacketProvider;
+import org.onosproject.incubator.net.virtual.impl.provider.VirtualProviderManager;
+import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
+import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowRuleStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualGroupStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualPacketStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.group.GroupService;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.TestableIntentService;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.store.service.TestStorageService;
@@ -782,6 +804,52 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
             assertTrue("The virtual link should be active.",
                        virtualLink.state().equals(Link.State.ACTIVE));
         });
+    }
+
+    /**
+     * Tests that the get() method returns saved service instances.
+     */
+    @Test
+    public void testServiceGetReturnsSavedInstance() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork =
+                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), DeviceService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), LinkService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), TopologyService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), IntentService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), HostService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PathService.class);
+
+        // extra setup needed for FlowRuleService, PacketService, GroupService
+        VirtualProviderManager virtualProviderManager = new VirtualProviderManager();
+        virtualProviderManager.registerProvider(new DefaultVirtualFlowRuleProvider());
+        virtualProviderManager.registerProvider(new DefaultVirtualPacketProvider());
+        virtualProviderManager.registerProvider(new DefaultVirtualGroupProvider());
+        testDirectory.add(CoreService.class, coreService)
+                .add(VirtualProviderRegistryService.class, virtualProviderManager)
+                .add(EventDeliveryService.class, new TestEventDispatcher())
+                .add(ClusterService.class, new ClusterServiceAdapter())
+                .add(VirtualNetworkFlowRuleStore.class, new SimpleVirtualFlowRuleStore())
+                .add(VirtualNetworkPacketStore.class, new SimpleVirtualPacketStore())
+                .add(VirtualNetworkGroupStore.class, new SimpleVirtualGroupStore());
+
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowRuleService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PacketService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), GroupService.class);
+    }
+
+    /**
+     * Validates that the get() method returns saved service instances.
+     */
+    private <T> void validateServiceGetReturnsSavedInstance(NetworkId networkId,
+                                                            Class<T> serviceClass) {
+        T serviceInstanceFirst = manager.get(networkId, serviceClass);
+        T serviceInstanceSubsequent = manager.get(networkId, serviceClass);
+        assertSame(serviceClass.getSimpleName() +
+                     ": Subsequent get should be same as the first one",
+                     serviceInstanceFirst, serviceInstanceSubsequent);
     }
 
     /**
