@@ -128,10 +128,12 @@
     }
 
     function coordFromXY(loc) {
-        // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
-        var x = (1000 / t2sls.getWidth()) * loc.gridX,
-            y = (1000 / t2sls.getHeight()) * loc.gridY;
+        var scale = 1000 / t2sls.getWidth(),
+            yOffset = (1000 - (t2sls.getHeight() * scale)) / 2;
 
+        // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
+        var x = scale * loc.gridX,
+            y = (scale * loc.gridY) + yOffset;
         return [x, y];
     }
 

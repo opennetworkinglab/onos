@@ -31,9 +31,9 @@
 
     angular.module('ovTopo2')
         .factory('Topo2SpriteLayerService', [
-            'Topo2ViewController', 'SpriteService',
+            'FnService', 'Topo2ViewController', 'SpriteService',
 
-            function (ViewController, ss) {
+            function (fs, ViewController, ss) {
 
                 var SpriteLayer = ViewController.extend({
 
@@ -53,6 +53,10 @@
                         this.height = this.layout.data.h;
 
                         this.renderLayout();
+
+                        if (fs.debugOn('sprite_grid')) {
+                            this.renderGrid();
+                        }
                     },
                     createSpriteDefs: function () {
                        this.defs = this.svg.append('defs')
@@ -98,7 +102,6 @@
                     renderLayout: function () {
 
                         var _this = this;
-
                         var layout = this.container.append('svg')
                             .attr('class', layout)
                             .attr('viewBox', vbox(this.layout.data.w, this.layout.data.h));
@@ -115,6 +118,31 @@
                                 .attr('x', spriteData.x)
                                 .attr('y', spriteData.y);
                         });
+                    },
+                    renderGrid: function () {
+
+
+                        var layout = this.container.select('svg').append('g');
+
+                        var gridSpacing = 5,
+                            x = this.width / gridSpacing,
+                            y = this.height / gridSpacing;
+
+                        for (var i = 0, l = x; i < l; i++) {
+                            layout.append('rect')
+                                .attr('width', 0.1)
+                                .attr('height', this.height)
+                                .attr('x', i * gridSpacing)
+                                .attr('y', 0)
+                        }
+
+                        for (var i = 0, l = y; i < l; i++) {
+                            layout.append('rect')
+                                .attr('height', 0.1)
+                                .attr('width', this.width)
+                                .attr('y', i * gridSpacing)
+                                .attr('x', 0)
+                        }
                     }
                 });
 
