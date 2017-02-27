@@ -25,8 +25,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
@@ -106,6 +104,9 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
             MacAddress targetMac = config.getRouterMacForAGatewayIp(pkt.target().getIp4Address());
             sendResponse(pkt, targetMac, hostService);
         } else {
+            // NOTE: Ignore ARP packets except those target for the router
+            //       We will reconsider enabling this when we have host learning support
+            /*
             Set<Host> hosts = hostService.getHostsByIp(pkt.target());
             if (hosts.size() > 1) {
                 log.warn("More than one host with the same ip {}", pkt.target());
@@ -118,6 +119,7 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
             } else {
                 flood(pkt);
             }
+            */
         }
     }
 
@@ -127,6 +129,9 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
             Ip4Address hostIpAddress = pkt.sender().getIp4Address();
             srManager.ipHandler.forwardPackets(pkt.inPort().deviceId(), hostIpAddress);
         } else {
+            // NOTE: Ignore ARP packets except those target for the router
+            //       We will reconsider enabling this when we have host learning support
+            /*
             HostId targetHostId = HostId.hostId(pkt.dstMac(), pkt.vlan());
             Host targetHost = hostService.getHost(targetHostId);
             // ARP reply for known hosts. Forward to the host.
@@ -140,6 +145,7 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
                 }
                 flood(pkt);
             }
+            */
         }
     }
 

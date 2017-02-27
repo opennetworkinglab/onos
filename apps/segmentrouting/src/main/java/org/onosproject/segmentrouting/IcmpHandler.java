@@ -32,8 +32,6 @@ import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
@@ -328,41 +326,32 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
      * @param hostService the host service
      */
     private void handleNdpRequest(NeighbourMessageContext pkt, HostService hostService) {
-        /*
-         * ND request for the gateway. We have to reply on behalf
-         * of the gateway.
-         */
+        // ND request for the gateway. We have to reply on behalf of the gateway.
         if (isNdpForGateway(pkt)) {
             log.debug("Sending NDP reply on behalf of the router");
             sendResponse(pkt, config.getRouterMacForAGatewayIp(pkt.target()), hostService);
         } else {
+            // NOTE: Ignore NDP packets except those target for the router
+            //       We will reconsider enabling this when we have host learning support
             /*
-             * ND request for an host. We do a search by Ip.
-             */
+            // ND request for an host. We do a search by Ip.
             Set<Host> hosts = hostService.getHostsByIp(pkt.target());
-            /*
-             * Possible misconfiguration ? In future this case
-             * should be handled we can have same hosts in different
-             * vlans.
-             */
+            // Possible misconfiguration ? In future this case
+            // should be handled we can have same hosts in different VLANs.
             if (hosts.size() > 1) {
                 log.warn("More than one host with IP {}", pkt.target());
             }
             Host targetHost = hosts.stream().findFirst().orElse(null);
-            /*
-             * If we know the host forward to its attachment
-             * point.
-             */
+            // If we know the host forward to its attachment point.
             if (targetHost != null) {
                 log.debug("Forward NDP request to the target host");
                 pkt.forward(targetHost.location());
             } else {
-                /*
-                 * Flood otherwise.
-                 */
+                // Flood otherwise.
                 log.debug("Flood NDP request to the target subnet");
                 flood(pkt);
             }
+            */
         }
     }
 
@@ -378,21 +367,23 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
             Ip6Address hostIpAddress = pkt.sender().getIp6Address();
             srManager.ipHandler.forwardPackets(pkt.inPort().deviceId(), hostIpAddress);
         } else {
+            // NOTE: Ignore NDP packets except those target for the router
+            //       We will reconsider enabling this when we have host learning support
+            /*
             HostId hostId = HostId.hostId(pkt.dstMac(), pkt.vlan());
             Host targetHost = hostService.getHost(hostId);
             if (targetHost != null) {
                 log.debug("Forwarding the reply to the host");
                 pkt.forward(targetHost.location());
             } else {
-                /*
-                 * We don't have to flood towards spine facing ports.
-                 */
+                // We don't have to flood towards spine facing ports.
                 if (pkt.vlan().equals(SegmentRoutingManager.INTERNAL_VLAN)) {
                     return;
                 }
                 log.debug("Flooding the reply to the subnet");
                 flood(pkt);
             }
+            */
         }
     }
 
