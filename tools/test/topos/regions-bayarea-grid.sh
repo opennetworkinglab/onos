@@ -71,15 +71,15 @@ null-create-link direct LEAF-A-4 SPINE-A-3
 null-create-link direct LEAF-A-4 SPINE-A-4
 
 # CO 2
-null-create-device switch SPINE-B-1 ${nports} 37.458236 -122.252604
-null-create-device switch SPINE-B-2 ${nports} 37.458236 -122.212604
-null-create-device switch SPINE-B-3 ${nports} 37.458236 -122.172604
-null-create-device switch SPINE-B-4 ${nports} 37.458236 -122.132604
+null-create-device switch SPINE-B-1 ${nports} 10.0 20.0 grid
+null-create-device switch SPINE-B-2 ${nports} 10.0 50.0 grid
+null-create-device switch SPINE-B-3 ${nports} 10.0 80.0 grid
+null-create-device switch SPINE-B-4 ${nports} 10.0 110.0 grid
 
-null-create-device switch LEAF-B-1 ${nports} 37.418236 -122.252604
-null-create-device switch LEAF-B-2 ${nports} 37.418236 -122.212604
-null-create-device switch LEAF-B-3 ${nports} 37.418236 -122.172604
-null-create-device switch LEAF-B-4 ${nports} 37.418236 -122.132604
+null-create-device switch LEAF-B-1 ${nports} 45.0 20.0 grid
+null-create-device switch LEAF-B-2 ${nports} 45.0 50.0 grid
+null-create-device switch LEAF-B-3 ${nports} 45.0 80.0 grid
+null-create-device switch LEAF-B-4 ${nports} 45.0 110.0 grid
 
 # Links in CO 2
 null-create-link direct LEAF-B-1 SPINE-B-1
@@ -103,15 +103,15 @@ null-create-link direct LEAF-B-4 SPINE-B-3
 null-create-link direct LEAF-B-4 SPINE-B-4
 
 # CO 3
-null-create-device switch SPINE-C-1 ${nports} 37.338208 -121.926329
-null-create-device switch SPINE-C-2 ${nports} 37.338208 -121.886329
-null-create-device switch SPINE-C-3 ${nports} 37.338208 -121.846329
-null-create-device switch SPINE-C-4 ${nports} 37.338208 -121.806329
+null-create-device switch SPINE-C-1 ${nports} 10.0 20.0 grid
+null-create-device switch SPINE-C-2 ${nports} 10.0 50.0 grid
+null-create-device switch SPINE-C-3 ${nports} 10.0 80.0 grid
+null-create-device switch SPINE-C-4 ${nports} 10.0 110.0 grid
 
-null-create-device switch LEAF-C-1 ${nports} 37.298208 -121.926329
-null-create-device switch LEAF-C-2 ${nports} 37.298208 -121.886329
-null-create-device switch LEAF-C-3 ${nports} 37.298208 -121.846329
-null-create-device switch LEAF-C-4 ${nports} 37.298208 -121.806329
+null-create-device switch LEAF-C-1 ${nports} 45.0 20.0 grid
+null-create-device switch LEAF-C-2 ${nports} 45.0 50.0 grid
+null-create-device switch LEAF-C-3 ${nports} 45.0 80.0 grid
+null-create-device switch LEAF-C-4 ${nports} 45.0 110.0 grid
 
 # Links in CO 3
 null-create-link direct LEAF-C-1 SPINE-C-1
@@ -135,15 +135,15 @@ null-create-link direct LEAF-C-4 SPINE-C-3
 null-create-link direct LEAF-C-4 SPINE-C-4
 
 # CO 4
-null-create-device switch SPINE-D-1 ${nports} 37.556826 -122.051926
-null-create-device switch SPINE-D-2 ${nports} 37.556826 -122.011926
-null-create-device switch SPINE-D-3 ${nports} 37.556826 -121.971926
-null-create-device switch SPINE-D-4 ${nports} 37.556826 -121.931926
+null-create-device switch SPINE-D-1 ${nports} 10.0 20.0 grid
+null-create-device switch SPINE-D-2 ${nports} 10.0 50.0 grid
+null-create-device switch SPINE-D-3 ${nports} 10.0 80.0 grid
+null-create-device switch SPINE-D-4 ${nports} 10.0 110.0 grid
 
-null-create-device switch LEAF-D-1 ${nports} 37.516826 -122.051926
-null-create-device switch LEAF-D-2 ${nports} 37.516826 -122.011926
-null-create-device switch LEAF-D-3 ${nports} 37.516826 -121.971926
-null-create-device switch LEAF-D-4 ${nports} 37.516826 -121.931926
+null-create-device switch LEAF-D-1 ${nports} 45.0 20.0 grid
+null-create-device switch LEAF-D-2 ${nports} 45.0 50.0 grid
+null-create-device switch LEAF-D-3 ${nports} 45.0 80.0 grid
+null-create-device switch LEAF-D-4 ${nports} 45.0 110.0 grid
 
 # Links in CO 4
 null-create-link direct LEAF-D-1 SPINE-D-1
@@ -182,25 +182,25 @@ EOF
 
 onos ${host} <<-EOF
 
-null-create-host LEAF-A-1 192.168.1.1 60.0 20.0 grid
-null-create-host LEAF-A-2 192.168.2.1 60.0 50.0 grid
-null-create-host LEAF-A-3 192.168.3.1 60.0 80.0 grid
-null-create-host LEAF-A-4 192.168.4.1 60.0 110.0 grid
+null-create-host LEAF-A-1 192.168.1.1 60.0 15.0 grid
+null-create-host LEAF-A-2 192.168.2.1 60.0 45.0 grid
+null-create-host LEAF-A-3 192.168.3.1 60.0 85.0 grid
+null-create-host LEAF-A-4 192.168.4.1 60.0 115.0 grid
 
-null-create-host LEAF-B-1 192.168.51.1 37.388236 -122.252604
-null-create-host LEAF-B-2 192.168.52.1 37.388236 -122.212604
-null-create-host LEAF-B-3 192.168.53.1 37.388236 -122.172604
-null-create-host LEAF-B-4 192.168.54.1 37.388236 -122.132604
+null-create-host LEAF-B-1 192.168.51.1 60.0 15.0 grid
+null-create-host LEAF-B-2 192.168.52.1 60.0 45.0 grid
+null-create-host LEAF-B-3 192.168.53.1 60.0 85.0 grid
+null-create-host LEAF-B-4 192.168.54.1 60.0 115.0 grid
 
-null-create-host LEAF-C-1 192.168.101.1 37.268208 -121.926329
-null-create-host LEAF-C-2 192.168.102.1 37.268208 -121.886329
-null-create-host LEAF-C-3 192.168.103.1 37.268208 -121.846329
-null-create-host LEAF-C-4 192.168.104.1 37.268208 -121.806329
+null-create-host LEAF-C-1 192.168.101.1 60.0 15.0 grid
+null-create-host LEAF-C-2 192.168.102.1 60.0 45.0 grid
+null-create-host LEAF-C-3 192.168.103.1 60.0 85.0 grid
+null-create-host LEAF-C-4 192.168.104.1 60.0 115.0 grid
 
-null-create-host LEAF-D-1 192.168.151.1 37.476826 -122.051926
-null-create-host LEAF-D-2 192.168.152.1 37.476826 -122.011926
-null-create-host LEAF-D-3 192.168.153.1 37.476826 -121.971926
-null-create-host LEAF-D-4 192.168.154.1 37.476826 -121.931926
+null-create-host LEAF-D-1 192.168.151.1 60.0 15.0 grid
+null-create-host LEAF-D-2 192.168.152.1 60.0 45.0 grid
+null-create-host LEAF-D-3 192.168.153.1 60.0 85.0 grid
+null-create-host LEAF-D-4 192.168.154.1 60.0 115.0 grid
 
 EOF
 
