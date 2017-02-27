@@ -642,7 +642,7 @@ public class RoutingRulePopulator {
                 disabledPorts++;
                 continue;
             }
-            if (populateSinglePortFilters(deviceId, port.number())) {
+            if (processSinglePortFilters(deviceId, port.number(), true)) {
                 filteredPorts++;
             } else {
                 errorPorts++;
@@ -655,14 +655,15 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Creates filtering objectives for a single port. Should only be called
-     * by the master for a switch.
+     * Creates or removes filtering objectives for a single port. Should only be
+     * called by the master for a switch.
      *
      * @param deviceId device identifier
      * @param portnum  port identifier for port to be filtered
+     * @param install true to install the filtering objective, false to remove
      * @return true if no errors occurred during the build of the filtering objective
      */
-    public boolean populateSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
+    public boolean processSinglePortFilters(DeviceId deviceId, PortNumber portnum, boolean install) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
         VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
         Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
@@ -671,97 +672,48 @@ public class RoutingRulePopulator {
         if (taggedVlans.size() != 0) {
             // Filter for tagged vlans
             if (!srManager.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
-                populateSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId))) {
+                    processSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId, install))) {
                 return false;
             }
             if (nativeVlan != null) {
                 // Filter for native vlan
-                if (!populateSinglePortFiltersInternal(deviceId, portnum, true, nativeVlan)) {
+                if (!processSinglePortFiltersInternal(deviceId, portnum, true, nativeVlan, install)) {
                     return false;
                 }
             }
         } else if (untaggedVlan != null) {
             // Filter for untagged vlan
-            if (!populateSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan)) {
+            if (!processSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan, install)) {
                 return false;
             }
         } else {
             // Unconfigure port, use INTERNAL_VLAN
-            if (!populateSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN)) {
+            if (!processSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN, install)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean populateSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
-                                                      boolean pushVlan, VlanId vlanId) {
+    private boolean processSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
+                                                      boolean pushVlan, VlanId vlanId, boolean install) {
         FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
         if (fob == null) {
             // error encountered during build
             return false;
         }
-        log.info("Sending filtering objectives for dev/port:{}/{}", deviceId, portnum);
+        log.info("{} filtering objectives for dev/port:{}/{}", (install ? "Installing" : "Removing"),
+                deviceId, portnum);
         ObjectiveContext context = new DefaultObjectiveContext(
-            (objective) -> log.debug("Filter for {}/{} populated", deviceId, portnum),
-            (objective, error) ->
-            log.warn("Failed to populate filter for {}/{}: {}",
-                     deviceId, portnum, error));
-        srManager.flowObjectiveService.filter(deviceId, fob.add(context));
-        return true;
-    }
-
-    /**
-     * Removes filtering objectives for a single port. Should only be called
-     * by the master for a switch.
-     *
-     * @param deviceId device identifier
-     * @param portnum port identifier
-     * @return true if no errors occurred during the destruction of the filtering objective
-     */
-    public boolean revokeSinglePortFilters(DeviceId deviceId, PortNumber portnum) {
-        ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
-        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
-
-        if (taggedVlans.size() != 0) {
-            // Filter for tagged vlans
-            if (!srManager.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
-                    revokeSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId))) {
-                return false;
-            }
-            // Filter for native vlan
-            if (nativeVlan == null ||
-                    !revokeSinglePortFiltersInternal(deviceId, portnum, true, nativeVlan)) {
-                return false;
-            }
-        // Filter for untagged vlan
-        } else if (untaggedVlan == null ||
-                !revokeSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan)) {
-            return false;
-        // Unconfigure port, use INTERNAL_VLAN
-        } else if (!revokeSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN)) {
-            return false;
+                (objective) -> log.debug("Filter for {}/{} {}", deviceId, portnum,
+                        (install ? "installed" : "removed")),
+                (objective, error) -> log.warn("Failed to {} filter for {}/{}: {}",
+                        (install ? "install" : "remove"), deviceId, portnum, error));
+        if (install) {
+            srManager.flowObjectiveService.filter(deviceId, fob.add(context));
+        } else {
+            srManager.flowObjectiveService.filter(deviceId, fob.remove(context));
         }
-
-        return true;
-    }
-
-    private boolean revokeSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
-                                                    boolean pushVlan, VlanId vlanId) {
-        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
-        if (fob == null) {
-            // error encountered during build
-            return false;
-        }
-        log.info("Removing filtering objectives for dev/port:{}/{}", deviceId, portnum);
-        ObjectiveContext context = new DefaultObjectiveContext(
-            (objective) -> log.debug("Filter for {}/{} removed", deviceId, portnum),
-            (objective, error) ->
-            log.warn("Failed to remove filter for {}/{}: {}",
-                     deviceId, portnum, error));
-        srManager.flowObjectiveService.filter(deviceId, fob.remove(context));
         return true;
     }
 

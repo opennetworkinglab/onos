@@ -1003,13 +1003,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (port.isEnabled()) {
             log.info("Switchport {}/{} enabled..programming filters",
                      device.id(), port.number());
-            defaultRoutingHandler.populateSinglePortFilteringRules(device.id(),
-                                                                    port.number());
+            routingRulePopulator.processSinglePortFilters(device.id(), port.number(), true);
         } else {
             log.info("Switchport {}/{} disabled..removing filters",
                      device.id(), port.number());
-            defaultRoutingHandler.revokeSinglePortFilteringRules(device.id(),
-                                                                  port.number());
+            routingRulePopulator.processSinglePortFilters(device.id(), port.number(), false);
         }
 
         // portUpdated calls are for ports that have gone down or up. For switch

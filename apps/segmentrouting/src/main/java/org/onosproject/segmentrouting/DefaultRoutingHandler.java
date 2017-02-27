@@ -27,7 +27,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
@@ -656,28 +655,6 @@ public class DefaultRoutingHandler {
         }
         executorService.schedule(new RetryFilters(deviceId, firstRun),
                                  RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Populates filtering rules for a port that has been enabled.
-     * Should only be called by the master instance for this device/port.
-     *
-     * @param devId device identifier
-     * @param portnum port identifier
-     */
-    public void populateSinglePortFilteringRules(DeviceId devId, PortNumber portnum) {
-        rulePopulator.populateSinglePortFilters(devId, portnum);
-    }
-
-    /**
-     * Revokes filtering rules for a port that has been disabled.
-     * Should only be called by the master instance for this device/port.
-     *
-     * @param devId device identifier
-     * @param portnum port identifier
-     */
-    public void revokeSinglePortFilteringRules(DeviceId devId, PortNumber portnum) {
-        rulePopulator.revokeSinglePortFilters(devId, portnum);
     }
 
     /**
