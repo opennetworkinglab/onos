@@ -15,56 +15,64 @@
  */
 package org.onosproject.mapping.impl;
 
+import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.mapping.Mapping;
+import org.apache.felix.scr.annotations.Modified;
 import org.onosproject.mapping.MappingEvent;
-import org.onosproject.mapping.MappingEntry;
+import org.onosproject.mapping.Mapping;
+import org.onosproject.mapping.MappingId;
 import org.onosproject.mapping.MappingStore;
+import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingStoreDelegate;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.AbstractStore;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of a distributed store for managing mapping information.
+ * Manages inventory of mappings using trivial in-memory implementation.
  */
 @Component(immediate = true)
 @Service
-public class DistributedMappingStore
+public class SimpleMappingStore
         extends AbstractStore<MappingEvent, MappingStoreDelegate>
         implements MappingStore {
 
     private final Logger log = getLogger(getClass());
 
+    private final ConcurrentMap<DeviceId, ConcurrentMap<MappingId, List<MappingEntry>>>
+            mapDbStore = Maps.newConcurrentMap();
+
+    private final ConcurrentMap<DeviceId, ConcurrentMap<MappingId, List<MappingEntry>>>
+            mapCacheStore = Maps.newConcurrentMap();
+
+    private final AtomicInteger localBatchIdGen = new AtomicInteger();
+
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         log.info("Started");
     }
 
     @Deactivate
-    public void deactivate(ComponentContext context) {
+    public void deactivate() {
+        mapDbStore.clear();
+        mapCacheStore.clear();
         log.info("Stopped");
     }
 
-    @Override
-    public void setDelegate(MappingStoreDelegate delegate) {
+    @Modified
+    public void modified(ComponentContext context) {
 
-    }
-
-    @Override
-    public void unsetDelegate(MappingStoreDelegate delegate) {
-
-    }
-
-    @Override
-    public boolean hasDelegate() {
-        return false;
     }
 
     @Override
@@ -107,3 +115,5 @@ public class DistributedMappingStore
 
     }
 }
+
+
