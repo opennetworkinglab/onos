@@ -1643,7 +1643,8 @@ public class GossipDeviceStore
 
     private void handleRemoveRequest(DeviceId did) {
         try {
-            removeDevice(did);
+            DeviceEvent event = removeDevice(did);
+            notifyDelegateIfNotNull(event);
         } catch (Exception e) {
             log.warn("Exception thrown handling device remove", e);
         }
