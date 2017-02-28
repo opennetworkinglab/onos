@@ -22,6 +22,8 @@ import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
@@ -30,7 +32,9 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationService;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -63,8 +67,10 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfigHelper;
 import org.onosproject.routing.config.RoutersConfig;
 import org.onosproject.routing.config.RoutingConfigurationService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +133,13 @@ public class ControlPlaneRedirectManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService rs;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
+    @Property(name = "forceUnprovision", boolValue = false,
+            label = "Force unprovision when the device goes offline")
+    private boolean forceUnprovision = false;
+
     private static final String APP_NAME = "org.onosproject.cpr";
     private ApplicationId appId;
 
@@ -139,8 +152,11 @@ public class ControlPlaneRedirectManager {
     private final InternalHostListener hostListener = new InternalHostListener();
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         this.appId = coreService.registerApplication(APP_NAME);
+
+        cfgService.registerProperties(getClass());
+        modified(context);
 
         networkConfigService.addListener(networkConfigListener);
         hostService.addListener(hostListener);
@@ -153,8 +169,32 @@ public class ControlPlaneRedirectManager {
 
     @Deactivate
     protected void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         networkConfigService.removeListener(networkConfigListener);
         hostService.removeListener(hostListener);
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        if (context != null) {
+            readComponentConfiguration(context);
+            processRouterConfig();
+        }
+    }
+
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "forceUnprovision");
+        if (flag == null) {
+            log.info("ForceUnprovision is not configured, " +
+                    "using current value of {}", forceUnprovision);
+        } else {
+            forceUnprovision = flag;
+            log.info("Configured. ForceUnprovision is {}",
+                    forceUnprovision ? "enabled" : "disabled");
+        }
     }
 
     /**
@@ -174,7 +214,7 @@ public class ControlPlaneRedirectManager {
                 if (r == null) {
                     return createRouter(RouterInfo.from(router));
                 } else {
-                    r.changeConfiguration(RouterInfo.from(router));
+                    r.changeConfiguration(RouterInfo.from(router), forceUnprovision);
                     return r;
                 }
             });
@@ -198,7 +238,8 @@ public class ControlPlaneRedirectManager {
                 interfaceService,
                 deviceService,
                 this::provisionInterface,
-                this::unprovisionInterface);
+                this::unprovisionInterface,
+                forceUnprovision);
     }
 
     private void provisionInterface(InterfaceProvisionRequest intf) {

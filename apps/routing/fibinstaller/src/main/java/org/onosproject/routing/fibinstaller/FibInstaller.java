@@ -65,7 +65,6 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.routing.AsyncDeviceFetcher;
 import org.onosproject.routing.NextHop;
 import org.onosproject.routing.NextHopGroupKey;
 import org.onosproject.routing.RouterInfo;
@@ -137,7 +136,6 @@ public class FibInstaller {
     private DeviceId deviceId;
 
     private Router interfaceManager;
-    private AsyncDeviceFetcher asyncDeviceFetcher;
 
     private ApplicationId coreAppId;
     private ApplicationId routerAppId;
@@ -177,8 +175,6 @@ public class FibInstaller {
 
         networkConfigService.addListener(configListener);
 
-        asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
-
         processRouterConfig();
 
         applicationService.registerDeactivateHook(fibAppId, () -> cleanUp());
@@ -188,7 +184,6 @@ public class FibInstaller {
 
     @Deactivate
     protected void deactivate() {
-        asyncDeviceFetcher.shutdown();
         networkConfigService.removeListener(configListener);
 
         componentConfigService.unregisterProperties(getClass(), false);
@@ -226,7 +221,7 @@ public class FibInstaller {
 
             interfaceManager = createRouter(RouterInfo.from(routerConfig));
         } else {
-            interfaceManager.changeConfiguration(RouterInfo.from(routerConfig));
+            interfaceManager.changeConfiguration(RouterInfo.from(routerConfig), false);
         }
     }
 
@@ -253,7 +248,8 @@ public class FibInstaller {
                 interfaceService,
                 deviceService,
                 this::provisionInterface,
-                this::unprovisionInterface);
+                this::unprovisionInterface,
+                false);
     }
 
     private void updateRoute(ResolvedRoute route) {

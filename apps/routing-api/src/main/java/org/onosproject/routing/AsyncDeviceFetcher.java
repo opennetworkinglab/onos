@@ -22,7 +22,7 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,7 +36,8 @@ public final class AsyncDeviceFetcher {
 
     private DeviceListener listener = new InternalDeviceListener();
 
-    private Map<DeviceId, CompletableFuture<DeviceId>> devices = new ConcurrentHashMap();
+    private Map<DeviceId, Runnable> onConnect = new ConcurrentHashMap<>();
+    private Map<DeviceId, Runnable> onDisconnect = new ConcurrentHashMap<>();
 
     private AsyncDeviceFetcher(DeviceService deviceService) {
         this.deviceService = checkNotNull(deviceService);
@@ -48,24 +49,27 @@ public final class AsyncDeviceFetcher {
      */
     public void shutdown() {
         deviceService.removeListener(listener);
-        devices.clear();
+        onConnect.clear();
+        onDisconnect.clear();
     }
 
     /**
-     * Returns a completable future that completes when the device is available
-     * for the first time.
-     *
-     * @param deviceId ID of the device
-     * @return completable future
+     * Executes provided callback when given device connects/disconnects.
+     * @param deviceId device ID
+     * @param onConnect callback that will be executed immediately if the device
+     *                  is currently online, or when the device becomes online
+     * @param onDisconnect callback that will be executed when the device becomes offline
      */
-    public CompletableFuture<DeviceId> getDevice(DeviceId deviceId) {
-        CompletableFuture<DeviceId> future = new CompletableFuture<>();
-        return devices.computeIfAbsent(deviceId, deviceId1 -> {
+     void registerCallback(DeviceId deviceId, Runnable onConnect, Runnable onDisconnect) {
+        if (onConnect != null) {
             if (deviceService.isAvailable(deviceId)) {
-                future.complete(deviceId);
+                onConnect.run();
             }
-            return future;
-        });
+            this.onConnect.put(deviceId, onConnect);
+        }
+        if (onDisconnect != null) {
+            this.onDisconnect.put(deviceId, onDisconnect);
+        }
     }
 
     /**
@@ -82,24 +86,23 @@ public final class AsyncDeviceFetcher {
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
-            case DEVICE_ADDED:
-            case DEVICE_AVAILABILITY_CHANGED:
-                if (deviceService.isAvailable(event.subject().id())) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
-                    CompletableFuture<DeviceId> future = devices.get(deviceId);
-                    if (future != null) {
-                        future.complete(deviceId);
+                    if (deviceService.isAvailable(deviceId)) {
+                        Optional.ofNullable(onConnect.get(deviceId)).ifPresent(Runnable::run);
+                    } else {
+                        Optional.ofNullable(onDisconnect.get(deviceId)).ifPresent(Runnable::run);
                     }
-                }
-                break;
-            case DEVICE_UPDATED:
-            case DEVICE_REMOVED:
-            case DEVICE_SUSPENDED:
-            case PORT_ADDED:
-            case PORT_UPDATED:
-            case PORT_REMOVED:
-            default:
-                break;
+                    break;
+                case DEVICE_UPDATED:
+                case DEVICE_REMOVED:
+                case DEVICE_SUSPENDED:
+                case PORT_ADDED:
+                case PORT_UPDATED:
+                case PORT_REMOVED:
+                default:
+                    break;
             }
         }
     }

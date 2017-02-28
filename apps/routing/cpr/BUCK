@@ -8,6 +8,7 @@ TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//incubator/api:onos-incubator-api-tests',
     '//apps/routing-api:onos-apps-routing-api-tests',
+    '//utils/osgi:onlab-osgi-tests',
 ]
 
 osgi_jar_with_tests (

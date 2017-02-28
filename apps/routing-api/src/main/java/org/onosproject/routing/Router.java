@@ -53,9 +53,9 @@ public class Router {
     private InterfaceService interfaceService;
     private InterfaceListener listener = new InternalInterfaceListener();
 
-    private AsyncDeviceFetcher asyncDeviceFetcher;
+    private DeviceService deviceService;
 
-    private volatile boolean deviceAvailable = false;
+    private AsyncDeviceFetcher asyncDeviceFetcher;
 
     /**
      * Creates a new router interface manager.
@@ -65,27 +65,26 @@ public class Router {
      * @param deviceService device service
      * @param provisioner consumer that will provision new interfaces
      * @param unprovisioner consumer that will unprovision old interfaces
+     * @param forceUnprovision force unprovision when the device goes offline
      */
     public Router(RouterInfo info,
                   InterfaceService interfaceService,
                   DeviceService deviceService,
                   Consumer<InterfaceProvisionRequest> provisioner,
-                  Consumer<InterfaceProvisionRequest> unprovisioner) {
+                  Consumer<InterfaceProvisionRequest> unprovisioner,
+                  boolean forceUnprovision) {
         this.info = checkNotNull(info);
         this.provisioner = checkNotNull(provisioner);
         this.unprovisioner = checkNotNull(unprovisioner);
         this.interfaceService = checkNotNull(interfaceService);
+        this.deviceService = checkNotNull(deviceService);
 
         this.asyncDeviceFetcher = AsyncDeviceFetcher.create(deviceService);
-        asyncDeviceFetcher.getDevice(info.deviceId())
-                .thenAccept(deviceId1 -> {
-                    deviceAvailable = true;
-                    provision();
-                }).whenComplete((v, t) -> {
-                    if (t != null) {
-                        log.error("Error provisioning: ", t);
-                    }
-                });
+        if (forceUnprovision) {
+            asyncDeviceFetcher.registerCallback(info.deviceId(), this::provision, this::forceUnprovision);
+        } else {
+            asyncDeviceFetcher.registerCallback(info.deviceId(), this::provision, null);
+        }
 
         interfaceService.addListener(listener);
     }
@@ -94,6 +93,8 @@ public class Router {
      * Cleans up the router and unprovisions all interfaces.
      */
     public void cleanup() {
+        asyncDeviceFetcher.shutdown();
+
         interfaceService.removeListener(listener);
 
         unprovision();
@@ -112,8 +113,15 @@ public class Router {
      * Changes the router configuration.
      *
      * @param newConfig new configuration
+     * @param forceUnprovision true if we want to force unprovision the device when it goes offline
      */
-    public void changeConfiguration(RouterInfo newConfig) {
+    public void changeConfiguration(RouterInfo newConfig, boolean forceUnprovision) {
+        if (forceUnprovision) {
+            asyncDeviceFetcher.registerCallback(info.deviceId(), this::provision, this::forceUnprovision);
+        } else {
+            asyncDeviceFetcher.registerCallback(info.deviceId(), this::provision, null);
+        }
+
         Set<String> oldConfiguredInterfaces = info.interfaces();
         info = newConfig;
         Set<String> newConfiguredInterfaces = info.interfaces();
@@ -153,18 +161,21 @@ public class Router {
 
     private void provision() {
         getInterfacesForDevice(info.deviceId())
-                .filter(this::shouldProvision)
                 .forEach(this::provision);
     }
 
     private void unprovision() {
         getInterfacesForDevice(info.deviceId())
-                .filter(this::shouldProvision)
                 .forEach(this::unprovision);
     }
 
+    private void forceUnprovision() {
+        getInterfacesForDevice(info.deviceId())
+                .forEach(this::forceUnprovision);
+    }
+
     private void provision(Interface intf) {
-        if (!provisioned.contains(intf) && shouldProvision(intf)) {
+        if (!provisioned.contains(intf) && deviceAvailable(intf) && shouldProvision(intf)) {
             log.info("Provisioning interface {}", intf);
             provisioner.accept(InterfaceProvisionRequest.of(info, intf));
             provisioned.add(intf);
@@ -172,16 +183,28 @@ public class Router {
     }
 
     private void unprovision(Interface intf) {
-        if (provisioned.contains(intf)) {
+        if (provisioned.contains(intf) && deviceAvailable(intf) && shouldProvision(intf)) {
             log.info("Unprovisioning interface {}", intf);
             unprovisioner.accept(InterfaceProvisionRequest.of(info, intf));
             provisioned.remove(intf);
         }
     }
 
+    private void forceUnprovision(Interface intf) {
+        // Skip availability check when force unprovisioning an interface
+        if (provisioned.contains(intf) && shouldProvision(intf)) {
+            log.info("Unprovisioning interface {}", intf);
+            unprovisioner.accept(InterfaceProvisionRequest.of(info, intf));
+            provisioned.remove(intf);
+        }
+    }
+
+    private boolean deviceAvailable(Interface intf) {
+        return deviceService.isAvailable(intf.connectPoint().deviceId());
+    }
+
     private boolean shouldProvision(Interface intf) {
-        return deviceAvailable &&
-                (info.interfaces().isEmpty() || info.interfaces().contains(intf.name()));
+        return info.interfaces().isEmpty() || info.interfaces().contains(intf.name());
     }
 
     private Stream<Interface> getInterfacesForDevice(DeviceId deviceId) {

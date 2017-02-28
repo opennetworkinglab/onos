@@ -21,6 +21,7 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -152,7 +153,7 @@ public class ControlPlaneRedirectManagerTest {
         controlPlaneRedirectManager.hostService = createNiceMock(HostService.class);
         controlPlaneRedirectManager.mastershipService = mastershipService;
         controlPlaneRedirectManager.applicationService = applicationService;
-        controlPlaneRedirectManager.activate();
+        controlPlaneRedirectManager.activate(new ComponentContextAdapter());
         verify(flowObjectiveService);
     }
 
