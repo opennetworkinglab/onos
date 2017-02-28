@@ -96,7 +96,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             messageType = new String(messageTypeBytes, Charsets.UTF_8);
             checkpoint(DecoderState.READ_MESSAGE_STATUS);
         case READ_MESSAGE_STATUS:
-            status = Status.values()[buffer.readInt()];
+            status = Status.forId(buffer.readInt());
             checkpoint(DecoderState.READ_CONTENT_LENGTH);
         case READ_CONTENT_LENGTH:
             contentLength = buffer.readInt();
