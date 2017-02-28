@@ -123,8 +123,7 @@ public class DpiStatisticsManager implements DpiStatisticsManagerService {
     @Deactivate
     public void deactivate() {
         log.info("Deactivated...");
-        dpiStatisticsListener.stop();
-        dpiListenerThread.shutdown();
+        dpiListenerThread.shutdownNow();
         log.info("Stopped");
     }
 
@@ -377,29 +376,6 @@ public class DpiStatisticsManager implements DpiStatisticsManagerService {
             receiveDpiResult();
         }
 
-        public void stop() {
-            try {
-                if (serverSocket != null) {
-                    if (clientSocket != null) {
-                        if (in != null) {
-                            in.close();
-                        }
-                        if (out != null) {
-                            out.close();
-                        }
-                        clientSocket.close();
-                        //log.debug("DpiResultListener: stop(): Socket close() is done...");
-                    }
-                    serverSocket.close();
-                    //log.debug("DpiResultListener: stop(): Server close() is done...");
-                }
-            } catch (Exception e) {
-                log.error("DpiStatisticsListener: stop(): Server Socket closing error, exception={}",
-                          e.toString());
-            }
-            log.debug("DpiStatisticsListener: stop(): stopped...");
-        }
-
         private void receiveDpiResult() {
             try {
                 serverSocket = new ServerSocket(port);
@@ -410,7 +386,7 @@ public class DpiStatisticsManager implements DpiStatisticsManagerService {
             }
 
             try {
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     if (clientSocket == null) {
                         log.info("DpiStatisticsListener: Waiting for accepting from dpi client...");
                         clientSocket = serverSocket.accept();
@@ -450,6 +426,26 @@ public class DpiStatisticsManager implements DpiStatisticsManagerService {
             } catch (Exception e) {
                 log.error("DpiStatisticsListener: Exception = {}", e.toString());
                 return;
+            } finally {
+                try {
+                    if (serverSocket != null) {
+                        if (clientSocket != null) {
+                            if (in != null) {
+                                in.close();
+                            }
+                            if (out != null) {
+                                out.close();
+                            }
+                            clientSocket.close();
+                            //log.debug("DpiResultListener: stop(): Socket close() is done...");
+                        }
+                        serverSocket.close();
+                        //log.debug("DpiResultListener: stop(): Server close() is done...");
+                    }
+                } catch (Exception e) {
+                    log.error("DpiStatisticsListener: stop(): Server Socket closing error, exception={}",
+                            e.toString());
+                }
             }
         }
 
