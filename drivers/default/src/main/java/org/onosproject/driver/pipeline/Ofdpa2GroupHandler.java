@@ -696,7 +696,7 @@ public class Ofdpa2GroupHandler {
         // assemble info for l2 flood group. Since there can be only one flood
         // group for a vlan, its index is always the same - 0
         Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16);
-        int l2floodgk = getNextAvailableIndex();
+        int l2floodgk = l2FloodGroupKey(vlanId);
         final GroupKey l2floodgroupkey =
                 new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2floodgk));
 
@@ -739,6 +739,11 @@ public class Ofdpa2GroupHandler {
             // Start installing the inner-most group
             groupService.addGroup(groupInfo.innerMostGroupDesc);
         });
+    }
+
+    private int l2FloodGroupKey(VlanId vlanId) {
+        int hash = Objects.hash(deviceId, vlanId);
+        return L2_FLOOD_TYPE | TYPE_MASK & hash;
     }
 
     private void createL3MulticastGroup(NextObjective nextObj, VlanId vlanId,
