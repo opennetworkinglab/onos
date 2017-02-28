@@ -57,6 +57,7 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
     private final String bundleLicense;
     private final String bundleDescription;
     private final String importPackages;
+    private final String privatePackages;
     private final String exportPackages;
     private final String includeResources;
     private final String dynamicimportPackages;
@@ -77,10 +78,12 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                               Optional<String> importPackages,
                               Optional<String> exportPackages,
                               Optional<String> includeResources,
-                              Optional<String> dynamicimportPackages) {
+                              Optional<String> dynamicimportPackages,
+                              Optional<String> privatePackages) {
         super(javacOptions, amender);
         this.bundleDescription = processParameter(bundleDescription);
         this.importPackages = processParameter(importPackages);
+        this.privatePackages = processParameter(privatePackages);
         this.exportPackages = processParameter(exportPackages);
         this.includeResources = processParameter(includeResources);
         this.dynamicimportPackages = processParameter(dynamicimportPackages);
@@ -194,7 +197,8 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                 includeResources, // include resources
                 webContext, // web context
                 dynamicimportPackages, // dynamic import packages
-                bundleDescription  // bundle description
+                bundleDescription,  // bundle description
+                privatePackages // private packages
         );
         steps.add(osgiStep);
 

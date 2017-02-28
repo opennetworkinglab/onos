@@ -7,5 +7,7 @@ COMPILE_DEPS = [
 ]
 
 osgi_jar_with_tests(
+  name = 'onos-apps-yms-app',
   deps = COMPILE_DEPS,
+  #private_packages = 'org.onosproject.yangutils.datamodel.*,org.onosproject.yangutils.translator.*,org.onosproject.yangutils.linker.*,org.onosproject.yangutils.utils.*',
 )

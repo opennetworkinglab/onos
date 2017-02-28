@@ -213,6 +213,7 @@
     "openflowj-3.0": {
       "uri": "mvn:org.projectfloodlight:openflowj:3.0.0-SNAPSHOT",
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
-    }
+    },
+    "plexus-utils": "mvn:org.codehaus.plexus:plexus-utils:3.0.24"
   }
 }

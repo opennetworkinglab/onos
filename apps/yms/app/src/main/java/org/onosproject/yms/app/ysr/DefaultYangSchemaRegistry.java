@@ -140,26 +140,28 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
 
     @Override
     public void registerApplication(Object appObject, Class<?> serviceClass) {
-        synchronized (serviceClass) {
+        synchronized (DefaultYangSchemaRegistry.class) {
             doPreProcessing(serviceClass, appObject);
             if (!verifyIfApplicationAlreadyRegistered(serviceClass)) {
                 BundleContext context = getBundle(serviceClass).getBundleContext();
-                Bundle[] bundles = context.getBundles();
-                Bundle bundle;
-                int len = bundles.length;
-                List<YangNode> curNodes;
-                String jarPath;
-                for (int i = len - 1; i >= 0; i--) {
-                    bundle = bundles[i];
-                    if (bundle.getSymbolicName().contains(ONOS)) {
-                        jarPath = getJarPathFromBundleLocation(
-                                bundle.getLocation(), context.getProperty(USER_DIRECTORY));
-                        curNodes = processJarParsingOperations(jarPath);
-                        // process application registration.
-                        if (curNodes != null && !curNodes.isEmpty()) {
-                            jarPathStore.put(serviceClass.getName(), jarPath);
-                            processRegistration(serviceClass, jarPath,
-                                                curNodes, appObject, false);
+                if (context != null) {
+                    Bundle[] bundles = context.getBundles();
+                    Bundle bundle;
+                    int len = bundles.length;
+                    List<YangNode> curNodes;
+                    String jarPath;
+                    for (int i = len - 1; i >= 0; i--) {
+                        bundle = bundles[i];
+                        if (bundle.getSymbolicName().contains(ONOS)) {
+                            jarPath = getJarPathFromBundleLocation(
+                                    bundle.getLocation(), context.getProperty(USER_DIRECTORY));
+                            curNodes = processJarParsingOperations(jarPath);
+                            // process application registration.
+                            if (curNodes != null && !curNodes.isEmpty()) {
+                                jarPathStore.put(serviceClass.getName(), jarPath);
+                                processRegistration(serviceClass, jarPath,
+                                                    curNodes, appObject, false);
+                            }
                         }
                     }
                 }
@@ -170,7 +172,7 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
     @Override
     public void unRegisterApplication(Object managerObject,
                                       Class<?> serviceClass) {
-        synchronized (serviceClass) {
+        synchronized (DefaultYangSchemaRegistry.class) {
             YangSchemaNode curNode;
             String serviceName = serviceClass.getName();
 
@@ -296,7 +298,7 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
 
     @Override
     public boolean verifyNotificationObject(Object appObj, Class<?> service) {
-        synchronized (service) {
+        synchronized (DefaultYangSchemaRegistry.class) {
             YangSchemaNode node = appNameKeyStore.get(service.getName());
             if (node == null) {
                 log.error("application is not registered with YMS {}",
@@ -336,7 +338,7 @@ public class DefaultYangSchemaRegistry implements YangSchemaRegistry {
     @Override
     public void processModuleLibrary(String serviceName,
                                      YangModuleLibrary library) {
-        synchronized (serviceName) {
+        synchronized (DefaultYangSchemaRegistry.class) {
             YangSchemaNode node = appNameKeyStore.get(serviceName);
             if (node != null) {
                 YangModuleInformation moduleInformation =
