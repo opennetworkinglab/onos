@@ -85,7 +85,7 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
         out.writeBytes(messageTypeBytes);
 
         // write message status value
-        out.writeInt(message.status().ordinal());
+        out.writeInt(message.status().id());
 
         byte[] payload = message.payload();
 
