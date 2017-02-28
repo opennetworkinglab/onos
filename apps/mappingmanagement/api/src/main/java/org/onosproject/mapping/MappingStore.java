@@ -50,7 +50,7 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
     /**
      * Obtains the stored mapping from the specified store.
      *
-     * @param type store type
+     * @param type    store type
      * @param mapping the mapping to look for
      * @return a mapping
      */
@@ -60,17 +60,25 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
      * Obtains the mapping entries associated with a device from the
      * specified store.
      *
-     * @param type store type
+     * @param type     store type
      * @param deviceId device identifier
      * @return the mapping entries
      */
     Iterable<MappingEntry> getMappingEntries(Type type, DeviceId deviceId);
 
     /**
+     * Stores a new mapping.
+     *
+     * @param type    store type
+     * @param mapping the mapping to add
+     */
+    void storeMapping(Type type, Mapping mapping);
+
+    /**
      * Marks a mapping for deletion. Actual deletion will occur when the
      * provider indicates that the mapping has been removed.
      *
-     * @param type store type
+     * @param type    store type
      * @param mapping the mapping to delete
      */
     void deleteMapping(Type type, Mapping mapping);
@@ -79,7 +87,7 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
      * Stores a new mapping or updates an existing entry from/to the
      * specified store.
      *
-     * @param type store type
+     * @param type  store type
      * @param entry the mapping to add or update
      * @return mapping_added event, or null if just an update
      */
@@ -88,7 +96,7 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
     /**
      * Removes an existing mapping from the specified store.
      *
-     * @param type store type
+     * @param type  store type
      * @param entry the mapping to remove
      * @return mapping_removed event, or null if nothing removed
      */
@@ -96,10 +104,10 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
 
     /**
      * Marks a mapping as PENDING_ADD during retry.
-     *
+     * <p>
      * Emits mapping_update event if the state is changed
      *
-     * @param type store type
+     * @param type  store type
      * @param entry the mapping that is retrying
      * @return mapping_updated event, or null if nothing updated
      */
@@ -108,10 +116,11 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
     /**
      * Removes all mapping entries of given device from the specified store.
      *
-     * @param type store type
+     * @param type     store type
      * @param deviceId device identifier
      */
-    default void purgeMappingEntry(Type type, DeviceId deviceId) {}
+    default void purgeMappingEntry(Type type, DeviceId deviceId) {
+    }
 
     /**
      * Removes all mapping entries from the specified store.

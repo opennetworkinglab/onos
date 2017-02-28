@@ -23,7 +23,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Default implementation of MappingEntry.
  */
-public class DefaultMappingEntry extends DefaultMapping implements MappingEntry {
+public class DefaultMappingEntry extends DefaultMapping implements StoredMappingEntry {
 
     private static final Logger log = getLogger(DefaultMappingEntry.class);
 
@@ -60,5 +60,10 @@ public class DefaultMappingEntry extends DefaultMapping implements MappingEntry 
                 .add("mapping", super.toString())
                 .add("state", state)
                 .toString();
+    }
+
+    @Override
+    public void setState(MappingEntryState newState) {
+        this.state = newState;
     }
 }

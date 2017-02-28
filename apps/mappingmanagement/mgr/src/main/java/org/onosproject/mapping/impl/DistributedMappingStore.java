@@ -83,6 +83,11 @@ public class DistributedMappingStore
     }
 
     @Override
+    public void storeMapping(Type type, Mapping mapping) {
+
+    }
+
+    @Override
     public void deleteMapping(Type type, Mapping mapping) {
 
     }
