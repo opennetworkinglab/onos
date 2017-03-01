@@ -337,7 +337,8 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     }
 
     private NodeState nodeState(OpenstackNode node) {
-        if (!isOvsdbConnected(node) || !deviceService.isAvailable(node.intBridge())) {
+        if (!isOvsdbConnected(node) || !deviceService.isAvailable(node.intBridge()) ||
+                !isBridgeCreated(node.ovsdbId(), INTEGRATION_BRIDGE)) {
             return INIT;
         }
 
@@ -518,8 +519,9 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .findFirst().orElseGet(() -> nodes().stream()
                 .filter(n -> n.routerBridge().isPresent())
                 .filter(n -> n.routerBridge().get().equals(deviceId))
-                .findFirst().orElse(null));
-
+                .findFirst().orElseGet(() -> nodes().stream()
+                                .filter(n -> n.ovsdbId().equals(deviceId))
+                                .findFirst().orElse(null)));
         return node;
     }
 
