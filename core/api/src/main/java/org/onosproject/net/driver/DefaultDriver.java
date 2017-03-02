@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.driver;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -65,7 +66,7 @@ public class DefaultDriver implements Driver {
                          Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
                          Map<String, String> properties) {
         this.name = checkNotNull(name, "Name cannot be null");
-        this.parents = parents == null || parents.isEmpty() ? null : parents;
+        this.parents = parents == null ? ImmutableList.of() : ImmutableList.copyOf(parents);
         this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
         this.hwVersion = checkNotNull(hwVersion, "HW version cannot be null");
         this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
@@ -77,6 +78,7 @@ public class DefaultDriver implements Driver {
     public Driver merge(Driver other) {
         checkArgument(parents == null || Objects.equals(parent(), other.parent()),
                       "Parent drivers are not the same");
+
         // Merge the behaviours.
         Map<Class<? extends Behaviour>, Class<? extends Behaviour>>
                 behaviours = Maps.newHashMap();
@@ -126,7 +128,7 @@ public class DefaultDriver implements Driver {
 
     @Override
     public Driver parent() {
-        return parents == null ? null : parents.get(0);
+        return parents.isEmpty() ? null : parents.get(0);
     }
 
     @Override

@@ -41,6 +41,7 @@ public class DefaultDriverTest {
                                               ImmutableMap.of("foo", "bar"));
         assertEquals("incorrect name", "foo.bar", ddc.name());
         assertEquals("incorrect parent", ddp, ddc.parent());
+        assertEquals("incorrect empty parent", ImmutableList.of(), ddp.parents());
         assertEquals("incorrect mfr", "Circus", ddc.manufacturer());
         assertEquals("incorrect hw", "lux", ddc.hwVersion());
         assertEquals("incorrect sw", "1.2a", ddc.swVersion());
