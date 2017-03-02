@@ -508,7 +508,6 @@ public class NetconfDeviceProvider extends AbstractProvider
                 executor.execute(() -> discoverPorts(event.subject().id()));
             } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
                 log.debug("removing device {}", event.subject().id());
-                deviceService.getDevice(event.subject().id()).annotations().keys();
                 controller.disconnectDevice(event.subject().id(), true);
             }
         }
