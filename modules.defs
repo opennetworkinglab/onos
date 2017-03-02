@@ -187,6 +187,7 @@ ONOS_APPS = [
     '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature',
     '//apps/tenbi:onos-apps-tenbi-oar',
     '//protocols/restconf/server:onos-protocols-restconf-server-oar',
+    '//apps/restconf:onos-apps-restconf-oar',
     '//apps/flowspec-api:onos-apps-flowspec-api-oar',
 ]
 
