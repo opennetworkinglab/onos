@@ -337,8 +337,6 @@ public class DistributedFlowRuleStore
         clusterCommunicator.addSubscriber(
                 REMOVE_FLOW_ENTRY, serializer::decode, this::removeFlowRuleInternal, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
-                REMOVE_FLOW_ENTRY, serializer::decode, this::removeFlowRuleInternal, serializer::encode, executor);
-        clusterCommunicator.addSubscriber(
                 FLOW_TABLE_BACKUP, serializer::decode, flowTable::onBackupReceipt, serializer::encode, executor);
     }
 
