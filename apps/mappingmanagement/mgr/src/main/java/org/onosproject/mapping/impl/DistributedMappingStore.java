@@ -188,20 +188,20 @@ public class DistributedMappingStore
     }
 
     @Override
-    public void deleteMapping(Type type, Mapping mapping) {
+    public MappingEvent removeMapping(Type type, Mapping mapping) {
 
         getStore(type).remove(mapping.id());
-    }
-
-    @Override
-    public MappingEvent addOrUpdateMappingEntry(Type type, MappingEntry entry) {
-        // TODO: this will be implemented when management plane is ready
-        log.error("This method will be available when management plane is ready");
         return null;
     }
 
     @Override
-    public MappingEvent removeMappingEntry(Type type, MappingEntry entry) {
+    public void pendingDeleteMapping(Type type, Mapping mapping) {
+        // TODO: this will be implemented when management plane is ready
+        log.error("This method will be available when management plane is ready");
+    }
+
+    @Override
+    public MappingEvent addOrUpdateMappingEntry(Type type, MappingEntry entry) {
         // TODO: this will be implemented when management plane is ready
         log.error("This method will be available when management plane is ready");
         return null;

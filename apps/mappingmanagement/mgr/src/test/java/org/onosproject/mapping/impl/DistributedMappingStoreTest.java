@@ -164,7 +164,7 @@ public class DistributedMappingStoreTest {
                         .iterator().next()));
         assertTrue("The mapping1 should be identical.",
                 mappingStore.getMappingEntry(MAP_DATABASE, mapping1).equals(mapping1));
-        mappingStore.deleteMapping(MAP_DATABASE, mapping1);
+        mappingStore.removeMapping(MAP_DATABASE, mapping1);
         assertFalse("There should not be any mapping1 in the map database.",
                 mappingStore.getMappingEntries(MAP_DATABASE, DEVICE_ID_1).iterator().hasNext());
     }

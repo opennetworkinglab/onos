@@ -225,7 +225,7 @@ public class SimpleMappingStore
     }
 
     @Override
-    public void deleteMapping(Type type, Mapping mapping) {
+    public void pendingDeleteMapping(Type type, Mapping mapping) {
 
         List<StoredMappingEntry> entries =
                 getMappingEntriesInternal(type, mapping.deviceId(), mapping.id());
@@ -264,13 +264,13 @@ public class SimpleMappingStore
     }
 
     @Override
-    public MappingEvent removeMappingEntry(Type type, MappingEntry entry) {
+    public MappingEvent removeMapping(Type type, Mapping mapping) {
 
         List<StoredMappingEntry> entries =
-                getMappingEntriesInternal(type, entry.deviceId(), entry.id());
+                getMappingEntriesInternal(type, mapping.deviceId(), mapping.id());
         synchronized (entries) {
-            if (entries.remove(entry)) {
-                return new MappingEvent(MAPPING_REMOVED, entry);
+            if (entries.remove(mapping)) {
+                return new MappingEvent(MAPPING_REMOVED, mapping);
             }
         }
         return null;

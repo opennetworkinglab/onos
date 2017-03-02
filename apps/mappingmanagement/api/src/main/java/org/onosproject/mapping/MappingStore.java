@@ -79,9 +79,18 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
      * provider indicates that the mapping has been removed.
      *
      * @param type    store type
-     * @param mapping the mapping to delete
+     * @param mapping the mapping to be marked as delete
      */
-    void deleteMapping(Type type, Mapping mapping);
+    void pendingDeleteMapping(Type type, Mapping mapping);
+
+    /**
+     * Removes an existing mapping from the specified store.
+     *
+     * @param type    store type
+     * @param mapping the mapping to remove
+     * @return mapping_removed event, or null if nothing removed
+     */
+    MappingEvent removeMapping(Type type, Mapping mapping);
 
     /**
      * Stores a new mapping or updates an existing entry from/to the
@@ -92,15 +101,6 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
      * @return mapping_added event, or null if just an update
      */
     MappingEvent addOrUpdateMappingEntry(Type type, MappingEntry entry);
-
-    /**
-     * Removes an existing mapping from the specified store.
-     *
-     * @param type  store type
-     * @param entry the mapping to remove
-     * @return mapping_removed event, or null if nothing removed
-     */
-    MappingEvent removeMappingEntry(Type type, MappingEntry entry);
 
     /**
      * Marks a mapping as PENDING_ADD during retry.

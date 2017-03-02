@@ -15,6 +15,10 @@
  */
 package org.onosproject.mapping;
 
+import org.onosproject.core.ApplicationId;
+import org.onosproject.mapping.MappingStore.Type;
+import org.onosproject.net.DeviceId;
+
 /**
  * Adapter for testing against mapping service.
  */
@@ -26,6 +30,41 @@ public class MappingServiceAdapter implements MappingService {
 
     @Override
     public void removeListener(MappingListener listener) {
+
+    }
+
+    @Override
+    public int getMappingCount(Type type) {
+        return 0;
+    }
+
+    @Override
+    public void storeMappingEntry(Type type, MappingEntry entry) {
+
+    }
+
+    @Override
+    public Iterable<MappingEntry> getMappingEntries(Type type, DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
+    public Iterable<MappingEntry> getMappingEntriesByAddId(Type type, ApplicationId appId) {
+        return null;
+    }
+
+    @Override
+    public void removeMappingEntries(Type type, MappingEntry... mappingEntries) {
+
+    }
+
+    @Override
+    public void removeMappingEntriesByAppId(Type type, ApplicationId appId) {
+
+    }
+
+    @Override
+    public void purgeMappings(Type type, DeviceId deviceId) {
 
     }
 }

@@ -175,7 +175,7 @@ public class DefaultMapping implements Mapping {
         @Override
         public Mapping build() {
 
-            checkArgument((id != null) ^ (appId != null), "Either an application" +
+            checkArgument((id != null) || (appId != null), "Either an application" +
                     " id or a mapping id must be supplied");
             checkNotNull(key, "Mapping key cannot be null");
             checkNotNull(deviceId, "Must refer to a device");
