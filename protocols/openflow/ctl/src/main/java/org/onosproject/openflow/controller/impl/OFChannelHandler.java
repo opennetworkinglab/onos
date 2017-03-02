@@ -94,6 +94,13 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     // needs to check if the handshake is complete
     private volatile ChannelState state;
 
+    /**
+     * Timeout in ms to wait for meter feature reply.
+     */
+    private static final long METER_TIMEOUT = 60_000;
+
+    private volatile long lastStateChange = System.currentTimeMillis();
+
     // When a switch with a duplicate dpid is found (i.e we already have a
     // connected switch with the same dpid), the new switch is immediately
     // disconnected. At that point netty callsback channelDisconnected() which
@@ -574,6 +581,20 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          * OpenFlow 1.3
          */
         WAIT_METER_FEATURES_REPLY(true) {
+
+            @Override
+            void processOFEchoRequest(OFChannelHandler h, OFEchoRequest m)
+                    throws IOException {
+                super.processOFEchoRequest(h, m);
+                if (System.currentTimeMillis() - h.lastStateChange > METER_TIMEOUT) {
+                    log.info("{} did not respond to MeterFeaturesRequest on time, " +
+                            "moving on without it.",
+                            h.getSwitchInfoString());
+                   h.sendHandshakeDescriptionStatsRequest();
+                   h.setState(WAIT_DESCRIPTION_STAT_REPLY);
+                }
+            }
+
             @Override
             void processOFError(OFChannelHandler h, OFErrorMsg m)
                     throws IOException {
@@ -1303,6 +1324,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void setState(ChannelState state) {
         this.state = state;
+        this.lastStateChange = System.currentTimeMillis();
     }
 
     /**
@@ -1332,6 +1354,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendHandshakeFeaturesRequestMessage() throws IOException {
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        log.debug("Sending FEATURES_REQUEST to {}", channel.getRemoteAddress());
         OFMessage m = factory.buildFeaturesRequest()
                 .setXid(this.handshakeTransactionIds--)
                 .build();
@@ -1345,7 +1368,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendHandshakeSetConfig() throws IOException {
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
-        //log.debug("Sending CONFIG_REQUEST to {}", channel.getRemoteAddress());
+        log.debug("Sending CONFIG_REQUEST to {}", channel.getRemoteAddress());
         List<OFMessage> msglist = new ArrayList<>(3);
 
         // Ensure we receive the full packet via PacketIn
@@ -1384,6 +1407,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     private void sendHandshakeDescriptionStatsRequest() throws IOException {
         // Get Description to set switch-specific flags
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        log.debug("Sending DESC_STATS_REQUEST to {}", channel.getRemoteAddress());
         OFDescStatsRequest dreq = factory
                 .buildDescStatsRequest()
                 .setXid(handshakeTransactionIds--)
@@ -1399,6 +1423,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     private void sendMeterFeaturesRequest() throws IOException {
         // Get meter features including the MaxMeters value available for the device
         OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        log.debug("Sending METER_FEATURES_REQUEST to {}", channel.getRemoteAddress());
         OFMeterFeaturesStatsRequest mfreq = factory
                 .buildMeterFeaturesStatsRequest()
                 .setXid(handshakeTransactionIds--)
@@ -1407,6 +1432,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     private void sendHandshakeOFPortDescRequest() throws IOException {
+        log.debug("Sending OF_PORT_DESC_REQUEST to {}", channel.getRemoteAddress());
         // Get port description for 1.3 switch
         OFPortDescStatsRequest preq = factory13
                 .buildPortDescStatsRequest()
