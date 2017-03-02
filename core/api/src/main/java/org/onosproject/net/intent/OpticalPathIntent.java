@@ -89,7 +89,7 @@ public final class OpticalPathIntent extends Intent {
         private OchSignal lambda;
         private OchSignalType signalType;
         private boolean isBidirectional;
-        Key key;
+        private Key key;
 
         @Override
         public Builder appId(ApplicationId appId) {
