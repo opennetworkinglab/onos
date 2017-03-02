@@ -33,6 +33,9 @@
       { "name": "jsr305", "compile_only": true },
       "onos-yang-datamodel",
       "onos-yang-utils-generator",
+      "onos-yang-model",
+      "onos-yang-compiler-api",
+      "onos-yang-runtime",
       "org.apache.servicemix.bundles.dom4j",
       "onos-yang-maven-plugin"
     ],
@@ -209,6 +212,9 @@
     "onos-yang-datamodel": "mvn:org.onosproject:onos-yang-datamodel:1.11",
     "onos-yang-maven-plugin": "mvn:org.onosproject:onos-yang-maven-plugin:1.11",
     "onos-yang-utils-generator": "mvn:org.onosproject:onos-yang-utils-generator:1.11",
+    "onos-yang-model":"mvn:org.onosproject:onos-yang-model:1.12.0-b5",
+    "onos-yang-compiler-api":"mvn:org.onosproject:onos-yang-compiler-api:1.12.0-b5",
+    "onos-yang-runtime":"mvn:org.onosproject:onos-yang-runtime:1.12.0-b5",
     "org.apache.servicemix.bundles.dom4j":"mvn:org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:1.6.1_5",
     "openflowj-3.0": {
       "uri": "mvn:org.projectfloodlight:openflowj:3.0.0-SNAPSHOT",

@@ -45,6 +45,8 @@ osgi_feature_group(
     ':onos-yang-datamodel',
     ':onos-yang-utils-generator',
     ':onos-yang-model',
+    ':onos-yang-compiler-api',
+    ':onos-yang-runtime',
     ':org.apache.servicemix.bundles.dom4j',
     ':onos-yang-maven-plugin',
   ],
@@ -1196,10 +1198,28 @@ remote_jar (
 
 remote_jar (
   name = 'onos-yang-model',
-  out = 'onos-yang-model-1.12-b3.jar',
-  url = 'mvn:org.onosproject:onos-yang-model:jar:1.12-b3',
-  sha1 = 'd34678c2512e6207d9e0b5fb90930ad347a1119d',
-  maven_coords = 'org.onosproject:onos-yang-model:jar:NON-OSGI:1.12-b3',
+  out = 'onos-yang-model-1.12.0-b5.jar',
+  url = 'mvn:org.onosproject:onos-yang-model:jar:1.12.0-b5',
+  sha1 = '802d4dde9f27a14ed790ad57259cf6be484f789e',
+  maven_coords = 'org.onosproject:onos-yang-model:jar:NON-OSGI:1.12.0-b5',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'onos-yang-compiler-api',
+  out = 'onos-yang-compiler-api-1.12.0-b5.jar',
+  url = 'mvn:org.onosproject:onos-yang-compiler-api:jar:1.12.0-b5',
+  sha1 = 'e38e65bcc5c1fb5619a491f259f1354dce6af187',
+  maven_coords = 'org.onosproject:onos-yang-compiler-api:jar:NON-OSGI:1.12.0-b5',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'onos-yang-runtime',
+  out = 'onos-yang-runtime-1.12.0-b5.jar',
+  url = 'mvn:org.onosproject:onos-yang-runtime:jar:1.12.0-b5',
+  sha1 = 'c41c166f852731ca5375d65f0e89a1502a80f716',
+  maven_coords = 'org.onosproject:onos-yang-runtime:jar:NON-OSGI:1.12.0-b5',
   visibility = [ 'PUBLIC' ],
 )
 

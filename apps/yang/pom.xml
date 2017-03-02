@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>onos-apps</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.10.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>onos-app-yang</artifactId>
+    <packaging>bundle</packaging>
+    <description>Onos Yang Extension</description>
+    <properties>
+        <onos.app.name>org.onosproject.yang</onos.app.name>
+        <onos.app.category>Utility</onos.app.category>
+        <onos.app.title>Onos Yang Extension</onos.app.title>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>Onos Yang Extension.</onos.app.readme>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-model</artifactId>
+            <version>1.12-b3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-compiler-api</artifactId>
+            <version>1.12-b3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-runtime</artifactId>
+            <version>1.12-b3</version>
+        </dependency>
+    </dependencies>
+</project>

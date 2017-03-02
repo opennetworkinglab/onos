@@ -189,6 +189,7 @@ ONOS_APPS = [
     '//protocols/restconf/server:onos-protocols-restconf-server-oar',
     '//apps/restconf:onos-apps-restconf-oar',
     '//apps/flowspec-api:onos-apps-flowspec-api-oar',
+    '//apps/yang:onos-apps-yang-oar'
 ]
 
 APP_JARS = [

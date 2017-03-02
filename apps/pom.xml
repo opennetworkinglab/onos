@@ -88,6 +88,7 @@
         <module>ofagent</module>
         <module>intentsync</module>
         <module>mappingmanagement</module>
+        <module>yang</module>
     </modules>
 
     <properties>
