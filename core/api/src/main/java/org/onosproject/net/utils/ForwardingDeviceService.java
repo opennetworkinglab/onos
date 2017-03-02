@@ -117,4 +117,9 @@ public abstract class ForwardingDeviceService implements DeviceService {
         return delegate.isAvailable(deviceId);
     }
 
+    @Override
+    public String localStatus(DeviceId deviceId) {
+        return delegate.localStatus(deviceId);
+    }
+
 }
