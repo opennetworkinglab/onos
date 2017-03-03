@@ -231,6 +231,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -569,6 +570,7 @@ public final class KryoNamespaces {
             .register(ProtectionEndpointIntent.class)
             .register(ProtectedTransportIntent.class)
             .register(MarkerResource.class)
+            .register(new BitSetSerializer(), BitSet.class)
             .build("API");
 
     /**

@@ -84,6 +84,7 @@ import org.onlab.packet.MacAddress;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.time.Duration;
 
@@ -442,6 +443,19 @@ public class KryoSerializerTest {
         for (String key : expected.keys()) {
             assertEquals(expected.value(key), actual.value(key));
         }
+    }
+
+    @Test
+    public void testBitSet() {
+        BitSet bs = new BitSet(32);
+        bs.set(2);
+        bs.set(8);
+        bs.set(12);
+        bs.set(18);
+        bs.set(25);
+        bs.set(511);
+
+        testSerializedEquals(bs);
     }
 
 }
