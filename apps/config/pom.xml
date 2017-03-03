@@ -36,6 +36,11 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-model</artifactId>
+            <version>1.12-b3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>

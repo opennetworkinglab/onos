@@ -34,8 +34,8 @@ import org.onosproject.config.RpcCommand;
 import org.onosproject.config.RpcHandler;
 import org.onosproject.config.RpcInput;
 import org.onosproject.config.RpcOutput;
-import org.onosproject.config.model.DataNode;
-import org.onosproject.config.model.ResourceId;
+import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.ResourceId;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
@@ -73,8 +73,7 @@ public class DynamicConfigManager
 
     @Override
     public void createNode(ResourceId path, DataNode node) {
-        Boolean stat = false;
-        stat = this.store.addNode(path, node).join();
+        throw new FailedException("Not yet implemented");
     }
 
     public void createNodeRecursive(ResourceId path, DataNode node) {
@@ -99,7 +98,7 @@ public class DynamicConfigManager
     }
 
     public void deleteNodeRecursive(ResourceId path) {
-        throw new FailedException("Not yet implemented");
+        store.deleteNodeRecursive(path).join();
     }
 
     public void updateNodeRecursive(ResourceId path, DataNode node) {

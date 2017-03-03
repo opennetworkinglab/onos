@@ -17,7 +17,7 @@ package org.onosproject.config;
 
 
 import com.google.common.annotations.Beta;
-import org.onosproject.config.model.ResourceId;
+import org.onosproject.yang.model.ResourceId;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

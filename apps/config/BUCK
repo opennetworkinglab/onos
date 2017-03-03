@@ -1,6 +1,11 @@
+APPS = [
+    'org.onosproject.yang',
+]
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
+    '//lib:onos-yang-model',
     '//core/store/serializers:onos-core-serializers',
     '//cli:onos-cli',
 ]
@@ -14,4 +19,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Application to support the Dynamic configuration service and store.',
+    required_apps = APPS,
 )

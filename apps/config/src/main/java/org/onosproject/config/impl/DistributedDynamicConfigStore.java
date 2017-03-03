@@ -28,12 +28,15 @@ import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-import org.onosproject.config.model.DataNode;
-import org.onosproject.config.model.InnerNode;
-import org.onosproject.config.model.LeafNode;
-import org.onosproject.config.model.NodeKey;
-import org.onosproject.config.model.ResourceId;
-import org.onosproject.config.model.SchemaId;
+import org.onosproject.config.ResourceIdParser;
+import org.onosproject.store.service.IllegalDocumentModificationException;
+import org.onosproject.store.service.NoSuchDocumentPathException;
+import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.InnerNode;
+import org.onosproject.yang.model.LeafNode;
+import org.onosproject.yang.model.NodeKey;
+import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.SchemaId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -51,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Implementation of the dynamic config store.
@@ -65,9 +69,9 @@ public class DistributedDynamicConfigStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
     private AsyncDocumentTree<DataNode.Type> keystore;
-    private ConsistentMap<ResourceId, LeafNode> objectStore;
+    private ConsistentMap<String, LeafNode> objectStore;
     private final DocumentTreeListener<DataNode.Type> klistener = new InternalDocTreeListener();
-    private final MapEventListener<ResourceId, LeafNode> olistener = new InternalMapListener();
+    private final MapEventListener<String, LeafNode> olistener = new InternalMapListener();
 
     @Activate
     public void activateStore() {
@@ -87,7 +91,7 @@ public class DistributedDynamicConfigStore
                 .withName("config-key-store")
                 .withRelaxedReadConsistency()
                 .buildDocumentTree();
-        objectStore = storageService.<ResourceId, LeafNode>consistentMapBuilder()
+        objectStore = storageService.<String, LeafNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-object-store")
                 .withRelaxedReadConsistency()
@@ -107,35 +111,13 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<Boolean>
     addNode(ResourceId path, DataNode node) {
-        CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(false);
-        Boolean stat = false;
-        DocumentPath dpath  = DocumentPath.from(path.asString());
-        log.info("STORE: dpath to parent {}", dpath);
-        if (keystore.get(dpath).join() == null) {
-            throw new FailedException("Some of the parents are not present in " +
-                    "the requested path, please use a recursive create");
-        }
-        ResourceId cpath = path.builder()
-                .addBranchPointSchema(node.key().schemaId().name(),
-                                      node.key().schemaId().namespace()).build();
-        dpath  = DocumentPath.from(cpath.asString());
-        if (keystore.get(dpath).join() != null) {
-            throw new FailedException("Requested node already present in the" +
-                                              " store, please use an update method");
-        }
-        stat = checkNode(cpath, node);
-        if (stat) {
-            eventFuture = CompletableFuture.completedFuture(true);
-        } else {
-            log.info("STORE: FAILED to create node @ {}", path);
-        }
-        return eventFuture;
+        throw new FailedException("Not yet implemented");
     }
 
     @Override
     public CompletableFuture<DataNode> readNode(ResourceId path, Filter filter) {
         CompletableFuture<DataNode> eventFuture = CompletableFuture.completedFuture(null);
-        DocumentPath dpath = DocumentPath.from(path.asString());
+        DocumentPath dpath = DocumentPath.from(ResourceIdParser.asString(path));
         DataNode.Type type;
         type = keystore.get(dpath).join().value();
         if (type == null) {
@@ -150,7 +132,7 @@ public class DistributedDynamicConfigStore
         } else {
             int last = path.nodeKeys().size();
             NodeKey key = path.nodeKeys().get(last - 1);
-            DataNode.Builder superBldr = new InnerNode.Builder(key.schemaId().name(),
+            DataNode.Builder superBldr = InnerNode.builder(key.schemaId().name(),
                                           key.schemaId().namespace()).type(type);
             readInner(superBldr, path);
             retVal = superBldr.build();
@@ -168,11 +150,10 @@ public class DistributedDynamicConfigStore
   addRecursive(ResourceId path, DataNode node) {
       CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(false);
       Boolean stat = false;
-      DocumentPath dpath  = DocumentPath.from(path.asString());
-      //TODO need to check for each parent in the path and recursively create all missing
-      /*if (keystore.get(dpath).join() == null) {
+      DocumentPath dpath  = DocumentPath.from(ResourceIdParser.asString(path));
+      if (keystore.get(dpath).join() == null) {
           //recursivley craete all missing aprents
-      }*/
+      }
       if (keystore.get(dpath).join() != null) {
           throw new FailedException("Requested node already present " +
                                             "in the store, please use an update method");
@@ -213,16 +194,30 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<Boolean>
     deleteNodeRecursive(ResourceId path) {
-        throw new FailedException("Not yet implemented");
+        String spath = ResourceIdParser.asString(path);
+        DocumentPath dpath = DocumentPath.from(spath);
+        DataNode.Type type = null;
+        CompletableFuture<Versioned<DataNode.Type>> vtype = keystore.removeNode(dpath);
+        type = completeVersioned(vtype);
+        if (type == null) {
+            throw new FailedException("node delete failed");
+        }
+        Versioned<LeafNode> res = objectStore.remove(spath);
+        if (res == null) {
+            return CompletableFuture.completedFuture(false);
+        } else {
+            return CompletableFuture.completedFuture(true);
+        }
+
     }
 
     private Boolean addLeaf(ResourceId path, LeafNode node) {
-        objectStore.put(path, node);
-        return (keystore.create(DocumentPath.from(path.asString()), node.type()).join());
+        objectStore.put(ResourceIdParser.asString(path), node);
+        return (keystore.create(DocumentPath.from(ResourceIdParser.asString(path)), node.type()).join());
     }
 
     private Boolean addKey(ResourceId path, DataNode.Type type) {
-        return (keystore.create(DocumentPath.from(path.asString()), type).join());
+        return (keystore.create(DocumentPath.from(ResourceIdParser.asString(path)), type).join());
     }
 
     private Boolean checkNode(ResourceId path, DataNode node) {
@@ -240,7 +235,7 @@ public class DistributedDynamicConfigStore
     }
 
     private LeafNode readLeaf(ResourceId path) {
-        return objectStore.get(path).value();
+        return objectStore.get(ResourceIdParser.asString(path)).value();
     }
 
     private Boolean traverseInner(ResourceId path, InnerNode node) {
@@ -275,7 +270,7 @@ public class DistributedDynamicConfigStore
 
     private void readInner(DataNode.Builder superBldr, ResourceId path) {
         Map<String, Versioned<DataNode.Type>> entries = keystore.getChildren(
-                DocumentPath.from(path.asString())).join();
+                DocumentPath.from(ResourceIdParser.asString(path))).join();
         if (entries.size() == 0) {
             throw new FailedException("Inner node cannot have empty children map");
         }
@@ -318,13 +313,13 @@ public class DistributedDynamicConfigStore
             ResourceId path;
             switch (event.type()) {
                 case CREATED:
-                    log.info("key created in store");
+                    log.info("NODE created in store");
                     break;
                 case UPDATED:
-                    log.info("key updated in store");
+                    log.info("NODE updated in store");
                     break;
                 case DELETED:
-                    log.info("key deleted in store");
+                    log.info("NODE deleted in store");
                     break;
 
                 default:
@@ -333,22 +328,56 @@ public class DistributedDynamicConfigStore
         }
     }
 
-    public class InternalMapListener implements MapEventListener<ResourceId, LeafNode> {
+    public class InternalMapListener implements MapEventListener<String, LeafNode> {
         @Override
-        public void event(MapEvent<ResourceId, LeafNode> event) {
+        public void event(MapEvent<String, LeafNode> event) {
             switch (event.type()) {
                 case INSERT:
-                    log.info("OBJECT created in store");
+                    //log.info("NODE created in store");
                     break;
                 case UPDATE:
-                    log.info("OBJECT updated in store");
+                    //log.info("NODE updated in store");
                     break;
                 case REMOVE:
                 default:
-                    log.info("OBJECT removed in store");
+                    //log.info("NODE removed in store");
                     break;
             }
             //notify
+        }
+    }
+
+    private <T> T complete(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FailedException(e.getCause().getMessage());
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof IllegalDocumentModificationException) {
+                throw new FailedException("Node or parent doesnot exist or is root or is not a Leaf Node");
+            } else if (e.getCause() instanceof NoSuchDocumentPathException) {
+                throw new FailedException("Resource id does not exist");
+            } else {
+                throw new FailedException("Datastore operation failed");
+            }
+        }
+    }
+
+    private <T> T completeVersioned(CompletableFuture<Versioned<T>> future) {
+        try {
+            return future.get().value();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FailedException(e.getCause().getMessage());
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof IllegalDocumentModificationException) {
+                throw new FailedException("Node or parent does not exist or is root or is not a Leaf Node");
+            } else if (e.getCause() instanceof NoSuchDocumentPathException) {
+                throw new FailedException("Resource id does not exist");
+            } else {
+                throw new FailedException("Datastore operation failed");
+            }
         }
     }
 }

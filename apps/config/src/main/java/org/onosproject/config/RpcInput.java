@@ -16,7 +16,7 @@
 package org.onosproject.config;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.config.model.DataNode;
+import org.onosproject.yang.model.DataNode;
 
 /**
  * Abstraction for RPC input.

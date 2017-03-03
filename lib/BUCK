@@ -44,6 +44,7 @@ osgi_feature_group(
     ':jsr305',
     ':onos-yang-datamodel',
     ':onos-yang-utils-generator',
+    ':onos-yang-model',
     ':org.apache.servicemix.bundles.dom4j',
     ':onos-yang-maven-plugin',
   ],
@@ -1190,6 +1191,15 @@ remote_jar (
   url = 'mvn:org.onosproject:onos-yang-utils-generator:jar:1.11',
   sha1 = '9ff78d6d1b945d98f9c7b290232cb02875d4f382',
   maven_coords = 'org.onosproject:onos-yang-utils-generator:jar:NON-OSGI:1.11',
+  visibility = [ 'PUBLIC' ],
+)
+
+remote_jar (
+  name = 'onos-yang-model',
+  out = 'onos-yang-model-1.12-b3.jar',
+  url = 'mvn:org.onosproject:onos-yang-model:jar:1.12-b3',
+  sha1 = 'd34678c2512e6207d9e0b5fb90930ad347a1119d',
+  maven_coords = 'org.onosproject:onos-yang-model:jar:NON-OSGI:1.12-b3',
   visibility = [ 'PUBLIC' ],
 )
 
