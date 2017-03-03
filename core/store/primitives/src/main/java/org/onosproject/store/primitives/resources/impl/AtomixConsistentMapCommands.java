@@ -408,7 +408,7 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public CompactionMode compaction() {
-          return value == null ? CompactionMode.TOMBSTONE : CompactionMode.QUORUM;
+          return value == null ? CompactionMode.TOMBSTONE : CompactionMode.FULL;
         }
 
         @Override
