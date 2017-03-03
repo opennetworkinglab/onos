@@ -60,6 +60,7 @@ public class CopycatTransportClient implements Client {
         if (mode == CopycatTransport.Mode.CLIENT) {
             connection.setBidirectional();
         }
+        connection.closeListener(c -> connections.remove(c));
         connections.add(connection);
         return CompletableFuture.supplyAsync(() -> connection, context.executor());
     }
