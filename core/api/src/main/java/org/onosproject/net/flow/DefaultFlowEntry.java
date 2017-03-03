@@ -118,6 +118,17 @@ public class DefaultFlowEntry extends DefaultFlowRule
     }
 
     /**
+     * Creates a flow entry based on specified flow rule and state.
+     *
+     * @param rule to use as base
+     * @param state of the flow entry
+     */
+    public DefaultFlowEntry(FlowRule rule, FlowEntryState state) {
+        this(rule, state, 0, 0, 0);
+    }
+
+
+    /**
      * Creates a flow entry of flow table specified with the flow rule, state,
      * live type and statistic information.
      *

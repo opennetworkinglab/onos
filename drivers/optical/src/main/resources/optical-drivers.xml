@@ -68,6 +68,11 @@
             manufacturer="Oplink a Molex company" hwVersion="protection-switch" swVersion="of-agent-1.0">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
             impl="org.onosproject.driver.optical.handshaker.OplinkSwitchHandshaker"/>
+
+        <!-- Transparent in-line device ignore all FlowRules  -->
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
+
     </driver>
 
     <driver name="oplk-edfa" extends="default"
@@ -78,6 +83,11 @@
                    impl="org.onosproject.driver.optical.query.OplinkEdfaLambdaQuery"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
                    impl="org.onosproject.driver.optical.power.OplinkEdfaPowerConfig"/>
+
+        <!-- Transparent in-line device ignore all FlowRules  -->
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
+
     </driver>
 </drivers>
 

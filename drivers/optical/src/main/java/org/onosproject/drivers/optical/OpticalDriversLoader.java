@@ -16,9 +16,23 @@
 
 package org.onosproject.drivers.optical;
 
+import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+
+import java.util.List;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.driver.optical.config.FlowTableConfig;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.net.optical.OpticalDevice;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Loader for other optical device drivers.
@@ -30,7 +44,40 @@ public class OpticalDriversLoader extends AbstractDriverLoader {
     @SuppressWarnings("unused")
     private OpticalDevice optical;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry registry = new NetworkConfigRegistryAdapter();
+
+
+
+    private final List<ConfigFactory> factories = ImmutableList.of(
+         new ConfigFactory<DeviceId, FlowTableConfig>(DEVICE_SUBJECT_FACTORY,
+                 FlowTableConfig.class,
+                 FlowTableConfig.CONFIG_KEY) {
+             @Override
+             public FlowTableConfig createConfig() {
+                 return new FlowTableConfig();
+             }
+
+         });
+
+
     public OpticalDriversLoader() {
         super("/optical-drivers.xml");
     }
+
+    @Activate
+    @Override
+    protected void activate() {
+        factories.forEach(registry::registerConfigFactory);
+
+        super.activate();
+    }
+
+    @Deactivate
+    @Override
+    protected void deactivate() {
+        factories.forEach(registry::unregisterConfigFactory);
+        super.deactivate();
+    }
+
 }

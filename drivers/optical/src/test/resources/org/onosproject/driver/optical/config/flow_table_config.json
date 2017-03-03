@@ -1,0 +1,48 @@
+{
+  "devices" : {
+    "of:0000000000000001" : {
+      "flowtable" : {
+        "entries" : [
+
+          {
+            "id": "3",
+            "tableId": 0,
+            "appId": "test",
+            "priority": 4,
+            "timeout": 0,
+            "isPermanent": true,
+            "deviceId": "of:0000000000000001",
+            "treatment": {
+              "instructions": [
+                {
+                  "type": "OUTPUT",
+                  "port": "2"
+                },
+                {
+                  "type": "L0MODIFICATION",
+                  "subtype": "OCH",
+                  "gridType": "FLEX",
+                  "channelSpacing": "CHL_6P25GHZ",
+                  "spacingMultiplier": 42,
+                  "slotGranularity": 1
+                }
+              ],
+              "deferred": [
+
+              ]
+            },
+            "selector": {
+              "criteria": [
+                {
+                  "type": "IN_PORT",
+                  "port": 1
+                }
+              ]
+            }
+          }
+
+        ]
+      }
+    }
+  }
+}
