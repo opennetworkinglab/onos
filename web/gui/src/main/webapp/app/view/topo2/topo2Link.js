@@ -160,7 +160,7 @@
                     this.set('enhanced', true);
                     point = this.locatePortLabel();
                     angular.extend(point, {
-                        id: 'topo-port-tgt',
+                        id: 'topo2-port-tgt',
                         num: this.get('portB')
                     });
                     data.push(point);
@@ -168,13 +168,13 @@
                     if (this.get('portA')) {
                         point = this.locatePortLabel(1);
                         angular.extend(point, {
-                            id: 'topo-port-src',
+                            id: 'topo2-port-src',
                             num: this.get('portA')
                         });
                         data.push(point);
                     }
 
-                    var entering = d3.select('#topo-portLabels')
+                    var entering = d3.select('#topo2-portLabels')
                         .selectAll('.portLabel')
                         .data(data)
                         .enter().append('g')
@@ -204,7 +204,7 @@
             },
             unenhance: function () {
                 this.set('enhanced', false);
-                d3.select('#topo-portLabels').selectAll('.portLabel').remove();
+                d3.select('#topo2-portLabels').selectAll('.portLabel').remove();
             },
             getSelected: function () {
                 return this.collection.filter(function (m) {
@@ -307,7 +307,7 @@
 
                 var labelScale = labelDim / (labelDim * t2zs.scale());
 
-                d3.select('#topo-portLabels')
+                d3.select('#topo2-portLabels')
                     .selectAll('.portLabel')
                     .selectAll('*')
                     .style('transform', 'scale(' + labelScale + ')');

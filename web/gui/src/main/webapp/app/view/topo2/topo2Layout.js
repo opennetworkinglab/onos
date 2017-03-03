@@ -121,15 +121,15 @@
 
                         this.prevForce = this.forceG;
 
-                        this.forceG = d3.select('#topo-zoomlayer')
-                            .append('g').attr('class', 'topo-force');
+                        this.forceG = d3.select('#topo2-zoomlayer')
+                            .append('g').attr('class', 'topo2-force');
 
                         this.elements = {
-                            linkG: this.addElement(this.forceG, 'topo-links'),
-                            linkLabelG: this.addElement(this.forceG, 'topo-linkLabels'),
-                            numLinksLabels: this.addElement(this.forceG, 'topo-numLinkLabels'),
-                            nodeG: this.addElement(this.forceG, 'topo-nodes'),
-                            portLabels: this.addElement(this.forceG, 'topo-portLabels')
+                            linkG: this.addElement(this.forceG, 'topo2-links'),
+                            linkLabelG: this.addElement(this.forceG, 'topo2-linkLabels'),
+                            numLinksLabels: this.addElement(this.forceG, 'topo2-numLinkLabels'),
+                            nodeG: this.addElement(this.forceG, 'topo2-nodes'),
+                            portLabels: this.addElement(this.forceG, 'topo2-portLabels')
                         };
                     },
                     addElement: function (parent, className) {
@@ -180,9 +180,9 @@
                         this.update();
                     },
                     centerLayout: function () {
-                        d3.select('#topo-zoomlayer').attr('data-layout', t2rs.model.get('id'));
+                        d3.select('#topo2-zoomlayer').attr('data-layout', t2rs.model.get('id'));
 
-                        var zoomer = d3.select('#topo-zoomlayer').node().getBBox(),
+                        var zoomer = d3.select('#topo2-zoomlayer').node().getBBox(),
                             layoutBBox = this.forceG.node().getBBox(),
                             scale = (zoomer.height - 150) / layoutBBox.height,
                             x = (zoomer.width / 2) - ((layoutBBox.x + layoutBBox.width / 2) * scale),

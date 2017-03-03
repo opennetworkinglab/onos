@@ -145,10 +145,6 @@
         doTmpPeerRegions(data);
     }
 
-    function startDone(data) {
-        $log.debug('>> topo2StartDone event:', data);
-    }
-
     function modelEvent(data) {
         $log.debug('>> topo2UiModelEvent event:', data);
 
@@ -276,7 +272,6 @@
                 topo2AllInstances: allInstances,
                 topo2CurrentLayout: currentLayout,
                 topo2CurrentRegion: currentRegion,
-                topo2StartDone: startDone,
 
                 topo2UiModelEvent: modelEvent,
 

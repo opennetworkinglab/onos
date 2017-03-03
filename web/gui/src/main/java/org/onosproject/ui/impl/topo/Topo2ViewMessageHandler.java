@@ -79,7 +79,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
         // get the topo session from the UiWebSocket
         topoSession = ((UiWebSocket) connection).topoSession();
-        t2json = new Topo2Jsonifier(directory);
+        t2json = new Topo2Jsonifier(directory, connection.userName());
     }
 
     @Override

@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var $loc, ps, ms, flash, sus, countryFilters;
+    var $log, $loc, ps, ms, flash, sus, countryFilters;
 
     // Injected Classes
     var MapSelectionDialog;
@@ -34,9 +34,12 @@
     function init(_zoomLayer_, _zoomer_) {
         zoomLayer = _zoomLayer_;
         zoomer = _zoomer_;
-        return setUpMap.bind(this)();
+        // This function no longer returns a promise.
+        //  TODO: call setUpMap() when we know which map we want (not from here)
+        // return setUpMap.bind(this)();
     }
 
+    // TODO: to be re-worked: map-id, filePath, scale/pan to be passed as params
     function setUpMap() {
         var prefs = currentMap(),
             mapId = prefs.mapid,
@@ -45,17 +48,17 @@
             loadMap = ms.loadMapInto,
             promise, cfilter;
 
-        mapG = d3.select('#topo-map');
+        mapG = d3.select('#topo2-map');
 
         if (mapG.empty()) {
-            mapG = zoomLayer.append('g').attr('id', 'topo-map');
+            mapG = zoomLayer.append('g').attr('id', 'topo2-map');
         } else {
             mapG.each(function () {
                 d3.selectAll(this.childNodes).remove();
             });
         }
 
-        if (!ps.getPrefs('topo_prefs')[this.prefs.visible]) {
+        if (!ps.getPrefs('topo2_prefs')[this.prefs.visible]) {
             this.hide();
         }
 
@@ -73,9 +76,11 @@
         return promise;
     }
 
+    // TODO: deprecated - the layout will tell us which map
+    //   no longer stored in user preferences
     function currentMap() {
         return ps.getPrefs(
-            'topo_mapid',
+            'topo2_mapid',
             {
                 mapid: 'usa',
                 mapscale: 1,
@@ -86,20 +91,23 @@
         );
     }
 
+    // TODO: deprecated - maps are defined per layout on the server side.
     function setMap(map) {
-        ps.setPrefs('topo_mapid', map);
+        ps.setPrefs('topo2_mapid', map);
         return setUpMap.bind(this)();
     }
 
+    // TODO: deprecated - map selection does not make sense in Topo2
     function openMapSelection() {
+        $log.warn('openMapSelection DISABLED');
 
-        MapSelectionDialog.prototype.currentMap = currentMap;
-
-        new MapSelectionDialog({
-            okHandler: function (preferences) {
-                setMap(preferences);
-            }
-        }).open();
+        // MapSelectionDialog.prototype.currentMap = currentMap;
+        //
+        // new MapSelectionDialog({
+        //     okHandler: function (preferences) {
+        //         setMap(preferences);
+        //     }
+        // }).open();
     }
 
     function resetZoom() {
@@ -108,11 +116,15 @@
 
     angular.module('ovTopo2')
     .factory('Topo2MapService', [
-        '$location', 'Topo2ViewController', 'PrefsService', 'MapService', 'FlashService',
-        'SvgUtilService', 'Topo2CountryFilters', 'Topo2MapDialog',
+        '$log', '$location', 'Topo2ViewController', 'PrefsService',
+        'MapService', 'FlashService', 'SvgUtilService', 'Topo2CountryFilters',
+        'Topo2MapDialog',
 
-        function (_$loc_, ViewController, _ps_, _ms_, _flash_, _sus_, _t2cf_, _t2md_) {
+        function (_$log_, _$loc_, ViewController, _ps_,
+                  _ms_, _flash_, _sus_, _t2cf_,
+                  _t2md_) {
 
+            $log = _$log_;
             $loc = _$loc_;
             ps = _ps_;
             ms = _ms_;
@@ -123,7 +135,7 @@
 
             var MapLayer = ViewController.extend({
 
-                id: 'topo-map',
+                id: 'topo2-map',
                 displayName: 'Map',
 
                 init: init,

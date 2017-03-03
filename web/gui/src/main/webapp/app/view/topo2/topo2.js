@@ -15,7 +15,7 @@
 */
 
 /*
- ONOS GUI -- Topology View Module
+ ONOS GUI -- Topology (2) View Module
 
  NOTE: currently under development to support Regions.
  */
@@ -31,13 +31,17 @@
     var ovtopo2, svg, defs, zoomLayer, forceG;
 
     // Internal state
-    var zoomer;
+    var zoomer,
+        currentLayoutId = '_default_';  // NOTE: see UiTopoLayoutId.DEFAULT_STR
+
 
     // --- Glyphs, Icons, and the like -----------------------------------
 
     function setUpDefs() {
         defs = svg.append('defs');
         gs.loadDefs(defs);
+
+        // TODO: consider using something other than the "glow" styles
         sus.loadGlowDefs(defs);
     }
 
@@ -60,13 +64,20 @@
 
     function zoomCallback() {
         var sc = zoomer.scale(),
-            tr = zoomer.translate();
+            tr = zoomer.translate(),
+            sparse = {};
 
-        ps.setPrefs('topo_zoom', { tx: tr[0], ty: tr[1], sc: sc });
+        sparse[currentLayoutId] =  {
+            zoomScale: sc,
+            zoomPanX: tr[0],
+            zoomPanY: tr[1]
+        };
+
+        ps.mergePrefs('topo2_zoom', sparse);
     }
 
     function setUpZoom() {
-        zoomLayer = svg.append('g').attr('id', 'topo-zoomlayer');
+        zoomLayer = svg.append('g').attr('id', 'topo2-zoomlayer');
 
         zoomer = t2zs.createZoomer({
             svg: svg,
@@ -80,22 +91,25 @@
 
     angular.module('ovTopo2', ['onosUtil', 'onosSvg', 'onosRemote'])
     .controller('OvTopo2Ctrl', [
-        '$scope', '$log', '$location', 'FnService', 'MastService', 'KeyService',
-        'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
-        'WebSocketService', 'PrefsService', 'ThemeService',
+        '$scope', '$log', '$location',
+        'FnService', 'MastService', 'KeyService', 'GlyphService', 'MapService',
+        'SvgUtilService', 'FlashService', 'WebSocketService',
+        'PrefsService', 'ThemeService',
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
-        'Topo2MapConfigService', 'Topo2ZoomService',
-        'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2SpriteLayerService',
+        'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2SpriteLayerService',
+        'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel',
 
-        function (_$scope_, _$log_, _$loc_,
-            _fs_, _mast_, _ks_,
-            _gs_, _ms_, _sus_, _flash_,
-            _wss_, _ps_, _th_,
-            _t2es_, _t2fs_, _t2is_, _t2bcs_, _t2kcs_, _t2ms_, _t2mcs_,
-            _t2zs_, summaryPanel, detailsPanel, t2sls
+        function (
+            _$scope_, _$log_, _$loc_,
+            _fs_, _mast_, _ks_, _gs_, _ms_,
+            _sus_, _flash_, _wss_,
+            _ps_, _th_,
+            _t2es_, _t2fs_, _t2is_,
+            _t2bcs_, _t2kcs_, _t2ms_,
+            _t2mcs_, _t2zs_, t2sls,
+            summaryPanel, detailsPanel
         ) {
-
             var params = _$loc_.search(),
                 dim,
                 wh,
@@ -106,7 +120,6 @@
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; }
                     // opacifyMap: opacifyMap,
-                    // topoStartDone: topoStartDone
                 };
 
             $scope = _$scope_;
@@ -115,10 +128,8 @@
             fs = _fs_;
             mast = _mast_;
             ks = _ks_;
-
             gs = _gs_;
             sus = _sus_;
-
             ps = _ps_;
 
             t2es = _t2es_;
@@ -140,7 +151,8 @@
                 $scope.intentData = {
                     key: params.intentKey,
                     appId: params.intentAppId,
-                    appName: params.intentAppName
+                    appName: params.intentAppName,
+                    intentType: params.intentType
                 };
             }
 
@@ -176,21 +188,34 @@
             // make sure we can respond to topology events from the server
             t2es.bindHandlers();
 
-            // Add the map SVG Group
-            t2ms.init(zoomLayer, zoomer).then(
-                function (proj) {
-                    var z = ps.getPrefs('topo_zoom', { tx: 0, ty: 0, sc: 1 });
-                    zoomer.panZoom([z.tx, z.ty], z.sc);
+            // Add the map SVG Group, but don't load a map yet...
+            //   we will wait until the server tells us whether we should
+            //   be loading a geomap or a sprite layer
+            t2ms.init(zoomLayer, zoomer);
 
-                    t2mcs.projection(proj);
-                    $log.debug('** Zoom restored:', z);
-                    $log.debug('** We installed the projection:', proj);
+            // TODO: figure out from where to call this code...
+            // we still need to do the equivalent of this when we load
+            //  a geo map, just not here.
+            //
+            // ... NOTE: we still have to position the nodes AFTER the map
+            //           has loaded and the projection has been established...
+            //           maybe another promise ending with a "positionNodes()"
+            //           call?
 
-                    // Now the map has load and we have a projection we can
-                    // get the info from the server
-                    t2es.start();
-                }
-            );
+            // .then(
+            //     function (proj) {
+            //         var z = ps.getPrefs('topo2_zoom', { tx: 0, ty: 0, sc: 1 });
+            //         zoomer.panZoom([z.tx, z.ty], z.sc);
+            //
+            //         t2mcs.projection(proj);
+            //         $log.debug('** Zoom restored:', z);
+            //         $log.debug('** We installed the projection:', proj);
+            //
+            //         // Now the map has load and we have a projection we can
+            //         // get the info from the server
+            //         t2es.start();
+            //     }
+            // );
 
             t2sls.init(svg, zoomLayer);
             t2fs.init(svg, forceG, uplink, dim, zoomer);
@@ -218,6 +243,10 @@
 
             summaryPanel.init();
             detailsPanel.init();
+
+            // Now that we are initialized, ask the server for what we
+            //  need to show.
+            t2es.start();
 
             $log.log('OvTopo2Ctrl has been created');
         }]);

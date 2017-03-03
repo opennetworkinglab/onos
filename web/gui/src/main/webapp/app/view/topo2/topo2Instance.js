@@ -212,7 +212,7 @@
     // ==========================
     function logicError(msg) {
         if (showLogicErrors) {
-            $log.warn('TopoInstService: ' + msg);
+            $log.warn('Topo2InstService: ' + msg);
         }
     }
 

@@ -34,7 +34,7 @@
     };
 
     function topo2Prefs() {
-        return ps.getPrefs('topo_prefs', defaultPrefsState);
+        return ps.getPrefs('topo2_prefs', defaultPrefsState);
     }
 
     function get(key) {
@@ -45,7 +45,7 @@
     function set(key, value) {
         var preferences = topo2Prefs();
         preferences[key] = value;
-        ps.setPrefs('topo_prefs', preferences);
+        ps.setPrefs('topo2_prefs', preferences);
         return preferences[key];
     }
 

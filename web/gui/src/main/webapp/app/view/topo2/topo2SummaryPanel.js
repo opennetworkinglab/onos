@@ -30,7 +30,7 @@
 
     // configuration
     var id = 'topo2-p-summary',
-        className = 'topo-p',
+        className = 'topo2-p',
         panelOpts = {
             show: true,
             width: 260 // summary and detail panel width

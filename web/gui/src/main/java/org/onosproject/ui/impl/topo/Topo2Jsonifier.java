@@ -42,6 +42,7 @@ import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.impl.topo.model.UiModelEvent;
@@ -54,6 +55,7 @@ import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,9 +93,21 @@ public class Topo2Jsonifier {
     private static final String DATA = "data";
     private static final String MEMO = "memo";
 
+    private static final String GEO = "geo";
+    private static final String GRID = "grid";
+    private static final String PKEY_TOPO_ZOOM = "topo2_zoom";
+    private static final String ZOOM_SCALE = "zoomScale";
+    private static final String ZOOM_PAN_X = "zoomPanX";
+    private static final String ZOOM_PAN_Y = "zoomPanY";
+    private static final String DEFAULT_SCALE = "1.0";
+    private static final String DEFAULT_PAN = "0.0";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    // preferences are stored per user name...
+    private final String userName;
 
     private ServiceDirectory directory;
     private ClusterService clusterService;
@@ -108,6 +122,7 @@ public class Topo2Jsonifier {
     private TopologyService topologyService;
     private TunnelService tunnelService;
     private UiExtensionService uiextService;
+    private UiPreferencesService prefService;
 
 
     // NOTE: we'll stick this here for now, but maybe there is a better home?
@@ -121,9 +136,11 @@ public class Topo2Jsonifier {
      * on the fly.
      *
      * @param directory service directory
+     * @param userName  logged in user name
      */
-    public Topo2Jsonifier(ServiceDirectory directory) {
+    public Topo2Jsonifier(ServiceDirectory directory, String userName) {
         this.directory = checkNotNull(directory, "Directory cannot be null");
+        this.userName = checkNotNull(userName, "User name cannot be null");
 
         clusterService = directory.get(ClusterService.class);
         deviceService = directory.get(DeviceService.class);
@@ -137,10 +154,12 @@ public class Topo2Jsonifier {
         topologyService = directory.get(TopologyService.class);
         tunnelService = directory.get(TunnelService.class);
         uiextService = directory.get(UiExtensionService.class);
+        prefService = directory.get(UiPreferencesService.class);
     }
 
     // for unit testing
     Topo2Jsonifier() {
+        userName = "(unit-test)";
     }
 
     private ObjectNode objectNode() {
@@ -212,11 +231,45 @@ public class Topo2Jsonifier {
         String sprId = layout.sprites();
 
         if (mapId != null) {
-            result.put("bgType", "geo").put("bgId", mapId);
+            result.put("bgType", GEO).put("bgId", mapId);
             addMapParameters(result, mapId);
         } else if (sprId != null) {
-            result.put("bgType", "grid").put("bgId", sprId);
+            result.put("bgType", GRID).put("bgId", sprId);
         }
+        addZoomPan(result, layout.id());
+    }
+
+    private void addZoomPan(ObjectNode result, UiTopoLayoutId layoutId) {
+        // need to look up topo_zoom settings from preferences service.
+
+        // NOTE:
+        // UiPreferencesService API only allows us to retrieve ALL prefs for
+        // the given user. It would be better if we could call something like:
+        //
+        //   ObjectNode value = prefService.getPreference(userName, prefKey);
+        //
+        // to get back a single value.
+
+        Map<String, ObjectNode> userPrefs = prefService.getPreferences(userName);
+        ObjectNode zoomPrefs = userPrefs.get(PKEY_TOPO_ZOOM);
+
+        if (zoomPrefs == null) {
+            // no zoom prefs structure yet.. so initialize..
+            ObjectNode zoomForLayout = objectNode()
+                    .put(ZOOM_SCALE, DEFAULT_SCALE)
+                    .put(ZOOM_PAN_X, DEFAULT_PAN)
+                    .put(ZOOM_PAN_Y, DEFAULT_PAN);
+
+            zoomPrefs = objectNode();
+            zoomPrefs.set(layoutId.id(), zoomForLayout);
+
+            prefService.setPreference(userName, PKEY_TOPO_ZOOM, zoomPrefs);
+        }
+        ObjectNode zoomData = (ObjectNode) zoomPrefs.get(layoutId.id());
+
+        result.put("bgZoomScale", zoomData.get(ZOOM_SCALE).asText());
+        result.put("bgZoomPanX", zoomData.get(ZOOM_PAN_X).asText());
+        result.put("bgZoomPanY", zoomData.get(ZOOM_PAN_Y).asText());
     }
 
     private void addMapParameters(ObjectNode result, String mapId) {

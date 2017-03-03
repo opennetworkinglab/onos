@@ -44,7 +44,7 @@ describe('factory: fw/util/prefs.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ps, [
-            'getPrefs', 'asNumbers', 'setPrefs',
+            'getPrefs', 'asNumbers', 'setPrefs', 'mergePrefs',
             'addListener', 'removeListener'
         ])).toBe(true);
     });
@@ -57,5 +57,8 @@ describe('factory: fw/util/prefs.js', function() {
 
     // === Tests for setPrefs()
     // TODO unit tests for setPrefs()
+
+    // === Tests for mergePrefs()
+    // TODO unit tests for mergePrefs()
 
 });

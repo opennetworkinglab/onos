@@ -154,6 +154,7 @@
             .attr('in', String);
     }
 
+    // deprecated -- we'll use something else to highlight instances for affinity
     function loadGlowDefs(defs) {
         loadGlow(defs, 0.0, 0.0, 0.7, 'blue-glow');
         loadGlow(defs, 1.0, 1.0, 0.3, 'yellow-glow');

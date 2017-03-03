@@ -23,9 +23,9 @@
     'use strict';
 
     // constants
-    var idDialog = 'topo-p-dialog',
+    var idDialog = 'topo2-p-dialog',
         opts = {
-            cssCls: 'topo-p'
+            cssCls: 'topo2-p'
         };
 
     // ==========================

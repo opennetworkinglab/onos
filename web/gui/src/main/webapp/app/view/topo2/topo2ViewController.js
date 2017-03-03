@@ -43,7 +43,7 @@
             return d3.select('#' + this.id);
         },
         enabled: function () {
-            return ps.getPrefs('topo_prefs')[this.prefs.visible];
+            return ps.getPrefs('topo2_prefs')[this.prefs.visible];
         },
         isVisible: function () {
             return this.node().style('visibility') === 'visible';
@@ -81,9 +81,9 @@
             this.updatePrefState(this.prefs.visible, on);
         },
         updatePrefState: function (key, value) {
-            var state = ps.getPrefs('topo_prefs');
+            var state = ps.getPrefs('topo2_prefs');
             state[key] = value ? 1 : 0;
-            ps.setPrefs('topo_prefs', state);
+            ps.setPrefs('topo2_prefs', state);
         }
     };
 

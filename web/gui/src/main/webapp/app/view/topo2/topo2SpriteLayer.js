@@ -37,7 +37,7 @@
 
                 var SpriteLayer = ViewController.extend({
 
-                    id: 'topo-sprites',
+                    id: 'topo2-sprites',
                     displayName: 'Sprite Layer',
 
                     init: function(svg, zoomLayer) {

@@ -79,7 +79,7 @@
 
     function updatePrefsState(what, b) {
         prefsState[what] = b ? 1 : 0;
-        ps.setPrefs('topo_prefs', prefsState);
+        ps.setPrefs('topo2_prefs', prefsState);
     }
 
     function deviceLabelFlashMessage(index) {
