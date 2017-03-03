@@ -84,10 +84,6 @@
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
                    impl="org.onosproject.driver.optical.power.OplinkEdfaPowerConfig"/>
 
-        <!-- Transparent in-line device ignore all FlowRules  -->
-        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-
     </driver>
 </drivers>
 
