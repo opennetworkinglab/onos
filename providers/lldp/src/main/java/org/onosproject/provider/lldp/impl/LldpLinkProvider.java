@@ -187,7 +187,10 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private ApplicationId appId;
 
     static final SuppressionRules DEFAULT_RULES
-        = new SuppressionRules(EnumSet.of(Device.Type.ROADM, Device.Type.FIBER_SWITCH, Device.Type.OTN),
+        = new SuppressionRules(EnumSet.of(Device.Type.ROADM,
+                                          Device.Type.FIBER_SWITCH,
+                                          Device.Type.OPTICAL_AMPLIFIER,
+                                          Device.Type.OTN),
                                ImmutableMap.of(NO_LLDP, SuppressionRules.ANY_VALUE));
 
     private SuppressionRules rules = LldpLinkProvider.DEFAULT_RULES;

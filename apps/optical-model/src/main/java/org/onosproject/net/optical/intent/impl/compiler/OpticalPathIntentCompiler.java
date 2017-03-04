@@ -24,7 +24,12 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.Device.Type;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -45,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Component(immediate = true)
 public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathIntent> {
@@ -56,6 +62,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService = new DeviceServiceAdapter();
 
     private ApplicationId appId;
 
@@ -91,6 +100,14 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
         );
     }
 
+    private boolean blockFlowRule(DeviceId deviceId) {
+        Type devType = Optional.ofNullable(deviceService.getDevice(deviceId))
+                                .map(Device::type)
+                                .orElse(Device.Type.OTHER);
+        // TODO add condition for protection switch
+        return devType == Device.Type.OPTICAL_AMPLIFIER;
+    }
+
     /**
      * Create rules for the forward path of the intent.
      *
@@ -118,7 +135,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .makePermanent()
                     .build();
 
-            rules.add(rule);
+            if (!blockFlowRule(current.deviceId())) {
+                rules.add(rule);
+            }
 
             current = link.dst();
             selectorBuilder.matchInPort(link.dst().port());
@@ -138,7 +157,10 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .fromApp(appId)
                 .makePermanent()
                 .build();
-        rules.add(rule);
+
+        if (!blockFlowRule(intent.dst().deviceId())) {
+            rules.add(rule);
+        }
 
         return rules;
     }
@@ -170,7 +192,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .makePermanent()
                     .build();
 
-            rules.add(rule);
+            if (!blockFlowRule(current.deviceId())) {
+                rules.add(rule);
+            }
 
             current = link.src();
             selectorBuilder.matchInPort(link.src().port());
@@ -190,7 +214,10 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .fromApp(appId)
                 .makePermanent()
                 .build();
-        rules.add(rule);
+
+        if (!blockFlowRule(intent.src().deviceId())) {
+            rules.add(rule);
+        }
 
         return rules;
     }
