@@ -67,3 +67,22 @@
     font-size: 10px;
     width: 180px;
 }
+
+#ov-roadm-port .mode-select .mode-title {
+    margin: 0;
+    font-weight:bold;
+    font-size: 16px;
+}
+
+#ov-roadm-port .mode-select .mode-fail {
+    color: red;
+    font-size: 10px;
+}
+
+#ov-roadm-port .mode-select select {
+    width: 150px;
+}
+
+#ov-roadm-port .mode-select button {
+    width: 100px;
+}

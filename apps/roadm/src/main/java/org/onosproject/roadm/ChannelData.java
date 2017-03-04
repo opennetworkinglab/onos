@@ -58,8 +58,7 @@ public final class ChannelData {
         PortNumber inPort = ((PortCriterion) in).port();
 
         Criterion och = rule.selector().getCriterion(Criterion.Type.OCH_SIGID);
-        checkNotNull(och);
-        OchSignal ochSignal = ((OchSignalCriterion) och).lambda();
+        OchSignal ochSignal = och == null ? null : ((OchSignalCriterion) och).lambda();
 
         PortNumber outPort = null;
         List<Instruction> instructions = rule.treatment().allInstructions();

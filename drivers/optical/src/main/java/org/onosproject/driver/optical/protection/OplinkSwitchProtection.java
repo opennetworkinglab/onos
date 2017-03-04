@@ -16,6 +16,7 @@
 
 package org.onosproject.driver.optical.protection;
 
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
@@ -73,15 +74,13 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
     private static final int PRIMARY_PORT = 1;
     private static final int SECONDARY_PORT = 2;
     private static final int CLIENT_PORT = 3;
+    private static final int FLOWRULE_PRIORITY = 88;
     private static final String PRIMARY_ID = "primary_port";
     private static final String SECONDARY_ID = "secondary_port";
     private static final String OPLINK_FINGERPRINT = "OplinkOPS";
+    private static final String APP_ID = "org.onosproject.drivers.optical";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-
-    private FlowRuleService flowRuleService = this.handler().get(FlowRuleService.class);
-    private DeviceService deviceService = this.handler().get(DeviceService.class);
-    private NetworkConfigService netCfgService = this.handler().get(NetworkConfigService.class);
 
     @Override
     public CompletableFuture<ConnectPoint> createProtectionEndpoint(
@@ -96,7 +95,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         //add a virtual link bewteen two virtual ports of this device and peer
         addLinkToPeer(configuration.peer());
 
-        result.complete(new ConnectPoint(this.data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT)));
+        result.complete(new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT)));
 
         return result;
     }
@@ -108,7 +107,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         log.warn("Update protection configuration is not supported by this device");
 
         CompletableFuture result = new CompletableFuture<ConnectPoint>();
-        result.complete(new ConnectPoint(this.data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT)));
+        result.complete(new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT)));
 
         return result;
     }
@@ -132,7 +131,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
 
     @Override
     public CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointDescription>> getProtectionEndpointConfigs() {
-        ConnectPoint cp = new ConnectPoint(this.data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
+        ConnectPoint cp = new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
 
         Map<ConnectPoint, ProtectedTransportEndpointDescription> protectedGroups = new HashMap<>();
         CompletableFuture result = new CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointDescription>>();
@@ -145,7 +144,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
 
     @Override
     public CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointState>> getProtectionEndpointStates() {
-        ConnectPoint cp = new ConnectPoint(this.data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
+        ConnectPoint cp = new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
 
         Map<ConnectPoint, ProtectedTransportEndpointState> protectedGroups = new HashMap<>();
         CompletableFuture result = new CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointState>>();
@@ -193,9 +192,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
 
         teds.add(tedPrimary);
         teds.add(tedSecondary);
-        return ProtectedTransportEndpointDescription.of(teds,
-                                                        getPeerId(),
-                                                        OPLINK_FINGERPRINT);
+        return ProtectedTransportEndpointDescription.of(teds, getPeerId(), OPLINK_FINGERPRINT);
     }
 
     /*
@@ -205,7 +202,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         Map<String, String> attributes = new HashMap<>();
 
         //get status form port annotations, the status is update by hand shaker driver periodically
-        Port port = deviceService.getPort(this.data().deviceId(), portNumber);
+        Port port = handler().get(DeviceService.class).getPort(data().deviceId(), portNumber);
         if (port != null) {
             String portStatus = port.annotations().value(OpticalAnnotations.INPUT_PORT_STATUS);
             attributes.put(OpticalAnnotations.INPUT_PORT_STATUS, portStatus);
@@ -214,7 +211,8 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
     }
 
     private int getActiveIndex() {
-        Port port = deviceService.getPort(this.data().deviceId(), PortNumber.portNumber(PRIMARY_PORT));
+        Port port = handler().get(DeviceService.class)
+                .getPort(data().deviceId(), PortNumber.portNumber(PRIMARY_PORT));
         if (port != null) {
             if (port.annotations().value(OpticalAnnotations.INPUT_PORT_STATUS)
                     .equals(OpticalAnnotations.STATUS_IN_SERVICE)) {
@@ -229,10 +227,12 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
      */
     private ProtectedTransportEndpointState getProtectedTransportEndpointState() {
         List<TransportEndpointState> tess = new ArrayList<>();
+        PortNumber portPrimary = PortNumber.portNumber(PRIMARY_PORT);
+        PortNumber portSecondary = PortNumber.portNumber(SECONDARY_PORT);
         FilteredConnectPoint fcpPrimary = new FilteredConnectPoint(
-                new ConnectPoint(data().deviceId(), PortNumber.portNumber(PRIMARY_PORT)));
+                new ConnectPoint(data().deviceId(), portPrimary));
         FilteredConnectPoint fcpSecondary = new FilteredConnectPoint(
-                new ConnectPoint(data().deviceId(), PortNumber.portNumber(SECONDARY_PORT)));
+                new ConnectPoint(data().deviceId(), portSecondary));
         TransportEndpointDescription tedPrimary = TransportEndpointDescription.builder()
                 .withOutput(fcpPrimary).build();
         TransportEndpointDescription tedSecondary = TransportEndpointDescription.builder()
@@ -241,12 +241,12 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         TransportEndpointState tesPrimary = TransportEndpointState.builder()
                 .withDescription(tedPrimary)
                 .withId(TransportEndpointId.of(PRIMARY_ID))
-                .addAttributes(getProtectionStateAttributes(PortNumber.portNumber(PRIMARY_PORT)))
+                .addAttributes(getProtectionStateAttributes(portPrimary))
                 .build();
         TransportEndpointState tesSecondary = TransportEndpointState.builder()
                 .withDescription(tedSecondary)
                 .withId(TransportEndpointId.of(SECONDARY_ID))
-                .addAttributes(getProtectionStateAttributes((PortNumber.portNumber(SECONDARY_PORT))))
+                .addAttributes(getProtectionStateAttributes((portSecondary)))
                 .build();
 
         tess.add(tesPrimary);
@@ -266,30 +266,32 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
      *      - A flow from secondary port to client port indicates the device is manually switched to secondary
      */
     private void addFlow(PortNumber workingPort) {
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        FlowRule.Builder flowRule = DefaultFlowRule.builder();
-
-        //set working port as flow's input port
-        selectorBuilder.matchInPort(workingPort);
-
-        //the flow's  output port is always the clinet port
-        treatment.setOutput(PortNumber.portNumber(CLIENT_PORT));
-
-        flowRule.forDevice(this.data().deviceId())
-                .withSelector(selectorBuilder.build())
-                .withTreatment(treatment.build())
-                .makePermanent();
+        // set working port as flow's input port
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(workingPort)
+                .build();
+        // the flow's  output port is always the clinet port
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(CLIENT_PORT))
+                .build();
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(data().deviceId())
+                .fromApp(handler().get(CoreService.class).getAppId(APP_ID))
+                .withPriority(FLOWRULE_PRIORITY)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .makePermanent()
+                .build();
 
         // install flow rule
-        flowRuleService.applyFlowRules(flowRule.build());
+        handler().get(FlowRuleService.class).applyFlowRules(flowRule);
     }
     /*
         Delete all the flows to put device in default mode.
      */
     private void deleteFlow() {
         // remove all the flows.
-        flowRuleService.purgeFlowRules(this.data().deviceId());
+        handler().get(FlowRuleService.class).purgeFlowRules(data().deviceId());
     }
 
     private void addLinkToPeer(DeviceId peerId) {
@@ -301,7 +303,8 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         ConnectPoint dstCp = new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
         ConnectPoint srcCp = new ConnectPoint(peerId, PortNumber.portNumber(VIRTUAL_PORT));
         LinkKey link = linkKey(srcCp, dstCp);
-        BasicLinkConfig cfg = netCfgService.addConfig(link, BasicLinkConfig.class);
+        BasicLinkConfig cfg = handler().get(NetworkConfigService.class)
+                .addConfig(link, BasicLinkConfig.class);
         cfg.type(Link.Type.VIRTUAL);
         cfg.apply();
     }
@@ -314,12 +317,12 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         ConnectPoint dstCp = new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
         ConnectPoint srcCp = new ConnectPoint(peerId, PortNumber.portNumber(VIRTUAL_PORT));
         LinkKey link = linkKey(srcCp, dstCp);
-        netCfgService.removeConfig(link, BasicLinkConfig.class);
+        handler().get(NetworkConfigService.class).removeConfig(link, BasicLinkConfig.class);
     }
 
     private DeviceId getPeerId() {
         ConnectPoint dstCp = new ConnectPoint(data().deviceId(), PortNumber.portNumber(VIRTUAL_PORT));
-        Set<Link> links = this.handler().get(LinkService.class).getIngressLinks(dstCp);
+        Set<Link> links = handler().get(LinkService.class).getIngressLinks(dstCp);
 
         for (Link l : links) {
             if (l.type() == Link.Type.VIRTUAL) {
@@ -328,6 +331,6 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
             }
         }
 
-        return null;
+        return data().deviceId();
     }
 }

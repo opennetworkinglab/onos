@@ -4,6 +4,10 @@
 
     var SET_TARGET_POWER_REQ = "roadmSetTargetPowerRequest";
     var SET_TARGET_POWER_RESP = "roadmSetTargetPowerResponse";
+    var SHOW_ITEMS_REQ = "roadmShowPortItemsRequest";
+    var SHOW_ITEMS_RESP = "roadmShowPortItemsResponse";
+    var SET_OPS_MODE_REQ = "roadmSetOpsModeRequest";
+    var SET_OPS_MODE_RESP = "roadmSetOpsModeResponse";
 
     // injected references
     var $log, $scope, $location, fs, tbs, wss, ns;
@@ -13,7 +17,7 @@
     function setPortPower(port, targetVal, cb) {
         var id = port.id;
         portCbTable[id] = cb;
-        wss.sendEvent("roadmSetTargetPowerRequest",
+        wss.sendEvent(SET_TARGET_POWER_REQ,
             {
                 devId: $scope.devId,
                 id: port.id,
@@ -23,6 +27,36 @@
 
     function portPowerCb(data) {
         portCbTable[data.id](data.valid, data.message);
+    }
+
+    function queryShowItems() {
+        wss.sendEvent(SHOW_ITEMS_REQ,
+            {
+                devId: $scope.devId,
+            });
+    }
+
+    function showItemsCb(data) {
+        $scope.showTargetPower = data.showTargetPower;
+        $scope.showServiceState = data.showServiceState;
+        $scope.showFlowIcon = data.showFlowIcon;
+        $scope.$apply();
+    }
+
+    function changeOpsMode() {
+        wss.sendEvent(SET_OPS_MODE_REQ,
+            {
+                devId: $scope.devId,
+                index: $scope.opsModeType.index
+            });
+    }
+
+    function changeOpsModeCb(data) {
+        $scope.changeModeFail = !data.valid;
+        if ($scope.changeModeFail) {
+            $scope.changeModeFailMsg = data.message;
+        }
+        $scope.$apply();
     }
 
     // check if value is an integer
@@ -51,11 +85,18 @@
 
             $scope.deviceTip = 'Show device table';
             $scope.flowTip = 'Show flow view for this device';
-            $scope.groupTip = 'Show group view for this device';
-            $scope.meterTip = 'Show meter view for selected device';
+            $scope.portTip = 'Show port view for this device';
+            $scope.opsModeTypes = [
+                {index: 0, type: "Auto"},
+                {index: 1, type: "Primary"},
+                {index: 2, type: "Secondary"}
+            ];
+            $scope.opsModeType = $scope.opsModeTypes[0];//auto mode
 
             var handlers = {};
             handlers[SET_TARGET_POWER_RESP] = portPowerCb;
+            handlers[SHOW_ITEMS_RESP] = showItemsCb;
+            handlers[SET_OPS_MODE_RESP] = changeOpsModeCb;
             wss.bindHandlers(handlers);
 
             params = $location.search();
@@ -70,9 +111,11 @@
             });
 
             $scope.setPortPower = setPortPower;
+            $scope.queryShowItems = queryShowItems;
+            $scope.changeOpsMode = changeOpsMode;
 
             $scope.setTargetPower = function (port, targetVal) {
-                wss.sendEvent("roadmSetTargetPowerRequest",
+                wss.sendEvent(SET_TARGET_POWER_REQ,
                     {
                         devId: $scope.devId,
                         id: port.id,

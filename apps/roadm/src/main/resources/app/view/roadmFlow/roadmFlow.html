@@ -1,5 +1,5 @@
 <!-- partial HTML -->
-<div id="ov-roadm-flow" class="less-gap">
+<div id="ov-roadm-flow" class="less-gap" ng-init="queryShowItems()">
 
     <div class="tabular-header">
         <h2>Connections for Optical Device {{devId}} ({{tableData.length}} total)</h2>
@@ -45,10 +45,10 @@
                     <td colId="state" sortable>State </td>
                     <td colId="inPort" sortable>In Port </td>
                     <td colId="outPort" sortable>Out Port </td>
-                    <td colId="multiplier" sortable>Channel </td>
-                    <td colId="spacing">Spacing <span class="units">(GHz)</span> </td>
+                    <td colId="multiplier" ng-show="showChannel" sortable>Channel </td>
+                    <td colId="spacing" ng-show="showChannel">Spacing <span class="units">(GHz)</span> </td>
                     <td colId="currentPower" col-width="180px">Current Power <span class="units">(0.01dBm)</span></td>
-                    <td colId="attenuation" col-width="200px">Attenuation <span class="units">(0.01dB)</span></td>
+                    <td colId="attenuation" col-width="200px" ng-show="showAttenuation">Attenuation <span class="units">(0.01dB)</span></td>
                 </tr>
             </table>
         </div>
@@ -72,10 +72,10 @@
                     <td>{{flow.state}}</td>
                     <td>{{flow.inPort}}</td>
                     <td>{{flow.outPort}}</td>
-                    <td>{{flow.multiplier}} ({{flow.multiplier * 0.05 + 193.1 | number:2}} THz)</td>
-                    <td>{{flow.spacing}}</td>
+                    <td ng-show="showChannel">{{flow.multiplier}}{{flow.channdlFrequency}}</td>
+                    <td ng-show="showChannel">{{flow.spacing}}</td>
                     <td>{{flow.currentPower}}</td>
-                    <td class="editable" roadm-att="flow" roadm-set-att="setAttenuation(flow, targetVal, cb)"></td>
+                    <td class="editable" roadm-att="flow" roadm-set-att="setAttenuation(flow, targetVal, cb)" ng-show="showAttenuation"></td>
                 </tr>
             </table>
         </div>
@@ -100,16 +100,18 @@
             <span class="form-error" ng-show="form.outPortError">{{form.outPortMessage}}</span>
             <span class="form-error" ng-show="form.connectionError">{{form.connectionMessage}}</span><br />
 
-            <label>Channel Spacing</label><select ng-model="form.flow.spacing" ng-options="x.freq for x in form.spacings"></select>
+            <label>Include Channel</label><input type="checkbox" ng-model="showChannel" /><br />
+
+            <label>Channel Spacing</label><select ng-model="form.flow.spacing" ng-disabled="!showChannel" ng-options="x.freq for x in form.spacings"></select>
             <span class="form-error" ng-show="form.spacingError">{{form.spacingMessage}}</span><br />
 
-            <label>Spacing Multiplier</label><input type="number" ng-model="form.flow.multiplier" />
+            <label>Spacing Multiplier</label><input type="number" ng-model="form.flow.multiplier" ng-disabled="!showChannel"/>
             <span class="form-error" ng-show="form.multiplierError">{{form.multiplierMessage}}</span>
             <span class="form-error" ng-show="form.channelError">{{form.channelMessage}}</span><br />
 
-            <label>Include Attenuation</label><input type="checkbox" ng-model="form.flow.includeAttenuation" /><br />
+            <label>Include Attenuation</label><input type="checkbox" ng-model="showAttenuation" /><br />
 
-            <label>Attenuation</label><input type="number" ng-model="form.flow.attenuation" ng-disabled="!form.flow.includeAttenuation"/>
+            <label>Attenuation</label><input type="number" ng-model="form.flow.attenuation" ng-disabled="!showAttenuation"/>
             <span class="form-error" ng-show="form.attenuationError">{{form.attenuationMessage}}</span><br />
         </form>
         <button type="submit" class="submit" ng-click="form.createFlow(form.flow)">Create Connection</button>

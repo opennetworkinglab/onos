@@ -114,6 +114,9 @@ public class OplinkPowerConfigUtil {
     private static final long ROADM_POWER_OTHER_OUT_HIGH_THRES = 1500L;
     private static final long ROADM_MIN_ATTENUATION = 0L;
     private static final long ROADM_MAX_ATTENUATION = 2500L;
+    // SWITCH
+    private static final long SWITCH_POWER_LOW_THRES = -6000L;
+    private static final long SWITCH_POWER_HIGH_THRES = 6000L;
 
     /**
      * Create a new OplinkPowerConfigUtil.
@@ -296,6 +299,8 @@ public class OplinkPowerConfigUtil {
                     return Range.closed(ROADM_POWER_OTHER_OUT_LOW_THRES, ROADM_POWER_OTHER_OUT_HIGH_THRES);
                 }
                 break;
+            case FIBER_SWITCH:
+                return Range.closed(SWITCH_POWER_LOW_THRES, SWITCH_POWER_HIGH_THRES);
             default:
                 log.warn("Unexpected device type: {}", devType);
                 break;
@@ -335,6 +340,8 @@ public class OplinkPowerConfigUtil {
                     return Range.closed(ROADM_POWER_OTHER_IN_LOW_THRES, ROADM_POWER_OTHER_IN_HIGH_THRES);
                 }
                 break;
+            case FIBER_SWITCH:
+                return Range.closed(SWITCH_POWER_LOW_THRES, SWITCH_POWER_HIGH_THRES);
             default:
                 log.warn("Unexpected device type: {}", devType);
                 break;

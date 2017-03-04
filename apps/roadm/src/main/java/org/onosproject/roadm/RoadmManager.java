@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Direction;
@@ -34,6 +35,9 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.PowerConfig;
+import org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour;
+import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
+import org.onosproject.net.behaviour.protection.TransportEndpointState;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -48,14 +52,20 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.optical.OpticalAnnotations;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -101,94 +111,46 @@ public class RoadmManager implements RoadmService {
         log.info("Stopped");
     }
 
-    private PowerConfig<Object> getPowerConfig(DeviceId deviceId) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device != null && device.is(PowerConfig.class)) {
-            return device.as(PowerConfig.class);
-        }
-        log.warn("Unable to load PowerConfig for {}", deviceId);
-        return null;
-    }
-
-    private LambdaQuery getLambdaQuery(DeviceId deviceId) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device != null && device.is(LambdaQuery.class)) {
-            return device.as(LambdaQuery.class);
-        }
-        return null;
-    }
-
-    private void initDevices() {
-        for (Device device : deviceService.getDevices(Device.Type.ROADM)) {
-            initDevice(device.id());
-            setAllInitialTargetPortPowers(device.id());
-        }
-    }
-
-    // Initialize RoadmStore for a device to support target power
-    private void initDevice(DeviceId deviceId) {
-        if (!roadmStore.deviceAvailable(deviceId)) {
-            roadmStore.addDevice(deviceId);
-        }
-        log.info("Initialized device {}", deviceId);
-    }
-
-    // Sets the target port powers for a port on a device
-    // Attempts to read target powers from store. If no value is found then
-    // default value is used instead.
-    private void setInitialTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
-        PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
-        if (powerConfig == null) {
-            log.warn("Unable to set default initial powers for port {} on device {}",
-                     portNumber, deviceId);
+    @Override
+    public void setProtectionSwitchWorkingPath(DeviceId deviceId, int index) {
+        checkNotNull(deviceId);
+        ProtectionConfigBehaviour behaviour = getProtectionConfig(deviceId);
+        if (behaviour == null) {
             return;
         }
-
-        Optional<Range<Long>> range =
-                powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
-        if (!range.isPresent()) {
-            log.warn("No target power range found for port {} on device {}",
-                     portNumber, deviceId);
+        Map<ConnectPoint, ProtectedTransportEndpointState> map = getProtectionSwitchStates(behaviour);
+        if (map == null) {
+            log.warn("Failed to get protected transport endpoint state in device {}", deviceId);
             return;
         }
-
-        Long power = roadmStore.getTargetPower(deviceId, portNumber);
-        if (power == null) {
-            // Set default to middle of the range
-            power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
-            roadmStore.setTargetPower(deviceId, portNumber, power);
+        if (map.isEmpty()) {
+            log.warn("No protected transport endpoint state found in device {}", deviceId);
+            return;
         }
-        powerConfig.setTargetPower(portNumber, Direction.ALL, power);
+        behaviour.switchWorkingPath(map.keySet().toArray(new ConnectPoint[0])[0], index);
     }
 
-    // Sets the target port powers for each each port on a device
-    // Attempts to read target powers from store. If no value is found then
-    // default value is used instead
-    private void setAllInitialTargetPortPowers(DeviceId deviceId) {
-        PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
-        if (powerConfig == null) {
-            log.warn("Unable to set default initial powers for device {}",
-                     deviceId);
-            return;
+    @Override
+    public String getProtectionSwitchPortState(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId);
+        ProtectionConfigBehaviour behaviour = getProtectionConfig(deviceId);
+        if (behaviour == null) {
+            return null;
         }
-
-        List<Port> ports = deviceService.getPorts(deviceId);
-        for (Port port : ports) {
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(port.number(), Direction.ALL);
-            if (range.isPresent()) {
-                Long power = roadmStore.getTargetPower(deviceId, port.number());
-                if (power == null) {
-                    // Set default to middle of the range
-                    power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
-                    roadmStore.setTargetPower(deviceId, port.number(), power);
+        Map<ConnectPoint, ProtectedTransportEndpointState> map = getProtectionSwitchStates(behaviour);
+        if (map == null) {
+            log.warn("Failed to get protected transport endpoint state in device {}", deviceId);
+            return null;
+        }
+        for (ProtectedTransportEndpointState state : map.values()) {
+            for (TransportEndpointState element : state.pathStates()) {
+                if (element.description().output().connectPoint().port().equals(portNumber)) {
+                    return element.attributes().get(OpticalAnnotations.INPUT_PORT_STATUS);
                 }
-                powerConfig.setTargetPower(port.number(), Direction.ALL, power);
-            } else {
-                log.warn("No target power range found for port {} on device {}",
-                         port.number(), deviceId);
             }
         }
+        log.warn("Unable to get port status, device: {}, port: {}", deviceId, portNumber);
+        return null;
     }
 
     @Override
@@ -208,8 +170,7 @@ public class RoadmManager implements RoadmService {
     public Long getTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
-        // getTargetPortPower is not yet implemented in PowerConfig so we
-        // access store instead
+        // getTargetPortPower is not yet implemented in PowerConfig so we access store instead
         return roadmStore.getTargetPower(deviceId, portNumber);
     }
 
@@ -229,15 +190,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getAttenuation(DeviceId deviceId, PortNumber portNumber,
-                               OchSignal ochSignal) {
+    public Long getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> attenuation =
-                    powerConfig.getTargetPower(portNumber, ochSignal);
+            Optional<Long> attenuation = powerConfig.getTargetPower(portNumber, ochSignal);
             if (attenuation.isPresent()) {
                 return attenuation.get();
             }
@@ -251,8 +210,7 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> currentPower =
-                    powerConfig.currentPower(portNumber, Direction.ALL);
+            Optional<Long> currentPower = powerConfig.currentPower(portNumber, Direction.ALL);
             if (currentPower.isPresent()) {
                 return currentPower.get();
             }
@@ -261,15 +219,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber,
-                                       OchSignal ochSignal) {
+    public Long getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> currentPower =
-                    powerConfig.currentPower(portNumber, ochSignal);
+            Optional<Long> currentPower = powerConfig.currentPower(portNumber, ochSignal);
             if (currentPower.isPresent()) {
                 return currentPower.get();
             }
@@ -290,31 +246,31 @@ public class RoadmManager implements RoadmService {
 
     @Override
     public FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                                 int timeout, PortNumber inPort, PortNumber outPort,
-                                 OchSignal ochSignal) {
+                                 int timeout, PortNumber inPort, PortNumber outPort, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
 
-        FlowRule.Builder flowBuilder = new DefaultFlowRule.Builder();
-        flowBuilder.fromApp(appId);
-        flowBuilder.withPriority(priority);
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .add(Criteria.matchInPort(inPort))
+                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
+                .add(Criteria.matchLambda(ochSignal))
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .add(Instructions.createOutput(outPort))
+                .build();
+
+        FlowRule.Builder flowBuilder = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .fromApp(appId)
+                .withPriority(priority)
+                .withSelector(selector)
+                .withTreatment(treatment);
         if (isPermanent) {
             flowBuilder.makePermanent();
         } else {
             flowBuilder.makeTemporary(timeout);
         }
-        flowBuilder.forDevice(deviceId);
-
-        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
-        selectorBuilder.add(Criteria.matchInPort(inPort));
-        selectorBuilder.add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID));
-        selectorBuilder.add(Criteria.matchLambda(ochSignal));
-        flowBuilder.withSelector(selectorBuilder.build());
-
-        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-        treatmentBuilder.add(Instructions.createOutput(outPort));
-        flowBuilder.withTreatment(treatmentBuilder.build());
 
         FlowRule flowRule = flowBuilder.build();
         flowRuleService.applyFlowRules(flowRule);
@@ -332,24 +288,9 @@ public class RoadmManager implements RoadmService {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
-        FlowId flowId = createConnection(deviceId, priority, isPermanent,
-                                         timeout, inPort, outPort, ochSignal);
+        FlowId flowId = createConnection(deviceId, priority, isPermanent, timeout, inPort, outPort, ochSignal);
         delayedSetAttenuation(deviceId, outPort, ochSignal, attenuation);
         return flowId;
-    }
-
-    // Delay the call to setTargetPower because the flow may not be in the store yet
-    private void delayedSetAttenuation(DeviceId deviceId, PortNumber outPort,
-                                       OchSignal ochSignal, long attenuation) {
-        Runnable setAtt = () -> {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                log.warn("Thread interrupted. Setting attenuation early.");
-            }
-            setAttenuation(deviceId, outPort, ochSignal, attenuation);
-        };
-        new Thread(setAtt).start();
     }
 
     @Override
@@ -371,37 +312,32 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             return range.isPresent();
         }
         return false;
     }
 
     @Override
-    public boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber,
-                                          long power) {
+    public boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber, long power) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             return range.isPresent() && range.get().contains(power);
         }
         return false;
     }
 
     @Override
-    public boolean attenuationInRange(DeviceId deviceId, PortNumber outPort,
-                                      long att) {
+    public boolean attenuationInRange(DeviceId deviceId, PortNumber outPort, long att) {
         checkNotNull(deviceId);
         checkNotNull(outPort);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
             OchSignal stubOch = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 0);
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(outPort, stubOch);
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(outPort, stubOch);
             return range.isPresent() && range.get().contains(att);
         }
         return false;
@@ -413,8 +349,7 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getInputPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Long>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
             return range.isPresent();
         }
         return false;
@@ -426,10 +361,10 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public boolean validChannel(DeviceId deviceId, PortNumber portNumber,
-                                OchSignal ochSignal) {
+    public boolean validChannel(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
+        checkNotNull(ochSignal);
         LambdaQuery lambdaQuery = getLambdaQuery(deviceId);
         if (lambdaQuery != null) {
             Set<OchSignal> channels = lambdaQuery.queryLambdas(portNumber);
@@ -451,8 +386,7 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public boolean validConnection(DeviceId deviceId, PortNumber inPort,
-                                   PortNumber outPort) {
+    public boolean validConnection(DeviceId deviceId, PortNumber inPort, PortNumber outPort) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
@@ -465,8 +399,7 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             if (range.isPresent()) {
                 return range.get();
             }
@@ -475,15 +408,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Range<Long> attenuationRange(DeviceId deviceId, PortNumber portNumber,
-                                        OchSignal ochSignal) {
+    public Range<Long> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getTargetPowerRange(portNumber, ochSignal);
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, ochSignal);
             if (range.isPresent()) {
                 return range.get();
             }
@@ -497,13 +428,143 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range =
-                    powerConfig.getInputPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Long>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
             if (range.isPresent()) {
                 return range.get();
             }
         }
         return null;
+    }
+
+    private PowerConfig<Object> getPowerConfig(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null && device.is(PowerConfig.class)) {
+            return device.as(PowerConfig.class);
+        }
+        log.warn("Unable to load PowerConfig for {}", deviceId);
+        return null;
+    }
+
+    private LambdaQuery getLambdaQuery(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null && device.is(LambdaQuery.class)) {
+            return device.as(LambdaQuery.class);
+        }
+        log.warn("Unable to load LambdaQuery for {}", deviceId);
+        return null;
+    }
+
+    private ProtectionConfigBehaviour getProtectionConfig(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null && device.is(ProtectionConfigBehaviour.class)) {
+            return device.as(ProtectionConfigBehaviour.class);
+        }
+        log.warn("Unable to load ProtectionConfigBehaviour for {}", deviceId);
+        return null;
+    }
+
+    // Initialize all devices
+    private void initDevices() {
+        for (Device device : deviceService.getDevices(Device.Type.ROADM)) {
+            initDevice(device.id());
+            //FIXME
+            // As roadm application is a optional tool for now.
+            // The target power initialization will be enhanced later,
+            // hopefully using an formal optical subsystem.
+            // setAllInitialTargetPortPowers(device.id());
+        }
+    }
+
+    // Initialize RoadmStore for a device to support target power
+    private void initDevice(DeviceId deviceId) {
+        if (!roadmStore.deviceAvailable(deviceId)) {
+            roadmStore.addDevice(deviceId);
+        }
+        log.info("Initialized device {}", deviceId);
+    }
+
+    // Sets the target port powers for a port on a device
+    // Attempts to read target powers from store. If no value is found then
+    // default value is used instead.
+    private void setInitialTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
+        PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
+        if (powerConfig == null) {
+            log.warn("Unable to set default initial powers for port {} on device {}", portNumber, deviceId);
+            return;
+        }
+
+        Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+        if (!range.isPresent()) {
+            log.warn("No target power range found for port {} on device {}", portNumber, deviceId);
+            return;
+        }
+
+        Long power = roadmStore.getTargetPower(deviceId, portNumber);
+        if (power == null) {
+            // Set default to middle of the range
+            power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
+            roadmStore.setTargetPower(deviceId, portNumber, power);
+        }
+        powerConfig.setTargetPower(portNumber, Direction.ALL, power);
+    }
+
+    // Sets the target port powers for each each port on a device
+    // Attempts to read target powers from store. If no value is found then
+    // default value is used instead
+    private void setAllInitialTargetPortPowers(DeviceId deviceId) {
+        PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
+        if (powerConfig == null) {
+            log.warn("Unable to set default initial powers for device {}", deviceId);
+            return;
+        }
+
+        List<Port> ports = deviceService.getPorts(deviceId);
+        for (Port port : ports) {
+            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(port.number(), Direction.ALL);
+            if (range.isPresent()) {
+                Long power = roadmStore.getTargetPower(deviceId, port.number());
+                if (power == null) {
+                    // Set default to middle of the range
+                    power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
+                    roadmStore.setTargetPower(deviceId, port.number(), power);
+                }
+                powerConfig.setTargetPower(port.number(), Direction.ALL, power);
+            } else {
+                log.warn("No target power range found for port {} on device {}", port.number(), deviceId);
+            }
+        }
+    }
+
+    // Delay the call to setTargetPower because the flow may not be in the store yet
+    private void delayedSetAttenuation(DeviceId deviceId, PortNumber outPort,
+                                       OchSignal ochSignal, long attenuation) {
+        Runnable setAtt = () -> {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted. Setting attenuation early.");
+            }
+            setAttenuation(deviceId, outPort, ochSignal, attenuation);
+        };
+        new Thread(setAtt).start();
+    }
+
+    // get protection endpoint states
+    private Map<ConnectPoint, ProtectedTransportEndpointState> getProtectionSwitchStates(
+            ProtectionConfigBehaviour behaviour) {
+        CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointState>>
+                states = behaviour.getProtectionEndpointStates();
+        Map<ConnectPoint, ProtectedTransportEndpointState> map;
+        try {
+            map = states.get();
+        } catch (InterruptedException e1) {
+            log.error("Interrupted.", e1);
+            return null;
+        } catch (ExecutionException e1) {
+            log.error("Exception caught.", e1);
+            return null;
+        }
+        return map;
     }
 
     // Listens to device events.
@@ -519,7 +580,11 @@ public class RoadmManager implements RoadmService {
                     break;
                 case PORT_ADDED:
                 case PORT_UPDATED:
-                    setInitialTargetPortPower(device.id(), deviceEvent.port().number());
+                    //FIXME
+                    // As roadm application is a optional tool for now.
+                    // The target power initialization will be enhanced later,
+                    // hopefully using an formal optical subsystem.
+                    // setInitialTargetPortPower(device.id(), deviceEvent.port().number());
                     break;
                 default:
                     break;

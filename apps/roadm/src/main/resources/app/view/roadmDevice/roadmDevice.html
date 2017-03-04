@@ -16,7 +16,8 @@
             <div ng-class="{active: !!selId}"
                  icon icon-id="flowTable" icon-size="42"
                  tooltip tt-msg="flowTip"
-                 ng-click="nav('roadmFlow')"></div>
+                 ng-click="nav('roadmFlow')"
+                 ng-show="showFlowIcon"></div>
 
 
             <div ng-class="{active: !!selId}"
@@ -34,6 +35,7 @@
                     <td colId="name"sortable>Friendly Name</td>
                     <td colId="id" sortable>Device ID </td>
                     <td colId="master" sortable col-width="120px">Master </td>
+                    <td colId="type" sortable>Device Type </td>
                     <td colId="ports" sortable col-width="70px">Ports </td>
                     <td colId="vendor" sortable>Vendor </td>
                     <td colId="hwVersion" sortable>H/W Version </td>
@@ -53,10 +55,11 @@
 
                 <tr ng-repeat="item in tableData track by $index"
                     ng-class="{selected: item.id === selId}"
-                    ng-click="selectCallback($event, item)">
+                    ng-click="selectCallback($event, item);queryShowItems(item)">
                     <td>{{item.name}}</td>
                     <td>{{item.id}}</td>
                     <td>{{item.master}}</td>
+                    <td>{{item.type}}</td>
                     <td>{{item.ports}}</td>
                     <td>{{item.vendor}}</td>
                     <td>{{item.hwVersion}}</td>

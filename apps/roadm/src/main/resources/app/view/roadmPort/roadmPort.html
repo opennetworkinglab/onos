@@ -1,5 +1,5 @@
 <!-- partial HTML -->
-<div id="ov-roadm-port" class="less-gap">
+<div id="ov-roadm-port" class="less-gap" ng-init="queryShowItems()">
 
     <div class="tabular-header">
         <h2>Ports for Optical Device {{devId}} ({{tableData.length}} total)</h2>
@@ -18,7 +18,7 @@
             <div class="active"
                  icon icon-id="flowTable" icon-size="42"
                  tooltip tt-msg="flowTip"
-                 ng-click="nav('roadmFlow')"></div>
+                 ng-click="nav('roadmFlow')" ng-show="showFlowIcon"></div>
 
             <div class="current-view"
                  icon icon-id="portTable" icon-size="42"
@@ -27,7 +27,6 @@
     </div>
 
     <div class="summary-list" onos-table-resize>
-
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
@@ -40,7 +39,8 @@
                     <td colId="grid" sortable>Grid <span class="units">(GHz)</span> </td>
                     <td colId="portMac" sortable>Input Power Range </td>
                     <td colId="currentPower">Current Power <span class="units">(0.01dBm)</span> </td>
-                    <td colId="targetPower" col-width="200px">Target Power <span class="units">(0.01dBm)</span> </td>
+                    <td colId="serviceState" ng-show="showServiceState">Protection Status </td>
+                    <td colId="targetPower" col-width="200px" ng-show="showTargetPower">Target Power <span class="units">(0.01dBm)</span> </td>
                 </tr>
             </table>
         </div>
@@ -48,7 +48,7 @@
         <div class="table-body">
             <table>
                 <tr ng-if="!tableData.length" class="no-data">
-                    <td colspan="10">
+                    <td colspan="11">
                         {{annots.no_rows_msg}}
                     </td>
                 </tr>
@@ -64,10 +64,17 @@
                     <td>{{item.grid}}</td>
                     <td>{{item.inputPowerRange}}</td>
                     <td>{{item.currentPower}}</td>
-                    <td class="editable" roadm-power="item" roadm-set-power="setPortPower(port, targetVal, cb)"></td>
+                    <td ng-show="showServiceState">{{item.serviceState}}</td>
+                    <td ng-show="showTargetPower" class="editable" roadm-power="item" roadm-set-power="setPortPower(port, targetVal, cb)"></td>
                 </tr>
             </table>
+            <div class="mode-select" ng-show="showServiceState">
+                <hr/>
+                <label class="mode-title">Protection Mode:</label>
+                <select ng-model="opsModeType" ng-options="mode.type for mode in opsModeTypes"></select>
+                <button ng-click="changeOpsMode()" title="Click to apply selected protection mode">Apply</button>
+                <label class="mode-fail" ng-if="changeModeFail">{{changeModeFailMsg}}</label>
+            </div>
         </div>
-
     </div>
 </div>

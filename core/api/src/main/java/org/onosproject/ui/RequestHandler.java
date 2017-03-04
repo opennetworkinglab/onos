@@ -150,4 +150,15 @@ public abstract class RequestHandler {
     protected boolean bool(ObjectNode node, String key) {
         return JsonUtils.bool(node, key);
     }
+
+    /**
+     * Returns the specified node property as a number.
+     *
+     * @param node object node
+     * @param key  property name
+     * @return property as a number
+     */
+    protected long number(ObjectNode node, String key) {
+        return JsonUtils.number(node, key);
+    }
 }
