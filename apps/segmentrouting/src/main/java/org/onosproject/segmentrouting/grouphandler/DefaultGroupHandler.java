@@ -360,15 +360,18 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Adds or removes a port that has been configured with a subnet to a broadcast group
-     * for bridging. Note that this does not create the broadcast group itself.
-     * Should only be called by the master instance for this device/port.
+     * Adds or removes a port that has been configured with a vlan to a broadcast group
+     * for bridging. Should only be called by the master instance for this device.
      *
      * @param port the port on this device that needs to be added/removed to a bcast group
-     * @param vlanId the vlan id corresponding to the broadcast group
+     * @param vlanId the vlan id corresponding to the broadcast domain/group
+     * @param popVlan indicates if packets should be sent out untagged or not out
+     *                of the port. If true, indicates an access (untagged) or native vlan
+     *                configuration. If false, indicates a trunk (tagged) vlan config.
      * @param portUp true if port is enabled, false if disabled
      */
-    public void processEdgePort(PortNumber port, VlanId vlanId, boolean portUp) {
+    public void processEdgePort(PortNumber port, VlanId vlanId,
+                                boolean popVlan, boolean portUp) {
         //get the next id for the subnet and edit it.
         Integer nextId = getVlanNextObjectiveId(vlanId);
         if (nextId == -1) {
@@ -389,14 +392,13 @@ public class DefaultGroupHandler {
                                           port, nextId);
         // Create the bucket to be added or removed
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.popVlan();
+        if (popVlan) {
+            tBuilder.popVlan();
+        }
         tBuilder.setOutput(port);
 
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(new ConnectPoint(deviceId, port));
-        VlanId assignedVlanId = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
-
         TrafficSelector metadata =
-                DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
+                DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
 
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)

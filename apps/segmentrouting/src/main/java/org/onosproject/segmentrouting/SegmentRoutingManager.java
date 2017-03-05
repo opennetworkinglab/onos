@@ -1015,30 +1015,41 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // to switch ports, link-events should take care of any re-routing or
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
-        VlanId untaggedVlan = getUntaggedVlanId(new ConnectPoint(device.id(), port.number()));
-        VlanId vlanId = (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+        ConnectPoint cp = new ConnectPoint(device.id(), port.number());
+        VlanId untaggedVlan = getUntaggedVlanId(cp);
+        VlanId nativeVlan = getNativeVlanId(cp);
+        Set<VlanId> taggedVlans = getTaggedVlanId(cp);
 
-        if (vlanId.equals(INTERNAL_VLAN)) {
+        if (untaggedVlan == null && nativeVlan == null && taggedVlans.isEmpty()) {
             log.debug("Not handling port updated event for unconfigured port "
                     + "dev/port: {}/{}", device.id(), port.number());
             return;
         }
-        processEdgePort(device, port, vlanId);
+        if (untaggedVlan != null) {
+            processEdgePort(device, port, untaggedVlan, true);
+        }
+        if (nativeVlan != null) {
+            processEdgePort(device, port, nativeVlan, true);
+        }
+        if (!taggedVlans.isEmpty()) {
+            taggedVlans.forEach(tag -> processEdgePort(device, port, tag, false));
+        }
     }
 
-    private void processEdgePort(Device device, Port port, VlanId vlanId) {
+    private void processEdgePort(Device device, Port port, VlanId vlanId,
+                                 boolean popVlan) {
         boolean portUp = port.isEnabled();
         if (portUp) {
-            log.info("Device:EdgePort {}:{} is enabled in subnet: {}", device.id(),
+            log.info("Device:EdgePort {}:{} is enabled in vlan: {}", device.id(),
                      port.number(), vlanId);
         } else {
-            log.info("Device:EdgePort {}:{} is disabled in subnet: {}", device.id(),
+            log.info("Device:EdgePort {}:{} is disabled in vlan: {}", device.id(),
                      port.number(), vlanId);
         }
 
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
-            groupHandler.processEdgePort(port.number(), vlanId, portUp);
+            groupHandler.processEdgePort(port.number(), vlanId, popVlan, portUp);
         } else {
             log.warn("Group handler not found for dev:{}. Not handling edge port"
                     + " {} event for port:{}", device.id(),

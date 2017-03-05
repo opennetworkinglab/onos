@@ -194,14 +194,25 @@ public class HostMonitor implements TimerTask {
         }
 
         if (!edgePortService.isEdgePoint(intf.connectPoint())) {
-            log.warn("Attempt to send probe out non-edge port: {}", intf);
+            log.warn("Aborting attempt to send probe out non-edge port: {}", intf);
             return;
         }
 
         for (InterfaceIpAddress ia : intf.ipAddressesList()) {
             if (ia.subnetAddress().contains(targetIp)) {
+                log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                         targetIp, intf.connectPoint(), intf.vlan());
                 sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
                         intf.mac(), intf.vlan());
+                // account for use-cases where tagged-vlan config is used
+                if (!intf.vlanTagged().isEmpty()) {
+                    intf.vlanTagged().forEach(tag -> {
+                        log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                             targetIp, intf.connectPoint(), tag);
+                        sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
+                                  intf.mac(), tag);
+                    });
+                }
             }
         }
     }

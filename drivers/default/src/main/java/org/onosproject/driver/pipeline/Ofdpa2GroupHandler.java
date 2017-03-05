@@ -1272,7 +1272,8 @@ public class Ofdpa2GroupHandler {
         return VlanId.vlanId(vlanId);
     }
 
-    private List<GroupBucket> generateNextGroupBuckets(List<GroupInfo> groupInfos, GroupDescription.Type bucketType) {
+    private List<GroupBucket> generateNextGroupBuckets(List<GroupInfo> groupInfos,
+                                                       GroupDescription.Type bucketType) {
         List<GroupBucket> newBuckets = Lists.newArrayList();
 
         groupInfos.forEach(groupInfo -> {

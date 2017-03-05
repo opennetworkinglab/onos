@@ -151,7 +151,7 @@ public class Interface {
     }
 
     /**
-     * Retrieves the VLAN ID that will be assign to untagged packets.
+     * Retrieves the VLAN ID that is assigned to untagged packets.
      *
      * @return the VLAN ID
      */
@@ -160,7 +160,7 @@ public class Interface {
     }
 
     /**
-     * Retrieves the set of VLAN IDs that will be allowed on this interface.
+     * Retrieves the set of VLAN IDs that are allowed on this interface.
      *
      * @return the VLAN ID
      */
@@ -169,7 +169,8 @@ public class Interface {
     }
 
     /**
-     * Retrieves the set of VLAN IDs that will be allowed on this interface.
+     * Retrieves the VLAN ID that is assigned to untagged packets on this
+     * tagged interface.
      *
      * @return the VLAN ID
      */
