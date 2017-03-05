@@ -17,6 +17,7 @@
 package org.onosproject.ui.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -38,6 +39,7 @@ import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.HostHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
+import org.onosproject.ui.topo.Mod;
 import org.onosproject.ui.topo.NodeHighlight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +62,18 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
 
     private static final Logger log =
             LoggerFactory.getLogger(ProtectedIntentMonitor.class);
-    public static final String PRIMARY_PATH_TAG = "protection1";
+    private static final String PRIMARY_PATH_TAG = "protection1";
+
+    private static final String PROT_PRIMARY = "protPrimary";
+    private static final String PROT_BACKUP = "protBackup";
+
+
+    private static final Mod MOD_PROT_PRIMARY = new Mod(PROT_PRIMARY);
+    private static final Set<Mod> PROTECTED_MOD_PRIMARY_SET = ImmutableSet.of(MOD_PROT_PRIMARY);
+
+    private static final Mod MOD_PROT_BACKUP = new Mod(PROT_BACKUP);
+    private static final Set<Mod> PROTECTED_MOD_BACKUP_SET = ImmutableSet.of(MOD_PROT_BACKUP);
+
 
     /**
      * Designates the different modes of operation.
@@ -202,10 +215,13 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                 //Flavor is swapped so green is primary path.
                 if (usingBackup(primary)) {
                     //the backup becomes in use so we have a dotted line
-                    processLinks(linkMap, backup, Flavor.PRIMARY_HIGHLIGHT, isOptical, true);
+                    processLinks(linkMap, backup, Flavor.PRIMARY_HIGHLIGHT,
+                                 isOptical, true, PROTECTED_MOD_BACKUP_SET);
                 } else {
-                    processLinks(linkMap, primary, Flavor.SECONDARY_HIGHLIGHT, isOptical, true);
-                    processLinks(linkMap, backup, Flavor.PRIMARY_HIGHLIGHT, isOptical, false);
+                    processLinks(linkMap, primary, Flavor.PRIMARY_HIGHLIGHT,
+                                 isOptical, true, PROTECTED_MOD_PRIMARY_SET);
+                    processLinks(linkMap, backup, Flavor.SECONDARY_HIGHLIGHT,
+                                 isOptical, false, PROTECTED_MOD_BACKUP_SET);
                 }
                 updateHighlights(highlights, primary);
                 updateHighlights(highlights, backup);
@@ -279,7 +295,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
 
     private void processLinks(TrafficLinkMap linkMap, Iterable<Link> links,
                               Flavor flavor, boolean isOptical,
-                              boolean showTraffic) {
+                              boolean showTraffic, Set<Mod> mods) {
         if (links != null) {
             for (Link link : links) {
                 TrafficLink tlink = linkMap.add(link);
@@ -288,6 +304,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                 if (showTraffic) {
                     tlink.antMarch(true);
                 }
+                tlink.tagMods(mods);
             }
         }
     }

@@ -22,11 +22,13 @@ import org.onosproject.net.statistic.Load;
 import org.onosproject.ui.topo.BiLink;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
+import org.onosproject.ui.topo.Mod;
 import org.onosproject.ui.topo.TopoUtils;
 
-import static org.onosproject.ui.topo.LinkHighlight.Flavor.NO_HIGHLIGHT;
-import static org.onosproject.ui.topo.LinkHighlight.Flavor.PRIMARY_HIGHLIGHT;
-import static org.onosproject.ui.topo.LinkHighlight.Flavor.SECONDARY_HIGHLIGHT;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.onosproject.ui.topo.LinkHighlight.Flavor.*;
 
 /**
  * Representation of a link and its inverse, and associated traffic data.
@@ -45,6 +47,7 @@ public class TrafficLink extends BiLink {
     private boolean hasTraffic = false;
     private boolean isOptical = false;
     private boolean antMarch = false;
+    private Set<Mod> mods = new HashSet<>();
 
     /**
      * Constructs a traffic link for the given key and initial link.
@@ -90,6 +93,19 @@ public class TrafficLink extends BiLink {
     }
 
     /**
+     * Tags this traffic link with the mods to be used in visual rendering.
+     *
+     * @param mods the mods to tag on this link
+     * @return self, for chaining
+     */
+    public TrafficLink tagMods(Set<Mod> mods) {
+        if (mods != null) {
+            this.mods.addAll(mods);
+        }
+        return this;
+    }
+
+    /**
      * Adds load statistics, marks the traffic link as having traffic.
      *
      * @param load load to add
@@ -103,7 +119,7 @@ public class TrafficLink extends BiLink {
      * load {@link Load#rate rate} is greater than the given threshold
      * (expressed in bytes per second).
      *
-     * @param load load to add
+     * @param load      load to add
      * @param threshold threshold to register traffic
      */
     public void addLoad(Load load, double threshold) {
@@ -143,14 +159,23 @@ public class TrafficLink extends BiLink {
     }
 
     private LinkHighlight highlightForStats(StatsType type) {
-        return new LinkHighlight(linkId(), SECONDARY_HIGHLIGHT)
+        LinkHighlight hlite = new LinkHighlight(linkId(), SECONDARY_HIGHLIGHT)
                 .setLabel(generateLabel(type));
+        if (!mods.isEmpty()) {
+            mods.forEach(hlite::addMod);
+        }
+        return hlite;
     }
 
     private LinkHighlight highlightForFlowCount(StatsType type) {
         Flavor flavor = flows > 0 ? PRIMARY_HIGHLIGHT : SECONDARY_HIGHLIGHT;
-        return new LinkHighlight(linkId(), flavor)
+        LinkHighlight hlite = new LinkHighlight(linkId(), flavor)
                 .setLabel(generateLabel(type));
+        if (!mods.isEmpty()) {
+            mods.forEach(hlite::addMod);
+        }
+        return hlite;
+
     }
 
     private LinkHighlight highlightForTagging(StatsType type) {
@@ -161,6 +186,9 @@ public class TrafficLink extends BiLink {
         }
         if (antMarch) {
             hlite.addMod(LinkHighlight.MOD_ANIMATED);
+        }
+        if (!mods.isEmpty()) {
+            mods.forEach(hlite::addMod);
         }
         return hlite;
     }
