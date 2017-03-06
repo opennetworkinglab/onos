@@ -34,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
     private static final String INSTRUCTIONS = "instructions";
+    private static final String DEFERRED = "deferred";
 
     @Override
     public ObjectNode encode(TrafficTreatment treatment, CodecContext context) {
@@ -78,6 +79,15 @@ public final class TrafficTreatmentCodec extends JsonCodec<TrafficTreatment> {
                             instructionsCodec.decode(get(instructionsJson, i),
                                     context)));
         }
+
+        JsonNode deferredJson = json.get(DEFERRED);
+        if (deferredJson != null) {
+            IntStream.range(0, deferredJson.size())
+            .forEach(i -> builder.deferred().add(
+                    instructionsCodec.decode(get(deferredJson, i),
+                            context)));
+        }
+
         return builder.build();
     }
 }
