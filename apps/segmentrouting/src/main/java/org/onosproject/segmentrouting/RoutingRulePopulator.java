@@ -509,11 +509,11 @@ public class RoutingRulePopulator {
         fwdObjs.addAll(fwdObjsMpls);
         // Generates the transit rules used by the MPLS Pwaas. For now it is
         // the only case !BoS supported.
-        fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
+        /*fwdObjsMpls = handleMpls(targetSwId, destSwId, nextHops, segmentId, routerIp, false);
         if (fwdObjsMpls.isEmpty()) {
             return false;
         }
-        fwdObjs.addAll(fwdObjsMpls);
+        fwdObjs.addAll(fwdObjsMpls);*/
 
         for (ForwardingObjective fwdObj : fwdObjs) {
             log.debug("Sending MPLS fwd obj {} for SID {}-> next {} in sw: {}",
