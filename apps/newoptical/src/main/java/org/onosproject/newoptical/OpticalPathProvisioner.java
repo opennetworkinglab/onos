@@ -150,11 +150,18 @@ public class OpticalPathProvisioner
 
     private InternalStoreListener storeListener = new InternalStoreListener();
 
+    /**
+     * Map from packet-layer link expected to be realized by some optical Intent to
+     * OpticalConnectivity (~=top level intent over multi-layer topology).
+     */
     private ConsistentMap<PacketLinkRealizedByOptical, OpticalConnectivity> linkPathMap;
 
     private ConsistentMap<OpticalConnectivityId, OpticalConnectivity> connectivityMap;
 
-    // Map of cross connect link and installed path which uses the link
+    // FIXME in the long run. This is effectively app's own resource subsystem
+    /**
+     * Set of cross connect link currently used.
+     */
     private DistributedSet<Link> usedCrossConnectLinkSet;
 
     private static final KryoNamespace.Builder LINKPATH_SERIALIZER = KryoNamespace.newBuilder()
@@ -218,6 +225,16 @@ public class OpticalPathProvisioner
         log.info("Stopped");
     }
 
+    /*
+     * Request packet-layer connectivity between specified ports,
+     * over packet-optical multi-layer infrastructure.
+     *
+     * Functionality-wise this is effectively submitting Packet-Optical
+     * multi-layer P2P Intent.
+     *
+     * It computes multi-layer path meeting specified constraint,
+     * and calls setupPath.
+     */
     @Override
     public OpticalConnectivityId setupConnectivity(ConnectPoint ingress, ConnectPoint egress,
                                                    Bandwidth bandwidth, Duration latency) {
@@ -243,11 +260,17 @@ public class OpticalPathProvisioner
             }
         }
 
-        log.info("setupConnectivity({}, {}, {}, {}) failed.", ingress, egress, bandwidth, latency);
+        log.error("setupConnectivity({}, {}, {}, {}) failed.", ingress, egress, bandwidth, latency);
 
         return null;
     }
 
+    /*
+     * Given a multi-layer path,
+     * compute a set of segments which requires
+     * OpticalConnectivity(~=OpticalConnectivityIntent or OpticalCircuitPath)
+     * to provide packet-layer connectivity.
+     */
     @Override
     public OpticalConnectivityId setupPath(Path path, Bandwidth bandwidth, Duration latency) {
         checkNotNull(path);
@@ -638,12 +661,21 @@ public class OpticalPathProvisioner
                     break;
                 case FAILED:
                     log.info("Intent {} failed.", event.subject());
+                    // TODO If it was one of it's own optical Intent,
+                    // update link state
+                    // TODO If it was packet P2P Intent, call setupConnectivity
                     break;
                 default:
                     break;
             }
         }
 
+        // TODO rename "CrossConnectLink"?
+        /**
+         * Update packet-layer link/port state once Intent is installed.
+         *
+         * @param intent which reached installed state
+         */
         private void updateCrossConnectLink(Intent intent) {
             linkPathMap.entrySet().stream()
                     .filter(e -> e.getKey().realizingIntentKey().equals(intent.key()))
@@ -661,6 +693,9 @@ public class OpticalPathProvisioner
                             // Updates link status in distributed map
                             linkPathMap.computeIfPresent(e.getKey(), (link, connectivity) ->
                                     e.getValue().value().setLinkEstablished(packetSrc, packetDst, true));
+
+                            // TODO inject expected link or durable link
+                            // if packet device cannot advertise packet link
                         }
                     });
         }
@@ -700,6 +735,9 @@ public class OpticalPathProvisioner
                             // Updates link status in distributed map
                             linkPathMap.computeIfPresent(e.getKey(), (link, connectivity) ->
                                     e.getValue().value().setLinkEstablished(packetSrc, packetDst, false));
+
+                            // TODO remove expected link or durable link
+                            // if packet device cannot monitor packet link
                         }
                     });
         }
