@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -183,6 +184,9 @@ public class FlowObjectiveManagerTest {
         }
     }
 
+    private class TestComponentConfigService extends ComponentConfigAdapter {
+    }
+
     @Before
     public void initializeTest() {
         manager = new FlowObjectiveManager();
@@ -190,6 +194,7 @@ public class FlowObjectiveManagerTest {
         manager.deviceService = new TestDeviceService();
         manager.defaultDriverService = new TestDriversLoader();
         manager.driverService = new TestDriverService();
+        manager.cfgService = new TestComponentConfigService();
 
         filteringObjectives = new ArrayList<>();
         forwardingObjectives = new ArrayList<>();
