@@ -16,6 +16,7 @@
 package org.onosproject.driver.pipeline;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
@@ -290,8 +291,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 // it is possible that group-chain has not been fully created yet
                 log.debug("Waiting to add bucket to group for next-id:{} in dev:{}",
                           nextObjective.id(), deviceId);
-                // by design only one pending bucket is allowed for the group
-                groupHandler.pendingBuckets.put(nextObjective.id(), nextObjective);
+
+                // by design multiple pending bucket is allowed for the group
+                groupHandler.pendingBuckets.compute(nextObjective.id(), (nextId, pendBkts) -> {
+                    if (pendBkts == null) {
+                        pendBkts = Sets.newHashSet();
+                    }
+                    pendBkts.add(nextObjective);
+                    return pendBkts;
+                });
             }
             break;
         case REMOVE:
