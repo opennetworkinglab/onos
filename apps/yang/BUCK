@@ -2,13 +2,13 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
-#     '//lib:onos-yang-runtime',
+    '//lib:onos-yang-runtime',
 ]
 
 BUNDLES = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
-#     '//lib:onos-yang-runtime',
+    '//lib:onos-yang-runtime',
 ]
 
 osgi_jar (
@@ -22,5 +22,3 @@ onos_app (
     description = 'Base application to bring in the YANG libraries and assemble them for other apps to use.',
     included_bundles = BUNDLES,
 )
-
-# FIXME: OSGI bundle conflict issue before including onos-yang-runtime.
