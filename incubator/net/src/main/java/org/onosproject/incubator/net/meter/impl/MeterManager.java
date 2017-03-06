@@ -245,6 +245,20 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
             Map<Pair<DeviceId, MeterId>, Meter> storedMeterMap = store.getAllMeters().stream()
                     .collect(Collectors.toMap(m -> Pair.of(m.deviceId(), m.id()), Function.identity()));
 
+            Map<MeterId, Meter> meterEntriesMap = meterEntries.stream()
+                    .collect(Collectors.toMap(Meter::id, Meter -> Meter));
+
+            storedMeterMap.keySet().stream()
+                    .filter(m -> m.getLeft().equals(deviceId)).forEach(m -> {
+                if (!meterEntriesMap.containsKey(m.getRight())) {
+                    // The meter is missing in the device. Reinstall!
+                    Meter meter = storedMeterMap.get(Pair.of(deviceId, m.getRight()));
+                    provider().performMeterOperation(deviceId,
+                            new MeterOperation(meter, MeterOperation.Type.ADD));
+                }
+
+            });
+
             meterEntries.stream()
                     .filter(m -> storedMeterMap.remove(Pair.of(m.deviceId(), m.id())) != null)
                     .forEach(m -> store.updateMeterState(m));
