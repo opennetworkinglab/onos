@@ -40,6 +40,8 @@ import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
 
+import java.util.Collection;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -85,10 +87,6 @@ public class DynamicConfigManager
         return store.readNode(path, filter).join();
     }
 
-    public Integer getNumberOfChildren(ResourceId path, Filter filter) {
-        throw new FailedException("Not yet implemented");
-    }
-
     public void updateNode(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
@@ -108,13 +106,15 @@ public class DynamicConfigManager
     public void replaceNode(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
-
-    public void addConfigListener(ResourceId path, DynamicConfigListener listener) {
+    public Integer getNumberOfChildren(ResourceId path, Filter filter) {
         throw new FailedException("Not yet implemented");
+    }
+    public void addConfigListener(ResourceId path, DynamicConfigListener listener) {
+        store.addConfigListener(path, listener);
     }
 
     public void removeConfigListener(ResourceId path, DynamicConfigListener listener) {
-        throw new FailedException("Not yet implemented");
+        store.removeConfigListener(path, listener);
     }
 
     public void registerHandler(RpcHandler handler, RpcCommand command) {
@@ -134,13 +134,19 @@ public class DynamicConfigManager
         throw new FailedException("Not yet implemented");
     }
     /**
-     * Auxiliary store delegate to receive notification about changes in
-     * the prop configuration store state - by the store itself.
+     * Auxiliary store delegate to receive notification about changes in the store.
      */
     private class InternalStoreDelegate implements DynamicConfigStoreDelegate {
         public void notify(DynamicConfigEvent event) {
-            // TODO
-            // post(event);
+            ResourceId path = event.subject();
+            Collection<? extends DynamicConfigListener> lstnrs = store.getConfigListener(path);
+            if (lstnrs != null) {
+                for (DynamicConfigListener l : lstnrs) {
+                    l.event(event);
+                }
+            } else {
+                log.info("InternalStoreDelegate: no Listeners");
+            }
         }
     }
 }

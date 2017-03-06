@@ -50,7 +50,12 @@ public class DynamicConfigEvent extends AbstractEvent<DynamicConfigEvent.Type, R
         /**
          * Signifies that dynamic configuration instance was removed.
          */
-        NODE_DELETED
+        NODE_DELETED,
+
+        /**
+         * Signifies an unknown and hence invalid store opeartion.
+         */
+        UNKNOWN_OPRN
     }
 
     /**
