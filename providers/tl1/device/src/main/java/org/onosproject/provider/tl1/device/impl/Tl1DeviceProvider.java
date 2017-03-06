@@ -102,7 +102,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
     private final ConfigFactory cfgFactory =
             new ConfigFactory<ApplicationId, Tl1ProviderConfig>(APP_SUBJECT_FACTORY,
                     Tl1ProviderConfig.class,
-                    "devices",
+                    "tl1_devices",
                     true) {
                 @Override
                 public Tl1ProviderConfig createConfig() {
@@ -139,10 +139,12 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
         super(new ProviderId(TL1, PROVIDER));
     }
 
+    @Override
     public void triggerProbe(DeviceId deviceId) {
         // TODO
     }
 
+    @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
         switch (newRole) {
             case MASTER:
@@ -164,6 +166,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
     }
 
     // Assumes device is registered in TL1 controller.
+    @Override
     public boolean isReachable(DeviceId deviceId) {
         try {
             // First check if device is already connected.
@@ -183,6 +186,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
         }
     }
 
+    @Override
     public void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable) {
         // TODO
     }
@@ -252,6 +256,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
      * Listener for network configuration events.
      */
     private class InnerConfigListener implements NetworkConfigListener {
+        @Override
         public void event(NetworkConfigEvent event) {
             if (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED) {
                 registerDevices();
@@ -266,6 +271,7 @@ public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvide
             }
         }
 
+        @Override
         public boolean isRelevant(NetworkConfigEvent event) {
             return event.configClass().equals(Tl1ProviderConfig.class) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
