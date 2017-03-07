@@ -177,7 +177,6 @@ ONOS_APPS = [
     '//apps/scalablegateway:onos-apps-scalablegateway-oar',
     '//apps/castor:onos-apps-castor-oar',
     '//apps/yms:onos-apps-yms-oar',
-    '//apps/yms/gui:onos-apps-yms-gui-oar',
     '//apps/ofagent:onos-apps-ofagent-oar',
     '//apps/mappingmanagement:onos-apps-mappingmanagement-oar',
     '//apps/config:onos-apps-config-oar',
@@ -189,7 +188,8 @@ ONOS_APPS = [
     '//protocols/restconf/server:onos-protocols-restconf-server-oar',
     '//apps/restconf:onos-apps-restconf-oar',
     '//apps/flowspec-api:onos-apps-flowspec-api-oar',
-    '//apps/yang:onos-apps-yang-oar'
+    '//apps/yang:onos-apps-yang-oar',
+    '//apps/yang-gui:onos-apps-yang-gui-oar',
 ]
 
 APP_JARS = [

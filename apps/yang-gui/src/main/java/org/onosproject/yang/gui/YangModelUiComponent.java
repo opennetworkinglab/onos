@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.gui;
+package org.onosproject.yang.gui;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;

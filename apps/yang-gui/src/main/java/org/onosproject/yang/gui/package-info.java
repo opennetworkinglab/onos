@@ -17,4 +17,4 @@
 /**
  * GUI elements for YANG Runtime &amp; Live YANG Compiler subsystem.
  */
-package org.onosproject.yms.gui;
+package org.onosproject.yang.gui;

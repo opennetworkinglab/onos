@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.yms.gui;
+package org.onosproject.yang.gui;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
@@ -24,13 +24,15 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.runtime.YangModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 /**
- * ONOS UI Yang Models message handler.
+ * ONOS UI YANG Models message handler.
  */
 public class YangModelMessageHandler extends UiMessageHandler {
 
@@ -53,7 +55,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-//    private YmsService ymsService;
+    private YangModelRegistry modelRegistry;
     // TODO: fill out other fields as necessary
 
 
@@ -62,7 +64,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
-//        ymsService = directory.get(YmsService.class);
+        modelRegistry = directory.get(YangModelRegistry.class);
         // TODO: addListeners(); ???
     }
 
@@ -102,17 +104,15 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
-            // TODO: use ymsService(?) to iterate over list of models...
-            for (int k = 0; k < 5; k++) {
-                populateRow(tm.addRow(), k);
+            for (YangModel model : modelRegistry.getModels()) {
+                populateRow(tm.addRow(), model.getYangModulesId().toString());
             }
         }
 
         // TODO: obviously, this should be adapted to arrange YANG model data
         //       into the appropriate table columns
-        private void populateRow(TableModel.Row row, int k) {
-            row.cell(ID, k)
-                    .cell(TYPE, "ymtype-" + k);
+        private void populateRow(TableModel.Row row, String k) {
+            row.cell(ID, k).cell(TYPE, k);
         }
     }
 

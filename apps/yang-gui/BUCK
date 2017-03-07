@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:onos-yang-runtime',
 ]
 
 osgi_jar_with_tests (
@@ -13,4 +14,5 @@ onos_app (
     category = 'Utility',
     url = 'http://onosproject.org',
     description = 'YANG Runtime GUI application for visualization of registered YANG models.',
+    required_apps = [ 'org.onosproject.yang' ],
 )
