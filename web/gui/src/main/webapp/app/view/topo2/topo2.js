@@ -188,36 +188,6 @@
             // make sure we can respond to topology events from the server
             t2es.bindHandlers();
 
-            // Add the map SVG Group, but don't load a map yet...
-            //   we will wait until the server tells us whether we should
-            //   be loading a geomap or a sprite layer
-            t2ms.init(zoomLayer, zoomer);
-
-            // TODO: figure out from where to call this code...
-            // we still need to do the equivalent of this when we load
-            //  a geo map, just not here.
-            //
-            // ... NOTE: we still have to position the nodes AFTER the map
-            //           has loaded and the projection has been established...
-            //           maybe another promise ending with a "positionNodes()"
-            //           call?
-
-            // .then(
-            //     function (proj) {
-            //         var z = ps.getPrefs('topo2_zoom', { tx: 0, ty: 0, sc: 1 });
-            //         zoomer.panZoom([z.tx, z.ty], z.sc);
-            //
-            //         t2mcs.projection(proj);
-            //         $log.debug('** Zoom restored:', z);
-            //         $log.debug('** We installed the projection:', proj);
-            //
-            //         // Now the map has load and we have a projection we can
-            //         // get the info from the server
-            //         t2es.start();
-            //     }
-            // );
-
-            t2sls.init(svg, zoomLayer);
             t2fs.init(svg, forceG, uplink, dim, zoomer);
             t2bcs.init();
             t2kcs.init(t2fs);

@@ -98,7 +98,6 @@
 
                 var Layout = ViewController.extend({
                     initialize: function (svg, forceG, uplink, dim, zoomer, opts) {
-
                         $log.debug('initialize Layout');
                         instance = this;
 

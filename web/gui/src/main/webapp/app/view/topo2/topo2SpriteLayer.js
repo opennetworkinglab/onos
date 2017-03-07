@@ -40,10 +40,10 @@
                     id: 'topo2-sprites',
                     displayName: 'Sprite Layer',
 
-                    init: function(svg, zoomLayer) {
-                        this.svg = svg;
+                    init: function() {
+                        this.svg = d3.select('#topo2');
                         this.createSpriteDefs();
-                        this.container = zoomLayer.append('g').attr('id', this.id);
+                        this.container = this.appendElement('#topo2-background', 'g');
                     },
                     loadLayout: function (id) {
                         this.container.selectAll("*").remove();
@@ -57,6 +57,11 @@
                         if (fs.debugOn('sprite_grid')) {
                             this.renderGrid();
                         }
+
+                        // Returns a promise for consistency with Topo2MapService
+                        return new Promise(function(resolve) {
+                            resolve();
+                        });
                     },
                     createSpriteDefs: function () {
                        this.defs = this.svg.append('defs')

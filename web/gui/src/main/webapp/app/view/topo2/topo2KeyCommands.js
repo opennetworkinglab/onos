@@ -17,13 +17,13 @@
 (function () {
 
     // Injected Services
-    var ks, flash, wss, t2ps, t2ms, ps, t2is, t2sp, t2vs, t2rs, t2fs, t2sls;
+    var ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs, t2fs, t2sls;
 
     // Commmands
     var actionMap = {
         L: [cycleDeviceLabels, 'Cycle device labels'],
         G: [openMapSelection, 'Select background geo map'],
-        B: [toggleMap, 'Toggle background geo map'],
+        B: [toggleBackground, 'Toggle background'],
         I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
         O: [toggleSummary, 'Toggle the Summary Panel'],
         R: [resetZoom, 'Reset pan / zoom'],
@@ -31,7 +31,6 @@
         E: [equalizeMasters, 'Equalize mastership roles'],
         X: [resetAllNodeLocations, 'Reset Node Location'],
         U: [unpinNode, 'Unpin node (mouse over)'],
-        S: [toggleSpriteLayer, 'Toggle sprite layer'],
 
         esc: handleEscape
     };
@@ -103,8 +102,8 @@
         t2ms.openMapSelection();
     }
 
-    function toggleMap(x) {
-        t2ms.toggle(x);
+    function toggleBackground(x) {
+        t2bgs.toggle(x);
     }
 
     function toggleInstancePanel(x) {
@@ -118,10 +117,6 @@
     function resetZoom() {
         t2ms.resetZoom();
         flash.flash('Pan and zoom reset');
-    }
-
-    function toggleSpriteLayer() {
-        t2sls.toggle();
     }
 
     function togglePorts(x) {
@@ -147,17 +142,17 @@
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService', [
         'KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
-        'Topo2MapService', 'PrefsService', 'Topo2InstanceService',
+        'Topo2BackgroundService', 'PrefsService', 'Topo2InstanceService',
         'Topo2SummaryPanelService', 'Topo2ViewService', 'Topo2RegionService',
         'Topo2SpriteLayerService',
-        function (_ks_, _flash_, _wss_, _t2ps_, _t2ms_, _ps_, _t2is_, _t2sp_,
+        function (_ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_, _t2is_, _t2sp_,
                   _t2vs_, _t2rs_, _t2sls_) {
 
             ks = _ks_;
             flash = _flash_;
             wss = _wss_;
             t2ps = _t2ps_;
-            t2ms = _t2ms_;
+            t2bgs = _t2bgs_;
             t2is = _t2is_;
             ps = _ps_;
             t2sp = _t2sp_;

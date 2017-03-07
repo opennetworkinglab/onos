@@ -134,6 +134,7 @@
         // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
         var x = scale * loc.gridX,
             y = (scale * loc.gridY) + yOffset;
+
         return [x, y];
     }
 

@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var $log, $loc, ps, ms, flash, sus, countryFilters;
+    var $log, $loc, ps, ms, flash, sus, t2zs, countryFilters;
 
     // Injected Classes
     var MapSelectionDialog;
@@ -31,43 +31,26 @@
     // internal state
     var instance, mapG, zoomLayer, zoomer;
 
-    function init(_zoomLayer_, _zoomer_) {
-        zoomLayer = _zoomLayer_;
-        zoomer = _zoomer_;
-        // This function no longer returns a promise.
-        //  TODO: call setUpMap() when we know which map we want (not from here)
-        // return setUpMap.bind(this)();
+    function init() {
+        this.appendElement('#topo2-background', 'g');
+        zoomLayer = d3.select('#topo2-zoomlayer');
+        zoomer = t2zs.getZoomer();
     }
 
     // TODO: to be re-worked: map-id, filePath, scale/pan to be passed as params
-    function setUpMap() {
-        var prefs = currentMap(),
-            mapId = prefs.mapid,
-            mapFilePath = prefs.mapfilepath,
-            mapScale = prefs.mapscale || 1,
-            loadMap = ms.loadMapInto,
+    function setUpMap(mapId, mapFilePath, mapScale) {
+
+        var loadMap = ms.loadMapInto,
             promise, cfilter;
 
-        mapG = d3.select('#topo2-map');
-
-        if (mapG.empty()) {
-            mapG = zoomLayer.append('g').attr('id', 'topo2-map');
-        } else {
-            mapG.each(function () {
-                d3.selectAll(this.childNodes).remove();
-            });
-        }
-
-        if (!ps.getPrefs('topo2_prefs')[this.prefs.visible]) {
-            this.hide();
-        }
+        this.node().selectAll("*").remove();
 
         if (mapFilePath === '*countries') {
             cfilter = countryFilters[mapId] || countryFilters.uk;
             loadMap = ms.loadMapRegionInto;
         }
 
-        promise = loadMap(mapG, mapFilePath, mapId, {
+        promise = loadMap(this.node(), mapFilePath, mapId, {
             countryFilters: cfilter,
             adjustScale: mapScale,
             shading: ''
@@ -118,11 +101,11 @@
     .factory('Topo2MapService', [
         '$log', '$location', 'Topo2ViewController', 'PrefsService',
         'MapService', 'FlashService', 'SvgUtilService', 'Topo2CountryFilters',
-        'Topo2MapDialog',
+        'Topo2MapDialog', 'Topo2ZoomService',
 
         function (_$log_, _$loc_, ViewController, _ps_,
                   _ms_, _flash_, _sus_, _t2cf_,
-                  _t2md_) {
+                  _t2md_, _t2zs_) {
 
             $log = _$log_;
             $loc = _$loc_;
@@ -132,6 +115,7 @@
             sus = _sus_;
             countryFilters = _t2cf_;
             MapSelectionDialog = _t2md_;
+            t2zs = _t2zs_;
 
             var MapLayer = ViewController.extend({
 
@@ -140,6 +124,7 @@
 
                 init: init,
                 setMap: setMap,
+                setUpMap: setUpMap,
                 openMapSelection: openMapSelection,
                 resetZoom: resetZoom
             });

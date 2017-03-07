@@ -39,6 +39,13 @@
                 visible: this.name + '_visible'
             }
         },
+        appendElement: function (parent, node) {
+            var el = d3.select('#' + this.id);
+            if (el.empty()) {
+                 return d3.select(parent).append(node).attr('id', this.id);
+            }
+            return el;
+        },
         node: function() {
             return d3.select('#' + this.id);
         },

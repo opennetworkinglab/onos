@@ -26,7 +26,7 @@
     var $log,
         wss;
 
-    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss;
+    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs;
     var svg, forceG, uplink, dim, opts, zoomer;
 
     // D3 Selections
@@ -41,8 +41,9 @@
         dim = _dim_;
         opts = _opts_;
 
-        t2ls = t2ls(svg, forceG, uplink, dim, zoomer, opts);
         t2bcs.addLayout(t2ls);
+        t2bgs.init();
+        t2ls = t2ls(svg, forceG, uplink, dim, zoomer, opts);
         t2rs.layout = t2ls;
         t2ss.init(svg, zoomer);
     }
@@ -129,8 +130,9 @@
 
     function currentLayout(data) {
         $log.debug('>> topo2CurrentLayout event:', data);
+        t2rs.clear();
         t2bcs.addBreadcrumb(data.crumbs);
-        t2rs.addLayout(data);
+        t2bgs.addLayout(data);
     }
 
     function currentRegion(data) {
@@ -238,8 +240,9 @@
         '$log', 'WebSocketService', 'Topo2InstanceService',
         'Topo2RegionService', 'Topo2LayoutService', 'Topo2ViewService',
         'Topo2BreadcrumbService', 'Topo2ZoomService', 'Topo2SelectService',
+        'Topo2BackgroundService',
         function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_,
-            _t2vs_, _t2bcs_, zoomService, _t2ss_) {
+            _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_) {
 
             $log = _$log_;
             wss = _wss_;
@@ -249,6 +252,7 @@
             t2vs = _t2vs_;
             t2bcs = _t2bcs_;
             t2ss = _t2ss_;
+            t2bgs = _t2bgs_;
 
             var onZoom = function () {
                 var nodes = [].concat(

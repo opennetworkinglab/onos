@@ -239,6 +239,20 @@ public class Topo2Jsonifier {
         addZoomPan(result, layout.id());
     }
 
+    private ObjectNode initialZoomForLayout(ObjectNode zoomPrefs, String id) {
+        ObjectNode zoomForLayout = defaultZoomForLayout();
+        zoomPrefs.set(id, zoomForLayout);
+        prefService.setPreference(userName, PKEY_TOPO_ZOOM, zoomPrefs);
+        return zoomPrefs;
+    }
+
+    private ObjectNode defaultZoomForLayout() {
+        return objectNode()
+            .put(ZOOM_SCALE, DEFAULT_SCALE)
+            .put(ZOOM_PAN_X, DEFAULT_PAN)
+            .put(ZOOM_PAN_Y, DEFAULT_PAN);
+    }
+
     private void addZoomPan(ObjectNode result, UiTopoLayoutId layoutId) {
         // need to look up topo_zoom settings from preferences service.
 
@@ -254,18 +268,15 @@ public class Topo2Jsonifier {
         ObjectNode zoomPrefs = userPrefs.get(PKEY_TOPO_ZOOM);
 
         if (zoomPrefs == null) {
-            // no zoom prefs structure yet.. so initialize..
-            ObjectNode zoomForLayout = objectNode()
-                    .put(ZOOM_SCALE, DEFAULT_SCALE)
-                    .put(ZOOM_PAN_X, DEFAULT_PAN)
-                    .put(ZOOM_PAN_Y, DEFAULT_PAN);
-
-            zoomPrefs = objectNode();
-            zoomPrefs.set(layoutId.id(), zoomForLayout);
-
-            prefService.setPreference(userName, PKEY_TOPO_ZOOM, zoomPrefs);
+            zoomPrefs = initialZoomForLayout(objectNode(), layoutId.id());
         }
+
         ObjectNode zoomData = (ObjectNode) zoomPrefs.get(layoutId.id());
+
+        if (zoomData == null) {
+            zoomPrefs = initialZoomForLayout(zoomPrefs, layoutId.id());
+            zoomData = (ObjectNode) zoomPrefs.get(layoutId.id());
+        }
 
         result.put("bgZoomScale", zoomData.get(ZOOM_SCALE).asText());
         result.put("bgZoomPanX", zoomData.get(ZOOM_PAN_X).asText());

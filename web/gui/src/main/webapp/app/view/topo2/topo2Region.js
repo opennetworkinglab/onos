@@ -45,39 +45,24 @@
                 initialize: function () {
                     instance = this;
                     this.model = null;
+                    this.bgRendered = false;
                 },
-                addLayout: function (data) {
+                backgroundRendered: function () {
+                    this.bgRendered = true;
 
-                    var _this = this;
-
-                    if (data.bgType === 'geo') {
-                        t2ms.setMap({
-                            mapid: data.bgId,
-                            mapfilepath: data.bgFilePath
-                        }).then(function () {
-                            _.each(_this.regionNodes(), function (node) {
-                                node.resetPosition();
-                            });
-                        });
-
-                        if (t2ms.enabled()) {
-                            t2ms.show();
-                        }
-                    } else {
-                        t2ms.hide();
-                    }
-
-                    if (data.bgType === 'grid') {
-                        t2sls.loadLayout(data.bgId);
-
-                        if (t2sls.enabled()) {
-                            t2sls.show();
-                        }
-                    } else {
-                        t2sls.hide();
+                    if (this.regionData) {
+                        this.startRegion();
                     }
                 },
                 addRegion: function (data) {
+                    this.clear();
+                    this.regionData = data;
+
+                    if (this.bgRendered) {
+                        this.startRegion();
+                    }
+                },
+                startRegion: function () {
 
                     var RegionModel = Model.extend({
                         findNodeById: this.findNodeById,
@@ -85,15 +70,15 @@
                     });
 
                     this.model = new RegionModel({
-                        id: data.id,
-                        layerOrder: data.layerOrder
+                        id: this.regionData.id,
+                        layerOrder: this.regionData.layerOrder
                     });
 
                     this.model.set({
-                        subregions: t2sr.createSubRegionCollection(data.subregions, this),
-                        devices: t2ds.createDeviceCollection(data.devices, this),
-                        hosts: t2hs.createHostCollection(data.hosts, this),
-                        links: t2ls.createLinkCollection(data.links, this)
+                        subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this),
+                        devices: t2ds.createDeviceCollection(this.regionData.devices, this),
+                        hosts: t2hs.createHostCollection(this.regionData.hosts, this),
+                        links: t2ls.createLinkCollection(this.regionData.links, this)
                     });
 
                     angular.forEach(this.model.get('links').models, function (link) {
@@ -105,6 +90,23 @@
                         t2bcs.hide();
                     }
 
+                    // this.layout.update();
+                },
+                clear: function () {
+
+                    this.regionData = null;
+
+                    if (!this.model)
+                        return;
+
+                    this.model.set({
+                        id: null,
+                        layerOrder: null,
+                        subregions: t2sr.createSubRegionCollection([], this),
+                        devices: t2ds.createDeviceCollection([], this),
+                        hosts: t2hs.createHostCollection([], this),
+                        links: t2ls.createLinkCollection([], this)
+                    });
                 },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
