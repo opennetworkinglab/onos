@@ -101,6 +101,7 @@ public class Bmv2FlowRuleProgrammable extends AbstractHandlerBehaviour implement
         Bmv2DeviceContext context = contextService.getContext(deviceId);
         if (context == null) {
             log.warn("Unable to get device context for {}", deviceId);
+            return Collections.emptyList();
         }
 
         Bmv2Interpreter interpreter = context.interpreter();
