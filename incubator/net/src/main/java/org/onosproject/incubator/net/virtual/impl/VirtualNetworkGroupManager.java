@@ -67,7 +67,7 @@ public class VirtualNetworkGroupManager
     private boolean purgeOnDisconnection = false;
 
     public VirtualNetworkGroupManager(VirtualNetworkService manager, NetworkId networkId) {
-        super(manager, networkId);
+        super(manager, networkId, GroupEvent.class);
 
         store = serviceDirectory.get(VirtualNetworkGroupStore.class);
         deviceService = manager.get(networkId, DeviceService.class);

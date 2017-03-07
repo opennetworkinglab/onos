@@ -72,8 +72,10 @@ public final class VirtualListenerRegistryManager
 
         ListenerRegistry listenerRegistry =
                 listenerMapByNetwork.get(networkId).get(originalEvent.getClass());
-        listenerRegistry.process(originalEvent);
-        lastStart = listenerRegistry;
+        if (listenerRegistry != null) {
+            listenerRegistry.process(originalEvent);
+            lastStart = listenerRegistry;
+        }
     }
 
     @Override

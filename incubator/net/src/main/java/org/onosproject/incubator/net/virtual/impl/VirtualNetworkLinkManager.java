@@ -51,7 +51,7 @@ public class VirtualNetworkLinkManager
      */
     public VirtualNetworkLinkManager(VirtualNetworkService virtualNetworkManager,
                                      NetworkId networkId) {
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, LinkEvent.class);
     }
 
     @Override

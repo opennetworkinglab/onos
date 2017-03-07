@@ -61,7 +61,7 @@ public class VirtualNetworkDeviceManager
      */
     public VirtualNetworkDeviceManager(VirtualNetworkService virtualNetworkManager,
                                        NetworkId networkId) {
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, DeviceEvent.class);
         manager.addListener(virtualNetworkListener);
     }
 

@@ -57,7 +57,7 @@ public class VirtualNetworkHostManager
      */
     public VirtualNetworkHostManager(VirtualNetworkService virtualNetworkManager,
                                      NetworkId networkId) {
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, HostEvent.class);
     }
 
 

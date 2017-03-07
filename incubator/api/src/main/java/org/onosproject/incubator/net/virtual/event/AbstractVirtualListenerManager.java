@@ -29,9 +29,7 @@ import org.onosproject.incubator.net.virtual.VnetService;
  */
 public abstract class AbstractVirtualListenerManager
         <E extends Event, L extends EventListener<E>>
-    implements ListenerService<E, L>, VnetService {
-
-    private static final String NETWORK_NULL = "Network ID cannot be null";
+        implements ListenerService<E, L>, VnetService {
 
     protected final NetworkId networkId;
     protected final VirtualNetworkService manager;
@@ -39,29 +37,34 @@ public abstract class AbstractVirtualListenerManager
 
     protected EventDeliveryService eventDispatcher;
 
-    VirtualListenerRegistryManager listenerManager =
+    private VirtualListenerRegistryManager listenerManager =
             VirtualListenerRegistryManager.getInstance();
 
+    private Class<? extends Event> eventClass;
+
     public AbstractVirtualListenerManager(VirtualNetworkService manager,
-                                          NetworkId networkId) {
+                                          NetworkId networkId,
+                                          Class<? extends Event> eventClass) {
         this.manager = manager;
         this.networkId = networkId;
         this.serviceDirectory = manager.getServiceDirectory();
+
+        this.eventClass = eventClass;
 
         //Set default event delivery service by default
         this.eventDispatcher = serviceDirectory.get(EventDeliveryService.class);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void addListener(L listener) {
-        listenerManager.getRegistry(networkId, getEventClass())
-                .addListener(listener);
+        listenerManager.getRegistry(networkId, eventClass).addListener(listener);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void removeListener(L listener) {
-        listenerManager.getRegistry(networkId, getEventClass())
-                .removeListener(listener);
+        listenerManager.getRegistry(networkId, eventClass).removeListener(listener);
     }
 
     /**
@@ -82,24 +85,5 @@ public abstract class AbstractVirtualListenerManager
     @Override
     public NetworkId networkId() {
         return this.networkId;
-    }
-
-    /**
-     * Returns the class type of parameter type.
-     * More specifically, it returns the class type of event class.
-     *
-     * @return the class type of provider service of the service
-     */
-    public Class getEventClass() {
-        String className = this.getClass().getGenericSuperclass().toString();
-        String pramType = className.split("<")[1].split(",")[0];
-
-        try {
-            return Class.forName(pramType);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 }

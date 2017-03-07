@@ -142,10 +142,10 @@ public class VirtualNetworkManager
 
     @Activate
     public void activate() {
-        store.setDelegate(delegate);
         eventDispatcher.addSink(VirtualNetworkEvent.class, listenerRegistry);
         eventDispatcher.addSink(VirtualEvent.class,
                                 VirtualListenerRegistryManager.getInstance());
+        store.setDelegate(delegate);
         intentService.addListener(intentListener);
         appId = coreService.registerApplication(VIRTUAL_NETWORK_APP_ID_STRING);
         log.info("Started");
@@ -364,6 +364,7 @@ public class VirtualNetworkManager
     private final Map<ServiceKey, VnetService> networkServices = Maps.newConcurrentMap();
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(NetworkId networkId, Class<T> serviceClass) {
         checkNotNull(networkId, NETWORK_NULL);
         ServiceKey serviceKey = networkServiceKey(networkId, serviceClass);
@@ -453,7 +454,7 @@ public class VirtualNetworkManager
          * @param networkId    network identifier
          * @param serviceClass service class
          */
-        public ServiceKey(NetworkId networkId, Class serviceClass) {
+        ServiceKey(NetworkId networkId, Class serviceClass) {
 
             checkNotNull(networkId, NETWORK_NULL);
             this.networkId = networkId;

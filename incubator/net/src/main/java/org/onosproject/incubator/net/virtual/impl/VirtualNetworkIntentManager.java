@@ -75,7 +75,7 @@ public class VirtualNetworkIntentManager
     public VirtualNetworkIntentManager(VirtualNetworkService virtualNetworkManager,
                                        NetworkId networkId) {
 
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, IntentEvent.class);
 
         this.store = serviceDirectory.get(VirtualNetworkStore.class);
         this.intentService = serviceDirectory.get(IntentService.class);

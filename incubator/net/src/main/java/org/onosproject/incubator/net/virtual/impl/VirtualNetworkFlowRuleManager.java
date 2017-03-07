@@ -112,7 +112,7 @@ public class VirtualNetworkFlowRuleManager
      */
     public VirtualNetworkFlowRuleManager(VirtualNetworkService virtualNetworkManager,
                                          NetworkId networkId) {
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, FlowRuleEvent.class);
 
         store = serviceDirectory.get(VirtualNetworkFlowRuleStore.class);
 

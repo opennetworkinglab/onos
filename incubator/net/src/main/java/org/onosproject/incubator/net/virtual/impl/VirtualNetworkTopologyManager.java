@@ -68,7 +68,7 @@ public class VirtualNetworkTopologyManager
      */
     public VirtualNetworkTopologyManager(VirtualNetworkService virtualNetworkManager,
                                          NetworkId networkId) {
-        super(virtualNetworkManager, networkId);
+        super(virtualNetworkManager, networkId, TopologyEvent.class);
     }
 
     @Override
