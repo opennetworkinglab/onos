@@ -1,0 +1,28 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:javax.ws.rs-api',
+  '//utils/rest:onlab-rest',
+  '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_REST',
+  '//lib:jersey-server',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+  web_context = '/onos/cord-support',
+  api_title = 'CORD Support App',
+  api_version = '1.0',
+  api_description = 'REST API for CORD inquiry to ONOS topology',
+  api_package = 'org.onosproject.cordsupport',
+)
+
+onos_app (
+  title = 'CORD Support App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  description = 'CORD Support application.',
+)
