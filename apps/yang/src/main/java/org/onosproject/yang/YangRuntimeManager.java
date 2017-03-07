@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
-import org.onosproject.yang.model.SchemaContext;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
@@ -57,20 +56,22 @@ public class YangRuntimeManager implements YangModelRegistry,
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private YangModelRegistry modelRegistry;
-    private YangSerializerRegistry serializerRegistry;
+    private DefaultYangModelRegistry modelRegistry;
+    private DefaultYangSerializerRegistry serializerRegistry;
+    private DefaultYangRuntimeHandler runtimeService;
 
     @Activate
     public void activate() {
         coreService.registerApplication(APP_ID);
         serializerRegistry = new DefaultYangSerializerRegistry();
         modelRegistry = new DefaultYangModelRegistry();
-        log.info("YANG runtime manager started");
+        runtimeService = new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        log.info("YANG runtime manager stopped");
+        log.info("Stopped");
     }
 
 
@@ -106,15 +107,11 @@ public class YangRuntimeManager implements YangModelRegistry,
 
     @Override
     public CompositeData decode(CompositeStream cs, RuntimeContext rc) {
-        YangRuntimeService service = new DefaultYangRuntimeHandler(
-                serializerRegistry, (SchemaContext) modelRegistry);
-        return service.decode(cs, rc);
+        return runtimeService.decode(cs, rc);
     }
 
     @Override
     public CompositeStream encode(CompositeData cd, RuntimeContext rc) {
-        YangRuntimeService service = new DefaultYangRuntimeHandler(
-                serializerRegistry, (SchemaContext) modelRegistry);
-        return service.encode(cd, rc);
+        return runtimeService.encode(cd, rc);
     }
 }

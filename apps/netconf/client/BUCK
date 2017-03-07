@@ -1,6 +1,6 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
-  '//lib:onos-yang-runtime-api',
+  '//lib:onos-yang-runtime',
   '//protocols/netconf/api:onos-protocols-netconf-api'
 ]
 

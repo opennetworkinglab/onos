@@ -17,8 +17,8 @@
 package org.onosproject.netconf.client.api;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.yang.runtime.api.CompositeData;
 import com.google.common.annotations.Beta;
+import org.onosproject.yang.runtime.CompositeData;
 
 import java.io.IOException;
 
