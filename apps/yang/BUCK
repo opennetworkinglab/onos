@@ -6,6 +6,7 @@ COMPILE_DEPS = [
 ]
 
 BUNDLES = [
+    ':onos-apps-yang',
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
     '//lib:onos-yang-runtime',

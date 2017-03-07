@@ -17,22 +17,23 @@
         <onos.app.title>Onos Yang Extension</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Onos Yang Extension.</onos.app.readme>
+        <yang.version>1.12.0-b5</yang.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-model</artifactId>
-            <version>1.12-b3</version>
+            <version>${yang.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-compiler-api</artifactId>
-            <version>1.12-b3</version>
+            <version>${yang.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-runtime</artifactId>
-            <version>1.12-b3</version>
+            <version>${yang.version}</version>
         </dependency>
     </dependencies>
 </project>
