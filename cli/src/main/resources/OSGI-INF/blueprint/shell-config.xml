@@ -767,6 +767,9 @@
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentRemoveCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualFlowsListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DpisListCommand"/>
         </command>
 
