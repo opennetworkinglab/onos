@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
@@ -35,6 +36,7 @@ import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -71,9 +73,13 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.WallClockTimestamp;
+import org.onosproject.store.service.MultiValuedTimestamp;
 import org.slf4j.Logger;
-
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +93,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Sample reactive forwarding application.
  */
 @Component(immediate = true)
+@Service(value = ReactiveForwarding.class)
 public class ReactiveForwarding {
 
     private static final int DEFAULT_TIMEOUT = 10;
@@ -115,7 +122,12 @@ public class ReactiveForwarding {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
+
+    private  EventuallyConsistentMap<MacAddress, ReactiveForwardMetrics> metrics;
 
     private ApplicationId appId;
 
@@ -180,11 +192,26 @@ public class ReactiveForwarding {
             label = "Ignore (do not forward) IPv4 multicast packets; default is false")
     private boolean ignoreIpv4McastPackets = false;
 
+    @Property(name = "recordMetrics", boolValue = false,
+            label = "Enable record metrics for reactive forwarding")
+    private boolean recordMetrics = false;
+
     private final TopologyListener topologyListener = new InternalTopologyListener();
 
 
     @Activate
     public void activate(ComponentContext context) {
+        KryoNamespace.Builder metricSerializer = KryoNamespace.newBuilder()
+                .register(KryoNamespaces.API)
+                .register(ReactiveForwardMetrics.class)
+                .register(MultiValuedTimestamp.class);
+        metrics =  storageService.<MacAddress, ReactiveForwardMetrics>eventuallyConsistentMapBuilder()
+                .withName("metrics-fwd")
+                .withSerializer(metricSerializer)
+                .withTimestampProvider((key, metricsData) ->new
+                        MultiValuedTimestamp<>(new WallClockTimestamp(), System.nanoTime()))
+                .build();
+
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.fwd");
 
@@ -383,6 +410,17 @@ public class ReactiveForwarding {
             log.info("Configured. Ignore IPv4 multicast packets is {}",
                     ignoreIpv4McastPackets ? "enabled" : "disabled");
         }
+        Boolean recordMetricsEnabled =
+                Tools.isPropertyEnabled(properties, "recordMetrics");
+        if (recordMetricsEnabled == null) {
+            log.info("IConfigured. Ignore record metrics  is {} ," +
+                    "using current value of {}", recordMetrics);
+        } else {
+            recordMetrics = recordMetricsEnabled;
+            log.info("Configured. record metrics  is {}",
+                    recordMetrics ? "enabled" : "disabled");
+        }
+
         flowTimeout = Tools.getIntegerProperty(properties, "flowTimeout", DEFAULT_TIMEOUT);
         log.info("Configured. Flow Timeout is configured to {} seconds", flowTimeout);
 
@@ -411,13 +449,20 @@ public class ReactiveForwarding {
                 return;
             }
 
+            MacAddress macAddress = ethPkt.getSourceMAC();
+            ReactiveForwardMetrics macMetrics = null;
+            macMetrics = createCounter(macAddress);
+            inPacket(macMetrics);
+
             // Bail if this is deemed to be a control packet.
             if (isControlPacket(ethPkt)) {
+                droppedPacket(macMetrics);
                 return;
             }
 
             // Skip IPv6 multicast packet when IPv6 forward is disabled.
             if (!ipv6Forwarding && isIpv6Multicast(ethPkt)) {
+                droppedPacket(macMetrics);
                 return;
             }
 
@@ -425,6 +470,7 @@ public class ReactiveForwarding {
 
             // Do not process link-local addresses in any way.
             if (id.mac().isLinkLocal()) {
+                droppedPacket(macMetrics);
                 return;
             }
 
@@ -438,7 +484,7 @@ public class ReactiveForwarding {
             // Do we know who this is for? If not, flood and bail.
             Host dst = hostService.getHost(id);
             if (dst == null) {
-                flood(context);
+                flood(context, macMetrics);
                 return;
             }
 
@@ -446,7 +492,7 @@ public class ReactiveForwarding {
             // simply forward out to the destination and bail.
             if (pkt.receivedFrom().deviceId().equals(dst.location().deviceId())) {
                 if (!context.inPacket().receivedFrom().port().equals(dst.location().port())) {
-                    installRule(context, dst.location().port());
+                    installRule(context, dst.location().port(), macMetrics);
                 }
                 return;
             }
@@ -459,7 +505,7 @@ public class ReactiveForwarding {
                                              dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
-                flood(context);
+                flood(context, macMetrics);
                 return;
             }
 
@@ -469,12 +515,12 @@ public class ReactiveForwarding {
             if (path == null) {
                 log.warn("Don't know where to go from here {} for {} -> {}",
                          pkt.receivedFrom(), ethPkt.getSourceMAC(), ethPkt.getDestinationMAC());
-                flood(context);
+                flood(context, macMetrics);
                 return;
             }
 
             // Otherwise forward and be done with it.
-            installRule(context, path.src().port());
+            installRule(context, path.src().port(), macMetrics);
         }
 
     }
@@ -504,23 +550,24 @@ public class ReactiveForwarding {
     }
 
     // Floods the specified packet if permissible.
-    private void flood(PacketContext context) {
+    private void flood(PacketContext context, ReactiveForwardMetrics macMetrics) {
         if (topologyService.isBroadcastPoint(topologyService.currentTopology(),
                                              context.inPacket().receivedFrom())) {
-            packetOut(context, PortNumber.FLOOD);
+            packetOut(context, PortNumber.FLOOD, macMetrics);
         } else {
             context.block();
         }
     }
 
     // Sends a packet out the specified port.
-    private void packetOut(PacketContext context, PortNumber portNumber) {
+    private void packetOut(PacketContext context, PortNumber portNumber, ReactiveForwardMetrics macMetrics) {
+        replyPacket(macMetrics);
         context.treatmentBuilder().setOutput(portNumber);
         context.send();
     }
 
     // Install a rule forwarding the packet to the specified port.
-    private void installRule(PacketContext context, PortNumber portNumber) {
+    private void installRule(PacketContext context, PortNumber portNumber, ReactiveForwardMetrics macMetrics) {
         //
         // We don't support (yet) buffer IDs in the Flow Service so
         // packet out first.
@@ -530,7 +577,7 @@ public class ReactiveForwarding {
 
         // If PacketOutOnly or ARP packet than forward directly to output port
         if (packetOutOnly || inPkt.getEtherType() == Ethernet.TYPE_ARP) {
-            packetOut(context, portNumber);
+            packetOut(context, portNumber, macMetrics);
             return;
         }
 
@@ -651,7 +698,7 @@ public class ReactiveForwarding {
 
         flowObjectiveService.forward(context.inPacket().receivedFrom().deviceId(),
                                      forwardingObjective);
-
+        forwardPacket(macMetrics);
         //
         // If packetOutOfppTable
         //  Send packet back to the OpenFlow pipeline to match installed flow
@@ -659,11 +706,12 @@ public class ReactiveForwarding {
         //  Send packet direction on the appropriate port
         //
         if (packetOutOfppTable) {
-            packetOut(context, PortNumber.TABLE);
+            packetOut(context, PortNumber.TABLE, macMetrics);
         } else {
-            packetOut(context, portNumber);
+            packetOut(context, portNumber, macMetrics);
         }
     }
+
 
     private class InternalTopologyListener implements TopologyListener {
         @Override
@@ -784,8 +832,64 @@ public class ReactiveForwarding {
         return builder.build();
     }
 
-    // Returns set of flow entries which were created by this application and
-    // which egress from the specified connection port
+    private ReactiveForwardMetrics createCounter(MacAddress macAddress) {
+        ReactiveForwardMetrics macMetrics = null;
+        if (recordMetrics) {
+            macMetrics = metrics.compute(macAddress, (key, existingValue) -> {
+                if (existingValue == null) {
+                    return new ReactiveForwardMetrics(0L, 0L, 0L, 0L, macAddress);
+                } else {
+                    return existingValue;
+                }
+            });
+        }
+        return macMetrics;
+    }
+
+    private void  forwardPacket(ReactiveForwardMetrics macmetrics) {
+        if (recordMetrics) {
+            macmetrics.incrementForwardedPacket();
+            metrics.put(macmetrics.getMacAddress(), macmetrics);
+        }
+    }
+
+    private void inPacket(ReactiveForwardMetrics macmetrics) {
+        if (recordMetrics) {
+            macmetrics.incrementInPacket();
+            metrics.put(macmetrics.getMacAddress(), macmetrics);
+        }
+    }
+
+    private void replyPacket(ReactiveForwardMetrics macmetrics) {
+        if (recordMetrics) {
+            macmetrics.incremnetReplyPacket();
+            metrics.put(macmetrics.getMacAddress(), macmetrics);
+        }
+    }
+
+    private void droppedPacket(ReactiveForwardMetrics macmetrics) {
+        if (recordMetrics) {
+            macmetrics.incrementDroppedPacket();
+            metrics.put(macmetrics.getMacAddress(), macmetrics);
+        }
+    }
+
+    public EventuallyConsistentMap<MacAddress, ReactiveForwardMetrics> getMacAddress() {
+        return metrics;
+    }
+
+    public void printMetric(MacAddress mac) {
+        System.out.println("-----------------------------------------------------------------------------------------");
+        System.out.println(" MACADDRESS \t\t\t\t\t\t Metrics");
+        if (mac != null) {
+            System.out.println(" " + mac + " \t\t\t " + metrics.get(mac));
+        } else {
+            for (MacAddress key : metrics.keySet()) {
+                System.out.println(" " + key + " \t\t\t " + metrics.get(key));
+            }
+        }
+    }
+
     private Set<FlowEntry> getFlowRulesFrom(ConnectPoint egress) {
         ImmutableSet.Builder<FlowEntry> builder = ImmutableSet.builder();
         flowRuleService.getFlowEntries(egress.deviceId()).forEach(r -> {
