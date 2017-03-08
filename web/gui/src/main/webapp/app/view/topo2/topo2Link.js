@@ -174,7 +174,7 @@
                         data.push(point);
                     }
 
-                    var entering = d3.select('#topo2-portLabels')
+                    var entering = d3.select('.topo2-portLabels')
                         .selectAll('.portLabel')
                         .data(data)
                         .enter().append('g')
@@ -204,7 +204,7 @@
             },
             unenhance: function () {
                 this.set('enhanced', false);
-                d3.select('#topo2-portLabels').selectAll('.portLabel').remove();
+                d3.select('.topo2-portLabels').selectAll('.portLabel').remove();
             },
             getSelected: function () {
                 return this.collection.filter(function (m) {

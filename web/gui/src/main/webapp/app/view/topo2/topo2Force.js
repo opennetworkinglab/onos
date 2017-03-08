@@ -34,16 +34,18 @@
 
     // ========================== Helper Functions
 
-    function init(_svg_, _forceG_, _uplink_, _dim_, zoomer, _opts_) {
+    function init(_svg_, _forceG_, _uplink_, _dim_, _zoomer_, _opts_) {
+
         svg = _svg_;
-        forceG = _forceG_;
         uplink = _uplink_;
         dim = _dim_;
+        zoomer = _zoomer_;
         opts = _opts_;
 
-        t2bcs.addLayout(t2ls);
+
         t2bgs.init();
-        t2ls = t2ls(svg, forceG, uplink, dim, zoomer, opts);
+        t2ls.init(svg, uplink, dim, zoomer, opts);
+        t2bcs.addLayout(t2ls);
         t2rs.layout = t2ls;
         t2ss.init(svg, zoomer);
     }

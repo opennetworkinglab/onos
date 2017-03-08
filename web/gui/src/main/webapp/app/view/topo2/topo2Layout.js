@@ -97,7 +97,7 @@
                       ViewController) {
 
                 var Layout = ViewController.extend({
-                    initialize: function (svg, forceG, uplink, dim, zoomer, opts) {
+                    init: function (svg, forceG, uplink, dim, zoomer, opts) {
                         $log.debug('initialize Layout');
                         instance = this;
 
@@ -371,7 +371,7 @@
                     return instance || new Layout(svg, forceG, uplink, dim, zoomer, opts);
                 }
 
-                return getInstance;
+                return getInstance();
             }
         ]
     );

@@ -128,6 +128,12 @@
     }
 
     function coordFromXY(loc) {
+
+        // Something this is wrong in the config
+        if (!t2sls.getWidth() || !t2sls.getHeight()) {
+            return [0, 0];
+        }
+
         var scale = 1000 / t2sls.getWidth(),
             yOffset = (1000 - (t2sls.getHeight() * scale)) / 2;
 

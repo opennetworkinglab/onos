@@ -21,15 +21,15 @@
 (function () {
     'use strict';
 
-    var t2rs;
+    var t2rs, t2zs;
 
     // internal state
     var consumeClick,
         zoomer,
         previousNearestLink;    // previous link to mouse position
 
-    function init(svg, _zoomer_) {
-        zoomer = _zoomer_;
+    function init(svg) {
+        zoomer = t2zs.getZoomer();
         svg.on('mousemove', mouseMoveHandler);
         svg.on('click', mouseClickHandler);
     }
@@ -61,7 +61,6 @@
         var mp = getLogicalMousePosition(this),
             link = computeNearestLink(mp);
 
-        // link.enhance();
         if (link) {
             if (previousNearestLink && previousNearestLink !== link) {
                 previousNearestLink.unenhance();
@@ -158,10 +157,11 @@
 
     angular.module('ovTopo2')
     .factory('Topo2SelectService', [
-        'Topo2RegionService',
-        function (_t2rs_) {
+        'Topo2RegionService', 'Topo2ZoomService',
+        function (_t2rs_, _t2zs_) {
 
             t2rs = _t2rs_;
+            t2zs = _t2zs_;
 
             return {
                 init: init,
