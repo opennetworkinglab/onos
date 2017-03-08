@@ -24,12 +24,24 @@
                 <null/>
             </completers>
         </command>
+
         <command>
             <action class="org.onosproject.newoptical.cli.RemoveOpticalConnectivityCommand"/>
+            <completers>
+                <ref component-id="opticalConnectivityIdCompleter"/>
+                <null/>
+            </completers>
         </command>
+
+        <command>
+            <action class="org.onosproject.newoptical.cli.ListOpticalConnectivityCommand"/>
+        </command>
+
     </command-bundle>
 
     <!-- TODO complete only applicable ports -->
     <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
+
+    <bean id="opticalConnectivityIdCompleter" class="org.onosproject.newoptical.cli.OpticalConnectivityIdCompleter"/>
 
 </blueprint>

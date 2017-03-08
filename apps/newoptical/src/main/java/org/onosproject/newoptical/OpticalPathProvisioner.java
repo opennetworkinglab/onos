@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Bandwidth;
+import org.onlab.util.GuavaCollectors;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -80,6 +81,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -233,6 +235,12 @@ public class OpticalPathProvisioner
         log.info("Stopped");
     }
 
+    @Override
+    public Collection<OpticalConnectivity> listConnectivity() {
+        return connectivityMap.values().stream()
+            .map(Versioned::value)
+            .collect(GuavaCollectors.toImmutableList());
+    }
     /*
      * Request packet-layer connectivity between specified ports,
      * over packet-optical multi-layer infrastructure.
