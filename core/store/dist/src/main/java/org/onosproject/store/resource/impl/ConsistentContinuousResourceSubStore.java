@@ -94,11 +94,12 @@ class ConsistentContinuousResourceSubStore {
             return false;
         }
 
-        ContinuousResource registered = children.value().stream()
+        boolean notEnoughRegistered = children.value().stream()
                 .filter(c -> c.id().equals(resource.id()))
                 .findFirst()
-                .get();
-        if (registered.value() < resource.value()) {
+                .map(registered -> registered.value() < resource.value())
+                .orElse(true);
+        if (notEnoughRegistered) {
             // Capacity < requested, can never satisfy
             return false;
         }
