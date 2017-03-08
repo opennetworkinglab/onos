@@ -19,8 +19,11 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.newoptical.api.OpticalPathService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -28,6 +31,11 @@ import org.onosproject.net.PortNumber;
 @Command(scope = "onos", name = "add-optical-connectivity",
         description = "Configure optical domain connectivity")
 public class AddOpticalConnectivityCommand extends AbstractShellCommand {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    // for OSGi import workaround
+    ConnectPointCompleter portCompleter;
 
     @Argument(index = 0, name = "ingress", description = "Ingress connect point",
             required = true, multiValued = false)
@@ -41,8 +49,9 @@ public class AddOpticalConnectivityCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String bandwidthStr = null;
 
+    // not supported yet
     @Argument(index = 3, name = "latency", description = "Latency",
-            required = true, multiValued = false)
+            required = false, multiValued = false)
     String latencyStr = null;
 
 
@@ -63,10 +72,15 @@ public class AddOpticalConnectivityCommand extends AbstractShellCommand {
         print("Trying to setup connectivity between %s and %s.", ingress, egress);
         OpticalConnectivityId id = opticalPathService.setupConnectivity(ingress, egress, bandwidth, null);
         if (id == null) {
-            print("Failed.");
+            print("Failed. See ONOS log for more details.");
+            print(" log:set TRACE org.onosproject.newoptical.OpticalPathProvisioner");
             return;
         }
+        // FIXME This is the last chance to know the Optical path ID.
+        //       there's no other way to know existing Optical Path ID
         print("Optical path ID : %s", id.id());
+        log.info("Optical path ID {} for connectivity between %s and %s: {}",
+                 id.id(), ingress, egress);
     }
 
     private ConnectPoint readConnectPoint(String str) {

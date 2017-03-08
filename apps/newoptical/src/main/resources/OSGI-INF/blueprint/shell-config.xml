@@ -18,10 +18,18 @@
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
             <action class="org.onosproject.newoptical.cli.AddOpticalConnectivityCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+                <ref component-id="connectPointCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.newoptical.cli.RemoveOpticalConnectivityCommand"/>
         </command>
     </command-bundle>
+
+    <!-- TODO complete only applicable ports -->
+    <bean id="connectPointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
 
 </blueprint>

@@ -593,11 +593,13 @@ public class OpticalPathProvisioner
 
             // Avoid inactive links
             if (l.state() == Link.State.INACTIVE) {
+                log.trace("{} is not active", l);
                 return -1.0;
             }
 
             // Avoid cross connect links with used ports
             if (isCrossConnectLink(l) && usedCrossConnectLinkSet.contains(l)) {
+                log.trace("Cross connect {} in use", l);
                 return -1.0;
             }
 
@@ -606,6 +608,7 @@ public class OpticalPathProvisioner
                 if (hasEnoughBandwidth(l.src()) && hasEnoughBandwidth(l.dst())) {
                     return 1.0;
                 } else {
+                    log.trace("Not enought bandwidth on {}", l);
                     return -1.0;
                 }
             } else {
@@ -639,7 +642,13 @@ public class OpticalPathProvisioner
                     // Check if enough amount of bandwidth resource remains
                     ContinuousResource resource = Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class)
                             .resource(bandwidth.bps());
-                    return resourceService.isAvailable(resource);
+                    try {
+                        return resourceService.isAvailable(resource);
+                    } catch (Exception e) {
+                        log.error("Resource service failed checking availability of {}",
+                                  resource, e);
+                        throw e;
+                    }
                 }
             }
             return false;
