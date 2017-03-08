@@ -57,6 +57,7 @@ import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.config.basics.BandwidthCapacity;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
@@ -93,6 +94,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
@@ -104,7 +106,13 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 public class OpticalPathProvisioner
         extends AbstractListenerManager<OpticalPathEvent, OpticalPathListener>
         implements OpticalPathService {
+
     protected static final Logger log = LoggerFactory.getLogger(OpticalPathProvisioner.class);
+
+    /**
+     * Bandwidth representing no bandwidth requirement specified.
+     */
+    private static final Bandwidth NO_BW_REQUIREMENT = Bandwidth.bps(0);
 
     private static final String OPTICAL_CONNECTIVITY_ID_COUNTER = "optical-connectivity-id";
     private static final String LINKPATH_MAP_NAME = "newoptical-linkpath";
@@ -242,7 +250,7 @@ public class OpticalPathProvisioner
         checkNotNull(egress);
         log.info("setupConnectivity({}, {}, {}, {})", ingress, egress, bandwidth, latency);
 
-        bandwidth = (bandwidth == null) ? Bandwidth.bps(0) : bandwidth;
+        bandwidth = (bandwidth == null) ? NO_BW_REQUIREMENT : bandwidth;
 
         Set<Path> paths = pathService.getPaths(ingress.deviceId(), egress.deviceId(),
                 new BandwidthLinkWeight(bandwidth));
@@ -521,12 +529,12 @@ public class OpticalPathProvisioner
     }
 
     /**
-     * Updates bandwidth resource of given connect point.
+     * Updates bandwidth resource of given connect point to specified value.
      *
      * @param cp Connect point
      * @param bandwidth New bandwidth
      */
-    private void updatePortBandwidth(ConnectPoint cp, Bandwidth bandwidth) {
+    private void setPortBandwidth(ConnectPoint cp, Bandwidth bandwidth) {
         log.debug("update Port {} Bandwidth {}", cp, bandwidth);
         BandwidthCapacity bwCapacity = networkConfigService.addConfig(cp, BandwidthCapacity.class);
         bwCapacity.capacity(bandwidth).apply();
@@ -537,6 +545,11 @@ public class OpticalPathProvisioner
      * @param connectivity Optical connectivity
      */
     private void updateBandwidthUsage(OpticalConnectivity connectivity) {
+        if (NO_BW_REQUIREMENT.equals(connectivity.bandwidth())) {
+            // no bandwidth requirement, nothing to allocate.
+            return;
+        }
+
         OpticalConnectivityId connectivityId = connectivity.id();
 
         List<Link> links = connectivity.links();
@@ -565,6 +578,11 @@ public class OpticalPathProvisioner
         if (connectivity.links().isEmpty()) {
             return;
         }
+        if (NO_BW_REQUIREMENT.equals(connectivity.bandwidth())) {
+            // no bandwidth requirement, nothing to release.
+            return;
+        }
+
 
         // release resource only if this node is the master for link head device
         if (mastershipService.isLocalMaster(connectivity.links().get(0).src().deviceId())) {
@@ -578,6 +596,25 @@ public class OpticalPathProvisioner
             }
             log.debug("DONE releasing bandwidth for {}", connectivityId);
         }
+    }
+
+    private boolean linkDiscoveryEnabled(ConnectPoint cp) {
+        // FIXME should check Device feature and configuration state.
+
+        // short-term hack for ONS'17 time-frame,
+        // only expect OF device to have link discovery.
+        return cp.deviceId().uri().getScheme().equals("of");
+    }
+
+    /**
+     * Returns true if both connect point support for link discovery & enabled.
+     *
+     * @param cp1 port 1
+     * @param cp2 port 2
+     * @return true if both connect point support for link discovery & enabled.
+     */
+    private boolean linkDiscoveryEnabled(ConnectPoint cp1, ConnectPoint cp2) {
+        return linkDiscoveryEnabled(cp1) && linkDiscoveryEnabled(cp2);
     }
 
     private class BandwidthLinkWeight implements LinkWeight {
@@ -604,7 +641,7 @@ public class OpticalPathProvisioner
             }
 
             // Check availability of bandwidth
-            if (bandwidth != null) {
+            if (bandwidth != null && !NO_BW_REQUIREMENT.equals(bandwidth)) {
                 if (hasEnoughBandwidth(l.src()) && hasEnoughBandwidth(l.dst())) {
                     return 1.0;
                 } else {
@@ -696,15 +733,17 @@ public class OpticalPathProvisioner
                         // reflect modification only if packetSrc is local_
                         if (mastershipService.isLocalMaster(packetSrc.deviceId())) {
                             // Updates bandwidth of packet ports
-                            updatePortBandwidth(packetSrc, bw);
-                            updatePortBandwidth(packetDst, bw);
+                            setPortBandwidth(packetSrc, bw);
+                            setPortBandwidth(packetDst, bw);
 
                             // Updates link status in distributed map
                             linkPathMap.computeIfPresent(e.getKey(), (link, connectivity) ->
                                     e.getValue().value().setLinkEstablished(packetSrc, packetDst, true));
 
-                            // TODO inject expected link or durable link
-                            // if packet device cannot advertise packet link
+
+                            if (!linkDiscoveryEnabled(packetSrc, packetDst)) {
+                                injectLink(packetSrc, packetDst);
+                            }
                         }
                     });
         }
@@ -738,15 +777,17 @@ public class OpticalPathProvisioner
                         // reflect modification only if packetSrc is local_
                         if (mastershipService.isLocalMaster(packetSrc.deviceId())) {
                             // Updates bandwidth of packet ports
-                            updatePortBandwidth(packetSrc, bw);
-                            updatePortBandwidth(packetDst, bw);
+                            setPortBandwidth(packetSrc, bw);
+                            setPortBandwidth(packetDst, bw);
 
                             // Updates link status in distributed map
                             linkPathMap.computeIfPresent(e.getKey(), (link, connectivity) ->
                                     e.getValue().value().setLinkEstablished(packetSrc, packetDst, false));
 
-                            // TODO remove expected link or durable link
-                            // if packet device cannot monitor packet link
+
+                            if (!linkDiscoveryEnabled(packetSrc, packetDst)) {
+                                removeInjectedLink(packetSrc, packetDst);
+                            }
                         }
                     });
         }
@@ -762,6 +803,56 @@ public class OpticalPathProvisioner
             }
 
             usedCrossConnectLinkSet.remove(link.get());
+        }
+
+        /**
+         * Injects link between specified packet port.
+         *
+         * @param packetSrc port 1
+         * @param packetDst port 2
+         */
+        private void injectLink(ConnectPoint packetSrc,
+                                ConnectPoint packetDst) {
+            // inject expected link or durable link
+            // if packet device cannot advertise packet link
+            try {
+                BasicLinkConfig lnkCfg = networkConfigService
+                        .addConfig(linkKey(packetSrc, packetDst),
+                                   BasicLinkConfig.class);
+                lnkCfg.isAllowed(true);
+                lnkCfg.isDurable(true);
+                lnkCfg.type(Link.Type.DIRECT);
+                lnkCfg.apply();
+            } catch (Exception ex) {
+                log.error("Applying BasicLinkConfig failed", ex);
+            }
+        }
+
+        /**
+         * Removes link injected between specified packet port.
+         *
+         * @param packetSrc port 1
+         * @param packetDst port 2
+         */
+        private void removeInjectedLink(ConnectPoint packetSrc,
+                                        ConnectPoint packetDst) {
+            // remove expected link or durable link
+            // if packet device cannot monitor packet link
+
+            try {
+                // hack to mark link off-line
+                BasicLinkConfig lnkCfg = networkConfigService
+                        .getConfig(linkKey(packetSrc, packetDst),
+                                   BasicLinkConfig.class);
+                lnkCfg.isAllowed(false);
+                lnkCfg.apply();
+            } catch (Exception ex) {
+                log.error("Applying BasicLinkConfig failed", ex);
+            }
+
+            networkConfigService
+                .removeConfig(linkKey(packetSrc, packetDst),
+                              BasicLinkConfig.class);
         }
     }
 
