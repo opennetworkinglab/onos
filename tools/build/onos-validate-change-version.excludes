@@ -34,3 +34,4 @@
 \./pom.xml.versionsBackup
 \./tools/build/buck-publish-api
 \./tools/build/buck-plugin/BUCK
+\./store/primitives/resources/impl/AtomixLeaderElectorCommands.java
