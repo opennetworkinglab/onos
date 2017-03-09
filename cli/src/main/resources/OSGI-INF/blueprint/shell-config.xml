@@ -876,6 +876,16 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkPacketRequestCommand"/>
+            <optional-completers>
+                <entry key="-t" value-ref="ethTypeCompleter"/>
+                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
+                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
+                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
+                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
+            </optional-completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DpisListCommand"/>
         </command>
 

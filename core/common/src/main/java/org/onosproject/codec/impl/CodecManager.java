@@ -82,6 +82,7 @@ import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterRequest;
+import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.net.topology.Topology;
@@ -169,6 +170,7 @@ public class CodecManager implements CodecService {
         registerCodec(FlowStatInfo.class, new FlowStatInfoCodec());
         registerCodec(FilteredConnectPoint.class, new FilteredConnectPointCodec());
         registerCodec(TransportEndpointDescription.class, new TransportEndpointDescriptionCodec());
+        registerCodec(PacketRequest.class, new PacketRequestCodec());
         log.info("Started");
     }
 

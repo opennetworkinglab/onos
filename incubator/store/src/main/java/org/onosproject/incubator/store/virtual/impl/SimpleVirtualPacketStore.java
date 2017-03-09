@@ -118,8 +118,10 @@ public class SimpleVirtualPacketStore
     @Override
     public List<PacketRequest> existingRequests(NetworkId networkId) {
         List<PacketRequest> list = Lists.newArrayList();
-        requests.get(networkId).values().forEach(list::addAll);
-        list.sort((o1, o2) -> o1.priority().priorityValue() - o2.priority().priorityValue());
+        if (requests.get(networkId) != null) {
+            requests.get(networkId).values().forEach(list::addAll);
+            list.sort((o1, o2) -> o1.priority().priorityValue() - o2.priority().priorityValue());
+        }
         return list;
     }
 }

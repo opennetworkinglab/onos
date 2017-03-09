@@ -50,12 +50,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.FlowObjectiveServiceAdapter;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -80,15 +80,18 @@ import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
 import static org.onosproject.net.packet.PacketPriority.REACTIVE;
 
+/**
+ * Junit tests for VirtualNetworkPacketManager using SimpleVirtualPacketStore.
+ */
 public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
 
     private static final int PROCESSOR_PRIORITY = 1;
 
-    private VirtualNetworkManager manager;
-    private DistributedVirtualNetworkStore virtualNetworkManagerStore;
+    protected VirtualNetworkManager manager;
+    protected DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService = new TestCoreService();
     private TestableIntentService intentService = new FakeIntentManager();
-    private TestServiceDirectory testDirectory;
+    protected TestServiceDirectory testDirectory;
     private EventDeliveryService eventDeliveryService;
     private VirtualProviderManager providerRegistryService;
 
@@ -96,9 +99,9 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
     private VirtualNetwork vnet2;
 
     private VirtualPacketProvider provider = new TestPacketProvider();
-    private VirtualNetworkPacketStore packetStore = new SimpleVirtualPacketStore();
+    protected VirtualNetworkPacketStore packetStore = new SimpleVirtualPacketStore();
 
-    private VirtualNetworkPacketManager packetManager1;
+    protected VirtualNetworkPacketManager packetManager1;
     private VirtualNetworkPacketManager packetManager2;
 
     private ApplicationId appId = new TestApplicationId("VirtualPacketManagerTest");
@@ -106,13 +109,13 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
     private VirtualFlowRuleProvider flowRuleProvider = new TestFlowRuleProvider();
     private SimpleVirtualFlowRuleStore flowRuleStore;
     private SimpleVirtualFlowObjectiveStore flowObjectiveStore;
+    protected StorageService storageService = new TestStorageService();
 
     @Before
     public void setUp() throws TestUtils.TestUtilsException {
         virtualNetworkManagerStore = new DistributedVirtualNetworkStore();
 
         TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
-        StorageService storageService = new TestStorageService();
         TestUtils.setField(virtualNetworkManagerStore, "storageService", storageService);
         virtualNetworkManagerStore.activate();
 
@@ -293,7 +296,7 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
         testFlowObjectiveService.validateObjectives(vnet1Devices, ts, CONTROL, REMOVE);
     }
 
-    private static OutboundPacket emittedPacket = null;
+    protected OutboundPacket emittedPacket = null;
 
     /**
      * Core service test class.

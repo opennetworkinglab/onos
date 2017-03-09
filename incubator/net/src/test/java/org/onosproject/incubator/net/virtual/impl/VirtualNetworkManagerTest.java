@@ -66,6 +66,7 @@ import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.FakeIntentManager;
@@ -927,6 +928,7 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
                 .add(VirtualNetworkFlowObjectiveStore.class, new SimpleVirtualFlowObjectiveStore());
 
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowRuleService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowObjectiveService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PacketService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), GroupService.class);
     }
