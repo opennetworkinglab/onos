@@ -174,15 +174,23 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     }
 
     private void pollDeviceFlowEntries(Device device) {
-        providerService.pushFlowMetrics(device.id(), device.as(FlowRuleProgrammable.class).getFlowEntries());
+        try {
+            providerService.pushFlowMetrics(device.id(), device.as(FlowRuleProgrammable.class).getFlowEntries());
+        } catch (Exception e) {
+            log.warn("Exception thrown while polling {}", device.id(), e);
+        }
     }
 
     private void pollFlowEntries() {
-        deviceService.getAvailableDevices().forEach(device -> {
-            if (mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class)) {
-                pollDeviceFlowEntries(device);
-            }
-        });
+        try {
+            deviceService.getAvailableDevices().forEach(device -> {
+                if (mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class)) {
+                    pollDeviceFlowEntries(device);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Exception thrown while polling flows", e);
+        }
     }
 
     private class InternalDeviceListener implements DeviceListener {
