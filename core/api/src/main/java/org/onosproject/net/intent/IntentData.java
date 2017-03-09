@@ -450,6 +450,13 @@ public class IntentData { //FIXME need to make this "immutable"
                 return false;
             }
             // FALLTHROUGH
+        case REALLOCATING:
+            if (currentState == REALLOCATING) {
+                log.trace("{} update not acceptable: no-op REALLOCATING", newData.key());
+                return false;
+            } else if (currentState == INSTALLED) {
+                return true;
+            }
         case INSTALLED:
             if (currentState == INSTALLED) {
                 return false;

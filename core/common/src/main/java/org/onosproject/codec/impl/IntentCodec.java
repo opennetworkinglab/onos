@@ -15,22 +15,23 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.net.UrlEscapers;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Link;
 import org.onosproject.net.ResourceGroup;
-import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
-import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.net.UrlEscapers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
@@ -43,6 +44,7 @@ public final class IntentCodec extends JsonCodec<Intent> {
 
     protected static final String TYPE = "type";
     protected static final String ID = "id";
+    protected static final String KEY = "key";
     protected static final String APP_ID = "appId";
     protected static final String STATE = "state";
     protected static final String PRIORITY = "priority";
@@ -60,6 +62,7 @@ public final class IntentCodec extends JsonCodec<Intent> {
         final ObjectNode result = context.mapper().createObjectNode()
                 .put(TYPE, intent.getClass().getSimpleName())
                 .put(ID, intent.id().toString())
+                .put(KEY, intent.key().toString())
                 .put(APP_ID, UrlEscapers.urlPathSegmentEscaper()
                         .escape(intent.appId().name()));
         if (intent.resourceGroup() != null) {
@@ -125,6 +128,19 @@ public final class IntentCodec extends JsonCodec<Intent> {
         JsonNode priorityJson = json.get(IntentCodec.PRIORITY);
         if (priorityJson != null) {
             builder.priority(priorityJson.asInt());
+        }
+
+        JsonNode keyJson = json.get(IntentCodec.KEY);
+        if (keyJson != null) {
+            String keyString = keyJson.asText();
+            if (keyString.startsWith("0x")) {
+                // The intent uses a LongKey
+                keyString = keyString.replaceFirst("0x", "");
+                builder.key(Key.of(Long.parseLong(keyString, 16), service.getAppId(appId)));
+            } else {
+                // The intent uses a StringKey
+                builder.key(Key.of(keyString, service.getAppId(appId)));
+            }
         }
 
         JsonNode resourceGroup = json.get(IntentCodec.RESOURCE_GROUP);

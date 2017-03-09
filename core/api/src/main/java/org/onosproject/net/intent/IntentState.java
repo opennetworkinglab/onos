@@ -16,6 +16,7 @@
 package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.intent.constraint.NonDisruptiveConstraint;
 
 /**
  * Representation of the phases an intent may attain during its lifecycle.
@@ -113,5 +114,15 @@ public enum IntentState {
      * in WITHDRAWN or FAILED.
      * </p>
      */
-    PURGE_REQ
+    PURGE_REQ,
+
+    /**
+     * Indicates that the intent is being reallocated in a non-disruptive way {@link NonDisruptiveConstraint}.
+     * This state can be used to inform other applications that the intent is performing
+     * the reallocation. In particular type of networks this operation can require
+     * a long time. After all the reallocation stages are completed, the intent
+     * returns to the {@link #INSTALLED} state. If any of the reallocation stages fails,
+     * the intent is flagged as {@link #FAILED}.
+     */
+    REALLOCATING
 }

@@ -29,6 +29,7 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.NonDisruptiveConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onosproject.net.intent.constraint.NonDisruptiveConstraint.nonDisruptive;
 
 /**
  * Constraint JSON decoder.
@@ -183,6 +185,15 @@ public final class DecodeConstraintCodecHelper {
     }
 
     /**
+     * Decodes a non-disruptive reallocation constraint.
+     *
+     * @return non-disruptive reallocation constraint object.
+     */
+    private Constraint decodeNonDisruptiveConstraint() {
+        return nonDisruptive();
+    }
+
+    /**
      * Decodes the given constraint.
      *
      * @return constraint object.
@@ -208,6 +219,8 @@ public final class DecodeConstraintCodecHelper {
             return decodeAsymmetricPathConstraint();
         } else if (type.equals(DomainConstraint.class.getSimpleName())) {
             return decodeDomainConstraint();
+        } else if (type.equals(NonDisruptiveConstraint.class.getSimpleName())) {
+            return decodeNonDisruptiveConstraint();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");

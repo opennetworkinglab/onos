@@ -683,7 +683,7 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonArray json) {
             boolean intentFound = false;
-            final int expectedAttributes = 5;
+            final int expectedAttributes = 6;
             for (int jsonIntentIndex = 0; jsonIntentIndex < json.size();
                  jsonIntentIndex++) {
 

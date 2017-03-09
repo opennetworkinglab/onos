@@ -63,7 +63,12 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
         /**
          * Signifies that an intent has been purged from the system.
          */
-        PURGED
+        PURGED,
+
+        /**
+         * Signifies that an intent is being reallocated.
+         */
+        REALLOCATING
     }
 
     /**
@@ -117,6 +122,9 @@ public class IntentEvent extends AbstractEvent<IntentEvent.Type, Intent> {
                 break;
             case INSTALLED:
                 type = Type.INSTALLED;
+                break;
+            case REALLOCATING:
+                type = Type.REALLOCATING;
                 break;
             case WITHDRAW_REQ:
                 type = Type.WITHDRAW_REQ;
