@@ -188,6 +188,9 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
 
     /**
      * Does this switch support Nicira Role messages.
+     * <p>
+     * Only relevant if this Device is OpenFlow 1.0.
+     *
      * @return true if supports, false otherwise.
      */
     Boolean supportNxRole();

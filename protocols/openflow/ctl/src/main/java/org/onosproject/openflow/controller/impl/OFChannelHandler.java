@@ -21,6 +21,7 @@ import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -47,6 +48,7 @@ import org.projectfloodlight.openflow.protocol.OFEchoRequest;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
+import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFeaturesReply;
 import org.projectfloodlight.openflow.protocol.OFFlowModFailedCode;
@@ -119,7 +121,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
     //Indicates the openflow version used by this switch
     protected OFVersion ofVersion;
+
+    // deprecated in 1.10.0
+    @Deprecated
     protected OFFactory factory13;
+    // deprecated in 1.10.0
+    @Deprecated
     protected OFFactory factory10;
 
     /** transaction Ids to use during handshake. Since only one thread
@@ -137,8 +144,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         this.state = ChannelState.INIT;
         this.pendingPortStatusMsg = new CopyOnWriteArrayList<>();
         this.portDescReplies = new ArrayList<>();
-        factory13 = controller.getOFMessageFactory13();
-        factory10 = controller.getOFMessageFactory10();
+        factory13 = OFFactories.getFactory(OFVersion.OF_13);
+        factory10 = OFFactories.getFactory(OFVersion.OF_10);
         duplicateDpidFound = Boolean.FALSE;
     }
 
@@ -200,20 +207,20 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                 // we are just checking the version number.
                 if (m.getVersion().getWireVersion() >= OFVersion.OF_13.getWireVersion()) {
                     log.debug("Received {} Hello from {} - switching to OF "
-                            + "version 1.3", m.getVersion(),
+                            + "version 1.3+", m.getVersion(),
                             h.channel.getRemoteAddress());
+                    h.ofVersion = m.getVersion();
                     h.sendHandshakeHelloMessage();
-                    h.ofVersion = OFVersion.OF_13;
                 } else if (m.getVersion().getWireVersion() >= OFVersion.OF_10.getWireVersion()) {
                     log.debug("Received {} Hello from {} - switching to OF "
                             + "version 1.0", m.getVersion(),
                             h.channel.getRemoteAddress());
+                    h.ofVersion = m.getVersion();
                     OFHello hi =
-                            h.factory10.buildHello()
+                            OFFactories.getFactory(h.ofVersion).buildHello()
                                     .setXid(h.handshakeTransactionIds--)
                                     .build();
                     h.channel.write(Collections.singletonList(hi));
-                    h.ofVersion = OFVersion.OF_10;
                 } else {
                     log.error("Received Hello of version {} from switch at {}. "
                             + "This controller works with OF1.0 and OF1.3 "
@@ -367,8 +374,17 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                             m.getMissSendLen());
                 }
 
-                // TODO should this check if 1.3 or later?
-                if (h.ofVersion == OFVersion.OF_13) {
+                nextState(h);
+            }
+
+            /**
+             * Transition to next state based on OF version.
+             *
+             * @param h current channel handler
+             * @throws IOException
+             */
+            private void nextState(OFChannelHandler h) throws IOException {
+                if (h.ofVersion.getWireVersion() >= OFVersion.OF_13.getWireVersion()) {
                     // Meters were introduced in OpenFlow 1.3
                     h.sendMeterFeaturesRequest();
                     h.setState(WAIT_METER_FEATURES_REPLY);
@@ -399,6 +415,19 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
             @Override
             void processOFError(OFChannelHandler h, OFErrorMsg m) {
+                if (m.getErrType() == OFErrorType.BAD_REQUEST) {
+                    OFBadRequestErrorMsg badRequest = (OFBadRequestErrorMsg) m;
+                    if (badRequest.getCode() == OFBadRequestCode.BAD_TYPE) {
+                         log.debug("{} does not support GetConfig, moving on", h.getSwitchInfoString());
+                         try {
+                            nextState(h);
+                            return;
+                        } catch (IOException e) {
+                            log.error("Exception thrown transitioning to next", e);
+                            logErrorDisconnect(h, m);
+                        }
+                    }
+                }
                 logErrorDisconnect(h, m);
             }
 
@@ -1058,8 +1087,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
                         h.channel.getRemoteAddress());
                 return;
             }
-            OFFactory factory = (h.ofVersion == OFVersion.OF_13) ?
-                    h.controller.getOFMessageFactory13() : h.controller.getOFMessageFactory10();
+            OFFactory factory = OFFactories.getFactory(h.ofVersion);
                     OFEchoReply reply = factory
                             .buildEchoReply()
                             .setXid(m.getXid())
@@ -1248,7 +1276,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
             throws Exception {
-        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFFactory factory = OFFactories.getFactory(ofVersion);
         OFMessage m = factory.buildEchoRequest().build();
         log.debug("Sending Echo Request on idle channel: {}",
                 e.getChannel().getPipeline().getLast());
@@ -1335,16 +1363,21 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         // The OF protocol requires us to start things off by sending the highest
         // version of the protocol supported.
 
-        // bitmap represents OF1.0 (ofp_version=0x01) and OF1.3 (ofp_version=0x04)
+        // bitmap represents OF1.0, OF1.3, and OF1.4
         // see Sec. 7.5.1 of the OF1.3.4 spec
-        U32 bitmap = U32.ofRaw(0x00000012);
-        OFHelloElem hem = factory13.buildHelloElemVersionbitmap()
+        U32 bitmap = U32.ofRaw((0b1 << OFVersion.OF_10.getWireVersion()) |
+                               (0b1 << OFVersion.OF_13.getWireVersion()) |
+                               (0b1 << OFVersion.OF_14.getWireVersion()));
+        OFVersion version = Optional.ofNullable(ofVersion).orElse(OFVersion.OF_13);
+        OFHelloElem hem = OFFactories.getFactory(version)
+                .buildHelloElemVersionbitmap()
                 .setBitmaps(Collections.singletonList(bitmap))
                 .build();
-        OFMessage.Builder mb = factory13.buildHello()
+        OFMessage.Builder mb = OFFactories.getFactory(version)
+                .buildHello()
                 .setXid(this.handshakeTransactionIds--)
                 .setElements(Collections.singletonList(hem));
-        log.info("Sending OF_13 Hello to {}", channel.getRemoteAddress());
+        log.info("Sending {} Hello to {}", version, channel.getRemoteAddress());
         channel.write(Collections.singletonList(mb.build()));
     }
 
@@ -1353,7 +1386,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      * @throws IOException
      */
     private void sendHandshakeFeaturesRequestMessage() throws IOException {
-        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFFactory factory = OFFactories.getFactory(ofVersion);
         log.debug("Sending FEATURES_REQUEST to {}", channel.getRemoteAddress());
         OFMessage m = factory.buildFeaturesRequest()
                 .setXid(this.handshakeTransactionIds--)
@@ -1367,7 +1400,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      * @throws IOException
      */
     private void sendHandshakeSetConfig() throws IOException {
-        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFFactory factory = OFFactories.getFactory(ofVersion);
         log.debug("Sending CONFIG_REQUEST to {}", channel.getRemoteAddress());
         List<OFMessage> msglist = new ArrayList<>(3);
 
@@ -1406,7 +1439,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendHandshakeDescriptionStatsRequest() throws IOException {
         // Get Description to set switch-specific flags
-        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFFactory factory = OFFactories.getFactory(ofVersion);
         log.debug("Sending DESC_STATS_REQUEST to {}", channel.getRemoteAddress());
         OFDescStatsRequest dreq = factory
                 .buildDescStatsRequest()
@@ -1422,7 +1455,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void sendMeterFeaturesRequest() throws IOException {
         // Get meter features including the MaxMeters value available for the device
-        OFFactory factory = (ofVersion == OFVersion.OF_13) ? factory13 : factory10;
+        OFFactory factory = OFFactories.getFactory(ofVersion);
         log.debug("Sending METER_FEATURES_REQUEST to {}", channel.getRemoteAddress());
         OFMeterFeaturesStatsRequest mfreq = factory
                 .buildMeterFeaturesStatsRequest()
@@ -1433,8 +1466,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
     private void sendHandshakeOFPortDescRequest() throws IOException {
         log.debug("Sending OF_PORT_DESC_REQUEST to {}", channel.getRemoteAddress());
-        // Get port description for 1.3 switch
-        OFPortDescStatsRequest preq = factory13
+        // Get port description for 1.3+ switch
+        OFPortDescStatsRequest preq = OFFactories.getFactory(ofVersion)
                 .buildPortDescStatsRequest()
                 .setXid(handshakeTransactionIds--)
                 .build();

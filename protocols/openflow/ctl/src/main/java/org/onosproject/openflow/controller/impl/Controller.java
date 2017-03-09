@@ -69,8 +69,17 @@ public class Controller {
 
     protected static final Logger log = LoggerFactory.getLogger(Controller.class);
 
+   /**
+    * @deprecated in 1.10.0
+    */
+    @Deprecated
     protected static final OFFactory FACTORY13 = OFFactories.getFactory(OFVersion.OF_13);
+    /**
+     * @deprecated in 1.10.0
+     */
+    @Deprecated
     protected static final OFFactory FACTORY10 = OFFactories.getFactory(OFVersion.OF_10);
+
     private static final boolean TLS_DISABLED = false;
     private static final short MIN_KS_LENGTH = 6;
 
@@ -97,6 +106,7 @@ public class Controller {
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
+
     private DriverService driverService;
     private boolean enableOfTls = TLS_DISABLED;
 
@@ -104,11 +114,21 @@ public class Controller {
     // Getters/Setters
     // ***************
 
+    /**
+     * @return OF1.0 factory
+     * @deprecated in 1.10.0
+     */
+    @Deprecated
     public OFFactory getOFMessageFactory10() {
         return FACTORY10;
     }
 
 
+    /**
+     * @return OF1.3 factory
+     * @deprecated in 1.10.0
+     */
+    @Deprecated
     public OFFactory getOFMessageFactory13() {
         return FACTORY13;
     }
