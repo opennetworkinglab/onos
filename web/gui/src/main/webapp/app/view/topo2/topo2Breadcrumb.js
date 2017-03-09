@@ -62,8 +62,8 @@
             rid: data.id
         });
 
-        layout().createForceElements();
-        layout().transitionDownRegion();
+        layout.createForceElements();
+        layout.transitionDownRegion();
 
         render();
     }
