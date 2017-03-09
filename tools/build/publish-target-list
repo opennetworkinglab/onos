@@ -21,3 +21,4 @@
     //apps/optical-model:onos-apps-optical-model
     //web/api:onos-rest
     //protocols/netconf/api:onos-protocols-netconf-api
+    //apps/routing-api:onos-apps-routing-api
