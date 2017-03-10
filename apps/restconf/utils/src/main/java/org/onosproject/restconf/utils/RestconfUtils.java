@@ -52,7 +52,7 @@ public final class RestconfUtils {
     /**
      * Data format required by YangRuntime Service.
      */
-    private static final String JSON_FORMAT = "json";
+    private static final String JSON_FORMAT = "JSON";
 
     private static final YangRuntimeService YANG_RUNTIME =
             DefaultServiceDirectory.getService(YangRuntimeService.class);
@@ -81,7 +81,7 @@ public final class RestconfUtils {
      * @return the InputStream from Resource Data
      */
     public static InputStream convertObjectNodeToInputStream(ObjectNode rootNode) {
-        String json = rootNode.asText();
+        String json = rootNode.toString();
         InputStream inputStream;
         try {
             inputStream = IOUtils.toInputStream(json);

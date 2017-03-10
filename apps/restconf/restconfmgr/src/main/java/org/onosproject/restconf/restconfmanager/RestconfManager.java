@@ -138,7 +138,7 @@ public class RestconfManager implements RestconfService {
         }
         DataNode dataNode = dataNodeList.get(0);
         try {
-            dynamicConfigService.createNode(rid, dataNode);
+            dynamicConfigService.createNodeRecursive(rid, dataNode);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
@@ -157,7 +157,7 @@ public class RestconfManager implements RestconfService {
             throws RestconfException {
         ResourceId rid = convertUriToRid(uri);
         try {
-            dynamicConfigService.deleteNode(rid);
+            dynamicConfigService.deleteNodeRecursive(rid);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
