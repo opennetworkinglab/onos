@@ -93,6 +93,17 @@
 
                     return selected;
                 },
+                index: function () {
+
+                    var models = this.collection.models,
+                        id = this.get('id');
+
+                    var index = _.find(models, function (model, i) {
+                        return model.get('id') === id;
+                    });
+
+                    return index || models.length;
+                },
                 deselect: function () {
                     this.set('selected', false);
                 },

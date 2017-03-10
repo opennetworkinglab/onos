@@ -23,17 +23,38 @@
     'use strict';
 
     // Injected vars
-    var rs, t2mcs, t2sls;
+    var rs, t2mcs, t2sls, t2bgs;
 
     // Internal state;
     var nearDist = 15;
 
     function positionNode(node, forUpdate) {
+
         var meta = node.get('metaUi'),
             x = meta && meta.x,
             y = meta && meta.y,
             dim = [800, 600],
             xy;
+
+        if (node.nodeType === 'peer-region') {
+
+            var coord = [0, 0],
+                loc = {};
+
+            if (t2bgs.getBackgroundType() === 'geo') {
+                // TODO: Set coords for geo (lat/long)
+            } else {
+                loc.gridX = -20;
+                loc.gridY = 10 * node.index();
+                coord = coordFromXY(loc);
+            }
+
+            node.px = node.x = coord[0];
+            node.py = node.y = coord[1];
+
+            node.fix(true);
+            return;
+        }
 
         // If the device contains explicit LONG/LAT data, use that to position
         if (setLongLat(node)) {
@@ -146,12 +167,13 @@
 
     angular.module('ovTopo2')
     .factory('Topo2NodePositionService',
-        ['RandomService', 'Topo2MapConfigService', 'Topo2SpriteLayerService',
-            function (_rs_, _t2mcs_, _t2sls_) {
+        ['RandomService', 'Topo2MapConfigService', 'Topo2SpriteLayerService', 'Topo2BackgroundService',
+            function (_rs_, _t2mcs_, _t2sls_, _t2bgs_) {
 
                 rs = _rs_;
                 t2mcs = _t2mcs_;
                 t2sls = _t2sls_;
+                t2bgs = _t2bgs_;
 
                 return {
                     positionNode: positionNode,

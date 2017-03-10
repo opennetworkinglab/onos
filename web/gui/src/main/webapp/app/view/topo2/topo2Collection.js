@@ -44,8 +44,7 @@
         model: Model,
         addModel: function (data) {
             var CollectionModel = this.model;
-            var model = new CollectionModel(data);
-            model.collection = this;
+            var model = new CollectionModel(data, this);
 
             this.models.push(model);
             this._byId[data.id] = model;

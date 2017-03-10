@@ -28,8 +28,8 @@
     angular.module('ovTopo2')
         .factory('Topo2BackgroundService', [
             '$log', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
-            'Topo2MapConfigService', 'Topo2RegionService',
-            function (_$log_, ViewController, t2sls, t2ms, t2mcs, t2rs) {
+            'Topo2MapConfigService',
+            function (_$log_, ViewController, t2sls, t2ms, t2mcs) {
 
                 $log = _$log_;
 
@@ -45,10 +45,14 @@
                         t2ms.init();
                     },
                     addLayout: function (data) {
-                        this.background = data;
-                        t2rs.bgRendered = false;
 
-                        if (data.bgType === 'geo') {
+                        var _this = this;
+
+                        this.background = data;
+                        this.bgType = data.bgType;
+                        _this.region.loaded('bgRendered', false);
+
+                        if (this.bgType === 'geo') {
 
                             // Hide Sprite Layer and show Map
                             t2sls.hide();
@@ -62,20 +66,24 @@
                                 t2mcs.projection(proj);
                                 // $log.debug('** Zoom restored:', z);
                                 $log.debug('** We installed the projection:', proj);
-                                t2rs.backgroundRendered();
+                                _this.region.loaded('bgRendered', true);
                             });
                         }
 
-                        if (data.bgType === 'grid') {
+                        if (this.bgType === 'grid') {
 
                             // Hide Sprite Layer and show Map
                             t2ms.hide();
                             t2sls.show();
 
-                            t2sls.loadLayout(data.bgId).then(function () {
-                                t2rs.backgroundRendered();
+                            t2sls.loadLayout(data.bgId).then(function (spriteLayout) {
+                                _this.background.layout = spriteLayout;
+                                _this.region.loaded('bgRendered', true);
                             });
                         }
+                    },
+                    getBackgroundType: function () {
+                        return this.bgType;
                     }
                 });
 

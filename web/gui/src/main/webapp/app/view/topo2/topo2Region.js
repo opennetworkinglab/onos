@@ -36,9 +36,9 @@
         '$log', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
         'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
-        'Topo2MapConfigService',
+        'Topo2MapConfigService', 'Topo2PeerRegionService',
         function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController,
-                  t2sls, t2ms, t2mcs) {
+                  t2sls, t2ms, t2mcs, t2pr) {
 
             Model = _Model_;
 
@@ -46,7 +46,10 @@
                 initialize: function () {
                     instance = this;
                     this.model = null;
+
                     this.bgRendered = false;
+                    this.regionData = null;
+                    this.peers = null;
 
                     var RegionModel = Model.extend({
                         findNodeById: this.findNodeById,
@@ -55,35 +58,26 @@
 
                     this.model = new RegionModel();
                 },
-                backgroundRendered: function () {
-                    this.bgRendered = true;
-
-                    if (this.regionData) {
-                        this.startRegion();
-                    }
-                },
-                addRegion: function (data) {
-                    this.clear();
-                    this.regionData = data;
-
-                    if (this.bgRendered) {
+                loaded: function (key, value) {
+                    this[key] = value;
+                    if (this.bgRendered && this.regionData && this.peers) {
                         this.startRegion();
                     }
                 },
                 startRegion: function () {
 
+                    var _this = this;
+
                     this.model.set({
                         id: this.regionData.id,
-                        layerOrder: this.regionData.layerOrder,
-                        subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this),
-                        devices: t2ds.createDeviceCollection(this.regionData.devices, this),
-                        hosts: t2hs.createHostCollection(this.regionData.hosts, this),
-                        links: t2ls.createLinkCollection(this.regionData.links, this)
+                        layerOrder: this.regionData.layerOrder
                     });
 
-                    angular.forEach(this.model.get('links').models, function (link) {
-                        link.createLink();
-                    });
+                    this.model.set({ subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this) });
+                    this.model.set({ devices: t2ds.createDeviceCollection(this.regionData.devices, this) });
+                    this.model.set({ hosts: t2hs.createHostCollection(this.regionData.hosts, this) });
+                    this.model.set({ peerRegions: t2pr.createCollection(this.peers, this) });
+                    this.model.set({ links: t2ls.createLinkCollection(this.regionData.links, this) });
 
                     // Hide Breadcrumbs if there are no subregions configured in the root region
                     if (this.isRootRegion() && !this.model.get('subregions').models.length) {
@@ -98,15 +92,6 @@
 
                     if (!this.model)
                         return;
-
-                    this.model.set({
-                        id: null,
-                        layerOrder: null,
-                        subregions: t2sr.createSubRegionCollection([], this),
-                        devices: t2ds.createDeviceCollection([], this),
-                        hosts: t2hs.createHostCollection([], this),
-                        links: t2ls.createLinkCollection([], this)
-                    });
                 },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
@@ -126,7 +111,8 @@
                         return [].concat(
                             this.model.get('devices').models,
                             this.model.get('hosts').models,
-                            this.model.get('subregions').models
+                            this.model.get('subregions').models,
+                            this.model.get('peerRegions').models
                         );
                     }
                     return [];

@@ -46,6 +46,7 @@
                         this.container = this.appendElement('#topo2-background', 'g');
                     },
                     loadLayout: function (id) {
+                        var _this = this;
                         this.container.selectAll("*").remove();
                         this.layout = ss.layout(id);
 
@@ -60,7 +61,7 @@
 
                         // Returns a promise for consistency with Topo2MapService
                         return new Promise(function(resolve) {
-                            resolve();
+                            resolve(_this);
                         });
                     },
                     createSpriteDefs: function () {

@@ -117,6 +117,11 @@
     function createLinkCollection(data, _region) {
 
         var LinkModel = Model.extend({
+            initialize: function () {
+                this.super = this.constructor.__super__;
+                this.super.initialize.apply(this, arguments);
+                this.createLink();
+            },
             region: _region,
             createLink: createLink,
             linkEndPoints: linkEndPoints,

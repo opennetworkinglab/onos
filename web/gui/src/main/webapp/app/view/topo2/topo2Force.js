@@ -43,6 +43,7 @@
 
 
         t2bgs.init();
+        t2bgs.region = t2rs;
         t2ls.init(svg, uplink, dim, zoomer, opts);
         t2bcs.addLayout(t2ls);
         t2rs.layout = t2ls;
@@ -83,11 +84,12 @@
 
     function currentRegion(data) {
         $log.debug('>> topo2CurrentRegion event:', data);
-        t2rs.addRegion(data);
+        t2rs.loaded('regionData', data);
     }
 
     function topo2PeerRegions(data) {
         $log.debug('>> topo2PeerRegions event:', data);
+        t2rs.loaded('peers', data.peers);
     }
 
     function modelEvent(data) {

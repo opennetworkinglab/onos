@@ -187,6 +187,10 @@
     fill: #454545;
 }
 
+#ov-topo2 svg .node.peer-region rect {
+    fill: #ffffff;
+}
+
 #ov-topo2 svg .node.selected .node-container {
     stroke-width: 2.0;
     stroke: #009fdb;

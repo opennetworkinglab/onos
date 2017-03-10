@@ -30,14 +30,6 @@ Module that contains the d3.force.layout logic
         node.onExit(this, node);
     }
 
-    function hostEnter(node) {
-        node.onEnter(this, node);
-    }
-
-    function linkEntering(link) {
-        link.onEnter(this);
-    }
-
     angular.module('ovTopo2')
     .factory('Topo2D3Service', [
 
@@ -45,8 +37,6 @@ Module that contains the d3.force.layout logic
             return {
                 nodeEnter: nodeEnter,
                 nodeExit: nodeExit,
-                hostEnter: hostEnter,
-                linkEntering: linkEntering
             };
         }
     ]

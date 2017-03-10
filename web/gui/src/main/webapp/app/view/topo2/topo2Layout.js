@@ -136,8 +136,7 @@
                         return this.settings[settingName][nodeType] || this.settings[settingName]._def_;
                     },
                     createForceLayout: function () {
-                        var _this = this,
-                            regionLinks = t2rs.regionLinks(),
+                        var regionLinks = t2rs.regionLinks(),
                             regionNodes = t2rs.regionNodes();
 
                         this.force = d3.layout.force()
@@ -150,14 +149,6 @@
                             .nodes(regionNodes)
                             .links(regionLinks)
                             .on("tick", this.tick.bind(this))
-                            .on("start", function () {
-
-                                // TODO: Find a better way to do this
-                                // TODO: BROKEN - Click and dragging and element triggers this event
-//                                setTimeout(function () {
-//                                    _this.centerLayout();
-//                                }, 500);
-                            })
                             .start();
 
                         this.link = this.elements.linkG.selectAll('.link')
