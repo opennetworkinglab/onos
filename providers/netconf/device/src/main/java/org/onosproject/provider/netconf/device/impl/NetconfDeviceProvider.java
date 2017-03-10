@@ -186,10 +186,24 @@ public class NetconfDeviceProvider extends AbstractProvider
     // Checks connection to devices in the config file
     // every DEFAULT_POLL_FREQUENCY_SECONDS seconds.
     private ScheduledFuture schedulePolling() {
-        return connectionExecutor.scheduleAtFixedRate(this::checkAndUpdateDevices,
+        return connectionExecutor.scheduleAtFixedRate(exceptionSafe(this::checkAndUpdateDevices),
                                                       DEFAULT_POLL_FREQUENCY_SECONDS / 10,
                                                       DEFAULT_POLL_FREQUENCY_SECONDS,
                                                       TimeUnit.SECONDS);
+    }
+
+    private Runnable exceptionSafe(Runnable runnable) {
+        return new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } catch (Exception e) {
+                    log.error("Unhandled Exception", e);
+                }
+            }
+        };
     }
 
     @Override
@@ -323,7 +337,11 @@ public class NetconfDeviceProvider extends AbstractProvider
                     if (deviceService.getDevice(deviceId) == null) {
                         providerService.deviceConnected(deviceId, deviceDescription);
                     }
-                    checkAndUpdateDevice(deviceId, deviceDescription);
+                    try {
+                        checkAndUpdateDevice(deviceId, deviceDescription);
+                    } catch (Exception e) {
+                        log.error("Unhandled exception checking {}", deviceId, e);
+                    }
                 });
             } catch (ConfigException e) {
                 log.error("Cannot read config error " + e);
