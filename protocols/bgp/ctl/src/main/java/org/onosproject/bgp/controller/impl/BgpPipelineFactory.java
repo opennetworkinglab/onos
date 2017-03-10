@@ -19,10 +19,7 @@ package org.onosproject.bgp.controller.impl;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.util.ExternalResourceReleasable;
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timer;
 import org.onosproject.bgp.controller.BgpController;
 
 /**
@@ -31,8 +28,6 @@ import org.onosproject.bgp.controller.BgpController;
 public class BgpPipelineFactory
     implements ChannelPipelineFactory, ExternalResourceReleasable {
 
-    static final Timer TIMER = new HashedWheelTimer();
-    protected ReadTimeoutHandler readTimeoutHandler;
     private boolean isBgpServ;
     private BgpController bgpController;
 
@@ -46,8 +41,6 @@ public class BgpPipelineFactory
         super();
         this.isBgpServ = isBgpServ;
         this.bgpController = bgpController;
-        /* hold time */
-        this.readTimeoutHandler = new ReadTimeoutHandler(TIMER, bgpController.getConfig().getHoldTime());
     }
 
     @Override
@@ -57,7 +50,6 @@ public class BgpPipelineFactory
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("bgpmessagedecoder", new BgpMessageDecoder());
         pipeline.addLast("bgpmessageencoder", new BgpMessageEncoder());
-        pipeline.addLast("holdTime", readTimeoutHandler);
         if (isBgpServ) {
             pipeline.addLast("PassiveHandler", handler);
         } else {
@@ -69,6 +61,6 @@ public class BgpPipelineFactory
 
     @Override
     public void releaseExternalResources() {
-        TIMER.stop();
+        // TODO:
     }
 }
