@@ -47,7 +47,7 @@ public final class ChassisId extends Identifier<Long> {
      * @param value the value to use.
      */
     public ChassisId(String value) {
-        super(Long.parseLong(value, 16));
+        super(Long.parseUnsignedLong(value, 16));
     }
 
     /**
