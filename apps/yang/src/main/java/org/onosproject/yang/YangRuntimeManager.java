@@ -36,6 +36,8 @@ import org.onosproject.yang.runtime.YangSerializerRegistry;
 import org.onosproject.yang.runtime.impl.DefaultYangModelRegistry;
 import org.onosproject.yang.runtime.impl.DefaultYangRuntimeHandler;
 import org.onosproject.yang.runtime.impl.DefaultYangSerializerRegistry;
+import org.onosproject.yang.serializers.json.JsonSerializer;
+import org.onosproject.yang.serializers.xml.XmlSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,8 @@ public class YangRuntimeManager implements YangModelRegistry,
         serializerRegistry = new DefaultYangSerializerRegistry();
         modelRegistry = new DefaultYangModelRegistry();
         runtimeService = new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
+        serializerRegistry.registerSerializer(new JsonSerializer());
+        serializerRegistry.registerSerializer(new XmlSerializer());
         log.info("Started");
     }
 
