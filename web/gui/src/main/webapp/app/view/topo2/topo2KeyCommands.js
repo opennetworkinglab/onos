@@ -29,7 +29,7 @@
         R: [resetZoom, 'Reset pan / zoom'],
         P: [togglePorts, 'Toggle Port Highlighting'],
         E: [equalizeMasters, 'Equalize mastership roles'],
-        X: [resetAllNodeLocations, 'Reset Node Location'],
+        X: [resetNodeLocation, 'Reset Node Location'],
         U: [unpinNode, 'Unpin node (mouse over)'],
 
         esc: handleEscape
@@ -129,8 +129,8 @@
         flash.flash('Equalizing master roles');
     }
 
-    function resetAllNodeLocations() {
-        t2fs.resetAllLocations();
+    function resetNodeLocation() {
+        t2fs.resetNodeLocation();
         flash.flash('Reset node locations');
     }
 

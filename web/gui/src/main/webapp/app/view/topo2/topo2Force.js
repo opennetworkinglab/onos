@@ -160,15 +160,15 @@
         update(t2rs.regionLinks());
     }
 
-    function resetAllLocations() {
-        var nodes = t2rs.regionNodes();
+    function resetNodeLocation() {
 
-        angular.forEach(nodes, function (node) {
-            node.resetPosition();
+        var hovered = t2rs.filterRegionNodes(function (model) {
+            return model.get('hovered');
         });
 
-        t2ls.update();
-        t2ls.tick();
+        angular.forEach(hovered, function (model) {
+            model.resetPosition();
+        });
     }
 
     function unpin() {
@@ -231,7 +231,7 @@
 
                 updateNodes: updateNodes,
                 updateLinks: updateLinks,
-                resetAllLocations: resetAllLocations,
+                resetNodeLocation: resetNodeLocation,
                 unpin: unpin
             };
         }]);
