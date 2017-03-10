@@ -33,12 +33,14 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
     public static final String LATENCY = "latency";
     public static final String BANDWIDTH = "bandwidth";
     public static final String IS_DURABLE = "durable";
+    public static final String IS_BIDIRECTIONAL = "bidirectional";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE) &&
+        return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE, IS_BIDIRECTIONAL) &&
                 isBoolean(ALLOWED, OPTIONAL) && isNumber(METRIC, OPTIONAL) &&
-                isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL);
+                isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL) &&
+                isBoolean(IS_BIDIRECTIONAL, OPTIONAL);
     }
 
     /**
@@ -141,5 +143,28 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      */
     public BasicLinkConfig isDurable(Boolean isDurable) {
         return (BasicLinkConfig) setOrClear(IS_DURABLE, isDurable);
+    }
+
+    /**
+     * Returns if link is bidirectional in the network model or not.
+     *
+     * @return true for bidirectional, false otherwise
+     */
+    public Boolean isBidirectional() {
+        JsonNode res = object.path(IS_BIDIRECTIONAL);
+        if (res.isMissingNode()) {
+            return true;
+        }
+        return res.asBoolean();
+    }
+
+    /**
+     * Sets durability for this link.
+     *
+     * @param isBidirectional true for directional, false otherwise
+     * @return this BasicLinkConfig
+     */
+    public BasicLinkConfig isBidirectional(Boolean isBidirectional) {
+        return (BasicLinkConfig) setOrClear(IS_BIDIRECTIONAL, isBidirectional);
     }
 }

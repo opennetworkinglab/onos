@@ -15,16 +15,15 @@
  */
 package org.onosproject.net.config.basics;
 
-import java.time.Duration;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.Test;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.config.ConfigApplyDelegate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import java.time.Duration;
 
 import static java.lang.Boolean.FALSE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,16 +54,18 @@ public class BasicLinkConfigTest {
 
 
         config.bandwidth(BANDWIDTH)
-              .isDurable(FALSE)
-              .metric(METRIC)
-              .type(Link.Type.DIRECT)
-              .latency(LATENCY);
+                .isDurable(FALSE)
+                .metric(METRIC)
+                .type(Link.Type.DIRECT)
+                .latency(LATENCY)
+                .isBidirectional(FALSE);
 
         assertThat(config.bandwidth(), is(BANDWIDTH));
         assertThat(config.isDurable(), is(FALSE));
         assertThat(config.metric(), is(METRIC));
         assertThat(config.type(), is(Link.Type.DIRECT));
         assertThat(config.latency(), is(LATENCY));
+        assertThat(config.isBidirectional(), is(FALSE));
         assertThat(config.isValid(), is(true));
     }
 }
