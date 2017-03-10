@@ -37,7 +37,8 @@
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
         'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
         'Topo2MapConfigService',
-        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController, t2sls, t2ms, t2mcs) {
+        function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController,
+                  t2sls, t2ms, t2mcs) {
 
             Model = _Model_;
 
@@ -46,6 +47,13 @@
                     instance = this;
                     this.model = null;
                     this.bgRendered = false;
+
+                    var RegionModel = Model.extend({
+                        findNodeById: this.findNodeById,
+                        nodes: this.regionNodes.bind(this)
+                    });
+
+                    this.model = new RegionModel();
                 },
                 backgroundRendered: function () {
                     this.bgRendered = true;
@@ -64,17 +72,9 @@
                 },
                 startRegion: function () {
 
-                    var RegionModel = Model.extend({
-                        findNodeById: this.findNodeById,
-                        nodes: this.regionNodes.bind(this)
-                    });
-
-                    this.model = new RegionModel({
-                        id: this.regionData.id,
-                        layerOrder: this.regionData.layerOrder
-                    });
-
                     this.model.set({
+                        id: this.regionData.id,
+                        layerOrder: this.regionData.layerOrder,
                         subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this),
                         devices: t2ds.createDeviceCollection(this.regionData.devices, this),
                         hosts: t2hs.createHostCollection(this.regionData.hosts, this),
@@ -90,7 +90,7 @@
                         t2bcs.hide();
                     }
 
-                    // this.layout.update();
+                    this.layout.createForceLayout();
                 },
                 clear: function () {
 
@@ -122,7 +122,6 @@
                         this.model.get('subregions').get(id);
                 },
                 regionNodes: function () {
-
                     if (this.model) {
                         return [].concat(
                             this.model.get('devices').models,
@@ -130,11 +129,10 @@
                             this.model.get('subregions').models
                         );
                     }
-
                     return [];
                 },
                 regionLinks: function () {
-                    return (this.model) ? this.model.get('links').models : [];
+                    return this.model.get('links').models;
                 },
                 getLink: function (linkId) {
                     return this.model.get('links').get(linkId);

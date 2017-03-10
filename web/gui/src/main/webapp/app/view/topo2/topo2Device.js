@@ -74,6 +74,7 @@
                     },
                     onClick: function () {
 
+                        if (d3.event.defaultPrevented) return;
                         var selected = this.select(d3.event);
 
                         if (_.isArray(selected) && selected.length > 0) {

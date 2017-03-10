@@ -84,7 +84,6 @@
     function currentRegion(data) {
         $log.debug('>> topo2CurrentRegion event:', data);
         t2rs.addRegion(data);
-        t2ls.createForceLayout();
     }
 
     function topo2PeerRegions(data) {
@@ -169,14 +168,16 @@
     }
 
     function unpin() {
+
         var hovered = t2rs.filterRegionNodes(function (model) {
             return model.get('hovered');
         });
 
         angular.forEach(hovered, function (model) {
-            model.fixed = false;
-            model.el.classed('fixed', false);
+            model.fix(false);
         });
+
+        t2ls.start();
     }
 
     angular.module('ovTopo2')

@@ -187,10 +187,14 @@
     fill: #454545;
 }
 
-
 #ov-topo2 svg .node.selected .node-container {
     stroke-width: 2.0;
     stroke: #009fdb;
+}
+
+#ov-topo2 svg .node.hovered .node-container {
+    stroke-width: 2.0;
+    stroke: #454545;
 }
 
 /* Badges */

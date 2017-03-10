@@ -68,6 +68,7 @@
                     }
                 },
                 onClick: function () {
+                    if (d3.event.defaultPrevented) return;
                     var selected = this.select(d3.select);
 
                     if (selected.length > 0) {

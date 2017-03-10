@@ -109,10 +109,14 @@
                     });
                 },
                 mouseoverHandler: function () {
-                    this.set('hovered', true, { silent: true });
+                    this.set('hovered', true);
                 },
                 mouseoutHandler: function () {
-                    this.set('hovered', false, { silent: true });
+                    this.set('hovered', false);
+                },
+                fix: function (fixed) {
+                    this.set({ fixed: fixed });
+                    this.fixed = fixed;
                 },
                 icon: function () {
                     return 'unknown';
@@ -195,7 +199,9 @@
                         this.get('type'),
                         {
                             online: this.get('online'),
-                            selected: this.get('selected')
+                            selected: this.get('selected'),
+                            hovered: this.get('hovered'),
+                            fixed: this.get('fixed')
                         }
                     );
                 },

@@ -43,7 +43,7 @@
 
         // else if we have [x,y] cached in meta data, use that...
         if (x !== undefined && y !== undefined) {
-            node.fixed = true;
+            node.fix(true);
             node.px = node.x = x;
             node.py = node.y = y;
             return;
@@ -100,7 +100,7 @@
             }
 
             coord = coordFromLngLat(loc);
-            el.fixed = true;
+            el.fix(true);
             el.x = el.px = coord[0];
             el.y = el.py = coord[1];
 
@@ -114,7 +114,7 @@
             }
 
             coord = coordFromXY(loc);
-            el.fixed = true;
+            el.fix(true);
             el.x = el.px = coord[0];
             el.y = el.py = coord[1];
 

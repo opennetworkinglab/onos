@@ -33,22 +33,19 @@
             // note: key is node.class
             device: -8000,
             host: -20000,
-            region: -5000,
+            region: -8000,
             _def_: -12000
         },
         linkDistance: {
             // note: key is link.type
             direct: 100,
             optical: 120,
-            UiEdgeLink: 30,
+            UiEdgeLink: 100,
             _def_: 50
         },
         linkStrength: {
             // note: key is link.type
             // range: {0.0 ... 1.0}
-            direct: 1.0,
-            optical: 1.0,
-            UiEdgeLink: 15.0,
             _def_: 1.0
         }
     };
@@ -245,7 +242,8 @@
 
                         entering.filter('.device').each(t2d3.nodeEnter);
                         entering.filter('.sub-region').each(t2d3.nodeEnter);
-                        entering.filter('.host').each(t2d3.hostEnter);
+                        entering.filter('.host').each(t2d3.nodeEnter);
+                        entering.filter('.peer-region').each(t2d3.nodeEnter);
                     },
                     updateLinks: function () {
 
@@ -267,7 +265,7 @@
                                 'stroke-width': linkConfig.inWidth
                             });
 
-                        entering.each(t2d3.linkEntering);
+                        entering.each(t2d3.nodeEnter);
 
                         // operate on exiting links:
                         this.link.exit()
@@ -333,8 +331,7 @@
                     },
                     atDragEnd: function (d) {
                         // once we've finished moving, pin the node in position
-                        d.fixed = true;
-                        d3.select(this).classed('fixed', true);
+                        d.fix(true);
                         instance.sendUpdateMeta(d);
                         t2ss.clickConsumed(true);
                     },

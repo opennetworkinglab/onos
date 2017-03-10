@@ -122,7 +122,11 @@
             return mdist(p, m) <= proximity;
         }
 
-        var links = t2rs.regionLinks();
+        var links = [];
+
+        if (t2rs.model.get('links')) {
+            links = (t2rs.backgroundRendered) ? t2rs.regionLinks() : [];
+        }
 
         if (links.length) {
             minDist = proximity * 2;
