@@ -56,15 +56,15 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
     @SuppressWarnings("unused")
     private AllApplicationNamesCompleter appCompleter;
 
-    @Argument(index = 0, name = "ingressDevice",
+    @Argument(index = 0, name = "ingress",
               description = "Ingress Device/Port Description",
               required = true, multiValued = false)
-    String ingressDeviceString = "";
+    String ingressString = "";
 
-    @Argument(index = 1, name = "egressDevice",
+    @Argument(index = 1, name = "egress",
               description = "Egress Device/Port Description",
               required = true, multiValued = false)
-    String egressDeviceString = "";
+    String egressString = "";
 
     @Option(name = "-b", aliases = "--bidirectional",
             description = "If this argument is passed the optical link created will be bidirectional, " +
@@ -97,8 +97,8 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
     protected void execute() {
         IntentService service = get(IntentService.class);
 
-        ConnectPoint ingress = createConnectPoint(ingressDeviceString);
-        ConnectPoint egress = createConnectPoint(egressDeviceString);
+        ConnectPoint ingress = createConnectPoint(ingressString);
+        ConnectPoint egress = createConnectPoint(egressString);
 
         if (ingress == null || egress == null) {
             print("Invalid endpoint(s); could not create optical intent");

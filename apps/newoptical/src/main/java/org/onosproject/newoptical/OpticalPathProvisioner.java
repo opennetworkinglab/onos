@@ -334,6 +334,11 @@ public class OpticalPathProvisioner
 
         // create intents from cross connect points
         List<Intent> intents = createIntents(crossConnectPoints);
+        if (intents.isEmpty()) {
+            log.error("No intents produced from {}", crossConnectPoints);
+            return null;
+        }
+
 
         // create set of PacketLinkRealizedByOptical
         Set<PacketLinkRealizedByOptical> packetLinks = createPacketLinkSet(crossConnectPoints,
@@ -501,7 +506,7 @@ public class OpticalPathProvisioner
     }
 
     /**
-     * Verifies if given device type is in packet layer, i.e., switch or router device.
+     * Verifies if given device type is NOT in packet layer, i.e., switch or router device.
      *
      * @param type device type
      * @return true if in packet layer, false otherwise
