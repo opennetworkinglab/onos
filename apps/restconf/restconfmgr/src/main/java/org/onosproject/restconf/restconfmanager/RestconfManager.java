@@ -25,8 +25,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.glassfish.jersey.server.ChunkedOutput;
-import org.onlab.osgi.DefaultServiceDirectory;
-import org.onosproject.event.ListenerTracker;
+import org.onosproject.config.DynamicConfigService;
+import org.onosproject.config.FailedException;
+import org.onosproject.config.Filter;
+import org.onosproject.restconf.api.RestconfException;
+import org.onosproject.restconf.api.RestconfService;
+import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.ResourceData;
+import org.onosproject.yang.model.ResourceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,20 +45,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
-import org.onosproject.config.FailedException;
-import org.onosproject.config.DynamicConfigService;
-import org.onosproject.config.Filter;
-import org.onosproject.restconf.api.RestconfException;
-import org.onosproject.restconf.api.RestconfService;
-import org.onosproject.yang.model.ResourceData;
-import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.DataNode;
-import static org.onosproject.restconf.utils.RestconfUtils.convertUriToRid;
-import static org.onosproject.restconf.utils.RestconfUtils.convertJsonToDataNode;
 import static org.onosproject.restconf.utils.RestconfUtils.convertDataNodeToJson;
+import static org.onosproject.restconf.utils.RestconfUtils.convertJsonToDataNode;
+import static org.onosproject.restconf.utils.RestconfUtils.convertUriToRid;
 
 /*
  * ONOS RESTCONF application. The RESTCONF Manager
@@ -87,11 +85,7 @@ public class RestconfManager implements RestconfService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-
-    private static final DynamicConfigService  DYNAMIC_CONFIG_SERVICE =
-            DefaultServiceDirectory.getService(DynamicConfigService.class);
-
-    private ListenerTracker listeners;
+    protected DynamicConfigService dynamicConfigService;
 
     private ConcurrentMap<String, BlockingQueue<ObjectNode>> eventQueueList =
             new ConcurrentHashMap<>();
@@ -122,7 +116,7 @@ public class RestconfManager implements RestconfService {
         Filter filter = new Filter();
         DataNode dataNode;
         try {
-            dataNode = DYNAMIC_CONFIG_SERVICE.readNode(rid, filter);
+            dataNode = dynamicConfigService.readNode(rid, filter);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
@@ -144,7 +138,7 @@ public class RestconfManager implements RestconfService {
         }
         DataNode dataNode = dataNodeList.get(0);
         try {
-            DYNAMIC_CONFIG_SERVICE.createNode(rid, dataNode);
+            dynamicConfigService.createNode(rid, dataNode);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",
@@ -163,7 +157,7 @@ public class RestconfManager implements RestconfService {
             throws RestconfException {
         ResourceId rid = convertUriToRid(uri);
         try {
-            DYNAMIC_CONFIG_SERVICE.deleteNode(rid);
+            dynamicConfigService.deleteNode(rid);
         } catch (FailedException e) {
             log.error("ERROR: DynamicConfigService: ", e);
             throw new RestconfException("ERROR: DynamicConfigService",

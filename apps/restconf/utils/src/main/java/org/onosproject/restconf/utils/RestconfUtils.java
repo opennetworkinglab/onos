@@ -20,21 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.IOUtils;
 import org.onlab.osgi.DefaultServiceDirectory;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.onosproject.restconf.utils.exceptions.RestconfUtilsException;
 import org.onosproject.restconf.api.RestconfException;
-import org.onosproject.yang.runtime.CompositeStream;
-import org.onosproject.yang.runtime.CompositeData;
-import org.onosproject.yang.runtime.YangRuntimeService;
-import org.onosproject.yang.runtime.DefaultCompositeStream;
-import org.onosproject.yang.runtime.DefaultCompositeData;
-import org.onosproject.yang.runtime.DefaultResourceData;
-import org.onosproject.yang.runtime.RuntimeContext;
+import org.onosproject.restconf.utils.exceptions.RestconfUtilsException;
+import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.runtime.CompositeData;
+import org.onosproject.yang.runtime.CompositeStream;
+import org.onosproject.yang.runtime.DefaultCompositeData;
+import org.onosproject.yang.runtime.DefaultCompositeStream;
+import org.onosproject.yang.runtime.DefaultResourceData;
+import org.onosproject.yang.runtime.DefaultRuntimeContext;
+import org.onosproject.yang.runtime.RuntimeContext;
+import org.onosproject.yang.runtime.YangRuntimeService;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -59,7 +60,7 @@ public final class RestconfUtils {
     /**
      * Converts an input stream to JSON objectNode.
      *
-     * @param  inputStream the InputStream from Resource Data
+     * @param inputStream the InputStream from Resource Data
      * @return JSON representation of the data resource
      */
     public static ObjectNode convertInputStreamToObjectNode(InputStream inputStream) {
@@ -76,7 +77,7 @@ public final class RestconfUtils {
     /**
      * Convert ObjectNode to InputStream.
      *
-     * @param  rootNode JSON representation of the data resource
+     * @param rootNode JSON representation of the data resource
      * @return the InputStream from Resource Data
      */
     public static InputStream convertObjectNodeToInputStream(ObjectNode rootNode) {
@@ -93,7 +94,7 @@ public final class RestconfUtils {
     /**
      * Convert URI to ResourceId.
      *
-     * @param  uri URI of the data resource
+     * @param uri URI of the data resource
      * @return resource identifier
      */
     public static ResourceId convertUriToRid(String uri) {
@@ -104,13 +105,13 @@ public final class RestconfUtils {
     /**
      * Convert URI and ObjectNode to ResourceData.
      *
-     * @param  uri URI of the data resource
-     * @param  rootNode JSON representation of the data resource
+     * @param uri      URI of the data resource
+     * @param rootNode JSON representation of the data resource
      * @return represents type of node in data store
      */
     public static ResourceData convertJsonToDataNode(String uri,
-                                                    ObjectNode rootNode) {
-        RuntimeContext.Builder runtimeContextBuilder = null;
+                                                     ObjectNode rootNode) {
+        RuntimeContext.Builder runtimeContextBuilder = new DefaultRuntimeContext.Builder();
         runtimeContextBuilder.setDataFormat(JSON_FORMAT);
         RuntimeContext context = runtimeContextBuilder.build();
         InputStream jsonData = null;
@@ -127,12 +128,12 @@ public final class RestconfUtils {
     /**
      * Convert Resource Id and Data Node to Json ObjectNode.
      *
-     * @param  rid resource identifier
-     * @param  dataNode represents type of node in data store
+     * @param rid      resource identifier
+     * @param dataNode represents type of node in data store
      * @return JSON representation of the data resource
      */
     public static ObjectNode convertDataNodeToJson(ResourceId rid, DataNode dataNode) {
-        RuntimeContext.Builder runtimeContextBuilder = null;
+        RuntimeContext.Builder runtimeContextBuilder = DefaultRuntimeContext.builder();
         runtimeContextBuilder.setDataFormat(JSON_FORMAT);
         RuntimeContext context = runtimeContextBuilder.build();
         DefaultResourceData.Builder resourceDataBuilder = DefaultResourceData.builder();
