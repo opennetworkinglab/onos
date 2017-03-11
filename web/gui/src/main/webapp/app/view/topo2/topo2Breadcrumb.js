@@ -58,7 +58,6 @@
         breadcrumbs.splice(index + 1);
 
         wss.sendEvent('topo2navRegion', {
-            dir: 'up',
             rid: data.id
         });
 

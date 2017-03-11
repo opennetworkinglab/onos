@@ -58,7 +58,6 @@
 
     function request(dir, rid) {
         wss.sendEvent('topo2navRegion', {
-            dir: dir,
             rid: rid
         });
     }
