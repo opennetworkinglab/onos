@@ -16,6 +16,7 @@
 package org.onosproject.drivers.lumentum;
 
 import org.onlab.util.Frequency;
+import org.onlab.util.GuavaCollectors;
 import org.onlab.util.Spectrum;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
@@ -23,7 +24,6 @@ import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -44,6 +44,6 @@ public class LumentumSdnRoadmLambdaQuery extends AbstractHandlerBehaviour implem
                         LumentumSnmpDevice.CHANNEL_SPACING,
                         startMultiplier + x,
                         4))
-                .collect(Collectors.toSet());
+                .collect(GuavaCollectors.toImmutableSet());
     }
 }

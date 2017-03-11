@@ -16,10 +16,10 @@
 package org.onosproject.driver.optical.query;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.onlab.util.Spectrum;
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
@@ -46,6 +46,6 @@ public class OplinkEdfaLambdaQuery extends AbstractHandlerBehaviour implements L
     public Set<OchSignal> queryLambdas(PortNumber port) {
         return IntStream.rangeClosed((int) startSpacingMultiplier, (int) stopSpacingMultiplier)
                 .mapToObj(x -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_6P25GHZ, x, 1))
-                .collect(Collectors.toSet());
+                .collect(GuavaCollectors.toImmutableSet());
     }
 }

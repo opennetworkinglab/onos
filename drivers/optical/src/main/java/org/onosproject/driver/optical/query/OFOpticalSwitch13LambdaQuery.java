@@ -15,6 +15,7 @@
  */
 package org.onosproject.driver.optical.query;
 
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
@@ -28,7 +29,6 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -60,6 +60,6 @@ public class OFOpticalSwitch13LambdaQuery extends AbstractHandlerBehaviour imple
         // OMS ports expose 'lambdaCount' fixed grid lambdas of 50GHz width, starting from min-frequency 191.7 THz.
         return IntStream.rangeClosed(1, lambdaCount)
                 .mapToObj(x -> OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, x))
-                .collect(Collectors.toSet());
+                .collect(GuavaCollectors.toImmutableSet());
     }
 }
