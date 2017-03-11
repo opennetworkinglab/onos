@@ -23,7 +23,7 @@
 
     'use strict';
 
-    var $log, wss;
+    var $log, $loc, wss;
 
     // Internal
     var breadcrumbContainer,
@@ -57,9 +57,12 @@
         // Remove breadcrumbs after index;
         breadcrumbs.splice(index + 1);
 
+        // TODO: This is duplicated code - See Topo2SubRegion:navigateToRegion()
         wss.sendEvent('topo2navRegion', {
             rid: data.id
         });
+
+        $loc.search('regionId', data.id);
 
         layout.createForceElements();
         layout.transitionDownRegion();
@@ -112,10 +115,11 @@
 
     angular.module('ovTopo2')
     .factory('Topo2BreadcrumbService', [
-        '$log', 'WebSocketService',
-        function (_$log_, _wss_) {
+        '$log', '$location', 'WebSocketService',
+        function (_$log_, _$loc_, _wss_) {
 
             $log = _$log_;
+            $loc = _$loc_;
             wss = _wss_;
 
             return {

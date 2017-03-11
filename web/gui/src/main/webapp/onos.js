@@ -152,6 +152,10 @@
                         controller: viewCtrlName(vid),
                         controllerAs: 'ctrl',
                         templateUrl: viewTemplateUrl(vid)
+
+                        // Disable reload on $loc.hash() changes for bookmarked topo regions
+                        // reloadOnSearch: (vid !== 'topo2')
+                        // <SDH> assume this is not needed for ?regionId=... query string
                     });
                 }
             });

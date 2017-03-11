@@ -40,10 +40,10 @@
 
     angular.module('ovTopo2')
     .factory('Topo2SubRegionService', [
-        'WebSocketService', 'Topo2Collection', 'Topo2NodeModel',
+        '$location', 'WebSocketService', 'Topo2Collection', 'Topo2NodeModel',
         'Topo2SubRegionPanelService',
 
-        function (wss, _c_, NodeModel, t2srp) {
+        function ($loc, wss, _c_, NodeModel, t2srp) {
 
             Collection = _c_;
 
@@ -84,6 +84,8 @@
                         dir: 'down',
                         rid: this.get('id')
                     });
+
+                    $loc.search('regionId', this.get('id'));
 
                     var layout = this.collection.region.layout;
                     layout.createForceElements();

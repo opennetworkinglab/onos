@@ -23,8 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log,
-        wss;
+    var $log, $loc, wss;
 
     var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs;
     var svg, forceG, uplink, dim, opts, zoomer;
@@ -48,77 +47,24 @@
         t2bcs.addLayout(t2ls);
         t2rs.layout = t2ls;
         t2ss.init(svg, zoomer);
+
+        navToBookmarkedRegion($loc.search().regionId);
     }
 
     function destroy() {
         $log.debug('Destroy topo force layout');
     }
 
-    // ========================== Temporary Code (to be deleted later)
-
-    function request(dir, rid) {
-        wss.sendEvent('topo2navRegion', {
-            rid: rid
-        });
-    }
-
-    function doTmpCurrentLayout(data) {
-        var topdiv = d3.select('#topo2tmp');
-        var parentRegion = data.parent;
-        var span = topdiv.select('.parentRegion').select('span');
-        span.text(parentRegion || '[no parent]');
-        span.classed('nav-me', Boolean(parentRegion));
-    }
-
-    function doTmpCurrentRegion(data) {
-        var topdiv = d3.select('#topo2tmp');
-        var span = topdiv.select('.thisRegion').select('span');
-        var div;
-
-        span.text(data.id);
-
-        div = topdiv.select('.subRegions').select('div');
-        data.subregions.forEach(function (r) {
-
-            function nav() {
-                request('down', r.id);
-            }
-
-            div.append('p')
-                .classed('nav-me', true)
-                .text(r.id)
-                .on('click', nav);
-        });
-
-        div = topdiv.select('.devices').select('div');
-        data.layerOrder.forEach(function (tag, idx) {
-            var devs = data.devices[idx];
-            devs.forEach(function (d) {
-                div.append('p')
-                    .text('[' + tag + '] ' + d.id);
+    function navToBookmarkedRegion(regionId) {
+        $log.debug('navToBookmarkedRegion:', regionId);
+        if (regionId) {
+            wss.sendEvent('topo2navRegion', {
+                rid: regionId
             });
 
-        });
-
-        div = topdiv.select('.hosts').select('div');
-        data.layerOrder.forEach(function (tag, idx) {
-            var hosts = data.hosts[idx];
-            hosts.forEach(function (h) {
-                div.append('p')
-                    .text('[' + tag + '] ' + h.id);
-            });
-        });
-
-        div = topdiv.select('.links').select('div');
-        var links = data.links;
-        links.forEach(function (lnk) {
-            div.append('p')
-                .text(lnk.id);
-        });
-    }
-
-    function doTmpPeerRegions(data) {
-
+            t2ls.createForceElements();
+            t2ls.transitionDownRegion();
+        }
     }
 
     // ========================== Event Handlers
