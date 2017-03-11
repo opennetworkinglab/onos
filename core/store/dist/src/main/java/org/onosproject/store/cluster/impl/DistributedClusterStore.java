@@ -26,11 +26,12 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.Tools;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterMetadataService;
@@ -48,7 +49,6 @@ import org.onosproject.store.serializers.StoreSerializer;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
@@ -120,7 +121,10 @@ public class DistributedClusterStore
     protected MessagingService messagingService;
 
     // This must be optional to avoid a cyclic dependency
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+               bind = "bindComponentConfigService",
+               unbind = "unbindComponentConfigService",
+               policy = ReferencePolicy.DYNAMIC)
     protected ComponentConfigService cfgService;
 
     /**
@@ -132,6 +136,7 @@ public class DistributedClusterStore
         if (cfgService == null) {
             cfgService = service;
             cfgService.registerProperties(getClass());
+            readComponentConfiguration();
         }
     }
 
@@ -173,8 +178,7 @@ public class DistributedClusterStore
 
     @Modified
     public void modified(ComponentContext context) {
-        readComponentConfiguration(context);
-        restartHeartbeatSender();
+        readComponentConfiguration();
     }
 
     @Override
@@ -335,35 +339,43 @@ public class DistributedClusterStore
     }
 
     /**
-     * Extracts properties from the component configuration context.
+     * Extracts properties from the component configuration.
      *
-     * @param context the component context
      */
-    private void readComponentConfiguration(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-
-        Integer newHeartbeatInterval = Tools.getIntegerProperty(properties,
-                                                                "heartbeatInterval");
-        if (newHeartbeatInterval == null) {
-            setHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL);
-            log.info("Heartbeat interval time is not configured, default value is {}",
-                     DEFAULT_HEARTBEAT_INTERVAL);
-        } else {
-            setHeartbeatInterval(newHeartbeatInterval);
-            log.info("Configured. Heartbeat interval time is configured to {}",
-                     heartbeatInterval);
-        }
-
-        Integer newPhiFailureThreshold = Tools.getIntegerProperty(properties,
-                                                                  "phiFailureThreshold");
-        if (newPhiFailureThreshold == null) {
-            setPhiFailureThreshold(DEFAULT_PHI_FAILURE_THRESHOLD);
-            log.info("Phi failure threshold is not configured, default value is {}",
-                     DEFAULT_PHI_FAILURE_THRESHOLD);
-        } else {
-            setPhiFailureThreshold(newPhiFailureThreshold);
-            log.info("Configured. Phi failure threshold is configured to {}",
-                     phiFailureThreshold);
+    private void readComponentConfiguration() {
+        Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getName());
+        for (ConfigProperty property : configProperties) {
+            if (property.name().equals("heartbeatInterval")) {
+                String s = property.value();
+                if (s == null) {
+                    setHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL);
+                    log.info("Heartbeat interval time is not configured, default value is {}",
+                            DEFAULT_HEARTBEAT_INTERVAL);
+                } else {
+                    int newHeartbeatInterval = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
+                                                                : Integer.parseInt(s.trim());
+                    if (newHeartbeatInterval > 0 && heartbeatInterval != newHeartbeatInterval) {
+                        heartbeatInterval = newHeartbeatInterval;
+                        restartHeartbeatSender();
+                    }
+                    log.info("Configured. Heartbeat interval time is configured to {}",
+                            heartbeatInterval);
+                }
+            }
+            if (property.name().equals("phiFailureThreshold")) {
+                String s = property.value();
+                if (s == null) {
+                    setPhiFailureThreshold(DEFAULT_PHI_FAILURE_THRESHOLD);
+                    log.info("Phi failure threshold is not configured, default value is {}",
+                            DEFAULT_PHI_FAILURE_THRESHOLD);
+                } else {
+                    int newPhiFailureThreshold = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
+                                                                  : Integer.parseInt(s.trim());
+                    setPhiFailureThreshold(newPhiFailureThreshold);
+                    log.info("Configured. Phi failure threshold is configured to {}",
+                            phiFailureThreshold);
+                }
+            }
         }
     }
 
