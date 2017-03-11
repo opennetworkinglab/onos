@@ -87,7 +87,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int DEFAULT_NUM_THREADS = 1;
+    private static final int DEFAULT_NUM_THREADS = 4;
     @Property(name = NUM_THREAD,
              intValue = DEFAULT_NUM_THREADS,
              label = "Number of worker threads")
