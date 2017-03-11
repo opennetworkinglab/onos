@@ -86,5 +86,22 @@
                    impl="org.onosproject.driver.optical.power.OplinkEdfaPowerConfig"/>
 
     </driver>
+
+    <driver name="polatis-config" manufacturer="Polatis" hwVersion="N-VST-48x48-HU1-DMHNV-805" swVersion="6.6.1.7">
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.driver.optical.config.PolatisDeviceDiscovery"/>
+
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
+
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
+
+    </driver>
+
+
 </drivers>
 
