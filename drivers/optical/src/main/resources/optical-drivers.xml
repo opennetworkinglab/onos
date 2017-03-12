@@ -114,6 +114,20 @@
 
     </driver>
 
+    <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.driver.optical.config.ConfigOpticalDeviceDiscovery"/>
+
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
+
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
+
+    </driver>
 
 </drivers>
 
