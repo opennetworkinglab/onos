@@ -27,6 +27,7 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.mapping.DefaultMapping;
 import org.onosproject.mapping.DefaultMappingEntry;
 import org.onosproject.mapping.Mapping;
+import org.onosproject.mapping.MappingAdminService;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingEvent;
 import org.onosproject.mapping.MappingKey;
@@ -82,6 +83,7 @@ public class MappingManagerTest {
     private MappingManager manager;
 
     private MappingService service;
+    private MappingAdminService adminService;
     private MappingProviderRegistry registry;
     private MappingProviderService providerService;
     private TestProvider provider;
@@ -96,6 +98,7 @@ public class MappingManagerTest {
         manager.deviceService = new TestDeviceService();
 
         service = manager;
+        adminService = manager;
         registry = manager;
 
         manager.activate();
@@ -160,7 +163,7 @@ public class MappingManagerTest {
     private Mapping addMapping(Type type, int tval) {
         Mapping mapping = mapping(tval, tval);
         MappingEntry entry = new DefaultMappingEntry(mapping);
-        service.storeMappingEntry(type, entry);
+        adminService.storeMappingEntry(type, entry);
 
         assertNotNull("mapping should be found",
                                 service.getMappingEntries(type, LISP_DID));
@@ -209,9 +212,9 @@ public class MappingManagerTest {
 
         assertTrue("store should be empty", Sets.newHashSet(
                 service.getMappingEntries(MAP_DATABASE, LISP_DID)).isEmpty());
-        service.storeMappingEntry(MAP_DATABASE, me1);
-        service.storeMappingEntry(MAP_DATABASE, me2);
-        service.storeMappingEntry(MAP_DATABASE, me3);
+        adminService.storeMappingEntry(MAP_DATABASE, me1);
+        adminService.storeMappingEntry(MAP_DATABASE, me2);
+        adminService.storeMappingEntry(MAP_DATABASE, me3);
         assertEquals("3 mappings should exist", 3, mappingCount(MAP_DATABASE));
     }
 
@@ -229,7 +232,7 @@ public class MappingManagerTest {
         MappingEntry me1 = new DefaultMappingEntry(m1);
         MappingEntry me2 = new DefaultMappingEntry(m2);
 
-        service.removeMappingEntries(MAP_DATABASE, me1, me2);
+        adminService.removeMappingEntries(MAP_DATABASE, me1, me2);
         assertEquals("1 mappings should exist", 1, mappingCount(MAP_DATABASE));
     }
 
@@ -244,7 +247,7 @@ public class MappingManagerTest {
         addMapping(MAP_DATABASE, 3);
         assertEquals("3 mappings should exist", 3, mappingCount(MAP_DATABASE));
 
-        service.purgeMappings(MAP_DATABASE, LISP_DID);
+        adminService.purgeMappings(MAP_DATABASE, LISP_DID);
         assertEquals("0 mappings should exist", 0, mappingCount(MAP_DATABASE));
     }
 
@@ -269,7 +272,7 @@ public class MappingManagerTest {
         addMapping(MAP_DATABASE, 1);
         addMapping(MAP_DATABASE, 2);
 
-        service.removeMappingEntriesByAppId(MAP_DATABASE, appId);
+        adminService.removeMappingEntriesByAppId(MAP_DATABASE, appId);
 
         assertTrue("should not have any mappings",
                 Lists.newLinkedList(

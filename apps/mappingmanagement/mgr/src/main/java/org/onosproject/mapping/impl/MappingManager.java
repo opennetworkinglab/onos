@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.mapping.MappingAdminService;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingEvent;
 import org.onosproject.mapping.MappingListener;
@@ -53,7 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MappingManager
         extends AbstractListenerProviderRegistry<MappingEvent, MappingListener,
                                                  MappingProvider, MappingProviderService>
-        implements MappingService, MappingProviderRegistry {
+        implements MappingService, MappingAdminService, MappingProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
