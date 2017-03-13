@@ -53,6 +53,7 @@ import org.onosproject.openstacknode.OpenstackNodeService;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.openstack4j.model.network.ExternalGateway;
@@ -83,7 +84,7 @@ public class OpenstackRoutingSnatHandler {
 
     private static final String ERR_PACKETIN = "Failed to handle packet in: ";
     private static final int TIME_OUT_SNAT_RULE = 120;
-    private static final int TIME_OUT_SNAT_PORT = 1200 * 1000;
+    private static final long TIME_OUT_SNAT_PORT_MS = 120 * 1000;
     private static final int TP_PORT_MINIMUM_NUM = 1024;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
 
@@ -124,20 +125,40 @@ public class OpenstackRoutingSnatHandler {
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
 
-    private ConsistentMap<Integer, String> tpPortNumMap;
+    private ConsistentMap<Integer, Long> allocatedPortNumMap;
+    private DistributedSet<Integer> unUsedPortNumSet;
     private ApplicationId appId;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
-        tpPortNumMap = storageService.<Integer, String>consistentMapBuilder()
+
+        allocatedPortNumMap = storageService.<Integer, Long>consistentMapBuilder()
                 .withSerializer(Serializer.using(NUMBER_SERIALIZER.build()))
-                .withName("openstackrouting-tpportnum")
+                .withName("openstackrouting-allocatedportnummap")
                 .withApplicationId(appId)
                 .build();
 
+        unUsedPortNumSet = storageService.<Integer>setBuilder()
+                .withName("openstackrouting-unusedportnumset")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .build()
+                .asDistributedSet();
+
+        initializeUnusedPortNumSet();
+
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
         log.info("Started");
+    }
+
+    private void initializeUnusedPortNumSet() {
+        for (int i = TP_PORT_MINIMUM_NUM; i < TP_PORT_MAXIMUM_NUM; i++) {
+            if (!allocatedPortNumMap.containsKey(Integer.valueOf(i))) {
+                unUsedPortNumSet.add(Integer.valueOf(i));
+            }
+        }
+
+        clearPortNumMap();
     }
 
     @Deactivate
@@ -164,6 +185,11 @@ public class OpenstackRoutingSnatHandler {
         Subnet srcSubnet = getSourceSubnet(srcInstPort, srcIp);
         IpAddress externalGatewayIp = getExternalIp(srcSubnet);
         if (externalGatewayIp == null) {
+            return;
+        }
+        if (patPort == 0) {
+            log.error("There's no unused port for external ip {}... Drop this packet",
+                    getExternalIp(srcSubnet));
             return;
         }
 
@@ -399,28 +425,30 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private int getPortNum(MacAddress sourceMac, int destinationAddress) {
-        int portNum = findUnusedPortNum();
-        if (portNum == 0) {
+        if (unUsedPortNumSet.isEmpty()) {
             clearPortNumMap();
-            portNum = findUnusedPortNum();
         }
-        tpPortNumMap.put(portNum, sourceMac.toString().concat(":").concat(String.valueOf(destinationAddress)));
+
+        int portNum = findUnusedPortNum();
+
+        if (portNum != 0) {
+            unUsedPortNumSet.remove(Integer.valueOf(portNum));
+            allocatedPortNumMap
+                    .put(Integer.valueOf(portNum), Long.valueOf(System.currentTimeMillis()));
+        }
+
         return portNum;
     }
 
     private int findUnusedPortNum() {
-        for (int i = TP_PORT_MINIMUM_NUM; i < TP_PORT_MAXIMUM_NUM; i++) {
-            if (!tpPortNumMap.containsKey(i)) {
-                return i;
-            }
-        }
-        return 0;
+        return unUsedPortNumSet.stream().findAny().orElse(Integer.valueOf(0)).intValue();
     }
 
     private void clearPortNumMap() {
-        tpPortNumMap.entrySet().forEach(e -> {
-            if (System.currentTimeMillis() - e.getValue().creationTime() > TIME_OUT_SNAT_PORT) {
-                tpPortNumMap.remove(e.getKey());
+        allocatedPortNumMap.entrySet().forEach(e -> {
+            if (System.currentTimeMillis() - e.getValue().value().longValue() > TIME_OUT_SNAT_PORT_MS) {
+                allocatedPortNumMap.remove(e.getKey());
+                unUsedPortNumSet.add(e.getKey());
             }
         });
     }
