@@ -66,8 +66,12 @@ public class ValueTestCommand extends AbstractShellCommand {
             atomicValue.set(value1);
         } else if (operation.equals("compareAndSet")) {
             print("%b", atomicValue.compareAndSet(value1, value2));
+        } else if (operation.equals("getAndSet")) {
+            print("%s", atomicValue.getAndSet(value1));
         } else if (operation.equals("destroy")) {
             atomicValue.destroy();
+        } else {
+            print("Error, unknown operation %s", operation);
         }
     }
 }
