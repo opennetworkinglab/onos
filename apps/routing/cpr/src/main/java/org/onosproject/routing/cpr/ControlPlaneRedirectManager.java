@@ -16,7 +16,6 @@
 
 package org.onosproject.routing.cpr;
 
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -56,8 +55,6 @@ import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.routing.RouterInfo;
@@ -71,14 +68,11 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.packet.Ethernet.TYPE_IPV4;
 import static org.onlab.packet.Ethernet.TYPE_IPV6;
@@ -149,7 +143,6 @@ public class ControlPlaneRedirectManager {
 
     private final InternalNetworkConfigListener networkConfigListener =
             new InternalNetworkConfigListener();
-    private final InternalHostListener hostListener = new InternalHostListener();
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -159,7 +152,6 @@ public class ControlPlaneRedirectManager {
         modified(context);
 
         networkConfigService.addListener(networkConfigListener);
-        hostService.addListener(hostListener);
 
         processRouterConfig();
 
@@ -171,7 +163,6 @@ public class ControlPlaneRedirectManager {
     protected void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
         networkConfigService.removeListener(networkConfigListener);
-        hostService.removeListener(hostListener);
     }
 
     @Modified
@@ -657,22 +648,14 @@ public class ControlPlaneRedirectManager {
         return selector.build();
     }
 
-    private int getPriorityFromPrefix(IpPrefix prefix) {
-        return (prefix.isIp4()) ?
-               IPV4_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY :
-               IPV6_PRIORITY * prefix.prefixLength() + MIN_IP_PRIORITY;
-    }
-
     private String operation(boolean install) {
         return install ? "Installing" : "Removing";
     }
-
 
     /**
      * Listener for network config events.
      */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
-
         @Override
         public void event(NetworkConfigEvent event) {
             if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS) ||
@@ -692,158 +675,5 @@ public class ControlPlaneRedirectManager {
             }
         }
     }
-
-    /**
-     * Listener for host events.
-     */
-    private class InternalHostListener implements HostListener {
-
-        private Optional<Interface> getPeerInterface(Host peer) {
-            Router router = routers.get(peer.location().deviceId());
-
-            return interfaceService.getInterfacesByPort(peer.location()).stream()
-                    .filter(intf -> router.info().interfaces().isEmpty()
-                            || router.info().interfaces().contains(intf.name()))
-                    .filter(intf -> peer.vlan().equals(intf.vlan()))
-                    .findFirst();
-        }
-
-        private void peerAdded(HostEvent event) {
-            Host peer = event.subject();
-            Router routerInfo = routers.get(peer.location().deviceId());
-            if (routerInfo == null) {
-                return;
-            }
-
-            Optional<Interface> peerIntf = getPeerInterface(peer);
-            if (!peerIntf.isPresent()) {
-                log.debug("Adding peer {}/{} on {} but the interface is not configured",
-                        peer.mac(), peer.vlan(), peer.location());
-                return;
-            }
-
-            // Generate L3 Unicast group for the traffic towards vRouter
-            // XXX This approach will change with the HA design
-            int toRouterL3Unicast = createPeerGroup(peer.mac(), peerIntf.get().mac(),
-                    peer.vlan(), peer.location().deviceId(), routerInfo.info().controlPlaneConnectPoint().port());
-            // Generate L3 Unicast group for the traffic towards the upStream
-            // XXX This approach will change with the HA design
-            int toPeerL3Unicast = createPeerGroup(peerIntf.get().mac(), peer.mac(),
-                    peer.vlan(), peer.location().deviceId(), peer.location().port());
-            // Store the next objectives in the map
-            peerNextId.put(peer, ImmutableSortedSet.of(toRouterL3Unicast, toPeerL3Unicast));
-
-            // From peer to router
-            peerIntf.get().ipAddresses().forEach(routerIp -> {
-                flowObjectiveService.forward(peer.location().deviceId(),
-                        createPeerObjBuilder(toRouterL3Unicast, routerIp.ipAddress().toIpPrefix()).add());
-            });
-
-            // From router to peer
-            peer.ipAddresses().forEach(peerIp -> {
-                flowObjectiveService.forward(peer.location().deviceId(),
-                        createPeerObjBuilder(toPeerL3Unicast, peerIp.toIpPrefix()).add());
-            });
-        }
-
-        private void peerRemoved(HostEvent event) {
-            Host peer = event.subject();
-            if (routers.get(peer.location().deviceId()) == null) {
-                return;
-            }
-            Optional<Interface> peerIntf = getPeerInterface(peer);
-            if (!peerIntf.isPresent()) {
-                log.debug("Removing peer {}/{} on {} but the interface is not configured",
-                        peer.mac(), peer.vlan(), peer.location());
-                return;
-            }
-
-            checkState(peerNextId.get(peer) != null,
-                    "Peer nextId should not be null");
-            checkState(peerNextId.get(peer).size() == 2,
-                    "Wrong nextId associated with the peer");
-            Iterator<Integer> iter = peerNextId.get(peer).iterator();
-            int toRouterL3Unicast = iter.next();
-            int toPeerL3Unicast = iter.next();
-
-            // From peer to router
-            peerIntf.get().ipAddresses().forEach(routerIp -> {
-                flowObjectiveService.forward(peer.location().deviceId(),
-                        createPeerObjBuilder(toRouterL3Unicast, routerIp.ipAddress().toIpPrefix()).remove());
-            });
-
-            // From router to peer
-            peer.ipAddresses().forEach(peerIp -> {
-                flowObjectiveService.forward(peer.location().deviceId(),
-                        createPeerObjBuilder(toPeerL3Unicast, peerIp.toIpPrefix()).remove());
-            });
-        }
-
-        private ForwardingObjective.Builder createPeerObjBuilder(
-                int nextId, IpPrefix ipAddresses) {
-            TrafficSelector selector = buildIPDstSelector(ipAddresses, null, null, null, null);
-            DefaultForwardingObjective.Builder builder =
-                    DefaultForwardingObjective.builder()
-                    .withSelector(selector)
-                    .fromApp(appId)
-                    .withPriority(getPriorityFromPrefix(ipAddresses))
-                    .withFlag(ForwardingObjective.Flag.SPECIFIC);
-            if (nextId != -1) {
-                builder.nextStep(nextId);
-            }
-            return builder;
-        }
-
-        private int createPeerGroup(MacAddress srcMac, MacAddress dstMac,
-                VlanId vlanId, DeviceId deviceId, PortNumber port) {
-            int nextId = flowObjectiveService.allocateNextId();
-            NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
-                    .withId(nextId)
-                    .withType(NextObjective.Type.SIMPLE)
-                    .fromApp(appId);
-
-            TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
-            ttBuilder.setEthSrc(srcMac);
-            ttBuilder.setEthDst(dstMac);
-            ttBuilder.setOutput(port);
-            nextObjBuilder.addTreatment(ttBuilder.build());
-
-            TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
-            VlanId matchVlanId = (vlanId.equals(VlanId.NONE)) ?
-                    VlanId.vlanId(ASSIGNED_VLAN) :
-                    vlanId;
-            metabuilder.matchVlanId(matchVlanId);
-            nextObjBuilder.withMeta(metabuilder.build());
-
-            flowObjectiveService.next(deviceId, nextObjBuilder.add());
-            return nextId;
-        }
-
-        @Override
-        public void event(HostEvent event) {
-            DeviceId deviceId = event.subject().location().deviceId();
-            if (!mastershipService.isLocalMaster(deviceId)) {
-                return;
-            }
-            switch (event.type()) {
-                case HOST_ADDED:
-                    peerAdded(event);
-                    break;
-                case HOST_MOVED:
-                    //TODO We assume BGP peer does not move for now
-                    break;
-                case HOST_REMOVED:
-                    peerRemoved(event);
-                    break;
-                case HOST_UPDATED:
-                    //FIXME We assume BGP peer does not change IP for now
-                    // but we can discover new address.
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
 }
 
