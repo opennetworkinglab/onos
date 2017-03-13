@@ -36,15 +36,14 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
-import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketContext;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -404,11 +403,13 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting check for router IP in processing ndp");
         }
-        if (gatewayIpAddresses != null &&
-                gatewayIpAddresses.contains(pkt.target())) {
-            return true;
-        }
-        return false;
+
+        return gatewayIpAddresses != null && gatewayIpAddresses.stream()
+                .filter(IpAddress::isIp6)
+                .anyMatch(gatewayIp -> gatewayIp.equals(pkt.target()) ||
+                        Arrays.equals(IPv6.getSolicitNodeAddress(gatewayIp.toOctets()),
+                                pkt.target().toOctets())
+        );
     }
 
     /**
@@ -447,34 +448,4 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         );
         flood(ndpRequest, inPort, targetAddress);
     }
-
-    /////////////////////////////////////////////////////////////////
-    //    XXX Neighbour hacking, temporary workaround will be      //
-    //    removed as soon as possible, when the bridging will      //
-    //    be implemented. For now, it's fine to leave this         //
-    /////////////////////////////////////////////////////////////////
-
-    // XXX Neighbour hacking, this method is used to handle
-    // the ICMPv6 protocols for the upstream port
-    public boolean handleUPstreamPackets(PacketContext packetContext) {
-        InboundPacket pkt = packetContext.inPacket();
-        Ethernet ethernet = pkt.parsed();
-        if (srManager.vRouterCP == null || srManager.upstreamCP == null) {
-            return false;
-        }
-        if (pkt.receivedFrom().equals(srManager.upstreamCP)) {
-            sendTo(ByteBuffer.wrap(ethernet.serialize()), srManager.vRouterCP);
-            return true;
-        }
-        return false;
-    }
-
-    // XXX Neigbour hack. To send out a packet
-    private void sendTo(ByteBuffer packet, ConnectPoint outPort) {
-        TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
-        builder.setOutput(outPort.port());
-        srManager.packetService.emit(new DefaultOutboundPacket(outPort.deviceId(),
-                                                     builder.build(), packet));
-    }
-
 }

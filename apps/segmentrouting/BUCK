@@ -7,7 +7,6 @@ COMPILE_DEPS = [
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
-    '//apps/routing-api:onos-apps-routing-api'
 ]
 
 BUNDLES = [
