@@ -71,7 +71,6 @@
 
     function allInstances(data) {
         $log.debug('>> topo2AllInstances event:', data);
-        doTmpCurrentLayout(data);
         t2is.allInstances(data);
     }
 
@@ -84,14 +83,12 @@
 
     function currentRegion(data) {
         $log.debug('>> topo2CurrentRegion event:', data);
-        doTmpCurrentRegion(data);
         t2rs.addRegion(data);
         t2ls.createForceLayout();
     }
 
     function topo2PeerRegions(data) {
         $log.debug('>> topo2PeerRegions event:', data);
-        doTmpPeerRegions(data);
     }
 
     function modelEvent(data) {
@@ -184,14 +181,15 @@
 
     angular.module('ovTopo2')
     .factory('Topo2ForceService', [
-        '$log', 'WebSocketService', 'Topo2InstanceService',
+        '$log', '$location', 'WebSocketService', 'Topo2InstanceService',
         'Topo2RegionService', 'Topo2LayoutService', 'Topo2ViewService',
         'Topo2BreadcrumbService', 'Topo2ZoomService', 'Topo2SelectService',
         'Topo2BackgroundService',
-        function (_$log_, _wss_, _t2is_, _t2rs_, _t2ls_,
+        function (_$log_, _$loc_, _wss_, _t2is_, _t2rs_, _t2ls_,
             _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_) {
 
             $log = _$log_;
+            $loc = _$loc_;
             wss = _wss_;
             t2is = _t2is_;
             t2rs = _t2rs_;

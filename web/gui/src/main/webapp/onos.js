@@ -151,11 +151,13 @@
                     $routeProvider.when('/' + vid, {
                         controller: viewCtrlName(vid),
                         controllerAs: 'ctrl',
-                        templateUrl: viewTemplateUrl(vid)
+                        templateUrl: viewTemplateUrl(vid),
 
                         // Disable reload on $loc.hash() changes for bookmarked topo regions
-                        // reloadOnSearch: (vid !== 'topo2')
+                        reloadOnSearch: (vid !== 'topo2')
                         // <SDH> assume this is not needed for ?regionId=... query string
+                        // <SBM> Yes this is still needed. Without it the page will reload when navigating between
+                        //       regions which loads the new regions without a clean transition to it.
                     });
                 }
             });
