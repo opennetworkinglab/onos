@@ -17,8 +17,6 @@ package org.onosproject.mapping.addresses;
 
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
 
 /**
  * Factory class for creating various mapping addresses.
@@ -78,17 +76,5 @@ public final class MappingAddresses {
      */
     public static IPMappingAddress ipv6MappingAddress(IpPrefix ip) {
         return new IPMappingAddress(ip, MappingAddress.Type.IPV6);
-    }
-
-    /**
-     * Creates an ExtensionMappingAddress using the specified value.
-     *
-     * @param selector extension selector
-     * @param deviceId device identifier
-     * @return mapping address
-     */
-    public static ExtensionMappingAddress extension(ExtensionSelector selector,
-                                                    DeviceId deviceId) {
-        return new ExtensionMappingAddress(selector, deviceId);
     }
 }

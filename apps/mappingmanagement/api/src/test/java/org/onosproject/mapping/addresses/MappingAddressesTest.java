@@ -119,7 +119,7 @@ public class MappingAddressesTest {
         assertThatClassIsImmutable(ASMappingAddress.class);
         assertThatClassIsImmutable(DNMappingAddress.class);
         assertThatClassIsImmutable(EthMappingAddress.class);
-        assertThatClassIsImmutable(ExtensionMappingAddress.class);
+        assertThatClassIsImmutable(ExtensionMappingAddressWrapper.class);
         assertThatClassIsImmutable(IPMappingAddress.class);
     }
 

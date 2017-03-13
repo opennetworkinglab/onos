@@ -15,17 +15,23 @@
  */
 package org.onosproject.mapping.addresses;
 
-import org.onosproject.net.flow.Extension;
+import com.google.common.annotations.Beta;
+import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
- * An extension for the mapping address API.
+ * Provides access to the extension mapping addresses implemented by this driver.
  */
-public interface ExtensionMappingAddress extends Extension {
+@Beta
+public interface ExtensionMappingAddressResolver extends HandlerBehaviour {
 
     /**
-     * Obtains the type of the extension mapping address.
+     * Obtains an extension mapping address instance of the specified type,
+     * if supported by the driver.
      *
-     * @return type
+     * @param type type of extension to get
+     * @return extension mapping address
+     * @throws UnsupportedOperationException if the extension type is not
+     * supported by this driver
      */
-    ExtensionMappingAddressType type();
+    ExtensionMappingAddress getExtensionMappingAddress(ExtensionMappingAddressType type);
 }
