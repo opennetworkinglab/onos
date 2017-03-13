@@ -32,22 +32,20 @@ import java.util.List;
 public final class OFMessageDecoder extends ByteToMessageDecoder {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
             throws Exception {
-
         if (!ctx.channel().isActive()) {
             return;
         }
 
         try {
-            OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
             OFMessage message = reader.readFrom(in);
             out.add(message);
         } catch (Throwable cause) {
-            log.error("Exception occured while processing decoding because of {}", cause.getMessage());
+            log.error("Failed decode OF message for {}", cause.getMessage());
         }
-
     }
 }

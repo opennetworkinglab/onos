@@ -39,7 +39,6 @@ public final class OFChannelInitializer extends ChannelInitializer<SocketChannel
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-
         ch.pipeline().addLast(new OFMessageDecoder())
                 .addLast(new OFMessageEncoder())
                 .addLast(new ReadTimeoutHandler(READ_TIMEOUT))

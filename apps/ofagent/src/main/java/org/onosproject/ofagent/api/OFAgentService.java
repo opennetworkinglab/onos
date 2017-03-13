@@ -15,6 +15,7 @@
  */
 package org.onosproject.ofagent.api;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 
 import java.util.Set;
@@ -22,7 +23,9 @@ import java.util.Set;
 /**
  * Service for administering OF agents for a virtual network.
  */
-public interface OFAgentService {
+public interface OFAgentService extends ListenerService<OFAgentEvent, OFAgentListener> {
+
+    String APPLICATION_NAME = "org.onosproject.ofagent";
 
     /**
      * Returns the OpenFlow agent list.
@@ -32,39 +35,10 @@ public interface OFAgentService {
     Set<OFAgent> agents();
 
     /**
-     * Creates an OpenFlow agent for a given virtual network with given controllers.
-     *
-     * @param networkId   id of the virtual network
-     * @param controllers list of controllers
-     */
-    void createAgent(NetworkId networkId, OFController... controllers);
-
-    /**
-     * Removes the OpenFlow agent for the given virtual network.
-     *
-     * @param networkId virtual network identifier
-     */
-    void removeAgent(NetworkId networkId);
-
-    /**
-     * Starts the agent for the given network.
-     *
-     * @param networkId virtual network identifier
-     */
-    void startAgent(NetworkId networkId);
-
-    /**
-     * Stops the agent for the given network.
-     *
-     * @param networkId virtual network identifier
-     */
-    void stopAgent(NetworkId networkId);
-
-    /**
-     * Returns if the agent of the given network is active or not.
+     * Returns the agent for the given network.
      *
      * @param networkId network id
-     * @return true if the agent is active
+     * @return ofagent; null if no ofagent exists for the network
      */
-    boolean isActive(NetworkId networkId);
+    OFAgent agent(NetworkId networkId);
 }

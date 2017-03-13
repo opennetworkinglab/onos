@@ -15,27 +15,10 @@
  */
 package org.onosproject.ofagent.api;
 
-import org.onosproject.incubator.net.virtual.NetworkId;
-
-import java.util.Set;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Service for providing virtual OpenFlow switch information.
+ * OFAgent network store delegate abstraction.
  */
-public interface OFSwitchService {
-
-    /**
-     * Returns all openflow switches that OF agent service manages.
-     *
-     * @return set of openflow switches; empty set if no openflow switches exist
-     */
-    Set<OFSwitch> ofSwitches();
-
-    /**
-     * Returns all openflow switches for the specified network.
-     *
-     * @param networkId network id
-     * @return set of openflow switches; empty set if no devices exist on the network
-     */
-    Set<OFSwitch> ofSwitches(NetworkId networkId);
+public interface OFAgentStoreDelegate  extends StoreDelegate<OFAgentEvent> {
 }

@@ -15,25 +15,21 @@
  */
 package org.onosproject.ofagent.impl;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.ReadTimeoutException;
-import org.onlab.osgi.DefaultServiceDirectory;
-import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.ofagent.api.OFSwitch;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
-import org.projectfloodlight.openflow.protocol.OFFactories;
-import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
-import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
+
+import static org.onosproject.ofagent.impl.OFChannelHandler.ChannelState.INIT;
 
 /**
  * Implementation of OpenFlow channel handler.
@@ -41,13 +37,13 @@ import java.util.concurrent.RejectedExecutionException;
  */
 public final class OFChannelHandler extends ChannelDuplexHandler {
 
+    private static final String MSG_CHANNEL_STATE = "Set channel(%s) state: %s";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final OFSwitch ofSwitch;
 
-    private ChannelHandlerContext ctx;
+    private Channel channel;
     private ChannelState state;
-    protected static final OFFactory FACTORY = OFFactories.getFactory(OFVersion.OF_13);
-    protected VirtualNetworkService vNetService;
 
     enum ChannelState {
 
@@ -62,7 +58,6 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
             @Override
             void processOFMessage(final OFChannelHandler handler,
                                   final OFMessage msg) {
-
                 switch (msg.getType()) {
                     case HELLO:
                         handler.setState(ChannelState.WAIT_FEATURE_REQUEST);
@@ -77,17 +72,16 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
             @Override
             void processOFMessage(final OFChannelHandler handler,
                                   final OFMessage msg) {
-
                 switch (msg.getType()) {
                     case FEATURES_REQUEST:
-                        handler.ofSwitch.processFeaturesRequest(handler.ctx.channel(), msg);
+                        handler.ofSwitch.processFeaturesRequest(handler.channel, msg);
                         handler.setState(ChannelState.ESTABLISHED);
                         break;
                     case ECHO_REQUEST:
-                        handler.ofSwitch.processEchoRequest(handler.ctx.channel(), msg);
+                        handler.ofSwitch.processEchoRequest(handler.channel, msg);
                         break;
                     case ERROR:
-                        handler.logErrorClose(handler.ctx, (OFErrorMsg) msg);
+                        handler.logErrorClose((OFErrorMsg) msg);
                         break;
                     default:
                         handler.illegalMessageReceived(msg);
@@ -117,10 +111,10 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
                         //TODO implement
                         break;
                     case ECHO_REQUEST:
-                        handler.ofSwitch.processEchoRequest(handler.ctx.channel(), msg);
+                        handler.ofSwitch.processEchoRequest(handler.channel, msg);
                         break;
                     case ERROR:
-                        handler.logErrorClose(handler.ctx, (OFErrorMsg) msg);
+                        handler.logErrorClose((OFErrorMsg) msg);
                         break;
                     default:
                         handler.unhandledMessageReceived(msg);
@@ -128,8 +122,8 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
                 }
             }
         };
-        abstract void processOFMessage(final OFChannelHandler handler,
-                                       final OFMessage msg);
+
+        abstract void processOFMessage(final OFChannelHandler handler, final OFMessage msg);
     }
 
     /**
@@ -140,47 +134,36 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
     public OFChannelHandler(OFSwitch ofSwitch) {
         super();
         this.ofSwitch = ofSwitch;
-
-        setState(ChannelState.INIT);
-
-        ServiceDirectory services = new DefaultServiceDirectory();
-        vNetService = services.get(VirtualNetworkService.class);
+        setState(INIT);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        this.ctx = ctx;
-        log.debug("Channel Active. Send OF_13 Hello to {}", ctx.channel().remoteAddress());
-
+        this.channel = ctx.channel();
+        // FIXME move this to channel handler and add channel when OF handshake is done
+        ofSwitch.addControllerChannel(channel);
         try {
-            ofSwitch.sendOfHello(ctx.channel());
+            ofSwitch.sendOfHello(channel);
+            log.trace("Send OF_13 Hello to {}", channel.remoteAddress());
             setState(ChannelState.WAIT_HELLO);
-        } catch (Throwable cause) {
-            log.error("Exception occured because of{}", cause.getMessage());
+        } catch (Exception ex) {
+            log.error("Failed sending OF_13 Hello to {} for {}", channel.remoteAddress(), ex.getMessage());
         }
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg)
-            throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
+        ofSwitch.deleteControllerChannel(channel);
+        log.info("Device {} disconnected from controller {}", ofSwitch.dpid(), channel.remoteAddress());
+    }
 
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         try {
-            if (msg instanceof List) {
-                ((List) msg).forEach(ofm -> {
-                    state.processOFMessage(this, (OFMessage) ofm);
-                });
-            } else {
-                state.processOFMessage(this, (OFMessage) msg);
-            }
-        } catch (Throwable cause) {
-            log.error("Exception occured {}", cause.getMessage());
+            state.processOFMessage(this, (OFMessage) msg);
+        } catch (Exception ex) {
+            ctx.fireExceptionCaught(ex);
         }
-
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx)
-            throws Exception {
     }
 
     @Override
@@ -188,41 +171,40 @@ public final class OFChannelHandler extends ChannelDuplexHandler {
         if (cause instanceof ReadTimeoutException) {
             log.error("Connection closed because of ReadTimeoutException {}", cause.getMessage());
         } else if (cause instanceof ClosedChannelException) {
-            log.error("ClosedChannelException occured");
+            log.error("ClosedChannelException occurred");
             return;
         } else if (cause instanceof RejectedExecutionException) {
             log.error("Could not process message: queue full");
         } else if (cause instanceof IOException) {
-            log.error("IOException occured");
+            log.error("IOException occurred");
         } else {
             log.error("Error while processing message from switch {}", cause.getMessage());
         }
-        ctx.close();
+        channel.close();
     }
 
     private void setState(ChannelState state) {
         this.state = state;
+        if (state != INIT) {
+            log.debug(String.format(MSG_CHANNEL_STATE, channel.remoteAddress(), state.name()));
+        }
     }
 
-    private void logErrorClose(ChannelHandlerContext ctx, OFErrorMsg errorMsg) {
+    private void logErrorClose(OFErrorMsg errorMsg) {
         log.error("{} from switch {} in state {}",
                 errorMsg,
-                ofSwitch.device().id().toString(),
+                ofSwitch.dpid(),
                 state);
-
-        log.error("Disconnecting...");
-        ctx.close();
+        channel.close();
     }
 
     private void illegalMessageReceived(OFMessage ofMessage) {
         log.warn("Controller should never send this message {} in current state {}",
-                ofMessage.getType().toString(),
-                state);
+                ofMessage.getType(), state);
     }
 
     private void unhandledMessageReceived(OFMessage ofMessage) {
-        log.warn("Unhandled message {} received in state {}. Ignored",
-                ofMessage.getType().toString(),
-                state);
+        log.warn("Unexpected message {} received in state {}",
+                ofMessage.getType(), state);
     }
 }

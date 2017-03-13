@@ -15,10 +15,8 @@
  */
 package org.onosproject.ofagent.impl;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import io.netty.channel.Channel;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.packet.InboundPacket;
@@ -35,7 +33,7 @@ import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.DatapathId;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,7 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.projectfloodlight.openflow.protocol.OFControllerRole.*;
 
 /**
- * Implementation of OF switch.
+ * Implementation of the default OpenFlow switch.
  */
 public final class DefaultOFSwitch implements OFSwitch {
 
@@ -53,49 +51,34 @@ public final class DefaultOFSwitch implements OFSwitch {
     private static final long NUM_BUFFERS = 1024;
     private static final short NUM_TABLES = 3;
 
-    private final Device device;
+    private final DatapathId dpId;
     private final OFSwitchCapabilities capabilities;
-    private final DatapathId datapathId;
 
     private final ConcurrentHashMap<Channel, OFControllerRole> controllerRoleMap
             = new ConcurrentHashMap<>();
+    private static final OFFactory FACTORY = OFFactories.getFactory(OFVersion.OF_13);
 
-    protected static final OFFactory FACTORY = OFFactories.getFactory(OFVersion.OF_13);
-    private int handshakeTransactionIds;
+    private int handshakeTransactionIds = -1;
 
-    public DefaultOFSwitch(Device device, OFSwitchCapabilities capabilities) {
-        this.device = device;
+    private DefaultOFSwitch(DatapathId dpid, OFSwitchCapabilities capabilities) {
+        this.dpId = dpid;
         this.capabilities = capabilities;
-        datapathId = getDpidFromDeviceId(device.id());
-        handshakeTransactionIds = -1;
-
     }
 
-    // TODO add builder
+    public static DefaultOFSwitch of(DatapathId dpid, OFSwitchCapabilities capabilities) {
+        checkNotNull(dpid, "DPID cannot be null");
+        checkNotNull(capabilities, "OF capabilities cannot be null");
+        return new DefaultOFSwitch(dpid, capabilities);
+    }
 
     @Override
-    public Device device() {
-        return device;
+    public DatapathId dpid() {
+        return this.dpId;
     }
 
     @Override
     public OFSwitchCapabilities capabilities() {
-        return capabilities;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return !controllerChannels().isEmpty();
-    }
-
-    @Override
-    public void started() {
-        // TODO do some initial setups
-    }
-
-    @Override
-    public void stopped() {
-        // TODO implement
+        return this.capabilities;
     }
 
     @Override
@@ -136,7 +119,7 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public Set<Channel> controllerChannels() {
-        return null;
+        return ImmutableSet.copyOf(controllerRoleMap.keySet());
     }
 
     @Override
@@ -181,19 +164,14 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void processFeaturesRequest(Channel channel, OFMessage msg) {
-        // TODO process features request and send reply
-        List<OFMessage> ofMessageList = Lists.newArrayList();
-
-        OFFeaturesReply.Builder frBuilder = FACTORY.buildFeaturesReply()
-                .setDatapathId(datapathId)
+        OFFeaturesReply ofFeaturesReply = FACTORY.buildFeaturesReply()
+                .setDatapathId(dpId)
                 .setNBuffers(NUM_BUFFERS)
                 .setNTables(NUM_TABLES)
                 .setCapabilities(capabilities.ofSwitchCapabilities())
-                .setXid(msg.getXid());
-
-        ofMessageList.add(frBuilder.build());
-        channel.write(ofMessageList);
-
+                .setXid(msg.getXid())
+                .build();
+        channel.writeAndFlush(Collections.singletonList(ofFeaturesReply));
     }
 
     @Override
@@ -203,38 +181,18 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     @Override
     public void sendOfHello(Channel channel) {
-        List<OFMessage> ofMessageList = Lists.newArrayList();
-        OFHello.Builder ofHello = FACTORY.buildHello()
-                .setXid(this.handshakeTransactionIds--);
-
-        ofMessageList.add(ofHello.build());
-        channel.write(ofMessageList);
+        OFHello ofHello = FACTORY.buildHello()
+                .setXid(this.handshakeTransactionIds--)
+                .build();
+        channel.writeAndFlush(Collections.singletonList(ofHello));
     }
 
     @Override
     public void processEchoRequest(Channel channel, OFMessage msg) {
-        List<OFMessage> ofMessageList = Lists.newArrayList();
-        OFEchoReply.Builder echoBuilder = FACTORY.buildEchoReply()
+        OFEchoReply ofEchoReply = FACTORY.buildEchoReply()
                 .setXid(msg.getXid())
-                .setData(((OFEchoRequest) msg).getData());
-
-        ofMessageList.add(echoBuilder.build());
-        channel.write(ofMessageList);
-    }
-
-    private DatapathId getDpidFromDeviceId(DeviceId deviceId) {
-        String deviceIdToString = deviceId.toString().split(":")[1];
-
-        assert (deviceIdToString.length() == 16);
-
-        String resultedHexString = new String();
-        for (int i = 0; i < 8; i++) {
-            resultedHexString = resultedHexString + deviceIdToString.charAt(2 * i)
-                    + deviceIdToString.charAt(2 * i + 1);
-            if (i != 7) {
-                resultedHexString += ":";
-            }
-        }
-        return DatapathId.of(resultedHexString);
+                .setData(((OFEchoRequest) msg).getData())
+                .build();
+        channel.writeAndFlush(Collections.singletonList(ofEchoReply));
     }
 }

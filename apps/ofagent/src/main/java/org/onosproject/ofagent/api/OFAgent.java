@@ -15,18 +15,28 @@
  */
 package org.onosproject.ofagent.api;
 
-import io.netty.channel.nio.NioEventLoopGroup;
 import org.onosproject.incubator.net.virtual.NetworkId;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 /**
- * Representation of an OF agent, which brokers virtual devices and external
- * controllers by handling OpenFlow connections and messages between them.
+ * Representation of an OpenFlow agent, which holds the mapping between the virtual
+ * network and the external OpenFlow controllers.
  */
 public interface OFAgent {
+
+    enum State {
+
+        /**
+         * Specifies that the ofagent state is started.
+         */
+        STARTED,
+
+        /**
+         * Specifies that the ofagent state is stopped.
+         */
+        STOPPED
+    }
 
     /**
      * Returns the identifier of the virtual network that this agent cares for.
@@ -43,14 +53,11 @@ public interface OFAgent {
     Set<OFController> controllers();
 
     /**
-     * Starts the OpenFlow agent.
+     * Returns the admin state of the agent.
+     *
+     * @return state
      */
-    void start();
-
-    /**
-     * Stops the OpenFlow agent.
-     */
-    void stop();
+    State state();
 
     /**
      * Builder of OF agent entities.
@@ -73,15 +80,6 @@ public interface OFAgent {
         Builder networkId(NetworkId networkId);
 
         /**
-         * Returns OF agent builder with the supplied network services for the
-         * virtual network.
-         *
-         * @param services network services for the virtual network
-         * @return of agent builder
-         */
-        Builder services(Map<Class<?>, Object> services);
-
-        /**
          * Returns OF agent builder with the supplied controllers.
          *
          * @param controllers set of openflow controllers
@@ -90,19 +88,11 @@ public interface OFAgent {
         Builder controllers(Set<OFController> controllers);
 
         /**
-         * Returns OF agent builder with the supplied event executor.
+         * Returns OF agent builder with the supplied state.
          *
-         * @param eventExecutor event executor
+         * @param state state of the agent
          * @return of agent builder
          */
-        Builder eventExecutor(ExecutorService eventExecutor);
-
-        /**
-         * Returns OF agent builder with the supplied IO work group.
-         *
-         * @param ioWorker io worker group
-         * @return of agent builder
-         */
-        Builder ioWorker(NioEventLoopGroup ioWorker);
+        Builder state(State state);
     }
 }

@@ -15,20 +15,39 @@
  */
 package org.onosproject.ofagent.impl;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.ofagent.api.OFController;
 
-/**
- * Implementation of tenant openflow controller.
- */
-public class DefaultOFController implements OFController {
-    private IpAddress ip;
-    private TpPort port;
+import java.util.Objects;
 
-    public DefaultOFController(IpAddress ip, TpPort port) {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * Implementation of the default OpenFlow controller.
+ */
+public final class DefaultOFController implements OFController {
+
+    private final IpAddress ip;
+    private final TpPort port;
+
+    private DefaultOFController(IpAddress ip, TpPort port) {
         this.ip = ip;
         this.port = port;
+    }
+
+    /**
+     * Returns new OpenFlow controller with the supplied IP and port.
+     *
+     * @param ip   ip address
+     * @param port port number
+     * @return openflow controller
+     */
+    public static DefaultOFController of(IpAddress ip, TpPort port) {
+        checkNotNull(ip, "Controller IP address cannot be null");
+        checkNotNull(port, "Controller port address cannot be null");
+        return new DefaultOFController(ip, port);
     }
 
     @Override
@@ -39,5 +58,34 @@ public class DefaultOFController implements OFController {
     @Override
     public TpPort port() {
         return port;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ip, port);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof DefaultOFController) {
+            DefaultOFController that = (DefaultOFController) obj;
+            if (Objects.equals(ip, that.ip) &&
+                    Objects.equals(port, that.port)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("ip", this.ip)
+                .add("port", this.port)
+                .toString();
     }
 }

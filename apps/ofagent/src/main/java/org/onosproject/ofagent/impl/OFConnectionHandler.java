@@ -38,10 +38,17 @@ public final class OFConnectionHandler implements ChannelFutureListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String MSG_STATE = "Device %s %s to controller %s:%s";
+    private static final String MSG_CONNECTING = "connecting";
+    private static final String MSG_CONNECTED = "connected";
+    private static final String MSG_FAILED = "failed to connect";
+
     private final AtomicInteger retryCount;
     private final OFSwitch ofSwitch;
     private final OFController controller;
     private final EventLoopGroup workGroup;
+
+    // TODO make this value configurable
     private static final int MAX_RETRY = 3;
 
     /**
@@ -61,32 +68,40 @@ public final class OFConnectionHandler implements ChannelFutureListener {
 
     /**
      * Creates a connection to the supplied controller.
-     *
      */
     public void connect() {
-
-        SocketAddress remoteAddr = new InetSocketAddress(controller.ip().toInetAddress(), controller.port().toInt());
-
-        log.debug("Connecting to controller {}:{}", controller.ip(), controller.port());
+        SocketAddress remoteAddr = new InetSocketAddress(
+                controller.ip().toInetAddress(), controller.port().toInt());
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(workGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .handler(new OFChannelInitializer(ofSwitch));
 
+        log.debug(String.format(MSG_STATE,
+                ofSwitch.dpid(),
+                MSG_CONNECTING,
+                controller.ip(),
+                controller.port()));
         bootstrap.connect(remoteAddr).addListener(this);
     }
 
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
-
         if (future.isSuccess()) {
-            ofSwitch.addControllerChannel(future.channel());
-            log.debug("Connected to controller {}:{} for device {}",
-                    controller.ip(), controller.port(), ofSwitch.device().id());
+            log.info(String.format(MSG_STATE,
+                    ofSwitch.dpid(),
+                    MSG_CONNECTED,
+                    controller.ip(),
+                    controller.port()));
         } else {
-            log.info("Failed to connect controller {}:{}. Retry...", controller.ip(), controller.port());
-            if (retryCount.getAndIncrement() < MAX_RETRY) {
+            if (retryCount.getAndIncrement() > MAX_RETRY) {
+                log.warn(String.format(MSG_STATE,
+                        ofSwitch.dpid(),
+                        MSG_FAILED,
+                        controller.ip(),
+                        controller.port()));
+            } else {
                 this.connect();
             }
         }
