@@ -11,14 +11,15 @@ pipeline {
                 '''
             }
         }
-    }
-    stage('unit-test') {
-        steps {
-            sh '''#!/bin/bash -l
-            ONOS_ROOT=`pwd`
-            source tools/build/envDefaults
-            onos-buck test
-            '''
+
+        stage('unit-test') {
+            steps {
+                sh '''#!/bin/bash -l
+                ONOS_ROOT=`pwd`
+                source tools/build/envDefaults
+                onos-buck test
+                '''
+            }
         }
     }
 
