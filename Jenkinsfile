@@ -19,6 +19,7 @@ pipeline {
             source tools/build/envDefaults
             onos-buck test
             '''
+        }
     }
 
 }
