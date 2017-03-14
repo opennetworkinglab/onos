@@ -15,14 +15,19 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Maps;
 import io.atomix.catalyst.concurrent.CatalystThreadFactory;
 import io.atomix.catalyst.concurrent.SingleThreadContext;
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.Server;
+import org.apache.commons.io.IOUtils;
+import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
+import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -34,13 +39,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.IOUtils;
-import org.onlab.util.Tools;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.MessagingService;
-import org.slf4j.Logger;
-
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@link Server} implementation for {@link CopycatTransport}.
@@ -61,43 +61,36 @@ public class CopycatTransportServer implements Server {
         this.messagingService = checkNotNull(messagingService);
         this.messageSubject = String.format("onos-copycat-%s", partitionId);
         this.executorService = Executors.newScheduledThreadPool(Math.min(4, Runtime.getRuntime().availableProcessors()),
-                new CatalystThreadFactory("copycat-server-p" + partitionId + "-%d"));
+                                                                new CatalystThreadFactory("copycat-server-p" + partitionId + "-%d"));
     }
 
     @Override
     public CompletableFuture<Void> listen(Address address, Consumer<Connection> listener) {
         if (listening.compareAndSet(false, true)) {
             ThreadContext context = ThreadContext.currentContextOrThrow();
-            listen(address, listener, context);
+            listen(listener, context);
         }
         return listenFuture;
     }
 
-    private void listen(Address address, Consumer<Connection> listener, ThreadContext context) {
+    /**
+     * Starts the server listening via the {@code MessageService} on the partition subject.
+     */
+    private void listen(Consumer<Connection> listener, ThreadContext context) {
         messagingService.registerHandler(messageSubject, (sender, payload) -> {
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
+                byte type = input.readByte();
                 long connectionId = input.readLong();
-                AtomicBoolean newConnectionCreated = new AtomicBoolean(false);
-                CopycatTransportConnection connection = connections.computeIfAbsent(connectionId, k -> {
-                    newConnectionCreated.set(true);
-                    CopycatTransportConnection newConnection = new CopycatTransportConnection(connectionId,
-                            CopycatTransport.Mode.SERVER,
-                            partitionId,
-                            CopycatTransport.toAddress(sender),
-                            messagingService,
-                            getOrCreateContext(context));
-                    log.debug("Created new incoming connection {}", connectionId);
-                    newConnection.closeListener(c -> connections.remove(connectionId, c));
-                    return newConnection;
-                });
-                byte[] request = IOUtils.toByteArray(input);
-                return CompletableFuture.supplyAsync(
-                        () -> {
-                            if (newConnectionCreated.get()) {
-                                listener.accept(connection);
-                            }
-                            return connection;
-                        }, context.executor()).thenCompose(c -> c.handle(request));
+                switch (type) {
+                    case CopycatTransportConnection.CONNECT:
+                        return handleConnect(sender, connectionId, listener, context);
+                    case CopycatTransportConnection.CLOSE:
+                        return handleClose(connectionId);
+                    case CopycatTransportConnection.MESSAGE:
+                        return handleMessage(connectionId, IOUtils.toByteArray(input));
+                    default:
+                        throw new IllegalStateException("Invalid message type");
+                }
             } catch (IOException e) {
                 return Tools.exceptionalFuture(e);
             }
@@ -105,6 +98,58 @@ public class CopycatTransportServer implements Server {
         context.execute(() -> {
             listenFuture.complete(null);
         });
+    }
+
+    /**
+     * Handles a connect message from a client.
+     */
+    private CompletableFuture<byte[]> handleConnect(
+            Endpoint endpoint,
+            long connectionId,
+            Consumer<Connection> listener,
+            ThreadContext context) {
+        CopycatTransportConnection connection = connections.computeIfAbsent(connectionId, k -> {
+            CopycatTransportConnection newConnection = new CopycatTransportConnection(connectionId,
+                                                                                      CopycatTransport.Mode.SERVER,
+                                                                                      partitionId,
+                                                                                      CopycatTransport.toAddress(endpoint),
+                                                                                      messagingService,
+                                                                                      getOrCreateContext(context));
+            log.debug("Created new incoming connection {}", connectionId);
+            newConnection.closeListener(c -> connections.remove(connectionId, c));
+            return newConnection;
+        });
+
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        context.executor().execute(() -> {
+            listener.accept(connection);
+            future.complete(CopycatTransportConnection.success());
+        });
+        return future;
+    }
+
+    /**
+     * Handles a close message from a client.
+     */
+    private CompletableFuture<byte[]> handleClose(long connectionId) {
+        CopycatTransportConnection connection = connections.remove(connectionId);
+        if (connection != null) {
+            log.debug("Closed connection {}", connectionId);
+            connection.cleanup();
+            return CompletableFuture.completedFuture(CopycatTransportConnection.success());
+        }
+        return Tools.exceptionalFuture(new IllegalStateException("Cannot close unknown connection " + connectionId));
+    }
+
+    /**
+     * Handles a message from a client.
+     */
+    private CompletableFuture<byte[]> handleMessage(long connectionId, byte[] message) {
+        CopycatTransportConnection connection = connections.get(connectionId);
+        if (connection != null) {
+            return connection.handle(message);
+        }
+        return Tools.exceptionalFuture(new IllegalStateException("Unknown connection " + connectionId));
     }
 
     @Override

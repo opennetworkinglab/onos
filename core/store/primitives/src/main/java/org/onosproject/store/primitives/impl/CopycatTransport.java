@@ -15,25 +15,23 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Client;
+import io.atomix.catalyst.transport.Server;
+import io.atomix.catalyst.transport.Transport;
+import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-import org.onlab.packet.IpAddress;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingService;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.transport.Transport;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Custom {@link Transport transport} for Copycat interactions
@@ -59,14 +57,12 @@ public class CopycatTransport implements Transport {
         SERVER
     }
 
-    private final Mode mode;
     private final PartitionId partitionId;
     private final MessagingService messagingService;
     private static final Map<Address, Endpoint> EP_LOOKUP_CACHE = Maps.newConcurrentMap();
     private static final Map<Endpoint, Address> ADDRESS_LOOKUP_CACHE = Maps.newConcurrentMap();
 
-    public CopycatTransport(Mode mode, PartitionId partitionId, MessagingService messagingService) {
-        this.mode = checkNotNull(mode);
+    public CopycatTransport(PartitionId partitionId, MessagingService messagingService) {
         this.partitionId = checkNotNull(partitionId);
         this.messagingService = checkNotNull(messagingService);
     }
@@ -74,8 +70,7 @@ public class CopycatTransport implements Transport {
     @Override
     public Client client() {
         return new CopycatTransportClient(partitionId,
-                                          messagingService,
-                                          mode);
+                                          messagingService);
     }
 
     @Override

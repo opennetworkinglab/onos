@@ -33,6 +33,7 @@ import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingException;
 import org.onosproject.store.cluster.messaging.MessagingService;
+import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -46,15 +47,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * {@link Connection} implementation for CopycatTransport.
  */
 public class CopycatTransportConnection implements Connection {
 
+    private final Logger log = getLogger(getClass());
     private final Listeners<Throwable> exceptionListeners = new Listeners<>();
     private final Listeners<Connection> closeListeners = new Listeners<>();
 
+    static final byte MESSAGE = 0x00;
+    static final byte CONNECT = 0x01;
+    static final byte CLOSE = 0x02;
     static final byte SUCCESS = 0x03;
     static final byte FAILURE = 0x04;
 
@@ -68,11 +74,11 @@ public class CopycatTransportConnection implements Connection {
     private final Map<Class<?>, InternalHandler> handlers = Maps.newConcurrentMap();
 
     CopycatTransportConnection(long connectionId,
-            CopycatTransport.Mode mode,
-            PartitionId partitionId,
-            Address address,
-            MessagingService messagingService,
-            ThreadContext context) {
+                               CopycatTransport.Mode mode,
+                               PartitionId partitionId,
+                               Address address,
+                               MessagingService messagingService,
+                               ThreadContext context) {
         this.connectionId = connectionId;
         this.mode = checkNotNull(mode);
         this.remoteAddress = checkNotNull(address);
@@ -87,18 +93,93 @@ public class CopycatTransportConnection implements Connection {
         this.context = checkNotNull(context);
     }
 
-    public void setBidirectional() {
+    /**
+     * Creates a new connection to the server side of a connection.
+     *
+     * @return A completable future to be completed once the connection has been created.
+     */
+    public CompletableFuture<Connection> connect() {
+        log.debug("Connecting to {}", remoteAddress);
         messagingService.registerHandler(inboundMessageSubject, (sender, payload) -> {
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
-                if (input.readLong() !=  connectionId) {
-                    throw new IllegalStateException("Invalid connection Id");
+                byte type = input.readByte();
+                switch (type) {
+                    case CONNECT:
+                        throw new IllegalStateException("Cannot connect to client");
+                    case CLOSE:
+                        log.debug("Received close event");
+                        cleanup();
+                        return CompletableFuture.completedFuture(success());
+                    case MESSAGE:
+                        if (input.readLong() != connectionId) {
+                            throw new IllegalStateException("Invalid connection ID");
+                        }
+                        return handle(IOUtils.toByteArray(input));
+                    default:
+                        throw new IllegalStateException("Invalid message type");
                 }
-                return handle(IOUtils.toByteArray(input));
             } catch (IOException e) {
                 Throwables.propagate(e);
                 return null;
             }
         });
+        return sendStatus(CONNECT).thenApplyAsync(v -> this, context.executor());
+    }
+
+    /**
+     * Sends a status message ({@code CONNECT} or {@code CLOSE}) to the other side of the connection.
+     */
+    private CompletableFuture<Void> sendStatus(int status) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeByte(status);
+            dos.writeLong(connectionId);
+            messagingService.sendAndReceive(CopycatTransport.toEndpoint(remoteAddress),
+                                            outboundMessageSubject,
+                                            baos.toByteArray(),
+                                            context.executor())
+                    .whenComplete((response, error) -> {
+                        Throwable wrappedError = error;
+                        if (error != null) {
+                            Throwable rootCause = Throwables.getRootCause(error);
+                            if (MessagingException.class.isAssignableFrom(rootCause.getClass())) {
+                                wrappedError = new TransportException(error);
+                            }
+                            future.completeExceptionally(wrappedError);
+                        } else {
+                            InputStream input = new ByteArrayInputStream(response);
+                            try {
+                                if (input.read() == FAILURE) {
+                                    Throwable t = context.serializer().readObject(input);
+                                    future.completeExceptionally(t);
+                                } else {
+                                    future.complete(null);
+                                }
+                            } catch (IOException e) {
+                                future.completeExceptionally(e);
+                            }
+                        }
+                    });
+            return future;
+        } catch (IOException e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    /**
+     * Returns a {@link CompletableFuture} completed with a {@code CopycatTransportConnection.SUCCESS} status.
+     *
+     * @return A future completed with the {@code CopycatTransportConnection.SUCCESS} status.
+     */
+    static byte[] success() {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            baos.write(SUCCESS);
+            return baos.toByteArray();
+        } catch (IOException e) {
+            Throwables.propagate(e);
+            return null;
+        }
     }
 
     @Override
@@ -106,7 +187,9 @@ public class CopycatTransportConnection implements Connection {
         ThreadContext context = ThreadContext.currentContextOrThrow();
         CompletableFuture<U> result = new CompletableFuture<>();
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            new DataOutputStream(baos).writeLong(connectionId);
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeByte(MESSAGE);
+            dos.writeLong(connectionId);
             context.serializer().writeObject(message, baos);
             if (message instanceof ReferenceCounted) {
                 ((ReferenceCounted<?>) message).release();
@@ -123,7 +206,7 @@ public class CopycatTransportConnection implements Connection {
                                 wrappedError = new TransportException(e);
                             }
                         }
-                        handleResponse(r, wrappedError, result, context);
+                        handleResponse(r, wrappedError, result);
                     });
         } catch (SerializationException | IOException e) {
             result.completeExceptionally(e);
@@ -131,12 +214,15 @@ public class CopycatTransportConnection implements Connection {
         return result;
     }
 
-    private <T> void handleResponse(byte[] response,
-                                    Throwable error,
-                                    CompletableFuture<T> future,
-                                    ThreadContext context) {
+    /**
+     * Handles a response received from the other side of the connection.
+     */
+    private <T> void handleResponse(
+            byte[] response,
+            Throwable error,
+            CompletableFuture<T> future) {
         if (error != null) {
-            context.execute(() -> future.completeExceptionally(error));
+            future.completeExceptionally(error);
             return;
         }
         checkNotNull(response);
@@ -145,18 +231,16 @@ public class CopycatTransportConnection implements Connection {
             byte status = (byte) input.read();
             if (status == FAILURE) {
                 Throwable t = context.serializer().readObject(input);
-                context.execute(() -> future.completeExceptionally(t));
+                future.completeExceptionally(t);
             } else {
-                context.execute(() -> {
-                    try {
-                        future.complete(context.serializer().readObject(input));
-                    } catch (SerializationException e) {
-                        future.completeExceptionally(e);
-                    }
-                });
+                try {
+                    future.complete(context.serializer().readObject(input));
+                } catch (SerializationException e) {
+                    future.completeExceptionally(e);
+                }
             }
         } catch (IOException e) {
-            context.execute(() -> future.completeExceptionally(e));
+            future.completeExceptionally(e);
         }
     }
 
@@ -167,7 +251,13 @@ public class CopycatTransportConnection implements Connection {
         return null;
     }
 
-   public CompletableFuture<byte[]> handle(byte[] message) {
+    /**
+     * Handles a message received from the other side of the connection.
+     *
+     * @param message the message to handle.
+     * @return a completable future to be completed with the serialized response.
+     */
+    CompletableFuture<byte[]> handle(byte[] message) {
         try {
             Object request = context.serializer().readObject(new ByteArrayInputStream(message));
             InternalHandler handler = handlers.get(request.getClass());
@@ -202,11 +292,18 @@ public class CopycatTransportConnection implements Connection {
 
     @Override
     public CompletableFuture<Void> close() {
-        closeListeners.forEach(listener -> listener.accept(this));
+        log.debug("Closing connection to {}", remoteAddress);
+        return sendStatus(CLOSE).whenComplete((result, error) -> cleanup());
+    }
+
+    /**
+     * Cleans up and closes the connection.
+     */
+    void cleanup() {
         if (mode == CopycatTransport.Mode.CLIENT) {
             messagingService.unregisterHandler(inboundMessageSubject);
         }
-        return CompletableFuture.completedFuture(null);
+        closeListeners.forEach(listener -> listener.accept(this));
     }
 
     @Override
