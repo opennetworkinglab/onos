@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh 'tools/build/envDefaults && buck build onos'
+                sh 'tools/build/envDefaults && onos-buck build onos'
             }
         }
     }
