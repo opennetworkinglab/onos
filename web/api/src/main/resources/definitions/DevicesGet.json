@@ -23,6 +23,7 @@
           "hw",
           "sw",
           "serial",
+          "driver",
           "chassisId",
           "annotations"
         ],
@@ -58,6 +59,10 @@
           "serial": {
             "type": "string",
             "example": "123"
+          },
+          "driver": {
+            "type": "string",
+            "example": "ovs"
           },
           "chassisId": {
             "type": "string",

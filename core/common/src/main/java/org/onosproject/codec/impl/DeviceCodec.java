@@ -25,6 +25,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.ProviderId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -38,26 +39,31 @@ public final class DeviceCodec extends AnnotatedCodec<Device> {
     // JSON fieldNames
     private static final String ID = "id";
     private static final String TYPE = "type";
+    private static final String AVAILABLE = "available";
+    private static final String ROLE = "role";
     private static final String MFR = "mfr";
     private static final String HW = "hw";
     private static final String SW = "sw";
     private static final String SERIAL = "serial";
     private static final String CHASSIS_ID = "chassisId";
+    private static final String DRIVER = "driver";
 
 
     @Override
     public ObjectNode encode(Device device, CodecContext context) {
         checkNotNull(device, "Device cannot be null");
         DeviceService service = context.getService(DeviceService.class);
+        DriverService driveService = context.getService(DriverService.class);
         ObjectNode result = context.mapper().createObjectNode()
                 .put(ID, device.id().toString())
                 .put(TYPE, device.type().name())
-                .put("available", service.isAvailable(device.id()))
-                .put("role", service.getRole(device.id()).toString())
+                .put(AVAILABLE, service.isAvailable(device.id()))
+                .put(ROLE, service.getRole(device.id()).toString())
                 .put(MFR, device.manufacturer())
                 .put(HW, device.hwVersion())
                 .put(SW, device.swVersion())
                 .put(SERIAL, device.serialNumber())
+                .put(DRIVER, driveService.getDriver(device.id()).name())
                 .put(CHASSIS_ID, device.chassisId().toString());
         return annotate(result, device, context);
     }

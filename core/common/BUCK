@@ -1,6 +1,7 @@
 SRC_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
+    '//core/api:onos-api',
 ]
 
 TEST_DEPS = [

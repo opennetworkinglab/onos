@@ -88,8 +88,9 @@ public class DevicesWebResource extends AbstractWebResource {
     public Response removeDevice(@PathParam("id") String id) {
         Device device = nullIsNotFound(get(DeviceService.class).getDevice(deviceId(id)),
                                        DEVICE_NOT_FOUND);
+        ObjectNode result = codec(Device.class).encode(device, this);
         get(DeviceAdminService.class).removeDevice(deviceId(id));
-        return ok(codec(Device.class).encode(device, this)).build();
+        return ok(result).build();
     }
 
     /**

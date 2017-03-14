@@ -22,7 +22,8 @@
           "priority",
           "timeout",
           "isPermanent",
-          "deviceId"
+          "deviceId",
+          "liveType"
         ],
         "properties": {
           "id": {
@@ -60,6 +61,10 @@
           "deviceId": {
             "type": "string",
             "example": "of:0000000000000003"
+          },
+          "liveType": {
+            "type": "string",
+            "example": "UNKNOWN"
           },
           "treatment": {
             "type": "object",
