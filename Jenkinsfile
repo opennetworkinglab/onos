@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh 'buck --version'
+                sh 'buck build onos'
             }
         }
     }
