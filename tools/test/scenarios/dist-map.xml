@@ -19,7 +19,6 @@
     <group name="Distributed-Primitive-Map">
 
         <step name="Distributed-Primitive-Map.Test-Map-Get"
-              requires="Distributed-Primitives-Setup"
               exec="onos-cluster-execute-expect map-test foo get a --expect null"/>
 
         <step name="Distributed-Primitive-Map.Test-Map-Put"

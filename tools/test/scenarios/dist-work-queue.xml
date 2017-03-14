@@ -19,7 +19,6 @@
     <group name="Distributed-Primitive-WorkQueue">
 
         <step name="Distributed-Primitive-WorkQueue.Test-Queue-AddOne"
-              requires="Distributed-Primitives-Setup"
               exec="onos-execute-expect ${OCI} work-queue-test stc-test-work-queue add foo --expect Done"/>
 
         <step name="Distributed-Primitive-WorkQueue.Test-Queue-Check-Pending-1"

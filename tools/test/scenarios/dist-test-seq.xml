@@ -22,17 +22,17 @@
         <!--<import file="${ONOS_SCENARIOS}/setup.xml"/>
         <dependency name="Setup" requires="Prerequisites"/>-->
 
-        <sequential var="${OC#}" starts="Distributed-App-${#}" ends="Check-Distributed-Exceptions-${#-1}">
-            <step name="Distributed-App-${#}"
-                  requires="Setup"
-                  exec="onos ${OC#} app activate org.onosproject.distributedprimitives"/>
+        <step name="Distributed-App-Activate"
+              exec="onos ${OC1} app activate org.onosproject.distributedprimitives"/>
+
+        <sequential var="${OC#}" starts="Test-Counter-Increment-${#}" ends="Check-Distributed-Exceptions-${#-1}">
 
             <step name="Test-Counter-Increment-${#}"
-                  requires="Distributed-App-${#}"
+                  requires="Distributed-App-Activate"
                   exec="onos-execute-expect ${OC#} counter-test-increment fooCounter 5 --expect updated"/>
 
             <step name="Test-Add-${#}"
-                  requires="Distributed-App-${#}"
+                  requires="Test-Counter-Increment-${#}"
                   exec="onos-execute-expect ${OC#} set-test-add fooSet foo --expect added"/>
 
             <step name="Test-Get-${#}"

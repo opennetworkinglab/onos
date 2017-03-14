@@ -19,7 +19,7 @@
     <group name="Distributed-Primitives">
 
         <import file="${ONOS_SCENARIOS}/dist-setup.xml"/>
-        <dependency name="Distributed-Primitives-Setup" requires="Setup"/>
+        <dependency name="Distributed-Primitives-Setup"/>
 
         <group name="Distributed-Primitives-Internal" requires="Distributed-Primitives-Setup">
 

@@ -19,7 +19,6 @@
     <group name="Distributed-Primitive-Leader">
 
         <step name="Distributed-Primitive-Leader.Test-Initial-No-Leader"
-              requires="Distributed-Primitives-Setup"
               exec="onos-cluster-execute-expect leader-test test-elector show foo --expect leader=none#candidates=none"/>
 
         <step name="Distributed-Primitive-Leader.Test-Leader-Run"

@@ -19,7 +19,6 @@
     <group name="Distributed-Primitive-Counter">
 
         <step name="Distributed-Primitive-Counter.Test-Counter-Initial-Value"
-              requires="Distributed-Primitives-Setup"
               exec="onos-cluster-execute-expect counter-test test-counter get --expect 0"/>
 
         <step name="Distributed-Primitive-Counter.Test-Counter-Set"
