@@ -1,3 +1,5 @@
+#!groovy
+
 pipeline {
     agent any
 
@@ -18,6 +20,16 @@ pipeline {
                 ONOS_ROOT=`pwd`
                 source tools/build/envDefaults
                 onos-buck test
+                '''
+            }
+        }
+
+        stage('docker-image') {
+            steps {
+                sh '''#!/bin/bash -l
+                ONOS_ROOT=`pwd`
+                source tools/build/envDefaults
+                docker build -t onosproject/onos-test-docker .
                 '''
             }
         }
