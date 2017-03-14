@@ -24,19 +24,15 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.config.DynamicConfigEvent;
-import org.onosproject.config.DynamicConfigListener;
 import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.ResourceIdParser;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-//import org.onosproject.config.cfgreceiver.CfgReceiver;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
-import org.onosproject.store.service.ConsistentMultimap;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
@@ -58,7 +54,7 @@ import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -82,7 +78,6 @@ public class DistributedDynamicConfigStore
     protected StorageService storageService;
     private AsyncDocumentTree<DataNode.Type> keystore;
     private ConsistentMap<String, LeafNode> objectStore;
-    private ConsistentMultimap<String, DynamicConfigListener> lstnrStore;
     private final DocumentTreeListener<DataNode.Type> klistener = new InternalDocTreeListener();
     private final MapEventListener<String, LeafNode> olistener = new InternalMapListener();
 
@@ -90,7 +85,6 @@ public class DistributedDynamicConfigStore
     public void activateStore() {
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.BASIC)
-                //.register(String.class)
                 .register(java.lang.Class.class)
                 .register(DataNode.Type.class)
                 .register(LeafNode.class)
@@ -98,8 +92,10 @@ public class DistributedDynamicConfigStore
                 .register(ResourceId.class)
                 .register(NodeKey.class)
                 .register(SchemaId.class)
+                .register(LeafListKey.class)
+                .register(ListKey.class)
+                .register(KeyLeaf.class)
                 .register(java.util.LinkedHashMap.class);
-                //.register(CfgReceiver.InternalDynamicConfigListener.class);
         keystore = storageService.<DataNode.Type>documentTreeBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-key-store")
@@ -108,11 +104,6 @@ public class DistributedDynamicConfigStore
         objectStore = storageService.<String, LeafNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("config-object-store")
-                .withRelaxedReadConsistency()
-                .build();
-        lstnrStore = storageService.<String, DynamicConfigListener>consistentMultimapBuilder()
-                .withSerializer(Serializer.using(kryoBuilder.build()))
-                .withName("config-listener-registry")
                 .withRelaxedReadConsistency()
                 .build();
         keystore.addListener(klistener);
@@ -137,6 +128,13 @@ public class DistributedDynamicConfigStore
     public CompletableFuture<Boolean>
     addRecursive(ResourceId complete, DataNode node) {
         CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
+        //Workaround
+        List<NodeKey> nodeKeyList = complete.nodeKeys();
+        NodeKey f = nodeKeyList.get(0);
+        if (f.schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
+        //Workaround end
         ResourceId path = ResourceIdParser.getParent(complete);
         String spath = ResourceIdParser.parseResId(path);
         if (spath == null) {
@@ -219,6 +217,13 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<DataNode> readNode(ResourceId path, Filter filter) {
         CompletableFuture<DataNode> eventFuture = CompletableFuture.completedFuture(null);
+        //Workaround
+        List<NodeKey> nodeKeyList = path.nodeKeys();
+        NodeKey f = nodeKeyList.get(0);
+        if (f.schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
+        //Workaround end
         String spath = ResourceIdParser.parseResId(path);
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
@@ -341,6 +346,13 @@ public class DistributedDynamicConfigStore
 
     @Override
     public CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path) {
+        //Workaround
+        List<NodeKey> nodeKeyList = path.nodeKeys();
+        NodeKey f = nodeKeyList.get(0);
+        if (f.schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
+        //Workaround end
         String spath = ResourceIdParser.parseResId(path);
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
@@ -354,45 +366,6 @@ public class DistributedDynamicConfigStore
             return CompletableFuture.completedFuture(false);
         } else {
             return CompletableFuture.completedFuture(true);
-        }
-    }
-
-    @Override
-    public void addConfigListener(ResourceId path, DynamicConfigListener listener) {
-        String lpath = ResourceIdParser.parseResId(path);
-        try {
-            lstnrStore.put(lpath, listener);
-        } catch (ConsistentMapException e) {
-            throw new FailedException(e.getCause().getMessage());
-        }
-    }
-
-    @Override
-    public void removeConfigListener(ResourceId path, DynamicConfigListener listener) {
-        String lpath = ResourceIdParser.parseResId(path);
-        try {
-            lstnrStore.remove(lpath, listener);
-        } catch (ConsistentMapException e) {
-            throw new FailedException(e.getCause().getMessage());
-        }
-    }
-
-    @Override
-    public Collection<? extends DynamicConfigListener> getConfigListener(ResourceId path) {
-        String lpath = ResourceIdParser.parseResId(path);
-        try {
-            Versioned<Collection<? extends DynamicConfigListener>> ls = lstnrStore.get(lpath);
-            if (ls != null) {
-                return ls.value();
-            } else {
-                log.info("STORE: no Listeners!!");
-                return null;
-            }
-        } catch (ConsistentMapException e) {
-            //throw new FailedException(e.getCause().getMessage());
-            throw new FailedException("getConfigListener failed");
-        } catch (NullPointerException e) {
-            throw new FailedException(e.getCause().getMessage());
         }
     }
 

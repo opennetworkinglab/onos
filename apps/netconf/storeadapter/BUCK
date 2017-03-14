@@ -1,3 +1,14 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:onos-yang-model',
+    '//lib:onos-yang-runtime',
+    '//apps/config:onos-apps-config',
+]
+
+osgi_jar_with_tests (
+  deps = COMPILE_DEPS,
+)
+
 BUNDLES = [
   '//apps/netconf/client:onos-apps-netconf-client',
   '//apps/netconf/storeadapter:onos-apps-netconf-storeadapter',

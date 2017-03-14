@@ -146,25 +146,6 @@ public interface DynamicConfigService
     void deleteNodeRecursive(ResourceId path);
 
     /**
-     * Adds a listener to be notified when a leaf or subtree rooted at the
-     * specified path is modified.
-     *
-     * @param path data structure with absolute path to the node being listened to
-     * @param listener listener to be notified
-     * @throws FailedException if the listener could not be added
-     */
-    void addConfigListener(ResourceId path, DynamicConfigListener listener);
-
-    /**
-     * Removes a previously added listener.
-     *
-     * @param path data structure with absolute path to the node being listened to
-     * @param listener listener to unregister
-     * @throws FailedException if the listener could not be removed
-     */
-    void removeConfigListener(ResourceId path, DynamicConfigListener listener);
-
-    /**
      * Registers an RPC handler.
      *
      * @param handler RPC handler
