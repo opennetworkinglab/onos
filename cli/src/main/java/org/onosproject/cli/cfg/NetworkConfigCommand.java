@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigService;
@@ -50,6 +51,11 @@ public class NetworkConfigCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String configKey = null;
 
+    @Option(name = "--remove",
+            description = "Remove specified configuration tree",
+            required = false)
+    private boolean remove = false;
+
     private final ObjectMapper mapper = new ObjectMapper();
     private NetworkConfigService service;
 
@@ -58,6 +64,9 @@ public class NetworkConfigCommand extends AbstractShellCommand {
         service = get(NetworkConfigService.class);
         JsonNode root = mapper.createObjectNode();
         if (isNullOrEmpty(subjectClassKey)) {
+            if (remove) {
+                service.removeConfig();
+            }
             addAll((ObjectNode) root);
         } else {
             SubjectFactory subjectFactory = nullIsIllegal(service.getSubjectFactory(subjectClassKey),
@@ -67,8 +76,14 @@ public class NetworkConfigCommand extends AbstractShellCommand {
             } else {
                 Object s = subjectFactory.createSubject(subjectKey);
                 if (isNullOrEmpty(configKey)) {
+                    if (remove) {
+                        service.removeConfig(s);
+                    }
                     addSubject((ObjectNode) root, s);
                 } else {
+                    if (remove) {
+                        service.removeConfig(subjectClassKey, s, configKey);
+                    }
                     root = getSubjectConfig(getConfig(s, subjectClassKey, configKey));
                 }
             }
