@@ -57,6 +57,11 @@ public class InterfaceServiceAdapter implements InterfaceService {
     }
 
     @Override
+    public Set<Interface> getMatchingInterfaces(IpAddress ip) {
+        return null;
+    }
+
+    @Override
     public void addListener(InterfaceListener listener) {
 
     }

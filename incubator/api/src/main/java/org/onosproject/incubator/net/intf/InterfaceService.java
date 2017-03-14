@@ -79,4 +79,13 @@ public interface InterfaceService
      * @return interface
      */
     Interface getMatchingInterface(IpAddress ip);
+
+    /**
+     * Returns all interfaces that have an address that is in the same
+     * subnet as the given IP address.
+     *
+     * @param ip IP address to find matching subnet interface for
+     * @return a set of interfaces
+     */
+    Set<Interface> getMatchingInterfaces(IpAddress ip);
 }

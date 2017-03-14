@@ -820,5 +820,12 @@ public class VplsNeighbourHandlerTest {
                     .findFirst()
                     .orElse(null);
         }
+
+        @Override
+        public Set<Interface> getMatchingInterfaces(IpAddress ip) {
+            return availableInterfaces.stream()
+                    .filter(intf -> intf.ipAddressesList().contains(ip))
+                    .collect(Collectors.toSet());
+        }
     }
 }

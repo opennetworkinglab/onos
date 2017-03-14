@@ -42,10 +42,12 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
@@ -125,8 +127,8 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
     public Set<Interface> getInterfacesByIp(IpAddress ip) {
         return interfaces.values()
                 .stream()
-                .flatMap(set -> set.stream())
-                .filter(intf -> intf.ipAddresses()
+                .flatMap(Collection::stream)
+                .filter(intf -> intf.ipAddressesList()
                         .stream()
                         .anyMatch(ia -> ia.ipAddress().equals(ip)))
                 .collect(collectingAndThen(toSet(), ImmutableSet::copyOf));
@@ -134,22 +136,28 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
 
     @Override
     public Interface getMatchingInterface(IpAddress ip) {
-        Optional<Interface> match = interfaces.values()
-                .stream()
-                .flatMap(set -> set.stream())
-                .filter(intf -> intf.ipAddresses()
-                        .stream()
-                        .anyMatch(intfIp -> intfIp.subnetAddress().contains(ip)))
-                .findFirst();
+        return getMatchingInterfacesStream(ip).findFirst().orElse(null);
+    }
 
-        return match.orElse(null);
+    @Override
+    public Set<Interface> getMatchingInterfaces(IpAddress ip) {
+        return getMatchingInterfacesStream(ip).collect(toSet());
+    }
+
+    private Stream<Interface> getMatchingInterfacesStream(IpAddress ip) {
+        return interfaces.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(intf -> intf.ipAddressesList()
+                        .stream()
+                        .anyMatch(intfIp -> intfIp.subnetAddress().contains(ip)));
     }
 
     @Override
     public Set<Interface> getInterfacesByVlan(VlanId vlan) {
         return interfaces.values()
                 .stream()
-                .flatMap(set -> set.stream())
+                .flatMap(Collection::stream)
                 .filter(intf -> intf.vlan().equals(vlan))
                 .collect(collectingAndThen(toSet(), ImmutableSet::copyOf));
     }
