@@ -35,5 +35,15 @@
             <artifactId>onos-yang-runtime</artifactId>
             <version>${yang.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-serializers-json</artifactId>
+            <version>${yang.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-serializers-xml</artifactId>
+            <version>${yang.version}</version>
+        </dependency>
     </dependencies>
 </project>

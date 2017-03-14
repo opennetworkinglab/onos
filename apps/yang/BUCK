@@ -3,6 +3,10 @@ COMPILE_DEPS = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
     '//lib:onos-yang-runtime',
+    '//lib:onos-yang-serializers-json',
+    '//lib:onos-yang-serializers-xml',
+    '//lib:onos-yang-serializers-utils',
+    '//lib:org.apache.servicemix.bundles.dom4j',
 ]
 
 BUNDLES = [
@@ -10,6 +14,13 @@ BUNDLES = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
     '//lib:onos-yang-runtime',
+]
+
+EXCLUDED_BUNDLES = [
+    '//lib:onos-yang-serializers-json',
+    '//lib:onos-yang-serializers-xml',
+    '//lib:onos-yang-serializers-utils',
+    '//lib:org.apache.servicemix.bundles.dom4j',
 ]
 
 osgi_jar (
@@ -22,4 +33,5 @@ onos_app (
     url = 'http://onosproject.org',
     description = 'Base application to bring in the YANG libraries and assemble them for other apps to use.',
     included_bundles = BUNDLES,
+    excluded_bundles = EXCLUDED_BUNDLES,
 )
