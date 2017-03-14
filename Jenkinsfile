@@ -1,9 +1,12 @@
 pipeline {
     agent any
+    environment {
+
+    }
     stages {
         stage('build') {
             steps {
-                sh 'buck build onos'
+                sh 'tools/build/envDefaults && buck build onos'
             }
         }
     }
