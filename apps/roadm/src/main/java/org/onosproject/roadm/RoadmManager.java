@@ -149,7 +149,8 @@ public class RoadmManager implements RoadmService {
                 }
             }
         }
-        log.warn("Unable to get port status, device: {}, port: {}", deviceId, portNumber);
+        // Do not need warning here for port polling.
+        log.debug("Unable to get port status, device: {}, port: {}", deviceId, portNumber);
         return null;
     }
 
@@ -441,7 +442,8 @@ public class RoadmManager implements RoadmService {
         if (device != null && device.is(PowerConfig.class)) {
             return device.as(PowerConfig.class);
         }
-        log.warn("Unable to load PowerConfig for {}", deviceId);
+        // Do not need warning here for port polling.
+        log.debug("Unable to load PowerConfig for {}", deviceId);
         return null;
     }
 
@@ -450,7 +452,8 @@ public class RoadmManager implements RoadmService {
         if (device != null && device.is(LambdaQuery.class)) {
             return device.as(LambdaQuery.class);
         }
-        log.warn("Unable to load LambdaQuery for {}", deviceId);
+        // Do not need warning here for port polling.
+        log.debug("Unable to load LambdaQuery for {}", deviceId);
         return null;
     }
 
@@ -459,7 +462,8 @@ public class RoadmManager implements RoadmService {
         if (device != null && device.is(ProtectionConfigBehaviour.class)) {
             return device.as(ProtectionConfigBehaviour.class);
         }
-        log.warn("Unable to load ProtectionConfigBehaviour for {}", deviceId);
+        // Do not need warning here for port polling.
+        log.debug("Unable to load ProtectionConfigBehaviour for {}", deviceId);
         return null;
     }
 

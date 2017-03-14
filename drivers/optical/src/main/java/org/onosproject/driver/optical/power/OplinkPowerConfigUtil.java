@@ -400,7 +400,8 @@ public class OplinkPowerConfigUtil {
         }
         String power = port.annotations().value(annotation);
         if (power == null) {
-            log.warn("Cannot get {} from port {}.", annotation, portNum);
+            // Do not need warning here for port polling.
+            log.debug("Cannot get {} from port {}.", annotation, portNum);
             return null;
         }
         return Long.valueOf(power);
