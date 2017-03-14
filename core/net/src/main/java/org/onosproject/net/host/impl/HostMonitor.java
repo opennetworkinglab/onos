@@ -25,7 +25,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Timer;
-import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
@@ -33,7 +32,6 @@ import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostProvider;
-import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
@@ -187,34 +185,30 @@ public class HostMonitor implements TimerTask {
      * @param targetIp IP address to send the request for
      */
     private void sendRequest(IpAddress targetIp) {
-        Interface intf = interfaceService.getMatchingInterface(targetIp);
-
-        if (intf == null) {
-            return;
-        }
-
-        if (!edgePortService.isEdgePoint(intf.connectPoint())) {
-            log.warn("Aborting attempt to send probe out non-edge port: {}", intf);
-            return;
-        }
-
-        for (InterfaceIpAddress ia : intf.ipAddressesList()) {
-            if (ia.subnetAddress().contains(targetIp)) {
-                log.info("Sending probe for target:{} out of intf:{} vlan:{}",
-                         targetIp, intf.connectPoint(), intf.vlan());
-                sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
-                        intf.mac(), intf.vlan());
-                // account for use-cases where tagged-vlan config is used
-                if (!intf.vlanTagged().isEmpty()) {
-                    intf.vlanTagged().forEach(tag -> {
-                        log.info("Sending probe for target:{} out of intf:{} vlan:{}",
-                             targetIp, intf.connectPoint(), tag);
-                        sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
-                                  intf.mac(), tag);
-                    });
-                }
+        interfaceService.getMatchingInterfaces(targetIp).forEach(intf -> {
+            if (!edgePortService.isEdgePoint(intf.connectPoint())) {
+                log.warn("Aborting attempt to send probe out non-edge port: {}", intf);
+                return;
             }
-        }
+
+            intf.ipAddressesList().stream()
+                    .filter(ia -> ia.subnetAddress().contains(targetIp))
+                    .forEach(ia -> {
+                        log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                                targetIp, intf.connectPoint(), intf.vlan());
+                        sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
+                                intf.mac(), intf.vlan());
+                        // account for use-cases where tagged-vlan config is used
+                        if (!intf.vlanTagged().isEmpty()) {
+                            intf.vlanTagged().forEach(tag -> {
+                                log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                                        targetIp, intf.connectPoint(), tag);
+                                sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
+                                        intf.mac(), tag);
+                            });
+                        }
+                    });
+        });
     }
 
     public void sendProbe(ConnectPoint connectPoint,

@@ -163,9 +163,9 @@ public class HostMonitorTest {
         replay(hostManager);
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
-        expect(interfaceService.getMatchingInterface(TARGET_IPV4_ADDR))
-                .andReturn(new Interface(Interface.NO_INTERFACE_NAME,
-                        cp, Collections.singletonList(IA1), sourceMac, VlanId.NONE))
+        expect(interfaceService.getMatchingInterfaces(TARGET_IPV4_ADDR))
+                .andReturn(Collections.singleton(new Interface(Interface.NO_INTERFACE_NAME,
+                        cp, Collections.singletonList(IA1), sourceMac, VlanId.NONE)))
                 .anyTimes();
         replay(interfaceService);
 
@@ -232,9 +232,9 @@ public class HostMonitorTest {
         replay(hostManager);
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
-        expect(interfaceService.getMatchingInterface(TARGET_IPV6_ADDR))
-                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
-                        Collections.singletonList(IA2), sourceMac2, VlanId.NONE))
+        expect(interfaceService.getMatchingInterfaces(TARGET_IPV6_ADDR))
+                .andReturn(Collections.singleton(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA2), sourceMac2, VlanId.NONE)))
                 .anyTimes();
         replay(interfaceService);
 
@@ -303,9 +303,9 @@ public class HostMonitorTest {
         replay(hostManager);
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
-        expect(interfaceService.getMatchingInterface(TARGET_IPV4_ADDR))
-                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
-                        Collections.singletonList(IA1), sourceMac, VlanId.vlanId(vlan)))
+        expect(interfaceService.getMatchingInterfaces(TARGET_IPV4_ADDR))
+                .andReturn(Collections.singleton(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA1), sourceMac, VlanId.vlanId(vlan))))
                 .anyTimes();
         replay(interfaceService);
 
@@ -373,9 +373,9 @@ public class HostMonitorTest {
         replay(hostManager);
 
         InterfaceService interfaceService = createMock(InterfaceService.class);
-        expect(interfaceService.getMatchingInterface(TARGET_IPV6_ADDR))
-                .andReturn(new Interface(Interface.NO_INTERFACE_NAME, cp,
-                        Collections.singletonList(IA2), sourceMac2, VlanId.vlanId(vlan)))
+        expect(interfaceService.getMatchingInterfaces(TARGET_IPV6_ADDR))
+                .andReturn(Collections.singleton(new Interface(Interface.NO_INTERFACE_NAME, cp,
+                        Collections.singletonList(IA2), sourceMac2, VlanId.vlanId(vlan))))
                 .anyTimes();
         replay(interfaceService);
 
