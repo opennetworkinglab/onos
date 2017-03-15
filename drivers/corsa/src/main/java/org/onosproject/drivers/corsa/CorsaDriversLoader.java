@@ -17,23 +17,13 @@
 package org.onosproject.drivers.corsa;
 
 import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.driver.AbstractDriverLoader;
-import org.onosproject.net.driver.DefaultDriverProviderService;
 
 /**
  * Loader for Corsa device drivers.
  */
 @Component(immediate = true)
 public class CorsaDriversLoader extends AbstractDriverLoader {
-
-    //This reference is needed to enforce loading of the default drivers before
-    //the corsa drivers at ONOS startup if corsa.drivers is specified
-    //in the ONOS_APPS variable.
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private DefaultDriverProviderService defaultDriverProviderService;
-
     public CorsaDriversLoader() {
         super("/corsa-drivers.xml");
     }

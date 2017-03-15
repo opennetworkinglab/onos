@@ -44,7 +44,7 @@ public abstract class AbstractDriverLoaderTest {
         }
     }
 
-    protected AbstractDriverLoader loader;
+    protected AbstractIndependentDriverLoader loader;
 
     @Test
     public void testLoader() {
