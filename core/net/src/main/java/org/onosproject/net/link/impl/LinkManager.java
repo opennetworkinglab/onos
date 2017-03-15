@@ -346,25 +346,28 @@ public class LinkManager
                 removeLink(lk.dst(), lk.src());
                 return;
             }
-            Link link = getLink(lk.src(), lk.dst());
-            LinkDescription fldesc;
-            LinkDescription rldesc;
+
+            doUpdate(lk.src(), lk.dst(), cfg);
+            if (cfg.isBidirectional()) {
+                doUpdate(lk.dst(), lk.src(), cfg);
+            }
+        }
+
+        private void doUpdate(ConnectPoint src, ConnectPoint dst, BasicLinkConfig cfg) {
+            Link link = getLink(src, dst);
+            LinkDescription desc;
+
             if (link == null) {
-                fldesc = BasicLinkOperator.descriptionOf(lk.src(), lk.dst(), cfg);
-                rldesc = BasicLinkOperator.descriptionOf(lk.dst(), lk.src(), cfg);
+                desc = BasicLinkOperator.descriptionOf(src, dst, cfg);
             } else {
-                fldesc = BasicLinkOperator.combine(cfg,
-                            BasicLinkOperator.descriptionOf(lk.src(), lk.dst(), link));
-                rldesc = BasicLinkOperator.combine(cfg,
-                            BasicLinkOperator.descriptionOf(lk.dst(), lk.src(), link));
+                desc = BasicLinkOperator.combine(cfg,
+                        BasicLinkOperator.descriptionOf(src, dst, link));
             }
 
             ProviderId pid = Optional.ofNullable(link)
-                                .map(Link::providerId)
-                                .orElse(ProviderId.NONE);
-            store.createOrUpdateLink(pid, fldesc);
-            store.createOrUpdateLink(pid, rldesc);
+                    .map(Link::providerId)
+                    .orElse(ProviderId.NONE);
+            store.createOrUpdateLink(pid, desc);
         }
-
     }
 }
