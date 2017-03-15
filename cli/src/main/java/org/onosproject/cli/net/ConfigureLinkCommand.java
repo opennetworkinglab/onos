@@ -50,6 +50,11 @@ public class ConfigureLinkCommand extends AbstractShellCommand {
             valueToShowInHelp = "DIRECT")
     String type = Link.Type.DIRECT.name();
 
+
+    @Option(name = "--uni-directional",
+            description = "specify that link is uni-directional")
+    boolean isUniDi = false;
+
     // TODO add metric, latency, durable
 
     @Option(name = "--bandwidth",
@@ -96,6 +101,7 @@ public class ConfigureLinkCommand extends AbstractShellCommand {
 
         BasicLinkConfig cfg = netCfgService.addConfig(link, BasicLinkConfig.class);
         cfg.isAllowed(!disallow);
+        cfg.isBidirectional(!isUniDi);
         cfg.type(linkType);
         if (bw != null) {
             cfg.bandwidth(bw);
