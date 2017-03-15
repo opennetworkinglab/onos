@@ -24,6 +24,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
+import org.onosproject.yang.model.ModelConverter;
+import org.onosproject.yang.model.ModelObjectData;
+import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
@@ -50,7 +53,7 @@ import java.util.Set;
 @Service
 @Component(immediate = true)
 public class YangRuntimeManager implements YangModelRegistry,
-        YangSerializerRegistry, YangRuntimeService {
+        YangSerializerRegistry, YangRuntimeService, ModelConverter {
 
     private static final String APP_ID = "org.onosproject.yang";
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -117,5 +120,17 @@ public class YangRuntimeManager implements YangModelRegistry,
     @Override
     public CompositeStream encode(CompositeData cd, RuntimeContext rc) {
         return runtimeService.encode(cd, rc);
+    }
+
+    @Override
+    public ModelObjectData createModel(ResourceData resourceData) {
+        // TODO implementation.
+        return null;
+    }
+
+    @Override
+    public ResourceData createDataNode(ModelObjectData modelObjectData) {
+        // TODO implementation.
+        return null;
     }
 }

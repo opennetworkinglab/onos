@@ -17,7 +17,7 @@
         <onos.app.title>Onos Yang Extension</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Onos Yang Extension.</onos.app.readme>
-        <yang.version>1.12.0-b5</yang.version>
+        <yang.version>1.12.0-b6</yang.version>
     </properties>
     <dependencies>
         <dependency>
