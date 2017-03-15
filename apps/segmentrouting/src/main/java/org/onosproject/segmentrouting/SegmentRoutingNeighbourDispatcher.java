@@ -42,7 +42,7 @@ public class SegmentRoutingNeighbourDispatcher implements NeighbourMessageHandle
 
     @Override
     public void handleMessage(NeighbourMessageContext context, HostService hostService) {
-        log.debug("Received a {} packet {}", context.protocol(), context.packet());
+        log.trace("Received a {} packet {}", context.protocol(), context.packet());
         switch (context.protocol()) {
             case ARP:
                 if (this.manager.arpHandler != null) {

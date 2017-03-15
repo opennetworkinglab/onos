@@ -118,7 +118,7 @@ public class RoutingRulePopulator {
      */
     public void populateRoute(DeviceId deviceId, IpPrefix prefix,
                               MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
-        log.debug("Populate IP table entry for route {} at {}:{}",
+        log.debug("Populate routing entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
@@ -128,14 +128,15 @@ public class RoutingRulePopulator {
             return;
         }
         if (fwdBuilder == null) {
-            log.warn("Aborting host routing table entries due "
+            log.warn("Aborting host routing table entry due "
                     + "to error for dev:{} route:{}", deviceId, prefix);
             return;
         }
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for route {} populated", prefix),
+                (objective) -> log.debug("Routing rule for route {} populated", prefix),
                 (objective, error) ->
-                        log.warn("Failed to populate IP rule for route {}: {}", prefix, error));
+                        log.warn("Failed to populate routing rule for route {}: {}",
+                                 prefix, error));
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
     }

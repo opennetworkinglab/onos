@@ -90,8 +90,8 @@ public class HostHandler {
 
         if (accepted(host)) {
             // Populate bridging table entry
-            log.debug("Populate L2 table entry for host {} at {}:{}",
-                    mac, deviceId, port);
+            log.debug("Populating bridging entry for host {}/{} at {}:{}",
+                    mac, vlanId, deviceId, port);
             ForwardingObjective.Builder fob =
                     bridgingFwdObjBuilder(deviceId, mac, vlanId, port);
             if (fob == null) {
@@ -99,9 +99,11 @@ public class HostHandler {
                 return;
             }
             ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Host rule for {}/{} populated", mac, vlanId),
+                    (objective) -> log.debug("Brigding rule for {}/{} populated",
+                                             mac, vlanId),
                     (objective, error) ->
-                            log.warn("Failed to populate host rule for {}/{}: {}", mac, vlanId, error));
+                            log.warn("Failed to populate bridging rule for {}/{}: {}",
+                                     mac, vlanId, error));
             flowObjectiveService.forward(deviceId, fob.add(context));
 
             ips.forEach(ip -> {

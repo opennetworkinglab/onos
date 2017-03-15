@@ -499,13 +499,13 @@ public class DefaultGroupHandler {
     public int getPortNextObjectiveId(PortNumber portNum, TrafficTreatment treatment,
                                       TrafficSelector meta) {
         Integer nextId = portNextObjStore
-                .get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
+                .get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment, meta));
         if (nextId == null) {
-            log.trace("getPortNextObjectiveId in device{}: Next objective id "
+            log.debug("getPortNextObjectiveId in device{}: Next objective id "
                     + "not found for {} and {} creating", deviceId, portNum);
             createGroupFromPort(portNum, treatment, meta);
             nextId = portNextObjStore.get(
-                         new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
+                         new PortNextObjectiveStoreKey(deviceId, portNum, treatment, meta));
             if (nextId == null) {
                 log.warn("getPortNextObjectiveId: unable to create next obj"
                         + "for dev:{} port:{}", deviceId, portNum);
@@ -812,7 +812,7 @@ public class DefaultGroupHandler {
                                     TrafficSelector meta) {
         int nextId = flowObjectiveService.allocateNextId();
         PortNextObjectiveStoreKey key = new PortNextObjectiveStoreKey(
-                                                deviceId, portNum, treatment);
+                                                deviceId, portNum, treatment, meta);
 
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)
