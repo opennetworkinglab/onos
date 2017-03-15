@@ -54,8 +54,8 @@ CORE = UTILS + API + [
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//protocols/tl1/api:onos-protocols-tl1-api',
     '//protocols/tl1/ctl:onos-protocols-tl1-ctl',
-    '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
-    '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
+#    '//protocols/restconf/client/api:onos-protocols-restconf-client-api',
+#    '//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl',
 
     '//drivers/utilities:onos-drivers-utilities',
 
