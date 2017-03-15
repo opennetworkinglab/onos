@@ -79,7 +79,7 @@ public class AddOpticalConnectivityCommand extends AbstractShellCommand {
         // FIXME This is the last chance to know the Optical path ID.
         //       there's no other way to know existing Optical Path ID
         print("Optical path ID : %s", id.id());
-        log.info("Optical path ID {} for connectivity between %s and %s: {}",
+        log.info("Optical path ID {} for connectivity between {} and {}",
                  id.id(), ingress, egress);
     }
 
