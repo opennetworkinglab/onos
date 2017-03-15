@@ -1458,7 +1458,6 @@ public class Ofdpa2GroupHandler {
             return;
         }
 
-
         List<GroupBucket> bucketsToRemove = Lists.newArrayList();
         //first group key is the one we want to modify
         GroupKey modGroupKey = chainsToRemove.get(0).peekFirst();
@@ -1521,15 +1520,14 @@ public class Ofdpa2GroupHandler {
                                             removeBuckets, modGroupKey,
                                             nextObjective.appId());
         // update store
-        // If the bucket removed was the last bucket in the group, then
-        // retain an entry for the top level group which still exists.
-        if (allActiveKeys.size() == 1) {
+        allActiveKeys.removeAll(chainsToRemove);
+        // If no buckets in the group, then retain an entry for the
+        // top level group which still exists.
+        if (allActiveKeys.isEmpty()) {
             ArrayDeque<GroupKey> top = new ArrayDeque<>();
             top.add(modGroupKey);
             allActiveKeys.add(top);
         }
-
-        allActiveKeys.removeAll(chainsToRemove);
         flowObjectiveStore.putNextGroup(nextObjective.id(),
                                         new OfdpaNextGroup(allActiveKeys,
                                                            nextObjective));
