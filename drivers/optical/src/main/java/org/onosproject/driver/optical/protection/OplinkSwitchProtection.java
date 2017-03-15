@@ -210,7 +210,10 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         return attributes;
     }
 
-    private int getActiveIndex() {
+    /*
+     * get activer port number
+     */
+    private int getActivePort() {
         Port port = handler().get(DeviceService.class)
                 .getPort(data().deviceId(), PortNumber.portNumber(PRIMARY_PORT));
         if (port != null) {
@@ -220,6 +223,21 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
             }
         }
         return SECONDARY_PORT;
+    }
+
+    /*
+     * get active path index
+     */
+    private int getActiveIndex(List<TransportEndpointState> pathStates) {
+        long activePort = (long) getActivePort();
+        int activeIndex = 0;
+        for (TransportEndpointState state : pathStates) {
+            if (state.description().output().connectPoint().port().toLong() == activePort) {
+                return activeIndex;
+            }
+            ++activeIndex;
+        }
+        return ProtectedTransportEndpointState.ACTIVE_UNKNOWN;
     }
 
     /*
@@ -254,7 +272,7 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         return ProtectedTransportEndpointState.builder()
                 .withDescription(getProtectedTransportEndpointDescription())
                 .withPathStates(tess)
-                .withActivePathIndex(getActiveIndex())
+                .withActivePathIndex(getActiveIndex(tess))
                 .build();
     }
 
