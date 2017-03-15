@@ -1,0 +1,41 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Patches lib/BUCK file to use locally built YANG tools.
+# -----------------------------------------------------------------------------
+
+BVER=1.12.0-b6
+SVER=1.12-SNAPSHOT
+
+YANG_TOOLS_ROOT=~/onos-yang-tools
+
+rm -f $ONOS_ROOT/lib/yang/* 2>/dev/null
+mkdir -p $ONOS_ROOT/lib/yang
+
+awk '
+    BEGIN { m = 0; y = 0; }
+    /^(remote_jar|prebuilt_jar)/ { s = $0; m = 1; next; }
+    { if (m) { s = s "\n" $0; } else { print $0; } }
+    /onos-yang-.*('$BVER'|'$SVER')/ { y = 1; }
+    /^\)/ { if (m && !y) { print s; } y = 0; m = 0; }
+' $ONOS_ROOT/lib/BUCK > /tmp/BUCK
+mv /tmp/BUCK $ONOS_ROOT/lib/BUCK
+
+for yl in $(egrep "onos-yang-.*$BVER" $ONOS_ROOT/lib/deps.json); do
+    n=$(echo $yl | cut -d\" -f2)
+    m=$(echo $yl | cut -d\" -f4)
+    j=$(find $YANG_TOOLS_ROOT -name $n-$SVER.jar)
+    s=yang/$(basename $j)
+    cp $j $ONOS_ROOT/lib/$s
+
+    # echo $n, $m, $j
+
+    cat <<EOF >>$ONOS_ROOT/lib/BUCK
+prebuilt_jar (
+  name = '$n',
+  binary_jar = '$s',
+  maven_coords = '${m#mvn:*}',
+  visibility = [ 'PUBLIC' ],
+)
+
+EOF
+done
