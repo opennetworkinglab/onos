@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.optical.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -51,6 +52,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component(immediate = true)
 public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathIntent> {
@@ -67,6 +69,12 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
     protected DeviceService deviceService = new DeviceServiceAdapter();
 
     private ApplicationId appId;
+    // Devices which are wavelength transparent and thus do not require wavelength-based match/actions
+    private static final Set<Type> TRANSPARENT_DEVICES =
+            ImmutableSet.of(Type.OPTICAL_AMPLIFIER, Type.FIBER_SWITCH);
+    // Devices which don't accept flow rules
+    private static final Set<Type> NO_FLOWRULE_DEVICES =
+            ImmutableSet.of(Type.OPTICAL_AMPLIFIER);
 
     @Activate
     public void activate() {
@@ -100,14 +108,6 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
         );
     }
 
-    private boolean blockFlowRule(DeviceId deviceId) {
-        Type devType = Optional.ofNullable(deviceService.getDevice(deviceId))
-                                .map(Device::type)
-                                .orElse(Device.Type.OTHER);
-        // TODO add condition for protection switch
-        return devType == Device.Type.OPTICAL_AMPLIFIER;
-    }
-
     /**
      * Create rules for the forward path of the intent.
      *
@@ -123,7 +123,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         for (Link link : intent.path().links()) {
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            if (!isTransparent(link.src().deviceId())) {
+                treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            }
             treatmentBuilder.setOutput(link.src().port());
 
             FlowRule rule = DefaultFlowRule.builder()
@@ -135,14 +137,16 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .makePermanent()
                     .build();
 
-            if (!blockFlowRule(current.deviceId())) {
+            if (!isNoFlowRule(current.deviceId())) {
                 rules.add(rule);
             }
 
             current = link.dst();
             selectorBuilder.matchInPort(link.dst().port());
-            selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
-            selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
+            if (!isTransparent(link.dst().deviceId())) {
+                selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
+                selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
+            }
         }
 
         // Build the egress ROADM rule
@@ -158,7 +162,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .makePermanent()
                 .build();
 
-        if (!blockFlowRule(intent.dst().deviceId())) {
+        if (!isNoFlowRule(intent.dst().deviceId())) {
             rules.add(rule);
         }
 
@@ -180,7 +184,9 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         for (Link link : Lists.reverse(intent.path().links())) {
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            if (isTransparent(link.dst().deviceId())) {
+                treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
+            }
             treatmentBuilder.setOutput(link.dst().port());
 
             FlowRule rule = DefaultFlowRule.builder()
@@ -192,14 +198,16 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .makePermanent()
                     .build();
 
-            if (!blockFlowRule(current.deviceId())) {
+            if (!isNoFlowRule(current.deviceId())) {
                 rules.add(rule);
             }
 
             current = link.src();
             selectorBuilder.matchInPort(link.src().port());
-            selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
-            selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
+            if (isTransparent(link.src().deviceId())) {
+                selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
+                selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
+            }
         }
 
         // Build the egress ROADM rule
@@ -215,10 +223,36 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                 .makePermanent()
                 .build();
 
-        if (!blockFlowRule(intent.src().deviceId())) {
+        if (!isNoFlowRule(intent.src().deviceId())) {
             rules.add(rule);
         }
 
         return rules;
+    }
+
+    /**
+     * Returns true if device does not accept flow rules, false otherwise.
+     *
+     * @param deviceId the device
+     * @return true if device does not accept flow rule, false otherwise
+     */
+    private boolean isNoFlowRule(DeviceId deviceId) {
+        return NO_FLOWRULE_DEVICES.contains(
+                Optional.ofNullable(deviceService.getDevice(deviceId))
+                        .map(Device::type)
+                        .orElse(Type.OTHER));
+    }
+
+    /**
+     * Returns true if device is wavelength transparent, false otherwise.
+     *
+     * @param deviceId the device
+     * @return true if wavelength transparent, false otherwise
+     */
+    private boolean isTransparent(DeviceId deviceId) {
+        return TRANSPARENT_DEVICES.contains(
+                Optional.ofNullable(deviceService.getDevice(deviceId))
+                .map(Device::type)
+                .orElse(Type.OTHER));
     }
 }
