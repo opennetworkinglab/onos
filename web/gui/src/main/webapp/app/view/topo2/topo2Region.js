@@ -148,6 +148,7 @@
                     return false;
                 },
                 deselectLink: function () {
+                    console.log('remove link')
                     var selected = _.filter(this.regionLinks(), function (link) {
                         return link.get('selected', true);
                     });

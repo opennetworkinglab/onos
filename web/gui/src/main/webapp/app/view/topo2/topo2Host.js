@@ -54,12 +54,15 @@
             Collection = _c_;
 
             Model = NodeModel.extend({
+
+                nodeType: 'host',
+                events: {
+                    'click': 'onClick'
+                },
+
                 initialize: function () {
                     this.super = this.constructor.__super__;
                     this.super.initialize.apply(this, arguments);
-                },
-                events: {
-                    'click': 'onClick'
                 },
                 onChange: function () {
                     // Update class names when the model changes
@@ -67,17 +70,9 @@
                         this.el.attr('class', this.svgClassName());
                     }
                 },
-                onClick: function () {
-                    if (d3.event.defaultPrevented) return;
-                    var selected = this.select(d3.select);
-
-                    if (selected.length > 0) {
-                        t2hds.displayPanel(this);
-                    } else {
-                        t2hds.hide();
-                    }
+                showDetails: function() {
+                    t2hds.displayPanel(this);
                 },
-                nodeType: 'host',
                 icon: function () {
                     var type = this.get('type');
                     return remappedDeviceTypes[type] || type || 'm_endstation';

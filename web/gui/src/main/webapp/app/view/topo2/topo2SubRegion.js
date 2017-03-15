@@ -48,13 +48,16 @@
             Collection = _c_;
 
             Model = NodeModel.extend({
-                initialize: function () {
-                    this.super = this.constructor.__super__;
-                    this.super.initialize.apply(this, arguments);
-                },
+
+                nodeType: 'sub-region',
                 events: {
                     'dblclick': 'navigateToRegion',
                     'click': 'onClick'
+                },
+
+                initialize: function () {
+                    this.super = this.constructor.__super__;
+                    this.super.initialize.apply(this, arguments);
                 },
                 onChange: function () {
                     // Update class names when the model changes
@@ -62,21 +65,12 @@
                         this.el.attr('class', this.svgClassName());
                     }
                 },
-                nodeType: 'sub-region',
+                showDetails: function () {
+                    t2srp.displayPanel(this);
+                },
                 icon: function () {
                     var type = this.get('type');
                     return remappedDeviceTypes[type] || type || 'm_cloud';
-                },
-                onClick: function () {
-                    if (d3.event.defaultPrevented) return;
-
-                    var selected = this.select(d3.event);
-
-                    if (selected.length > 0) {
-                        t2srp.displayPanel(this);
-                    } else {
-                        t2srp.hide();
-                    }
                 },
                 navigateToRegion: function () {
 

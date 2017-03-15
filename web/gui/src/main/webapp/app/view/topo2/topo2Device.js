@@ -47,18 +47,22 @@
 
     angular.module('ovTopo2')
     .factory('Topo2DeviceService',
-        ['Topo2Collection', 'Topo2NodeModel', 'Topo2DeviceDetailsPanel',
-            function (_c_, _nm_, detailsPanel) {
+        ['Topo2Collection', 'Topo2NodeModel', 'Topo2DeviceDetailsPanel', 'Topo2SelectService',
+            function (_c_, _nm_, detailsPanel, t2ss) {
 
                 Collection = _c_;
 
                 Model = _nm_.extend({
+
+                    nodeType: 'device',
+                    multiSelectEnabled: true,
+                    events: {
+                        'click': 'onClick'
+                    },
+
                     initialize: function () {
                         this.super = this.constructor.__super__;
                         this.super.initialize.apply(this, arguments);
-                    },
-                    events: {
-                        'click': 'onClick'
                     },
                     onChange: function (change) {
                         if (this.el) {
@@ -67,30 +71,15 @@
                             rect.style('fill', this.devGlyphColor());
                         }
                     },
-                    nodeType: 'device',
                     icon: function () {
                         var type = this.get('type');
                         return remappedDeviceTypes[type] || type || 'unknown';
                     },
-                    onClick: function () {
-
-                        if (d3.event.defaultPrevented) return;
-                        var selected = this.select(d3.event);
-
-                        if (_.isArray(selected) && selected.length > 0) {
-                            if (selected.length === 1) {
-                                var model = selected[0],
-                                    id = model.get('id'),
-                                    nodeType = model.get('nodeType');
-                                detailsPanel.updateDetails(id, nodeType);
-                                detailsPanel.show();
-                            } else {
-                                // Multi Panel
-                                detailsPanel.showMulti(selected);
-                            }
-                        } else {
-                            detailsPanel.hide();
-                        }
+                    showDetails: function () {
+                        var id = this.get('id'),
+                            nodeType = this.get('nodeType');
+                        detailsPanel.updateDetails(id, nodeType);
+                        detailsPanel.show();
                     },
                     onExit: function () {
                         var node = this.el;

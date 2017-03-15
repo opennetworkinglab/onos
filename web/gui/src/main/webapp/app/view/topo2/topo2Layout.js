@@ -158,7 +158,7 @@
                             .data(regionNodes, function (d) { return d.get('id'); });
 
                         this.drag = sus.createDragBehavior(this.force,
-                            t2ss.selectObject,
+                            function () {}, // click event is no longer handled in the drag service
                             this.atDragEnd,
                             this.dragEnabled.bind(this),
                             clickEnabled

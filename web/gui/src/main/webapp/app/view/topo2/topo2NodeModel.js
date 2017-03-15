@@ -49,8 +49,9 @@
         'Topo2Model', 'FnService', 'Topo2PrefsService',
         'SvgUtilService', 'IconService', 'ThemeService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2NodePositionService',
+        'Topo2SelectService',
         function (Model, _fn_, _ps_, _sus_, _is_, _ts_,
-            _t2mcs_, zoomService, _t2nps_) {
+            _t2mcs_, zoomService, _t2nps_, t2ss) {
 
             ts = _ts_;
             fn = _fn_;
@@ -69,29 +70,7 @@
                     };
                 },
                 select: function () {
-                    var ev = d3.event;
-
-                    // TODO: if single selection clear selected devices, hosts, sub-regions
-
-                    if (ev.shiftKey) {
-                        // TODO: Multi-Select Details Panel
-                        this.set('selected', true);
-                    } else {
-
-                        var s = Boolean(this.get('selected'));
-                        // Clear all selected Items
-                        _.each(this.collection.models, function (m) {
-                            m.set('selected', false);
-                        });
-
-                        this.set('selected', !s);
-                    }
-
-                    var selected = this.collection.filter(function (m) {
-                        return m.get('selected');
-                    });
-
-                    return selected;
+                    this.set('selected', true);
                 },
                 index: function () {
 
@@ -124,6 +103,12 @@
                 },
                 mouseoutHandler: function () {
                     this.set('hovered', false);
+                },
+                onClick: function () {
+                    if (d3.event.defaultPrevented) return;
+
+                    d3.event.preventDefault();
+                    t2ss.selectObject(this, this.multiSelectEnabled);
                 },
                 fix: function (fixed) {
                     this.set({ fixed: fixed });

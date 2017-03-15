@@ -217,22 +217,14 @@
                 });
             },
             select: function () {
-
-                // TODO: if single selection clear selected devices, hosts, sub-regions
-                var s = Boolean(this.get('selected'));
-                // Clear all selected Items
-                _.each(this.collection.models, function (m) {
-                    m.set('selected', false);
-                });
-
-                this.set('selected', !s);
-                this.showDetails();
-
+                this.set({ 'selected': true });
                 return this.getSelected();
             },
             deselect: function () {
-                this.set('selected', false);
-                this.set('enhanced', false);
+                this.set({
+                    'selected': false,
+                    'enhanced': false
+                });
             },
             showDetails: function () {
                 var selected = this.getSelected();

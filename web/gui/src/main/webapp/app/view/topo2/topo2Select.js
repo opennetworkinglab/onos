@@ -21,43 +21,30 @@
 (function () {
     'use strict';
 
-    var t2rs, t2zs;
+    var t2zs, t2ddp;
 
     // internal state
-    var consumeClick,
+    var instance,
+        consumeClick,
         zoomer,
         previousNearestLink;    // previous link to mouse position
 
-    function init(svg) {
-        zoomer = t2zs.getZoomer();
-        svg.on('mousemove', mouseMoveHandler);
-        svg.on('click', mouseClickHandler);
-    }
-
-    function selectObject(obj) {}
-
-    function clickConsumed(x) {
-        var cc = consumeClick;
-        consumeClick = Boolean(x);
-        return cc;
-    }
-
     function mouseClickHandler() {
+        if (d3.event.defaultPrevented) return;
 
         if (!d3.event.shiftKey) {
-            t2rs.deselectLink();
+            this.clearSelection();
         }
 
-        if (!clickConsumed()) {
+        if (!this.clickConsumed()) {
             if (previousNearestLink) {
-                previousNearestLink.select();
+                this.selectObject(previousNearestLink, true);
             }
         }
-
     }
 
     // Select Links
-    function mouseMoveHandler() {
+    function mouseMoveHandler(ev) {
         var mp = getLogicalMousePosition(this),
             link = computeNearestLink(mp);
 
@@ -124,8 +111,8 @@
 
         var links = [];
 
-        if (t2rs.model.get('links')) {
-            links = (t2rs.backgroundRendered) ? t2rs.regionLinks() : [];
+        if (instance.region.model.get('links')) {
+            links = instance.region.regionLinks();
         }
 
         if (links.length) {
@@ -159,19 +146,76 @@
         return nearest;
     }
 
+    var SelectionService = function () {
+        instance = this;
+        this.selectedNodes = [];
+    };
+
+    SelectionService.prototype = {
+        init: function () {
+            zoomer = t2zs.getZoomer();
+
+            var svg = d3.select('#topo2');
+            svg.on('mousemove', mouseMoveHandler);
+            svg.on('click', mouseClickHandler.bind(this));
+        },
+        updateDetails: function () {
+
+            var nodeCount =  this.selectedNodes.length;
+
+            if (nodeCount === 1) {
+                this.selectedNodes[0].showDetails();
+            } else if (nodeCount > 1)  {
+                t2ddp.showMulti(this.selectedNodes);
+            } else {
+                t2ddp.hide();
+            }
+        },
+        selectObject: function (node, multiSelectEnabled) {
+
+            var event = d3.event;
+
+            if (multiSelectEnabled && !event.shiftKey || !multiSelectEnabled) {
+                this.clearSelection();
+            }
+
+            var nodeIndex = _.indexOf(this.selectedNodes, node);
+
+            if (nodeIndex < 0) {
+                this.selectedNodes.push(node);
+                node.select();
+            } else {
+                this.removeNode(node, nodeIndex);
+            }
+
+            this.updateDetails();
+        },
+        removeNode: function (node, index) {
+            this.selectedNodes.splice(index, 1);
+            node.deselect();
+        },
+        clearSelection: function () {
+            _.each(this.selectedNodes, function (node) {
+                node.deselect();
+            });
+
+            this.selectedNodes = [];
+            this.updateDetails();
+        },
+        clickConsumed: function (x) {
+            var cc = consumeClick;
+            consumeClick = Boolean(x);
+            return cc;
+        }
+    };
+
     angular.module('ovTopo2')
     .factory('Topo2SelectService', [
-        'Topo2RegionService', 'Topo2ZoomService',
-        function (_t2rs_, _t2zs_) {
-
-            t2rs = _t2rs_;
+        'Topo2ZoomService', 'Topo2DeviceDetailsPanel',
+        function (_t2zs_, _t2ddp_) {
             t2zs = _t2zs_;
-
-            return {
-                init: init,
-                selectObject: selectObject,
-                clickConsumed: clickConsumed
-            };
+            t2ddp = _t2ddp_;
+            return instance || new SelectionService();
         }
     ]);
 
