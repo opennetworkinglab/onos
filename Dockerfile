@@ -12,6 +12,7 @@ RUN echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-s
 ENV HOME /root
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 ENV BUILD_NUMBER docker
+ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 
 # Copy in the source
 COPY . /src/onos/
