@@ -68,7 +68,7 @@ public class RestconfBrokerImpl implements RestconfServiceBroker {
     protected RestconfService restconfDynConfig;
 
     private ApplicationId appId;
-    private boolean useDynamicConfig = false;
+    private boolean useDynamicConfig = true;
 
     private final NetworkConfigListener cfgLister = new InternalConfigListener();
     private final ConfigFactory<ApplicationId, RestconfConfig> factory =
