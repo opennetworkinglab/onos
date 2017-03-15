@@ -120,7 +120,7 @@ ONOS_PROVIDERS = [
     '//providers/link:onos-providers-link-oar',
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
-    '//providers/ietfte:onos-providers-ietfte-oar',
+#    '//providers/ietfte:onos-providers-ietfte-oar',
 ]
 
 ONOS_APPS = [
@@ -183,8 +183,8 @@ ONOS_APPS = [
     '//apps/netconf:onos-apps-netconf-oar',
     '//apps/tetopology:onos-apps-tetopology-oar',
     '//apps/tetunnel:onos-apps-tetunnel-oar',
-    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature',
-    '//apps/tenbi:onos-apps-tenbi-oar',
+#    '//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature',
+#    '//apps/tenbi:onos-apps-tenbi-oar',
     '//protocols/restconf/server:onos-protocols-restconf-server-oar',
     '//apps/restconf:onos-apps-restconf-oar',
     '//apps/flowspec-api:onos-apps-flowspec-api-oar',

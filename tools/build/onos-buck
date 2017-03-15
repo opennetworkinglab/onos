@@ -5,8 +5,8 @@
 
 set -e
 
-BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2016.12.02.01.zip"
-BUCK_SHA="c7b1b46f998c08a175adec37f210c14092f84216"
+BUCK_URL="http://onlab.vicci.org/onos/third-party/buck-v2017.03.10.01.zip"
+BUCK_SHA="baa7bae077ef0e65b371525fd525a5763fef41c4"
 REQUIRED_VERSION="buck version c4e714c9c0c774cbb674c2fde0a4419824f0cfdb"
 
 [  "-U" = "$1" ] && shift && FORCE_UPDATE=True
