@@ -42,6 +42,8 @@ public class ListOpticalConnectivityCommand extends AbstractShellCommand {
                                     .map(lk -> lk.src() + "-" + lk.dst())
                                     .collect(Collectors.joining(", ")));
             print(" Bandwidth: %s, Latency: %s", connectivity.bandwidth(), connectivity.latency());
+            print(" Intent Keys: %s",
+                  opticalPathService.listIntents(connectivity.id()));
 
         }
     }

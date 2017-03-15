@@ -17,7 +17,6 @@ package org.onosproject.newoptical;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -52,6 +51,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.link.LinkEvent;
@@ -89,6 +89,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -241,6 +242,15 @@ public class OpticalPathProvisioner
             .map(Versioned::value)
             .collect(GuavaCollectors.toImmutableList());
     }
+
+    public Set<Key> listIntents(OpticalConnectivityId id) {
+        return linkPathMap.entrySet().stream()
+            .filter(ent -> id.equals(ent.getValue().value().id()))
+            .map(Entry::getKey)
+            .map(PacketLinkRealizedByOptical::realizingIntentKey)
+            .collect(Collectors.toSet());
+    }
+
     /*
      * Request packet-layer connectivity between specified ports,
      * over packet-optical multi-layer infrastructure.
