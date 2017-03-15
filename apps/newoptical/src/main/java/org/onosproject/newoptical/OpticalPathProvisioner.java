@@ -290,7 +290,7 @@ public class OpticalPathProvisioner
     @Override
     public OpticalConnectivityId setupPath(Path path, Bandwidth bandwidth, Duration latency) {
         checkNotNull(path);
-        log.info("setupPath({}, {}, {})", path, bandwidth, latency);
+        log.debug("setupPath({}, {}, {})", path, bandwidth, latency);
 
         // map of cross connect points (optical port -> packet port)
         Map<ConnectPoint, ConnectPoint> crossConnectPointMap = new HashMap<>();
