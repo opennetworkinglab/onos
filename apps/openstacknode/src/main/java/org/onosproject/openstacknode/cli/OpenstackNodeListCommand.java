@@ -44,11 +44,13 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
             print("%s", json(nodes));
         } else {
             for (OpenstackNode node : nodes) {
-                print("hostname=%s, type=%s, managementIp=%s, dataIp=%s, intBridge=%s, routerBridge=%s init=%s",
+                print("hostname=%s, type=%s, managementIp=%s, dataIp=%s, vlanPort=%s," +
+                        "intBridge=%s, routerBridge=%s init=%s",
                         node.hostname(),
                         node.type(),
                         node.managementIp(),
                         node.dataIp(),
+                        node.vlanPort(),
                         node.intBridge(),
                         node.routerBridge(),
                         node.state());
@@ -66,6 +68,7 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
                     .put("type", node.type().name())
                     .put("managementIp", node.managementIp().toString())
                     .put("dataIp", node.dataIp().toString())
+                    .put("vlanPort", node.vlanPort().toString())
                     .put("intBridge", node.intBridge().toString())
                     .put("routerBridge", node.routerBridge().toString())
                     .put("state", node.state().name()));

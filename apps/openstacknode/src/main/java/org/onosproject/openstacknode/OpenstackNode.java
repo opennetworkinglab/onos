@@ -39,12 +39,13 @@ public final class OpenstackNode {
     private final String hostname;
     private final NodeType type;
     private final IpAddress managementIp;
-    private final IpAddress dataIp;
+    private final Optional<IpAddress> dataIp;
     private final DeviceId integrationBridge;
     private final Optional<DeviceId> routerBridge;
     private final Optional<String> uplink;
     // TODO remove this when we use single ONOS cluster for both openstackNode and vRouter
     private final Optional<IpAddress> routerController;
+    private final Optional<String> vlanPort;
     private final NodeState state;
 
     public static final Comparator<OpenstackNode> OPENSTACK_NODE_COMPARATOR =
@@ -53,11 +54,12 @@ public final class OpenstackNode {
     private OpenstackNode(String hostname,
                           NodeType type,
                           IpAddress managementIp,
-                          IpAddress dataIp,
+                          Optional<IpAddress> dataIp,
                           DeviceId integrationBridge,
                           Optional<DeviceId> routerBridge,
                           Optional<String> uplink,
                           Optional<IpAddress> routerController,
+                          Optional<String> vlanPort,
                           NodeState state) {
         this.hostname = hostname;
         this.type = type;
@@ -67,6 +69,7 @@ public final class OpenstackNode {
         this.routerBridge = routerBridge;
         this.uplink = uplink;
         this.routerController = routerController;
+        this.vlanPort = vlanPort;
         this.state = state;
     }
 
@@ -86,6 +89,7 @@ public final class OpenstackNode {
                 node.routerBridge,
                 node.uplink,
                 node.routerController,
+                node.vlanPort,
                 state);
     }
 
@@ -119,9 +123,9 @@ public final class OpenstackNode {
     /**
      * Returns the data network IP address of the node.
      *
-     * @return data network ip address
+     * @return data network ip address; or empty value
      */
-    public IpAddress dataIp() {
+    public Optional<IpAddress> dataIp() {
         return dataIp;
     }
 
@@ -163,6 +167,15 @@ public final class OpenstackNode {
      */
     public Optional<String> uplink() {
         return uplink;
+    }
+
+    /**
+     * Returns the vlan interface name.
+     *
+     * @return vlan interface name; or empty value
+     */
+    public Optional<String> vlanPort() {
+        return vlanPort;
     }
 
     /**
@@ -212,7 +225,8 @@ public final class OpenstackNode {
                     Objects.equals(integrationBridge, that.integrationBridge) &&
                     Objects.equals(routerBridge, that.routerBridge) &&
                     Objects.equals(uplink, that.uplink) &&
-                    Objects.equals(routerController, that.routerController)) {
+                    Objects.equals(routerController, that.routerController) &&
+                    Objects.equals(vlanPort, that.vlanPort)) {
                 return true;
             }
         }
@@ -228,7 +242,8 @@ public final class OpenstackNode {
                 integrationBridge,
                 routerBridge,
                 uplink,
-                routerController);
+                routerController,
+                vlanPort);
     }
 
     @Override
@@ -242,6 +257,7 @@ public final class OpenstackNode {
                 .add("routerBridge", routerBridge)
                 .add("uplink", uplink)
                 .add("routerController", routerController)
+                .add("vlanport", vlanPort)
                 .add("state", state)
                 .toString();
     }
@@ -262,10 +278,11 @@ public final class OpenstackNode {
         private String hostname;
         private NodeType type;
         private IpAddress managementIp;
-        private IpAddress dataIp;
+        private Optional<IpAddress> dataIp = Optional.empty();
         private DeviceId integrationBridge;
         private Optional<DeviceId> routerBridge = Optional.empty();
         private Optional<String> uplink = Optional.empty();
+        private Optional<String> vlanPort = Optional.empty();
         // TODO remove this when we use single ONOS cluster for both openstackNode and vRouter
         private Optional<IpAddress> routerController = Optional.empty();
         private NodeState state = INIT;
@@ -282,6 +299,7 @@ public final class OpenstackNode {
             checkNotNull(routerBridge);
             checkNotNull(uplink);
             checkNotNull(routerController);
+            checkNotNull(vlanPort);
 
             if (type == NodeType.GATEWAY) {
                 checkArgument(routerBridge.isPresent());
@@ -297,6 +315,7 @@ public final class OpenstackNode {
                     routerBridge,
                     uplink,
                     routerController,
+                    vlanPort,
                     state);
         }
 
@@ -340,7 +359,7 @@ public final class OpenstackNode {
          * @return openstack node builder
          */
         public Builder dataIp(IpAddress dataIp) {
-            this.dataIp = dataIp;
+            this.dataIp = Optional.ofNullable(dataIp);
             return this;
         }
 
@@ -386,6 +405,17 @@ public final class OpenstackNode {
         // TODO remove this when we use single ONOS cluster for both openstackNode and vRouter
         public Builder routerController(IpAddress routerController) {
             this.routerController = Optional.ofNullable(routerController);
+            return this;
+        }
+
+        /**
+         * Returns node builder with the vlan interface name.
+         *
+         * @param vlanPort vlan interface name
+         * @return openstack node builder
+         */
+        public Builder vlanPort(String vlanPort) {
+            this.vlanPort = Optional.ofNullable(vlanPort);
             return this;
         }
 

@@ -27,6 +27,7 @@ import java.util.Set;
 import org.onosproject.net.config.Config;
 
 import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
+import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
 import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
 
 /**
@@ -46,6 +47,7 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
     private static final String UPLINK_PORT_NAME = "uplinkPort";
     // TODO remove this when vRouter supports multiple switches
     private static final String ROUTER_CONTROLLER = "routerController";
+    private static final String VLAN_PORT_NAME = "vlanPort";
 
     @Override
     public boolean isValid() {
@@ -57,6 +59,10 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
         }
 
         for (JsonNode node : object.get(NODES)) {
+            if (get(node, DATA_IP) == null && get(node, VLAN_PORT_NAME) == null) {
+                final String msg = "There is neither tunnel interface nor vlan port";
+                throw new IllegalArgumentException(msg);
+            }
             ObjectNode osNode = (ObjectNode) node;
             result &= hasOnlyFields(osNode,
                     HOST_NAME,
@@ -66,14 +72,16 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
                     INTEGRATION_BRIDGE,
                     ROUTER_BRIDGE,
                     UPLINK_PORT_NAME,
-                    ROUTER_CONTROLLER
+                    ROUTER_CONTROLLER,
+                    VLAN_PORT_NAME
             );
 
             result &= isString(osNode, HOST_NAME, MANDATORY);
             result &= isString(osNode, TYPE, MANDATORY);
             result &= isIpAddress(osNode, MANAGEMENT_IP, MANDATORY);
-            result &= result && isIpAddress(osNode, DATA_IP, MANDATORY);
             result &= isString(osNode, INTEGRATION_BRIDGE, MANDATORY);
+            result &= isString(osNode, VLAN_PORT_NAME, OPTIONAL);
+            result &= isIpAddress(osNode, DATA_IP, OPTIONAL);
 
             DeviceId.deviceId(osNode.get(INTEGRATION_BRIDGE).asText());
             NodeType.valueOf(osNode.get(TYPE).asText());
@@ -95,15 +103,21 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
      */
     public Set<OpenstackNode> openstackNodes() {
         Set<OpenstackNode> nodes = Sets.newHashSet();
-
         for (JsonNode node : object.get(NODES)) {
             NodeType type = NodeType.valueOf(get(node, TYPE));
             OpenstackNode.Builder nodeBuilder = OpenstackNode.builder()
                     .integrationBridge(DeviceId.deviceId(get(node, INTEGRATION_BRIDGE)))
-                    .dataIp(IpAddress.valueOf(get(node, DATA_IP)))
                     .managementIp(IpAddress.valueOf(get(node, MANAGEMENT_IP)))
                     .type(type)
                     .hostname(get(node, HOST_NAME));
+
+            if (get(node, DATA_IP) != null) {
+                nodeBuilder.dataIp(IpAddress.valueOf(get(node, DATA_IP)));
+            }
+
+            if (get(node, VLAN_PORT_NAME) != null) {
+                nodeBuilder.vlanPort(get(node, VLAN_PORT_NAME));
+            }
 
             if (type.equals(GATEWAY)) {
                 nodeBuilder.routerBridge(DeviceId.deviceId(get(node, ROUTER_BRIDGE)))
@@ -116,6 +130,10 @@ public final class OpenstackNodeConfig extends Config<ApplicationId> {
     }
 
     private String get(JsonNode jsonNode, String path) {
-        return jsonNode.get(path).asText();
+        JsonNode jNode = jsonNode.get(path);
+        if (jNode == null || jNode.isMissingNode()) {
+            return null;
+        }
+        return jNode.asText();
     }
 }

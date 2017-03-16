@@ -2,41 +2,35 @@
     "apps" : {
         "org.onosproject.openstacknode" : {
             "openstacknode" : {
-                "nodes" : [
-                    {
-                        "hostname" : "compute-01",
-                        "type" : "COMPUTE",
-                        "managementIp" : "10.203.25.244",
-                        "dataIp" : "10.134.34.222",
-                        "integrationBridge" : "of:00000000000000a1"
-                    },
-                    {
-                        "hostname" : "compute-02",
-                        "type" : "COMPUTE",
-                        "managementIp" : "10.203.229.42",
-                        "dataIp" : "10.134.34.223",
-                        "integrationBridge" : "of:00000000000000a2"
-                    },
-                    {
-                        "hostname" : "gateway-01",
-                        "type" : "GATEWAY",
-                        "managementIp" : "10.203.198.125",
-                        "dataIp" : "10.134.33.208",
-                        "integrationBridge" : "of:00000000000000a3",
-                        "routerBridge" : "of:00000000000000b3",
-                        "uplinkPort" : "veth1",
-                        "routerController" : "172.17.0.2"
-                    },
-                    {
-                        "hostname" : "gateway-02",
-                        "type" : "GATEWAY",
-                        "managementIp" : "10.203.198.131",
-                        "dataIp" : "10.134.33.209",
-                        "integrationBridge" : "of:00000000000000a4",
-                        "routerBridge" : "of:00000000000000b4",
-                        "uplinkPort" : "veth1",
-                        "routerController" : "172.17.0.2"
-                    }
+                 "nodes" : [
+                        {
+                                "hostname" : "compute-01",
+                                "type" : "COMPUTE",
+                                "managementIp" : "172.16.130.4",
+                                "dataIp" : "172.16.130.4",
+                                "vlanPort" : "eth2",
+                                "integrationBridge" : "of:00000000000000a1"
+                        },
+                        {
+                                "hostname" : "compute-02",
+                                "type" : "COMPUTE",
+                                "managementIp" : "172.16.130.6",
+                                "dataIp" : "172.16.130.6",
+                                "vlanPort" : "eth2",
+                                "integrationBridge" : "of:00000000000000a2"
+                        },
+                        {
+                                "hostname" : "gateway-01",
+                                "type" : "GATEWAY",
+                                "managementIp" : "172.16.130.8",
+                                "dataIp" : "172.16.130.7",
+                                "vlanPort" : "eth2",
+                                "integrationBridge" : "of:00000000000000a3",
+                                "routerBridge" : "of:00000000000000b1",
+                                "uplinkPort" : "quagga-router",
+                                "routerController" : "172.17.0.2"
+
+                        }
                 ]
             }
         }
@@ -50,16 +44,6 @@
         "of:00000000000000a2" : {
             "basic" : {
                 "driver" : "sona"
-            }
-        },
-        "of:00000000000000b1" : {
-            "basic" : {
-                "driver" : "softrouter"
-            }
-        },
-        "of:00000000000000b2" : {
-            "basic" : {
-                "driver" : "softrouter"
             }
         }
     }

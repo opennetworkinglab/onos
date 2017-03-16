@@ -74,7 +74,8 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                     deviceService.isAvailable(device.id()),
                     device.annotations());
 
-            print(getPortState(deviceService, node.intBridge(), DEFAULT_TUNNEL));
+            node.dataIp().ifPresent(ip -> print(getPortState(deviceService, node.intBridge(), DEFAULT_TUNNEL)));
+            node.vlanPort().ifPresent(p -> print(getPortState(deviceService, node.intBridge(), p)));
         } else {
             print("%s %s=%s is not available",
                     MSG_NO,

@@ -427,7 +427,7 @@ public class OpenstackRoutingIcmpHandler {
                             // don't need to add gateway here and there
                             GatewayNode gnode = GatewayNode.builder()
                                     .gatewayDeviceId(osNode.intBridge())
-                                    .dataIpAddress(osNode.dataIp().getIp4Address())
+                                    .dataIpAddress(osNode.dataIp().get().getIp4Address())
                                     .uplinkIntf(osNode.externalPortName().get())
                                     .build();
                             gatewayService.addGatewayNode(gnode);
