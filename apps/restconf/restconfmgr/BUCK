@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//apps/restconf/api:onos-apps-restconf-api',
     '//apps/restconf/utils:onos-apps-restconf-utils',
     '//apps/config:onos-apps-config',
+    '//lib:onos-yang-runtime',
 ]
 
 osgi_jar_with_tests (

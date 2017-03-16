@@ -31,8 +31,14 @@ import org.onosproject.config.Filter;
 import org.onosproject.restconf.api.RestconfException;
 import org.onosproject.restconf.api.RestconfService;
 import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.InnerNode;
+import org.onosproject.yang.model.KeyLeaf;
+import org.onosproject.yang.model.ListKey;
+import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.SchemaId;
+import org.onosproject.yang.runtime.DefaultResourceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +57,9 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.onosproject.restconf.utils.RestconfUtils.convertDataNodeToJson;
 import static org.onosproject.restconf.utils.RestconfUtils.convertJsonToDataNode;
 import static org.onosproject.restconf.utils.RestconfUtils.convertUriToRid;
+import static org.onosproject.yang.model.DataNode.Type.MULTI_INSTANCE_NODE;
+import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
+import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_NODE;
 
 /*
  * ONOS RESTCONF application. The RESTCONF Manager
@@ -129,7 +138,8 @@ public class RestconfManager implements RestconfService {
     @Override
     public void runPostOperationOnDataResource(String uri, ObjectNode rootNode)
             throws RestconfException {
-        ResourceData resourceData = convertJsonToDataNode(uri, rootNode);
+        ResourceData receivedData = convertJsonToDataNode(uri, rootNode);
+        ResourceData resourceData = getDataForStore(receivedData);
         ResourceId rid = resourceData.resourceId();
         List<DataNode> dataNodeList = resourceData.dataNodes();
         // TODO: Error message needs to be fixed
@@ -198,11 +208,49 @@ public class RestconfManager implements RestconfService {
             throw new RestconfException("Server ERROR: workerThreadPool NOT " +
                                                 "instanceof ThreadPoolExecutor",
                                         INTERNAL_SERVER_ERROR);
-
         }
 
         BlockingQueue<ObjectNode> eventQueue = new LinkedBlockingQueue<>();
         workerThreadPool.submit(new EventConsumer(output, eventQueue));
+    }
+
+    private ResourceData getDataForStore(ResourceData resourceData) {
+        List<DataNode> nodes = resourceData.dataNodes();
+        ResourceId rid = resourceData.resourceId();
+        DataNode.Builder dbr = null;
+        ResourceId parentId = null;
+        try {
+            NodeKey lastKey = rid.nodeKeys().get(rid.nodeKeys().size() - 1);
+            SchemaId sid = lastKey.schemaId();
+            if (lastKey instanceof ListKey) {
+                dbr = InnerNode.builder(
+                        sid.name(), sid.namespace()).type(MULTI_INSTANCE_NODE);
+                for (KeyLeaf keyLeaf : ((ListKey) lastKey).keyLeafs()) {
+                    Object val = keyLeaf.leafValue();
+                    dbr = dbr.addKeyLeaf(keyLeaf.leafSchema().name(),
+                                         sid.namespace(), val);
+                    dbr = dbr.createChildBuilder(keyLeaf.leafSchema().name(),
+                                                 sid.namespace(), val)
+                            .type(SINGLE_INSTANCE_LEAF_VALUE_NODE);
+                }
+            } else {
+                dbr = InnerNode.builder(
+                        sid.name(), sid.namespace()).type(SINGLE_INSTANCE_NODE);
+            }
+            if (nodes != null && !nodes.isEmpty()) {
+                // adding the parent node for given list of nodes
+                for (DataNode node : nodes) {
+                    dbr = ((InnerNode.Builder) dbr).addNode(node);
+                }
+            }
+            parentId = rid.copyBuilder().removeLastKey().build();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        ResourceData.Builder resData = DefaultResourceData.builder();
+        resData.addDataNode(dbr.build());
+        resData.resourceId(parentId);
+        return resData.build();
     }
 
     /**
