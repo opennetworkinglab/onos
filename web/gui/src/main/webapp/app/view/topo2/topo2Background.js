@@ -28,8 +28,8 @@
     angular.module('ovTopo2')
         .factory('Topo2BackgroundService', [
             '$log', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
-            'Topo2MapConfigService',
-            function (_$log_, ViewController, t2sls, t2ms, t2mcs) {
+            'Topo2MapConfigService', 'Topo2ZoomService',
+            function (_$log_, ViewController, t2sls, t2ms, t2mcs, t2zs) {
 
                 $log = _$log_;
 
@@ -84,6 +84,9 @@
                     },
                     getBackgroundType: function () {
                         return this.bgType;
+                    },
+                    resetZoom: function () {
+                        t2zs.getZoomer().reset();
                     }
                 });
 

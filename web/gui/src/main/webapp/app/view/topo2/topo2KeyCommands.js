@@ -22,7 +22,6 @@
     // Commmands
     var actionMap = {
         L: [cycleDeviceLabels, 'Cycle device labels'],
-        G: [openMapSelection, 'Select background geo map'],
         B: [toggleBackground, 'Toggle background'],
         I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
         O: [toggleSummary, 'Toggle the Summary Panel'],
@@ -98,10 +97,6 @@
         flash.flash(deviceLabelFlashMessage(newDeviceLabelIndex));
     }
 
-    function openMapSelection() {
-        t2ms.openMapSelection();
-    }
-
     function toggleBackground(x) {
         t2bgs.toggle(x);
     }
@@ -115,7 +110,7 @@
     }
 
     function resetZoom() {
-        t2ms.resetZoom();
+        t2bgs.resetZoom();
         flash.flash('Pan and zoom reset');
     }
 
