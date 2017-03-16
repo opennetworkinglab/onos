@@ -45,8 +45,16 @@
               requires="Distributed-Primitive-Value.Test-Value-CompareAndSet-True"
               exec="onos-cluster-execute-expect value-test test-value get --expect v1"/>
 
-        <step name="Distributed-Primitive-Value.Destroy-Value"
+        <step name="Distributed-Primitive-Value.Test-Value-GetAndSet"
               requires="Distributed-Primitive-Value.Test-Value-Updated-After-CAS"
+              exec="onos-execute-expect ${OCI} value-test test-value getAndSet v2 --expect v1"/>
+
+        <step name="Distributed-Primitive-Value.Test-Value-Updated-After-GetAndSet"
+              requires="Distributed-Primitive-Value.Test-Value-GetAndSet"
+              exec="onos-cluster-execute-expect value-test test-value get --expect v2"/>
+
+        <step name="Distributed-Primitive-Value.Destroy-Value"
+              requires="Distributed-Primitive-Value.Test-Value-Updated-After-GetAndSet"
               exec="onos ${OCI} value-test test-value set null"/>
 
         <group name="Distributed-Primitive-Value.Check-Log-Exceptions"
