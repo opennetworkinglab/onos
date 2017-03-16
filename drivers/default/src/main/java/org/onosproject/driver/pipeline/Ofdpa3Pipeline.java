@@ -17,7 +17,6 @@
 package org.onosproject.driver.pipeline;
 
 import com.google.common.collect.ImmutableList;
-import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.driver.extensions.Ofdpa3MatchMplsL2Port;
 import org.onosproject.driver.extensions.Ofdpa3MatchOvid;
@@ -27,7 +26,6 @@ import org.onosproject.driver.extensions.Ofdpa3SetMplsL2Port;
 import org.onosproject.driver.extensions.Ofdpa3SetMplsType;
 import org.onosproject.driver.extensions.Ofdpa3SetOvid;
 import org.onosproject.driver.extensions.Ofdpa3SetQosIndex;
-import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -82,6 +80,11 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     protected void initGroupHander(PipelinerContext context) {
         groupHandler = new Ofdpa3GroupHandler();
         groupHandler.init(deviceId, context);
+    }
+
+    @Override
+    protected boolean requireVlanExtensions() {
+        return false;
     }
 
     @Override
@@ -215,7 +218,7 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         // Ofdpa supports this through the OVID meta-data type.
         TrafficSelector.Builder vlan1Selector = DefaultTrafficSelector.builder()
                 .matchInPort(portCriterion.port())
-                .extension(new OfdpaMatchVlanVid(innerVlanIdCriterion.vlanId()), deviceId)
+                .matchVlanId(innerVlanIdCriterion.vlanId())
                 .extension(new Ofdpa3MatchOvid(outerVlanIdCriterion.vlanId()), deviceId);
         // TODO understand for the future how to manage the vlan rewrite.
         TrafficTreatment.Builder vlan1Treatment = DefaultTrafficTreatment.builder()
@@ -239,7 +242,7 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         // We have to match on the outer vlan.
         TrafficSelector.Builder vlanSelector = DefaultTrafficSelector.builder()
                 .matchInPort(portCriterion.port())
-                .extension(new OfdpaMatchVlanVid(outerVlanIdCriterion.vlanId()), deviceId);
+                .matchVlanId(outerVlanIdCriterion.vlanId());
         // TODO understand for the future how to manage the vlan rewrite.
         TrafficTreatment.Builder vlanTreatment = DefaultTrafficTreatment.builder()
                 .popVlan()
@@ -256,15 +259,6 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                 .build();
 
         return ImmutableList.of(vlan1FlowRule, vlanFlowRule);
-    }
-
-    @Override
-    protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
-                                                 VlanIdCriterion vidCriterion,
-                                                 VlanId assignedVlan,
-                                                 ApplicationId applicationId) {
-        return processVlanIdFilterInternal(portCriterion, vidCriterion, assignedVlan,
-                applicationId, false);
     }
 
     @Override

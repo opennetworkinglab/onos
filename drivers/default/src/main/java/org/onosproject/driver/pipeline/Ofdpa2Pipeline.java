@@ -193,6 +193,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // software switches does require table-miss-entries.
     }
 
+    /**
+     * Determines whether this pipeline requires OFDPA match and set VLAN extensions.
+     *
+     * @return true to use the extensions
+     */
+    protected boolean requireVlanExtensions() {
+        return true;
+    }
+
     //////////////////////////////////////
     //  Flow Objectives
     //////////////////////////////////////
@@ -409,9 +418,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             List<FlowRule> assignmentRules = new ArrayList<>();
 
             allRules.forEach(flowRule -> {
-                ExtensionCriterion extCriterion =
-                        (ExtensionCriterion) flowRule.selector().getCriterion(Criterion.Type.EXTENSION);
-                VlanId vlanId = ((OfdpaMatchVlanVid) extCriterion.extensionSelector()).vlanId();
+                VlanId vlanId;
+                if (requireVlanExtensions()) {
+                    ExtensionCriterion extCriterion =
+                            (ExtensionCriterion) flowRule.selector().getCriterion(Criterion.Type.EXTENSION);
+                    vlanId = ((OfdpaMatchVlanVid) extCriterion.extensionSelector()).vlanId();
+                } else {
+                    VlanIdCriterion vlanIdCriterion =
+                            (VlanIdCriterion) flowRule.selector().getCriterion(Criterion.Type.VLAN_VID);
+                    vlanId = vlanIdCriterion.vlanId();
+                }
                 if (!vlanId.equals(VlanId.NONE)) {
                     filteringRules.add(flowRule);
                 } else {
@@ -453,9 +469,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     /**
-     * Allows untagged packets into pipeline by assigning a vlan id.
-     * Vlan assignment is done by the application.
-     * Allows tagged packets into pipeline as per configured port-vlan info.
+     * Internal implementation of processVlanIdFilter.
+     * <p>
+     * The is_present bit in set_vlan_vid action is required to be 0 in OFDPA i12.
+     * Since it is non-OF spec, we need an extension treatment for that.
+     * The useVlanExtension must be set to false for OFDPA i12.
+     * </p>
      *
      * @param portCriterion       port on device for which this filter is programmed
      * @param vidCriterion        vlan assigned to port, or NONE for untagged
@@ -464,33 +483,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return list of FlowRule for port-vlan filters
      */
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
-                                                 VlanIdCriterion vidCriterion,
-                                                 VlanId assignedVlan,
-                                                 ApplicationId applicationId) {
-        return processVlanIdFilterInternal(portCriterion, vidCriterion, assignedVlan,
-                applicationId, true);
-    }
-
-    /**
-     * Internal implementation of processVlanIdFilter.
-     * <p>
-     * The is_present bit in set_vlan_vid action is required to be 0 in OFDPA i12.
-     * Since it is non-OF spec, we need an extension treatment for that.
-     * The useSetVlanExtension must be set to false for OFDPA i12.
-     * </p>
-     *
-     * @param portCriterion       port on device for which this filter is programmed
-     * @param vidCriterion        vlan assigned to port, or NONE for untagged
-     * @param assignedVlan        assigned vlan-id for untagged packets
-     * @param applicationId       for application programming this filter
-     * @param useSetVlanExtension use the setVlanVid extension that has is_present bit set to 0.
-     * @return list of FlowRule for port-vlan filters
-     */
-    protected List<FlowRule> processVlanIdFilterInternal(PortCriterion portCriterion,
                                                          VlanIdCriterion vidCriterion,
                                                          VlanId assignedVlan,
-                                                         ApplicationId applicationId,
-                                                         boolean useSetVlanExtension) {
+                                                         ApplicationId applicationId) {
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -501,26 +496,32 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
-            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.NONE);
-            selector.extension(ofdpaMatchVlanVid, deviceId);
-            if (useSetVlanExtension) {
+            preSelector = DefaultTrafficSelector.builder();
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(VlanId.NONE);
+                selector.extension(ofdpaMatchVlanVid, deviceId);
                 OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
                 treatment.extension(ofdpaSetVlanVid, deviceId);
+
+                OfdpaMatchVlanVid preOfdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+                preSelector.extension(preOfdpaMatchVlanVid, deviceId);
             } else {
+                selector.matchVlanId(VlanId.NONE);
                 treatment.setVlanId(assignedVlan);
+
+                preSelector.matchVlanId(assignedVlan);
+            }
+            preTreatment = DefaultTrafficTreatment.builder().transition(TMAC_TABLE);
+        } else {
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
             }
 
-            preSelector = DefaultTrafficSelector.builder();
-            OfdpaMatchVlanVid preOfdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
-            preSelector.extension(preOfdpaMatchVlanVid, deviceId);
-            preTreatment = DefaultTrafficTreatment.builder().transition(TMAC_TABLE);
-
-        } else {
-            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
-            selector.extension(ofdpaMatchVlanVid, deviceId);
-
             if (!assignedVlan.equals(vidCriterion.vlanId())) {
-                if (useSetVlanExtension) {
+                if (requireVlanExtensions()) {
                     OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
                     treatment.extension(ofdpaSetVlanVid, deviceId);
                 } else {
@@ -623,7 +624,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
-            selector.extension(ofdpaMatchVlanVid, deviceId);
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
             selector.matchEthType(Ethernet.TYPE_IPV4);
             selector.matchEthDst(ethCriterion.mac());
             treatment.transition(UNICAST_ROUTING_TABLE);
@@ -640,7 +645,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
-            selector.extension(ofdpaMatchVlanVid, deviceId);
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
             selector.matchEthType(Ethernet.MPLS_UNICAST);
             selector.matchEthDst(ethCriterion.mac());
             treatment.transition(MPLS_TABLE_0);
@@ -659,7 +668,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
             selector.matchInPort(pnum);
-            selector.extension(ofdpaMatchVlanVid, deviceId);
+            if (requireVlanExtensions()) {
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
             selector.matchEthType(Ethernet.TYPE_IPV6);
             selector.matchEthDst(ethCriterion.mac());
             treatment.transition(UNICAST_ROUTING_TABLE);
@@ -778,9 +791,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 if (vlanId.equals(VlanId.NONE)) {
                     return;
                 }
-                OfdpaMatchVlanVid ofdpaMatchVlanVid =
-                        new OfdpaMatchVlanVid(vlanId);
-                sbuilder.extension(ofdpaMatchVlanVid, deviceId);
+                if (requireVlanExtensions()) {
+                    OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vlanId);
+                    sbuilder.extension(ofdpaMatchVlanVid, deviceId);
+                } else {
+                    sbuilder.matchVlanId(vlanId);
+                }
             } else if (criterion instanceof Icmpv6TypeCriterion ||
                     criterion instanceof Icmpv6CodeCriterion) {
                 /*
@@ -1083,8 +1099,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 fail(fwd, ObjectiveError.BADPARAMS);
                 return -1;
             }
-            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
-            builderToUpdate.extension(ofdpaMatchVlanVid, deviceId);
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(assignedVlan);
+                builderToUpdate.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                builderToUpdate.matchVlanId(assignedVlan);
+            }
             builderToUpdate.matchEthType(Ethernet.TYPE_IPV4).matchIPDst(ipv4Dst);
             log.debug("processing IPv4 multicast specific forwarding objective {} -> next:{}"
                               + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
@@ -1197,8 +1217,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     + "in dev:{} for vlan:{}",
                       fwd.id(), fwd.nextId(), deviceId, vlanIdCriterion.vlanId());
         }
-        OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vlanIdCriterion.vlanId());
-        filteredSelectorBuilder.extension(ofdpaMatchVlanVid, deviceId);
+        if (requireVlanExtensions()) {
+            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vlanIdCriterion.vlanId());
+            filteredSelectorBuilder.extension(ofdpaMatchVlanVid, deviceId);
+        } else {
+            filteredSelectorBuilder.matchVlanId(vlanIdCriterion.vlanId());
+        }
         TrafficSelector filteredSelector = filteredSelectorBuilder.build();
 
         if (fwd.treatment() != null) {
