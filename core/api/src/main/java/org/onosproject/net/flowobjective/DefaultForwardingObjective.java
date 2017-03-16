@@ -181,6 +181,17 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         return new Builder();
     }
 
+    /**
+     * Returns a new builder primed to produce entities
+     * patterned after the supplied forwarding objective.
+     *
+     * @param fwd base fwd
+     * @return forwarding objective builder
+     */
+    public static Builder builder(ForwardingObjective fwd) {
+        return new Builder(fwd);
+    }
+
 
     @Override
     public Builder copy() {

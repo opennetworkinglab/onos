@@ -48,6 +48,7 @@ import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -80,6 +81,7 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRule.Builder;
+import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -237,7 +239,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
     public void filter(FilteringObjective filteringObjective) {
         if (filteringObjective.type() == FilteringObjective.Type.PERMIT) {
             processFilter(filteringObjective,
-                    filteringObjective.op() == Objective.Operation.ADD,
+                    filteringObjective.op() == ADD,
                     filteringObjective.appId());
         } else {
             fail(filteringObjective, ObjectiveError.UNSUPPORTED);
@@ -356,6 +358,7 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
             case SPECIFIC:
                 return processSpecific(fwd);
             case VERSATILE:
+                fwd = preProcessVersatile(fwd);
                 return processVersatile(fwd);
             default:
                 fail(fwd, ObjectiveError.UNKNOWN);
@@ -392,6 +395,33 @@ public abstract class AbstractCorsaPipeline extends AbstractHandlerBehaviour imp
         log.warn("Vlan switching not supported in ovs-corsa driver");
         fail(fwd, ObjectiveError.UNSUPPORTED);
         return ImmutableSet.of();
+    }
+
+    private ForwardingObjective preProcessVersatile(ForwardingObjective fwd) {
+        // The Corsa devices don't support the clear deferred actions
+        // so for now we have to filter this instruction for the fwd
+        // objectives sent by the Packet Manager before to create the
+        // flow rule
+        if (fwd.treatment().clearedDeferred()) {
+            // First we create a new treatment without the unsupported action
+            TrafficTreatment.Builder noClearTreatment = DefaultTrafficTreatment.builder();
+            fwd.treatment().allInstructions().forEach(noClearTreatment::add);
+            // Then we create a new forwarding objective without the unsupported action
+            ForwardingObjective.Builder noClearFwd = DefaultForwardingObjective.builder(fwd);
+            noClearFwd.withTreatment(noClearTreatment.build());
+            // According to the operation we substitute fwd with the correct objective
+            switch (fwd.op()) {
+                case ADD:
+                    fwd = noClearFwd.add(fwd.context().orElse(null));
+                    break;
+                case REMOVE:
+                    fwd = noClearFwd.remove(fwd.context().orElse(null));
+                    break;
+                default:
+                    log.warn("Unknown operation {}", fwd.op());
+            }
+        }
+        return fwd;
     }
 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
