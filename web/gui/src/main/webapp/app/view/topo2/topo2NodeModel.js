@@ -229,6 +229,8 @@
                 },
                 setScale: function () {
 
+                    if (!this.el) return;
+
                     var dim = devIconDim,
                         multipler = 1;
 

@@ -43,14 +43,15 @@
                         this.appendElement('#topo2-zoomlayer', 'g');
                         t2sls.init();
                         t2ms.init();
+                        this.zoomer = t2zs.getZoomer();
                     },
                     addLayout: function (data) {
 
-                        var _this = this;
-
                         this.background = data;
                         this.bgType = data.bgType;
-                        _this.region.loaded('bgRendered', false);
+
+                        var _this = this,
+                            pan = [this.background.bgZoomPanX, this.background.bgZoomPanY];
 
                         if (this.bgType === 'geo') {
 
@@ -67,10 +68,9 @@
                                 // $log.debug('** Zoom restored:', z);
                                 $log.debug('** We installed the projection:', proj);
                                 _this.region.loaded('bgRendered', true);
+                                t2zs.panAndZoom(pan, _this.background.bgZoomScale, 1000);
                             });
-                        }
-
-                        if (this.bgType === 'grid') {
+                        } else if (this.bgType === 'grid') {
 
                             // Hide Sprite Layer and show Map
                             t2ms.hide();
@@ -79,7 +79,14 @@
                             t2sls.loadLayout(data.bgId).then(function (spriteLayout) {
                                 _this.background.layout = spriteLayout;
                                 _this.region.loaded('bgRendered', true);
+                                t2zs.panAndZoom(pan, _this.background.bgZoomScale, 1000);
                             });
+                        } else {
+                            // No background type - Tell the region the background is ready for placing nodes
+                            t2ms.hide();
+                            t2sls.hide();
+                            // _this.region.loaded('bgRendered', true);
+                            // t2zs.panAndZoom(pan, _this.background.bgZoomScale, 1000);
                         }
                     },
                     getBackgroundType: function () {

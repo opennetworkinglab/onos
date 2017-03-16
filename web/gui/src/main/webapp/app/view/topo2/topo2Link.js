@@ -299,6 +299,9 @@
                 }
             },
             setScale: function () {
+
+                if (!this.el) return;
+
                 var width = linkScale(widthRatio) / t2zs.scale();
                 this.el.style('stroke-width', width + 'px');
 

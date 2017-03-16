@@ -150,13 +150,11 @@
 
     function coordFromXY(loc) {
 
-        // Something this is wrong in the config
-        if (!t2sls.getWidth() || !t2sls.getHeight()) {
-            return [0, 0];
-        }
+        var bgWidth = t2sls.getWidth() || 100,
+            bgHeight = t2sls.getHeight() || 100;
 
-        var scale = 1000 / t2sls.getWidth(),
-            yOffset = (1000 - (t2sls.getHeight() * scale)) / 2;
+        var scale = 1000 / bgWidth,
+            yOffset = (1000 - (bgHeight * scale)) / 2;
 
         // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
         var x = scale * loc.gridX,
