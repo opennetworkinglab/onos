@@ -279,6 +279,11 @@ public class OpticalPathProvisioner
 
         // Search path with available cross connect points
         for (Path path : paths) {
+            // Path service calculates from node to node, we're only interested in port to port
+            if (!path.src().equals(ingress) || !path.dst().equals(egress)) {
+                continue;
+            }
+
             OpticalConnectivityId id = setupPath(path, bandwidth, latency);
             if (id != null) {
                 log.info("Assigned OpticalConnectivityId: {}", id);
@@ -455,7 +460,7 @@ public class OpticalPathProvisioner
                         .src(src)
                         .dst(dst)
                         .signalType(srcOCPort.signalType())
-                        .bidirectional(true)
+                        .bidirectional(false)
                         .build();
                 intents.add(circuitIntent);
             } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
@@ -471,7 +476,7 @@ public class OpticalPathProvisioner
                         .src(src)
                         .dst(dst)
                         .signalType(srcOchPort.signalType())
-                        .bidirectional(true)
+                        .bidirectional(false)
                         .build();
                 intents.add(opticalIntent);
             } else {
@@ -668,16 +673,14 @@ public class OpticalPathProvisioner
                 if (hasEnoughBandwidth(l.src()) && hasEnoughBandwidth(l.dst())) {
                     return 1.0;
                 } else {
-                    log.trace("Not enought bandwidth on {}", l);
+                    log.trace("Not enough bandwidth on {}", l);
                     return -1.0;
                 }
             } else {
-                // TODO needs to differentiate optical and packet?
-                if (l.type() == Link.Type.OPTICAL) {
-                    // Transport links
-                    return 1.0;
+                // Use everything except our own indirect links
+                if (l.type() == Link.Type.INDIRECT) {
+                    return -1.0;
                 } else {
-                    // Packet links
                     return 1.0;
                 }
             }
@@ -844,7 +847,8 @@ public class OpticalPathProvisioner
                                    BasicLinkConfig.class);
                 lnkCfg.isAllowed(true);
                 lnkCfg.isDurable(true);
-                lnkCfg.type(Link.Type.DIRECT);
+                lnkCfg.type(Link.Type.INDIRECT);
+                lnkCfg.isBidirectional(false);
                 lnkCfg.apply();
             } catch (Exception ex) {
                 log.error("Applying BasicLinkConfig failed", ex);

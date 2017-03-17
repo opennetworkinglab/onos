@@ -123,7 +123,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         for (Link link : intent.path().links()) {
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            if (!isTransparent(link.src().deviceId())) {
+            if (!isTransparent(current.deviceId())) {
                 treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
             }
             treatmentBuilder.setOutput(link.src().port());
@@ -136,6 +136,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .fromApp(appId)
                     .makePermanent()
                     .build();
+            selectorBuilder = DefaultTrafficSelector.builder();
 
             if (!isNoFlowRule(current.deviceId())) {
                 rules.add(rule);
@@ -143,7 +144,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
             current = link.dst();
             selectorBuilder.matchInPort(link.dst().port());
-            if (!isTransparent(link.dst().deviceId())) {
+            if (!isTransparent(current.deviceId())) {
                 selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
                 selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
             }
@@ -184,7 +185,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
         for (Link link : Lists.reverse(intent.path().links())) {
             TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-            if (isTransparent(link.dst().deviceId())) {
+            if (!isTransparent(current.deviceId())) {
                 treatmentBuilder.add(Instructions.modL0Lambda(intent.lambda()));
             }
             treatmentBuilder.setOutput(link.dst().port());
@@ -197,6 +198,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
                     .fromApp(appId)
                     .makePermanent()
                     .build();
+            selectorBuilder = DefaultTrafficSelector.builder();
 
             if (!isNoFlowRule(current.deviceId())) {
                 rules.add(rule);
@@ -204,7 +206,7 @@ public class OpticalPathIntentCompiler implements IntentCompiler<OpticalPathInte
 
             current = link.src();
             selectorBuilder.matchInPort(link.src().port());
-            if (isTransparent(link.src().deviceId())) {
+            if (!isTransparent(current.deviceId())) {
                 selectorBuilder.add(Criteria.matchLambda(intent.lambda()));
                 selectorBuilder.add(Criteria.matchOchSignalType(intent.signalType()));
             }
