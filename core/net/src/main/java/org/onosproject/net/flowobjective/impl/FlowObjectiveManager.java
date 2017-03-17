@@ -346,7 +346,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 handler = driverService.createHandler(deviceId);
                 dTime = now();
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
-                    log.warn("Pipeline behaviour not supported for device {}",
+                    log.debug("Pipeline behaviour not supported for device {}",
                              deviceId);
                     return null;
                 }
