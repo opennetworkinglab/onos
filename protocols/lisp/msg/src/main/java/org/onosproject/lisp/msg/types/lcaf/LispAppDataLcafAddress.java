@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Application data type LCAF address class.
  * <p>
  * Application data type is defined in draft-ietf-lisp-lcaf-22
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-27
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-29
  *
  * <pre>
  * {@literal

@@ -20,14 +20,20 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                        .ExtensionMappingAddressTypes.GEO_COORDINATE_ADDRESS;
+
 /**
  * Implementation of LISP Geo Coordinate (GC) address.
+ * If an ETR desires to send a Map-Reply describing the Geo Coordinates for each
+ * locator in its locator-set, it can use the Geo Coordinate Type to convey
+ * physical location information.
  */
 public class LispGcAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return GEO_COORDINATE_ADDRESS.type();
     }
 
     @Override

@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Nonce locator data type LCAF address class.
  * <p>
  * Nonce locator data type is defined in draft-ietf-lisp-lcaf-22
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-30
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-32
  * <p>
  * <pre>
  * {@literal

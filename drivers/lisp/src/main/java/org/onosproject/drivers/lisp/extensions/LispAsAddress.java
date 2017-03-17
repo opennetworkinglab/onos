@@ -16,27 +16,170 @@
 
 package org.onosproject.drivers.lisp.extensions;
 
+import com.google.common.collect.Maps;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.mapping.addresses.ASMappingAddress;
+import org.onosproject.mapping.addresses.DNMappingAddress;
+import org.onosproject.mapping.addresses.EthMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
+import org.onosproject.mapping.addresses.IPMappingAddress;
+import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.flow.AbstractExtension;
+import org.onosproject.store.serializers.KryoNamespaces;
+
+import java.util.Map;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                                        .ExtensionMappingAddressTypes.AS_ADDRESS;
 
 /**
  * Implementation of LISP Autonomous System (AS) address.
+ * When an AS number is stored in the LISP Mapping Database System for either
+ * policy or documentation reasons, it can be encoded in a LISP Canonical Address.
  */
-public class LispAsAddress extends AbstractExtension
+public final class LispAsAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
+
+    private static final String AS_NUMBER = "asNumber";
+    private static final String ADDRESS = "address";
+
+    private int asNumber;
+    private MappingAddress address;
+
+    private final KryoNamespace appKryo = new KryoNamespace.Builder()
+                                                .register(KryoNamespaces.API)
+                                                .register(MappingAddress.class)
+                                                .register(MappingAddress.Type.class)
+                                                .register(IPMappingAddress.class)
+                                                .register(ASMappingAddress.class)
+                                                .register(DNMappingAddress.class)
+                                                .register(EthMappingAddress.class)
+                                                .build();
+
+    /**
+     * Default constructor.
+     */
+    public LispAsAddress() {
+    }
+
+    /**
+     * Creates an instance with initialized parameters.
+     *
+     * @param asNumber AS number
+     */
+    private LispAsAddress(int asNumber, MappingAddress address) {
+        this.asNumber = asNumber;
+        this.address = address;
+    }
+
+    /**
+     * Obtains AS number.
+     *
+     * @return AS number
+     */
+    public int getAsNumber() {
+        return asNumber;
+    }
+
+    /**
+     * Obtains mapping address.
+     *
+     * @return mapping address
+     */
+    public MappingAddress getAddress() {
+        return address;
+    }
+
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return AS_ADDRESS.type();
     }
 
     @Override
     public byte[] serialize() {
-        return new byte[0];
+        Map<String, Object> parameterMap = Maps.newHashMap();
+
+        parameterMap.put(AS_NUMBER, asNumber);
+        parameterMap.put(ADDRESS, address);
+        return appKryo.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
+        Map<String, Object> parameterMap = appKryo.deserialize(data);
 
+        this.asNumber = (int) parameterMap.get(AS_NUMBER);
+        this.address = (MappingAddress) parameterMap.get(ADDRESS);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(asNumber, address);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispAsAddress) {
+            final LispAsAddress other = (LispAsAddress) obj;
+            return Objects.equals(asNumber, other.asNumber) &&
+                    Objects.equals(address, other.address);
+        }
+
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("AS number", asNumber)
+                .add("address", address)
+                .toString();
+    }
+
+    /**
+     * A builder for building LispAsAddress.
+     */
+    public static final class Builder {
+        private int asNumber;
+        private MappingAddress address;
+
+        /**
+         * Sets AS number.
+         *
+         * @param asNumber AS number
+         * @return Builder object
+         */
+        public Builder withAsNumber(int asNumber) {
+            this.asNumber = asNumber;
+            return this;
+        }
+
+        /**
+         * Sets mapping address.
+         *
+         * @param address mapping address
+         * @return Builder object
+         */
+        public Builder withAddress(MappingAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        /**
+         * Builds LispAsAddress instance.
+         *
+         * @return LispAsAddress instance
+         */
+        public LispAsAddress build() {
+
+            return new LispAsAddress(asNumber, address);
+        }
     }
 }

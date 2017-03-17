@@ -20,14 +20,20 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                                .ExtensionMappingAddressTypes.LIST_ADDRESS;
+
 /**
  * Implementation of LISP list address.
+ * When header translation between IPv4 and IPv6 is desirable a LISP Canonical
+ * Address can use the AFI List Type to carry a variable number of AFIs in one
+ * LCAF AFI.
  */
 public class LispListAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return LIST_ADDRESS.type();
     }
 
     @Override

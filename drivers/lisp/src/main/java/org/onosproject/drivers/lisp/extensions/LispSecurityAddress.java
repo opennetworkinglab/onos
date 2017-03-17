@@ -20,6 +20,9 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                            .ExtensionMappingAddressTypes.SECURITY_ADDRESS;
+
 /**
  * Implementation LISP security address.
  */
@@ -27,7 +30,7 @@ public class LispSecurityAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return SECURITY_ADDRESS.type();
     }
 
     @Override

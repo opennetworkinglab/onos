@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
+    '//core/store/serializers:onos-core-serializers'
 ]
 
 TEST_DEPS = [

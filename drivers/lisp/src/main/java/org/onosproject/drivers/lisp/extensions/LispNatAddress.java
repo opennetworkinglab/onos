@@ -20,14 +20,19 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                                .ExtensionMappingAddressTypes.NAT_ADDRESS;
+
 /**
  * Implementation of LISP Network Address Translation (NAT) address.
+ * When a LISP system is conveying global address and mapped port information
+ * when traversing through a NAT device, the NAT-Traversal Type is used.
  */
 public class LispNatAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return NAT_ADDRESS.type();
     }
 
     @Override

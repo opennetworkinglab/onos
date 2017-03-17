@@ -20,14 +20,20 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                            .ExtensionMappingAddressTypes.SECURITY_ADDRESS;
+
 /**
  * Implementation of LISP segment address.
+ * When multiple organizations inside of a LISP site are using private addresses
+ * [RFC1918] as EID-prefixes, their address spaces must remain segregated due
+ * to possible address duplication.
  */
 public class LispSegmentAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return SECURITY_ADDRESS.type();
     }
 
     @Override

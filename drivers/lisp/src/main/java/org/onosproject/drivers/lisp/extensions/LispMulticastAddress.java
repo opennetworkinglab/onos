@@ -20,14 +20,19 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                            .ExtensionMappingAddressTypes.MULTICAST_ADDRESS;
+
 /**
  * Implementation of LISP multicast address.
+ * The intent of this type of unicast replication is to deliver packets to
+ * multiple ETRs at receiver LISP multicast sites.
  */
 public class LispMulticastAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return MULTICAST_ADDRESS.type();
     }
 
     @Override

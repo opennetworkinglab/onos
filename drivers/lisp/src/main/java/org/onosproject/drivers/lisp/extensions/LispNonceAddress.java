@@ -20,14 +20,19 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                                .ExtensionMappingAddressTypes.NONCE_ADDRESS;
+
 /**
  * Implementation of LISP nonce address.
+ * When a public PETR device wants to verify who is encapsulating to it, it can
+ * check for a specific nonce value in the LISP encapsulated packet.
  */
 public class LispNonceAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return NONCE_ADDRESS.type();
     }
 
     @Override

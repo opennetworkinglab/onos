@@ -33,7 +33,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Traffic Engineering (TE) type LCAF address class.
  * <p>
  * Traffic Engineering type is defined in draft-ietf-lisp-lcaf-22
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-16
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-17
  *
  * <pre>
  * {@literal

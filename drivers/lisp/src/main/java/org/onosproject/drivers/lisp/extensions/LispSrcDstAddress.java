@@ -20,14 +20,20 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                            .ExtensionMappingAddressTypes.SOURCE_DEST_ADDRESS;
+
 /**
- * Implementation of LISP source and detination address.
+ * Implementation of LISP source and destination address.
+ * When both a source and destination address of a flow need consideration for
+ * different locator-sets, this 2-tuple key is used in EID fields in LISP
+ * control messages.
  */
 public class LispSrcDstAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return SOURCE_DEST_ADDRESS.type();
     }
 
     @Override

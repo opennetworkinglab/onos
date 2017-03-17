@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Instance ID type LCAF address class.
  * <p>
  * Instance ID type is defined in draft-ietf-lisp-lcaf-22
- * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-7
+ * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-8
  *
  * <pre>
  * {@literal

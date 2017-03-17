@@ -20,14 +20,19 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.net.flow.AbstractExtension;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
+                    .ExtensionMappingAddressTypes.TRAFFIC_ENGINEERING_ADDRESS;
+
 /**
  * Implementation of LISP traffic engineering address.
+ * For a given EID lookup into the mapping database, this LCAF can be returned
+ * to provide a list of locators in an explicit re-encapsulation path.
  */
 public final class LispTeAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
     @Override
     public ExtensionMappingAddressType type() {
-        return null;
+        return TRAFFIC_ENGINEERING_ADDRESS.type();
     }
 
     @Override
