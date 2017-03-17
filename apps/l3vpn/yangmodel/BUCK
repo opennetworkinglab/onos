@@ -1,0 +1,13 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:onos-yang-model',
+]
+
+yang_osgi_jar(
+  deps = COMPILE_DEPS,
+  name = 'onos-apps-l3vpn-yangmodel',
+  srcs = glob(['src/main/**/*.yang']),
+  visibility = [
+    'PUBLIC'
+  ],
+)

@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
+  '//lib:onos-yang-model',
+  '//lib:onos-yang-runtime',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_ADAPTERS',
+  '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests(
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+)
