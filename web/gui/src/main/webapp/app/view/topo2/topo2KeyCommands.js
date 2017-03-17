@@ -17,31 +17,36 @@
 (function () {
 
     // Injected Services
-    var ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs, t2fs, t2sls;
+    var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs, t2fs, t2sls, t2tbs;
 
     // Commmands
-    var actionMap = {
-        L: [cycleDeviceLabels, 'Cycle device labels'],
-        B: [toggleBackground, 'Toggle background'],
-        I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
-        O: [toggleSummary, 'Toggle the Summary Panel'],
-        R: [resetZoom, 'Reset pan / zoom'],
-        P: [togglePorts, 'Toggle Port Highlighting'],
-        E: [equalizeMasters, 'Equalize mastership roles'],
-        X: [resetNodeLocation, 'Reset Node Location'],
-        U: [unpinNode, 'Unpin node (mouse over)'],
+    function actionMap() {
+        return {
+            L: [cycleDeviceLabels, 'Cycle device labels'],
+            B: [toggleBackground, 'Toggle background'],
+            I: [toggleInstancePanel, 'Toggle ONOS Instance Panel'],
+            O: [toggleSummary, 'Toggle the Summary Panel'],
+            R: [resetZoom, 'Reset pan / zoom'],
+            P: [togglePorts, 'Toggle Port Highlighting'],
+            E: [equalizeMasters, 'Equalize mastership roles'],
+            X: [resetNodeLocation, 'Reset Node Location'],
+            U: [unpinNode, 'Unpin node (mouse over)'],
 
-        esc: handleEscape
+            esc: handleEscape,
+
+            _keyListener: t2tbs.keyListener.bind(t2tbs)
+        }
     };
 
-    function init(_t2fs_) {
+    function init(_t2fs_, _t2tbs_) {
         t2fs = _t2fs_;
+        t2tbs = _t2tbs_;
         bindCommands();
     }
 
     function bindCommands() {
 
-        ks.keyBindings(actionMap);
+        ks.keyBindings(actionMap());
 
         ks.gestureNotes([
             ['click', 'Select the item and show details'],
@@ -134,15 +139,38 @@
         flash.flash('Unpin node');
     }
 
+    function notValid(what) {
+        $log.warn('topo.js getActionEntry(): Not a valid ' + what);
+    }
+
+    function getActionEntry(key) {
+        var entry;
+
+        if (!key) {
+            notValid('key');
+            return null;
+        }
+
+        entry = actionMap()[key];
+
+        if (!entry) {
+            notValid('actionMap (' + key + ') entry');
+            return null;
+        }
+        return fs.isA(entry) || [entry, ''];
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService', [
-        'KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
+        '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
         'Topo2BackgroundService', 'PrefsService', 'Topo2InstanceService',
         'Topo2SummaryPanelService', 'Topo2ViewService', 'Topo2RegionService',
         'Topo2SpriteLayerService',
-        function (_ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_, _t2is_, _t2sp_,
+        function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_, _t2is_, _t2sp_,
                   _t2vs_, _t2rs_, _t2sls_) {
 
+            $log = _$log_;
+            fs = _fs_;
             ks = _ks_;
             flash = _flash_;
             wss = _wss_;
@@ -157,7 +185,8 @@
 
             return {
                 init: init,
-                bindCommands: bindCommands
+                bindCommands: bindCommands,
+                getActionEntry: getActionEntry
             };
         }
     ]);

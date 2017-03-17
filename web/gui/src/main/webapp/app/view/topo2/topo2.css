@@ -207,3 +207,20 @@ html[data-platform='iPad'] #topo2-p-detail {
     border: 0;
     margin: 4px -3px;
 }
+
+/* --- Toolbar --- */
+
+#toolbar-topo2-toolbar {
+    padding: 6px;
+}
+
+#toolbar-topo2-toolbar .tbar-row.right {
+    width: 100%;
+}
+
+#toolbar-topo2-toolbar .tbar-row-text {
+    height: 21px;
+    text-align: right;
+    padding: 8px 60px 0 0;
+    font-style: italic;
+}

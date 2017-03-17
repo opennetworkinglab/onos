@@ -98,7 +98,7 @@
         'Topo2EventService', 'Topo2ForceService', 'Topo2InstanceService',
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2SpriteLayerService',
-        'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel',
+        'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ToolbarService',
 
         function (
             _$scope_, _$log_, _$loc_,
@@ -108,7 +108,7 @@
             _t2es_, _t2fs_, _t2is_,
             _t2bcs_, _t2kcs_, _t2ms_,
             _t2mcs_, _t2zs_, t2sls,
-            summaryPanel, detailsPanel
+            summaryPanel, detailsPanel, t2tbs
         ) {
             var params = _$loc_.search(),
                 dim,
@@ -188,10 +188,10 @@
             // make sure we can respond to topology events from the server
             t2es.bindHandlers();
 
-            t2fs.init(svg, forceG, uplink, dim, zoomer);
             t2bcs.init();
-            t2kcs.init(t2fs);
+            t2kcs.init(t2fs, t2tbs);
             t2is.initInst({ showMastership: t2fs.showMastership });
+            t2fs.init(svg, forceG, uplink, dim, zoomer);
 
             // === ORIGINAL CODE ===
 

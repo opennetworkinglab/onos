@@ -25,7 +25,7 @@
     // injected refs
     var $log, $loc, wss;
 
-    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs;
+    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs, t2tbs;
     var svg, forceG, uplink, dim, opts, zoomer;
 
     // D3 Selections
@@ -49,11 +49,12 @@
         t2ss.init(svg, zoomer);
         t2ss.region = t2rs;
         t2rs.layout = t2ls;
-
+        t2tbs.init();
         navToBookmarkedRegion($loc.search().regionId);
     }
 
     function destroy() {
+        t2tbs.destroy();
         $log.debug('Destroy topo force layout');
     }
 
@@ -188,9 +189,9 @@
         '$log', '$location', 'WebSocketService', 'Topo2InstanceService',
         'Topo2RegionService', 'Topo2LayoutService', 'Topo2ViewService',
         'Topo2BreadcrumbService', 'Topo2ZoomService', 'Topo2SelectService',
-        'Topo2BackgroundService',
+        'Topo2BackgroundService', 'Topo2ToolbarService',
         function (_$log_, _$loc_, _wss_, _t2is_, _t2rs_, _t2ls_,
-            _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_) {
+            _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_, _t2tbs_) {
 
             $log = _$log_;
             $loc = _$loc_;
@@ -202,6 +203,7 @@
             t2bcs = _t2bcs_;
             t2ss = _t2ss_;
             t2bgs = _t2bgs_;
+            t2tbs = _t2tbs_;
 
             var onZoom = function () {
                 var nodes = [].concat(
