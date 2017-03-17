@@ -3,6 +3,7 @@ COMPILE_DEPS = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-runtime',
     '//apps/config:onos-apps-config',
+    '//apps/netconf/client:onos-apps-netconf-client'
 ]
 
 osgi_jar_with_tests (
