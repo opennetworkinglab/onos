@@ -63,9 +63,7 @@ public final class ContinuousResourceId extends ResourceId {
         String typeName = (String) lastComponent();
         boolean foundInLeaf = typeName.equals(ancestor.getCanonicalName());
         boolean foundInAncestor = components.subList(0, components.size()).stream()
-                .filter(x -> ancestor.isAssignableFrom(x.getClass()))
-                .findAny()
-                .isPresent();
+                .anyMatch(x -> ancestor.isAssignableFrom(x.getClass()));
         return foundInAncestor || foundInLeaf;
     }
 
