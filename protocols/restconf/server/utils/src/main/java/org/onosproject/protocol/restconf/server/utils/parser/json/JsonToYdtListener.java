@@ -32,6 +32,9 @@ import java.util.Set;
 import java.util.Stack;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.ARRAY;
+import static com.fasterxml.jackson.databind.node.JsonNodeType.MISSING;
+import static com.fasterxml.jackson.databind.node.JsonNodeType.NULL;
+import static com.fasterxml.jackson.databind.node.JsonNodeType.POJO;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.protocol.restconf.server.utils.parser.json.ParserUtils.buildNormalizedNode;
 import static org.onosproject.yms.ydt.YdtType.MULTI_INSTANCE_NODE;
@@ -119,6 +122,13 @@ public class JsonToYdtListener implements JsonListener {
         }
 
         if (jsonNode.getNodeType() == ARRAY) {
+            // Since node is not pushed to stack when array node is empty.
+            // It should not be poped.
+            ArrayNode arrayNode = (ArrayNode) jsonNode;
+            if (arrayNode.size() == 0) {
+                return;
+            }
+
             //check empty before pop
             if (nameStack.empty()) {
                 return;
@@ -131,8 +141,13 @@ public class JsonToYdtListener implements JsonListener {
             defaultMultiInsNode = nameStack.get(nameStack.size() - 1);
             return;
         }
-
-        ydtBuilder.traverseToParent();
+        // Since node is not added to ydt when node types are binary, missing,
+        // null and pojo, traverse to parent should not be called.
+        JsonNodeType nodeType = jsonNode.getNodeType();
+        if (nodeType != JsonNodeType.BINARY && nodeType != MISSING &&
+                nodeType != NULL && nodeType != POJO) {
+            ydtBuilder.traverseToParent();
+        }
     }
 
     private void processObjectNode(NormalizedYangNode node) {
