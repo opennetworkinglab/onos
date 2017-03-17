@@ -128,23 +128,20 @@ public class DistributedDynamicConfigStore
     public CompletableFuture<Boolean>
     addRecursive(ResourceId complete, DataNode node) {
         CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
-        //Workaround
         List<NodeKey> nodeKeyList = complete.nodeKeys();
         NodeKey f = nodeKeyList.get(0);
         if (f.schemaId().name().compareTo("/") == 0) {
             nodeKeyList.remove(0);
         }
-        //Workaround end
-        ResourceId path = ResourceIdParser.getParent(complete);
-        String spath = ResourceIdParser.parseResId(path);
+        String spath = ResourceIdParser.parseResId(complete);
         if (spath == null) {
             throw new FailedException("Invalid RsourceId, cannot create Node");
         }
-        /*if (keystore.get(DocumentPath.from(spath)).join() == null) {
-            ////TODO is recursively creating missing parents required?
+        if (keystore.get(DocumentPath.from(spath)).join() == null) {
+            ////TODO recursively creating missing parents
             throw new FailedException("Some of the parents in the path " +
                     "are not present, creation not supported currently");
-        }*/
+        }
         spath = ResourceIdParser.appendNodeKey(spath, node.key());
         parseNode(spath, node);
         return eventFuture;
@@ -217,13 +214,11 @@ public class DistributedDynamicConfigStore
     @Override
     public CompletableFuture<DataNode> readNode(ResourceId path, Filter filter) {
         CompletableFuture<DataNode> eventFuture = CompletableFuture.completedFuture(null);
-        //Workaround
         List<NodeKey> nodeKeyList = path.nodeKeys();
         NodeKey f = nodeKeyList.get(0);
         if (f.schemaId().name().compareTo("/") == 0) {
             nodeKeyList.remove(0);
         }
-        //Workaround end
         String spath = ResourceIdParser.parseResId(path);
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
@@ -346,13 +341,11 @@ public class DistributedDynamicConfigStore
 
     @Override
     public CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path) {
-        //Workaround
         List<NodeKey> nodeKeyList = path.nodeKeys();
         NodeKey f = nodeKeyList.get(0);
         if (f.schemaId().name().compareTo("/") == 0) {
             nodeKeyList.remove(0);
         }
-        //Workaround end
         String spath = ResourceIdParser.parseResId(path);
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
