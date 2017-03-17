@@ -103,7 +103,7 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Override
     public void triggerProbe(DeviceId deviceId) {
-        log.debug("Alarm probe triggered with " + deviceId);
+        log.debug("Alarm probe triggered with {}", deviceId);
     }
 
     private void triggerProbe(DeviceId deviceId, Collection<Alarm> alarms) {

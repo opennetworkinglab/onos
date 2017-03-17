@@ -41,7 +41,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
 
     /**
      * Creates a new default NETCONF device with the information provided.
-     * The device gets created only if no exception is thrwn while connecting to
+     * The device gets created only if no exception is thrown while connecting to
      * it and establishing the NETCONF session.
      * @param deviceInfo information about the device to be created.
      * @throws NetconfException if there are problems in creating or establishing

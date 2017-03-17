@@ -18,6 +18,8 @@ package org.onosproject.netconf;
 
 import org.onosproject.event.AbstractEvent;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Optional;
 
 /**
@@ -117,5 +119,14 @@ public final class NetconfDeviceOutputEvent extends
      */
     public Optional<Integer> getMessageID() {
         return messageID;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("messageID", messageID)
+                .add("deviceInfo", deviceInfo)
+                .add("messagePayload", messagePayload)
+                .toString();
     }
 }

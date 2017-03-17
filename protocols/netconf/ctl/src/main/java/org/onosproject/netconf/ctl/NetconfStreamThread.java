@@ -173,6 +173,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
         abstract NetconfMessageState evaluateChar(char c);
     }
 
+    @Override
     public void run() {
         BufferedReader bufferReader = new BufferedReader(new InputStreamReader(in));
             try {
@@ -224,6 +225,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                          netconfDeviceInfo, enableNotifications,
                                          getMsgId(deviceReply), deviceReply);
                                 if (enableNotifications) {
+                                    log.debug("dispatching to {} listeners", netconfDeviceEventListeners.size());
                                     final String finalDeviceReply = deviceReply;
                                     netconfDeviceEventListeners.forEach(
                                             listener -> listener.event(new NetconfDeviceOutputEvent(
@@ -259,16 +261,19 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
         return Optional.empty();
     }
 
+    @Override
     public void addDeviceEventListener(NetconfDeviceOutputEventListener listener) {
         if (!netconfDeviceEventListeners.contains(listener)) {
             netconfDeviceEventListeners.add(listener);
         }
     }
 
+    @Override
     public void removeDeviceEventListener(NetconfDeviceOutputEventListener listener) {
         netconfDeviceEventListeners.remove(listener);
     }
 
+    @Override
     public void setEnableNotifications(boolean enableNotifications) {
         this.enableNotifications = enableNotifications;
     }
