@@ -305,7 +305,7 @@ public class DistributedOpenstackRouterStore
             }
             if (oldGateway != null && newGateway == null) {
                 notifyDelegate(new OpenstackRouterEvent(
-                        OPENSTACK_ROUTER_GATEWAY_ADDED,
+                        OPENSTACK_ROUTER_GATEWAY_REMOVED,
                         event.newValue().value(), oldGateway));
             }
         }
