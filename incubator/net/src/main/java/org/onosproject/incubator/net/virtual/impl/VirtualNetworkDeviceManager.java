@@ -19,6 +19,8 @@ package org.onosproject.incubator.net.virtual.impl;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
@@ -28,6 +30,7 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceEvent.Type;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
@@ -48,6 +51,7 @@ public class VirtualNetworkDeviceManager
     private static final String TYPE_NULL = "Type cannot be null";
     private static final String DEVICE_NULL = "Device cannot be null";
     private static final String PORT_NUMBER_NULL = "PortNumber cannot be null";
+    private VirtualNetworkListener virtualNetworkListener = new InternalVirtualNetworkListener();
 
     /**
      * Creates a new VirtualNetworkDeviceService object.
@@ -58,6 +62,7 @@ public class VirtualNetworkDeviceManager
     public VirtualNetworkDeviceManager(VirtualNetworkService virtualNetworkManager,
                                        NetworkId networkId) {
         super(virtualNetworkManager, networkId);
+        manager.addListener(virtualNetworkListener);
     }
 
     @Override
@@ -175,5 +180,45 @@ public class VirtualNetworkDeviceManager
     public String localStatus(DeviceId deviceId) {
         // TODO not supported at this time
         return null;
+    }
+
+    /**
+     * Translates VirtualNetworkEvent to DeviceEvent.
+     */
+    private class InternalVirtualNetworkListener implements VirtualNetworkListener {
+        @Override
+        public boolean isRelevant(VirtualNetworkEvent event) {
+            return networkId().equals(event.subject());
+        }
+
+        @Override
+        public void event(VirtualNetworkEvent event) {
+            switch (event.type()) {
+                case VIRTUAL_DEVICE_ADDED:
+                    post(new DeviceEvent(Type.DEVICE_ADDED, event.virtualDevice()));
+                    break;
+                case VIRTUAL_DEVICE_UPDATED:
+                    post(new DeviceEvent(Type.DEVICE_UPDATED, event.virtualDevice()));
+                    break;
+                case VIRTUAL_DEVICE_REMOVED:
+                    post(new DeviceEvent(Type.DEVICE_REMOVED, event.virtualDevice()));
+                    break;
+                case VIRTUAL_PORT_ADDED:
+                    post(new DeviceEvent(Type.PORT_ADDED, event.virtualDevice(), event.virtualPort()));
+                    break;
+                case VIRTUAL_PORT_UPDATED:
+                    post(new DeviceEvent(Type.PORT_UPDATED, event.virtualDevice(), event.virtualPort()));
+                    break;
+                case VIRTUAL_PORT_REMOVED:
+                    post(new DeviceEvent(Type.PORT_REMOVED, event.virtualDevice(), event.virtualPort()));
+                    break;
+                case NETWORK_UPDATED:
+                case NETWORK_REMOVED:
+                case NETWORK_ADDED:
+                default:
+                    // do nothing
+                    break;
+            }
+        }
     }
 }

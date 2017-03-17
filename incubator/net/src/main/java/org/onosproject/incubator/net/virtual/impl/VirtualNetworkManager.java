@@ -46,6 +46,8 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.VnetService;
+import org.onosproject.incubator.net.virtual.event.VirtualEvent;
+import org.onosproject.incubator.net.virtual.event.VirtualListenerRegistryManager;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
@@ -57,8 +59,8 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.group.GroupService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
@@ -142,6 +144,8 @@ public class VirtualNetworkManager
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(VirtualNetworkEvent.class, listenerRegistry);
+        eventDispatcher.addSink(VirtualEvent.class,
+                                VirtualListenerRegistryManager.getInstance());
         intentService.addListener(intentListener);
         appId = coreService.registerApplication(VIRTUAL_NETWORK_APP_ID_STRING);
         log.info("Started");
@@ -151,6 +155,7 @@ public class VirtualNetworkManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(VirtualNetworkEvent.class);
+        eventDispatcher.removeSink(VirtualEvent.class);
         intentService.removeListener(intentListener);
         log.info("Stopped");
     }

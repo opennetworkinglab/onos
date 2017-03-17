@@ -36,8 +36,6 @@ import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
-import org.onosproject.incubator.net.virtual.event.VirtualEvent;
-import org.onosproject.incubator.net.virtual.event.VirtualListenerRegistryManager;
 import org.onosproject.incubator.net.virtual.impl.provider.VirtualProviderManager;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualGroupProvider;
@@ -89,8 +87,6 @@ public class VirtualNetworkGroupManagerTest {
     private VirtualProviderManager providerRegistryService;
 
     private EventDeliveryService eventDeliveryService;
-    VirtualListenerRegistryManager listenerRegistryManager =
-            VirtualListenerRegistryManager.getInstance();
 
     private VirtualNetworkGroupManager groupManager1;
     private VirtualNetworkGroupManager groupManager2;
@@ -130,7 +126,6 @@ public class VirtualNetworkGroupManagerTest {
 
         eventDeliveryService = new TestEventDispatcher();
         injectEventDispatcher(manager, eventDeliveryService);
-        eventDeliveryService.addSink(VirtualEvent.class, listenerRegistryManager);
 
         appId = new TestApplicationId("VirtualGroupManagerTest");
 

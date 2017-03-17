@@ -33,8 +33,6 @@ import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
-import org.onosproject.incubator.net.virtual.event.VirtualEvent;
-import org.onosproject.incubator.net.virtual.event.VirtualListenerRegistryManager;
 import org.onosproject.incubator.net.virtual.impl.provider.VirtualProviderManager;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualFlowRuleProvider;
@@ -58,7 +56,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestStorageService;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Junit tests for VirtualNetworkFlowObjectiveManager.
@@ -76,8 +74,6 @@ public class VirtualNetworkFlowObjectiveManagerTest
 
     private VirtualProviderManager providerRegistryService;
     private EventDeliveryService eventDeliveryService;
-    VirtualListenerRegistryManager listenerRegistryManager =
-            VirtualListenerRegistryManager.getInstance();
 
     private ApplicationId appId;
 
@@ -117,7 +113,6 @@ public class VirtualNetworkFlowObjectiveManagerTest
 
         eventDeliveryService = new TestEventDispatcher();
         NetTestTools.injectEventDispatcher(manager, eventDeliveryService);
-        eventDeliveryService.addSink(VirtualEvent.class, listenerRegistryManager);
 
         appId = new TestApplicationId("FlowRuleManagerTest");
 
