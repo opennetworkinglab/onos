@@ -251,7 +251,8 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
 
         Optional<Host> host = hosts.stream().findFirst();
         if (host.isPresent()) {
-            return new ResolvedRoute(route, host.get().mac(), host.get().location());
+            return new ResolvedRoute(route, host.get().mac(), host.get().vlan(),
+                    host.get().location());
         } else {
             return null;
         }

@@ -39,10 +39,12 @@ import java.util.Optional;
         description = "Lists routes in the route store")
 public class RoutesListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT_HEADER =
-        "    Network            Next Hop        Source";
-    private static final String FORMAT_ROUTE =
-            "%-1s   %-18s %-15s %-10s";
+    private static final String NETWORK = "Network";
+    private static final String NEXTHOP = "Next Hop";
+    private static final String SOURCE = "Source";
+
+    private static final String FORMAT_ROUTE = "%-1s   %-18s %-15s %-10s";
+    private static final String FORMAT_ROUTE6 = "%-1s   %-43s %-39s %-10s";
 
     private static final String FORMAT_TABLE = "Table: %s";
     private static final String FORMAT_TOTAL = "   Total: %d";
@@ -59,13 +61,19 @@ public class RoutesListCommand extends AbstractShellCommand {
             print("%s", result);
         } else {
             service.getRouteTables().forEach(id -> {
-                print(FORMAT_TABLE, id);
-                print(FORMAT_HEADER);
                 Collection<RouteInfo> tableRoutes = service.getRoutes(id);
 
+                String format = tableRoutes.stream().anyMatch(route -> route.prefix().isIp6()) ?
+                        FORMAT_ROUTE6 : FORMAT_ROUTE;
+
+                // Print header
+                print(FORMAT_TABLE, id);
+                print(format, "", NETWORK, NEXTHOP, SOURCE);
+
+                // Print routing entries
                 tableRoutes.stream()
                         .sorted(Comparator.comparing(r -> r.prefix().address()))
-                        .forEach(this::print);
+                        .forEach(route -> this.print(format, route));
 
                 print(FORMAT_TOTAL, tableRoutes.size());
                 print("");
@@ -73,9 +81,9 @@ public class RoutesListCommand extends AbstractShellCommand {
         }
     }
 
-    private void print(RouteInfo routeInfo) {
+    private void print(String format, RouteInfo routeInfo) {
         routeInfo.allRoutes()
-                .forEach(r -> print(FORMAT_ROUTE, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
+                .forEach(r -> print(format, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
                         r.prefix(), r.nextHop(), Route.Source.UNDEFINED));
     }
 
