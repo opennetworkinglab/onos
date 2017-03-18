@@ -16,12 +16,18 @@
 
 package org.onosproject.drivers.lisp.extensions;
 
+import com.google.common.collect.Maps;
 import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
+import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.flow.AbstractExtension;
 
+import java.util.Map;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
-                            .ExtensionMappingAddressTypes.SECURITY_ADDRESS;
+                                .ExtensionMappingAddressTypes.SEGMENT_ADDRESS;
 
 /**
  * Implementation of LISP segment address.
@@ -31,18 +37,135 @@ import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
  */
 public class LispSegmentAddress extends AbstractExtension
                                             implements ExtensionMappingAddress {
+
+    private static final String INSTANCE_ID = "instanceId";
+    private static final String ADDRESS = "address";
+
+    private int instanceId;
+    private MappingAddress address;
+
+    /**
+     * Default constructor.
+     */
+    public LispSegmentAddress() {
+    }
+
+    /**
+     * Creates an instance with initialized parameters.
+     *
+     * @param instanceId instance id
+     * @param address    address
+     */
+    private LispSegmentAddress(int instanceId, MappingAddress address) {
+        this.instanceId = instanceId;
+        this.address = address;
+    }
+
+    /**
+     * Obtains instance identifier.
+     *
+     * @return instance identifier
+     */
+    public int getInstanceId() {
+        return instanceId;
+    }
+
+    /**
+     * Obtains address.
+     *
+     * @return address
+     */
+    public MappingAddress getAddress() {
+        return address;
+    }
+
     @Override
     public ExtensionMappingAddressType type() {
-        return SECURITY_ADDRESS.type();
+        return SEGMENT_ADDRESS.type();
     }
 
     @Override
     public byte[] serialize() {
-        return new byte[0];
+        Map<String, Object> parameterMap = Maps.newHashMap();
+
+        parameterMap.put(INSTANCE_ID, instanceId);
+        parameterMap.put(ADDRESS, address);
+
+        return APP_KRYO.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
+        Map<String, Object> parameterMap = APP_KRYO.deserialize(data);
 
+        this.instanceId = (int) parameterMap.get(INSTANCE_ID);
+        this.address = (MappingAddress) parameterMap.get(ADDRESS);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, instanceId);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispSegmentAddress) {
+            final LispSegmentAddress other = (LispSegmentAddress) obj;
+            return Objects.equals(this.address, other.address) &&
+                    Objects.equals(this.instanceId, other.instanceId);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("address", address)
+                .add("instanceId", instanceId)
+                .toString();
+    }
+
+    /**
+     * A builder for building LispSegmentAddress.
+     */
+    public static final class Builder {
+        private int instanceId;
+        private MappingAddress address;
+
+        /**
+         * Sets instance identifer.
+         *
+         * @param instanceId instance identifier
+         * @return Builder object
+         */
+        public Builder withInstanceId(int instanceId) {
+            this.instanceId = instanceId;
+            return this;
+        }
+
+        /**
+         * Sets address.
+         *
+         * @param address mapping address
+         * @return Builder object
+         */
+        public Builder withAddress(MappingAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        /**
+         * Builds LispSegmentAddress instance.
+         *
+         * @return LispSegmentAddress instance
+         */
+        public LispSegmentAddress build() {
+
+            return new LispSegmentAddress(instanceId, address);
+        }
     }
 }

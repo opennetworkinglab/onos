@@ -16,12 +16,18 @@
 
 package org.onosproject.drivers.lisp.extensions;
 
+import com.google.common.collect.Maps;
 import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
+import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.flow.AbstractExtension;
 
+import java.util.Map;
+import java.util.Objects;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
-                                .ExtensionMappingAddressTypes.NONCE_ADDRESS;
+        .ExtensionMappingAddressTypes.NONCE_ADDRESS;
 
 /**
  * Implementation of LISP nonce address.
@@ -29,7 +35,49 @@ import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
  * check for a specific nonce value in the LISP encapsulated packet.
  */
 public class LispNonceAddress extends AbstractExtension
-                                            implements ExtensionMappingAddress {
+        implements ExtensionMappingAddress {
+
+    private static final String NONCE = "nonce";
+    private static final String ADDRESS = "address";
+
+    private int nonce;
+    private MappingAddress address;
+
+    /**
+     * Default constructor.
+     */
+    public LispNonceAddress() {
+    }
+
+    /**
+     * Creates an instance with initialized parameters.
+     *
+     * @param nonce   nonce
+     * @param address address
+     */
+    private LispNonceAddress(int nonce, MappingAddress address) {
+        this.nonce = nonce;
+        this.address = address;
+    }
+
+    /**
+     * Obtains nonce.
+     *
+     * @return nonce
+     */
+    public int getNonce() {
+        return nonce;
+    }
+
+    /**
+     * Obtains address.
+     *
+     * @return address
+     */
+    public MappingAddress getAddress() {
+        return address;
+    }
+
     @Override
     public ExtensionMappingAddressType type() {
         return NONCE_ADDRESS.type();
@@ -37,11 +85,86 @@ public class LispNonceAddress extends AbstractExtension
 
     @Override
     public byte[] serialize() {
-        return new byte[0];
+        Map<String, Object> parameterMap = Maps.newHashMap();
+
+        parameterMap.put(NONCE, nonce);
+        parameterMap.put(ADDRESS, address);
+
+        return APP_KRYO.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
+        Map<String, Object> parameterMap = APP_KRYO.deserialize(data);
 
+        this.nonce = (int) parameterMap.get(NONCE);
+        this.address = (MappingAddress) parameterMap.get(ADDRESS);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nonce, address);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof LispNonceAddress) {
+            final LispNonceAddress other = (LispNonceAddress) obj;
+            return Objects.equals(this.nonce, other.nonce) &&
+                    Objects.equals(this.address, other.address);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("nonce", nonce)
+                .add("address", address)
+                .toString();
+    }
+
+    /**
+     * A builder for building LispNonceAddress.
+     */
+    public static final class Builder {
+        private int nonce;
+        private MappingAddress address;
+
+        /**
+         * Sets nonce.
+         *
+         * @param nonce nonce
+         * @return Builder object
+         */
+        public Builder withNonce(int nonce) {
+            this.nonce = nonce;
+            return this;
+        }
+
+        /**
+         * Sets address.
+         *
+         * @param address address
+         * @return Builder object
+         */
+        public Builder withAddress(MappingAddress address) {
+            this.address = address;
+            return this;
+        }
+
+        /**
+         * Builds LispNonceAddress instance.
+         *
+         * @return LispNonceAddress instance
+         */
+        public LispNonceAddress build() {
+
+            return new LispNonceAddress(nonce, address);
+        }
     }
 }
