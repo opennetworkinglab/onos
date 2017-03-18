@@ -17,16 +17,10 @@
 package org.onosproject.drivers.lisp.extensions;
 
 import com.google.common.collect.Maps;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.mapping.addresses.ASMappingAddress;
-import org.onosproject.mapping.addresses.DNMappingAddress;
-import org.onosproject.mapping.addresses.EthMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
-import org.onosproject.mapping.addresses.IPMappingAddress;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.flow.AbstractExtension;
-import org.onosproject.store.serializers.KryoNamespaces;
 
 import java.util.Map;
 import java.util.Objects;
@@ -65,16 +59,6 @@ public class LispGcAddress extends AbstractExtension
     private byte longitudeSecond;
     private int altitude;
     private MappingAddress address;
-
-    private final KryoNamespace appKryo = new KryoNamespace.Builder()
-                                                .register(KryoNamespaces.API)
-                                                .register(MappingAddress.class)
-                                                .register(MappingAddress.Type.class)
-                                                .register(IPMappingAddress.class)
-                                                .register(ASMappingAddress.class)
-                                                .register(DNMappingAddress.class)
-                                                .register(EthMappingAddress.class)
-                                                .build();
 
     /**
      * Default constructor.
@@ -222,12 +206,12 @@ public class LispGcAddress extends AbstractExtension
         parameterMap.put(ALTITUDE, altitude);
         parameterMap.put(ADDRESS, address);
 
-        return appKryo.serialize(parameterMap);
+        return APP_KRYO.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
-        Map<String, Object> parameterMap = appKryo.deserialize(data);
+        Map<String, Object> parameterMap = APP_KRYO.deserialize(data);
 
         this.north = (boolean) parameterMap.get(NORTH);
         this.latitudeDegree = (short) parameterMap.get(LATITUDE_DEGREE);

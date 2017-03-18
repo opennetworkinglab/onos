@@ -15,12 +15,24 @@
  */
 package org.onosproject.mapping.addresses;
 
+import org.onlab.util.KryoNamespace;
 import org.onosproject.net.flow.Extension;
+import org.onosproject.store.serializers.KryoNamespaces;
 
 /**
  * An extension for the mapping address API.
  */
 public interface ExtensionMappingAddress extends Extension {
+
+    KryoNamespace APP_KRYO = new KryoNamespace.Builder()
+                                            .register(KryoNamespaces.API)
+                                            .register(MappingAddress.class)
+                                            .register(MappingAddress.Type.class)
+                                            .register(IPMappingAddress.class)
+                                            .register(ASMappingAddress.class)
+                                            .register(DNMappingAddress.class)
+                                            .register(EthMappingAddress.class)
+                                            .build();
 
     /**
      * Obtains the type of the extension mapping address.

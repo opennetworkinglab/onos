@@ -17,23 +17,17 @@
 package org.onosproject.drivers.lisp.extensions;
 
 import com.google.common.collect.Maps;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.mapping.addresses.ASMappingAddress;
-import org.onosproject.mapping.addresses.DNMappingAddress;
-import org.onosproject.mapping.addresses.EthMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
-import org.onosproject.mapping.addresses.IPMappingAddress;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.flow.AbstractExtension;
-import org.onosproject.store.serializers.KryoNamespaces;
 
 import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType
-                                .ExtensionMappingAddressTypes.LIST_ADDRESS;
+                                    .ExtensionMappingAddressTypes.LIST_ADDRESS;
 
 /**
  * Implementation of LISP list address.
@@ -49,16 +43,6 @@ public class LispListAddress extends AbstractExtension
 
     private MappingAddress ipv4;
     private MappingAddress ipv6;
-
-    private final KryoNamespace appKryo = new KryoNamespace.Builder()
-                                                .register(KryoNamespaces.API)
-                                                .register(MappingAddress.class)
-                                                .register(MappingAddress.Type.class)
-                                                .register(IPMappingAddress.class)
-                                                .register(ASMappingAddress.class)
-                                                .register(DNMappingAddress.class)
-                                                .register(EthMappingAddress.class)
-                                                .build();
 
     /**
      * Default constructor.
@@ -108,13 +92,13 @@ public class LispListAddress extends AbstractExtension
         parameterMap.put(IPV4, ipv4);
         parameterMap.put(IPV6, ipv6);
 
-        return appKryo.serialize(parameterMap);
+        return APP_KRYO.serialize(parameterMap);
     }
 
     @Override
     public void deserialize(byte[] data) {
 
-        Map<String, Object> parameterMap = appKryo.deserialize(data);
+        Map<String, Object> parameterMap = APP_KRYO.deserialize(data);
 
         this.ipv4 = (MappingAddress) parameterMap.get(IPV4);
         this.ipv6 = (MappingAddress) parameterMap.get(IPV6);
