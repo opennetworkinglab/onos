@@ -99,7 +99,7 @@ public class LispMulticastLcafAddressTest {
                 new LispIpv4Address(IpAddress.valueOf(IP_ADDRESS_1));
 
         assertThat(multicastLcafAddress.getInstanceId(), is(1));
-        assertThat(multicastLcafAddress.getSrcMaskLenth(), is((byte) 0x24));
+        assertThat(multicastLcafAddress.getSrcMaskLength(), is((byte) 0x24));
         assertThat(multicastLcafAddress.getGrpMaskLength(), is((byte) 0x24));
         assertThat(multicastLcafAddress.getSrcAddress(), is(ipv4Address));
         assertThat(multicastLcafAddress.getGrpAddress(), is(ipv4Address));

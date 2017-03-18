@@ -56,7 +56,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class LispMulticastLcafAddress extends LispLcafAddress {
 
     private final int instanceId;
-    private final byte srcMaskLenth;
+    private final byte srcMaskLength;
     private final byte grpMaskLength;
     private final LispAfiAddress srcAddress;
     private final LispAfiAddress grpAddress;
@@ -65,17 +65,17 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
      * Initializes multicast type LCAF address.
      *
      * @param instanceId    instance identifier
-     * @param srcMaskLenth  source mask length
+     * @param srcMaskLength  source mask length
      * @param grpMaskLength group mask length
      * @param srcAddress    source address
      * @param grpAddress    group address
      */
-    private LispMulticastLcafAddress(int instanceId, byte srcMaskLenth,
+    private LispMulticastLcafAddress(int instanceId, byte srcMaskLength,
                                      byte grpMaskLength, LispAfiAddress srcAddress,
                                      LispAfiAddress grpAddress) {
         super(LispCanonicalAddressFormatEnum.MULTICAST);
         this.instanceId = instanceId;
-        this.srcMaskLenth = srcMaskLenth;
+        this.srcMaskLength = srcMaskLength;
         this.grpMaskLength = grpMaskLength;
         this.srcAddress = srcAddress;
         this.grpAddress = grpAddress;
@@ -95,8 +95,8 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
      *
      * @return source mask length
      */
-    public byte getSrcMaskLenth() {
-        return srcMaskLenth;
+    public byte getSrcMaskLength() {
+        return srcMaskLength;
     }
 
     /**
@@ -128,7 +128,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceId, srcMaskLenth, grpMaskLength,
+        return Objects.hash(instanceId, srcMaskLength, grpMaskLength,
                 srcAddress, grpAddress);
     }
 
@@ -141,7 +141,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
         if (obj instanceof LispMulticastLcafAddress) {
             final LispMulticastLcafAddress other = (LispMulticastLcafAddress) obj;
             return Objects.equals(this.instanceId, other.instanceId) &&
-                    Objects.equals(this.srcMaskLenth, other.srcMaskLenth) &&
+                    Objects.equals(this.srcMaskLength, other.srcMaskLength) &&
                     Objects.equals(this.grpMaskLength, other.grpMaskLength) &&
                     Objects.equals(this.srcAddress, other.srcAddress) &&
                     Objects.equals(this.grpAddress, other.grpAddress);
@@ -154,7 +154,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
     public String toString() {
         return toStringHelper(this)
                 .add("instance ID", instanceId)
-                .add("source mask length", srcMaskLenth)
+                .add("source mask length", srcMaskLength)
                 .add("group mask length", grpMaskLength)
                 .add("source address", srcAddress)
                 .add("group address", grpAddress)
@@ -164,7 +164,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
     public static final class MulticastAddressBuilder
                         extends LcafAddressBuilder<MulticastAddressBuilder> {
         private int instanceId;
-        private byte srcMaskLenth;
+        private byte srcMaskLength;
         private byte grpMaskLength;
         private LispAfiAddress srcAddress;
         private LispAfiAddress grpAddress;
@@ -183,11 +183,11 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
         /**
          * Sets source mask length.
          *
-         * @param srcMaskLenth source mask length
+         * @param srcMaskLength source mask length
          * @return MulticastAddressBuilder object
          */
-        public MulticastAddressBuilder withSrcMaskLength(byte srcMaskLenth) {
-            this.srcMaskLenth = srcMaskLenth;
+        public MulticastAddressBuilder withSrcMaskLength(byte srcMaskLength) {
+            this.srcMaskLength = srcMaskLength;
             return this;
         }
 
@@ -234,7 +234,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
             checkNotNull(srcAddress, "Must specify a source address");
             checkNotNull(grpAddress, "Must specify a group address");
 
-            return new LispMulticastLcafAddress(instanceId, srcMaskLenth,
+            return new LispMulticastLcafAddress(instanceId, srcMaskLength,
                                         grpMaskLength, srcAddress, grpAddress);
         }
     }
@@ -292,7 +292,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
             byteBuf.writeByte(UNUSED_ZERO);
 
             // source mask length
-            byteBuf.writeByte(address.getSrcMaskLenth());
+            byteBuf.writeByte(address.getSrcMaskLength());
 
             // group mask length
             byteBuf.writeByte(address.getGrpMaskLength());
