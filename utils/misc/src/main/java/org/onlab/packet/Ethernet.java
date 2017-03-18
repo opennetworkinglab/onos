@@ -46,6 +46,7 @@ public class Ethernet extends BasePacket {
     public static final short TYPE_IPV6 = EthType.EtherType.IPV6.ethType().toShort();
     public static final short TYPE_LLDP = EthType.EtherType.LLDP.ethType().toShort();
     public static final short TYPE_VLAN = EthType.EtherType.VLAN.ethType().toShort();
+    public static final short TYPE_QINQ = EthType.EtherType.QINQ.ethType().toShort();
     public static final short TYPE_BSN = EthType.EtherType.BDDP.ethType().toShort();
 
     public static final short MPLS_UNICAST = EthType.EtherType.MPLS_UNICAST.ethType().toShort();
@@ -73,7 +74,10 @@ public class Ethernet extends BasePacket {
     protected MacAddress destinationMACAddress;
     protected MacAddress sourceMACAddress;
     protected byte priorityCode;
+    protected byte qInQPriorityCode;
     protected short vlanID;
+    protected short qinqVID;
+    protected short qinqTPID;
     protected short etherType;
     protected boolean pad = false;
 
@@ -83,6 +87,8 @@ public class Ethernet extends BasePacket {
     public Ethernet() {
         super();
         this.vlanID = Ethernet.VLAN_UNTAGGED;
+        this.qinqVID = Ethernet.VLAN_UNTAGGED;
+        this.qinqTPID = TYPE_QINQ;
     }
 
     /**
@@ -208,6 +214,26 @@ public class Ethernet extends BasePacket {
     }
 
     /**
+     * Gets the QinQ priority code.
+     *
+     * @return the qInQPriorityCode
+     */
+    public byte getQinQPriorityCode() {
+        return this.qInQPriorityCode;
+    }
+
+    /**
+     * Sets the QinQ priority code.
+     *
+     * @param priority the priorityCode to set
+     * @return the Ethernet frame
+     */
+    public Ethernet setQinQPriorityCode(final byte priority) {
+        this.qInQPriorityCode = priority;
+        return this;
+    }
+
+    /**
      * Gets the VLAN ID.
      *
      * @return the vlanID
@@ -227,6 +253,47 @@ public class Ethernet extends BasePacket {
         return this;
     }
 
+    /**
+     * Gets the QinQ VLAN ID.
+     *
+     * @return the QinQ vlanID
+     */
+    public short getQinQVID() {
+        return this.qinqVID;
+    }
+
+    /**
+     * Sets the QinQ VLAN ID.
+     *
+     * @param vlan the vlanID to set
+     * @return the Ethernet frame
+     */
+    public Ethernet setQinQVID(final short vlan) {
+        this.qinqVID = vlan;
+        return this;
+    }
+    /**
+     * Gets the QinQ TPID.
+     *
+     * @return the QinQ TPID
+     */
+    public short getQinQTPID() {
+        return this.qinqTPID;
+    }
+
+    /**
+     * Sets the QinQ TPID.
+     *
+     * @param tpId the TPID to set
+     * @return the Ethernet frame
+     */
+    public Ethernet setQinQTPID(final short tpId) {
+        if (tpId != TYPE_VLAN && tpId != TYPE_QINQ) {
+           return null;
+        }
+        this.qinqTPID = tpId;
+        return this;
+    }
     /**
      * Gets the Ethernet type.
      *
@@ -291,6 +358,7 @@ public class Ethernet extends BasePacket {
             payloadData = this.payload.serialize();
         }
         int length = 14 + (this.vlanID == Ethernet.VLAN_UNTAGGED ? 0 : 4)
+                + (this.qinqVID == Ethernet.VLAN_UNTAGGED ? 0 : 4)
                 + (payloadData == null ? 0 : payloadData.length);
         if (this.pad && length < 60) {
             length = 60;
@@ -299,6 +367,10 @@ public class Ethernet extends BasePacket {
         final ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.destinationMACAddress.toBytes());
         bb.put(this.sourceMACAddress.toBytes());
+        if (this.qinqVID != Ethernet.VLAN_UNTAGGED) {
+            bb.putShort(this.qinqTPID);
+            bb.putShort((short) (this.qInQPriorityCode << 13 | this.qinqVID & 0x0fff));
+        }
         if (this.vlanID != Ethernet.VLAN_UNTAGGED) {
             bb.putShort(TYPE_VLAN);
             bb.putShort((short) (this.priorityCode << 13 | this.vlanID & 0x0fff));
@@ -335,11 +407,36 @@ public class Ethernet extends BasePacket {
         this.sourceMACAddress = MacAddress.valueOf(srcAddr);
 
         short ethType = bb.getShort();
+        if (ethType == TYPE_QINQ) {
+            final short tci = bb.getShort();
+            this.qInQPriorityCode = (byte) (tci >> 13 & 0x07);
+            this.qinqVID = (short) (tci & 0x0fff);
+            this.qinqTPID = TYPE_QINQ;
+            ethType = bb.getShort();
+        }
+
         if (ethType == TYPE_VLAN) {
             final short tci = bb.getShort();
             this.priorityCode = (byte) (tci >> 13 & 0x07);
             this.vlanID = (short) (tci & 0x0fff);
             ethType = bb.getShort();
+
+            // there might be one more tag with 1q TPID
+            if (ethType == TYPE_VLAN) {
+                // packet is double tagged with 1q TPIDs
+                // We handle only double tagged packets here and assume that in this case
+                // TYPE_QINQ above was not hit
+                // We put the values retrieved above with TYPE_VLAN in
+                // qInQ fields
+                this.qInQPriorityCode = this.priorityCode;
+                this.qinqVID = this.vlanID;
+                this.qinqTPID = TYPE_VLAN;
+
+                final short innerTci = bb.getShort();
+                this.priorityCode = (byte) (innerTci >> 13 & 0x07);
+                this.vlanID = (short) (innerTci & 0x0fff);
+                ethType = bb.getShort();
+            }
         } else {
             this.vlanID = Ethernet.VLAN_UNTAGGED;
         }
@@ -427,6 +524,8 @@ public class Ethernet extends BasePacket {
         int result = super.hashCode();
         result = prime * result + this.destinationMACAddress.hashCode();
         result = prime * result + this.etherType;
+        result = prime * result + this.qinqVID;
+        result = prime * result + this.qInQPriorityCode;
         result = prime * result + this.vlanID;
         result = prime * result + this.priorityCode;
         result = prime * result + (this.pad ? 1231 : 1237);
@@ -452,6 +551,12 @@ public class Ethernet extends BasePacket {
         }
         final Ethernet other = (Ethernet) obj;
         if (!this.destinationMACAddress.equals(other.destinationMACAddress)) {
+            return false;
+        }
+        if (this.qInQPriorityCode != other.qInQPriorityCode) {
+            return false;
+        }
+        if (this.qinqVID != other.qinqVID) {
             return false;
         }
         if (this.priorityCode != other.priorityCode) {
@@ -502,6 +607,13 @@ public class Ethernet extends BasePacket {
              */
             sb.append(String.format(HEX_PROTO,
                                     Integer.toHexString(this.getEtherType() & 0xffff)));
+        }
+
+        if (this.getQinQVID() != Ethernet.VLAN_UNTAGGED) {
+            sb.append("\ndl_qinqVlan: ");
+            sb.append(this.getQinQVID());
+            sb.append("\ndl_qinqVlan_pcp: ");
+            sb.append(this.getQinQPriorityCode());
         }
 
         sb.append("\ndl_vlan: ");
@@ -695,12 +807,37 @@ public class Ethernet extends BasePacket {
             eth.setSourceMACAddress(addressBuffer);
 
             short ethType = bb.getShort();
+            if (ethType == TYPE_QINQ) {
+                // in this case we excpect 2 VLAN headers
+                checkHeaderLength(length, ETHERNET_HEADER_LENGTH + VLAN_HEADER_LENGTH + VLAN_HEADER_LENGTH);
+                final short tci = bb.getShort();
+                eth.setQinQPriorityCode((byte) (tci >> 13 & 0x07));
+                eth.setQinQVID((short) (tci & 0x0fff));
+                eth.setQinQTPID(TYPE_QINQ);
+                ethType = bb.getShort();
+            }
             if (ethType == TYPE_VLAN) {
                 checkHeaderLength(length, ETHERNET_HEADER_LENGTH + VLAN_HEADER_LENGTH);
                 final short tci = bb.getShort();
                 eth.setPriorityCode((byte) (tci >> 13 & 0x07));
                 eth.setVlanID((short) (tci & 0x0fff));
                 ethType = bb.getShort();
+
+                if (ethType == TYPE_VLAN) {
+                    // We handle only double tagged packets here and assume that in this case
+                    // TYPE_QINQ above was not hit
+                    // We put the values retrieved above with TYPE_VLAN in
+                    // qInQ fields
+                    checkHeaderLength(length, ETHERNET_HEADER_LENGTH + VLAN_HEADER_LENGTH);
+                    eth.setQinQPriorityCode(eth.getPriorityCode());
+                    eth.setQinQVID(eth.getVlanID());
+                    eth.setQinQTPID(TYPE_VLAN);
+
+                    final short innerTci = bb.getShort();
+                    eth.setPriorityCode((byte) (innerTci >> 13 & 0x07));
+                    eth.setVlanID((short) (innerTci & 0x0fff));
+                    ethType = bb.getShort();
+                }
             } else {
                 eth.setVlanID(Ethernet.VLAN_UNTAGGED);
             }
