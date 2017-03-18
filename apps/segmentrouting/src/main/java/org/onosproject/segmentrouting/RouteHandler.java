@@ -39,14 +39,13 @@ public class RouteHandler {
     }
 
     protected void init(DeviceId deviceId) {
-        srManager.routeService.getNextHops().forEach(nextHop -> {
-            if (nextHop.location().deviceId().equals(deviceId)) {
-                srManager.routeService.getRoutesForNextHop(nextHop.ip()).forEach(route -> {
-                    ResolvedRoute resolvedRoute =
-                            new ResolvedRoute(route, nextHop.mac(), nextHop.location());
-                    processRouteAddedInternal(resolvedRoute);
-                });
-            }
+        srManager.routeService.getRouteTables().forEach(routeTableId -> {
+            srManager.routeService.getRoutes(routeTableId).forEach(routeInfo -> {
+                routeInfo.allRoutes().stream()
+                        .filter(resolvedRoute -> resolvedRoute.location() != null &&
+                                resolvedRoute.location().deviceId().equals(deviceId))
+                        .forEach(this::processRouteAddedInternal);
+            });
         });
     }
 
@@ -58,9 +57,7 @@ public class RouteHandler {
     private void processRouteAddedInternal(ResolvedRoute route) {
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
-        // TODO ResolvedRoute does not contain VLAN information.
-        //      Therefore we only support untagged nexthop for now.
-        VlanId nextHopVlan = VlanId.NONE;
+        VlanId nextHopVlan = route.nextHopVlan();
         ConnectPoint location = route.location();
 
         srManager.deviceConfiguration.addSubnet(location, prefix);
@@ -83,9 +80,7 @@ public class RouteHandler {
     private void processRouteRemovedInternal(ResolvedRoute route) {
         IpPrefix prefix = route.prefix();
         MacAddress nextHopMac = route.nextHopMac();
-        // TODO ResolvedRoute does not contain VLAN information.
-        //      Therefore we only support untagged nexthop for now.
-        VlanId nextHopVlan = VlanId.NONE;
+        VlanId nextHopVlan = route.nextHopVlan();
         ConnectPoint location = route.location();
 
         srManager.deviceConfiguration.removeSubnet(location, prefix);
