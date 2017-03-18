@@ -711,63 +711,163 @@
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.TenantRemoveCommand"/>
+            <completers>
+                <ref component-id="tenantCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkListCommand"/>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkCreateCommand"/>
+            <completers>
+                <ref component-id="tenantCompleter"/>
+                <ref component-id="nullCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualDeviceListCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualDeviceCreateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualDeviceRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="nullCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualLinkListCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualLinkCreateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualLinkRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortListCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortCreateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="nullCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortBindCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualPortRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="virtualPortCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualHostListCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualHostCreateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualHostRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="virtualHostCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentCreateCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualNetworkIntentRemoveCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.vnet.VirtualFlowsListCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <ref component-id="flowRuleStatusCompleter"/>
+                <ref component-id="virtualDeviceCompleter"/>
+                <ref component-id="placeholderCompleter"/>
+                <null/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.DpisListCommand"/>
@@ -844,4 +944,9 @@
 
     <bean id="linkTypeCompleter" class="org.onosproject.cli.net.completer.LinkTypeCompleter"/>
 
+    <bean id="tenantCompleter" class="org.onosproject.cli.net.vnet.TenantCompleter"/>
+    <bean id="virtualNetworkCompleter" class="org.onosproject.cli.net.vnet.VirtualNetworkCompleter"/>
+    <bean id="virtualDeviceCompleter" class="org.onosproject.cli.net.vnet.VirtualDeviceCompleter"/>
+    <bean id="virtualPortCompleter" class="org.onosproject.cli.net.vnet.VirtualPortCompleter"/>
+    <bean id="virtualHostCompleter" class="org.onosproject.cli.net.vnet.VirtualHostCompleter"/>
 </blueprint>
