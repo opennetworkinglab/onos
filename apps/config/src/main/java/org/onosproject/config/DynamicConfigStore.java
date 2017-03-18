@@ -40,21 +40,8 @@ public interface DynamicConfigStore
      * successfully added or completed exceptionally with
      * {@code FailedException} if node addition failed
      */
-    CompletableFuture<Boolean> addNode(ResourceId path, DataNode node);
 
-    /**
-     * Adds a new node in the dynamic config store.
-     * Creates any missing parent nodes, leading up to the given node. Node
-     * will not be added if there is a node with the same identifier, already
-     * present at the specified path.
-     *
-     * @param path data structure with absolute path to the parent
-     * @param node recursive data structure, holding a leaf node or a subtree
-     * @return future that is completed with {@code true} if the node was
-     * successfully added or completed exceptionally with
-     * {@code FailedException} if the node addition failed
-     */
-    CompletableFuture<Boolean> addRecursive(ResourceId path, DataNode node);
+    CompletableFuture<Boolean> addNode(ResourceId path, DataNode node);
 
     /**
      * Reads the requested node from the dynamic config store.

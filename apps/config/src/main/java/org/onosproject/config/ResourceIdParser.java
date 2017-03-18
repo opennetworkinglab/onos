@@ -36,6 +36,8 @@ public final class ResourceIdParser {
     public static final String VAL_SEP = "@";
     public static final String KEY_SEP = "$";
     public static final String EL_SEP = ".";
+    public static final String VAL_CHK = "\\@";
+    public static final String KEY_CHK = "\\$";
 
 
 
@@ -69,6 +71,27 @@ public final class ResourceIdParser {
         }
     }
 
+    public static String getNamespace(String nmspc) {
+        String ret = null;
+        if (nmspc.contains(ResourceIdParser.KEY_SEP)) {
+            ret = nmspc.split(KEY_CHK)[0];
+        } else if (nmspc.contains(ResourceIdParser.VAL_SEP)) {
+            ret = nmspc.split(VAL_CHK)[0];
+        } else {
+            ret = nmspc;
+        }
+        return ret;
+    }
+
+    public static String getKeyVal(String nmspc) {
+        String ret = null;
+        if (nmspc.contains(ResourceIdParser.VAL_SEP)) {
+            ret = nmspc.split(VAL_CHK)[1];
+        }
+        return ret;
+    }
+
+
     public static String appendMultiInstKey(String path, String leaf) {
         return (path + leaf.substring(leaf.indexOf(KEY_SEP)));
     }
@@ -97,11 +120,11 @@ public final class ResourceIdParser {
     }
 
     public static String appendLeafList(String path, LeafListKey key) {
-        return (path + NM_SEP + key.asString());
+        return (path + VAL_SEP + key.asString());
     }
 
     public static String appendLeafList(String path, String val) {
-        return (path + NM_SEP + val);
+        return (path + VAL_SEP + val);
     }
 
     public static String appendKeyList(String path, ListKey key) {

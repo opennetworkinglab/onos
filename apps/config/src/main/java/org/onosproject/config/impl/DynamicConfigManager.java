@@ -70,14 +70,9 @@ public class DynamicConfigManager
         log.info("DynamicConfigService Stopped");
     }
 
-    @Override
-    public void createNode(ResourceId path, DataNode node) {
-        throw new FailedException("Not yet implemented");
-    }
-
     public void createNodeRecursive(ResourceId path, DataNode node) {
         Boolean stat = false;
-        stat = this.store.addRecursive(path, node).join();
+        stat = this.store.addNode(path, node).join();
     }
 
     public DataNode readNode(ResourceId path, Filter filter) {

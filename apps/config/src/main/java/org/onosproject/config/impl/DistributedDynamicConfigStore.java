@@ -120,13 +120,7 @@ public class DistributedDynamicConfigStore
 
     @Override
     public CompletableFuture<Boolean>
-    addNode(ResourceId path, DataNode node) {
-        throw new FailedException("Not yet implemented");
-    }
-
-    @Override
-    public CompletableFuture<Boolean>
-    addRecursive(ResourceId complete, DataNode node) {
+    addNode(ResourceId complete, DataNode node) {
         CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
         List<NodeKey> nodeKeyList = complete.nodeKeys();
         NodeKey f = nodeKeyList.get(0);
@@ -137,10 +131,10 @@ public class DistributedDynamicConfigStore
         if (spath == null) {
             throw new FailedException("Invalid RsourceId, cannot create Node");
         }
-        if (keystore.get(DocumentPath.from(spath)).join() == null) {
-            ////TODO recursively creating missing parents
-            throw new FailedException("Some of the parents in the path " +
-                    "are not present, creation not supported currently");
+        if (spath.compareTo(ResourceIdParser.ROOT) != 0) {
+            if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
+                throw new FailedException("Node or parent doesnot exist");
+            }
         }
         spath = ResourceIdParser.appendNodeKey(spath, node.key());
         parseNode(spath, node);
@@ -148,7 +142,7 @@ public class DistributedDynamicConfigStore
     }
 
     private void parseNode(String path, DataNode node) {
-        if (keystore.get(DocumentPath.from(path)).join() != null) {
+        if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
             throw new FailedException("Requested node already present in the" +
                     " store, please use an update method");
         }
@@ -156,7 +150,7 @@ public class DistributedDynamicConfigStore
             addLeaf(path, (LeafNode) node);
         } else if (node.type() == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
             path = ResourceIdParser.appendLeafList(path, (LeafListKey) node.key());
-            if (keystore.get(DocumentPath.from(path)).join() != null) {
+            if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
                         " store, please use an update method");
             }
@@ -165,7 +159,7 @@ public class DistributedDynamicConfigStore
             traverseInner(path, (InnerNode) node);
         } else if (node.type() == DataNode.Type.MULTI_INSTANCE_NODE) {
             path = ResourceIdParser.appendKeyList(path, (ListKey) node.key());
-            if (keystore.get(DocumentPath.from(path)).join() != null) {
+            if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
                         " store, please use an update method");
             }
@@ -193,7 +187,7 @@ public class DistributedDynamicConfigStore
                 traverseInner(tempPath, (InnerNode) v);
             } else if (v.type() == DataNode.Type.MULTI_INSTANCE_NODE) {
                 tempPath = ResourceIdParser.appendKeyList(tempPath, (ListKey) v.key());
-                traverseInner(path, (InnerNode) v);
+                traverseInner(tempPath, (InnerNode) v);
             } else {
                 throw new FailedException("Invalid node type");
             }
@@ -252,10 +246,10 @@ public class DistributedDynamicConfigStore
                     .builder(key.schemaId().name(), key.schemaId().namespace())
                     .type(type);
             for (KeyLeaf keyLeaf : ((ListKey) key).keyLeafs()) {
-                String tempPath = ResourceIdParser.appendKeyLeaf(spath, keyLeaf);
-                LeafNode lfnd = readLeaf(tempPath);
+                //String tempPath = ResourceIdParser.appendKeyLeaf(spath, keyLeaf);
+                //LeafNode lfnd = readLeaf(tempPath);
                 superBldr.addKeyLeaf(keyLeaf.leafSchema().name(),
-                        keyLeaf.leafSchema().namespace(), lfnd.value());
+                        keyLeaf.leafSchema().namespace(), keyLeaf.leafValue());
             }
             readInner(superBldr, spath);
             retVal = superBldr.build();
@@ -265,7 +259,7 @@ public class DistributedDynamicConfigStore
         if (retVal != null) {
             eventFuture = CompletableFuture.completedFuture(retVal);
         } else {
-            log.info("STORE: FAILED to READ node");
+            log.info("STORE: Failed to READ node");
         }
         return eventFuture;
     }
@@ -281,7 +275,8 @@ public class DistributedDynamicConfigStore
         entries.forEach((k, v) -> {
             String[] names = k.split(ResourceIdParser.NM_SEP);
             String name = names[0];
-            String nmSpc = names[1];
+            String nmSpc = ResourceIdParser.getNamespace(names[1]);
+            String keyVal = ResourceIdParser.getKeyVal(names[1]);
             DataNode.Type type = v.value();
             String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
             if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
@@ -289,7 +284,7 @@ public class DistributedDynamicConfigStore
                         .type(type)
                         .exitNode();
             } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
-                String mlpath = ResourceIdParser.appendLeafList(tempPath, names[2]);
+                String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
                 LeafNode lfnode = readLeaf(mlpath);
                 superBldr.createChildBuilder(name, nmSpc, lfnode.value())
                         .type(type)
@@ -304,16 +299,16 @@ public class DistributedDynamicConfigStore
                 DataNode.Builder tempBldr = superBldr.createChildBuilder(name, nmSpc)
                         .type(type);
                 tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
-                String[] keys = k.split(ResourceIdParser.KEY_SEP);
+                String[] keys = k.split(ResourceIdParser.KEY_CHK);
                 for (int i = 1; i < keys.length; i++) {
-                    String curKey = ResourceIdParser.appendKeyLeaf(tempPath, keys[i]);
-                    LeafNode lfnd = readLeaf(curKey);
+                    //String curKey = ResourceIdParser.appendKeyLeaf(tempPath, keys[i]);
+                    //LeafNode lfnd = readLeaf(curKey);
                     String[] keydata = keys[i].split(ResourceIdParser.NM_SEP);
-                    superBldr.addKeyLeaf(keydata[0], keydata[1], lfnd.value());
+                    tempBldr.addKeyLeaf(keydata[0], keydata[1], keydata[2]);
                 }
                 readInner(tempBldr, tempPath);
             } else {
-                throw new FailedException("Node type should either be LEAF or INNERNODE");
+                throw new FailedException("Invalid node type");
             }
         });
         superBldr.exitNode();
@@ -322,18 +317,22 @@ public class DistributedDynamicConfigStore
     private LeafNode readLeaf(String path) {
         return objectStore.get(path).value();
     }
+
     @Override
     public CompletableFuture<Boolean> updateNode(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
+
     @Override
     public CompletableFuture<Boolean> updateNodeRecursive(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
+
     @Override
     public CompletableFuture<Boolean> replaceNode(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
+
     @Override
     public CompletableFuture<Boolean> deleteNode(ResourceId path) {
         throw new FailedException("Not yet implemented");
@@ -352,7 +351,7 @@ public class DistributedDynamicConfigStore
         CompletableFuture<Versioned<DataNode.Type>> vtype = keystore.removeNode(dpath);
         type = completeVersioned(vtype);
         if (type == null) {
-            throw new FailedException("node delete failed");
+            throw new FailedException("Node delete failed");
         }
         Versioned<LeafNode> res = objectStore.remove(spath);
         if (res == null) {
@@ -369,19 +368,19 @@ public class DistributedDynamicConfigStore
             ResourceId path;
             switch (event.type()) {
                 case CREATED:
-                    log.info("NODE created in store");
                     type = NODE_ADDED;
+                    //log.info("NODE added in store");
                     break;
                 case UPDATED:
-                    log.info("NODE updated in store");
+                    //log.info("NODE updated in store");
                     type = NODE_UPDATED;
                     break;
                 case DELETED:
-                    log.info("NODE deleted in store");
+                    //log.info("NODE deleted in store");
                     type = NODE_DELETED;
                     break;
                 default:
-                    log.info("UNKNOWN operation in store");
+                    //log.info("UNKNOWN operation in store");
                     type = UNKNOWN_OPRN;
             }
             path = ResourceIdParser.getResId(event.path().pathElements());
@@ -412,9 +411,15 @@ public class DistributedDynamicConfigStore
             return future.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new FailedException(e.getCause().getMessage());
+            if (e == null) {
+                throw new FailedException("Unknown Exception");
+            } else {
+                throw new FailedException(e.getCause().getMessage());
+            }
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof IllegalDocumentModificationException) {
+            if (e == null) {
+                throw new FailedException("Unknown Exception");
+            } else if (e.getCause() instanceof IllegalDocumentModificationException) {
                 throw new FailedException("Node or parent doesnot exist or is root or is not a Leaf Node");
             } else if (e.getCause() instanceof NoSuchDocumentPathException) {
                 throw new FailedException("Resource id does not exist");
@@ -426,12 +431,18 @@ public class DistributedDynamicConfigStore
 
     private <T> T completeVersioned(CompletableFuture<Versioned<T>> future) {
         try {
-            return future.get().value();
+            if (future.get() != null) {
+                return future.get().value();
+            } else {
+                return null;
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new FailedException(e.getCause().getMessage());
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof IllegalDocumentModificationException) {
+            if (e == null) {
+                throw new FailedException("Unknown Exception");
+            } else if (e.getCause() instanceof IllegalDocumentModificationException) {
                 throw new FailedException("Node or parent does not exist or is root or is not a Leaf Node");
             } else if (e.getCause() instanceof NoSuchDocumentPathException) {
                 throw new FailedException("Resource id does not exist");

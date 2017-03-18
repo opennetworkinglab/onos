@@ -38,20 +38,6 @@ public interface DynamicConfigService
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the new node could not be created
      */
-    void createNode(ResourceId path, DataNode node);
-
-    /**
-     * Creates a new node in the dynamic config store.
-     * Creates any missing parent nodes, leading up to the given node.
-     * This method will throw an exception if there is a node with the same
-     * identifier, already present at the specified path or any of the parent
-     * nodes were not present in the path leading up to the requested node.
-     * Failure reason will be the error message in the exception.
-     *
-     * @param path data structure with absolute path to the parent
-     * @param node recursive data structure, holding a leaf node or a subtree
-     * @throws FailedException if the new node could not be created
-     */
     void createNodeRecursive(ResourceId path, DataNode node);
 
     /**
