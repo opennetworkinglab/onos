@@ -31,15 +31,17 @@
                 // none for now
             },
             addRect: {
-                // none for now
+                fill: 'gray1',
+                stroke: 'none'
             },
             addPath: {
-                // none for now
+                fill: 'none',
+                stroke: 'gray1'
             }
         },
         layout: {
             builder: {
-                grid: 10            // grid square size (in layout coord-space
+                grid: 10            // grid square size (in layout coord-space)
             },
             addSprite: {
                 anchor: 'topleft'       // topleft, center
@@ -62,8 +64,8 @@
     // Sample usage:
     //
     //     ss.createSprite('foo', 100, 100)
-    //         .addPath('M40,40h20v20h-20z')
-    //         .addRect(50, 50, 10, 20)
+    //         .addPath('M40,40h20v20h-20z', {fill: 'gold1'})
+    //         .addRect(50, 50, 10, 20, {stroke: 'gold1'})
     //         .register();
 
     function spriteBuilder(id, w, h, opts) {
@@ -79,7 +81,7 @@
             var o = angular.extend({}, optDefaults.sprite.addRect, opts);
 
             rects.push({
-                x: x, y: y, w: w, h: h
+                x: x, y: y, w: w, h: h, o: o
             });
             return builder;
         }
@@ -88,9 +90,9 @@
             var o = angular.extend({}, optDefaults.sprite.addPath, opts);
 
             if (fs.isS(d)) {
-                paths.push(d);
+                paths.push({d: d, o: o});
             } else if (fs.isA(d)) {
-                paths.push(d.join(''));
+                paths.push({d: d.join(''), o: o});
             } else {
                 $log.warn('addPath: path not a string or array', d);
             }

@@ -35,7 +35,8 @@ describe('factory: fw/util/theme.js', function() {
 
     it('should define api functions', function () {
         expect(fs.areFunctions(ts, [
-            'init', 'theme', 'toggleTheme', 'addListener', 'removeListener'
+            'init', 'theme', 'toggleTheme', 'addListener', 'removeListener',
+            'spriteColor'
         ])).toBeTruthy();
     });
 

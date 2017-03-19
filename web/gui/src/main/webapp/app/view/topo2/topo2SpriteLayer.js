@@ -31,9 +31,9 @@
 
     angular.module('ovTopo2')
         .factory('Topo2SpriteLayerService', [
-            'FnService', 'Topo2ViewController', 'SpriteService',
+            'FnService', 'Topo2ViewController', 'SpriteService', 'ThemeService',
 
-            function (fs, ViewController, ss) {
+            function (fs, ViewController, ss, ts) {
 
                 var SpriteLayer = ViewController.extend({
 
@@ -78,6 +78,7 @@
 
                         var id = spriteData.sprite.data.id,
                             definition = d3.select('#' + id);
+                            // is '#<id>' sufficient? namespace? '#t2spr-<id>' ?
 
                         if (definition.empty()) {
 
@@ -86,24 +87,33 @@
                                     .attr('viewBox', vbox(data.w, data.h))
                                     .attr('id', id);
 
-                            _.each(spriteData.sprite.paths, function (path) {
-                                spriteEl.append('path')
-                                    .attr('d', path)
-                                    .style('fill', 'none')
-                                    .style('stroke', 'black');
-                            });
+                            // TODO: add elements to sprite in the order defined
+                            //   when the sprite was created (layered bottom up)
+                            //   e.g. (1) rect, (2) path, (3) rect...
+                            //   not in groups by type.
+                            //   For now, assume rectangles are behind paths...
 
+                            // draw rectangles before paths
                             _.each(spriteData.sprite.rects, function (rect) {
                                 spriteEl.append('rect')
                                     .attr('width', rect.w)
                                     .attr('height', rect.h)
                                     .attr('x', rect.x)
                                     .attr('y', rect.y)
-                                    .style('fill', 'rgba(0,0,0,0.5)')
+                                    .style('fill', ts.spriteColor(rect.o.fill, 'fill'))
+                                    .style('stroke', ts.spriteColor(rect.o.stroke, 'stroke'));
+                            });
+
+                            // draw paths after rectangles
+                            _.each(spriteData.sprite.paths, function (path) {
+                                spriteEl.append('path')
+                                    .attr('d', path.d)
+                                    .style('fill', ts.spriteColor(path.o.fill, 'fill'))
+                                    .style('stroke', ts.spriteColor(path.o.stroke, 'stroke'));
                             });
                         }
 
-                        return spriteEl
+                        return spriteEl;
                     },
                     renderLayout: function () {
 
@@ -127,27 +137,27 @@
                     },
                     renderGrid: function () {
 
-
                         var layout = this.container.select('svg').append('g');
 
                         var gridSpacing = 5,
                             x = this.width / gridSpacing,
-                            y = this.height / gridSpacing;
+                            y = this.height / gridSpacing,
+                            i, l;
 
-                        for (var i = 0, l = x; i < l; i++) {
+                        for (i = 0, l = x; i < l; i++) {
                             layout.append('rect')
                                 .attr('width', 0.1)
                                 .attr('height', this.height)
                                 .attr('x', i * gridSpacing)
-                                .attr('y', 0)
+                                .attr('y', 0);
                         }
 
-                        for (var i = 0, l = y; i < l; i++) {
+                        for (i = 0, l = y; i < l; i++) {
                             layout.append('rect')
                                 .attr('height', 0.1)
                                 .attr('width', this.width)
                                 .attr('y', i * gridSpacing)
-                                .attr('x', 0)
+                                .attr('x', 0);
                         }
                     }
                 });

@@ -32,6 +32,39 @@
         currentTheme,
         thidx;
 
+    // TODO: fine tune these colors
+    var spriteColors = {
+        gray1: {
+            fill: {
+                light: '#eeeeee',
+                dark: '#222222'
+            },
+            stroke: {
+                light: '#cccccc',
+                dark: '#333333'
+            }
+        },
+        gold1: {
+            fill: {
+                light: '#eeddaa',
+                dark: '#544714'
+            },
+            stroke: {
+                light: '#ffddaa',
+                dark: '#645724'
+            }
+        },
+        blue1: {
+            fill: {
+                light: '#a2b9ee',
+                dark: '#273059'
+            },
+            stroke: {
+                light: '#92a9de',
+                dark: '#273a63'
+            }
+        }
+    };
 
     function init() {
         thidx = ps.getPrefs('theme', { idx: 0 }).idx;
@@ -93,6 +126,16 @@
         listeners = listeners.filter(function(obj) { return obj === lsnr; });
     }
 
+    // color = logical color name
+    // what  = fill or stroke
+    function spriteColor(color, what) {
+        var c = color || 'none',
+            w = what || 'stroke',
+            t = getTheme();
+
+        return c === 'none' ? c : spriteColors[c][w][t];
+    }
+
     angular.module('onosUtil')
         .factory('ThemeService', ['$log', 'FnService', 'PrefsService',
         function (_$log_, _fs_, _ps_) {
@@ -113,7 +156,8 @@
                 },
                 toggleTheme: toggleTheme,
                 addListener: addListener,
-                removeListener: removeListener
+                removeListener: removeListener,
+                spriteColor: spriteColor
             };
     }]);
 

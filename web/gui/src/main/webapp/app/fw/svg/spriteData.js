@@ -55,12 +55,12 @@
         // ----------------------------------------------------------$$$
         // This following code is for initial development of Topo2 sprite layer
         ssApi.createSprite('rack', 40, 50)
-            .addRect(0, 0, 40, 50)
+            .addRect(0, 0, 40, 50, {fill: 'gold1'})
             .addPath([
                 'M5,20h30v5h-30z',
                 'M5,30h30v5h-30z',
                 'M5,40h30v5h-30z'
-            ])
+            ], {stroke: 'gray1'})
             .register();
 
         ssApi.createLayout('segmentRouting', 130, 75)
