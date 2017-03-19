@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -65,7 +64,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -115,7 +113,7 @@ public class NettyMessagingManager implements MessagingService {
                 @Override
                 public void onRemoval(RemovalNotification<Long, Callback> entry) {
                     if (entry.wasEvicted()) {
-                        entry.getValue().completeExceptionally(new TimeoutException("Timedout waiting for reply"));
+                        entry.getValue().completeExceptionally(new TimeoutException("Timed out waiting for reply"));
                     }
                 }
             })
@@ -268,8 +266,8 @@ public class NettyMessagingManager implements MessagingService {
     @Override
     public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
         checkPermission(CLUSTER_WRITE);
-        CompletableFuture<byte[]> response = new CompletableFuture<>();
-        Callback callback = new Callback(response, executor);
+        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        Callback callback = new Callback(future, executor);
         Long messageId = messageIdGenerator.incrementAndGet();
         callbacks.put(messageId, callback);
         InternalMessage message = new InternalMessage(preamble,
@@ -278,11 +276,14 @@ public class NettyMessagingManager implements MessagingService {
                                                       localEp,
                                                       type,
                                                       payload);
-        return sendAsync(ep, message).whenComplete((r, e) -> {
-            if (e != null) {
+
+        sendAsync(ep, message).whenComplete((response, error) -> {
+            if (error != null) {
                 callbacks.invalidate(messageId);
+                callback.completeExceptionally(error);
             }
-        }).thenComposeAsync(v -> response, executor);
+        });
+        return future;
     }
 
     @Override
