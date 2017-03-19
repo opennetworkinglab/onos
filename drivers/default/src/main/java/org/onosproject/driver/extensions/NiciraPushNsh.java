@@ -56,12 +56,6 @@ public class NiciraPushNsh extends AbstractExtension implements ExtensionTreatme
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof NiciraPushNsh) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof NiciraPushNsh;
     }
 }

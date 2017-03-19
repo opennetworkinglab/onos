@@ -55,12 +55,6 @@ public class NiciraPopNsh extends AbstractExtension implements ExtensionTreatmen
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof NiciraPopNsh) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof NiciraPopNsh;
     }
 }

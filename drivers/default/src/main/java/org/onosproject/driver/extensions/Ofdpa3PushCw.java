@@ -57,13 +57,7 @@ public class Ofdpa3PushCw extends AbstractExtension implements ExtensionTreatmen
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof Ofdpa3PushCw) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof Ofdpa3PushCw;
     }
 
     @Override

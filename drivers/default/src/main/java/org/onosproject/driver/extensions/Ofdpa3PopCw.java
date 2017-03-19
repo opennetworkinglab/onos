@@ -57,13 +57,7 @@ public class Ofdpa3PopCw extends AbstractExtension implements ExtensionTreatment
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof Ofdpa3PopCw) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof Ofdpa3PopCw;
     }
 
     @Override

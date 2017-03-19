@@ -57,13 +57,7 @@ public class Ofdpa3PopL2Header extends AbstractExtension implements ExtensionTre
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof Ofdpa3PopL2Header) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof Ofdpa3PopL2Header;
     }
 
     @Override

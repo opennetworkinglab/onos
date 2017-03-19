@@ -57,13 +57,7 @@ public class Ofdpa3PushL2Header extends AbstractExtension implements ExtensionTr
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof Ofdpa3PushL2Header) {
-            return true;
-        }
-        return false;
+        return this == obj || obj instanceof Ofdpa3PushL2Header;
     }
 
     @Override
