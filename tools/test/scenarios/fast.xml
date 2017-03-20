@@ -23,9 +23,6 @@
     <import file="${ONOS_SCENARIOS}/net-fast.xml"/>
     <dependency name="Net-Fast" requires="Setup"/>
 
-    <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
-    <dependency name="Archetypes" requires="Setup"/>
-
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="Prerequisites,~Archetypes,~Setup,~Net-Fast"/>
+    <dependency name="Wrapup" requires="Prerequisites,~Setup,~Net-Fast"/>
 </scenario>

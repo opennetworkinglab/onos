@@ -6,7 +6,7 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-node=${1:-$OCI}
+node=${1:-$OCN}
 remote=$ONOS_USER@$node
 
 scp -q $ONOS_TEST_TAR $remote:/tmp

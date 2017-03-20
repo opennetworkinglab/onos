@@ -6,16 +6,15 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 VER=${STC_VERSION:-2.3}
-JAR=~/.m2/repository/org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
+MVN_JAR=org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
+JAR=${MAVEN_REPO:-$HOME/.m2/repository}/$MVN_JAR
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
 # Download the STC binary if needed
 if [ ! -f $JAR ]; then
     printf "Downloading STC binary..."
-    mkdir -p /tmp/stc
-    aux=/tmp/stc/stc-$$.log
-    mvn dependency:get -Dartifact=org.onosproject:onos-stc:$VER -Dtransitive=false -B >$aux || fgrep '[ERROR]' $aux
-    rm -f $aux
+    mkdir -p /tmp/stc $(dirname $JAR)
+    curl http://repo1.maven.org/maven2/$MVN_JAR > $JAR
     [ -f $JAR ] && printf "Done.\n"
 fi
 

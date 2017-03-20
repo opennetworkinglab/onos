@@ -1,0 +1,33 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Executes validation build using onos-test.tar.gz and onos.tar.gz on a remote
+# proxy. It assumes that the tar.gz files are already available.
+# -----------------------------------------------------------------------------
+
+. $ONOS_ROOT/tools/build/envDefaults
+
+onos-push-test-bits $OCT
+onos-push-bits $OCT
+
+ssh -t $ONOS_USER@$OCT "
+    # Unpack the test tools
+    cd /tmp; rm -fr \$(ls -Fd onos-test-*/)
+    tar xf $ONOS_TEST_TAR
+
+    # Source in the cell environment
+    $(onos-cell | sed 's/^/export /')
+    unset OCT
+
+    # Set ONOS root to the top of the unrolled test directory and
+    # prime the environment.
+    cd \$(ls -Fd onos-test-*/)
+    export ONOS_ROOT=\$PWD
+    source tools/dev/bash_profile
+    setPrimaryInstance 1
+    onos-verify-cell   # TODO: remove once warden does this for us
+
+    # Finally, execute required STC scenario(s) using the default topology
+    topo default
+    export stcDumpLogs=true
+    stc fast
+"
