@@ -31,8 +31,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class ResolvedRoute {
 
-    private final IpPrefix prefix;
-    private final IpAddress nextHop;
+    private final Route route;
     private final MacAddress nextHopMac;
     private final VlanId nextHopVlan;
     private final ConnectPoint location;
@@ -51,19 +50,6 @@ public class ResolvedRoute {
     /**
      * Creates a new resolved route.
      *
-     * @param prefix route prefix
-     * @param nextHop route next hop IP address
-     * @param nextHopMac next hop MAC address
-     * @param location connect point where the next hop connects to
-     */
-    public ResolvedRoute(IpPrefix prefix, IpAddress nextHop, MacAddress nextHopMac,
-                         ConnectPoint location) {
-        this(prefix, nextHop, nextHopMac, VlanId.NONE, location);
-    }
-
-    /**
-     * Creates a new resolved route.
-     *
      * @param route input route
      * @param nextHopMac next hop MAC address
      * @param nextHopVlan next hop VLAN ID
@@ -71,29 +57,19 @@ public class ResolvedRoute {
      */
     public ResolvedRoute(Route route, MacAddress nextHopMac, VlanId nextHopVlan,
                          ConnectPoint location) {
-        this.prefix = route.prefix();
-        this.nextHop = route.nextHop();
+        this.route = route;
         this.nextHopMac = nextHopMac;
         this.nextHopVlan = nextHopVlan;
         this.location = location;
     }
 
     /**
-     * Creates a new resolved route.
+     * Returns the original route.
      *
-     * @param prefix route prefix
-     * @param nextHop route next hop IP address
-     * @param nextHopMac next hop MAC address
-     * @param nextHopVlan next hop VLAN address
-     * @param location connect point where the next hop connects to
+     * @return route
      */
-    public ResolvedRoute(IpPrefix prefix, IpAddress nextHop, MacAddress nextHopMac,
-                         VlanId nextHopVlan, ConnectPoint location) {
-        this.prefix = prefix;
-        this.nextHop = nextHop;
-        this.nextHopMac = nextHopMac;
-        this.nextHopVlan = nextHopVlan;
-        this.location = location;
+    public Route route() {
+        return route;
     }
 
     /**
@@ -102,7 +78,7 @@ public class ResolvedRoute {
      * @return IP prefix
      */
     public IpPrefix prefix() {
-        return prefix;
+        return route.prefix();
     }
 
     /**
@@ -111,7 +87,7 @@ public class ResolvedRoute {
      * @return IP address
      */
     public IpAddress nextHop() {
-        return nextHop;
+        return route.nextHop();
     }
 
     /**
@@ -143,7 +119,7 @@ public class ResolvedRoute {
 
     @Override
     public int hashCode() {
-        return Objects.hash(prefix, nextHop, nextHopMac, nextHopVlan, location);
+        return Objects.hash(route, nextHopMac, nextHopVlan, location);
     }
 
     @Override
@@ -158,8 +134,7 @@ public class ResolvedRoute {
 
         ResolvedRoute that = (ResolvedRoute) other;
 
-        return Objects.equals(this.prefix, that.prefix) &&
-                Objects.equals(this.nextHop, that.nextHop) &&
+        return Objects.equals(this.route, that.route) &&
                 Objects.equals(this.nextHopMac, that.nextHopMac) &&
                 Objects.equals(this.nextHopVlan, that.nextHopVlan) &&
                 Objects.equals(this.location, that.location);
@@ -168,8 +143,7 @@ public class ResolvedRoute {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("prefix", prefix)
-                .add("nextHop", nextHop)
+                .add("route", route)
                 .add("nextHopMac", nextHopMac)
                 .add("nextHopVlan", nextHopVlan)
                 .add("location", location)

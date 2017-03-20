@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
-import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteInfo;
 import org.onosproject.incubator.net.routing.RouteService;
 import org.onosproject.incubator.net.routing.RouteTableId;
@@ -84,7 +83,7 @@ public class RoutesListCommand extends AbstractShellCommand {
     private void print(String format, RouteInfo routeInfo) {
         routeInfo.allRoutes()
                 .forEach(r -> print(format, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
-                        r.prefix(), r.nextHop(), Route.Source.UNDEFINED));
+                        r.prefix(), r.nextHop(), r.route().source()));
     }
 
 

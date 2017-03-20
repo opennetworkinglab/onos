@@ -40,6 +40,7 @@ import org.onosproject.incubator.net.config.basics.McastConfig;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
+import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteService;
@@ -65,11 +66,11 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.routing.InterfaceProvisionRequest;
 import org.onosproject.routing.NextHop;
 import org.onosproject.routing.NextHopGroupKey;
-import org.onosproject.routing.RouterInfo;
-import org.onosproject.routing.InterfaceProvisionRequest;
 import org.onosproject.routing.Router;
+import org.onosproject.routing.RouterInfo;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfigHelper;
 import org.onosproject.routing.config.RoutersConfig;
@@ -233,9 +234,9 @@ public class FibInstaller {
         routeService.removeListener(routeListener);
 
         //clean up the routes.
-        for (Map.Entry<IpPrefix, IpAddress> routes: prefixToNextHop.entrySet()) {
-            deleteRoute(new ResolvedRoute(routes.getKey(), null, null, null));
-        }
+        prefixToNextHop.entrySet().stream()
+                .map(e -> new Route(Route.Source.UNDEFINED, e.getKey(), e.getValue()))
+                .forEach(this::deleteRoute);
 
         if (interfaceManager != null) {
             interfaceManager.cleanup();
@@ -266,6 +267,10 @@ public class FibInstaller {
     }
 
     private synchronized void deleteRoute(ResolvedRoute route) {
+        deleteRoute(new Route(Route.Source.UNDEFINED, route.prefix(), route.nextHop()));
+    }
+
+    private void deleteRoute(Route route) {
         //Integer nextId = nextHops.get(route.nextHop());
 
         /* Group group = deleteNextHop(route.prefix());
