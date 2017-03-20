@@ -16,7 +16,6 @@
 package org.onosproject.mapping.addresses;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
 
 import java.util.Objects;
 
@@ -25,17 +24,18 @@ import java.util.Objects;
  */
 public final class ExtensionMappingAddressWrapper implements MappingAddress {
 
-    private final ExtensionSelector extensionSelector;
+    private final ExtensionMappingAddress extensionMappingAddress;
     private final DeviceId deviceId;
 
     /**
      * Default constructor of ExtensionMappingAddressWrapper.
      *
-     * @param extensionSelector extension selector
-     * @param deviceId          device identifier
+     * @param extensionMappingAddress extension mapping address
+     * @param deviceId device identifier
      */
-    public ExtensionMappingAddressWrapper(ExtensionSelector extensionSelector, DeviceId deviceId) {
-        this.extensionSelector = extensionSelector;
+    public ExtensionMappingAddressWrapper(ExtensionMappingAddress extensionMappingAddress,
+                                          DeviceId deviceId) {
+        this.extensionMappingAddress = extensionMappingAddress;
         this.deviceId = deviceId;
     }
 
@@ -45,12 +45,12 @@ public final class ExtensionMappingAddressWrapper implements MappingAddress {
     }
 
     /**
-     * Returns the extension selector.
+     * Returns the extension mapping address.
      *
-     * @return extension selector
+     * @return extension mapping address
      */
-    public ExtensionSelector extensionSelector() {
-        return extensionSelector;
+    public ExtensionMappingAddress extensionMappingAddress() {
+        return extensionMappingAddress;
     }
 
     /**
@@ -64,12 +64,12 @@ public final class ExtensionMappingAddressWrapper implements MappingAddress {
 
     @Override
     public String toString() {
-        return type().toString() + TYPE_SEPARATOR + deviceId + "/" + extensionSelector;
+        return type().toString() + TYPE_SEPARATOR + extensionMappingAddress;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type().ordinal(), extensionSelector, deviceId);
+        return Objects.hash(type().ordinal(), extensionMappingAddress);
     }
 
     @Override
@@ -79,7 +79,7 @@ public final class ExtensionMappingAddressWrapper implements MappingAddress {
         }
         if (obj instanceof ExtensionMappingAddressWrapper) {
             ExtensionMappingAddressWrapper that = (ExtensionMappingAddressWrapper) obj;
-            return Objects.equals(extensionSelector, that.extensionSelector) &&
+            return Objects.equals(extensionMappingAddress, that.extensionMappingAddress) &&
                     Objects.equals(deviceId, that.deviceId);
         }
         return false;
