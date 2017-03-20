@@ -69,7 +69,6 @@
         <module>vpls</module>
         <module>openstacknode</module>
         <module>openstacknetworking</module>
-        <module>openstackinterface</module>
         <module>influxdbmetrics</module>
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
