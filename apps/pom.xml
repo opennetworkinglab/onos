@@ -73,7 +73,6 @@
         <module>influxdbmetrics</module>
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
-        <module>xosclient</module>
         <module>scalablegateway</module>
         <module>bmv2-demo</module>
         <module>yms</module>
