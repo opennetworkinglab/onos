@@ -9,6 +9,14 @@
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
+echo $app | grep '.'
+
+if [ $? != 0 ]; then
+    appnameextra=
+else
+    appname=org.onosproject.
+fi
+
 for attempt in {1..30}; do
     onos ${1:-$OCI} "onos:apps -s -a" > $aux
     cat $aux
@@ -19,7 +27,7 @@ for attempt in {1..30}; do
     # Normalize the expected apps
     apps=${2:-$ONOS_APPS}
     apps=${apps:-drivers,openflow}
-    (for app in ${apps//,/ }; do echo org.onosproject.$app; done) | sort > $aux.2
+    (for app in ${apps//,/ }; do echo ${appnameextra}${app}; done) | sort > $aux.2
 
     # Check for differences
     case ${3:-equals} in
