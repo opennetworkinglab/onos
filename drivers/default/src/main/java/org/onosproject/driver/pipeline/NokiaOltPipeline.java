@@ -233,6 +233,11 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
             return;
         }
 
+        if (checkForEAPOL(fwd)) {
+            log.warn("Discarding EAPOL flow which is not supported on this pipeline");
+            return;
+        }
+
         TrafficTreatment treatment = fwd.treatment();
 
         List<Instruction> instructions = treatment.allInstructions();
@@ -400,6 +405,12 @@ public class NokiaOltPipeline extends AbstractHandlerBehaviour implements Pipeli
 
     }
 
+    private boolean checkForEAPOL(ForwardingObjective fwd) {
+        EthTypeCriterion ethType = (EthTypeCriterion)
+                filterForCriterion(fwd.selector().criteria(), Criterion.Type.ETH_TYPE);
+
+        return ethType != null && ethType.ethType().equals(EthType.EtherType.EAPOL.ethType());
+    }
     private GroupKey getGroupForNextObjective(Integer nextId) {
         NextGroup next = flowObjectiveStore.getNextGroup(nextId);
         return appKryo.deserialize(next.data());
