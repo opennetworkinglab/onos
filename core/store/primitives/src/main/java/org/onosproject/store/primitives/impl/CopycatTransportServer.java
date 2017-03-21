@@ -15,113 +15,99 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-import io.atomix.catalyst.concurrent.CatalystThreadFactory;
-import io.atomix.catalyst.concurrent.SingleThreadContext;
+import com.google.common.collect.Sets;
 import io.atomix.catalyst.concurrent.ThreadContext;
 import io.atomix.catalyst.transport.Address;
 import io.atomix.catalyst.transport.Connection;
 import io.atomix.catalyst.transport.Server;
-
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-
-import org.apache.commons.io.IOUtils;
-import org.onlab.util.Tools;
+import org.apache.commons.lang3.RandomUtils;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.MessagingService;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Maps;
+import java.nio.ByteBuffer;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.store.primitives.impl.CopycatTransport.CONNECT;
+import static org.onosproject.store.primitives.impl.CopycatTransport.FAILURE;
+import static org.onosproject.store.primitives.impl.CopycatTransport.SUCCESS;
 
 /**
- * {@link Server} implementation for {@link CopycatTransport}.
+ * Copycat transport server implementation.
  */
 public class CopycatTransportServer implements Server {
-
-    private final Logger log = getLogger(getClass());
-    private final AtomicBoolean listening = new AtomicBoolean(false);
-    private CompletableFuture<Void> listenFuture = new CompletableFuture<>();
-    private final ScheduledExecutorService executorService;
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final PartitionId partitionId;
+    private final String serverSubject;
     private final MessagingService messagingService;
-    private final String messageSubject;
-    private final Map<Long, CopycatTransportConnection> connections = Maps.newConcurrentMap();
+    private final Set<CopycatTransportConnection> connections = Sets.newConcurrentHashSet();
 
-    CopycatTransportServer(PartitionId partitionId, MessagingService messagingService) {
-        this.partitionId = checkNotNull(partitionId);
-        this.messagingService = checkNotNull(messagingService);
-        this.messageSubject = String.format("onos-copycat-%s", partitionId);
-        this.executorService = Executors.newScheduledThreadPool(Math.min(4, Runtime.getRuntime().availableProcessors()),
-                new CatalystThreadFactory("copycat-server-p" + partitionId + "-%d"));
+    public CopycatTransportServer(PartitionId partitionId, MessagingService messagingService) {
+        this.partitionId = checkNotNull(partitionId, "partitionId cannot be null");
+        this.serverSubject = String.format("onos-copycat-%s", partitionId);
+        this.messagingService = checkNotNull(messagingService, "messagingService cannot be null");
     }
 
     @Override
-    public CompletableFuture<Void> listen(Address address, Consumer<Connection> listener) {
-        if (listening.compareAndSet(false, true)) {
-            ThreadContext context = ThreadContext.currentContextOrThrow();
-            listen(address, listener, context);
-        }
-        return listenFuture;
-    }
+    public CompletableFuture<Void> listen(Address address, Consumer<Connection> consumer) {
+        ThreadContext context = ThreadContext.currentContextOrThrow();
+        messagingService.registerHandler(serverSubject, (sender, payload) -> {
 
-    private void listen(Address address, Consumer<Connection> listener, ThreadContext context) {
-        messagingService.registerHandler(messageSubject, (sender, payload) -> {
-            try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
-                long connectionId = input.readLong();
-                AtomicBoolean newConnectionCreated = new AtomicBoolean(false);
-                CopycatTransportConnection connection = connections.computeIfAbsent(connectionId, k -> {
-                    newConnectionCreated.set(true);
-                    CopycatTransportConnection newConnection = new CopycatTransportConnection(connectionId,
-                            CopycatTransport.Mode.SERVER,
-                            partitionId,
-                            CopycatTransport.toAddress(sender),
-                            messagingService,
-                            getOrCreateContext(context));
-                    log.debug("Created new incoming connection {}", connectionId);
-                    newConnection.closeListener(c -> connections.remove(connectionId, c));
-                    return newConnection;
-                });
-                byte[] request = IOUtils.toByteArray(input);
-                return CompletableFuture.supplyAsync(
-                        () -> {
-                            if (newConnectionCreated.get()) {
-                                listener.accept(connection);
-                            }
-                            return connection;
-                        }, context.executor()).thenCompose(c -> c.handle(request));
-            } catch (IOException e) {
-                return Tools.exceptionalFuture(e);
+            // Only connect messages can be sent to the server. Once a connect message
+            // is received, the connection will register a separate handler for messaging.
+            ByteBuffer requestBuffer = ByteBuffer.wrap(payload);
+            if (requestBuffer.get() != CONNECT) {
+                ByteBuffer responseBuffer = ByteBuffer.allocate(1);
+                responseBuffer.put(FAILURE);
+                return CompletableFuture.completedFuture(responseBuffer.array());
             }
+
+            // Create the connection and ensure state is cleaned up when the connection is closed.
+            long connectionId = RandomUtils.nextLong();
+            CopycatTransportConnection connection = new CopycatTransportConnection(
+                    connectionId,
+                    CopycatTransportConnection.Mode.SERVER,
+                    partitionId,
+                    sender,
+                    messagingService,
+                    context);
+            connection.closeListener(connections::remove);
+            connections.add(connection);
+
+            CompletableFuture<byte[]> future = new CompletableFuture<>();
+
+            // We need to ensure the connection event is called on the Copycat thread
+            // and that the future is not completed until the Copycat server has been
+            // able to register message handlers, otherwise some messages can be received
+            // prior to any handlers being registered.
+            context.executor().execute(() -> {
+                log.debug("Created connection {}-{}", partitionId, connectionId);
+                consumer.accept(connection);
+
+                ByteBuffer responseBuffer = ByteBuffer.allocate(9);
+                responseBuffer.put(SUCCESS);
+                responseBuffer.putLong(connectionId);
+                future.complete(responseBuffer.array());
+            });
+            return future;
         });
-        context.execute(() -> {
-            listenFuture.complete(null);
-        });
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> close() {
-        messagingService.unregisterHandler(messageSubject);
-        executorService.shutdown();
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.allOf(connections.stream().map(Connection::close).toArray(CompletableFuture[]::new));
     }
 
-    /**
-     * Returns the current execution context or creates one.
-     */
-    private ThreadContext getOrCreateContext(ThreadContext parentContext) {
-        ThreadContext context = ThreadContext.currentContext();
-        if (context != null) {
-            return context;
-        }
-        return new SingleThreadContext(executorService, parentContext.serializer().clone());
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("partitionId", partitionId)
+                .toString();
     }
 }

@@ -15,73 +15,59 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Client;
+import io.atomix.catalyst.transport.Server;
+import io.atomix.catalyst.transport.Transport;
+import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 
-import org.onlab.packet.IpAddress;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingService;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
-
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.transport.Transport;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Custom {@link Transport transport} for Copycat interactions
- * built on top of {@link MessagingService}.
- *
- * @see CopycatTransportServer
- * @see CopycatTransportClient
+ * Copycat transport implementation built on {@link MessagingService}.
  */
 public class CopycatTransport implements Transport {
-
-    /**
-     * Transport Mode.
-     */
-    public enum Mode {
-        /**
-         * Signifies transport for client {@literal ->} server interaction.
-         */
-        CLIENT,
-
-        /**
-         * Signified transport for server {@literal ->} server interaction.
-         */
-        SERVER
-    }
-
-    private final Mode mode;
     private final PartitionId partitionId;
     private final MessagingService messagingService;
     private static final Map<Address, Endpoint> EP_LOOKUP_CACHE = Maps.newConcurrentMap();
     private static final Map<Endpoint, Address> ADDRESS_LOOKUP_CACHE = Maps.newConcurrentMap();
 
-    public CopycatTransport(Mode mode, PartitionId partitionId, MessagingService messagingService) {
-        this.mode = checkNotNull(mode);
-        this.partitionId = checkNotNull(partitionId);
-        this.messagingService = checkNotNull(messagingService);
+    static final byte MESSAGE = 0x01;
+    static final byte CONNECT = 0x02;
+    static final byte CLOSE = 0x03;
+
+    static final byte SUCCESS = 0x01;
+    static final byte FAILURE = 0x02;
+
+    public CopycatTransport(PartitionId partitionId, MessagingService messagingService) {
+        this.partitionId = checkNotNull(partitionId, "partitionId cannot be null");
+        this.messagingService = checkNotNull(messagingService, "messagingService cannot be null");
     }
 
     @Override
     public Client client() {
-        return new CopycatTransportClient(partitionId,
-                                          messagingService,
-                                          mode);
+        return new CopycatTransportClient(partitionId, messagingService);
     }
 
     @Override
     public Server server() {
-        return new CopycatTransportServer(partitionId,
-                                          messagingService);
+        return new CopycatTransportServer(partitionId, messagingService);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this).toString();
     }
 
     /**
@@ -89,7 +75,7 @@ public class CopycatTransport implements Transport {
      * @param address address
      * @return end point
      */
-    public static Endpoint toEndpoint(Address address) {
+    static Endpoint toEndpoint(Address address) {
         return EP_LOOKUP_CACHE.computeIfAbsent(address, a -> {
             try {
                 return new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
@@ -105,7 +91,7 @@ public class CopycatTransport implements Transport {
      * @param endpoint end point
      * @return address
      */
-    public static Address toAddress(Endpoint endpoint) {
+    static Address toAddress(Endpoint endpoint) {
         return ADDRESS_LOOKUP_CACHE.computeIfAbsent(endpoint, ep -> {
             try {
                 InetAddress host = InetAddress.getByAddress(endpoint.host().toOctets());
