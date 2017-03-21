@@ -43,7 +43,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 /**
  * Implementation of the RestconfServiceBroker interface.
  */
-@Component(immediate = false)
+@Component(immediate = true)
 @Service
 public class RestconfBrokerImpl implements RestconfServiceBroker {
 

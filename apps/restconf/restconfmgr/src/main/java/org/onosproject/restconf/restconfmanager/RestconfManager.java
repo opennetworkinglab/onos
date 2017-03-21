@@ -72,14 +72,7 @@ import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_NODE;
  *    on the YANG data objects (i.e., resource id, yang data node).
  */
 
-/**
- * Implementation of the RestconfService interface. The class is designed
- * as a Apache Flex component. Note that to avoid unnecessary
- * activation, the @Component annotation's immediate parameter is set to false.
- * So the component is not activated until a RESTCONF request is received by
- * the RESTCONF Protocol Proxy (RPP) module, which consumes the service.
- */
-@Component(immediate = false)
+@Component(immediate = true)
 @Service
 public class RestconfManager implements RestconfService {
 
