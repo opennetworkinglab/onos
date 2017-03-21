@@ -11,18 +11,16 @@ RUN echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-s
 # Set the environment variables
 ENV HOME /root
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
-ENV ONOS_ROOT /src/onos
-ENV KARAF_VERSION 3.0.5
-ENV KARAF_ROOT /root/onos/apache-karaf-3.0.5
-ENV KARAF_LOG /root/onos/apache-karaf-3.0.5/data/log/karaf.log
 ENV BUILD_NUMBER docker
-ENV PATH $PATH:$KARAF_ROOT/bin
+ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 
-#Download and Build ONOS
+# Copy in the source
+COPY . /src/onos/
+
+# Build ONOS
 WORKDIR /src
-RUN     apt-get update && apt-get install -y python git less zip curl oracle-java8-installer oracle-java8-set-default && \
-        git clone https://github.com/opennetworkinglab/onos.git && \
-        cd onos && git checkout onos-1.8 && \
+RUN     apt-get update && apt-get install -y python less zip curl oracle-java8-installer oracle-java8-set-default && \
+        cd onos && \
         tools/build/onos-buck build onos && \
         cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
         cd .. && \
@@ -36,7 +34,7 @@ RUN     apt-get update && apt-get install -y python git less zip curl oracle-jav
 # Change to /root directory
 WORKDIR /root
 
-#Install ONOS
+# Install ONOS
 RUN mkdir onos && \
    mv /tmp/onos.tar.gz . && \
    tar -xf onos.tar.gz -C onos --strip-components=1 && \
@@ -45,10 +43,11 @@ RUN mkdir onos && \
 
 # Ports
 # 6653 - OpenFlow
+# 6640 - OVSDB
 # 8181 - GUI
 # 8101 - ONOS CLI
 # 9876 - ONOS CLUSTER COMMUNICATION
-EXPOSE 6653 8181 8101 9876
+EXPOSE 6653 6640 8181 8101 9876
 
 # Get ready to run command
 WORKDIR /root/onos
