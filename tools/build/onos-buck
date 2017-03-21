@@ -16,18 +16,21 @@ ROOT_DIR=${ONOS_ROOT:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"}
 mkdir -p $ROOT_DIR/bin
 pushd $ROOT_DIR/bin > /dev/null
 
-if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$REQUIRED_VERSION" != "$(cat .buck_version)" ]; then
+if [ -n "$FORCE_UPDATE" ] || [ ! -f "buck" ] || [ "$BUCK_SHA" != "$(cat .buck_sha)" ]; then
     echo "Updating Buck..."
-    rm -fr .buck_version buck plugins
+    rm -fr .buck_version .buck_sha buck plugins
     mkdir -p cache
     BUCK_FILE=$(basename $BUCK_URL)
     # Check the local cache; download to cache if required
     [ -f "cache/$BUCK_FILE" ] || curl -o cache/$BUCK_FILE -L $BUCK_URL
     if [ -n "$(which shasum)" ]; then
         SHA=$(shasum cache/$BUCK_FILE | cut -d' ' -f1)
-        [ "$SHA" != "$BUCK_SHA" ] &&
+        if [ "$SHA" != "$BUCK_SHA" ]; then
            echo "ERROR: Downloaded SHA ($SHA) does not match expected SHA ($BUCK_SHA)" &&
            rm -f cache/$BUCK_FILE && exit 1
+        else
+           echo "$SHA" > .buck_sha
+        fi
     else
         echo "SHA cannot be verified"
     fi

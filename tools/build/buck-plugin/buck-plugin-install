@@ -5,7 +5,7 @@ PLUGINS=$ONOS_ROOT/bin/plugins
 set -e
 
 # Build it first
-pluginJar=$(NO_BUCKD=1 buck build //tools/build/buck-plugin:onos --no-cache --show-output | grep onos.jar | cut -d\  -f2)
+pluginJar=$(NO_BUCKD=1 onos-buck build //tools/build/buck-plugin:onos --no-cache --show-output | grep onos.jar | cut -d\  -f2)
 
 # Then install it
 mkdir -p $PLUGINS

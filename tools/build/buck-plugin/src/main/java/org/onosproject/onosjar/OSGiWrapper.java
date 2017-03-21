@@ -158,9 +158,10 @@ public class OSGiWrapper implements Step {
                              dynamicimportPackages);
 
         // TODO include version in export, but not in import
-        //    analyzer.setProperty(Analyzer.EXPORT_PACKAGE, exportPackages);
+        analyzer.setProperty(Analyzer.EXPORT_PACKAGE, exportPackages);
 
         // TODO we may need INCLUDE_RESOURCE, or that might be done by Buck
+        // FIXME NOTE we handle this manually below
         if (includeResources != null) {
             analyzer.setProperty(Analyzer.INCLUDE_RESOURCE, includeResources);
         }
@@ -176,7 +177,7 @@ public class OSGiWrapper implements Step {
         Builder analyzer = new Builder();
         try {
 
-            Jar jar = new Jar(inputJar.toFile());  // where our data is
+            Jar jar = new Jar(inputJar.toFile());   // where our data is
             analyzer.setJar(jar);                   // give bnd the contents
 
             // You can provide additional class path entries to allow
@@ -186,16 +187,20 @@ public class OSGiWrapper implements Step {
 
             setProperties(analyzer);
 
-            //analyzer.setBase(classesDir.toFile());
+            // Analyze the target JAR first
+            analyzer.analyze();
 
-//            analyzer.setProperty("DESTDIR");
-//            analyzer.setBase();
-
-            // ------------- let's begin... -------------------------
+            // Scan the JAR for Felix SCR annotations and generate XML files
+            Map<String, String> properties = Maps.newHashMap();
+            properties.put("destdir", classesDir.toAbsolutePath().toString());
+            SCRDescriptorBndPlugin scrDescriptorBndPlugin = new SCRDescriptorBndPlugin();
+            scrDescriptorBndPlugin.setProperties(properties);
+            scrDescriptorBndPlugin.setReporter(analyzer);
+            scrDescriptorBndPlugin.analyzeJar(analyzer);
 
             //Add local packges to jar file.
-            addLocalPackages(new File(classesDir.toString()), analyzer);
-//            analyzer.analyze();
+            //FIXME removing this call for now; not sure what exactly it's doing
+            //addLocalPackages(new File(classesDir.toString()), analyzer);
 
             //add resources.
             if (includeResources != null) {
@@ -206,27 +211,15 @@ public class OSGiWrapper implements Step {
             doWabStaging(analyzer);
 
             // Calculate the manifest
-//            Manifest manifest = analyzer.calcManifest();
-            //OutputStream s = new FileOutputStream("/tmp/foo2.txt");
-            //manifest.write(s);
-            //s.close();
+            Manifest manifest = analyzer.calcManifest();
+
+            //Build the jar files
+            //FIXME this call conflicts with some of the above
+//            analyzer.build();
 
             if (analyzer.isOk()) {
-                //Build the jar files
-                analyzer.build();
-                Map<String, String> properties = Maps.newHashMap();
-
-                // Scan the JAR for Felix SCR annotations and generate XML files
-                properties.put("destdir", classesDir.toAbsolutePath().toString());
-                SCRDescriptorBndPlugin scrDescriptorBndPlugin = new SCRDescriptorBndPlugin();
-                scrDescriptorBndPlugin.setProperties(properties);
-                scrDescriptorBndPlugin.setReporter(analyzer);
-                scrDescriptorBndPlugin.analyzeJar(analyzer);
-
                 //add calculated manifest file.
-                Manifest manifest = analyzer.calcManifest();
                 analyzer.getJar().setManifest(manifest);
-
                 if (analyzer.save(outputJar.toFile(), true)) {
                     log("Saved!\n");
                 } else {
