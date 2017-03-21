@@ -1,0 +1,14 @@
+{
+  "mep": {
+    "mepId": 10,
+    "deviceId": "netconf:192.168.56.10:830",
+    "port": 0,
+    "direction": "DOWN_MEP",
+    "mdName": "DomainA",
+    "maName": "ma-vlan-1",
+    "primary-vid": 1,
+    "administrative-state": true,
+    "ccm-ltm-priority": 4,
+    "cci-enabled" :true
+  }
+}

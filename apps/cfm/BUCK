@@ -1,0 +1,28 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//lib:JACKSON',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
+    '//incubator/api:onos-incubator-api'
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+    '//utils/osgi:onlab-osgi-tests',
+    '//web/api:onos-rest-tests',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/cfm',
+)
+
+onos_app (
+    title = 'Layer 2 Monitoring CFM Application',
+    category = 'default',
+    url = 'http://onosproject.org',
+    description = 'Layer 2 Monitoring Connectivity Fault Management App',
+)

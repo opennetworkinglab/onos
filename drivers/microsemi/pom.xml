@@ -50,6 +50,11 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-model</artifactId>
         </dependency>
 
@@ -131,6 +136,12 @@
             <artifactId>onos-api</artifactId>
             <scope>test</scope>
             <classifier>tests</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-net</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

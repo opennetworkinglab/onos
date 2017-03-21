@@ -1,0 +1,18 @@
+{
+  "dm": {
+    "remoteMepId":20,
+    "dmCfgType": "DMDMM",
+    "version": "Y17312008",
+    "priority": "PRIO1",
+    "messagePeriodMs": 100,
+    "startTime": {
+      "immediate":true
+    },
+    "stopTime": {
+      "none":true
+    },
+    "frameSize": 1500,
+    "measurementIntervalMins": 1,
+    "measurementsEnabled": ["FRAME_DELAY_TWO_WAY_BINS","FRAME_DELAY_TWO_WAY_AVERAGE"]
+  }
+}
