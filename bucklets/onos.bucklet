@@ -313,7 +313,7 @@ def tar_file(
    ):
 
    cmd = ( 'mkdir -p $TMP/%(root_dir)s && '
-           'cp -r $SRCDIR/ $TMP/%(root_dir)s && '
+           'cp -r -L $SRCDIR/* $TMP/%(root_dir)s && '
            'tar -C $TMP -zcf $OUT %(root_dir)s' ) % {
            'root_dir': root if root is not None else name
          }

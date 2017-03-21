@@ -9,10 +9,10 @@
 onos-push-test-bits $OCT
 onos-push-bits $OCT
 
-ssh -t $ONOS_USER@$OCT "
+ssh -t -t $ONOS_USER@$OCT "
     # Unpack the test tools
     cd /tmp; rm -fr \$(ls -Fd onos-test-*/)
-    tar xf $ONOS_TEST_TAR
+    tar xf \$(basename $ONOS_TEST_TAR)
 
     # Source in the cell environment
     $(onos-cell | sed 's/^/export /')
@@ -22,12 +22,15 @@ ssh -t $ONOS_USER@$OCT "
     # prime the environment.
     cd \$(ls -Fd onos-test-*/)
     export ONOS_ROOT=\$PWD
-    source tools/dev/bash_profile
+    export ONOS_STAGE_ROOT=/tmp
+    export ONOS_TEST_STAGE_ROOT=/tmp
+    source \$ONOS_ROOT/tools/dev/bash_profile
     setPrimaryInstance 1
     onos-verify-cell   # TODO: remove once warden does this for us
 
     # Finally, execute required STC scenario(s) using the default topology
     topo default
     export stcDumpLogs=true
+    export stcColor=$stcColor
     stc fast
 "
