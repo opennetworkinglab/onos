@@ -1,0 +1,23 @@
+{
+  "ma": {
+    "maName": "ma-vlan-1",
+    "maNameType": "CHARACTERSTRING",
+    "maNumericId": 1,
+    "ccm-interval": "INTERVAL_1S",
+    "component-list": [
+      { "component": {
+        "component-id":"1",
+        "tag-type": "VLAN_STAG",
+        "vid-list": [
+          {"vid":1}
+        ]
+      }
+      }
+    ],
+    "rmep-list": [
+      { "rmep":10 },
+      { "rmep":20 },
+      { "rmep":30 }
+    ]
+  }
+}

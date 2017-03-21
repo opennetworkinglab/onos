@@ -15,21 +15,23 @@
   ~ limitations under the License.
   -->
 <drivers>
-	<driver name="microsemi-netconf" extends="netconf" manufacturer="Microsemi"
-		hwVersion="EA1000">
-		<behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-			impl="org.onosproject.drivers.microsemi.Ea1000DeviceDescription" />
-		<behaviour api="org.onosproject.net.behaviour.ConfigGetter"
-			impl="org.onosproject.drivers.microsemi.NetconfConfigGetter" />
-		<behaviour api="org.onosproject.net.behaviour.Pipeliner"
-			impl="org.onosproject.drivers.microsemi.EA1000Pipeliner" />
-		<behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-			impl="org.onosproject.drivers.microsemi.EA1000FlowRuleProgrammable" />
-		<behaviour api="org.onosproject.net.behaviour.MeterQuery"
-			impl="org.onosproject.drivers.microsemi.FullMetersAvailable" />
-<!--         <behaviour api="org.onosproject.incubator.net.l2monitoring.cfm.CfmMepProgrammable" -->
-<!--             impl="org.onosproject.drivers.microsemi.EA1000CfmMepProgrammable"/> -->
-<!--         <behaviour api="org.onosproject.incubator.net.l2monitoring.soam.SoamDmProgrammable" -->
-<!--             impl="org.onosproject.drivers.microsemi.EA1000SoamDmProgrammable"/> -->
-	</driver>
+    <driver name="microsemi-netconf" extends="netconf" manufacturer="Microsemi"
+        hwVersion="EA1000">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+            impl="org.onosproject.drivers.microsemi.Ea1000DeviceDescription" />
+        <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
+            impl="org.onosproject.drivers.microsemi.NetconfConfigGetter" />
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+            impl="org.onosproject.drivers.microsemi.EA1000Pipeliner" />
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+            impl="org.onosproject.drivers.microsemi.EA1000FlowRuleProgrammable" />
+        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
+            impl="org.onosproject.drivers.microsemi.FullMetersAvailable" />
+        <behaviour
+            api="org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMepProgrammable"
+            impl="org.onosproject.drivers.microsemi.EA1000CfmMepProgrammable" />
+        <behaviour
+            api="org.onosproject.incubator.net.l2monitoring.soam.SoamDmProgrammable"
+            impl="org.onosproject.drivers.microsemi.EA1000SoamDmProgrammable" />
+    </driver>
 </drivers>

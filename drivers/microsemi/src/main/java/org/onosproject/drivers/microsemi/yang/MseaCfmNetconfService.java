@@ -15,6 +15,10 @@
  */
 package org.onosproject.drivers.microsemi.yang;
 
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
+import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MepId;
+import org.onosproject.incubator.net.l2monitoring.soam.SoamId;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -34,32 +38,48 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.
 public interface MseaCfmNetconfService {
 
     /**
-     * Returns attributes of MEP.
+     * Returns minimal set of attributes of MEP.
      *
-     * @param mdName The name of the MD
-     * @param maName The name of the MA
+     * @param mdId The name of the MD
+     * @param maId The name of the MA
      * @param mepId The ID of the MEP
      * @param session An active NETCONF session
      * @return mseaCfm
      * @throws NetconfException if the session has any error
      */
-    MseaCfm getMepEssentials(String mdName, String maName, int mepId,
-            NetconfSession session) throws NetconfException;
+    MseaCfm getMepEssentials(MdId mdId, MaIdShort maId, MepId mepId,
+                             NetconfSession session) throws NetconfException;
 
+    /**
+     * Returns full set of attributes of MEP.
+     * This returns config and state attributes of all children of the MEP
+     * except for Delay Measurements and Loss Measurements - these have to be
+     * retrieved separately, because of their potential size
+     * @param mdId The name of the MD
+     * @param maId The name of the MA
+     * @param mepId The ID of the MEP
+     * @param session An active NETCONF session
+     * @return mseaCfm
+     * @throws NetconfException if the session has any error
+     */
+    MseaCfm getMepFull(MdId mdId, MaIdShort maId, MepId mepId,
+            NetconfSession session) throws NetconfException;
 
     /**
      * Returns attributes of DM.
      *
-     * @param mdName The name of the MD
-     * @param maName The name of the MA
+     * @param mdId The name of the MD
+     * @param maId The name of the MA
      * @param mepId The ID of the MEP
-     * @param dmId The Id of the Delay Measurement
+     * @param dmId The Id of the Delay Measurement - if null then all DMs
+     * @param parts The parts of the DM to return
      * @param session An active NETCONF session
      * @return mseaCfm
      * @throws NetconfException if the session has any error
      */
-    MseaCfm getSoamDm(String mdName, String maName, int mepId,
-            int dmId, NetconfSession session) throws NetconfException;
+    MseaCfm getSoamDm(MdId mdId, MaIdShort maId, MepId mepId,
+                  SoamId dmId, DmEntryParts parts, NetconfSession session)
+                    throws NetconfException;
 
     /**
      * Sets the value to attribute mseaCfm.
@@ -71,6 +91,33 @@ public interface MseaCfmNetconfService {
      * @throws NetconfException if the session has any error
      */
     boolean setMseaCfm(MseaCfmOpParam mseaCfm, NetconfSession session,
+                       DatastoreId targetDs) throws NetconfException;
+
+    /**
+     * Deletes named Meps of mseaCfm.
+     * Expects to see a list of Meps
+     *
+     * @param mseaCfm value of mseaCfm
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return Boolean to indicate success or failure
+     * @throws NetconfException if the session has any error
+     */
+    boolean deleteMseaMep(MseaCfmOpParam mseaCfm, NetconfSession session,
+                            DatastoreId targetDs) throws NetconfException;
+
+
+    /**
+     * Deletes named delay measurements of mseaCfm.
+     * Expects to see a list of Delay Measurements
+     *
+     * @param mseaCfm value of mseaCfm
+     * @param session An active NETCONF session
+     * @param targetDs one of running, candidate or startup
+     * @return Boolean to indicate success or failure
+     * @throws NetconfException if the session has any error
+     */
+    boolean deleteMseaCfmDm(MseaCfmOpParam mseaCfm, NetconfSession session,
                        DatastoreId targetDs) throws NetconfException;
 
     /**
@@ -103,4 +150,10 @@ public interface MseaCfmNetconfService {
      */
     TransmitLinktraceOutput transmitLinktrace(TransmitLinktraceInput inputVar,
               NetconfSession session) throws NetconfException;
+
+    public enum DmEntryParts {
+        ALL_PARTS,
+        CURRENT_ONLY,
+        HISTORY_ONLY;
+    }
 }

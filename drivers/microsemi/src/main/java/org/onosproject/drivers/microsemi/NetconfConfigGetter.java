@@ -16,9 +16,8 @@
 
 package org.onosproject.drivers.microsemi;
 
+import static org.onosproject.netconf.DatastoreId.datastore;
 import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -29,6 +28,7 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import com.google.common.base.Preconditions;
@@ -66,8 +66,9 @@ public class NetconfConfigGetter extends AbstractHandlerBehaviour implements Con
             return UNABLE_TO_READ_CONFIG;
         }
         try {
-            return controller.getDevicesMap().get(ofDeviceId).getSession().getConfig(type.replace("cfgType=", ""));
-        } catch (IOException e) {
+            return controller.getDevicesMap().get(ofDeviceId).getSession()
+                    .getConfig(datastore(type.replace("cfgType=", "")));
+        } catch (NetconfException e) {
             log.error("Configuration could not be retrieved {}", e.getMessage());
         }
         return UNABLE_TO_READ_CONFIG;

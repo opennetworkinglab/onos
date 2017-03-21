@@ -45,11 +45,16 @@ public class MockYangSchemaNodeProvider {
     private static final String PATH = System.getProperty("user.dir") +
             FS + "buck-out" + FS + "gen" +
             FS + "models" + FS + "microsemi" + FS + "onos-models-microsemi-schema" + FS;
+    private static final String PATH_MAVEN = System.getProperty("user.dir") +
+            "models" + FS + "microsemi" + FS + "target" + FS + "classes" + FS;
     private static final String SER_FILE_PATH = "yang" + FS + "resources" +
             FS + "YangMetaData.ser";
     private static final String META_PATH =
             PATH.replace("drivers/microsemi", "")
             + SER_FILE_PATH;
+    private static final String META_PATH_MVN =
+            PATH_MAVEN.replace("drivers/microsemi", "")
+                    + SER_FILE_PATH;
     private static final String TEMP_FOLDER_PATH = PATH + UtilConstants.TEMP;
     private YangModelRegistry reg = new DefaultYangModelRegistry();
     private List<YangNode> nodes = new ArrayList<>();
@@ -72,8 +77,17 @@ public class MockYangSchemaNodeProvider {
             reg.registerModel(prepareParam(nodes));
             YangIoUtils.deleteDirectory(TEMP_FOLDER_PATH);
         } catch (IOException e) {
-            throw new IllegalArgumentException("YangMetaData.ser could not " +
-                    "be loaded from " + META_PATH, e);
+            //Try the MAVEN path instead
+            try {
+                Set<YangNode> appNode = DataModelUtils.deSerializeDataModel(META_PATH_MVN);
+                RuntimeHelper.addLinkerAndJavaInfo(appNode);
+                nodes.addAll(appNode);
+                reg.registerModel(prepareParam(nodes));
+                YangIoUtils.deleteDirectory(TEMP_FOLDER_PATH);
+            } catch (IOException e1) {
+                throw new IllegalArgumentException("YangMetaData.ser could not " +
+                        "be loaded from " + META_PATH + " or from " + META_PATH_MVN, e);
+            }
         }
     }
 

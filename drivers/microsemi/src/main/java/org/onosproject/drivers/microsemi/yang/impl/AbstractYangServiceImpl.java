@@ -35,6 +35,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.maintenanceassociation.CcmIntervalEnum;
+import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.mseasoampm.mefcfm.maintenancedomain.maintenanceassociation.maintenanceassociationendpoint.augmentedmseacfmmaintenanceassociationendpoint.lossmeasurements.lossmeasurement.MessagePeriodEnum;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ResourceData;
@@ -100,7 +102,8 @@ public abstract class AbstractYangServiceImpl {
             Pattern.compile("(<data/>)");
     protected static final Pattern REGEX_RPC_REPLY_CLOSE =
             Pattern.compile("(</rpc-reply>)");
-
+    protected static final Pattern REGEX_RPC_OK =
+            Pattern.compile("\\R?\\s*(<ok/>)\\R?");
     @Activate
     public void activate() {
         Set<YangSerializer> yangSer = ((YangSerializerRegistry) yangModelRegistry).getSerializers();
@@ -189,16 +192,63 @@ public abstract class AbstractYangServiceImpl {
         if (moConfig == null) {
             throw new NetconfException("Query object cannot be null");
         } else if (session == null) {
-            throw new NetconfException("Session is null when calling getMseaSaFiltering()");
+            throw new NetconfException("Session is null when calling setNetconfObject()");
         } else if (targetDs == null) {
-            throw new NetconfException("TargetDs is null when calling getMseaSaFiltering()");
+            throw new NetconfException("TargetDs is null when calling setNetconfObject()");
         }
 
         String xmlQueryStr = encodeMoToXmlStr(moConfig, annotations);
         log.debug("Sending <edit-config> query on NETCONF session " + session.getSessionId() +
                 ":\n" + xmlQueryStr);
 
+        //Some encoded values just have to be replaced
+        xmlQueryStr = xmlQueryStr.replace(MessagePeriodEnum.YANGAUTOPREFIX3MS.toString(), "3ms");
+        xmlQueryStr = xmlQueryStr.replace(MessagePeriodEnum.YANGAUTOPREFIX10MS.toString(), "10ms");
+        xmlQueryStr = xmlQueryStr.replace(MessagePeriodEnum.YANGAUTOPREFIX100MS.toString(), "100ms");
+        xmlQueryStr = xmlQueryStr.replace(MessagePeriodEnum.YANGAUTOPREFIX1000MS.toString(), "1000ms");
+
+        xmlQueryStr = xmlQueryStr.replace(CcmIntervalEnum.YANGAUTOPREFIX3_3MS.toString(), "3.3ms");
+        xmlQueryStr = xmlQueryStr.replace(CcmIntervalEnum.YANGAUTOPREFIX10MS.toString(), "10ms");
+        xmlQueryStr = xmlQueryStr.replace(CcmIntervalEnum.YANGAUTOPREFIX100MS.toString(), "100ms");
+        xmlQueryStr = xmlQueryStr.replace(CcmIntervalEnum.YANGAUTOPREFIX1S.toString(), "1s");
+
         return session.editConfig(targetDs, null, xmlQueryStr);
+    }
+
+    /**
+     * Internal method to generically call a NETCONF custom RPC from a set of YANG objects.
+     *
+     * @param customRpcInput A YANG object model
+     * @param rpcName The name of the RPC - replaces 'input' in the XML payload
+     * @param session A NETCONF session
+     * @return ModelObjectData value indicating success or failure of command
+     * @throws NetconfException if the session has any error
+     */
+    protected final ModelObjectData customRpcNetconf(
+            ModelObjectData customRpcInput, String rpcName, NetconfSession session)
+            throws NetconfException {
+        if (customRpcInput == null) {
+            throw new NetconfException("Input object cannot be null");
+        } else if (session == null) {
+            throw new NetconfException("Session is null when calling customRpcNetconf()");
+        }
+
+        String xmlQueryStr = encodeMoToXmlStr(customRpcInput, null);
+        xmlQueryStr = xmlQueryStr.replace("input", rpcName);
+        log.debug("Sending <edit-config> query on NETCONF session " + session.getSessionId() +
+                ":\n" + xmlQueryStr);
+
+        String xmlResult = session.doWrappedRpc(xmlQueryStr);
+        xmlResult = removeRpcReplyData(xmlResult);
+        if (REGEX_RPC_OK.matcher(xmlResult).matches()) {
+            return null;
+        }
+
+        DefaultCompositeStream resultDcs = new DefaultCompositeStream(
+                null, new ByteArrayInputStream(xmlResult.getBytes()));
+        CompositeData compositeData = xSer.decode(resultDcs, yCtx);
+
+        return ((ModelConverter) yangModelRegistry).createModel(compositeData.resourceData());
     }
 
     protected final String encodeMoToXmlStr(ModelObjectData yangObjectOpParamFilter,
@@ -231,8 +281,12 @@ public abstract class AbstractYangServiceImpl {
         }
     }
 
-    protected static final String removeRpcReplyData(String rpcReplyXml) {
+    protected static final String removeRpcReplyData(String rpcReplyXml) throws NetconfException {
         rpcReplyXml = REGEX_XML_HEADER.matcher(rpcReplyXml).replaceFirst("");
+        if (rpcReplyXml.contains("<rpc-error")) {
+            throw new NetconfException("NETCONF rpc-error: " + rpcReplyXml);
+        }
+
         rpcReplyXml = REGEX_RPC_REPLY.matcher(rpcReplyXml).replaceFirst("");
         rpcReplyXml = REGEX_RPC_REPLY_DATA_NS.matcher(rpcReplyXml).replaceFirst("");
         rpcReplyXml = REGEX_RPC_REPLY_DATA.matcher(rpcReplyXml).replaceFirst("");

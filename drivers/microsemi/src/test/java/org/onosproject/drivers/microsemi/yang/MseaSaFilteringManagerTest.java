@@ -18,6 +18,7 @@ package org.onosproject.drivers.microsemi.yang;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import java.io.UncheckedIOException;
 import java.util.List;
@@ -82,6 +83,32 @@ public class MseaSaFilteringManagerTest {
             } else if (sa.rangeId() == 2) {
                 assertEquals("20.30.40.50/18", sa.ipv4AddressPrefix());
             }
+        }
+    }
+
+    /**
+     * See sampleXmlRegexSaFilteringErrorScenario in MockNetconfSessionEa1000.
+     */
+    @Test
+    public void testGetMseaSaFilteringMseaSaFilteringOpParamNetconfSessionError() {
+
+        SourceAddressRange sar = new DefaultSourceAddressRange();
+        sar.rangeId((short) 10);
+
+        InterfaceEth0 eth0 = new DefaultInterfaceEth0();
+        eth0.addToSourceAddressRange(sar);
+
+        SourceIpaddressFiltering sip = new DefaultSourceIpaddressFiltering();
+        sip.interfaceEth0(eth0);
+
+        MseaSaFilteringOpParam mseaSaFilteringConfig = new MseaSaFilteringOpParam();
+        mseaSaFilteringConfig.sourceIpaddressFiltering(sip);
+
+        try {
+            MseaSaFiltering result = mseaSaSvc.getMseaSaFiltering(mseaSaFilteringConfig, session);
+            fail("Should have thrown exception");
+        } catch (NetconfException ne) {
+            assertTrue(ne.getMessage().startsWith("NETCONF rpc-error"));
         }
     }
 

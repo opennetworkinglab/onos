@@ -87,6 +87,8 @@
         <module>mappingmanagement</module>
         <module>network-troubleshoot</module>
         <module>restconf</module>
+        <module>cfm</module>
+        <module>yang</module>
     </modules>
 
     <properties>

@@ -185,6 +185,7 @@ public class EA1000FlowRuleProgrammable extends AbstractHandlerBehaviour impleme
             } else {
                 log.error("Unexpected error on SA Filt getFlowEntries on {}",
                         handler().data().deviceId(), e);
+                return flowEntryCollection;
             }
         }
 

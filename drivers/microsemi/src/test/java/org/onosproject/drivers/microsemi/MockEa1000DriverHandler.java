@@ -19,14 +19,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.onosproject.core.CoreService;
+import org.onosproject.drivers.microsemi.yang.MockCfmMdService;
+import org.onosproject.drivers.microsemi.yang.MockMseaCfmManager;
 import org.onosproject.drivers.microsemi.yang.MockMseaSaFilteringManager;
 import org.onosproject.drivers.microsemi.yang.MockMseaUniEvcServiceManager;
 import org.onosproject.drivers.microsemi.yang.MockNetconfSessionEa1000;
+import org.onosproject.drivers.microsemi.yang.MseaCfmNetconfService;
 import org.onosproject.drivers.microsemi.yang.MseaSaFilteringNetconfService;
 import org.onosproject.drivers.microsemi.yang.MseaUniEvcServiceNetconfService;
 import org.onosproject.drivers.netconf.MockCoreService;
 import org.onosproject.drivers.netconf.MockNetconfController;
 import org.onosproject.drivers.netconf.MockNetconfDevice;
+import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriver;
@@ -53,6 +57,8 @@ public class MockEa1000DriverHandler implements DriverHandler {
     private NetconfController ncc;
     private MockMseaSaFilteringManager mseaSaFilteringService;
     private MockMseaUniEvcServiceManager mseaUniEvcService;
+    private MockMseaCfmManager mseaCfmService;
+    private MockCfmMdService mockMdService;
     private CoreService coreService;
 
     public MockEa1000DriverHandler() throws NetconfException {
@@ -63,7 +69,9 @@ public class MockEa1000DriverHandler implements DriverHandler {
         Map<String, String> properties = new HashMap<String, String>();
 
         Driver mockDriver =
-                new DefaultDriver("mockDriver", null, "ONOSProject", "1.0.0", "1.0.0", behaviours, properties);
+                new DefaultDriver("mockDriver", null,
+                        "ONOSProject", "1.0.0",
+                        "1.0.0", behaviours, properties);
         DeviceId mockDeviceId = DeviceId.deviceId("netconf:1.2.3.4:830");
         mockDriverData = new DefaultDriverData(mockDriver, mockDeviceId);
 
@@ -77,6 +85,12 @@ public class MockEa1000DriverHandler implements DriverHandler {
 
         mseaUniEvcService = new MockMseaUniEvcServiceManager();
         mseaUniEvcService.activate();
+
+        mseaCfmService = new MockMseaCfmManager();
+        mseaCfmService.activate();
+
+        mockMdService = new MockCfmMdService();
+        mockMdService.activate();
 
         coreService = new MockCoreService();
         coreService.registerApplication(MICROSEMI_DRIVERS);
@@ -109,9 +123,14 @@ public class MockEa1000DriverHandler implements DriverHandler {
         } else if (serviceClass.equals(MseaUniEvcServiceNetconfService.class)) {
             return (T) mseaUniEvcService;
 
+        } else if (serviceClass.equals(MseaCfmNetconfService.class)) {
+            return (T) mseaCfmService;
+
         } else if (serviceClass.equals(CoreService.class)) {
             return (T) coreService;
 
+        } else if (serviceClass.equals(CfmMdService.class)) {
+            return (T) mockMdService;
         }
 
         return null;

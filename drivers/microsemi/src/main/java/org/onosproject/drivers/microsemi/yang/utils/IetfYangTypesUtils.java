@@ -15,6 +15,7 @@
  */
 package org.onosproject.drivers.microsemi.yang.utils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -60,5 +61,14 @@ public final class IetfYangTypesUtils {
         OffsetDateTime odt = OffsetDateTime.parse(dateAndTime.toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
         return LocalDateTime.ofInstant(odt.toInstant(), ZoneId.systemDefault());
+    }
+
+    /**
+     * Convert a from Date and Time in a ietf-yang-types format to the Java Time API as an Instant.
+     * @param dateAndTime A date and time from a YANG object
+     * @return The date and time as an Instant
+     */
+    public static Instant fromYangDateTimeToInstant(DateAndTime dateAndTime) {
+        return Instant.from(OffsetDateTime.parse(dateAndTime.toString(), DateTimeFormatter.ISO_OFFSET_DATE_TIME));
     }
 }
