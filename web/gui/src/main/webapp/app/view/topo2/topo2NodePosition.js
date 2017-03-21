@@ -33,11 +33,26 @@
         var meta = node.get('metaUi'),
             x = meta && meta.x,
             y = meta && meta.y,
+            hasMeta = x !== undefined && y !== undefined,
             dim = [800, 600],
             xy;
 
-        if (node.nodeType === 'peer-region') {
+        // If the node has metaUI data attached, it indicates that the user
+        //  has dragged the node to a new position on the view; so we should
+        //  respect that above any script-configured position...
+        // (NOTE: This is a slightly different to the original topology code)
 
+        if (hasMeta) {
+            node.fix(true);
+            node.px = node.x = x;
+            node.py = node.y = y;
+            return;
+        }
+
+        // Otherwise, use a precomputed location for peer regions, or
+        // LONG/LAT (or GRID) locations for regions/devices/hosts
+
+        if (node.nodeType === 'peer-region') {
             var coord = [0, 0],
                 loc = {};
 
@@ -60,14 +75,6 @@
         if (setLongLat(node)) {
             // Indicate we want to update cached meta data...
             return true;
-        }
-
-        // else if we have [x,y] cached in meta data, use that...
-        if (x !== undefined && y !== undefined) {
-            node.fix(true);
-            node.px = node.x = x;
-            node.py = node.y = y;
-            return;
         }
 
         // if this is a node update (not a node add).. skip randomizer
@@ -165,7 +172,8 @@
 
     angular.module('ovTopo2')
     .factory('Topo2NodePositionService',
-        ['RandomService', 'Topo2MapConfigService', 'Topo2SpriteLayerService', 'Topo2BackgroundService',
+        ['RandomService', 'Topo2MapConfigService',
+            'Topo2SpriteLayerService', 'Topo2BackgroundService',
             function (_rs_, _t2mcs_, _t2sls_, _t2bgs_) {
 
                 rs = _rs_;

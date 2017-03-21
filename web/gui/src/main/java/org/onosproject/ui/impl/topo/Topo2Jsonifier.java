@@ -85,6 +85,9 @@ public class Topo2Jsonifier {
     private static final String E_UNKNOWN_UI_NODE =
             "Unknown subclass of UiNode: ";
 
+    private static final String CONTEXT_KEY_DELIM = "_";
+    private static final String NO_CONTEXT = "";
+
     private static final String REGION = "region";
     private static final String DEVICE = "device";
     private static final String HOST = "host";
@@ -349,24 +352,27 @@ public class Topo2Jsonifier {
             payload.put("note", "no-region");
             return payload;
         }
-        payload.put("id", region.idAsString());
-        payload.set("subregions", jsonSubRegions(subRegions));
+
+        String ridStr = region.idAsString();
+
+        payload.put("id", ridStr);
+        payload.set("subregions", jsonSubRegions(ridStr, subRegions));
         payload.set("links", jsonLinks(links));
 
         List<String> layerTags = region.layerOrder();
         List<Set<UiNode>> splitDevices = splitByLayer(layerTags, region.devices());
         List<Set<UiNode>> splitHosts = splitByLayer(layerTags, region.hosts());
 
-        payload.set("devices", jsonGrouped(splitDevices));
-        payload.set("hosts", jsonGrouped(splitHosts));
+        payload.set("devices", jsonGrouped(ridStr, splitDevices));
+        payload.set("hosts", jsonGrouped(ridStr, splitHosts));
         payload.set("layerOrder", jsonStrings(layerTags));
 
         return payload;
     }
 
-    private ArrayNode jsonSubRegions(Set<UiRegion> subregions) {
+    private ArrayNode jsonSubRegions(String ridStr, Set<UiRegion> subregions) {
         ArrayNode kids = arrayNode();
-        subregions.forEach(s -> kids.add(jsonClosedRegion(s)));
+        subregions.forEach(s -> kids.add(jsonClosedRegion(ridStr, s)));
         return kids;
     }
 
@@ -382,11 +388,11 @@ public class Topo2Jsonifier {
         return array;
     }
 
-    private ArrayNode jsonGrouped(List<Set<UiNode>> groupedNodes) {
+    private ArrayNode jsonGrouped(String ridStr, List<Set<UiNode>> groupedNodes) {
         ArrayNode result = arrayNode();
         groupedNodes.forEach(g -> {
             ArrayNode subset = arrayNode();
-            g.forEach(n -> subset.add(json(n)));
+            g.forEach(n -> subset.add(json(ridStr, n)));
             result.add(subset);
         });
         return result;
@@ -400,7 +406,7 @@ public class Topo2Jsonifier {
      */
     public ObjectNode jsonUiElement(UiElement element) {
         if (element instanceof UiNode) {
-            return json((UiNode) element);
+            return json(NO_CONTEXT, (UiNode) element);
         }
         if (element instanceof UiLink) {
             return json((UiLink) element);
@@ -440,20 +446,20 @@ public class Topo2Jsonifier {
         return master != null ? master.toString() : "";
     }
 
-    private ObjectNode json(UiNode node) {
+    private ObjectNode json(String ridStr, UiNode node) {
         if (node instanceof UiRegion) {
-            return jsonClosedRegion((UiRegion) node);
+            return jsonClosedRegion(ridStr, (UiRegion) node);
         }
         if (node instanceof UiDevice) {
-            return json((UiDevice) node);
+            return json(ridStr, (UiDevice) node);
         }
         if (node instanceof UiHost) {
-            return json((UiHost) node);
+            return json(ridStr, (UiHost) node);
         }
         throw new IllegalStateException(E_UNKNOWN_UI_NODE + node.getClass());
     }
 
-    private ObjectNode json(UiDevice device) {
+    private ObjectNode json(String ridStr, UiDevice device) {
         ObjectNode node = objectNode()
                 .put("id", device.idAsString())
                 .put("nodeType", DEVICE)
@@ -466,7 +472,7 @@ public class Topo2Jsonifier {
 
         addProps(node, d);
         addGeoGridLocation(node, d);
-        addMetaUi(node, device.idAsString());
+        addMetaUi(node, ridStr, device.idAsString());
 
         return node;
     }
@@ -480,8 +486,9 @@ public class Topo2Jsonifier {
         node.set("props", props);
     }
 
-    private void addMetaUi(ObjectNode node, String metaInstanceId) {
-        ObjectNode meta = metaUi.get(metaInstanceId);
+    private void addMetaUi(ObjectNode node, String ridStr, String metaInstanceId) {
+        String key = contextKey(ridStr, metaInstanceId);
+        ObjectNode meta = metaUi.get(key);
         if (meta != null) {
             node.set("metaUi", meta);
         }
@@ -549,7 +556,7 @@ public class Topo2Jsonifier {
         return p;
     }
 
-    private ObjectNode json(UiHost host) {
+    private ObjectNode json(String ridStr, UiHost host) {
         ObjectNode node = objectNode()
                 .put("id", host.idAsString())
                 .put("nodeType", HOST)
@@ -560,7 +567,7 @@ public class Topo2Jsonifier {
         addIps(node, h);
         addProps(node, h);
         addGeoGridLocation(node, h);
-        addMetaUi(node, host.idAsString());
+        addMetaUi(node, ridStr, host.idAsString());
 
         return node;
     }
@@ -587,36 +594,45 @@ public class Topo2Jsonifier {
     }
 
 
-    private ObjectNode jsonClosedRegion(UiRegion region) {
+    private ObjectNode jsonClosedRegion(String ridStr, UiRegion region) {
         ObjectNode node = objectNode()
                 .put("id", region.idAsString())
                 .put("name", region.name())
                 .put("nodeType", REGION)
                 .put("nDevs", region.deviceCount())
                 .put("nHosts", region.hostCount());
+        // TODO: device and host counts should take into account any nested
+        //       subregions. i.e. should be the sum of all devices/hosts in
+        //       all descendent subregions.
 
         Region r = region.backingRegion();
+        // this is location data, as injected via network configuration script
         addGeoGridLocation(node, r);
         addProps(node, r);
 
-        addMetaUi(node, region.idAsString());
+        // this may contain location data, as dragged by user
+        // (which should take precedence, over configured data)
+        addMetaUi(node, ridStr, region.idAsString());
         return node;
     }
 
     /**
      * Returns a JSON array representation of a set of regions/devices. Note
      * that the information is sufficient for showing regions as nodes.
+     * THe region ID string defines the context (which region) the node is
+     * being displayed in.
      *
+     * @param ridStr region-id string
      * @param nodes the nodes
      * @return a JSON representation of the nodes
      */
-    public ArrayNode closedNodes(Set<UiNode> nodes) {
+    public ArrayNode closedNodes(String ridStr, Set<UiNode> nodes) {
         ArrayNode array = arrayNode();
         for (UiNode node : nodes) {
             if (node instanceof UiRegion) {
-                array.add(jsonClosedRegion((UiRegion) node));
+                array.add(jsonClosedRegion(ridStr, (UiRegion) node));
             } else if (node instanceof UiDevice) {
-                array.add(json((UiDevice) node));
+                array.add(json(ridStr, (UiDevice) node));
             } else {
                 log.warn("Unexpected node instance: {}", node.getClass());
             }
@@ -624,7 +640,8 @@ public class Topo2Jsonifier {
         return array;
     }
 
-    /**
+    // TODO: These methods do not seem to be used; consider removing them.
+    /*
      * Returns a JSON array representation of a list of regions. Note that the
      * information about each region is limited to what needs to be used to
      * show the regions as nodes on the view.
@@ -632,41 +649,41 @@ public class Topo2Jsonifier {
      * @param regions the regions
      * @return a JSON representation of the minimal region information
      */
-    public ArrayNode closedRegions(Set<UiRegion> regions) {
-        ArrayNode array = arrayNode();
-        for (UiRegion r : regions) {
-            array.add(jsonClosedRegion(r));
-        }
-        return array;
-    }
+//    public ArrayNode closedRegions(Set<UiRegion> regions) {
+//        ArrayNode array = arrayNode();
+//        for (UiRegion r : regions) {
+//            array.add(jsonClosedRegion(r));
+//        }
+//        return array;
+//    }
 
-    /**
+    /*
      * Returns a JSON array representation of a list of devices.
      *
      * @param devices the devices
      * @return a JSON representation of the devices
      */
-    public ArrayNode devices(Set<UiDevice> devices) {
-        ArrayNode array = arrayNode();
-        for (UiDevice device : devices) {
-            array.add(json(device));
-        }
-        return array;
-    }
+//    public ArrayNode devices(Set<UiDevice> devices) {
+//        ArrayNode array = arrayNode();
+//        for (UiDevice device : devices) {
+//            array.add(json(device));
+//        }
+//        return array;
+//    }
 
-    /**
+    /*
      * Returns a JSON array representation of a list of hosts.
      *
      * @param hosts the hosts
      * @return a JSON representation of the hosts
      */
-    public ArrayNode hosts(Set<UiHost> hosts) {
-        ArrayNode array = arrayNode();
-        for (UiHost host : hosts) {
-            array.add(json(host));
-        }
-        return array;
-    }
+//    public ArrayNode hosts(Set<UiHost> hosts) {
+//        ArrayNode array = arrayNode();
+//        for (UiHost host : hosts) {
+//            array.add(json(host));
+//        }
+//        return array;
+//    }
 
     // package-private for unit testing
     List<Set<UiNode>> splitByLayer(List<String> layerTags,
@@ -696,17 +713,26 @@ public class Topo2Jsonifier {
         return splitList;
     }
 
+
+    private String contextKey(String context, String key) {
+        return context + CONTEXT_KEY_DELIM + key;
+    }
+
     /**
      * Stores the memento for an element.
-     * This method assumes the payload has an id String, memento ObjectNode
+     * This method assumes the payload has an id String, memento ObjectNode.
+     * The region-id string is used as a context within which to store the
+     * memento.
      *
+     * @param ridStr  region ID string
      * @param payload event payload
      */
-    void updateMeta(ObjectNode payload) {
+    void updateMeta(String ridStr, ObjectNode payload) {
 
         String id = JsonUtils.string(payload, "id");
-        metaUi.put(id, JsonUtils.node(payload, "memento"));
+        String key = contextKey(ridStr, id);
+        metaUi.put(key, JsonUtils.node(payload, "memento"));
 
-        log.debug("Storing metadata for {}", id);
+        log.debug("Storing metadata for {}", key);
     }
 }
