@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+# Splits ONOS DEBUG logs by partition/session for debugging consistent primitives.
+# When logs are split, this script will create a separate log file for each partition
+# and each Atomix session, e.g. karaf.log.partition-1, karaf.log.session-10, etc.
+#
+# Usage: onos-split-logs [directory|file]
+import sys, os, re
+from os.path import isfile, isdir, dirname, basename
+
+path = sys.argv[1]
+
+INDENT = 25
+SEP = ' | '
+
+DOMAINS = ('com', 'org', 'net', 'io', 'us')
+
+def is_exception(line):
+    for domain in DOMAINS:
+        if line.startswith(domain + '.'):
+            return True
+    return line.strip().startswith('at ')
+
+def find_pattern(f, pattern):
+    values = set()
+    prog = re.compile(pattern)
+    for line in f:
+        match = prog.search(line)
+        if match:
+            values.add(match.group(1))
+    f.seek(0)
+    return values
+
+def split_line(line):
+    if is_exception(line):
+        return line
+    split = line.split('|')
+    if len(split) > 5:
+        ts = split[0].strip()
+        cls = split[3].strip()
+        log = split[5].strip(' /')
+        tsbuf = ''.join([' ' for i in range(INDENT - len(ts))])
+        clsbuf = ''.join([' ' for i in range(INDENT - len(cls))])
+        return ts + tsbuf + SEP + cls + clsbuf + SEP + log
+    return ''
+
+def split_log(infile, matcher, filemaker, matchmaker):
+    for match in matcher(infile):
+        matchers = matchmaker(match)
+        with open(filemaker(match), 'w+') as outfile:
+            for line in infile:
+                for m in matchers:
+                    if m(line):
+                        outfile.write(split_line(line))
+                        break
+        infile.seek(0)
+
+def split_partitions(filepath, f):
+    split_log(
+        f,
+        lambda f: find_pattern(f, '9876-partition-([0-9]+)'),
+        lambda partition: filepath + '.partition-' + partition,
+        lambda partition: (
+            lambda line: 'partition-' + partition in line,
+            is_exception))
+
+def split_sessions(filepath, f):
+    split_log(
+        f,
+        lambda f: find_pattern(f, 'session=([0-9]+)'),
+        lambda session: filepath + '.session-' + session,
+        lambda session: (
+            lambda line: ' ' + session + ' - ' in line,
+            lambda line: 'session=' + session in line,
+            is_exception))
+
+def split_file(dirpath, filename):
+    filepath = dirpath + os.sep + filename
+    with open(filepath, 'r') as f:
+        split_partitions(filepath, f)
+        split_sessions(filepath, f)
+
+def split_files(path):
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        for filename in filenames:
+            if '.log' in filename:
+                split_file(dirpath, filename)
+
+if __name__ == '__main__':
+    path = sys.argv[1]
+    if isfile(path):
+        split_file(dirname(path), basename(path))
+    else:
+        split_files(path)
