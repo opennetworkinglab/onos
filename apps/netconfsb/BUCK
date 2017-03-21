@@ -1,10 +1,10 @@
 BUNDLES = [
-  '//apps/netconf/client:onos-apps-netconf-client',
-  '//apps/netconf/storeadapter:onos-apps-netconf-storeadapter',
+  '//apps/netconfsb/client:onos-apps-netconfsb-client',
+  '//apps/netconfsb/storeadapter:onos-apps-netconfsb-storeadapter',
 ]
 
 onos_app (
-  app_name = 'org.onosproject.netconf',
+  app_name = 'org.onosproject.netconfsb',
   title = 'NETCONF Application Module',
   category = 'Utility',
   url = 'http://onosproject.org',

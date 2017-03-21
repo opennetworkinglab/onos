@@ -32,7 +32,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.client.NetconfTranslator.OperationType;
+import org.onosproject.netconf.NetconfException;
+import org.onosproject.netconf.NetconfController;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.LeafNode;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.DefaultResourceData;
 import org.slf4j.Logger;
@@ -40,13 +45,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+
 @Beta
 @Component(immediate = true)
-public class NetconfYangListener implements DynamicConfigListener {
+public class NetconfActiveComponent implements DynamicConfigListener {
 
-    private static final Logger log = LoggerFactory.getLogger(NetconfYangListener.class);
+    private static final Logger log = LoggerFactory.getLogger(NetconfActiveComponent.class);
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DynamicConfigService cfgServcie;
+    protected DynamicConfigService cfgService;
     public static final String DEVNMSPACE = "namespace1";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -55,35 +61,51 @@ public class NetconfYangListener implements DynamicConfigListener {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetconfController controller;
+
     private ResourceId resId = new ResourceId.Builder()
             .addBranchPointSchema("device", DEVNMSPACE )
             .build();
     @Activate
     protected void activate() {
-        cfgServcie.addListener(this);
+        cfgService.addListener(this);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        cfgServcie.removeListener(this);
+        cfgService.removeListener(this);
         log.info("Stopped");
     }
 
     @Override
     public boolean isRelevant(DynamicConfigEvent event) {
-        if (event.subject().equals(resId) &&
-                mastershipService.isLocalMaster(retrieveDeviceId(event.subject()))) {
-                return true;
-            } else {
+        if (event.subject().equals(resId)) {
+            return true;
+        } else {
             return false;
         }
     }
+
+    public boolean isMaster(DeviceId deviceId) {
+        if (mastershipService.isLocalMaster(deviceId)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void event(DynamicConfigEvent event) {
         Filter filt = new Filter();
-        DataNode node = cfgServcie.readNode(event.subject(), filt);
-        DeviceId deviceId = retrieveDeviceId(event.subject());
+        DataNode node = cfgService.readNode(event.subject(), filt);
+        DeviceId deviceId = getDeviceId(node);
+        if (!isMaster(deviceId)) {
+            log.info("NetConfListener: not master, ignoring config for {}", event.type());
+            return;
+        }
+        initiateConnection(deviceId);
         switch (event.type()) {
             case NODE_ADDED:
             case NODE_UPDATED:
@@ -150,13 +172,46 @@ public class NetconfYangListener implements DynamicConfigListener {
     }
 
     /**
-     * Takes a resourceId corresponding to the provided event and uses it to
-     * retrieve/generate a deviceId corresponding to the effected device.
-     * @param resourceId the resourceId associated with the event
+     * Retrieves device id from Data node.
+     *
+     * @param node the node associated with the event
      * @return the deviceId of the effected device
      */
-    private DeviceId retrieveDeviceId(ResourceId resourceId) {
-        /*TODO this requires a real implementation instead of a placeholder */
-        return DeviceId.NONE;
+    public DeviceId getDeviceId(DataNode node) {
+        String[] temp;
+        String ip, port;
+        if (node.type() == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+            temp = ((LeafNode) node).asString().split("\\:");
+            if (temp.length != 3) {
+                throw new RuntimeException(new NetconfException("Invalid device id form, cannot apply"));
+            }
+            ip = temp[1];
+            port = temp[2];
+        } else {
+            throw new RuntimeException(new NetconfException("Invalid device id type, cannot apply"));
+        }
+        try {
+            return DeviceId.deviceId(new URI("netconf", ip + ":" + port, (String) null));
+        } catch (URISyntaxException var4) {
+            throw new IllegalArgumentException("Unable to build deviceID for device " + ip + ":" + port, var4);
+        }
+    }
+
+    /**
+     * Inititates a Netconf connection to the device.
+     *
+     * @param deviceId of the added device
+     */
+    private void initiateConnection(DeviceId deviceId) {
+        if (controller.getNetconfDevice(deviceId) == null) {
+            try {
+                //if (this.isReachable(deviceId)) {
+                    this.controller.connectDevice(deviceId);
+                //}
+            } catch (Exception ex) {
+                throw new RuntimeException(new NetconfException("Can\'t " +
+                        "connect to NETCONF device on " + deviceId + ":" + deviceId, ex));
+            }
+        }
     }
 }
