@@ -232,6 +232,8 @@ public class RestconfManager implements RestconfService {
                     dbr = dbr.createChildBuilder(keyLeaf.leafSchema().name(),
                                                  sid.namespace(), val)
                             .type(SINGLE_INSTANCE_LEAF_VALUE_NODE);
+                    //Exit for key leaf node
+                    dbr = dbr.exitNode();
                 }
             } else {
                 dbr = InnerNode.builder(
