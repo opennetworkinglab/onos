@@ -412,8 +412,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         if (vidCriterion == null) {
             // NOTE: it is possible that a filtering objective only has ethCriterion
-            log.debug("filtering objective missing dstMac or VLAN, "
-                    + "cannot program VLAN Table");
+            log.debug("filtering objective missing VLAN, cannot program VLAN Table");
         } else {
             /*
              * NOTE: Separate vlan filtering rules and assignment rules

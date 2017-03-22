@@ -48,8 +48,6 @@ import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
-import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -107,6 +105,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      */
     private static final int POP_VLAN_PUNT_GROUP_ID = 0xc0000000;
 
+    @Override
+    protected boolean requireVlanExtensions() {
+        return false;
+    }
+
     /**
      * Determines whether this pipeline support copy ttl instructions or not.
      *
@@ -148,142 +151,6 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     protected void initGroupHander(PipelinerContext context) {
         groupHandler = new CpqdOfdpa2GroupHandler();
         groupHandler.init(deviceId, context);
-    }
-
-    /*
-     * CPQD emulation does not require special untagged packet handling, unlike
-     * the real ofdpa.
-     */
-    @Override
-    protected void processFilter(FilteringObjective filt,
-                                 boolean install, ApplicationId applicationId) {
-        // This driver only processes filtering criteria defined with switch
-        // ports as the key
-        PortCriterion portCriterion = null;
-        EthCriterion ethCriterion = null;
-        VlanIdCriterion vidCriterion = null;
-        Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
-        if (!filt.key().equals(Criteria.dummy()) &&
-                filt.key().type() == Criterion.Type.IN_PORT) {
-            portCriterion = (PortCriterion) filt.key();
-        } else {
-            log.warn("No key defined in filtering objective from app: {}. Not"
-                    + "processing filtering objective", applicationId);
-            fail(filt, ObjectiveError.UNKNOWN);
-            return;
-        }
-        // convert filtering conditions for switch-intfs into flowrules
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        for (Criterion criterion : filt.conditions()) {
-            if (criterion.type() == Criterion.Type.ETH_DST ||
-                    criterion.type() == Criterion.Type.ETH_DST_MASKED) {
-                ethCriterion = (EthCriterion) criterion;
-            } else if (criterion.type() == Criterion.Type.VLAN_VID) {
-                vidCriterion = (VlanIdCriterion) criterion;
-            } else if (criterion.type() == Criterion.Type.IPV4_DST) {
-                ips.add((IPCriterion) criterion);
-            } else {
-                log.error("Unsupported filter {}", criterion);
-                fail(filt, ObjectiveError.UNSUPPORTED);
-                return;
-            }
-        }
-
-        VlanId assignedVlan = null;
-        // For VLAN cross-connect packets, use the configured VLAN
-        if (vidCriterion != null) {
-            if (vidCriterion.vlanId() != VlanId.NONE) {
-                assignedVlan = vidCriterion.vlanId();
-
-            // For untagged packets, assign a VLAN ID
-            } else {
-                if (filt.meta() == null) {
-                    log.error("Missing metadata in filtering objective required " +
-                            "for vlan assignment in dev {}", deviceId);
-                    fail(filt, ObjectiveError.BADPARAMS);
-                    return;
-                }
-                for (Instruction i : filt.meta().allInstructions()) {
-                    if (i instanceof ModVlanIdInstruction) {
-                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
-                    }
-                }
-                if (assignedVlan == null) {
-                    log.error("Driver requires an assigned vlan-id to tag incoming "
-                            + "untagged packets. Not processing vlan filters on "
-                            + "device {}", deviceId);
-                    fail(filt, ObjectiveError.BADPARAMS);
-                    return;
-                }
-            }
-        }
-
-        if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
-            log.debug("filtering objective missing dstMac, cannot program TMAC table");
-        } else {
-            for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
-                                                         vidCriterion, assignedVlan,
-                                                         applicationId)) {
-                log.debug("adding MAC filtering rules in TMAC table: {} for dev: {}",
-                          tmacRule, deviceId);
-                ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
-            }
-        }
-
-        if (ethCriterion == null || vidCriterion == null) {
-            log.debug("filtering objective missing dstMac or VLAN, "
-                    + "cannot program VLAN Table");
-        } else {
-            List<FlowRule> allRules = processVlanIdFilter(
-                    portCriterion, vidCriterion, assignedVlan, applicationId);
-            for (FlowRule rule : allRules) {
-                log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
-                        rule, deviceId);
-                ops = install ? ops.add(rule) : ops.remove(rule);
-            }
-        }
-
-        for (IPCriterion ipaddr : ips) {
-            // since we ignore port information for IP rules, and the same (gateway) IP
-            // can be configured on multiple ports, we make sure that we send
-            // only a single rule to the switch.
-            if (!sentIpFilters.contains(ipaddr)) {
-                sentIpFilters.add(ipaddr);
-                log.debug("adding IP filtering rules in ACL table {} for dev: {}",
-                          ipaddr, deviceId);
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-                selector.matchEthType(Ethernet.TYPE_IPV4);
-                selector.matchIPDst(ipaddr.ip());
-                treatment.setOutput(PortNumber.CONTROLLER);
-                FlowRule rule = DefaultFlowRule.builder()
-                        .forDevice(deviceId)
-                        .withSelector(selector.build())
-                        .withTreatment(treatment.build())
-                        .withPriority(HIGHEST_PRIORITY)
-                        .fromApp(applicationId)
-                        .makePermanent()
-                        .forTable(ACL_TABLE).build();
-                ops = install ? ops.add(rule) : ops.remove(rule);
-            }
-        }
-
-        // apply filtering flow rules
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Applied {} filtering rules in device {}",
-                         ops.stages().get(0).size(), deviceId);
-                pass(filt);
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to apply all filtering rules in dev {}", deviceId);
-                fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
-            }
-        }));
-
     }
 
     /*
