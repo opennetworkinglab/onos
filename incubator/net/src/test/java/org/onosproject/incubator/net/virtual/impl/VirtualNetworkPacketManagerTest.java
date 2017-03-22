@@ -338,7 +338,12 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
         }
 
         @Override
-        public void startPacketHandling() {
+        public void startPacketHandling(NetworkId networkId) {
+
+        }
+
+        @Override
+        public void stopPacketHandling(NetworkId networkId) {
 
         }
     }

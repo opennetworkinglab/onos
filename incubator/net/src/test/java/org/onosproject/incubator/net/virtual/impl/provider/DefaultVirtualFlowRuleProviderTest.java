@@ -73,6 +73,7 @@ import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -125,7 +126,6 @@ public class DefaultVirtualFlowRuleProviderTest {
 
     private static final int TIMEOUT = 10;
 
-
     protected DefaultVirtualFlowRuleProvider virtualProvider;
 
     private ApplicationId vAppId;
@@ -136,7 +136,7 @@ public class DefaultVirtualFlowRuleProviderTest {
 
         virtualProvider.deviceService = new TestDeviceService();
         virtualProvider.coreService = new TestCoreService();
-        virtualProvider.virtualNetworkAdminService =
+        virtualProvider.vnService =
                 new TestVirtualNetworkAdminService();
         virtualProvider.topologyService = new TestTopologyService();
         virtualProvider.flowRuleService = new TestFlowRuleService();
@@ -154,7 +154,7 @@ public class DefaultVirtualFlowRuleProviderTest {
     }
 
     @Test
-    public void virtualizeFlowRuleWithInPort() {
+    public void devirtualizeFlowRuleWithInPort() {
         TrafficSelector ts = DefaultTrafficSelector.builder()
                 .matchInPort(PORT_NUM1).build();
         TrafficTreatment tr = DefaultTrafficTreatment.builder()
@@ -203,7 +203,7 @@ public class DefaultVirtualFlowRuleProviderTest {
     }
 
     @Test
-    public void virtualizeFlowRuleWithoutInPort() {
+    public void devirtualizeFlowRuleWithoutInPort() {
         TrafficSelector ts = DefaultTrafficSelector.builder().build();
         TrafficTreatment tr = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_NUM2).build();
@@ -327,7 +327,7 @@ public class DefaultVirtualFlowRuleProviderTest {
         }
     }
 
-    private static class TestVirtualNetworkAdminService
+    private class TestVirtualNetworkAdminService
             implements VirtualNetworkAdminService {
 
         @Override
@@ -368,7 +368,7 @@ public class DefaultVirtualFlowRuleProviderTest {
 
         @Override
         public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
-            return null;
+            return vAppId;
         }
 
         @Override
@@ -504,15 +504,13 @@ public class DefaultVirtualFlowRuleProviderTest {
         public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
             return ruleCollection.stream()
                     .filter(r -> r.deviceId().equals(deviceId))
-                    .map(r -> new DefaultFlowEntry(r))
+                    .map(DefaultFlowEntry::new)
                     .collect(Collectors.toSet());
         }
 
         @Override
         public void applyFlowRules(FlowRule... flowRules) {
-            for (FlowRule rule : flowRules) {
-                ruleCollection.add(rule);
-            }
+            ruleCollection.addAll(Arrays.asList(flowRules));
         }
 
         @Override

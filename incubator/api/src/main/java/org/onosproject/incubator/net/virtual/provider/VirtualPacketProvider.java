@@ -21,10 +21,9 @@ import org.onosproject.net.packet.OutboundPacket;
 /**
  * Abstraction of a virtual packet provider capable of emitting packets
  * from virtual network core services to the underlay network.
- * This provider de-virtualzes OutboundPacket, and virtualizes PacketContext.
+ * This provider de-virtualizes and virtualize PacketContext.
  */
 public interface VirtualPacketProvider extends VirtualProvider {
-
     /**
      * Emits the specified outbound packet onto the underlay physical network.
      * This provider maps the requested packets for physical network.
@@ -36,7 +35,15 @@ public interface VirtualPacketProvider extends VirtualProvider {
 
     /**
      * Starts to deliver packets to virtual packet managers.
+     *
+     * @param networkId the network identifier
      */
-    void startPacketHandling();
+    void startPacketHandling(NetworkId networkId);
 
+    /**
+     * Stops to deliver packets to virtual packet managers.
+     *
+     * @param networkId the network identifier
+     */
+    void stopPacketHandling(NetworkId networkId);
 }

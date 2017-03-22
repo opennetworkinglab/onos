@@ -255,8 +255,7 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
         if (device == null) {
             return;
         }
-        VirtualPacketProvider packetProvider =
-                (VirtualPacketProvider) providerService.provider();
+        VirtualPacketProvider packetProvider = providerService.provider();
 
         if (packetProvider != null) {
             packetProvider.emit(networkId, packet);
@@ -281,6 +280,8 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
             } else {
                 pushToAllDevices(request);
             }
+
+            providerService.provider().startPacketHandling(networkId);
         }
 
         @Override
@@ -292,6 +293,8 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
             } else {
                 removeFromAllDevices(request);
             }
+
+            providerService.provider().stopPacketHandling(networkId);
         }
     }
 
@@ -364,7 +367,7 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
         return DefaultForwardingObjective.builder()
                 .withPriority(request.priority().priorityValue())
                 .withSelector(request.selector())
-                .fromApp(manager.getVirtualNetworkApplicationId(networkId()))
+                .fromApp(request.appId())
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withTreatment(DefaultTrafficTreatment.builder().punt().build())
                 .makePermanent();

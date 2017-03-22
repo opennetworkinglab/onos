@@ -84,12 +84,9 @@ public class VirtualProviderManager
     public synchronized void
     registerProviderService(NetworkId networkId,
                             VirtualProviderService virtualProviderService) {
-        Set<VirtualProviderService> services = servicesByNetwork.get(networkId);
+        Set<VirtualProviderService> services =
+                servicesByNetwork.computeIfAbsent(networkId, k -> new HashSet<>());
 
-        if (services == null) {
-            services = new HashSet<>();
-            servicesByNetwork.put(networkId, services);
-        }
         services.add(virtualProviderService);
     }
 
@@ -146,7 +143,7 @@ public class VirtualProviderManager
 
         return services.stream()
                 .filter(s -> getProviderClass(s).equals(providerClass))
-                .findFirst().get();
+                .findFirst().orElse(null);
     }
 
     /**

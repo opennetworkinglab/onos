@@ -55,7 +55,9 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -142,7 +144,7 @@ public class DefaultVirtualPacketProviderTest {
         virtualProvider = new DefaultVirtualPacketProvider();
 
         virtualProvider.coreService = new CoreServiceAdapter();
-        virtualProvider.virtualNetworkAdminService =
+        virtualProvider.vnaService =
                 new TestVirtualNetworkAdminService();
 
         providerService = new TestVirtualPacketProviderService();
@@ -155,15 +157,19 @@ public class DefaultVirtualPacketProviderTest {
         providerManager.registerProviderService(VNET_ID, providerService);
 
         virtualProvider.activate();
-        virtualProvider.startPacketHandling();
         vAppId = new TestApplicationId(0, "Virtual App");
+
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+
+        virtualProvider.startPacketHandling(VNET_ID);
     }
 
     @After
     public void tearDown() {
         virtualProvider.deactivate();
         virtualProvider.coreService = null;
-        virtualProvider.virtualNetworkAdminService = null;
+        virtualProvider.vnaService = null;
     }
 
 

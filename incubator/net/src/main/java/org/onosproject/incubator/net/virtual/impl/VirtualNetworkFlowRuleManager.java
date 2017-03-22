@@ -470,7 +470,7 @@ public class VirtualNetworkFlowRuleManager
                 try {
                     FlowEntry storedRule = storedRules.remove(rule);
                     if (storedRule != null) {
-                        if (storedRule.exactMatch(rule)) {
+                        if (storedRule.id().equals(rule.id())) {
                             // we both have the rule, let's update some info then.
                             flowAdded(rule);
                         } else {
@@ -553,7 +553,17 @@ public class VirtualNetworkFlowRuleManager
                     break;
 
                 case BATCH_OPERATION_COMPLETED:
-                    //TODO: do post-processing for batch operations.
+                    FlowOperationsProcessor fops = pendingFlowOperations.remove(
+                            event.subject().batchId());
+                    if (fops == null) {
+                       return;
+                    }
+
+                    if (event.result().isSuccess()) {
+                            fops.satisfy(event.deviceId());
+                    } else {
+                        fops.fail(event.deviceId(), event.result().failedItems());
+                    }
                     break;
 
                 default:

@@ -20,7 +20,6 @@ import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.net.packet.DefaultPacketContext;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketContext;
 
 /**
  * Represents context for processing an inbound packet for a virtual network
@@ -55,8 +54,7 @@ public class VirtualPacketContext extends DefaultPacketContext {
     @Override
     public void send() {
         if (!this.block()) {
-            PacketContext context = dvpp.devirtualizeContext(this);
-            context.send();
+            dvpp.devirtualizeContext(this);
         }
     }
 
