@@ -16,7 +16,7 @@
             <table>
                 <tr>
                     <td colId="id" col-width="130px" sortable>ID</td>
-                    <td colId="type" sortable>Type</td>
+                    <td colId="modules" sortable>Modules</td>
                     <!-- TODO: More columns to be added -->
                 </tr>
             </table>
@@ -36,7 +36,7 @@
                     ng-class="{selected: ymodel.id === selId}"
                     ng-repeat-complete row-id="{{ymodel.id}}">
                     <td>{{ymodel.id}}</td>
-                    <td>{{ymodel.type}}</td>
+                    <td>{{ymodel.modules}}</td>
                     <!-- TODO: add more columns here -->
                 </tr>
             </table>

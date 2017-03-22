@@ -25,11 +25,13 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.YangModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * ONOS UI YANG Models message handler.
@@ -46,11 +48,11 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     // Table Column IDs
     private static final String ID = "id";
-    private static final String TYPE = "type";
+    private static final String MODULES = "modules";
     // TODO: fill out table columns as needed
 
     private static final String[] COL_IDS = {
-            ID, TYPE
+            ID, MODULES
     };
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -65,14 +67,11 @@ public class YangModelMessageHandler extends UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         modelRegistry = directory.get(YangModelRegistry.class);
-        // TODO: addListeners(); ???
     }
 
     @Override
     public void destroy() {
-        // TODO: removeListeners(); ???
         super.destroy();
-        // NOTE: if no listeners are required, this method can be removed
     }
 
     @Override
@@ -105,14 +104,15 @@ public class YangModelMessageHandler extends UiMessageHandler {
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             for (YangModel model : modelRegistry.getModels()) {
-                populateRow(tm.addRow(), model.getYangModulesId().toString());
+                populateRow(tm.addRow(), model.getYangModulesId());
             }
         }
 
-        // TODO: obviously, this should be adapted to arrange YANG model data
-        //       into the appropriate table columns
-        private void populateRow(TableModel.Row row, String k) {
-            row.cell(ID, k).cell(TYPE, k);
+        private void populateRow(TableModel.Row row, Set<YangModuleId> moduleIds) {
+            StringBuilder sb = new StringBuilder();
+            moduleIds.forEach(i -> sb.append(", ").append(i.moduleName())
+                    .append("(").append(i.revision()).append(")"));
+            row.cell(ID, moduleIds.hashCode()).cell(MODULES, sb.toString().substring(2));
         }
     }
 
@@ -133,7 +133,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
             ObjectNode data = objectNode();
 
             data.put(ID, id);
-            data.put(TYPE, "some-type");
+            data.put(MODULES, "some-type");
             data.put("todo", "fill out with appropriate date attributes");
 
             ObjectNode rootNode = objectNode();
