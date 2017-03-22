@@ -1,0 +1,27 @@
+APPS = [
+  'org.onosproject.yang',
+  'org.onosproject.config',
+  'org.onosproject.netconf',
+]
+
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:onos-yang-model',
+  '//lib:onos-yang-runtime',
+  '//apps/config:onos-apps-config',
+  '//protocols/netconf/api:onos-protocols-netconf-api',
+  '//utils/osgi:onlab-osgi',
+]
+
+osgi_jar_with_tests(
+  deps = COMPILE_DEPS,
+)
+
+onos_app(
+  app_name = 'org.onosproject.netconfsb',
+  title = 'NETCONF Device Configuration',
+  category = 'Protocols',
+  url = 'http://onosproject.org',
+  description = 'Extension to allow ONOS to configure NETCONF devices.',
+  required_apps = APPS,
+)

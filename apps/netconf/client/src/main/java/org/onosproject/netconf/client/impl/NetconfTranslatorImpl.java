@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf.client.impl;
 
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.client.NetconfTranslator;
@@ -89,6 +90,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * will be no session available.
  */
 @Beta
+@Service
 @Component(immediate = true)
 public class NetconfTranslatorImpl implements NetconfTranslator {
 

@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.storeadapter;
+package org.onosproject.netconf.client.impl;
 
 import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
-
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -29,13 +28,10 @@ import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.Filter;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.resource.Resource;
+import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.client.NetconfTranslator.OperationType;
-import org.onosproject.netconf.NetconfException;
-import org.onosproject.netconf.NetconfController;
-import java.net.URI;
-import java.net.URISyntaxException;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.LeafNode;
 import org.onosproject.yang.model.ResourceId;
@@ -44,6 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 
 @Beta
@@ -65,8 +63,9 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     protected NetconfController controller;
 
     private ResourceId resId = new ResourceId.Builder()
-            .addBranchPointSchema("device", DEVNMSPACE )
+            .addBranchPointSchema("device", DEVNMSPACE)
             .build();
+
     @Activate
     protected void activate() {
         cfgService.addListener(this);
@@ -81,19 +80,11 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     @Override
     public boolean isRelevant(DynamicConfigEvent event) {
-        if (event.subject().equals(resId)) {
-            return true;
-        } else {
-            return false;
-        }
+        return event.subject().equals(resId);
     }
 
     public boolean isMaster(DeviceId deviceId) {
-        if (mastershipService.isLocalMaster(deviceId)) {
-            return true;
-        } else {
-            return false;
-        }
+        return mastershipService.isLocalMaster(deviceId);
     }
 
     @Override
@@ -124,8 +115,9 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     /**
      * Performs the delete operation corresponding to the passed event.
-     * @param node a relevant dataNode
-     * @param deviceId the deviceId of the device to be updated
+     *
+     * @param node       a relevant dataNode
+     * @param deviceId   the deviceId of the device to be updated
      * @param resourceId the resourceId of the root of the subtree to be edited
      * @return true if the update succeeds false otherwise
      */
@@ -135,8 +127,9 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     /**
      * Performs the update operation corresponding to the passed event.
-     * @param node a relevant dataNode
-     * @param deviceId the deviceId of the device to be updated
+     *
+     * @param node       a relevant dataNode
+     * @param deviceId   the deviceId of the device to be updated
      * @param resourceId the resourceId of the root of the subtree to be edited
      * @return true if the update succeeds false otherwise
      */
@@ -147,10 +140,11 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     /**
      * Parses the incoming event and pushes configuration to the effected
      * device.
-     * @param node the dataNode effecting a particular device of which this node
-     *              is master
-     * @param deviceId the deviceId of the device to be modified
-     * @param resourceId the resourceId of the root of the subtree to be edited
+     *
+     * @param node          the dataNode effecting a particular device of which this node
+     *                      is master
+     * @param deviceId      the deviceId of the device to be modified
+     * @param resourceId    the resourceId of the root of the subtree to be edited
      * @param operationType the type of editing to be performed
      * @return true if the operation succeeds, false otherwise
      */
@@ -206,11 +200,11 @@ public class NetconfActiveComponent implements DynamicConfigListener {
         if (controller.getNetconfDevice(deviceId) == null) {
             try {
                 //if (this.isReachable(deviceId)) {
-                    this.controller.connectDevice(deviceId);
+                this.controller.connectDevice(deviceId);
                 //}
             } catch (Exception ex) {
-                throw new RuntimeException(new NetconfException("Can\'t " +
-                        "connect to NETCONF device on " + deviceId + ":" + deviceId, ex));
+                throw new RuntimeException(new NetconfException("Unable to connect to NETCONF device on " +
+                                                                        deviceId, ex));
             }
         }
     }
