@@ -262,13 +262,15 @@ EOF
 
 ### Add layouts, associating backing regions, and optional parent.
 #
-# layout-add <layout-id> <bg-ref> <region-id(opt)> <parent-layout-id(opt)>
+# layout-add <layout-id> <bg-ref> \
+#   [ <region-id> <parent-layout-id> <scale> <offset-x> <offset-y> ]
+#
 
 onos ${host} <<-EOF
 
-layout-add root @bayareaGEO
+layout-add root @bayareaGEO . . 0.4
 
-layout-add lC01 +segmentRouting c01
+layout-add lC01 +segmentRouting c01 . 0.9 5.2 -4.0
 layout-add lC02 +segmentRouting c02
 layout-add lC03 +segmentRouting c03
 layout-add lC04 . c04         # testing no-background

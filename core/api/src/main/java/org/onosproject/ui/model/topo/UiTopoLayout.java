@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents a specific "subset" of the UI model of the network topology
  * that a user might wish to view. Backed by a {@link Region}.
  * <p>
- * These instances include information about which geo-map (or sprite definition)
+ * These instances include information about which geo-map or grid-layout
  * should be displayed, along with zoom and offset parameters.
  */
 public class UiTopoLayout {
