@@ -14,12 +14,12 @@ BUNDLES = [
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
     '//lib:onos-yang-runtime',
-]
-
-EXCLUDED_BUNDLES = [
     '//lib:onos-yang-serializers-json',
     '//lib:onos-yang-serializers-xml',
     '//lib:onos-yang-serializers-utils',
+]
+
+EXCLUDED_BUNDLES = [
     '//lib:org.apache.servicemix.bundles.dom4j',
 ]
 
