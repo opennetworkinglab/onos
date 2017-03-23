@@ -16,11 +16,15 @@
 <scenario name="smoke-internal" description="Internals of ONOS smoke test">
     <import file="${ONOS_SCENARIOS}/net-smoke.xml"/>
 
+    <!--
+    This is causing problems when testing Snapshot builds.
+
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
     <dependency name="Archetypes" requires="~Net-Smoke"/>
+    -->
 
     <import file="${ONOS_SCENARIOS}/drivers-test.xml"/>
-    <dependency name="Drivers-Test" requires="~Net-Smoke,~Archetypes"/>
+    <dependency name="Drivers-Test" requires="~Net-Smoke"/>
 
     <import file="${ONOS_SCENARIOS}/meta-apps-test.xml"/>
     <dependency name="Meta-App" requires="~Net-Smoke,~Drivers-Test"/>

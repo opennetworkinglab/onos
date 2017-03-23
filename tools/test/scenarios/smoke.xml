@@ -23,7 +23,6 @@
 
     <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
     <dependency name="Net-Smoke" requires="Setup"/>
-    <dependency name="Archetypes" requires="Setup"/>
     <dependency name="Maps-Cli" requires="Setup"/>
     <dependency name="Drivers-Test" requires="Setup"/>
     <dependency name="Meta-App" requires="Setup"/>
@@ -31,5 +30,5 @@
     <dependency name="Distributed-Primitives" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Setup,~Net-Smoke,~Archetypes,~Drivers-Test,~Meta-App,~Netcfg"/>
+    <dependency name="Wrapup" requires="~Setup,~Net-Smoke,~Drivers-Test,~Meta-App,~Netcfg"/>
 </scenario>
