@@ -13,6 +13,9 @@ Vagrant.configure(2) do |config|
     v.customize ["modifyvm", :id, "--vram", "32"]
   end
 
+  # Creates an ONOS tutorial VM.
+  # It contains Mininet, three LXC containers used as ONOS target machines, the tutorial files.
+  # The machine comes also with the Ubuntu GUI to support tutorials.
   config.vm.define "onostutorial" do |d|
     d.vm.box = "ubuntu/xenial64"
     d.vm.hostname = "onostutorial"
@@ -33,9 +36,12 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  config.vm.define "onosdev" do |d|
+  # Creates a VM with three LXC containers inside.
+  # Miniet is installed on the virtual machine itself.
+  # The three LXC containers serve as ONOS target machines.
+  config.vm.define "onosdevmn" do |d|
     d.vm.box = "ubuntu/xenial64"
-    d.vm.hostname = "onosdev"
+    d.vm.hostname = "onosmn"
     d.vm.network "private_network", ip: "10.100.198.200"
     d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
     d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
@@ -48,6 +54,22 @@ Vagrant.configure(2) do |config|
     end
   end
 
+  # Creates a VM with three LXC containers inside, to be used as ONOS target machines.
+  config.vm.define "onosdev" do |d|
+    d.vm.box = "ubuntu/xenial64"
+    d.vm.hostname = "onosdev"
+    d.vm.network "private_network", ip: "10.100.198.200"
+    d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/mn.yml -c local"
+    d.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      v.memory = 4096
+      v.cpus = 2
+    end
+  end
+
+  # Creates a VM and installs Mininet in it.
   config.vm.define "mn" do |d|
     d.vm.box = "ubuntu/xenial64"
     d.vm.hostname = "mn"
