@@ -40,6 +40,7 @@ import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 public class ApplicationArchiveTest {
 
     static final File STORE = Files.createTempDir();
+    static final String SYSTEM = "system";
 
     private ApplicationArchive aar = new ApplicationArchive();
 
@@ -52,6 +53,7 @@ public class ApplicationArchiveTest {
     public void tearDown() throws IOException {
         if (STORE.exists()) {
             Tools.removeDirectory(STORE);
+            Tools.removeDirectory(SYSTEM);
         }
     }
 
