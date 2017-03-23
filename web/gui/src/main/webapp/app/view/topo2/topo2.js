@@ -24,7 +24,7 @@
     'use strict';
 
     // references to injected services
-    var $scope, $log, fs, mast, ks,
+    var $scope, $log, fs, mast, ks, wss,
         gs, sus, ps, t2es, t2fs, t2is, t2bcs, t2kcs, t2ms, t2mcs, t2zs;
 
     // DOM elements
@@ -65,15 +65,21 @@
     function zoomCallback() {
         var sc = zoomer.scale(),
             tr = zoomer.translate(),
-            sparse = {};
+            metaUi = isNaN(sc) ? {
+                useCfg: 1
+            } : {
+                scale: sc,
+                offsetX: tr[0],
+                offsetY: tr[1]
+            };
 
-        sparse[currentLayoutId] =  {
-            zoomScale: sc,
-            zoomPanX: tr[0],
-            zoomPanY: tr[1]
-        };
+        // Note: Meta data stored in the context of the current layout,
+        //       automatically, by the server
 
-        ps.mergePrefs('topo2_zoom', sparse);
+        wss.sendEvent('updateMeta2', {
+            id: 'layoutZoom',
+            memento: metaUi
+        });
     }
 
     function setUpZoom() {
@@ -128,6 +134,7 @@
             fs = _fs_;
             mast = _mast_;
             ks = _ks_;
+            wss = _wss_;
             gs = _gs_;
             sus = _sus_;
             ps = _ps_;

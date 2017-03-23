@@ -95,14 +95,14 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
     // ==================================================================
 
-    private String safeId(Region r) {
-        return r == null ? "(root)" : r.id().toString();
+    private String currentRegionId() {
+        Region current = topoSession.currentLayout().region();
+        return current == null ? "(root)" : current.id().toString();
     }
-
 
     private ObjectNode mkLayoutMessage(UiTopoLayout currentLayout) {
         List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
-        return t2json.layout(currentLayout, crumbs);
+        return t2json.layout(currentLayout, crumbs, currentRegionId());
     }
 
     private ObjectNode mkRegionMessage(UiTopoLayout currentLayout) {
@@ -114,9 +114,8 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
     private ObjectNode mkPeersMessage(UiTopoLayout currentLayout) {
         Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
-        String ridStr = safeId(topoSession.currentLayout().region());
         ObjectNode peersPayload = objectNode();
-        peersPayload.set("peers", t2json.closedNodes(ridStr, peers));
+        peersPayload.set("peers", t2json.closedNodes(currentRegionId(), peers));
         return peersPayload;
     }
 
@@ -212,8 +211,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         public void process(ObjectNode payload) {
             // NOTE: metadata for a node is stored within the context of the
             //       current region.
-            String ridStr = safeId(topoSession.currentLayout().region());
-            t2json.updateMeta(ridStr, payload);
+            t2json.updateMeta(currentRegionId(), payload);
         }
     }
 

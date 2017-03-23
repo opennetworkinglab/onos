@@ -55,7 +55,6 @@ import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
-import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +86,7 @@ public class Topo2Jsonifier {
 
     private static final String CONTEXT_KEY_DELIM = "_";
     private static final String NO_CONTEXT = "";
+    private static final String ZOOM_KEY = "layoutZoom";
 
     private static final String REGION = "region";
     private static final String DEVICE = "device";
@@ -98,12 +98,6 @@ public class Topo2Jsonifier {
 
     private static final String GEO = "geo";
     private static final String GRID = "grid";
-    private static final String PKEY_TOPO_ZOOM = "topo2_zoom";
-    private static final String ZOOM_SCALE = "zoomScale";
-    private static final String ZOOM_PAN_X = "zoomPanX";
-    private static final String ZOOM_PAN_Y = "zoomPanY";
-    private static final String DEFAULT_SCALE = "1.0";
-    private static final String DEFAULT_PAN = "0.0";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -216,20 +210,21 @@ public class Topo2Jsonifier {
      *
      * @param layout the layout to transform
      * @param crumbs list of layouts in bread-crumb order
+     * @param rid    current region id
      * @return a JSON representation of the data
      */
-    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs) {
+    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs, String rid) {
         ObjectNode result = objectNode()
                 .put("id", layout.id().toString())
                 .put("parent", nullIsEmpty(layout.parent()))
                 .put("region", nullIsEmpty(layout.regionId()))
                 .put("regionName", UiRegion.safeName(layout.region()));
         addCrumbs(result, crumbs);
-        addBgRef(result, layout);
+        addBgRef(result, layout, rid);
         return result;
     }
 
-    private void addBgRef(ObjectNode result, UiTopoLayout layout) {
+    private void addBgRef(ObjectNode result, UiTopoLayout layout, String rid) {
         String mapId = layout.geomap();
         String sprId = layout.sprites();
 
@@ -239,51 +234,31 @@ public class Topo2Jsonifier {
         } else if (sprId != null) {
             result.put("bgType", GRID).put("bgId", sprId);
         }
-        addZoomPan(result, layout.id());
+
+        attachZoomData(result, layout, rid);
     }
 
-    private ObjectNode initialZoomForLayout(ObjectNode zoomPrefs, String id) {
-        ObjectNode zoomForLayout = defaultZoomForLayout();
-        zoomPrefs.set(id, zoomForLayout);
-        prefService.setPreference(userName, PKEY_TOPO_ZOOM, zoomPrefs);
-        return zoomPrefs;
-    }
+    private void attachZoomData(ObjectNode result, UiTopoLayout layout, String rid) {
 
-    private ObjectNode defaultZoomForLayout() {
-        return objectNode()
-            .put(ZOOM_SCALE, DEFAULT_SCALE)
-            .put(ZOOM_PAN_X, DEFAULT_PAN)
-            .put(ZOOM_PAN_Y, DEFAULT_PAN);
-    }
+        ObjectNode zoomData = objectNode();
 
-    private void addZoomPan(ObjectNode result, UiTopoLayoutId layoutId) {
-        // need to look up topo_zoom settings from preferences service.
+        // first, set configured scale and offset
+        addCfgZoomData(zoomData, layout);
 
-        // NOTE:
-        // UiPreferencesService API only allows us to retrieve ALL prefs for
-        // the given user. It would be better if we could call something like:
-        //
-        //   ObjectNode value = prefService.getPreference(userName, prefKey);
-        //
-        // to get back a single value.
-
-        Map<String, ObjectNode> userPrefs = prefService.getPreferences(userName);
-        ObjectNode zoomPrefs = userPrefs.get(PKEY_TOPO_ZOOM);
-
-        if (zoomPrefs == null) {
-            zoomPrefs = initialZoomForLayout(objectNode(), layoutId.id());
+        // next, retrieve user-set zoom data, if we have it
+        ObjectNode userZoom = metaUi.get(contextKey(rid, ZOOM_KEY));
+        if (userZoom != null) {
+            zoomData.set("usr", userZoom);
         }
+        result.set("bgZoom", zoomData);
+    }
 
-        ObjectNode zoomData = (ObjectNode) zoomPrefs.get(layoutId.id());
-
-        if (zoomData == null) {
-            zoomPrefs = initialZoomForLayout(zoomPrefs, layoutId.id());
-            zoomData = (ObjectNode) zoomPrefs.get(layoutId.id());
-        }
-
-        result.put("bgZoomScale", zoomData.get(ZOOM_SCALE).asText());
-        result.put("bgZoomPanX", zoomData.get(ZOOM_PAN_X).asText());
-        result.put("bgZoomPanY", zoomData.get(ZOOM_PAN_Y).asText());
+    private void addCfgZoomData(ObjectNode data, UiTopoLayout layout) {
+        ObjectNode zoom = objectNode();
+        zoom.put("scale", layout.scale());
+        zoom.put("offsetX", layout.offsetX());
+        zoom.put("offsetY", layout.offsetY());
+        data.set("cfg", zoom);
     }
 
     private void addMapParameters(ObjectNode result, String mapId) {
@@ -623,7 +598,7 @@ public class Topo2Jsonifier {
      * being displayed in.
      *
      * @param ridStr region-id string
-     * @param nodes the nodes
+     * @param nodes  the nodes
      * @return a JSON representation of the nodes
      */
     public ArrayNode closedNodes(String ridStr, Set<UiNode> nodes) {
@@ -639,51 +614,6 @@ public class Topo2Jsonifier {
         }
         return array;
     }
-
-    // TODO: These methods do not seem to be used; consider removing them.
-    /*
-     * Returns a JSON array representation of a list of regions. Note that the
-     * information about each region is limited to what needs to be used to
-     * show the regions as nodes on the view.
-     *
-     * @param regions the regions
-     * @return a JSON representation of the minimal region information
-     */
-//    public ArrayNode closedRegions(Set<UiRegion> regions) {
-//        ArrayNode array = arrayNode();
-//        for (UiRegion r : regions) {
-//            array.add(jsonClosedRegion(r));
-//        }
-//        return array;
-//    }
-
-    /*
-     * Returns a JSON array representation of a list of devices.
-     *
-     * @param devices the devices
-     * @return a JSON representation of the devices
-     */
-//    public ArrayNode devices(Set<UiDevice> devices) {
-//        ArrayNode array = arrayNode();
-//        for (UiDevice device : devices) {
-//            array.add(json(device));
-//        }
-//        return array;
-//    }
-
-    /*
-     * Returns a JSON array representation of a list of hosts.
-     *
-     * @param hosts the hosts
-     * @return a JSON representation of the hosts
-     */
-//    public ArrayNode hosts(Set<UiHost> hosts) {
-//        ArrayNode array = arrayNode();
-//        for (UiHost host : hosts) {
-//            array.add(json(host));
-//        }
-//        return array;
-//    }
 
     // package-private for unit testing
     List<Set<UiNode>> splitByLayer(List<String> layerTags,
