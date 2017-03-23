@@ -66,7 +66,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testQueries() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        Versioned<byte[]> root = tree.get(DocumentPath.from("root")).join();
+        Versioned<byte[]> root = tree.get(path("root")).join();
         assertEquals(1, root.version());
         assertNull(root.value());
     }
@@ -78,20 +78,20 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testCreate() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
-        Versioned<byte[]> a = tree.get(DocumentPath.from("root.a")).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
+        Versioned<byte[]> a = tree.get(path("root.a")).join();
         assertArrayEquals("a".getBytes(), a.value());
 
-        Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
+        Versioned<byte[]> ab = tree.get(path("root.a.b")).join();
         assertArrayEquals("ab".getBytes(), ab.value());
 
-        Versioned<byte[]> ac = tree.get(DocumentPath.from("root.a.c")).join();
+        Versioned<byte[]> ac = tree.get(path("root.a.c")).join();
         assertArrayEquals("ac".getBytes(), ac.value());
 
-        tree.create(DocumentPath.from("root.x"), null).join();
-        Versioned<byte[]> x = tree.get(DocumentPath.from("root.x")).join();
+        tree.create(path("root.x"), null).join();
+        Versioned<byte[]> x = tree.get(path("root.x")).join();
         assertNull(x.value());
     }
 
@@ -102,14 +102,14 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testRecursiveCreate() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.createRecursive(DocumentPath.from("root.a.b.c"), "abc".getBytes()).join();
-        Versioned<byte[]> a = tree.get(DocumentPath.from("root.a")).join();
+        tree.createRecursive(path("root.a.b.c"), "abc".getBytes()).join();
+        Versioned<byte[]> a = tree.get(path("root.a")).join();
         assertArrayEquals(null, a.value());
 
-        Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
+        Versioned<byte[]> ab = tree.get(path("root.a.b")).join();
         assertArrayEquals(null, ab.value());
 
-        Versioned<byte[]> abc = tree.get(DocumentPath.from("root.a.b.c")).join();
+        Versioned<byte[]> abc = tree.get(path("root.a.b.c")).join();
         assertArrayEquals("abc".getBytes(), abc.value());
     }
 
@@ -120,24 +120,24 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testSet() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
-        tree.set(DocumentPath.from("root.a.d"), "ad".getBytes()).join();
-        Versioned<byte[]> ad = tree.get(DocumentPath.from("root.a.d")).join();
+        tree.set(path("root.a.d"), "ad".getBytes()).join();
+        Versioned<byte[]> ad = tree.get(path("root.a.d")).join();
         assertArrayEquals("ad".getBytes(), ad.value());
 
-        tree.set(DocumentPath.from("root.a"), "newA".getBytes()).join();
-        Versioned<byte[]> newA = tree.get(DocumentPath.from("root.a")).join();
+        tree.set(path("root.a"), "newA".getBytes()).join();
+        Versioned<byte[]> newA = tree.get(path("root.a")).join();
         assertArrayEquals("newA".getBytes(), newA.value());
 
-        tree.set(DocumentPath.from("root.a.b"), "newAB".getBytes()).join();
-        Versioned<byte[]> newAB = tree.get(DocumentPath.from("root.a.b")).join();
+        tree.set(path("root.a.b"), "newAB".getBytes()).join();
+        Versioned<byte[]> newAB = tree.get(path("root.a.b")).join();
         assertArrayEquals("newAB".getBytes(), newAB.value());
 
-        tree.set(DocumentPath.from("root.x"), null).join();
-        Versioned<byte[]> x = tree.get(DocumentPath.from("root.x")).join();
+        tree.set(path("root.x"), null).join();
+        Versioned<byte[]> x = tree.get(path("root.x")).join();
         assertNull(x.value());
     }
 
@@ -148,19 +148,19 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testReplaceVersion() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
-        Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
-        assertTrue(tree.replace(DocumentPath.from("root.a.b"), "newAB".getBytes(), ab.version()).join());
-        Versioned<byte[]> newAB = tree.get(DocumentPath.from("root.a.b")).join();
+        Versioned<byte[]> ab = tree.get(path("root.a.b")).join();
+        assertTrue(tree.replace(path("root.a.b"), "newAB".getBytes(), ab.version()).join());
+        Versioned<byte[]> newAB = tree.get(path("root.a.b")).join();
         assertArrayEquals("newAB".getBytes(), newAB.value());
 
-        assertFalse(tree.replace(DocumentPath.from("root.a.b"), "newestAB".getBytes(), ab.version()).join());
-        assertArrayEquals("newAB".getBytes(), tree.get(DocumentPath.from("root.a.b")).join().value());
+        assertFalse(tree.replace(path("root.a.b"), "newestAB".getBytes(), ab.version()).join());
+        assertArrayEquals("newAB".getBytes(), tree.get(path("root.a.b")).join().value());
 
-        assertFalse(tree.replace(DocumentPath.from("root.a.d"), "foo".getBytes(), 1).join());
+        assertFalse(tree.replace(path("root.a.d"), "foo".getBytes(), 1).join());
     }
 
     /**
@@ -170,19 +170,19 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testReplaceValue() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
-        Versioned<byte[]> ab = tree.get(DocumentPath.from("root.a.b")).join();
-        assertTrue(tree.replace(DocumentPath.from("root.a.b"), "newAB".getBytes(), ab.value()).join());
-        Versioned<byte[]> newAB = tree.get(DocumentPath.from("root.a.b")).join();
+        Versioned<byte[]> ab = tree.get(path("root.a.b")).join();
+        assertTrue(tree.replace(path("root.a.b"), "newAB".getBytes(), ab.value()).join());
+        Versioned<byte[]> newAB = tree.get(path("root.a.b")).join();
         assertArrayEquals("newAB".getBytes(), newAB.value());
 
-        assertFalse(tree.replace(DocumentPath.from("root.a.b"), "newestAB".getBytes(), ab.value()).join());
-        assertArrayEquals("newAB".getBytes(), tree.get(DocumentPath.from("root.a.b")).join().value());
+        assertFalse(tree.replace(path("root.a.b"), "newestAB".getBytes(), ab.value()).join());
+        assertArrayEquals("newAB".getBytes(), tree.get(path("root.a.b")).join().value());
 
-        assertFalse(tree.replace(DocumentPath.from("root.a.d"), "bar".getBytes(), "foo".getBytes()).join());
+        assertFalse(tree.replace(path("root.a.d"), "bar".getBytes(), "foo".getBytes()).join());
     }
 
     /**
@@ -192,26 +192,26 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testRemove() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
-        Versioned<byte[]> ab = tree.removeNode(DocumentPath.from("root.a.b")).join();
+        Versioned<byte[]> ab = tree.removeNode(path("root.a.b")).join();
         assertArrayEquals("ab".getBytes(), ab.value());
-        assertNull(tree.get(DocumentPath.from("root.a.b")).join());
+        assertNull(tree.get(path("root.a.b")).join());
 
-        Versioned<byte[]> ac = tree.removeNode(DocumentPath.from("root.a.c")).join();
+        Versioned<byte[]> ac = tree.removeNode(path("root.a.c")).join();
         assertArrayEquals("ac".getBytes(), ac.value());
-        assertNull(tree.get(DocumentPath.from("root.a.c")).join());
+        assertNull(tree.get(path("root.a.c")).join());
 
-        Versioned<byte[]> a = tree.removeNode(DocumentPath.from("root.a")).join();
+        Versioned<byte[]> a = tree.removeNode(path("root.a")).join();
         assertArrayEquals("a".getBytes(), a.value());
-        assertNull(tree.get(DocumentPath.from("root.a")).join());
+        assertNull(tree.get(path("root.a")).join());
 
-        tree.create(DocumentPath.from("root.x"), null).join();
-        Versioned<byte[]> x = tree.removeNode(DocumentPath.from("root.x")).join();
+        tree.create(path("root.x"), null).join();
+        Versioned<byte[]> x = tree.removeNode(path("root.x")).join();
         assertNull(x.value());
-        assertNull(tree.get(DocumentPath.from("root.a.x")).join());
+        assertNull(tree.get(path("root.a.x")).join());
     }
 
     /**
@@ -221,26 +221,26 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testRemoveFailures() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
         try {
-            tree.removeNode(DocumentPath.from("root")).join();
+            tree.removeNode(path("root")).join();
             fail();
         } catch (Exception e) {
             assertTrue(Throwables.getRootCause(e) instanceof IllegalDocumentModificationException);
         }
 
         try {
-            tree.removeNode(DocumentPath.from("root.a")).join();
+            tree.removeNode(path("root.a")).join();
             fail();
         } catch (Exception e) {
             assertTrue(Throwables.getRootCause(e) instanceof IllegalDocumentModificationException);
         }
 
         try {
-            tree.removeNode(DocumentPath.from("root.d")).join();
+            tree.removeNode(path("root.d")).join();
             fail();
         } catch (Exception e) {
             assertTrue(Throwables.getRootCause(e) instanceof NoSuchDocumentPathException);
@@ -255,7 +255,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
         try {
-            tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+            tree.create(path("root.a.c"), "ac".getBytes()).join();
             fail();
         } catch (Exception e) {
             assertTrue(Throwables.getRootCause(e) instanceof IllegalDocumentModificationException);
@@ -270,7 +270,7 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
         try {
-            tree.set(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+            tree.set(path("root.a.c"), "ac".getBytes()).join();
             fail();
         } catch (Exception e) {
             assertTrue(Throwables.getRootCause(e) instanceof IllegalDocumentModificationException);
@@ -284,24 +284,24 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testGetChildren() throws Throwable {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
-        Map<String, Versioned<byte[]>> rootChildren = tree.getChildren(DocumentPath.from("root")).join();
+        Map<String, Versioned<byte[]>> rootChildren = tree.getChildren(path("root")).join();
         assertEquals(1, rootChildren.size());
         Versioned<byte[]> a = rootChildren.get("a");
         assertArrayEquals("a".getBytes(), a.value());
 
-        Map<String, Versioned<byte[]>> children = tree.getChildren(DocumentPath.from("root.a")).join();
+        Map<String, Versioned<byte[]>> children = tree.getChildren(path("root.a")).join();
         assertEquals(2, children.size());
         Versioned<byte[]> ab = children.get("b");
         assertArrayEquals("ab".getBytes(), ab.value());
         Versioned<byte[]> ac = children.get("c");
         assertArrayEquals("ac".getBytes(), ac.value());
 
-        assertEquals(0, tree.getChildren(DocumentPath.from("root.a.b")).join().size());
-        assertEquals(0, tree.getChildren(DocumentPath.from("root.a.c")).join().size());
+        assertEquals(0, tree.getChildren(path("root.a.b")).join().size());
+        assertEquals(0, tree.getChildren(path("root.a.c")).join().size());
     }
 
     /**
@@ -311,12 +311,12 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
     public void testClear() {
         AtomixDocumentTree tree = createAtomixClient().getResource(UUID.randomUUID().toString(),
                 AtomixDocumentTree.class).join();
-        tree.create(DocumentPath.from("root.a"), "a".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.b"), "ab".getBytes()).join();
-        tree.create(DocumentPath.from("root.a.c"), "ac".getBytes()).join();
+        tree.create(path("root.a"), "a".getBytes()).join();
+        tree.create(path("root.a.b"), "ab".getBytes()).join();
+        tree.create(path("root.a.c"), "ac".getBytes()).join();
 
         tree.destroy().join();
-        assertEquals(0, tree.getChildren(DocumentPath.from("root")).join().size());
+        assertEquals(0, tree.getChildren(path("root")).join().size());
     }
 
     /**
@@ -329,31 +329,31 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         TestEventListener listener = new TestEventListener();
 
         // add listener; create a node in the tree and verify an CREATED event is received.
-        tree.addListener(listener).thenCompose(v -> tree.set(DocumentPath.from("root.a"), "a".getBytes())).join();
+        tree.addListener(listener).thenCompose(v -> tree.set(path("root.a"), "a".getBytes())).join();
         DocumentTreeEvent<byte[]> event = listener.event();
         assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
         assertFalse(event.oldValue().isPresent());
         assertArrayEquals("a".getBytes(), event.newValue().get().value());
         // update a node in the tree and verify an UPDATED event is received.
-        tree.set(DocumentPath.from("root.a"), "newA".getBytes()).join();
+        tree.set(path("root.a"), "newA".getBytes()).join();
         event = listener.event();
         assertEquals(DocumentTreeEvent.Type.UPDATED, event.type());
         assertArrayEquals("newA".getBytes(), event.newValue().get().value());
         assertArrayEquals("a".getBytes(), event.oldValue().get().value());
         // remove a node in the tree and verify an REMOVED event is received.
-        tree.removeNode(DocumentPath.from("root.a")).join();
+        tree.removeNode(path("root.a")).join();
         event = listener.event();
         assertEquals(DocumentTreeEvent.Type.DELETED, event.type());
         assertFalse(event.newValue().isPresent());
         assertArrayEquals("newA".getBytes(), event.oldValue().get().value());
         // recursively create a node and verify CREATED events for all intermediate nodes.
-        tree.createRecursive(DocumentPath.from("root.x.y"), "xy".getBytes()).join();
+        tree.createRecursive(path("root.x.y"), "xy".getBytes()).join();
         event = listener.event();
         assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
-        assertEquals(DocumentPath.from("root.x"), event.path());
+        assertEquals(path("root.x"), event.path());
         event = listener.event();
         assertEquals(DocumentTreeEvent.Type.CREATED, event.type());
-        assertEquals(DocumentPath.from("root.x.y"), event.path());
+        assertEquals(path("root.x.y"), event.path());
         assertArrayEquals("xy".getBytes(), event.newValue().get().value());
     }
 
@@ -370,23 +370,23 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         TestEventListener listener1ab = new TestEventListener(2);
         TestEventListener listener2abc = new TestEventListener(1);
 
-        tree1.addListener(DocumentPath.from("root.a"), listener1a).join();
-        tree1.addListener(DocumentPath.from("root.a.b"), listener1ab).join();
-        tree2.addListener(DocumentPath.from("root.a.b.c"), listener2abc).join();
+        tree1.addListener(path("root.a"), listener1a).join();
+        tree1.addListener(path("root.a.b"), listener1ab).join();
+        tree2.addListener(path("root.a.b.c"), listener2abc).join();
 
-        tree1.createRecursive(DocumentPath.from("root.a.b.c"), "abc".getBytes()).join();
+        tree1.createRecursive(path("root.a.b.c"), "abc".getBytes()).join();
         DocumentTreeEvent<byte[]> event = listener1a.event();
-        assertEquals(DocumentPath.from("root.a"), event.path());
+        assertEquals(path("root.a"), event.path());
         event = listener1a.event();
-        assertEquals(DocumentPath.from("root.a.b"), event.path());
+        assertEquals(path("root.a.b"), event.path());
         event = listener1a.event();
-        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+        assertEquals(path("root.a.b.c"), event.path());
         event = listener1ab.event();
-        assertEquals(DocumentPath.from("root.a.b"), event.path());
+        assertEquals(path("root.a.b"), event.path());
         event = listener1ab.event();
-        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+        assertEquals(path("root.a.b.c"), event.path());
         event = listener2abc.event();
-        assertEquals(DocumentPath.from("root.a.b.c"), event.path());
+        assertEquals(path("root.a.b.c"), event.path());
     }
 
     private static class TestEventListener implements DocumentTreeListener<byte[]> {
@@ -414,5 +414,9 @@ public class AtomixDocumentTreeTest extends AtomixTestBase {
         public DocumentTreeEvent<byte[]> event() throws InterruptedException {
             return queue.take();
         }
+    }
+
+    private static DocumentPath path(String path) {
+        return DocumentPath.from(path.replace(".", DocumentPath.DEFAULT_SEPARATOR));
     }
 }

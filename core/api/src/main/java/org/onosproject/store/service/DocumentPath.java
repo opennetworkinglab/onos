@@ -16,23 +16,33 @@
 
 package org.onosproject.store.service;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Unique key for nodes in the {@link DocumentTree}.
  */
 public class DocumentPath implements Comparable<DocumentPath> {
+
+    /** Default path separator. */
+    public static final String DEFAULT_SEPARATOR = "|";
+
+    /** Default path separator regex. */
+    public static final String DEFAULT_SEPARATOR_RE = "\\|";
+
+    // TODO: Add means to set the path separator and separator ERE.
+    private static String pathSeparator = DEFAULT_SEPARATOR;
+    private static String pathSeparatorRE = DEFAULT_SEPARATOR_RE;
 
     private final List<String> pathElements = Lists.newArrayList();
 
@@ -42,7 +52,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @param pathElements list of path elements
      */
     private DocumentPath(List<String> pathElements) {
-        Preconditions.checkNotNull(pathElements);
+        checkNotNull(pathElements);
         this.pathElements.addAll(pathElements);
     }
 
@@ -58,16 +68,15 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @throws IllegalDocumentNameException if both parameters are null or name contains an illegal character ('.')
      */
     public DocumentPath(String nodeName, DocumentPath parentPath) {
-        if (nodeName.contains(".")) {
+        checkNotNull(nodeName, "Node name cannot be null");
+        if (nodeName.contains(pathSeparator)) {
             throw new IllegalDocumentNameException(
                     "Periods are not allowed in names.");
         }
         if (parentPath != null) {
             pathElements.addAll(parentPath.pathElements());
         }
-        if (nodeName != null) {
-            pathElements.add(nodeName);
-        }
+        pathElements.add(nodeName);
         if (pathElements.isEmpty()) {
             throw new IllegalDocumentNameException("A document path must contain at" +
                                                    "least one non-null" +
@@ -82,7 +91,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
      * @return {@code DocumentPath} instance
      */
     public static DocumentPath from(String path) {
-        return new DocumentPath(Arrays.asList(path.split("\\.")));
+        return new DocumentPath(Arrays.asList(path.split(pathSeparatorRE)));
     }
 
     /**
@@ -179,7 +188,7 @@ public class DocumentPath implements Comparable<DocumentPath> {
         while (iter.hasNext()) {
             stringBuilder.append(iter.next());
             if (iter.hasNext()) {
-                stringBuilder.append(".");
+                stringBuilder.append(pathSeparator);
             }
         }
         return stringBuilder.toString();

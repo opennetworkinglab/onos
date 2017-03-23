@@ -31,22 +31,26 @@ public class DocumentPathTest {
 
     @Test
     public void testConstruction() {
-        DocumentPath path = DocumentPath.from("root.a.b");
+        DocumentPath path = path("root.a.b");
         assertEquals(path.pathElements(), Arrays.asList("root", "a", "b"));
-        assertEquals(DocumentPath.from("root.a"), path.parent());
+        assertEquals(path("root.a"), path.parent());
     }
 
     @Test
     public void testAncestry() {
-        DocumentPath path1 = DocumentPath.from("root.a.b");
-        DocumentPath path2 = DocumentPath.from("root.a.d");
-        DocumentPath path3 = DocumentPath.from("root.a.b.c");
+        DocumentPath path1 = path("root.a.b");
+        DocumentPath path2 = path("root.a.d");
+        DocumentPath path3 = path("root.a.b.c");
         DocumentPath lca = DocumentPath.leastCommonAncestor(Arrays.asList(path1, path2, path3));
-        assertEquals(DocumentPath.from("root.a"), lca);
+        assertEquals(path("root.a"), lca);
         assertTrue(path1.isAncestorOf(path3));
         assertFalse(path1.isAncestorOf(path2));
         assertTrue(path3.isDescendentOf(path3));
         assertTrue(path3.isDescendentOf(path1));
         assertFalse(path3.isDescendentOf(path2));
+    }
+
+    private static DocumentPath path(String path) {
+        return DocumentPath.from(path.replace(".", DocumentPath.DEFAULT_SEPARATOR));
     }
 }
