@@ -41,3 +41,14 @@ genrule(
   visibility = ['PUBLIC'],
 )
 
+export_file(
+  name = 'yang-registrator',
+  src = 'yang-registrator',
+  visibility = [ 'PUBLIC' ],
+)
+
+export_file(
+  name = 'yang-schema',
+  src = 'yang-schema',
+  visibility = [ 'PUBLIC' ],
+)

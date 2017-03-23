@@ -140,6 +140,8 @@ def osgi_jar(
     resources = NONE,
     resources_root = None,
     tests = None,
+    do_javadocs = True,
+    do_checkstyle = True,
     **kwargs
     ):
 
@@ -188,22 +190,24 @@ def osgi_jar(
   )
 
   ### Checkstyle
-  checkstyle(
-      name = name + '-checkstyle-files',
-      srcs = srcs,
-      jar_target = ':'+ name,
-  )
+  if do_checkstyle:
+      checkstyle(
+          name = name + '-checkstyle-files',
+          srcs = srcs,
+          jar_target = ':'+ name,
+      )
 
-  java_doc(
-       name = name + '-javadoc',
-       title = 'Java Docs',
-       pkgs = [ package_name_root ],
-       paths = [ 'src/main/java' ],
-       srcs = srcs,
-       deps = deps,
-       visibility = visibility,
-       do_it_wrong = False,
-  )
+  if do_javadocs:
+      java_doc(
+           name = name + '-javadoc',
+           title = 'Java Docs',
+           pkgs = [ package_name_root ],
+           paths = [ 'src/main/java' ],
+           srcs = srcs,
+           deps = deps,
+           visibility = visibility,
+           do_it_wrong = False,
+      )
 
   # TODO add project config for intellij
   # project_config(

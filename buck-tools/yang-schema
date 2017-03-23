@@ -1,0 +1,17 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Extracts YANG model schema and YANG sources from a YANG model jar.
+# -----------------------------------------------------------------------------
+
+output=$1
+jar=$2
+
+aux=/tmp/ys-$$
+trap "rm -fr $aux" EXIT
+
+rm -fr $aux
+mkdir -p $aux $output
+
+cd $aux
+jar xf $jar
+mv yang/* $output

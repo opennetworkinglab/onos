@@ -193,6 +193,10 @@ ONOS_APPS = [
     '//apps/l3vpn:onos-apps-l3vpn-oar',
 ]
 
+MODELS = [
+    '//models/demo:onos-models-demo-oar',
+]
+
 APP_JARS = [
     '//apps/cpman/api:onos-apps-cpman-api',
     '//apps/routing-api:onos-apps-routing-api',
@@ -209,5 +213,5 @@ APP_JARS = [
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
 ]
 
-APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS
+APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS
 

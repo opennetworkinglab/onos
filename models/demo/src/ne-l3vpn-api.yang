@@ -1,0 +1,82 @@
+/*
+WARNING:
+This yang model is just for fuction ONOS opensource project demo purpose only,
+And is subject to change in future, Huawei does not commit provide compatibilty
+in commercial product.
+*/
+module ne-l3vpn-api {
+    namespace "ne-l3vpn-api";
+    prefix l3vpn-api;
+    import ne-l3vpncomm-type {
+        prefix l3vpncomm-type;
+    }
+    import ne-l3vpncomm {
+        prefix l3vpncomm;
+    }
+    organization "Huawei Technologies Co., Ltd";
+    contact "Huawei Industrial Base
+        Bantian, Longgang
+        Shenzhen 518129
+        People's Republic of China
+        Website: http://www.huawei.com
+        Email: support@huawei.com";
+    description "VRP V800R010 Schema";
+    revision "2014-12-25" {
+        reference "Huawei VRPV8 Schema";
+    }
+    container devices {
+        list device {
+            key deviceid;
+            leaf deviceid {
+                type string;
+            }
+            container l3vpn {
+                container l3vpncomm {
+                    container l3vpnInstances {
+                    description "";
+                        list l3vpnInstance {
+                            key "vrfName";
+                            leaf vrfName {
+                                type string;
+                            }
+                            leaf vrfDescription {
+                                type string;
+                            }
+                            uses l3vpncomm:l3vpnIfs;
+                            container vpnInstAFs {
+                                description "";
+                                list vpnInstAF {
+                                    key "afType";
+                                    description "Address family";
+                                    leaf afType {
+                                        type "l3vpncomm-type:l3vpncommonL3vpnPrefixType";
+                                        description "Address family";
+                                    }
+                                    leaf vrfRD {
+                                        when "vrfName != '_public_'";
+                                        type "string";
+                                        description "route-distinguisher.";
+                                    }
+                                    container vpnTargets {
+                                        description "";
+                                        list vpnTarget {
+                                            must "vrfName != '_public_' and vpnTarget = '0'";
+                                            key "vrfRTValue vrfRTType";
+                                            description "L3vpn vpntarget configure class";
+                                            leaf vrfRTValue {
+                                                type "string";
+                                            }
+                                            leaf vrfRTType {
+                                                type "l3vpncomm-type:l3vpncommonVrfRtType";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

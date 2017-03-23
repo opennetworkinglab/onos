@@ -1,0 +1,32 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Generates YANG Model registrator component.
+# -----------------------------------------------------------------------------
+
+output=$1
+package=$2
+shift 2
+
+aux=/tmp/yr-$$
+
+trap "rm -fr $aux" EXIT
+
+pkgDir=$aux/${package//./\/}
+rm -fr $aux $output
+mkdir -p $pkgDir
+cd $aux
+
+cat <<EOF >$output
+// Auto-generated code
+package $package;
+
+import org.onosproject.yang.AbstractYangModelRegistrator;
+import org.apache.felix.scr.annotations.Component;
+
+@Component(immediate = true)
+public class YangModelRegistrator extends AbstractYangModelRegistrator {
+    public YangModelRegistrator() {
+        super(YangModelRegistrator.class);
+    }
+}
+EOF
