@@ -2,56 +2,9 @@ COMPILE_DEPS = [
   '//lib:CORE_DEPS',
 ]
 
-
-# The following will be wrapped into a macro to be used something like this:
-#
-# yang_model (
-#   app_name = 'org.onosproject.models.foobar',
-#   title = 'Demo YANG Model',
-#   url = 'http://onosproject.org',
-# )
-
-
-YANG_TOOLS = [
-  '//apps/yang:onos-apps-yang',
-  '//lib:onos-yang-runtime',
-]
-
-yang_library(
-  name = 'yang',
-  srcs = glob(['src/**/*.yang']),
-)
-
-genrule(
-  name = 'schema',
-  srcs = [ ':yang#srcs' ],
-  cmd = '$(location //buck-tools:yang-schema) $OUT $SRCS',
-  out = 'yang'
-)
-
-genrule(
-  name = 'registrator',
-  srcs = glob(['src/**/*.yang']),
-  cmd = '$(location //buck-tools:yang-registrator) $OUT org.onosproject.models.demo $SRCS',
-  out = 'YangModelRegistrator.java'
-)
-
-osgi_jar(
-  name = 'onos-models-demo',
-  # srcs = [ ':registrator' ],
-  srcs = [ ':yang#srcs', ':registrator' ],
-  deps = COMPILE_DEPS + YANG_TOOLS,
-  resources = [ ':schema' ],
-  resources_root = ".",
-  do_checkstyle = False,
-  do_javadocs = False,
-)
-
-onos_app (
+yang_model (
   app_name = 'org.onosproject.models.demo',
   title = 'Demo YANG Model',
-  category = 'Model',
   url = 'http://onosproject.org',
-  description = 'Demo YANG model extension.',
-  required_apps = [ 'org.onosproject.yang' ],
+  deps = COMPILE_DEPS,
 )

@@ -1,8 +1,72 @@
 include_defs('//onos.defs')
+include_defs('//bucklets/onos.bucklet')
+include_defs('//bucklets/onos_app.bucklet')
 
 def _get_name():
     base_path = get_base_path()
     return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
+
+YANG_TOOLS = [
+    '//apps/yang:onos-apps-yang',
+    '//lib:onos-yang-runtime',
+]
+
+def yang_model(
+    name = None,
+    app_name = None,
+    title = 'YANG Model',
+    url = 'http://onosproject.org',
+    description = None,
+    deps = [],
+    **kwargs
+    ):
+
+    if name is None:
+        name = _get_name()
+
+    yang = name + '-yang'
+    yangSrcs = yang + '#srcs'
+    schema = name + '-schema'
+    registrator = name + '-registrator'
+
+    yang_library(
+      name = yang,
+      srcs = glob(['src/**/*.yang']),
+    )
+
+    genrule(
+      name = schema,
+      srcs = [ ':' + yangSrcs ],
+      cmd = '$(location //buck-tools:yang-schema) $OUT $SRCS',
+      out = 'yang'
+    )
+
+    genrule(
+      name = registrator,
+      srcs = [ ':' + yangSrcs ],
+      cmd = '$(location //buck-tools:yang-registrator) $OUT app_name $SRCS',
+      out = 'YangModelRegistrator.java'
+    )
+
+    osgi_jar(
+      name = 'onos-models-demo',
+      srcs = [ ':' + yangSrcs, ':' + registrator ],
+      deps = deps + YANG_TOOLS,
+      resources = [ ':' + schema ],
+      resources_root = ".",
+      do_checkstyle = False,
+      do_javadocs = False,
+    )
+
+    onos_app (
+      app_name = app_name,
+      title = title,
+      category = 'Model',
+      url = url,
+      description = description,
+      required_apps = [ 'org.onosproject.yang' ],
+    )
+
 
 def yang_osgi_jar(
     name = None,
