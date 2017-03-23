@@ -16,6 +16,8 @@
 
 package org.onosproject.incubator.net.routing.impl;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
@@ -57,8 +59,8 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
     }
 
     @Override
-    public RouteEvent updateRoute(ResolvedRoute route) {
-        return getDefaultRouteTable(route).update(route);
+    public RouteEvent updateRoute(ResolvedRoute route, Set<ResolvedRoute> alternatives) {
+        return getDefaultRouteTable(route).update(route, alternatives);
     }
 
     @Override
@@ -87,6 +89,11 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
     }
 
     @Override
+    public Collection<ResolvedRoute> getAllRoutes(IpPrefix prefix) {
+        return getDefaultRouteTable(prefix.address()).getAllRoutes(prefix);
+    }
+
+    @Override
     public Optional<ResolvedRoute> longestPrefixMatch(IpAddress ip) {
         return getDefaultRouteTable(ip).longestPrefixMatch(ip);
     }
@@ -105,6 +112,7 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
      */
     private class RouteTable {
         private final InvertedRadixTree<ResolvedRoute> routeTable;
+        private final Map<IpPrefix, Set<ResolvedRoute>> alternativeRoutes;
 
         /**
          * Creates a new route table.
@@ -112,27 +120,58 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
         public RouteTable() {
             routeTable = new ConcurrentInvertedRadixTree<>(
                     new DefaultByteArrayNodeFactory());
+
+            alternativeRoutes = Maps.newHashMap();
         }
 
         /**
          * Adds or updates the route in the route table.
          *
          * @param route route to update
+         * @param alternatives alternative routes
          */
-        public RouteEvent update(ResolvedRoute route) {
+        public RouteEvent update(ResolvedRoute route, Set<ResolvedRoute> alternatives) {
+            Set<ResolvedRoute> immutableAlternatives = checkAlternatives(route, alternatives);
+
             synchronized (this) {
                 ResolvedRoute oldRoute = routeTable.put(createBinaryString(route.prefix()), route);
+                Set<ResolvedRoute> oldRoutes = alternativeRoutes.put(route.prefix(), immutableAlternatives);
 
-                // No need to proceed if the new route is the same
-                if (route.equals(oldRoute)) {
-                    return null;
+                if (!route.equals(oldRoute)) {
+                    if (oldRoute == null) {
+                        return new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route,
+                                immutableAlternatives);
+                    } else {
+                        return new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route,
+                                oldRoute, immutableAlternatives);
+                    }
                 }
 
-                if (oldRoute == null) {
-                    return new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route);
-                } else {
-                    return new RouteEvent(RouteEvent.Type.ROUTE_UPDATED, route, oldRoute);
+                if (!immutableAlternatives.equals(oldRoutes)) {
+                    return new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED,
+                            route, immutableAlternatives);
                 }
+
+                return null;
+            }
+        }
+
+        /**
+         * Checks that the best route is present in the alternatives list and
+         * returns an immutable set of alternatives.
+         *
+         * @param route best route
+         * @param alternatives alternatives
+         * @return immutable set of alternative routes
+         */
+        private Set<ResolvedRoute> checkAlternatives(ResolvedRoute route, Set<ResolvedRoute> alternatives) {
+            if (!alternatives.contains(route)) {
+                return ImmutableSet.<ResolvedRoute>builder()
+                        .addAll(alternatives)
+                        .add(route)
+                        .build();
+            } else {
+                return ImmutableSet.copyOf(alternatives);
             }
         }
 
@@ -146,6 +185,7 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
                 String key = createBinaryString(prefix);
 
                 ResolvedRoute route = routeTable.getValueForExactKey(key);
+                alternativeRoutes.remove(prefix);
 
                 if (route != null) {
                     routeTable.remove(key);
@@ -174,6 +214,10 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
          */
         public Optional<ResolvedRoute> getRoute(IpPrefix prefix) {
             return Optional.ofNullable(routeTable.getValueForExactKey(createBinaryString(prefix)));
+        }
+
+        public Collection<ResolvedRoute> getAllRoutes(IpPrefix prefix) {
+            return alternativeRoutes.getOrDefault(prefix, Collections.emptySet());
         }
 
         /**

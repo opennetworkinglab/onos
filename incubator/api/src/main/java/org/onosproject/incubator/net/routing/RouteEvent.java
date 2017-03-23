@@ -19,6 +19,8 @@ package org.onosproject.incubator.net.routing;
 import org.joda.time.LocalDateTime;
 import org.onosproject.event.AbstractEvent;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -29,6 +31,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
 
     private final ResolvedRoute prevSubject;
+    private final Collection<ResolvedRoute> alternativeRoutes;
 
     /**
      * Route event type.
@@ -40,6 +43,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
          * <p>
          * The subject of this event should be the route being added.
          * The prevSubject of this event should be null.
+         * </p>
          */
         ROUTE_ADDED,
 
@@ -48,6 +52,7 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
          * <p>
          * The subject of this event should be the new route.
          * The prevSubject of this event should be the old route.
+         * </p>
          */
         ROUTE_UPDATED,
 
@@ -56,8 +61,21 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
          * <p>
          * The subject of this event should be the route being removed.
          * The prevSubject of this event should be null.
+         * </p>
          */
-        ROUTE_REMOVED
+        ROUTE_REMOVED,
+
+        /**
+         * The set of alternative routes for the subject's prefix has changed,
+         * but the best route is still the same.
+         * <p>
+         * The subject is the best route for the prefix (which has already been
+         * notified in a previous event).
+         * The prevSubject of this event is null.
+         * The alternatives contains the new set of alternative routes.
+         * </p>
+         */
+        ALTERNATIVE_ROUTES_CHANGED
     }
 
     /**
@@ -67,8 +85,18 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
      * @param subject event subject
      */
     public RouteEvent(Type type, ResolvedRoute subject) {
-        super(type, subject);
-        this.prevSubject = null;
+        this(type, subject, null, Collections.emptySet());
+    }
+
+    /**
+     * Creates a new route event without specifying previous subject.
+     *
+     * @param type event type
+     * @param subject event subject
+     * @param alternatives alternative routes for subject's prefix
+     */
+    public RouteEvent(Type type, ResolvedRoute subject, Collection<ResolvedRoute> alternatives) {
+        this(type, subject, null, alternatives);
     }
 
     /**
@@ -81,6 +109,8 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
     protected RouteEvent(Type type, ResolvedRoute subject, long time) {
         super(type, subject, time);
         this.prevSubject = null;
+
+        this.alternativeRoutes = Collections.emptySet();
     }
 
     /**
@@ -91,8 +121,22 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
      * @param prevSubject previous subject
      */
     public RouteEvent(Type type, ResolvedRoute subject, ResolvedRoute prevSubject) {
+        this(type, subject, prevSubject, Collections.emptySet());
+    }
+
+    /**
+     * Creates a new route event with a previous subject and alternative routes.
+     *
+     * @param type event type
+     * @param subject event subject
+     * @param prevSubject previous subject
+     * @param alternatives alternative routes for subject's prefix
+     */
+    public RouteEvent(Type type, ResolvedRoute subject, ResolvedRoute prevSubject,
+                      Collection<ResolvedRoute> alternatives) {
         super(type, subject);
         this.prevSubject = prevSubject;
+        this.alternativeRoutes = alternatives;
     }
 
     /**
@@ -104,9 +148,18 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
         return prevSubject;
     }
 
+    /**
+     * Returns the set of alternative routes for the subject's prefix.
+     *
+     * @return alternative routes
+     */
+    public Collection<ResolvedRoute> alternatives() {
+        return alternativeRoutes;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(subject(), type(), prevSubject());
+        return Objects.hash(subject(), type(), prevSubject(), alternativeRoutes);
     }
 
     @Override
@@ -123,7 +176,8 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
 
         return Objects.equals(this.subject(), that.subject()) &&
                 Objects.equals(this.type(), that.type()) &&
-                Objects.equals(this.prevSubject(), that.prevSubject());
+                Objects.equals(this.prevSubject, that.prevSubject) &&
+                Objects.equals(this.alternativeRoutes, that.alternativeRoutes);
     }
 
     @Override
@@ -132,7 +186,8 @@ public class RouteEvent extends AbstractEvent<RouteEvent.Type, ResolvedRoute> {
                 .add("time", new LocalDateTime(time()))
                 .add("type", type())
                 .add("subject", subject())
-                .add("prevSubject", prevSubject())
+                .add("prevSubject", prevSubject)
+                .add("alternatives", alternativeRoutes)
                 .toString();
     }
 }

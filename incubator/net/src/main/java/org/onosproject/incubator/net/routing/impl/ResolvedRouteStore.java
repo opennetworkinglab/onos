@@ -35,9 +35,10 @@ public interface ResolvedRouteStore {
      * Adds or updates the best route for the given prefix.
      *
      * @param route new best route for this prefix
+     * @param alternatives alternative resolved routes
      * @return event describing the change
      */
-    RouteEvent updateRoute(ResolvedRoute route);
+    RouteEvent updateRoute(ResolvedRoute route, Set<ResolvedRoute> alternatives);
 
     /**
      * Removes the best route for the given prefix.
@@ -69,6 +70,15 @@ public interface ResolvedRouteStore {
      * @return optional best route
      */
     Optional<ResolvedRoute> getRoute(IpPrefix prefix);
+
+    /**
+     * Returns all resolved routes stored for the given prefix, including the
+     * best selected route.
+     *
+     * @param prefix IP prefix to look up routes for
+     * @return all stored resolved routes for this prefix
+     */
+    Collection<ResolvedRoute> getAllRoutes(IpPrefix prefix);
 
     /**
      * Performs a longest prefix match of the best routes on the given IP address.

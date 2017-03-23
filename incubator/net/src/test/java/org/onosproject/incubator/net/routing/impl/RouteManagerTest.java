@@ -199,7 +199,7 @@ public class RouteManagerTest {
     private void verifyRouteAdd(Route route, ResolvedRoute resolvedRoute) {
         reset(routeListener);
 
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED, resolvedRoute));
+        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute));
 
         replay(routeListener);
 
@@ -253,7 +253,7 @@ public class RouteManagerTest {
         // First add the original route
         addRoute(original);
 
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_UPDATED,
+        routeListener.event(event(RouteEvent.Type.ROUTE_UPDATED,
                 updatedResolvedRoute, resolvedRoute));
         expectLastCall().once();
 
@@ -329,7 +329,7 @@ public class RouteManagerTest {
 
         // Now when we send the event, we expect the FIB update to be sent
         reset(routeListener);
-        routeListener.event(new RouteEvent(RouteEvent.Type.ROUTE_ADDED,
+        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED,
                 new ResolvedRoute(route, MAC1, CP1)));
         replay(routeListener);
 
@@ -347,6 +347,14 @@ public class RouteManagerTest {
         hostListener.event(new HostEvent(HostEvent.Type.HOST_ADDED, host));
 
         verify(routeListener);
+    }
+
+    private static RouteEvent event(RouteEvent.Type type, ResolvedRoute subject) {
+        return event(type, subject, null);
+    }
+
+    private static RouteEvent event(RouteEvent.Type type, ResolvedRoute subject, ResolvedRoute prevSubject) {
+        return new RouteEvent(type, subject, prevSubject, Collections.singleton(subject));
     }
 
     /**

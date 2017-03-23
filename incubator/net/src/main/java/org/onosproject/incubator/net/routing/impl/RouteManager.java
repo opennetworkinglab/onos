@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
-import org.onosproject.event.ListenerService;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.incubator.net.routing.InternalRouteEvent;
 import org.onosproject.incubator.net.routing.NextHop;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
@@ -68,8 +68,7 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 @Service
 @Component
-public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
-        RouteService, RouteAdminService {
+public class RouteManager implements RouteService, RouteAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -129,7 +128,8 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
             resolvedRouteStore.getRouteTables().stream()
                     .map(resolvedRouteStore::getRoutes)
                     .flatMap(Collection::stream)
-                    .map(route -> new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route))
+                    .map(route -> new RouteEvent(RouteEvent.Type.ROUTE_ADDED, route,
+                            resolvedRouteStore.getAllRoutes(route.prefix())))
                     .forEach(l::post);
 
             listeners.put(listener, l);
@@ -259,25 +259,31 @@ public class RouteManager implements ListenerService<RouteEvent, RouteListener>,
     }
 
     private ResolvedRoute decide(ResolvedRoute route1, ResolvedRoute route2) {
-        return Comparator.<ResolvedRoute, IpAddress>comparing(route -> route.nextHop())
+        return Comparator.comparing(ResolvedRoute::nextHop)
                        .compare(route1, route2) <= 0 ? route1 : route2;
     }
 
-    private void store(ResolvedRoute route) {
-        post(resolvedRouteStore.updateRoute(route));
+    private void store(ResolvedRoute route, Set<ResolvedRoute> alternatives) {
+        post(resolvedRouteStore.updateRoute(route, alternatives));
+    }
+
+    private void remove(IpPrefix prefix) {
+        post(resolvedRouteStore.removeRoute(prefix));
     }
 
     private void resolve(RouteSet routes) {
-        Optional<ResolvedRoute> resolvedRoute =
-        routes.routes().stream()
-                    .map(this::resolve)
-                    .filter(Objects::nonNull)
+        Set<ResolvedRoute> resolvedRoutes = routes.routes().stream()
+                .map(this::resolve)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Optional<ResolvedRoute> bestRoute = resolvedRoutes.stream()
                     .reduce(this::decide);
 
-        if (resolvedRoute.isPresent()) {
-            this.store(resolvedRoute.get());
+        if (bestRoute.isPresent()) {
+            store(bestRoute.get(), resolvedRoutes);
         } else {
-            post(resolvedRouteStore.removeRoute(routes.prefix()));
+            remove(routes.prefix());
         }
     }
 
