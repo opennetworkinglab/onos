@@ -75,9 +75,6 @@
     create: yes
     block: |
       export ONOS_ROOT=/home/ubuntu/onos
-      export KARAF_ROOT=/home/ubuntu/Applications/apache-karaf-{{ karaf_version }}
-      export KARAF_TAR=/home/ubuntu/Applications/apache-karaf-{{ karaf_version }}.tar.gz
-      export M2_REPO=/home/ubuntu/.m2/repository
       . /home/ubuntu/onos/tools/dev/bash_profile
       cell {{ item.value.cell }} > /dev/null
   with_dict: "{{ tutorials }}"

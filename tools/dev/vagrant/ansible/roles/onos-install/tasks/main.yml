@@ -1,50 +1,12 @@
 ---
 #
-# Installs ONOS and downloads the related dependencies. It then compiles the code.
+# Installs ONOS and downloads the related dependencies.
 #
-- name: Installing Maven
-  apt:
-    name: maven
-    force: yes
-  tags: [common]
-
-- name: Creating Application folder
-  file:
-    path: "{{ app_dir }}"
-    state: directory
-    mode: 0777
-
-- name: Creating Download folder
-  file:
-    path: "{{ download_dir }}"
-    state: directory
-    mode: 0777
-
-- name: Downloading Apache Karaf
-  get_url:
-    url: "http://archive.apache.org/dist/karaf/{{ karaf_version }}/apache-karaf-{{ karaf_version }}.tar.gz"
-    dest: "{{ download_dir }}"
-    mode: 0777
-
-- name: Copying Apache Karaf in the Application directory
-  copy:
-    src: "/home/ubuntu/{{ download_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
-    dest: "/home/ubuntu/{{ app_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
-    mode: 0777
-
-- name: Extracting Apache Karaf
-  unarchive:
-    src: "/home/ubuntu/{{ download_dir }}/apache-karaf-{{ karaf_version }}.tar.gz"
-    dest: "/home/ubuntu/{{ app_dir }}"
-    mode: 0777
-
 - name: Cloning ONOS repository
   git:
     repo: "{{ onos_repo_url }}"
-    dest: onos
-    version: onos-"{{ onos_version }}"
-  become: true
-  become_user: ubuntu
+    dest: "{{ onos_dir }}"
+    version: "onos-{{ onos_version }}"
 
 - name: Changing ONOS repository permissions
   file:
@@ -63,19 +25,9 @@
 - name: Compiling ONOS
   shell: "{{ item }}"
   args:
-    chdir: "/home/ubuntu/onos"
+    chdir: "/home/ubuntu/onos/tools/build"
   with_items:
-    - mvn clean install
-  become: true
-  become_user: ubuntu
-
-- name: Changing .m2 repository permissions
-  file:
-    path: "/home/ubuntu/.m2"
-    state: directory
-    owner: ubuntu
-    group: ubuntu
-    mode: 0777
+    - "./onos-buck build onos"
 
 - name: Creating 1 node ONOS cell
   template:
@@ -101,14 +53,30 @@
     group: ubuntu
     mode: 0777
 
+- name: Changing ONOS repository permissions
+  file:
+    path: "/home/ubuntu/onos"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
+- name: Changing /tmp/stc dir permissions
+  file:
+    path: "/tmp/stc"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0777
+
 - name: Deploying ONOS
+  become: yes
+  become_user: ubuntu
   shell: "/home/ubuntu/onos_deploy.sh"
   environment:
     ONOS_ROOT: /home/ubuntu/onos
   args:
     executable: /bin/bash
-  become: true
-  become_user: ubuntu
 
 - name: Adding ONOS to startup
   become: yes

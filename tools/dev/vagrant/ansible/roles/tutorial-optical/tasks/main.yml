@@ -9,10 +9,16 @@
     update_cache: yes
   with_items: "{{ tutorials.optical.packages }}"
 
+- name: Making sure Application folder is present
+  file:
+    path: "/home/ubuntu/{{ app_dir }}"
+    state: directory
+    mode: 0777
+
 - name: Downloading ERLANG package
   get_url:
     url: "{{ tutorials.optical.erlang.package_url }}"
-    dest: "{{ app_dir }}"
+    dest: "/home/ubuntu/{{ app_dir }}"
 
 - name: Extracting ERLANG package
   unarchive:

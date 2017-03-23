@@ -31,10 +31,6 @@ bridge:
   name: "onosbr0"
   ip: "{{ dev_host.ip }}/24"
 
-# ONOS Applications and Downloads folders
-app_dir: "Applications"
-download_dir: "Downloads"
-
 # Basic packages to be installed
 basic_packages:
   - "bridge-utils"
@@ -44,17 +40,17 @@ basic_packages:
   - "lxc-dev"
   - "python-dev"
   - "python-pip"
+  - "unzip"
+  - "zip"
 
 # ONOS
 onos_repo_url: "https://gerrit.onosproject.org/onos"
-onos_version: "1.6"
+onos_dir: "/home/ubuntu/onos"
+onos_version: "1.9"
 onos_nic: "10.100.198.*"
 onos_variables:
   - "export ONOS_ROOT=~/onos"
   - "source $ONOS_ROOT/tools/dev/bash_profile"
-
-# Karaf
-karaf_version: "3.0.8"
 
 # Tutorial reset files
 reset_files:
@@ -69,6 +65,10 @@ cell_files:
 # URL where the ONOS Desktop background is downloaded from
 onos_background_url: "https://gerrit.onosproject.org/gitweb?p=onos-vm.git;a=blob_plain;f=onos.png;hb=refs/heads/master"
 
+# ONOS app dir
+app_dir: "Application"
+download_dir: "Downloads"
+
 # Wireshark
 wireshark:
   plugins_dir: ".config/wireshark/plugins"
@@ -80,8 +80,8 @@ google_chrome_repo: "deb http://dl.google.com/linux/chrome/deb/ stable main"
 
 # IDEs configuration
 intellij:
-  dir_name: "idea-IC-162.1628.40"
-  url: "https://download.jetbrains.com/idea/ideaIC-2016.2.2.tar.gz"
+  dir_name: "idea-IC-171.3780.107"
+  url: "https://download.jetbrains.com/idea/ideaIC-2017.1.tar.gz"
 
 # Tutorials configuration
 tutorials:
