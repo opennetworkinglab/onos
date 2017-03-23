@@ -28,17 +28,17 @@ import org.onosproject.yang.model.ResourceId;
 /**
  * Utilities to work on the ResourceId.
  */
-
+//FIXME add javadocs
 public final class ResourceIdParser {
 
     public static final String ROOT = "root";
     public static final String NM_SEP = "#";
     public static final String VAL_SEP = "@";
     public static final String KEY_SEP = "$";
-    public static final String EL_SEP = ".";
+    public static final String EL_SEP = "|";
     public static final String VAL_CHK = "\\@";
     public static final String KEY_CHK = "\\$";
-
+    public static final String NM_CHK = "\\#";
 
 
     private ResourceIdParser() {
@@ -100,7 +100,6 @@ public final class ResourceIdParser {
         return (path + EL_SEP + key);
     }
 
-    //DONE
     public static String appendKeyLeaf(String path, KeyLeaf key) {
         StringBuilder bldr = new StringBuilder();
         bldr.append(key.leafSchema().name());
@@ -187,7 +186,6 @@ public final class ResourceIdParser {
         bldr.append(key.schemaId().name());
         bldr.append(NM_SEP);
         bldr.append(key.schemaId().namespace());
-        bldr.append(NM_SEP);
         Iterator<KeyLeaf> iter = key.keyLeafs().iterator();
         KeyLeaf next;
         while (iter.hasNext()) {
@@ -218,14 +216,16 @@ public final class ResourceIdParser {
                         name.substring(name.indexOf(NM_SEP) + 1, name.indexOf(VAL_SEP)),
                         name.substring(name.indexOf(VAL_SEP) + 1));
             } else if (name.contains(KEY_SEP)) {
-                resBldr.addBranchPointSchema(name.substring(0, name.indexOf(NM_SEP)),
-                        name.substring(name.indexOf(NM_SEP) + 1, name.indexOf(KEY_SEP)));
-                String[] keys = name.split(KEY_SEP);
+                String[] keys = name.split(KEY_CHK);
+                String[] nm = keys[0].split(NM_CHK);
+                resBldr.addBranchPointSchema(nm[0], nm[1]);
                 for (int i = 1; i < keys.length; i++) {
                     String key = keys[i];
-                    resBldr.addKeyLeaf(key.substring(0, key.indexOf(NM_SEP)),
-                            key.substring(key.indexOf(NM_SEP) + 1, key.lastIndexOf(NM_SEP)),
-                            key.substring(name.lastIndexOf(NM_SEP) + 1));
+                    String[] el = keys[i].split(NM_CHK);
+                    if (el.length != 3) {
+                        throw new FailedException("Malformed event subject, cannot parse");
+                    }
+                    resBldr.addKeyLeaf(el[0], el[1], el[2]);
                 }
             } else {
                 resBldr.addBranchPointSchema(name.substring(0, name.indexOf(NM_SEP)),

@@ -249,7 +249,7 @@ public class DistributedDynamicConfigStore
                 //String tempPath = ResourceIdParser.appendKeyLeaf(spath, keyLeaf);
                 //LeafNode lfnd = readLeaf(tempPath);
                 superBldr.addKeyLeaf(keyLeaf.leafSchema().name(),
-                        keyLeaf.leafSchema().namespace(), keyLeaf.leafValue());
+                        keyLeaf.leafSchema().namespace(), String.valueOf(keyLeaf.leafValue()));
             }
             readInner(superBldr, spath);
             retVal = superBldr.build();
@@ -273,7 +273,7 @@ public class DistributedDynamicConfigStore
             throw new FailedException("Inner node cannot have empty children map");
         }
         entries.forEach((k, v) -> {
-            String[] names = k.split(ResourceIdParser.NM_SEP);
+            String[] names = k.split(ResourceIdParser.NM_CHK);
             String name = names[0];
             String nmSpc = ResourceIdParser.getNamespace(names[1]);
             String keyVal = ResourceIdParser.getKeyVal(names[1]);
@@ -303,7 +303,7 @@ public class DistributedDynamicConfigStore
                 for (int i = 1; i < keys.length; i++) {
                     //String curKey = ResourceIdParser.appendKeyLeaf(tempPath, keys[i]);
                     //LeafNode lfnd = readLeaf(curKey);
-                    String[] keydata = keys[i].split(ResourceIdParser.NM_SEP);
+                    String[] keydata = keys[i].split(ResourceIdParser.NM_CHK);
                     tempBldr.addKeyLeaf(keydata[0], keydata[1], keydata[2]);
                 }
                 readInner(tempBldr, tempPath);

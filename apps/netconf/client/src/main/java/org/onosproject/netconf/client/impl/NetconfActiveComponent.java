@@ -34,6 +34,7 @@ import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.client.NetconfTranslator.OperationType;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.LeafNode;
+import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.DefaultResourceData;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     private static final Logger log = LoggerFactory.getLogger(NetconfActiveComponent.class);
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigService cfgService;
-    public static final String DEVNMSPACE = "namespace1";
+    public static final String DEVNMSPACE = "ne-l3vpn-api";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfTranslator netconfTranslator;
@@ -64,6 +65,8 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     private ResourceId resId = new ResourceId.Builder()
             .addBranchPointSchema("device", DEVNMSPACE)
+            .addBranchPointSchema("device", DEVNMSPACE)
+            .addKeyLeaf("deviceid", DEVNMSPACE, "netconf:172.16.5.11:22")
             .build();
 
     @Activate
@@ -171,11 +174,20 @@ public class NetconfActiveComponent implements DynamicConfigListener {
      * @param node the node associated with the event
      * @return the deviceId of the effected device
      */
+    @Beta
     public DeviceId getDeviceId(DataNode node) {
         String[] temp;
         String ip, port;
         if (node.type() == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
             temp = ((LeafNode) node).asString().split("\\:");
+            if (temp.length != 3) {
+                throw new RuntimeException(new NetconfException("Invalid device id form, cannot apply"));
+            }
+            ip = temp[1];
+            port = temp[2];
+        } else if (node.type() == DataNode.Type.MULTI_INSTANCE_NODE) {
+            ListKey key = (ListKey) node.key();
+            temp = key.keyLeafs().get(0).leafValAsString().split("\\:");
             if (temp.length != 3) {
                 throw new RuntimeException(new NetconfException("Invalid device id form, cannot apply"));
             }
