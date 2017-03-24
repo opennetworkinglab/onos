@@ -379,7 +379,7 @@ public class SfcManager implements SfcService {
          * Find the port chain for the received packet.
          *
          * @param fiveTuple five tuple info from the packet
-         * @return portChainId id of port chain
+         * @return portChainId id of port chain, null if portChain is not found
          */
         private PortChainId findPortChainFromFiveTuple(FiveTuple fiveTuple) {
 
@@ -388,6 +388,7 @@ public class SfcManager implements SfcService {
             Iterable<PortChain> portChains = portChainService.getPortChains();
             if (portChains == null) {
                 log.error("Could not retrive port chain list");
+                return null;
             }
 
             // Identify the port chain to which the packet belongs
