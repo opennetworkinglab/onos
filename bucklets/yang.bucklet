@@ -7,6 +7,7 @@ def _get_name():
     return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
 
 YANG_TOOLS = [
+    '//lib:CORE_DEPS',
     '//apps/yang:onos-apps-yang',
     '//lib:onos-yang-runtime',
 ]
