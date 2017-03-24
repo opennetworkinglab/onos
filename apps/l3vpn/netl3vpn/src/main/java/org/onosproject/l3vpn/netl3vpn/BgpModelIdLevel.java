@@ -14,7 +14,26 @@
  * limitations under the License.
  */
 
-/**
- * The IETF NET l3VPN YANG application.
- */
 package org.onosproject.l3vpn.netl3vpn;
+
+/**
+ * Represents the model id level of BGP information to be added to store.
+ * //TODO: Further more levels of BGP addition has to be added.
+ */
+public enum BgpModelIdLevel {
+
+    /**
+     * Requested model id level is not present, representing top node.
+     */
+    ROOT,
+
+    /**
+     * Requested model id level is devices container.
+     */
+    DEVICES,
+
+    /**
+     * Requested model id level is device list.
+     */
+    DEVICE
+}

@@ -14,7 +14,32 @@
  * limitations under the License.
  */
 
-/**
- * The IETF NET l3VPN YANG application.
- */
 package org.onosproject.l3vpn.netl3vpn;
+
+/**
+ * Representation of the full mesh VPN configuration containing RT.
+ */
+public class FullMeshVpnConfig extends VpnConfig {
+
+    /**
+     * Route target value.
+     */
+    private String rt;
+
+    /** Constructs full mesh VPN config.
+     *
+     * @param r RT value
+     */
+    public FullMeshVpnConfig(String r) {
+        rt = r;
+    }
+
+    /**
+     * Returns the RT value.
+     *
+     * @return RT value
+     */
+    String rt() {
+        return rt;
+    }
+}

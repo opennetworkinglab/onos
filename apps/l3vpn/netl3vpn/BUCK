@@ -1,6 +1,8 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
   '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
+  '//apps/config:onos-apps-config',
+  '//core/store/serializers:onos-core-serializers',
   '//lib:onos-yang-model',
   '//lib:onos-yang-runtime',
 ]

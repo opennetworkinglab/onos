@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l3vpn.netl3vpn;
+
+package org.onosproject.l3vpn.netl3vpn.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -40,6 +41,7 @@ import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangMo
 
 /**
  * The IETF net l3vpn manager implementation.
+ * // TODO: Implementation of the manager class.
  */
 @Component(immediate = true)
 public class NetL3vpnManager {

@@ -14,7 +14,25 @@
  * limitations under the License.
  */
 
-/**
- * The IETF NET l3VPN YANG application.
- */
 package org.onosproject.l3vpn.netl3vpn;
+
+/**
+ * Represents the type of VPN instance.
+ */
+public enum VpnType {
+
+    /**
+     * Requested VPN type is of full mesh.
+     */
+    ANY_TO_ANY,
+
+    /**
+     * Requested VPN type is of hub.
+     */
+    HUB,
+
+    /**
+     * Requested VPN type is of spoke.
+     */
+    SPOKE
+}

@@ -14,7 +14,28 @@
  * limitations under the License.
  */
 
-/**
- * The IETF NET l3VPN YANG application.
- */
 package org.onosproject.l3vpn.netl3vpn;
+
+/**
+ * Representation of exception that needs to be handled by net l3 VPN.
+ */
+public class NetL3VpnException extends RuntimeException {
+
+    /**
+     * Creates net l3 VPN exception with an exception message.
+     *
+     * @param excMsg message
+     */
+    public NetL3VpnException(String excMsg) {
+        super(excMsg);
+    }
+
+    /**
+     * Creates net l3 VPN exception with a cause for it.
+     *
+     * @param cause cause
+     */
+    public NetL3VpnException(Throwable cause) {
+        super(cause);
+    }
+}

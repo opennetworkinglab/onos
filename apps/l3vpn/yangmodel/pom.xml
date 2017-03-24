@@ -35,8 +35,8 @@
         <plugins>
             <plugin>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-yang-maven-plugin</artifactId>
-                <version>1.11</version>
+                <artifactId>onos-yang-compiler-maven-plugin</artifactId>
+                <version>1.12.0-b6</version>
                 <executions>
                     <execution>
                         <goals>
@@ -47,5 +47,4 @@
             </plugin>
         </plugins>
     </build>
-    <!-- Fix maven plugin version together with fix for buck -->
 </project>

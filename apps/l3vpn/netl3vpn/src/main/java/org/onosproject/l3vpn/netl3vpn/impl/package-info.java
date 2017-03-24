@@ -15,6 +15,6 @@
  */
 
 /**
- * The IETF NET l3VPN YANG application.
+ * The implementations of IETF NET l3VPN manager and store.
  */
-package org.onosproject.l3vpn.netl3vpn;
+package org.onosproject.l3vpn.netl3vpn.impl;

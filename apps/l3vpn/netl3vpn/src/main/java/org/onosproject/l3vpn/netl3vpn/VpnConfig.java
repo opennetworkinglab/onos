@@ -14,7 +14,39 @@
  * limitations under the License.
  */
 
-/**
- * The IETF NET l3VPN YANG application.
- */
 package org.onosproject.l3vpn.netl3vpn;
+
+/**
+ * Abstraction of VPN config which contains RD value for the VPN instance.
+ */
+public class VpnConfig {
+
+    /**
+     * RD value for VPN instance.
+     */
+    private String rd;
+
+    /**
+     * Created VPN config.
+     */
+    public VpnConfig() {
+    }
+
+    /**
+     * Returns RD value.
+     *
+     * @return RD value
+     */
+    String rd() {
+        return rd;
+    }
+
+    /**
+     * Sets the RD value.
+     *
+     * @param rd RD value
+     */
+    void rd(String rd) {
+        this.rd = rd;
+    }
+}
