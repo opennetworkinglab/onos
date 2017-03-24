@@ -48,7 +48,7 @@ public class VpnSiteRole {
      *
      * @return VPN name
      */
-    String name() {
+    public String name() {
         return name;
     }
 
@@ -57,7 +57,7 @@ public class VpnSiteRole {
      *
      * @return site role
      */
-    VpnType role() {
+    public VpnType role() {
         return role;
     }
 }

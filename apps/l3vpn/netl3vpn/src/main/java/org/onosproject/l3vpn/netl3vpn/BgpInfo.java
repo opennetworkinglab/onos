@@ -46,7 +46,7 @@ public class BgpInfo {
      *
      * @return protocol info map.
      */
-    Map<RouteProtocol, ProtocolInfo> protocolInfo() {
+    public Map<RouteProtocol, ProtocolInfo> protocolInfo() {
         return protocolInfo;
     }
 
@@ -55,7 +55,7 @@ public class BgpInfo {
      *
      * @param protocolInfo protocol info map
      */
-    void protocolInfo(Map<RouteProtocol, ProtocolInfo> protocolInfo) {
+    public void protocolInfo(Map<RouteProtocol, ProtocolInfo> protocolInfo) {
         this.protocolInfo = protocolInfo;
     }
 
@@ -65,7 +65,7 @@ public class BgpInfo {
      * @param route route protocol
      * @param info  protocol info
      */
-    void addProtocolInfo(RouteProtocol route, ProtocolInfo info) {
+    public void addProtocolInfo(RouteProtocol route, ProtocolInfo info) {
         if (protocolInfo == null) {
             protocolInfo = new HashMap<>();
         }
@@ -77,7 +77,7 @@ public class BgpInfo {
      *
      * @return VPN name
      */
-    String vpnName() {
+    public String vpnName() {
         return vpnName;
     }
 
@@ -86,7 +86,7 @@ public class BgpInfo {
      *
      * @param vpnName VPN name
      */
-    void vpnName(String vpnName) {
+    public void vpnName(String vpnName) {
         this.vpnName = vpnName;
     }
 

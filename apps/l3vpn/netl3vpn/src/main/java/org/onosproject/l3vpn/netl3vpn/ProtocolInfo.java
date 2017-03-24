@@ -65,7 +65,7 @@ public class ProtocolInfo {
      *
      * @return route protocol
      */
-    RouteProtocol routeProtocol() {
+    public RouteProtocol routeProtocol() {
         return routeProtocol;
     }
 
@@ -74,7 +74,7 @@ public class ProtocolInfo {
      *
      * @param routeProtocol route protocol
      */
-    void routeProtocol(RouteProtocol routeProtocol) {
+    public void routeProtocol(RouteProtocol routeProtocol) {
         this.routeProtocol = routeProtocol;
     }
 
@@ -83,7 +83,7 @@ public class ProtocolInfo {
      *
      * @return process id
      */
-    String processId() {
+    public String processId() {
         return processId;
     }
 
@@ -92,7 +92,7 @@ public class ProtocolInfo {
      *
      * @param processId process id.
      */
-    void processId(String processId) {
+    public void processId(String processId) {
         this.processId = processId;
     }
 
@@ -102,7 +102,7 @@ public class ProtocolInfo {
      *
      * @return true if IPV4 address family uses; false otherwise
      */
-    boolean isIpv4Af() {
+    public boolean isIpv4Af() {
         return ipv4Af;
     }
 
@@ -112,7 +112,7 @@ public class ProtocolInfo {
      *
      * @param ipv4Af true if IPV4 interface uses; false otherwise
      */
-    void ipv4Af(boolean ipv4Af) {
+    public void ipv4Af(boolean ipv4Af) {
         this.ipv4Af = ipv4Af;
     }
 
@@ -122,7 +122,7 @@ public class ProtocolInfo {
      *
      * @return true if IPV6 address family uses; false otherwise
      */
-    boolean isIpv6Af() {
+    public boolean isIpv6Af() {
         return ipv6Af;
     }
 
@@ -132,7 +132,7 @@ public class ProtocolInfo {
      *
      * @param ipv6Af true if IPV6 interface uses; false otherwise
      */
-    void ipv6Af(boolean ipv6Af) {
+    public void ipv6Af(boolean ipv6Af) {
         this.ipv6Af = ipv6Af;
     }
 
@@ -141,7 +141,7 @@ public class ProtocolInfo {
      *
      * @return IPV4 network accesses
      */
-    List<AccessInfo> v4Accesses() {
+    public List<AccessInfo> v4Accesses() {
         return v4Accesses;
     }
 
@@ -150,7 +150,7 @@ public class ProtocolInfo {
      *
      * @param v4Accesses IPV4 network accesses
      */
-    void v4Accesses(List<AccessInfo> v4Accesses) {
+    public void v4Accesses(List<AccessInfo> v4Accesses) {
         this.v4Accesses = v4Accesses;
     }
 
@@ -159,7 +159,7 @@ public class ProtocolInfo {
      *
      * @param info IPV4 network access
      */
-    void addV4Key(AccessInfo info) {
+    public void addV4Access(AccessInfo info) {
         if (v4Accesses == null) {
             v4Accesses = new LinkedList<>();
         }
@@ -171,7 +171,7 @@ public class ProtocolInfo {
      *
      * @return IPV6 network accesses
      */
-    List<AccessInfo> v6Accesses() {
+    public List<AccessInfo> v6Accesses() {
         return v6Accesses;
     }
 
@@ -180,7 +180,7 @@ public class ProtocolInfo {
      *
      * @param v6Accesses IPV6 network accesses
      */
-    void v6Accesses(List<AccessInfo> v6Accesses) {
+    public void v6Accesses(List<AccessInfo> v6Accesses) {
         this.v4Accesses = v6Accesses;
     }
 
@@ -188,7 +188,7 @@ public class ProtocolInfo {
      * Adds a access info to the IPV6 network accesses.
      * @param info IPV4 network access
      */
-    void addV6Key(AccessInfo info) {
+    public void addV6Access(AccessInfo info) {
         if (v6Accesses == null) {
             v6Accesses = new LinkedList<>();
         }

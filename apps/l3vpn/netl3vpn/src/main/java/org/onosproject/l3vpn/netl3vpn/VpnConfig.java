@@ -37,7 +37,7 @@ public class VpnConfig {
      *
      * @return RD value
      */
-    String rd() {
+    public String rd() {
         return rd;
     }
 
@@ -46,7 +46,7 @@ public class VpnConfig {
      *
      * @param rd RD value
      */
-    void rd(String rd) {
+    public void rd(String rd) {
         this.rd = rd;
     }
 }

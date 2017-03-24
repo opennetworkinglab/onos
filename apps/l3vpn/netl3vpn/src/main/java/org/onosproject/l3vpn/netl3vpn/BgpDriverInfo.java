@@ -47,7 +47,7 @@ public class BgpDriverInfo {
      *
      * @return model id level
      */
-    BgpModelIdLevel modIdLevel() {
+    public BgpModelIdLevel modIdLevel() {
         return modIdLevel;
     }
 
@@ -56,8 +56,7 @@ public class BgpDriverInfo {
      *
      * @return device id
      */
-    String devId() {
+    public String devId() {
         return devId;
     }
-
 }

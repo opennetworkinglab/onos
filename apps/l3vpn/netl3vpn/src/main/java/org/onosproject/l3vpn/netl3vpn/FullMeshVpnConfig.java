@@ -39,7 +39,7 @@ public class FullMeshVpnConfig extends VpnConfig {
      *
      * @return RT value
      */
-    String rt() {
+    public String rt() {
         return rt;
     }
 }

@@ -53,7 +53,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @return RT value
      */
-    String hubImpRt() {
+    public String hubImpRt() {
         return hubImpRt;
     }
 
@@ -62,7 +62,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @param hubImpRt RT value
      */
-    void hubImpRt(String hubImpRt) {
+    public void hubImpRt(String hubImpRt) {
         this.hubImpRt = hubImpRt;
     }
 
@@ -71,7 +71,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @return RT value
      */
-    String hubExpRt() {
+    public String hubExpRt() {
         return hubExpRt;
     }
 
@@ -80,7 +80,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @param hubExpRt RT value
      */
-    void hubExpRt(String hubExpRt) {
+    public void hubExpRt(String hubExpRt) {
         this.hubExpRt = hubExpRt;
     }
 
@@ -89,7 +89,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @return RT value
      */
-    String spokeImpRt() {
+    public String spokeImpRt() {
         return spokeImpRt;
     }
 
@@ -98,7 +98,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @param spokeImpRt RT value
      */
-    void spokeImpRt(String spokeImpRt) {
+    public void spokeImpRt(String spokeImpRt) {
         this.spokeImpRt = spokeImpRt;
     }
 
@@ -107,7 +107,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @return RT value
      */
-    String spokeExpRt() {
+    public String spokeExpRt() {
         return spokeExpRt;
     }
 
@@ -116,7 +116,7 @@ public class HubSpokeVpnConfig extends VpnConfig {
      *
      * @param spokeExpRt RT value
      */
-    void spokeExpRt(String spokeExpRt) {
+    public void spokeExpRt(String spokeExpRt) {
         this.spokeExpRt = spokeExpRt;
     }
 }

@@ -49,7 +49,7 @@ public class AccessInfo {
      *
      * @return site id
      */
-    String siteId() {
+    public String siteId() {
         return siteId;
     }
 
@@ -58,7 +58,7 @@ public class AccessInfo {
      *
      * @return access id
      */
-    String accessId() {
+    public String accessId() {
         return accessId;
     }
 

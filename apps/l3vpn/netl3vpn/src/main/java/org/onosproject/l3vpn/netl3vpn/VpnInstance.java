@@ -61,7 +61,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @return VPN type
      */
-    VpnType type() {
+    public VpnType type() {
         return type;
     }
 
@@ -70,7 +70,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @param type VPN type
      */
-    void type(VpnType type) {
+    public void type(VpnType type) {
         this.type = type;
     }
 
@@ -79,7 +79,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @return VPN config
      */
-    T vpnConfig() {
+    public T vpnConfig() {
         return vpnConfig;
     }
 
@@ -88,7 +88,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @param vpnConfig VPN config
      */
-    void vpnConfig(T vpnConfig) {
+    public void vpnConfig(T vpnConfig) {
         this.vpnConfig = vpnConfig;
     }
 
@@ -97,7 +97,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @return device info map
      */
-    Map<DeviceId, DeviceInfo> devInfo() {
+    public Map<DeviceId, DeviceInfo> devInfo() {
         return devInfo;
     }
 
@@ -106,7 +106,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @param devInfo device info map
      */
-    void devInfo(Map<DeviceId, DeviceInfo> devInfo) {
+    public void devInfo(Map<DeviceId, DeviceInfo> devInfo) {
         this.devInfo = devInfo;
     }
 
@@ -116,7 +116,7 @@ public class VpnInstance<T extends VpnConfig> {
      * @param id   device id
      * @param info device info
      */
-    void devInfo(DeviceId id, DeviceInfo info) {
+    public void addDevInfo(DeviceId id, DeviceInfo info) {
         if (devInfo == null) {
             devInfo = new LinkedHashMap<>();
         }
@@ -128,7 +128,7 @@ public class VpnInstance<T extends VpnConfig> {
      *
      * @return VPN name
      */
-    String vpnName() {
+    public String vpnName() {
         return vpnName;
     }
 }

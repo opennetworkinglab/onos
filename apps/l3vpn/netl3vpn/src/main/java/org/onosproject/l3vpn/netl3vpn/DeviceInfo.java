@@ -63,7 +63,7 @@ public class DeviceInfo {
      *
      * @return device id
      */
-    DeviceId deviceId() {
+    public DeviceId deviceId() {
         return deviceId;
     }
 
@@ -72,7 +72,7 @@ public class DeviceInfo {
      *
      * @param ifName interface name
      */
-    void addIfName(String ifName) {
+    public void addIfName(String ifName) {
         if (ifNames == null) {
             ifNames = new LinkedList<>();
         }
@@ -84,7 +84,7 @@ public class DeviceInfo {
      *
      * @return interface names
      */
-    List<String> ifNames() {
+    public List<String> ifNames() {
         return ifNames;
     }
 
@@ -93,7 +93,7 @@ public class DeviceInfo {
      *
      * @param ifNames interface names
      */
-    void ifNames(List<String> ifNames) {
+    public void ifNames(List<String> ifNames) {
         this.ifNames = ifNames;
     }
 
@@ -102,7 +102,7 @@ public class DeviceInfo {
      *
      * @return BGP info
      */
-    BgpInfo bgpInfo() {
+    public BgpInfo bgpInfo() {
         return bgpInfo;
     }
 
@@ -111,7 +111,7 @@ public class DeviceInfo {
      *
      * @param bgpInfo BGP info
      */
-    void bgpInfo(BgpInfo bgpInfo) {
+    public void bgpInfo(BgpInfo bgpInfo) {
         this.bgpInfo = bgpInfo;
     }
 
@@ -120,7 +120,7 @@ public class DeviceInfo {
      *
      * @return network accesses
      */
-    List<AccessInfo> accesses() {
+    public List<AccessInfo> accesses() {
         return accesses;
     }
 
@@ -129,7 +129,7 @@ public class DeviceInfo {
      *
      * @param accesses network accesses
      */
-    void accesses(List<AccessInfo> accesses) {
+    public void accesses(List<AccessInfo> accesses) {
         this.accesses = accesses;
     }
 
@@ -138,7 +138,7 @@ public class DeviceInfo {
      *
      * @param accessInfo access info
      */
-    void addAccessInfo(AccessInfo accessInfo) {
+    public void addAccessInfo(AccessInfo accessInfo) {
         if (accesses == null) {
             accesses = new LinkedList<>();
         }
@@ -154,8 +154,8 @@ public class DeviceInfo {
      * @param modelData std device model object data
      * @return driver instance model object data
      */
-    ModelObjectData processCreateInstance(DriverService driverSvc,
-                                          ModelObjectData modelData) {
+    public ModelObjectData processCreateInstance(DriverService driverSvc,
+                                                 ModelObjectData modelData) {
         // TODO: Need to call the behaviour.
         return null;
     }
@@ -169,8 +169,8 @@ public class DeviceInfo {
      * @param modData   std device model object data
      * @return driver interface model object data
      */
-    ModelObjectData processCreateInterface(DriverService driverSvc,
-                                           ModelObjectData modData) {
+    public ModelObjectData processCreateInterface(DriverService driverSvc,
+                                                  ModelObjectData modData) {
         // TODO: Need to call the behaviour.
         return null;
     }
@@ -185,9 +185,9 @@ public class DeviceInfo {
      * @param driverInfo driver config details
      * @return driver BGP model object data
      */
-    ModelObjectData processCreateBgpInfo(DriverService driverSvc,
-                                         BgpInfo bgpInfo,
-                                         BgpDriverInfo driverInfo) {
+    public ModelObjectData processCreateBgpInfo(DriverService driverSvc,
+                                                BgpInfo bgpInfo,
+                                                BgpDriverInfo driverInfo) {
         // TODO: Need to call the behaviour.
         return null;
     }
@@ -201,7 +201,7 @@ public class DeviceInfo {
      * @param modData   model object data
      * @return driver instance model object data
      */
-    ModelObjectData processDeleteInstance(DriverService driverSvc,
+    public ModelObjectData processDeleteInstance(DriverService driverSvc,
                                           ModelObjectData modData) {
         // TODO: Need to call the behaviour.
         return null;
@@ -216,7 +216,7 @@ public class DeviceInfo {
      * @param objectData model object data
      * @return driver interface model object data
      */
-    ModelObjectData processDeleteInterface(DriverService driverSvc,
+    public ModelObjectData processDeleteInterface(DriverService driverSvc,
                                            ModelObjectData objectData) {
         // TODO: Need to call the behaviour.
         return null;
@@ -232,7 +232,7 @@ public class DeviceInfo {
      * @param driverInfo driver config details
      * @return driver BGP model object data
      */
-    ModelObjectData processDeleteBgpInfo(DriverService driverSvc,
+    public ModelObjectData processDeleteBgpInfo(DriverService driverSvc,
                                          BgpInfo bgpInfo,
                                          BgpDriverInfo driverInfo) {
         // TODO: Need to call the behaviour.

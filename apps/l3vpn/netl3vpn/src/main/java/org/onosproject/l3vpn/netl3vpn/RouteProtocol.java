@@ -75,7 +75,7 @@ public enum RouteProtocol {
      * @param name protocol name
      * @return route protocol
      */
-    static RouteProtocol getProType(String name) {
+    public static RouteProtocol getProType(String name) {
         for (RouteProtocol protocol : values()) {
             if (protocol.proType.equals(name.toLowerCase())) {
                 return protocol;

@@ -55,7 +55,7 @@ public class InterfaceInfo {
      *
      * @return device info
      */
-    DeviceInfo devInfo() {
+    public DeviceInfo devInfo() {
         return devInfo;
     }
 
@@ -64,7 +64,7 @@ public class InterfaceInfo {
      *
      * @return interface name
      */
-    String intName() {
+    public String intName() {
         return intName;
     }
 
@@ -73,7 +73,7 @@ public class InterfaceInfo {
      *
      * @return VPN name
      */
-    String vpnName() {
+    public String vpnName() {
         return vpnName;
     }
 }
