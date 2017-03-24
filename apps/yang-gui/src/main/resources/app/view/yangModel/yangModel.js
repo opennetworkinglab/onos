@@ -26,7 +26,10 @@
 
     // constants
     var topPdg = 28,
-        pWidth = 800;
+        ctnrPdg = 24,
+        pWidth = 800,
+        scrollSize = 17,
+        tblPdg = 50;
 
     // internal state
     var detailsPanel,
@@ -35,13 +38,26 @@
         pHeight,
         wSize,
         top,
+        topTable,
+        bottom,
         iconDiv;
 
     // constants
     var pName = 'yang-model-details-panel',
         detailsReq = 'yangModelDetailsRequest',
-        detailsResp = 'yangModelDetailsResponse';
+        detailsResp = 'yangModelDetailsResponse',
 
+        propOrder = [
+        ],
+        friendlyProps = [
+        ],
+
+        moduleCols = [
+            'name', 'revision'
+        ],
+        friendlyModuleCols = [
+            'Module Name', 'Revision'
+        ];
 
 
     function createDetailsPanel() {
@@ -55,11 +71,13 @@
     }
 
     function populateDetails(details) {
-        var topData;
-
         setUpPanel();
-        topData = top.select('.top-data');
-        populateTop(topData, details);
+
+        populateTop(details);
+        populateBottom(details.modules);
+
+        // topData = top.select('.top-data');
+        // populateTop(topData, details);
         detailsPanel.height(pHeight);
     }
 
@@ -74,16 +92,73 @@
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
+        topTable = top.append('div').classed('top-content', true)
+            .append('table');
+        top.append('hr');
 
-        dataDiv = top.append('div').classed('top-data', true);
-        dataDiv.append('p').text('fill out properties here');
+        bottom = container.append('div').classed('bottom', true);
+        bottom.append('h2').classed('modules-title', true).html('Modules');
+        bottom.append('table');
     }
 
-    function populateTop(dataDiv, details) {
-        top.select('h2').html('ID:' + details.id);
-        // TODO: format data from 'details' into the dataDiv
-        dataDiv.append('p').html('type: ' + details.type);
+    function addProp(tbody, index, value) {
+        var tr = tbody.append('tr');
 
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
+        }
+        addCell('label', friendlyProps[index] + ' :');
+        addCell('value', value);
+    }
+
+    function populateTop(details) {
+        is.loadEmbeddedIcon(iconDiv, 'nav_yang', 40);
+        top.select('h2').html('Model ID ' + details.id);
+
+        var tbody = topTable.append('tbody');
+
+        propOrder.forEach(function (prop, i) {
+            addProp(tbody, i, details[prop]);
+        });
+    }
+
+    function addModuleRow(tbody, module) {
+        var tr = tbody.append('tr');
+        moduleCols.forEach(function (col) {
+            tr.append('td').attr('width', 160)
+                .html('<a href="/v1/yang/modules/' + module.name + '" target="_model">' + module[col] + "</a>");
+        });
+    }
+
+    function populateBottom(modules) {
+        var table = bottom.select('table'),
+            theader = table.append('thead').append('tr'),
+            tbody = table.append('tbody'),
+            tbWidth, tbHeight;
+
+        friendlyModuleCols.forEach(function (col) {
+            theader.append('th').html(col);
+        });
+        modules.forEach(function (module) {
+            addModuleRow(tbody, module);
+        });
+
+        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
+        tbHeight = pHeight
+            - (fs.noPxStyle(detailsPanel.el()
+                .select('.top'), 'height')
+            + fs.noPxStyle(detailsPanel.el()
+                .select('.modules-title'), 'height')
+            + tblPdg);
+
+        table.style({
+            height: tbHeight + 'px',
+            width: tbWidth + 'px',
+            overflow: 'auto',
+            display: 'block'
+        });
+
+        detailsPanel.width(tbWidth + ctnrPdg);
     }
 
     function closePanel() {

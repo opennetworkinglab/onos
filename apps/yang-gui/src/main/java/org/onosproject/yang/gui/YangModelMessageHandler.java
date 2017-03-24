@@ -16,6 +16,7 @@
 
 package org.onosproject.yang.gui;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
@@ -82,7 +83,6 @@ public class YangModelMessageHandler extends UiMessageHandler {
         );
     }
 
-
     // Handler for table requests
     private final class TableDataHandler extends TableRequestHandler {
         private static final String NO_ROWS_MESSAGE = "No YANG Models found";
@@ -126,20 +126,32 @@ public class YangModelMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             String id = string(payload, ID);
-
-            // TODO: retrieve the appropriate model from ymsService and create
-            //       a detail record to send back to the client.
+            YangModel model = getModel(id);
 
             ObjectNode data = objectNode();
-
             data.put(ID, id);
-            data.put(MODULES, "some-type");
-            data.put("todo", "fill out with appropriate date attributes");
+
+            if (model != null) {
+                ArrayNode modules = arrayNode();
+                model.getYangModulesId().forEach(mid -> {
+                    ObjectNode module = objectNode();
+                    module.put("name", mid.moduleName());
+                    module.put("revision", mid.revision());
+                    modules.add(module);
+                });
+                data.set(MODULES, modules);
+            }
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
-
             sendMessage(DETAILS_RESP, rootNode);
         }
+    }
+
+    private YangModel getModel(String id) {
+        int nid = Integer.parseInt(id);
+        return modelRegistry.getModels().stream()
+                .filter(m -> m.getYangModulesId().hashCode() == nid)
+                .findFirst().orElse(null);
     }
 }
