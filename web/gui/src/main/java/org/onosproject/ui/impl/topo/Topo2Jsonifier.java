@@ -210,21 +210,20 @@ public class Topo2Jsonifier {
      *
      * @param layout the layout to transform
      * @param crumbs list of layouts in bread-crumb order
-     * @param rid    current region id
      * @return a JSON representation of the data
      */
-    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs, String rid) {
+    ObjectNode layout(UiTopoLayout layout, List<UiTopoLayout> crumbs) {
         ObjectNode result = objectNode()
                 .put("id", layout.id().toString())
                 .put("parent", nullIsEmpty(layout.parent()))
                 .put("region", nullIsEmpty(layout.regionId()))
                 .put("regionName", UiRegion.safeName(layout.region()));
         addCrumbs(result, crumbs);
-        addBgRef(result, layout, rid);
+        addBgRef(result, layout);
         return result;
     }
 
-    private void addBgRef(ObjectNode result, UiTopoLayout layout, String rid) {
+    private void addBgRef(ObjectNode result, UiTopoLayout layout) {
         String mapId = layout.geomap();
         String sprId = layout.sprites();
 
@@ -235,10 +234,10 @@ public class Topo2Jsonifier {
             result.put("bgType", GRID).put("bgId", sprId);
         }
 
-        attachZoomData(result, layout, rid);
+        attachZoomData(result, layout);
     }
 
-    private void attachZoomData(ObjectNode result, UiTopoLayout layout, String rid) {
+    private void attachZoomData(ObjectNode result, UiTopoLayout layout) {
 
         ObjectNode zoomData = objectNode();
 
@@ -246,6 +245,7 @@ public class Topo2Jsonifier {
         addCfgZoomData(zoomData, layout);
 
         // next, retrieve user-set zoom data, if we have it
+        String rid = layout.regionId().toString();
         ObjectNode userZoom = metaUi.get(contextKey(rid, ZOOM_KEY));
         if (userZoom != null) {
             zoomData.set("usr", userZoom);

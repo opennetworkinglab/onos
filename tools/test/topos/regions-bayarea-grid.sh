@@ -268,7 +268,7 @@ EOF
 
 onos ${host} <<-EOF
 
-layout-add root @bayareaGEO . . 0.4
+layout-add root @bayareaGEO . . 4.5 0.0 0.0
 
 layout-add lC01 +segmentRouting c01 . 0.9 5.2 -4.0
 layout-add lC02 +segmentRouting c02

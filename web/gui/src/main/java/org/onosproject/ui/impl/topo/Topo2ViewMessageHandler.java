@@ -19,7 +19,6 @@ package org.onosproject.ui.impl.topo;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.net.region.Region;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -95,14 +94,9 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
     // ==================================================================
 
-    private String currentRegionId() {
-        Region current = topoSession.currentLayout().region();
-        return current == null ? "(root)" : current.id().toString();
-    }
-
     private ObjectNode mkLayoutMessage(UiTopoLayout currentLayout) {
         List<UiTopoLayout> crumbs = topoSession.breadCrumbs();
-        return t2json.layout(currentLayout, crumbs, currentRegionId());
+        return t2json.layout(currentLayout, crumbs);
     }
 
     private ObjectNode mkRegionMessage(UiTopoLayout currentLayout) {
@@ -115,7 +109,8 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private ObjectNode mkPeersMessage(UiTopoLayout currentLayout) {
         Set<UiNode> peers = topoSession.getPeerNodes(currentLayout);
         ObjectNode peersPayload = objectNode();
-        peersPayload.set("peers", t2json.closedNodes(currentRegionId(), peers));
+        String rid = currentLayout.regionId().toString();
+        peersPayload.set("peers", t2json.closedNodes(rid, peers));
         return peersPayload;
     }
 
@@ -211,7 +206,8 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         public void process(ObjectNode payload) {
             // NOTE: metadata for a node is stored within the context of the
             //       current region.
-            t2json.updateMeta(currentRegionId(), payload);
+            String rid = topoSession.currentLayout().regionId().toString();
+            t2json.updateMeta(rid, payload);
         }
     }
 

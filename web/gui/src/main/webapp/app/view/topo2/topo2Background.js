@@ -70,7 +70,8 @@
                         this.zoomData = data.bgZoom;
 
                         var _this = this,
-                            pan = zoomPan(this.zoomData);
+                            pan = zoomPan(this.zoomData),
+                            scale = zoomScale(this.zoomData);
 
                         if (this.bgType === 'geo') {
 
@@ -78,12 +79,12 @@
                             t2sls.hide();
                             t2ms.show();
 
-                            t2ms.setUpMap(data.bgId, data.bgFilePath, zoomScale(data.bgZoom))
+                            t2ms.setUpMap(data.bgId, data.bgFilePath, scale)
                             .then(function (proj) {
                                 t2mcs.projection(proj);
                                 $log.debug('** We installed the projection:', proj);
                                 _this.region.loaded('bgRendered', true);
-                                t2zs.panAndZoom(pan, zoomScale(_this.zoomData), 1000);
+                                t2zs.panAndZoom(pan, scale, 1000);
                             });
                         } else if (this.bgType === 'grid') {
 
@@ -94,7 +95,7 @@
                             t2sls.loadLayout(data.bgId).then(function (spriteLayout) {
                                 _this.background.layout = spriteLayout;
                                 _this.region.loaded('bgRendered', true);
-                                t2zs.panAndZoom(pan, zoomScale(_this.zoomData), 1000);
+                                t2zs.panAndZoom(pan, scale, 1000);
                             });
                         } else {
                             // No background type - Tell the region the background is ready for placing nodes
@@ -111,7 +112,6 @@
                         t2zs.getZoomer().reset();
                     }
                 });
-
 
                 return instance || new BackgroundView();
             }
