@@ -102,8 +102,9 @@ public class HostMonitor implements TimerTask {
      * @param ip IP address of the host to monitor
      */
     void addMonitoringFor(IpAddress ip) {
-        monitoredAddresses.add(ip);
-        probe(ip);
+        if (monitoredAddresses.add(ip)) {
+            probe(ip);
+        }
     }
 
     /**
@@ -194,14 +195,14 @@ public class HostMonitor implements TimerTask {
             intf.ipAddressesList().stream()
                     .filter(ia -> ia.subnetAddress().contains(targetIp))
                     .forEach(ia -> {
-                        log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                        log.debug("Sending probe for target:{} out of intf:{} vlan:{}",
                                 targetIp, intf.connectPoint(), intf.vlan());
                         sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
                                 intf.mac(), intf.vlan());
                         // account for use-cases where tagged-vlan config is used
                         if (!intf.vlanTagged().isEmpty()) {
                             intf.vlanTagged().forEach(tag -> {
-                                log.info("Sending probe for target:{} out of intf:{} vlan:{}",
+                                log.debug("Sending probe for target:{} out of intf:{} vlan:{}",
                                         targetIp, intf.connectPoint(), tag);
                                 sendProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
                                         intf.mac(), tag);
