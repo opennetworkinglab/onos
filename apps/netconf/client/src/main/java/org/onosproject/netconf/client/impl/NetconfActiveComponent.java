@@ -40,6 +40,8 @@ import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.DefaultResourceData;
+import org.onlab.util.AbstractAccumulator;
+import org.onlab.util.Accumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +51,7 @@ import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -60,7 +63,6 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     private static final Logger log = LoggerFactory.getLogger(NetconfActiveComponent.class);
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigService cfgService;
-    public static final String DEVNMSPACE = "ne-l3vpn-api";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfTranslator netconfTranslator;
@@ -71,9 +73,16 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller;
 
-    public static final String DEVICES = "devices";
-    public static final String DEVICE = "device";
-    public static final String DEVICE_ID = "deviceid";
+    private final Accumulator<DynamicConfigEvent> accumulator = new InternalEventAccummulator();
+    private static final String DEVNMSPACE = "ne-l3vpn-api";
+    private static final String DEVICES = "devices";
+    private static final String DEVICE = "device";
+    private static final String DEVICE_ID = "deviceid";
+
+    //Symbolic constants for use with the accumulator
+    private static final int MAX_EVENTS = 1000;
+    private static final int MAX_BATCH_MS = 5000;
+    private static final int MAX_IDLE_MS = 1000;
 
     private ResourceId resId = new ResourceId.Builder()
             .addBranchPointSchema(DEVICES, DEVNMSPACE)
@@ -129,30 +138,10 @@ public class NetconfActiveComponent implements DynamicConfigListener {
         return mastershipService.isLocalMaster(deviceId);
     }
 
+
     @Override
     public void event(DynamicConfigEvent event) {
-        Filter filt = new Filter();
-        DataNode node = cfgService.readNode(event.subject(), filt);
-        DeviceId deviceId = getDeviceId(node);
-        if (!isMaster(deviceId)) {
-            log.info("NetConfListener: not master, ignoring config for {}", event.type());
-            return;
-        }
-        initiateConnection(deviceId);
-        switch (event.type()) {
-            case NODE_ADDED:
-            case NODE_UPDATED:
-            case NODE_REPLACED:
-                configUpdate(node, deviceId, event.subject());
-                break;
-            case NODE_DELETED:
-                configDelete(node, deviceId, event.subject());
-                break;
-            case UNKNOWN_OPRN:
-            default:
-                log.warn("NetConfListener: unknown event: {}", event.type());
-                break;
-        }
+        accumulator.add(event);
     }
 
     /**
@@ -262,7 +251,46 @@ public class NetconfActiveComponent implements DynamicConfigListener {
                 //}
             } catch (Exception ex) {
                 throw new RuntimeException(new NetconfException("Unable to connect to NETCONF device on " +
-                                                                        deviceId, ex));
+                        deviceId, ex));
+            }
+        }
+    }
+
+    /* Accumulates events to allow processing after a desired number of events were accumulated.
+    */
+    private class InternalEventAccummulator extends AbstractAccumulator<DynamicConfigEvent> {
+        protected InternalEventAccummulator() {
+            super(new Timer("dyncfgevt-timer"), MAX_EVENTS, MAX_BATCH_MS, MAX_IDLE_MS);
+        }
+        @Override
+        public void processItems(List<DynamicConfigEvent> events) {
+            DynamicConfigEvent event = null;
+            for (DynamicConfigEvent e : events) {
+                //checkIfRelevant already filters only the relevant events
+                event = e;
+                checkNotNull(event, "process:Event cannot be null");
+                Filter filt = new Filter();
+                DataNode node = cfgService.readNode(event.subject(), filt);
+                DeviceId deviceId = getDeviceId(node);
+                if (!isMaster(deviceId)) {
+                    log.info("NetConfListener: not master, ignoring config for {}", event.type());
+                    return;
+                }
+                initiateConnection(deviceId);
+                switch (event.type()) {
+                    case NODE_ADDED:
+                    case NODE_UPDATED:
+                    case NODE_REPLACED:
+                        configUpdate(node, deviceId, event.subject());
+                        break;
+                    case NODE_DELETED:
+                        configDelete(node, deviceId, event.subject());
+                        break;
+                    case UNKNOWN_OPRN:
+                    default:
+                        log.warn("NetConfListener: unknown event: {}", event.type());
+                        break;
+                }
             }
         }
     }
