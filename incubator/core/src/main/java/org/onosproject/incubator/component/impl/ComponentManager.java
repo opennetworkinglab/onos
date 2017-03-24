@@ -16,7 +16,6 @@
 
 package org.onosproject.incubator.component.impl;
 
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.ScrService;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -29,6 +28,7 @@ import org.onosproject.incubator.component.ComponentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -59,7 +59,7 @@ public class ComponentManager implements ComponentService {
 
     @Activate
     private void activate() {
-        components = Sets.newSetFromMap(new ConcurrentHashMap<>());
+        components = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
         executor = Executors.newScheduledThreadPool(NUM_THREADS,
                 groupedThreads("onos/component", "%d", log));
