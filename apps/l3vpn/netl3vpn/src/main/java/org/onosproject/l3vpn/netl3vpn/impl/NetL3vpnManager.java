@@ -276,7 +276,7 @@ public class NetL3vpnManager {
      */
     private ResourceId getResourceVal(ModelObjectId modelId) {
         DefaultModelObjectData.Builder data = DefaultModelObjectData.builder()
-                .identifer(modelId);
+                .identifier(modelId);
         ResourceData resData = modelConverter.createDataNode(data.build());
         return resData.resourceId();
     }

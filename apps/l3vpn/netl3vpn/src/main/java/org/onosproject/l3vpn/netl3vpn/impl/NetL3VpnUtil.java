@@ -251,7 +251,7 @@ public final class NetL3VpnUtil {
                 .addChild(DefaultDevices.class)
                 .addChild(DefaultDevice.class, devKeys)
                 .build();
-        return DefaultModelObjectData.builder().identifer(modelId)
+        return DefaultModelObjectData.builder().identifier(modelId)
                 .addModelObject((InnerModelObject) ins).build();
     }
 
@@ -270,7 +270,7 @@ public final class NetL3VpnUtil {
         Device device = new DefaultDevice();
         device.deviceid(id);
         device.networkInstances(ins);
-        return DefaultModelObjectData.builder().identifer(modelId)
+        return DefaultModelObjectData.builder().identifier(modelId)
                 .addModelObject((InnerModelObject) device).build();
     }
 
@@ -320,7 +320,7 @@ public final class NetL3VpnUtil {
                                   .ietfinterfaces.devices.DefaultDevice.class,
                           keys)
                 .build();
-        return DefaultModelObjectData.builder().identifer(modelId)
+        return DefaultModelObjectData.builder().identifier(modelId)
                 .addModelObject((InnerModelObject) ifs).build();
     }
 
