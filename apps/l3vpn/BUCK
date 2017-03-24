@@ -3,8 +3,8 @@ APPS = [
 ]
 
 BUNDLES = [
-  '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
   '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
+  '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
 ]
 
 onos_app(
