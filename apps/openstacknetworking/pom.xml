@@ -51,7 +51,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -84,17 +83,14 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -145,10 +141,6 @@
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
             <version>2.25</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.pacesys</groupId>
