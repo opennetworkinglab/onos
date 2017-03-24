@@ -25,21 +25,21 @@
 
     var instance;
 
-    function getZoom(z) {
+    function getZoom(z, useCfg) {
         var u = z.usr,
             c = z.cfg;
-        return (u && !u.useCfg) ? u : c;
+        return (u && !u.useCfg && !useCfg) ? u : c;
     }
 
     // returns the pan (offset) values as an array [x, y]
-    function zoomPan(z) {
-        var zoom = getZoom(z);
+    function zoomPan(z, useCfg) {
+        var zoom = getZoom(z, useCfg);
         return [zoom.offsetX, zoom.offsetY];
     }
 
     // returns the scale value
-    function zoomScale(z) {
-        var zoom = getZoom(z);
+    function zoomScale(z, useCfg) {
+        var zoom = getZoom(z, useCfg);
         return zoom.scale;
     }
 
@@ -109,7 +109,8 @@
                         return this.bgType;
                     },
                     resetZoom: function () {
-                        t2zs.getZoomer().reset();
+                        var pan = zoomPan(this.zoomData, true);
+                        t2zs.panAndZoom(pan, zoomScale(this.zoomData, true), 1000);
                     }
                 });
 
