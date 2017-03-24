@@ -16,42 +16,46 @@
 
 package org.onosproject.netconf.client.impl;
 
+import com.google.common.annotations.Beta;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-
-import org.onosproject.yang.model.ResourceData;
+import org.onosproject.netconf.client.NetconfTranslator;
+import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.KeyLeaf;
-import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.LeafListKey;
+import org.onosproject.yang.model.LeafNode;
+import org.onosproject.yang.model.ListKey;
+import org.onosproject.yang.model.NodeKey;
+import org.onosproject.yang.model.ResourceData;
+import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaContext;
 import org.onosproject.yang.model.SchemaContextProvider;
 import org.onosproject.yang.model.SchemaId;
-import org.onosproject.yang.model.DataNode;
-import org.onosproject.yang.model.NodeKey;
-import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.InnerNode;
-import org.onosproject.yang.model.LeafNode;
-
-import org.onosproject.yang.runtime.DefaultCompositeData;
-import org.onosproject.yang.runtime.DefaultRuntimeContext;
-import org.onosproject.yang.runtime.YangRuntimeService;
-import org.onosproject.yang.runtime.DefaultCompositeStream;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultAnnotatedNodeInfo;
 import org.onosproject.yang.runtime.DefaultAnnotation;
+import org.onosproject.yang.runtime.DefaultCompositeData;
+import org.onosproject.yang.runtime.DefaultCompositeStream;
 import org.onosproject.yang.runtime.DefaultResourceData;
-import org.onosproject.yang.runtime.YangSerializerContext;
+import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.DefaultYangSerializerContext;
-/*FIXME these imports are not visible using OSGI*/
+import org.onosproject.yang.runtime.YangRuntimeService;
+import org.onosproject.yang.runtime.YangSerializerContext;
 import org.onosproject.yang.runtime.helperutils.SerializerHelper;
-
-import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
-import static org.onosproject.yang.runtime.helperutils.SerializerHelper.addDataNode;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -59,32 +63,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.List;
-import java.util.Iterator;
-
-import com.google.common.annotations.Beta;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-
-import org.osgi.service.component.ComponentContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
+import static org.onosproject.yang.runtime.helperutils.SerializerHelper.addDataNode;
+
+/*FIXME these imports are not visible using OSGI*/
+
+/*FIXME these imports are not visible using OSGI*/
 
 /*TODO once the API's are finalized this comment will be made more specified.*/
+
 /**
  * Translator which accepts data types defined for the DynamicConfigService and
  * makes the appropriate calls to NETCONF devices before encoding and returning
  * responses in formats suitable for the DynamicConfigService.
- *
+ * <p>
  * NOTE: This entity does not ensure you are the master of a device you attempt
  * to contact. If you are not the master an error will be thrown because there
  * will be no session available.
@@ -114,7 +112,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
 
     private static final String GET_URI = "urn:ietf:params:xml:ns:yang:" +
             "yrt-ietf-network:networks/network/node";
-    private static final String XML_ENCODING_SPECIFIER = "XML";
+    private static final String XML_ENCODING_SPECIFIER = "xml";
     private static final String OP_SPECIFIER = "xc:operation";
     private static final String REPLACE_OP_SPECIFIER = "replace";
     private static final String DELETE_OP_SPECIFIER = "delete";
@@ -167,40 +165,46 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         SchemaContext context = schemaContextProvider
                 .getSchemaContext(ResourceId.builder().addBranchPointSchema("/", null).build());
         ResourceData modifiedPathResourceData = getResourceData(resourceData.resourceId(),
-                                                  resourceData.dataNodes(),
-                                                       new DefaultYangSerializerContext(context, null));
+                                                                resourceData.dataNodes(),
+                                                                new DefaultYangSerializerContext(context, null));
         DefaultCompositeData.Builder compositeDataBuilder = DefaultCompositeData
                 .builder()
                 .resourceData(modifiedPathResourceData);
         for (DataNode node : resourceData.dataNodes()) {
             ResourceId resourceId = resourceData.resourceId();
             if (operationType != OperationType.DELETE) {
-                resourceId = getAnnotatedNodeResourceId(resourceData.resourceId(), node);
+                resourceId = getAnnotatedNodeResourceId(
+                        resourceData.resourceId(), node);
             }
             if (resourceId != null) {
-                DefaultAnnotatedNodeInfo.Builder annotatedNodeInfo = DefaultAnnotatedNodeInfo.builder();
+                DefaultAnnotatedNodeInfo.Builder annotatedNodeInfo =
+                        DefaultAnnotatedNodeInfo.builder();
                 annotatedNodeInfo.resourceId(resourceId);
-                annotatedNodeInfo.addAnnotation(new DefaultAnnotation(OP_SPECIFIER,
-                                                                      operationType == OperationType.DELETE ?
-                                                                          DELETE_OP_SPECIFIER : REPLACE_OP_SPECIFIER));
+                annotatedNodeInfo.addAnnotation(
+                        new DefaultAnnotation(
+                                OP_SPECIFIER, operationType == OperationType.DELETE ?
+                                DELETE_OP_SPECIFIER : REPLACE_OP_SPECIFIER));
                 compositeDataBuilder.addAnnotatedNodeInfo(annotatedNodeInfo.build());
             }
         }
-        CompositeStream config = yangRuntimeService.encode(compositeDataBuilder.build(),
-                                                           new DefaultRuntimeContext.Builder()
-                                                                   .setDataFormat(XML_ENCODING_SPECIFIER)
-                                                                   .addAnnotation(
-                                                                           new DefaultAnnotation(
-                                                                                   XMLNS_XC_SPECIFIER,
-                                                                                   NETCONF_1_0_BASE_NAMESPACE))
-                                                                   .build());
+        CompositeStream config = yangRuntimeService.encode(
+                compositeDataBuilder.build(),
+                new DefaultRuntimeContext.Builder()
+                        .setDataFormat(XML_ENCODING_SPECIFIER)
+                        .addAnnotation(new DefaultAnnotation(
+                                XMLNS_XC_SPECIFIER, NETCONF_1_0_BASE_NAMESPACE))
+                        .build());
         /* FIXME need to fix to string conversion. */
-        if (session.editConfig(streamToString(config.resourceData()))) {
-           /* NOTE: a failure to edit is reflected as a NetconfException.*/
-            return true;
+
+        try {
+            String reply = session.requestSync(Utils.editConfig(streamToString(
+                    config.resourceData())));
+        } catch (NetconfException e) {
+            log.error("failed to send a request sync", e);
+            return false;
         }
-        log.warn("Editing of the netconf device: {} failed.", deviceId);
-        return false;
+            /* NOTE: a failure to edit is reflected as a NetconfException.*/
+        return true;
     }
 
     @Override
@@ -210,23 +214,25 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         String reply = session.get(null, null);
         Matcher protocolStripper = GET_CORE_MESSAGE_PATTERN.matcher(reply);
         reply = protocolStripper.group(GET_CORE_MESSAGE_GROUP);
-        return yangRuntimeService.decode(new DefaultCompositeStream(
-                null,
+        return yangRuntimeService.decode(
+                new DefaultCompositeStream(
+                        null,
                 /*FIXME is UTF_8 the appropriate encoding? */
-                new ByteArrayInputStream(reply.toString().getBytes(StandardCharsets.UTF_8))),
-                                         new DefaultRuntimeContext.Builder()
-                                                 .setDataFormat(XML_ENCODING_SPECIFIER)
-                                                 .addAnnotation(
-                                                         new DefaultAnnotation(
-                                                                 XMLNS_SPECIFIER,
-                                                                 NETCONF_1_0_BASE_NAMESPACE))
-                                                 .build()).resourceData();
+                        new ByteArrayInputStream(reply.getBytes(StandardCharsets.UTF_8))),
+                new DefaultRuntimeContext.Builder()
+                        .setDataFormat(XML_ENCODING_SPECIFIER)
+                        .addAnnotation(
+                                new DefaultAnnotation(
+                                        XMLNS_SPECIFIER,
+                                        NETCONF_1_0_BASE_NAMESPACE))
+                        .build()).resourceData();
         /* NOTE: a failure to get is reflected as a NetconfException.*/
     }
 
     /**
      * Returns a session for the specified deviceId if this node is its master,
      * returns null otherwise.
+     *
      * @param deviceId the id of node for witch we wish to retrieve a session
      * @return a NetconfSession with the specified node or null
      */
@@ -261,7 +267,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
      * Returns resource data having resource id as "/" and data node tree
      * starting from "/" by creating data nodes for given resource id(parent
      * node for given list of nodes) and list of child nodes.
-     *
+     * <p>
      * This api will be used in encode flow only.
      *
      * @param rid   resource identifier till parent node
@@ -271,14 +277,18 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
      */
     public static ResourceData getResourceData(
             ResourceId rid, List<DataNode> nodes, YangSerializerContext cont) {
+        if (rid == null) {
+            ResourceData.Builder resData = DefaultResourceData.builder();
+            for (DataNode node : nodes) {
+                resData.addDataNode(node);
+            }
+            return resData.build();
+        }
         List<NodeKey> keys = rid.nodeKeys();
         Iterator<NodeKey> it = keys.iterator();
         DataNode.Builder dbr = SerializerHelper.initializeDataNode(cont);
 
         // checking the resource id weather it is getting started from / or not
-        if (it.next().schemaId().name() != "/") {
-            //exception
-        }
 
         while (it.hasNext()) {
             NodeKey nodekey = it.next();
@@ -322,15 +332,16 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         resData.resourceId(null);
         return resData.build();
     }
+
     /**
      * Returns resource id for annotated data node by adding resource id of top
      * level data node to given resource id.
-     *
+     * <p>
      * Annotation will be added to node based on the updated resource id.
      * This api will be used in encode flow only.
      *
-     * @param rid   resource identifier till parent node
-     * @param node  data node
+     * @param rid  resource identifier till parent node
+     * @param node data node
      * @return updated resource id.
      */
     public static ResourceId getAnnotatedNodeResourceId(ResourceId rid,
@@ -338,10 +349,14 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
 
         String val;
         ResourceId.Builder rIdBldr = ResourceId.builder();
-        try {
-            rIdBldr = rid.copyBuilder();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+        if (rid != null) {
+            try {
+                rIdBldr = rid.copyBuilder();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            rIdBldr.addBranchPointSchema("/", null);
         }
         DataNode.Type type = node.type();
         NodeKey k = node.key();

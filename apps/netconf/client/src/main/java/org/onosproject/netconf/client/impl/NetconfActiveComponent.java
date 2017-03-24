@@ -33,8 +33,11 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.client.NetconfTranslator.OperationType;
 import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.InnerNode;
+import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafNode;
 import org.onosproject.yang.model.ListKey;
+import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.DefaultResourceData;
 import org.slf4j.Logger;
@@ -43,6 +46,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 @Beta
@@ -63,10 +71,14 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller;
 
+    public static final String DEVICES = "devices";
+    public static final String DEVICE = "device";
+    public static final String DEVICE_ID = "deviceid";
+
     private ResourceId resId = new ResourceId.Builder()
-            .addBranchPointSchema("device", DEVNMSPACE)
-            .addBranchPointSchema("device", DEVNMSPACE)
-            .addKeyLeaf("deviceid", DEVNMSPACE, "netconf:172.16.5.11:22")
+            .addBranchPointSchema(DEVICES, DEVNMSPACE)
+            .addBranchPointSchema(DEVICE, DEVNMSPACE)
+            .addKeyLeaf(DEVICE_ID, DEVNMSPACE, "netconf:172.16.5.11:22")
             .build();
 
     @Activate
@@ -83,7 +95,34 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     @Override
     public boolean isRelevant(DynamicConfigEvent event) {
-        return event.subject().equals(resId);
+        return checkIfRelevant(event.subject());
+    }
+
+    /**
+     * Checks if this event is relevant for active component.
+     *
+     * @param id resource id
+     * @return true if relevant
+     */
+    private boolean checkIfRelevant(ResourceId id) {
+        checkNotNull(id, "resource id can't be null");
+        List<NodeKey> nodeKeys = id.nodeKeys();
+        if (nodeKeys != null && !nodeKeys.isEmpty() && nodeKeys.size() == 2) {
+            NodeKey key = nodeKeys.get(0);
+            if (key.schemaId().name().equals(DEVICES)) {
+                key = nodeKeys.get(1);
+                if (key.schemaId().name().equals(DEVICE)) {
+                    ListKey listKey = (ListKey) key;
+                    List<KeyLeaf> keyLeaves = listKey.keyLeafs();
+                    if (keyLeaves != null && !keyLeaves.isEmpty()) {
+                        return keyLeaves.get(0).leafSchema().name()
+                                .equals(DEVICE_ID);
+                    }
+                }
+            }
+        }
+        log.debug("not a relevant event for netconf active component");
+        return false;
     }
 
     public boolean isMaster(DeviceId deviceId) {
@@ -154,14 +193,21 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     private boolean parseAndEdit(DataNode node, DeviceId deviceId,
                                  ResourceId resourceId,
                                  NetconfTranslator.OperationType operationType) {
+
+        //add all low level nodes of devices
+        Iterator<Map.Entry<NodeKey, DataNode>> it = ((InnerNode) node)
+                .childNodes().entrySet().iterator();
+        DefaultResourceData.Builder builder = DefaultResourceData.builder();
+        while (it.hasNext()) {
+            DataNode n = it.next().getValue();
+            if (!n.key().schemaId().name().equals("deviceid")) {
+                builder.addDataNode(n);
+            }
+        }
+        //add resouce id //TODO: check if it is correct
         try {
             return netconfTranslator.editDeviceConfig(
-                    deviceId,
-                    DefaultResourceData.builder()
-                            .addDataNode(node)
-                            .resourceId(resourceId)
-                            .build(),
-                    operationType);
+                    deviceId, builder.build(), operationType);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
