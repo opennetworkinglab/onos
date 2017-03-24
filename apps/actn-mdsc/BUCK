@@ -7,7 +7,7 @@ BUNDLES = [
 
 onos_app (
     title = 'ACTN MDSC',
-    category = 'ACTN APP',
+    category = 'Traffic Steering',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'ACTN MDSC APP.',

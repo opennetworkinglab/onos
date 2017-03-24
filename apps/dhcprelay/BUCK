@@ -10,7 +10,7 @@ osgi_jar (
 onos_app (
     app_name = 'org.onosproject.dhcprelay',
     title = 'DHCP Relay Agent App',
-    category = 'default',
+    category = 'Utility',
     url = 'http://onosproject.org',
     description = 'DHCP Relay Agent Application.',
 )
