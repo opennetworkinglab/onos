@@ -570,6 +570,7 @@ public class DeviceManager
             Device device = getDevice(deviceId);
             if (device == null) {
                 log.trace("Device not found: {}", deviceId);
+                return;
             }
             if ((Device.Type.ROADM.equals(device.type())) ||
                 (Device.Type.OTN.equals(device.type()))) {
