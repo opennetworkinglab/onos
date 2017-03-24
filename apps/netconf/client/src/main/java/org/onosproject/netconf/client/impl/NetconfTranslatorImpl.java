@@ -28,18 +28,18 @@ import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.LeafListKey;
+import org.onosproject.yang.model.SchemaContext;
+import org.onosproject.yang.model.SchemaContextProvider;
 import org.onosproject.yang.model.SchemaId;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.LeafNode;
-import org.onosproject.yang.model.SchemaContext;
 
 import org.onosproject.yang.runtime.DefaultCompositeData;
 import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.YangRuntimeService;
-import org.onosproject.yang.runtime.YangModelRegistry;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultAnnotatedNodeInfo;
@@ -128,7 +128,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
     protected YangRuntimeService yangRuntimeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected YangModelRegistry yangModelRegistry;
+    protected SchemaContextProvider schemaContextProvider;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -164,10 +164,11 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
     public boolean editDeviceConfig(DeviceId deviceId, ResourceData resourceData,
                                     NetconfTranslator.OperationType operationType) throws IOException {
         NetconfSession session = getNetconfSession(deviceId);
+        SchemaContext context = schemaContextProvider
+                .getSchemaContext(ResourceId.builder().addBranchPointSchema("/", null).build());
         ResourceData modifiedPathResourceData = getResourceData(resourceData.resourceId(),
                                                   resourceData.dataNodes(),
-                                                       new DefaultYangSerializerContext(
-                                                               (SchemaContext) yangModelRegistry, null));
+                                                       new DefaultYangSerializerContext(context, null));
         DefaultCompositeData.Builder compositeDataBuilder = DefaultCompositeData
                 .builder()
                 .resourceData(modifiedPathResourceData);
@@ -310,7 +311,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
                 dbr = ((InnerNode.Builder) dbr).addNode(node);
             }
         }
-/*FIXME this can be uncommented for use with versions of onos-yang-tools newer than 1.12.0-b6 */
+/*FIXME this can be uncommented for use with versions of onos-yang-tools newer than 1.12.0-b6*/
 //        while (dbr.parent() != null) {
 //            dbr = SerializerHelper.exitDataNode(dbr);
 //        }
