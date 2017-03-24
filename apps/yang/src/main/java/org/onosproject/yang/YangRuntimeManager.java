@@ -26,7 +26,11 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.ModelObjectData;
+import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
+import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.model.SchemaContext;
+import org.onosproject.yang.model.SchemaContextProvider;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
@@ -46,6 +50,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Represents implementation of YANG runtime manager.
  */
@@ -53,7 +59,8 @@ import java.util.Set;
 @Service
 @Component(immediate = true)
 public class YangRuntimeManager implements YangModelRegistry,
-        YangSerializerRegistry, YangRuntimeService, ModelConverter {
+        YangSerializerRegistry, YangRuntimeService, ModelConverter,
+        SchemaContextProvider {
 
     private static final String APP_ID = "org.onosproject.yang";
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -70,7 +77,8 @@ public class YangRuntimeManager implements YangModelRegistry,
         coreService.registerApplication(APP_ID);
         serializerRegistry = new DefaultYangSerializerRegistry();
         modelRegistry = new DefaultYangModelRegistry();
-        runtimeService = new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
+        runtimeService =
+                new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
         serializerRegistry.registerSerializer(new JsonSerializer());
         serializerRegistry.registerSerializer(new XmlSerializer());
         log.info("Started");
@@ -131,6 +139,18 @@ public class YangRuntimeManager implements YangModelRegistry,
     @Override
     public ResourceData createDataNode(ModelObjectData modelObjectData) {
         // TODO implementation.
+        return null;
+    }
+
+    @Override
+    public SchemaContext getSchemaContext(ResourceId resourceId) {
+        checkNotNull(resourceId, " resource id can't be null.");
+        NodeKey key = resourceId.nodeKeys().get(0);
+        if (resourceId.nodeKeys().size() == 1 &&
+                key.schemaId().name().equals("/")) {
+            return modelRegistry;
+        }
+        log.info("To be implemented.");
         return null;
     }
 }
