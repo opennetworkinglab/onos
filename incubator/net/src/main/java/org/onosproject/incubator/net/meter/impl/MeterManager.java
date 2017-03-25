@@ -310,6 +310,12 @@ public class MeterManager
                     p.performMeterOperation(deviceId, new MeterOperation(event.subject(),
                                                                          MeterOperation.Type.REMOVE));
                     break;
+                case METER_ADDED:
+                    log.info("Meter added {}", event.subject());
+                    break;
+                case METER_REMOVED:
+                    log.info("Meter removed {}", event.subject());
+                    break;
                 default:
                     log.warn("Unknown meter event {}", event.type());
             }

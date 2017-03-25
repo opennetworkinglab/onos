@@ -285,6 +285,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         MeterKey key = MeterKey.key(m.deviceId(), m.id());
         futures.remove(key);
         meters.remove(key);
+        notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REMOVED, m));
     }
 
     @Override
@@ -317,8 +318,14 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 }
                                 break;
                             case ADDED:
-                                if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_ADD) {
-                                    futures.remove(key).complete(MeterStoreResult.success());
+                                if (local.equals(data.origin()) &&
+                                        (data.meter().state() == MeterState.PENDING_ADD
+                                                || data.meter().state() == MeterState.ADDED)) {
+                                    futures.computeIfPresent(key, (k, v) -> {
+                                        notifyDelegate(
+                                                new MeterEvent(MeterEvent.Type.METER_ADDED, data.meter()));
+                                        return null;
+                                    });
                                 }
                                 break;
                             case REMOVED:

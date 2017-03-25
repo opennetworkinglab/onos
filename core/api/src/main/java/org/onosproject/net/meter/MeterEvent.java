@@ -32,7 +32,17 @@ public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
         /**
          * A meter removal was requested.
          */
-        METER_REM_REQ
+        METER_REM_REQ,
+
+        /**
+         * A meter was finally added to device.
+         */
+        METER_ADDED,
+
+        /**
+         * A meter was finally removed from device.
+         */
+        METER_REMOVED
     }
 
 
