@@ -1073,11 +1073,14 @@ public class Ofdpa2GroupHandler {
             }
         });
 
-        if (!duplicateBuckets.isEmpty()) {
-            log.debug("Some buckets {} already exists in next id {}, duplicate buckets will be ignored.",
-                     duplicateBuckets, nextObjective.id());
-
-            // new next objective with new treatments
+        if (duplicateBuckets.isEmpty()) {
+            // use the original objective
+            objectiveToAdd = nextObjective;
+        } else if (!nonDuplicateBuckets.isEmpty()) {
+            // only use the non-duplicate buckets if there are any
+            log.debug("Some buckets {} already exist in next id {}, duplicate "
+                    + "buckets will be ignored.", duplicateBuckets, nextObjective.id());
+            // new next objective with non duplicate treatments
             NextObjective.Builder builder = DefaultNextObjective.builder()
                     .withType(nextObjective.type())
                     .withId(nextObjective.id())
@@ -1088,7 +1091,8 @@ public class Ofdpa2GroupHandler {
             ObjectiveContext context = nextObjective.context().orElse(null);
             objectiveToAdd = builder.addToExisting(context);
         } else {
-            objectiveToAdd = nextObjective;
+            // buckets to add are already there - nothing to do
+            return;
         }
 
         if (nextObjective.type() == NextObjective.Type.HASHED) {

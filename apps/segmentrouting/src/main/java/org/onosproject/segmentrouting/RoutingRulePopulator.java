@@ -591,7 +591,7 @@ public class RoutingRulePopulator {
         } else if (!isBos && !this.srManager.getMplsEcmp()) {
             ns = NeighborSet.neighborSet(true, nextHops, true);
         }
-        log.info("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
+        log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
                   deviceId, ns);
         // If BoS == True, all forwarding is via L3 ECMP group.
         // If Bos == False, the forwarding can be via MPLS-ECMP group or through
