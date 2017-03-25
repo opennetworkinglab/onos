@@ -79,7 +79,7 @@
                             t2sls.hide();
                             t2ms.show();
 
-                            t2ms.setUpMap(data.bgId, data.bgFilePath, scale)
+                            t2ms.setUpMap(data.bgId, data.bgFilePath)
                             .then(function (proj) {
                                 t2mcs.projection(proj);
                                 $log.debug('** We installed the projection:', proj);

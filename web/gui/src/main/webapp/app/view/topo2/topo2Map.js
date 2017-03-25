@@ -52,7 +52,7 @@
 
         promise = loadMap(this.node(), mapFilePath, mapId, {
             countryFilters: cfilter,
-            adjustScale: mapScale,
+            adjustScale: mapScale || 1,
             shading: ''
         });
 

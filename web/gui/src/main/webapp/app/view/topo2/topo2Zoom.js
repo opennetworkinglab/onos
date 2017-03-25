@@ -72,8 +72,8 @@
         return zoomer.scale();
     }
 
-    function panAndZoom(translate, scale) {
-        zoomer.panZoom(translate, scale, 1000);
+    function panAndZoom(translate, scale, transition) {
+        zoomer.panZoom(translate, scale, transition);
     }
 
     angular.module('ovTopo2')
