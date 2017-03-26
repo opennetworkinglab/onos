@@ -18,6 +18,7 @@ package org.onosproject.netconf.ctl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.onosproject.netconf.TargetConfig.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +43,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
 import org.onlab.packet.Ip4Address;
+import org.onosproject.netconf.TargetConfig;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -128,7 +130,7 @@ public class NetconfSessionImplTest {
         log.info("Starting edit-config async");
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
-            assertTrue("NETCONF edit-config command failed", session1.editConfig("running", null, SAMPLE_REQUEST));
+            assertTrue("NETCONF edit-config command failed", session1.editConfig(RUNNING, null, SAMPLE_REQUEST));
         } catch (NetconfException e) {
             e.printStackTrace();
             fail("NETCONF edit-config test failed: " + e.getMessage());
@@ -141,7 +143,7 @@ public class NetconfSessionImplTest {
         log.info("Starting copy-config async");
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
-            assertTrue("NETCONF edit-config command failed", session1.copyConfig("running", "candidate"));
+            assertTrue("NETCONF edit-config command failed", session1.copyConfig(RUNNING, "candidate"));
         } catch (NetconfException e) {
             e.printStackTrace();
             fail("NETCONF edit-config test failed: " + e.getMessage());
@@ -155,10 +157,10 @@ public class NetconfSessionImplTest {
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
             assertTrue("NETCONF get-config running command failed. ",
-                    GET_REPLY_PATTERN.matcher(session1.getConfig("running", SAMPLE_REQUEST)).matches());
+                    GET_REPLY_PATTERN.matcher(session1.getConfig(RUNNING, SAMPLE_REQUEST)).matches());
 
             assertTrue("NETCONF get-config candidate command failed. ",
-                    GET_REPLY_PATTERN.matcher(session1.getConfig("candidate", SAMPLE_REQUEST)).matches());
+                    GET_REPLY_PATTERN.matcher(session1.getConfig(CANDIDATE, SAMPLE_REQUEST)).matches());
 
         } catch (NetconfException e) {
             e.printStackTrace();
@@ -184,8 +186,8 @@ public class NetconfSessionImplTest {
 
     @Test
     public void testConcurrentSameSessionAccess() throws InterruptedException {
-        NCCopyConfigCallable testCopyConfig1 = new NCCopyConfigCallable(session1, "running", "candidate");
-        NCCopyConfigCallable testCopyConfig2 = new NCCopyConfigCallable(session1, "candidate", "startup");
+        NCCopyConfigCallable testCopyConfig1 = new NCCopyConfigCallable(session1, RUNNING, "candidate");
+        NCCopyConfigCallable testCopyConfig2 = new NCCopyConfigCallable(session1, RUNNING, "startup");
 
         FutureTask<Boolean> futureCopyConfig1 = new FutureTask<Boolean>(testCopyConfig1);
         FutureTask<Boolean> futureCopyConfig2 = new FutureTask<Boolean>(testCopyConfig2);
@@ -210,8 +212,8 @@ public class NetconfSessionImplTest {
 
     @Test
     public void test2SessionAccess() throws InterruptedException {
-        NCCopyConfigCallable testCopySession1 = new NCCopyConfigCallable(session1, "running", "candidate");
-        NCCopyConfigCallable testCopySession2 = new NCCopyConfigCallable(session2, "running", "candidate");
+        NCCopyConfigCallable testCopySession1 = new NCCopyConfigCallable(session1, RUNNING, "candidate");
+        NCCopyConfigCallable testCopySession2 = new NCCopyConfigCallable(session2, RUNNING, "candidate");
 
         FutureTask<Boolean> futureCopySession1 = new FutureTask<Boolean>(testCopySession1);
         FutureTask<Boolean> futureCopySession2 = new FutureTask<Boolean>(testCopySession2);
@@ -338,10 +340,10 @@ public class NetconfSessionImplTest {
 
     public class NCCopyConfigCallable implements Callable<Boolean> {
         private NetconfSession session;
-        private String target;
+        private TargetConfig target;
         private String source;
 
-        public NCCopyConfigCallable(NetconfSession session, String target, String source) {
+        public NCCopyConfigCallable(NetconfSession session, TargetConfig target, String source) {
             this.session = session;
             this.target = target;
             this.source = source;

@@ -18,12 +18,14 @@ package org.onosproject.drivers.fujitsu;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.netconf.TargetConfig;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.onosproject.drivers.fujitsu.FujitsuVoltXmlUtilityMock.*;
+import static org.onosproject.netconf.TargetConfig.RUNNING;
 
 /**
  * Unit tests for methods of FujitsuVoltPonLinkConfig.
@@ -214,10 +216,10 @@ public class FujitsuVoltNniLinkConfigTest {
         }
 
         @Override
-        public boolean verifyEditConfig(String target, String mode, String request) {
+        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
             boolean result;
 
-            assertTrue("Incorrect target", target.equals(TEST_RUNNING));
+            assertTrue("Incorrect target", target.equals(RUNNING));
             assertNull("Incorrect mode", mode);
 
             request = request.replaceAll(TEST_DUPLICATE_SPACES_REGEX, TEST_SPACE);
@@ -229,6 +231,21 @@ public class FujitsuVoltNniLinkConfigTest {
         }
 
         @Override
+        public boolean verifyEditConfig(String target, String mode, String request) {
+            boolean result;
+
+            assertTrue("Incorrect target", target.equals(TEST_RUNNING));
+            assertNull("Incorrect mode", mode);
+
+            request = request.replaceAll(TEST_DUPLICATE_SPACES_REGEX, TEST_SPACE);
+            assertTrue("Does not contain:" + TEST_VOLT_NAMESPACE,
+                       request.contains(TEST_VOLT_NAMESPACE));
+            result = verifyEditConfigRequest(request);
+            assertTrue("XML verification failure", result);
+            return result;
+        }
+
+            @Override
         public boolean verifyGet(String filterSchema, String withDefaultsMode) {
             boolean result;
 

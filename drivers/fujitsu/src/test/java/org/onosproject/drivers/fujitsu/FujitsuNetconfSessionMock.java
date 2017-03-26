@@ -17,6 +17,7 @@
 package org.onosproject.drivers.fujitsu;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.netconf.TargetConfig;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -80,7 +81,18 @@ public class FujitsuNetconfSessionMock implements NetconfSession {
     }
 
     @Override
+    public String getConfig(TargetConfig targetConfiguration) throws NetconfException {
+        return null;
+    }
+
+    @Override
     public String getConfig(String targetConfiguration) throws NetconfException {
+        return null;
+    }
+
+    @Override
+    public String getConfig(TargetConfig targetConfiguration, String configurationFilterSchema)
+            throws NetconfException {
         return null;
     }
 
@@ -100,6 +112,16 @@ public class FujitsuNetconfSessionMock implements NetconfSession {
     }
 
     @Override
+    public boolean editConfig(TargetConfig targetConfiguration, String mode, String newConfiguration)
+            throws NetconfException {
+        boolean result = true;
+        if (listener != null) {
+            result = listener.verifyEditConfig(targetConfiguration, mode, newConfiguration);
+        }
+        return result;
+    }
+
+    @Override
     public boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
             throws NetconfException {
         boolean result = true;
@@ -110,8 +132,19 @@ public class FujitsuNetconfSessionMock implements NetconfSession {
     }
 
     @Override
+    public boolean copyConfig(TargetConfig targetConfiguration, String newConfiguration)
+            throws NetconfException {
+        return false;
+    }
+
+    @Override
     public boolean copyConfig(String targetConfiguration, String newConfiguration)
             throws NetconfException {
+        return false;
+    }
+
+    @Override
+    public boolean deleteConfig(TargetConfig targetConfiguration) throws NetconfException {
         return false;
     }
 
@@ -119,6 +152,7 @@ public class FujitsuNetconfSessionMock implements NetconfSession {
     public boolean deleteConfig(String targetConfiguration) throws NetconfException {
         return false;
     }
+
 
     @Override
     public void startSubscription() throws NetconfException {

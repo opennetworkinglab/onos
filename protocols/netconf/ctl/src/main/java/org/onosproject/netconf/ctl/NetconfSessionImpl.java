@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
 import com.google.common.base.Preconditions;
+import org.onosproject.netconf.TargetConfig;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
@@ -385,12 +386,22 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public String getConfig(String targetConfiguration) throws NetconfException {
-        return getConfig(targetConfiguration, null);
+    public String getConfig(TargetConfig netconfTargetConfig) throws NetconfException {
+        return getConfig(netconfTargetConfig, null);
     }
 
     @Override
-    public String getConfig(String targetConfiguration, String configurationSchema) throws NetconfException {
+    public String getConfig(String netconfTargetConfig) throws NetconfException {
+        return getConfig(TargetConfig.valueOf(netconfTargetConfig));
+    }
+
+    @Override
+    public String getConfig(String netconfTargetConfig, String configurationFilterSchema) throws NetconfException {
+        return getConfig(TargetConfig.valueOf(netconfTargetConfig), configurationFilterSchema);
+    }
+
+    @Override
+    public String getConfig(TargetConfig netconfTargetConfig, String configurationSchema) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc ");
         rpc.append(MESSAGE_ID_STRING);
@@ -401,7 +412,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         rpc.append("<get-config>\n");
         rpc.append("<source>\n");
-        rpc.append("<").append(targetConfiguration).append("/>");
+        rpc.append("<").append(netconfTargetConfig).append("/>");
         rpc.append("</source>");
         if (configurationSchema != null) {
             rpc.append("<filter type=\"subtree\">\n");
@@ -422,7 +433,13 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
+    public boolean editConfig(String netconfTargetConfig, String mode, String newConfiguration)
+            throws NetconfException {
+        return editConfig(TargetConfig.valueOf(netconfTargetConfig), mode, newConfiguration);
+    }
+
+    @Override
+    public boolean editConfig(TargetConfig netconfTargetConfig, String mode, String newConfiguration)
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
         StringBuilder rpc = new StringBuilder(XML_HEADER);
@@ -435,7 +452,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append(EDIT_CONFIG_OPEN).append("\n");
         rpc.append(TARGET_OPEN);
-        rpc.append("<").append(targetConfiguration).append("/>");
+        rpc.append("<").append(netconfTargetConfig).append("/>");
         rpc.append(TARGET_CLOSE).append("\n");
         if (mode != null) {
             rpc.append(DEFAULT_OPERATION_OPEN);
@@ -454,7 +471,12 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean copyConfig(String targetConfiguration, String newConfiguration)
+    public boolean copyConfig(String netconfTargetConfig, String newConfiguration) throws NetconfException {
+        return copyConfig(TargetConfig.valueOf(netconfTargetConfig), newConfiguration);
+    }
+
+    @Override
+    public boolean copyConfig(TargetConfig netconfTargetConfig, String newConfiguration)
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
         if (!newConfiguration.startsWith("<config>")) {
@@ -466,7 +488,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append("<copy-config>");
         rpc.append("<target>");
-        rpc.append("<").append(targetConfiguration).append("/>");
+        rpc.append("<").append(netconfTargetConfig).append("/>");
         rpc.append("</target>");
         rpc.append("<source>");
         rpc.append(newConfiguration);
@@ -478,17 +500,22 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean deleteConfig(String targetConfiguration) throws NetconfException {
-        if (targetConfiguration.equals("running")) {
+    public boolean deleteConfig(String netconfTargetConfig) throws NetconfException {
+        return deleteConfig(TargetConfig.valueOf(netconfTargetConfig));
+    }
+
+    @Override
+    public boolean deleteConfig(TargetConfig netconfTargetConfig) throws NetconfException {
+        if (netconfTargetConfig.equals("running")) {
             log.warn("Target configuration for delete operation can't be \"running\"",
-                     targetConfiguration);
+                     netconfTargetConfig);
             return false;
         }
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc>");
         rpc.append("<delete-config>");
         rpc.append("<target>");
-        rpc.append("<").append(targetConfiguration).append("/>");
+        rpc.append("<").append(netconfTargetConfig).append("/>");
         rpc.append("</target>");
         rpc.append("</delete-config>");
         rpc.append("</rpc>");

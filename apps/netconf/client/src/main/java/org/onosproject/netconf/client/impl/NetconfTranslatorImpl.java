@@ -69,6 +69,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.netconf.TargetConfig.RUNNING;
 import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
 import static org.onosproject.yang.runtime.helperutils.SerializerHelper.addDataNode;
 
@@ -142,7 +143,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
     public ResourceData getDeviceConfig(DeviceId deviceId) throws IOException {
         NetconfSession session = getNetconfSession(deviceId);
         /*FIXME "running" will be replaced with an enum once netconf supports multiple datastores.*/
-        String reply = session.getConfig("running");
+        String reply = session.getConfig(RUNNING);
         Matcher protocolStripper = GET_CONFIG_CORE_MESSAGE_PATTERN.matcher(reply);
         reply = protocolStripper.group(GET_CONFIG_CORE_MESSAGE_GROUP);
         return yangRuntimeService.decode(

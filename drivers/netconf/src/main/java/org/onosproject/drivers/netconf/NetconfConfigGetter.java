@@ -19,6 +19,7 @@ package org.onosproject.drivers.netconf;
 import com.google.common.base.Preconditions;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ConfigGetter;
+import org.onosproject.netconf.TargetConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.netconf.NetconfController;
@@ -55,12 +56,11 @@ public class NetconfConfigGetter extends AbstractHandlerBehaviour
             return controller.getDevicesMap().
                     get(ofDeviceId).
                     getSession().
-                    getConfig(type);
+                    getConfig(TargetConfig.valueOf(type));
         } catch (IOException e) {
             log.error("Configuration could not be retrieved {}",
                       e.getMessage());
         }
         return UNABLE_TO_READ_CONFIG;
     }
-
 }

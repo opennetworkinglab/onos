@@ -18,6 +18,7 @@ package org.onosproject.drivers.fujitsu;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.netconf.TargetConfig;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -344,7 +345,12 @@ public class FujitsuVoltOnuConfigTest {
         }
 
         @Override
-        public boolean verifyEditConfig(String target, String mode, String request) {
+        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
+            return false;
+        }
+
+        @Override
+        public boolean verifyEditConfig(String targetConfiguration, String mode, String newConfiguration) {
             return false;
         }
 

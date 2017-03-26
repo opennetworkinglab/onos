@@ -17,6 +17,7 @@
 package org.onosproject.netconf;
 
 import com.google.common.annotations.Beta;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -88,25 +89,56 @@ public interface NetconfSession {
     /**
      * Retrives the specified configuration.
      *
-     * @param targetConfiguration the type of configuration to retrieve.
+     * @param netconfTargetConfig the type of configuration to retrieve.
      * @return specified configuration.
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    String getConfig(String targetConfiguration) throws NetconfException;
+    String getConfig(TargetConfig netconfTargetConfig) throws NetconfException;
+
+    /**
+     * Retrives the specified configuration.
+     *
+     * @param netconfTargetConfig the type of configuration to retrieve.
+     * @return specified configuration.
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
+     * org.onosproject.netconf.TargetConfig enum parameter instead
+     */
+    @Deprecated
+    String getConfig(String netconfTargetConfig) throws NetconfException;
+
 
     /**
      * Retrives part of the specivied configuration based on the filterSchema.
      *
-     * @param targetConfiguration       the type of configuration to retrieve.
+     * @param netconfTargetConfig       the type of configuration to retrieve.
+     * @param configurationFilterSchema XML schema to filter the configuration
+     *                                  elements we are interested in
+     * @return device running configuration.
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
+     * org.onosproject.netconf.TargetConfig enum parameter instead
+     */
+    @Deprecated
+    String getConfig(String netconfTargetConfig, String configurationFilterSchema)
+            throws NetconfException;
+
+    /**
+     * Retrives part of the specivied configuration based on the filterSchema.
+     *
+     * @param netconfTargetConfig       the type of configuration to retrieve.
      * @param configurationFilterSchema XML schema to filter the configuration
      *                                  elements we are interested in
      * @return device running configuration.
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    String getConfig(String targetConfiguration, String configurationFilterSchema)
+    String getConfig(TargetConfig netconfTargetConfig, String configurationFilterSchema)
             throws NetconfException;
+
 
     /**
      * Retrives part of the specified configuration based on the filterSchema.
@@ -122,14 +154,30 @@ public interface NetconfSession {
     /**
      * Retrives part of the specified configuration based on the filterSchema.
      *
-     * @param targetConfiguration the targetConfiguration to change
+     * @param netconfTargetConfig the targetConfiguration to change
+     * @param mode                selected mode to change the configuration
+     * @param newConfiguration    configuration to set
+     * @return true if the configuration was edited correctly
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
+     * org.onosproject.netconf.TargetConfig enum parameter instead
+     */
+    @Deprecated
+    boolean editConfig(String netconfTargetConfig, String mode, String newConfiguration)
+            throws NetconfException;
+
+    /**
+     * Retrives part of the specified configuration based on the filterSchema.
+     *
+     * @param netconfTargetConfig the targetConfiguration to change
      * @param mode                selected mode to change the configuration
      * @param newConfiguration    configuration to set
      * @return true if the configuration was edited correctly
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
+    boolean editConfig(TargetConfig netconfTargetConfig, String mode, String newConfiguration)
             throws NetconfException;
 
     /**
@@ -137,24 +185,54 @@ public interface NetconfSession {
      * to the target configuration.
      * The target configuration can't be the running one
      *
-     * @param targetConfiguration the type of configuration to retrieve.
+     * @param netconfTargetConfig the type of configuration to retrieve.
+     * @param newConfiguration    configuration to set
+     * @return true if the configuration was copied correctly
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
+     * org.onosproject.netconf.TargetConfig enum parameter instead
+     */
+    @Deprecated
+    boolean copyConfig(String netconfTargetConfig, String newConfiguration)
+            throws NetconfException;
+
+    /**
+     * Copies the new configuration, an Url or a complete configuration xml tree
+     * to the target configuration.
+     * The target configuration can't be the running one
+     *
+     * @param netconfTargetConfig the type of configuration to retrieve.
      * @param newConfiguration    configuration to set
      * @return true if the configuration was copied correctly
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    boolean copyConfig(String targetConfiguration, String newConfiguration)
+    boolean copyConfig(TargetConfig netconfTargetConfig, String newConfiguration)
             throws NetconfException;
 
     /**
      * Deletes part of the specified configuration based on the filterSchema.
      *
-     * @param targetConfiguration the name of the configuration to delete
+     * @param netconfTargetConfig the name of the configuration to delete
+     * @return true if the configuration was copied correctly
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     * @deprecated - 1.10.0 Kingfisher use method overload that accepts
+     * org.onosproject.netconf.TargetConfig enum parameter instead
+     */
+    @Deprecated
+    boolean deleteConfig(String netconfTargetConfig) throws NetconfException;
+
+    /**
+     * Deletes part of the specified configuration based on the filterSchema.
+     *
+     * @param netconfTargetConfig the name of the configuration to delete
      * @return true if the configuration was copied correctly
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    boolean deleteConfig(String targetConfiguration) throws NetconfException;
+    boolean deleteConfig(TargetConfig netconfTargetConfig) throws NetconfException;
 
     /**
      * Starts subscription to the device's notifications.

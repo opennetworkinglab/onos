@@ -23,6 +23,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.netconf.TargetConfig;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -187,6 +188,11 @@ public class FujitsuVoltControllerConfigTest {
             result = verifyEditConfigRequest(request);
             assertTrue("XML verification failure", result);
             return result;
+        }
+
+        @Override
+        public boolean verifyEditConfig(TargetConfig target, String mode, String request) {
+            return false;
         }
 
         @Override
