@@ -9,8 +9,15 @@ COMPILE_DEPS = [
   '//lib:openstack4j-core',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+]
+
 osgi_jar_with_tests (
   deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
   web_context = '/onos/openstacknetworking',
   api_title = 'OpenStack Networking App API',
   api_version = '1.0',
