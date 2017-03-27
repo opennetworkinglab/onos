@@ -32,7 +32,7 @@ def yang_model(
 
     yang_library(
       name = yang,
-      srcs = glob(['src/**/*.yang']),
+      srcs = glob(['**/*.yang']),
     )
 
     genrule(
@@ -50,7 +50,7 @@ def yang_model(
     )
 
     osgi_jar(
-      name = 'onos-models-demo',
+      name = name,
       srcs = [ ':' + yangSrcs, ':' + registrator ],
       deps = deps + YANG_TOOLS,
       resources = [ ':' + schema ],
