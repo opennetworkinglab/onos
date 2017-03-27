@@ -16,12 +16,13 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -52,6 +53,7 @@ import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -347,10 +349,29 @@ public class DistributedOpenstackNetworkStore
                 case UPDATE:
                     log.debug("OpenStack port updated {}", event.newValue());
                     eventExecutor.execute(() -> {
+                        Port oldPort = event.oldValue().value();
+                        Port newPort = event.newValue().value();
+
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_UPDATED,
-                                network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()));
+                                network(event.newValue().value().getNetworkId()), newPort));
+
+                        if (!newPort.getSecurityGroups().equals(oldPort.getSecurityGroups())) {
+                            Collection<String> sgToAdd = CollectionUtils.subtract(newPort.getSecurityGroups(),
+                                    oldPort.getSecurityGroups());
+                            if (!sgToAdd.isEmpty()) {
+                                notifyDelegate(new OpenstackNetworkEvent(
+                                        OpenstackNetworkEvent.Type.OPENSTACK_SECURITY_GROUP_ADDED_TO_PORT,
+                                        sgToAdd, newPort));
+                            }
+                            Collection<String> sgToRemove = CollectionUtils.subtract(oldPort.getSecurityGroups(),
+                                    newPort.getSecurityGroups());
+                            if (!sgToRemove.isEmpty()) {
+                                notifyDelegate(new OpenstackNetworkEvent(
+                                        OpenstackNetworkEvent.Type.OPENSTACK_SECURITY_GROUP_REMOVED_FROM_PORT,
+                                        sgToRemove, newPort));
+                            }
+                        }
                     });
                     break;
                 case INSERT:

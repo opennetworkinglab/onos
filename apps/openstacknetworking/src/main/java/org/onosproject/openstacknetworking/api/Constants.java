@@ -39,4 +39,6 @@ public final class Constants {
     public static final int PRIORITY_EXTERNAL_ROUTING_RULE = 25000;
     public static final int PRIORITY_SNAT_RULE = 26000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
+    public static final int PRIORITY_ACL_RULE = 30000;
+
 }

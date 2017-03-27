@@ -61,9 +61,10 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     protected FlowRuleService flowRuleService;
 
     private static final int SRC_VNI_TABLE = 0;
-    private static final int JUMP_TABLE = 1;
-    private static final int ROUTING_TABLE = 2;
-    private static final int FORWARDING_TABLE = 3;
+    private static final int ACL_TABLE = 1;
+    private static final int JUMP_TABLE = 2;
+    private static final int ROUTING_TABLE = 3;
+    private static final int FORWARDING_TABLE = 4;
     private static final int DUMMY_TABLE = 10;
     private static final int LAST_TABLE = FORWARDING_TABLE;
 
@@ -125,8 +126,9 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     }
 
     private void initializePipeline() {
-        //TODO: For now, we do not support security group feature temporarily.
-        connectTables(SRC_VNI_TABLE, JUMP_TABLE); // Table 0 -> Table 1
+        connectTables(SRC_VNI_TABLE, ACL_TABLE);
+        connectTables(ACL_TABLE, JUMP_TABLE);
+        setUpTableMissEntry(ACL_TABLE);
         setupJumpTable();
     }
 
@@ -144,6 +146,25 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
                 .fromApp(appId)
                 .makePermanent()
                 .forTable(fromTable)
+                .build();
+
+        applyRules(true, flowRule);
+    }
+
+    private void setUpTableMissEntry(int table) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.drop();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DROP_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(table)
                 .build();
 
         applyRules(true, flowRule);
@@ -274,6 +295,13 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
             return ROUTING_TABLE;
         } else if (output.isPresent() || (ipDst != null && group.isPresent())) {
             return FORWARDING_TABLE;
+        } else if ((ipSrc != null && ipSrc.ip().prefixLength() == 32 &&
+                ipDst != null && ipDst.ip().prefixLength() == 32) ||
+                (ipSrc != null && ipSrc.ip().prefixLength() == 32 && ipDst == null) ||
+                (ipDst != null && ipDst.ip().prefixLength() == 32 && ipSrc == null) ||
+                (ipDst != null && ipDst.ip().prefixLength() == 32 && ipSrc != null) ||
+                (ipSrc != null && ipSrc.ip().prefixLength() == 32 && ipDst != null)) {
+            return ACL_TABLE;
         }
 
         return DUMMY_TABLE;

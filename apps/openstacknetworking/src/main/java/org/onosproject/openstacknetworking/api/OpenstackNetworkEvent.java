@@ -21,6 +21,8 @@ import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
 
+import java.util.Collection;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
@@ -30,6 +32,7 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
 
     private final Port port;
     private final Subnet subnet;
+    private final Collection<String> sgRuleIds;
 
     public enum Type {
         /**
@@ -75,7 +78,17 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         /**
          * Signifies that the OpenStack port is removed.
          */
-        OPENSTACK_PORT_REMOVED
+        OPENSTACK_PORT_REMOVED,
+
+        /**
+         * Signifies that the OpenStack security group rule is added to a specific port.
+         */
+        OPENSTACK_SECURITY_GROUP_ADDED_TO_PORT,
+
+        /**
+         * Signifies that the OpenStack security group rule is removed from a specific port.
+         */
+        OPENSTACK_SECURITY_GROUP_REMOVED_FROM_PORT
     }
 
     /**
@@ -87,6 +100,7 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         super(type, network);
         this.port = null;
         this.subnet = null;
+        this.sgRuleIds = null;
     }
 
     /**
@@ -101,6 +115,7 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         super(type, network);
         this.port = port;
         this.subnet = null;
+        this.sgRuleIds = null;
     }
 
     /**
@@ -115,6 +130,21 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         super(type, network);
         this.port = null;
         this.subnet = subnet;
+        this.sgRuleIds = null;
+    }
+
+    /**
+     * Creates an event of a given type for the specified port and security groups.
+     *
+     * @param type openstack network event type
+     * @param sgRuleIds openstack security group rules
+     * @param port openstack port
+     */
+    public OpenstackNetworkEvent(Type type, Collection<String> sgRuleIds, Port port) {
+        super(type, null);
+        this.port = port;
+        this.sgRuleIds = sgRuleIds;
+        this.subnet = null;
     }
 
     /**
@@ -135,6 +165,15 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         return subnet;
     }
 
+    /**
+     * Returns the security group rule IDs updated.
+     *
+     * @return collection of security group rule ID
+     */
+    public Collection<String> securityGroupRuleIds() {
+        return sgRuleIds;
+    }
+
     @Override
     public String toString() {
         if (port == null && subnet == null) {
@@ -146,6 +185,7 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
                 .add("network", subject())
                 .add("port", port)
                 .add("subnet", subnet)
+                .add("security group rules", securityGroupRuleIds())
                 .toString();
     }
 }
