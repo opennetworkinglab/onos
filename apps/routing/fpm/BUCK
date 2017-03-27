@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//incubator/api:onos-incubator-api',
     '//apps/routing-api:onos-apps-routing-api',
+    '//core/store/serializers:onos-core-serializers',
 ]
 
 TEST_DEPS = [

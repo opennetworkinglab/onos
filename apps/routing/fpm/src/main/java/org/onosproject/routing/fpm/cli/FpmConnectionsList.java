@@ -17,9 +17,14 @@
 package org.onosproject.routing.fpm.cli;
 
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.routing.fpm.FpmConnectionInfo;
 import org.onosproject.routing.fpm.FpmInfoService;
+
+import java.util.Comparator;
 
 /**
  * Displays the current FPM connections.
@@ -28,14 +33,19 @@ import org.onosproject.routing.fpm.FpmInfoService;
         description = "Displays the current FPM connections")
 public class FpmConnectionsList extends AbstractShellCommand {
 
-    private static final String FORMAT = "%s:%s connected since %s";
+    private static final String FORMAT = "peer %s:%s connected to %s since %s %s";
 
     @Override
     protected void execute() {
-        FpmInfoService fpmInfo = AbstractShellCommand.get(FpmInfoService.class);
+        FpmInfoService fpmInfo = get(FpmInfoService.class);
+        ClusterService clusterService = get(ClusterService.class);
 
-        fpmInfo.peers().forEach((peer, timestamp) -> {
-            print(FORMAT, peer.address(), peer.port(), Tools.timeAgo(timestamp));
-        });
+        fpmInfo.peers().values().stream()
+                .flatMap(v -> v.stream())
+                .sorted(Comparator.<FpmConnectionInfo, IpAddress>comparing(i -> i.peer().address())
+                        .thenComparing(i -> i.peer().port()))
+                .forEach(info -> print(FORMAT, info.peer().address(), info.peer().port(),
+                        info.connectedTo(), Tools.timeAgo(info.connectTime()),
+                        info.connectedTo().equals(clusterService.getLocalNode().id()) ? "*" : ""));
     }
 }
