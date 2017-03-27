@@ -57,5 +57,7 @@
             manufacturer="Corsa" hwVersion="CDP2.*" swVersion="corsa-ovs-datapath 1.5\..*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.drivers.corsa.CorsaL2OverlayPipeline"/>
+        <behaviour api="org.onosproject.net.behaviour.VlanQuery"
+                   impl="org.onosproject.driver.query.FullVlanAvailable"/>
     </driver>
 </drivers>
