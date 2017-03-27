@@ -180,7 +180,8 @@ public class NetL3vpnManager {
     private NodeId localNodeId;
     private ApplicationId appId;
 
-    private DynamicConfigListener configListener = new InternalConfigListener();
+    private final DynamicConfigListener configListener = new
+            InternalConfigListener();
 
     private final InternalLeadershipListener leadershipEventListener =
             new InternalLeadershipListener();
@@ -625,6 +626,7 @@ public class NetL3vpnManager {
                                                             devMod);
         ResourceData resData = modelConverter.createDataNode(driMod);
         addToStore(resData);
+        l3VpnStore.addVpnIns(inst.vpnName(), inst);
         return info;
     }
 

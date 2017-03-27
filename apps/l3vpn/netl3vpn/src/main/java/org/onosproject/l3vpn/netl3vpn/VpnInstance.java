@@ -18,7 +18,7 @@ package org.onosproject.l3vpn.netl3vpn;
 
 import org.onosproject.net.DeviceId;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -118,7 +118,7 @@ public class VpnInstance<T extends VpnConfig> {
      */
     public void addDevInfo(DeviceId id, DeviceInfo info) {
         if (devInfo == null) {
-            devInfo = new LinkedHashMap<>();
+            devInfo = new HashMap<>();
         }
         devInfo.put(id, info);
     }

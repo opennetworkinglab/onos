@@ -29,12 +29,12 @@ import org.onosproject.l3vpn.netl3vpn.DeviceInfo;
 import org.onosproject.l3vpn.netl3vpn.FullMeshVpnConfig;
 import org.onosproject.l3vpn.netl3vpn.HubSpokeVpnConfig;
 import org.onosproject.l3vpn.netl3vpn.InterfaceInfo;
+import org.onosproject.l3vpn.netl3vpn.NetL3VpnStore;
 import org.onosproject.l3vpn.netl3vpn.ProtocolInfo;
 import org.onosproject.l3vpn.netl3vpn.RouteProtocol;
 import org.onosproject.l3vpn.netl3vpn.VpnConfig;
 import org.onosproject.l3vpn.netl3vpn.VpnInstance;
 import org.onosproject.l3vpn.netl3vpn.VpnType;
-import org.onosproject.l3vpn.netl3vpn.NetL3VpnStore;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -77,6 +77,7 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
                            .register(LeafListKey.class)
                            .register(ListKey.class)
                            .register(AccessInfo.class)
+                           .register(InterfaceInfo.class)
                            .register(BgpInfo.class)
                            .register(RouteProtocol.class)
                            .register(ProtocolInfo.class)
@@ -184,6 +185,13 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
         checkNotNull(name, VPN_NAME_NULL);
         checkNotNull(instance, VPN_INS_NULL);
         vpnInsMap.putIfAbsent(name, instance);
+    }
+
+    @Override
+    public void addVpnIns(String name, VpnInstance instance) {
+        checkNotNull(name, VPN_NAME_NULL);
+        checkNotNull(instance, VPN_INS_NULL);
+        vpnInsMap.put(name, instance);
     }
 
     @Override

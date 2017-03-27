@@ -71,6 +71,14 @@ public interface NetL3VpnStore {
     void addVpnInsIfAbsent(String name, VpnInstance instance);
 
     /**
+     * Adds the VPN name and the VPN instance to the map.
+     *
+     * @param name     VPN name
+     * @param instance VPN instance
+     */
+    void addVpnIns(String name, VpnInstance instance);
+
+    /**
      * Adds the access info and the interface info to the map in store.
      *
      * @param accessInfo access info
