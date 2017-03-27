@@ -195,7 +195,6 @@ public class NetL3vpnManager {
     private ResourceId module;
     private ResourceId sites;
     private boolean isElectedLeader = false;
-    private boolean isActivatedLeader = false;
 
     @Activate
     protected void activate() {
@@ -320,7 +319,7 @@ public class NetL3vpnManager {
      * @param storeId store resource id
      */
     private void processCreateFromStore(ResourceId storeId) {
-        if (isElectedLeader && isActivatedLeader) {
+        if (isElectedLeader) {
             List<ModelObject> objects = getModelObjects(storeId, module);
             for (ModelObject obj : objects) {
                 if (obj instanceof DefaultL3VpnSvc) {
@@ -338,7 +337,7 @@ public class NetL3vpnManager {
      * @param storeId store resource id
      */
     private void processDeleteFromStore(ResourceId storeId) {
-        if (isElectedLeader && isActivatedLeader) {
+        if (isElectedLeader) {
             //TODO: add delete logic here.
         }
     }
@@ -918,15 +917,7 @@ public class NetL3vpnManager {
      */
     private void leaderChanged(boolean isLeader) {
         log.debug("Leader changed: {}", isLeader);
-
-        if (!isLeader) {
-            isElectedLeader = false;
-            isActivatedLeader = false;
-            // Nothing to do
-            return;
-        }
-        isActivatedLeader = false;
-        isElectedLeader = true;
+        isElectedLeader = isLeader;
     }
 
     /**
