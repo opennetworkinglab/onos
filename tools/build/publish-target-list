@@ -19,6 +19,7 @@
     //protocols/openflow/ctl:onos-protocols-openflow-ctl
     //apps/optical:onos-apps-optical
     //apps/optical-model:onos-apps-optical-model
+    //apps/newoptical:onos-apps-newoptical
     //web/api:onos-rest
     //protocols/netconf/api:onos-protocols-netconf-api
     //apps/routing-api:onos-apps-routing-api
