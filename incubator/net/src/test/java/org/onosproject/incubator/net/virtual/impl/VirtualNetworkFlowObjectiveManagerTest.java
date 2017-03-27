@@ -47,9 +47,14 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.ProviderId;
@@ -157,6 +162,55 @@ public class VirtualNetworkFlowObjectiveManagerTest
                         .add();
 
         service1.forward(VDID1, forward);
+
+        TestTools.assertAfter(RETRY_MS, () ->
+                assertEquals("1 flowrule entry expected",
+                             1, flowRuleStore.getFlowRuleCount(vnet1.id())));
+        TestTools.assertAfter(RETRY_MS, () ->
+                assertEquals("0 flowrule entry expected",
+                             0, flowRuleStore.getFlowRuleCount(vnet2.id())));
+    }
+
+    /**
+     * Tests adding a next objective.
+     */
+    @Test
+    public void nextObjective() {
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+        NextObjective nextObjective = DefaultNextObjective.builder()
+                .withId(service1.allocateNextId())
+                .fromApp(NetTestTools.APP_ID)
+                .addTreatment(treatment)
+                .withType(NextObjective.Type.BROADCAST)
+                .makePermanent()
+                .add();
+
+        service1.next(VDID1, nextObjective);
+
+        TestTools.assertAfter(RETRY_MS, () ->
+                assertEquals("1 next map entry expected",
+                             1, service1.getNextMappings().size()));
+        TestTools.assertAfter(RETRY_MS, () ->
+                assertEquals("0 next map entry expected",
+                             0, service2.getNextMappings().size()));
+    }
+
+    /**
+     * Tests adding a filtering objective.
+     */
+    @Test
+    public void filteringObjective() {
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+        FilteringObjective filter =
+                DefaultFilteringObjective.builder()
+                        .fromApp(NetTestTools.APP_ID)
+                        .withMeta(treatment)
+                        .makePermanent()
+                        .deny()
+                        .addCondition(Criteria.matchEthType(12))
+                        .add();
+
+        service1.filter(VDID1, filter);
 
         TestTools.assertAfter(RETRY_MS, () ->
                 assertEquals("1 flowrule entry expected",
