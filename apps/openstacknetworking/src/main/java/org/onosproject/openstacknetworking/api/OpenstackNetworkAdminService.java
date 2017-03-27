@@ -86,4 +86,9 @@ public interface OpenstackNetworkAdminService {
      * @param portId port id
      */
     void removePort(String portId);
+
+    /**
+     * Clears the existing network, subnet and port states.
+     */
+    void clear();
 }

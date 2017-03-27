@@ -258,6 +258,13 @@ public class DistributedOpenstackRouterStore
         return ImmutableSet.copyOf(osFloatingIps);
     }
 
+    @Override
+    public void clear() {
+        osFloatingIpStore.clear();
+        osRouterInterfaceStore.clear();
+        osRouterStore.clear();
+    }
+
     private class OpenstackRouterMapListener implements MapEventListener<String, Router> {
 
         @Override

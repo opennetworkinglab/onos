@@ -200,6 +200,11 @@ public class OpenstackRouterManager
     }
 
     @Override
+    public void clear() {
+        osRouterStore.clear();
+    }
+
+    @Override
     public Router router(String routerId) {
         checkArgument(!Strings.isNullOrEmpty(routerId), ERR_NULL_ROUTER_ID);
         return osRouterStore.router(routerId);

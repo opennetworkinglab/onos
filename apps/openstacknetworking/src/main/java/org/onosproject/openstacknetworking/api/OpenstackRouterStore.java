@@ -138,4 +138,9 @@ public interface OpenstackRouterStore
      * @return openstack floating ip; empty set if no floating ip exists
      */
     Set<NetFloatingIP> floatingIps();
+
+    /**
+     * Clears the existing routers and floating IPs.
+     */
+    void clear();
 }

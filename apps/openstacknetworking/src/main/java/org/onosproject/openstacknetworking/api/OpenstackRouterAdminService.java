@@ -45,6 +45,7 @@ public interface OpenstackRouterAdminService {
      */
     void removeRouter(String osRouterId);
 
+    // TODO fix the logic adding a router interface to a router
     /**
      * Adds a new interface to the router.
      *
@@ -86,4 +87,9 @@ public interface OpenstackRouterAdminService {
      * @param floatingIpId floating ip id
      */
     void removeFloatingIp(String floatingIpId);
+
+    /**
+     * Clears the existing routers and floating IPs.
+     */
+    void clear();
 }

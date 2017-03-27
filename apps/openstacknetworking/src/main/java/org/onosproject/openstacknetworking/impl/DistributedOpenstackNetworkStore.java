@@ -266,6 +266,13 @@ public class DistributedOpenstackNetworkStore
         return ImmutableSet.copyOf(osPorts);
     }
 
+    @Override
+    public void clear() {
+        osPortStore.clear();
+        osSubnetStore.clear();
+        osNetworkStore.clear();
+    }
+
     private class OpenstackNetworkMapListener implements MapEventListener<String, Network> {
 
         @Override

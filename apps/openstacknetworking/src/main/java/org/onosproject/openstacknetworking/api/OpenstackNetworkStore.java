@@ -138,4 +138,9 @@ public interface OpenstackNetworkStore
      * @return set of ports
      */
     Set<Port> ports();
+
+    /**
+     * Removes the existing network and ports.
+     */
+    void clear();
 }

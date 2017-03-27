@@ -208,6 +208,11 @@ public class OpenstackNetworkManager
     }
 
     @Override
+    public void clear() {
+        osNetworkStore.clear();
+    }
+
+    @Override
     public Network network(String netId) {
         checkArgument(!Strings.isNullOrEmpty(netId), ERR_NULL_NETWORK_ID);
         return osNetworkStore.network(netId);
