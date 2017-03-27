@@ -119,7 +119,7 @@ public class GroupsResourceTest extends ResourceTest {
             this.deviceId = deviceId;
             this.appId = new DefaultApplicationId(appId, String.valueOf(appId));
             this.appCookie = new DefaultGroupKey(appCookie.getBytes());
-            this.baseValue = id * 100;
+            this.baseValue = id * 100L;
             this.bucketList = new ArrayList<>();
             this.buckets = new GroupBuckets(bucketList);
         }

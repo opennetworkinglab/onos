@@ -115,7 +115,7 @@ public class MetersResourceTest extends ResourceTest {
         public MockMeter(DeviceId deviceId, int appId, long meterId, int id) {
             this.deviceId = deviceId;
             this.appId = new DefaultApplicationId(appId, String.valueOf(appId));
-            this.baseValue = id * 200;
+            this.baseValue = id * 200L;
             this.meterId = MeterId.meterId(meterId);
 
             Band band = DefaultBand.builder()
