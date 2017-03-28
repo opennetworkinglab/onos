@@ -269,22 +269,23 @@ public class NetconfActiveComponent implements DynamicConfigListener {
                 //checkIfRelevant already filters only the relevant events
                 event = e;
                 checkNotNull(event, "process:Event cannot be null");
-                Filter filt = new Filter();
-                DataNode node = cfgService.readNode(event.subject(), filt);
-                DeviceId deviceId = getDeviceId(node);
-                if (!isMaster(deviceId)) {
-                    log.info("NetConfListener: not master, ignoring config for {}", event.type());
-                    return;
-                }
-                initiateConnection(deviceId);
                 switch (event.type()) {
                     case NODE_ADDED:
                     case NODE_UPDATED:
                     case NODE_REPLACED:
+                        Filter filt = new Filter();
+                        DataNode node = cfgService.readNode(event.subject(), filt);
+                        DeviceId deviceId = getDeviceId(node);
+                        if (!isMaster(deviceId)) {
+                            log.info("NetConfListener: not master, ignoring config for {}", event.type());
+                            return;
+                        }
+                        initiateConnection(deviceId);
                         configUpdate(node, deviceId, event.subject());
                         break;
                     case NODE_DELETED:
-                        configDelete(node, deviceId, event.subject());
+                        log.info("NetConfListener: RXD DELETE EVT for {}", event.type());
+                        //configDelete(null, null, event.subject());
                         break;
                     case UNKNOWN_OPRN:
                     default:

@@ -269,9 +269,9 @@ public class DistributedDynamicConfigStore
                 DocumentPath.from(spath));
         Map<String, Versioned<DataNode.Type>> entries = null;
         entries = complete(ret);
-        if ((entries == null) || (entries.size() == 0)) {
+        /*if ((entries == null) || (entries.size() == 0)) {
             throw new FailedException("Inner node cannot have empty children map");
-        }
+        }*/
         entries.forEach((k, v) -> {
             String[] names = k.split(ResourceIdParser.NM_CHK);
             String name = names[0];
@@ -338,6 +338,43 @@ public class DistributedDynamicConfigStore
         throw new FailedException("Not yet implemented");
     }
 
+    private void deleteInner(String spath) {
+        CompletableFuture<Map<String, Versioned<DataNode.Type>>> ret = keystore.getChildren(
+                DocumentPath.from(spath));
+        Map<String, Versioned<DataNode.Type>> entries = null;
+        entries = complete(ret);
+        /*if ((entries == null) || (entries.size() == 0)) {
+            throw new FailedException("Inner node cannot have empty children map");
+        }*/
+        entries.forEach((k, v) -> {
+            String[] names = k.split(ResourceIdParser.NM_CHK);
+            String name = names[0];
+            String nmSpc = ResourceIdParser.getNamespace(names[1]);
+            String keyVal = ResourceIdParser.getKeyVal(names[1]);
+            DataNode.Type type = v.value();
+            String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
+            if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+                removeLeaf(tempPath);
+            } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
+                String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
+                removeLeaf(mlpath);
+            } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
+                deleteInner(tempPath);
+            } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
+                tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
+                deleteInner(tempPath);
+            } else {
+                throw new FailedException("Invalid node type");
+            }
+        });
+        keystore.removeNode(DocumentPath.from(spath));
+    }
+
+    private void removeLeaf(String path) {
+        keystore.removeNode(DocumentPath.from(path));
+        objectStore.remove(path);
+    }
+
     @Override
     public CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path) {
         List<NodeKey> nodeKeyList = path.nodeKeys();
@@ -346,19 +383,33 @@ public class DistributedDynamicConfigStore
             nodeKeyList.remove(0);
         }
         String spath = ResourceIdParser.parseResId(path);
+        if (spath == null) {
+            throw new FailedException("Invalid RsourceId, cannot create Node");
+        }
+        if (spath.compareTo(ResourceIdParser.ROOT) == 0) {
+            throw new FailedException("Cannot delete Root");
+        }
         DocumentPath dpath = DocumentPath.from(spath);
         DataNode.Type type = null;
-        CompletableFuture<Versioned<DataNode.Type>> vtype = keystore.removeNode(dpath);
-        type = completeVersioned(vtype);
+        CompletableFuture<Versioned<DataNode.Type>> ret = keystore.get(dpath);
+        type = completeVersioned(ret);
         if (type == null) {
-            throw new FailedException("Node delete failed");
+            throw new FailedException("Cannot delete, Requested node or some of the parents" +
+                    "are not present in the requested path");
         }
-        Versioned<LeafNode> res = objectStore.remove(spath);
-        if (res == null) {
-            return CompletableFuture.completedFuture(false);
+        DataNode retVal = null;
+        if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+            removeLeaf(spath);
+        } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
+            removeLeaf(spath);
+        } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
+            deleteInner(spath);
+        } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
+            deleteInner(spath);
         } else {
-            return CompletableFuture.completedFuture(true);
+            throw new FailedException("Invalid node type");
         }
+        return CompletableFuture.completedFuture(true);
     }
 
     public class InternalDocTreeListener implements DocumentTreeListener<DataNode.Type> {
