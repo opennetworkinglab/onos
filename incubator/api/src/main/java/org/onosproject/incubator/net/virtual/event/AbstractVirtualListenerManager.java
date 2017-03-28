@@ -19,6 +19,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.EventListener;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.ListenerService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
@@ -37,10 +38,10 @@ public abstract class AbstractVirtualListenerManager
 
     protected EventDeliveryService eventDispatcher;
 
+    private ListenerRegistry<E, L> listenerRegistry;
+
     private VirtualListenerRegistryManager listenerManager =
             VirtualListenerRegistryManager.getInstance();
-
-    private Class<? extends Event> eventClass;
 
     public AbstractVirtualListenerManager(VirtualNetworkService manager,
                                           NetworkId networkId,
@@ -49,22 +50,23 @@ public abstract class AbstractVirtualListenerManager
         this.networkId = networkId;
         this.serviceDirectory = manager.getServiceDirectory();
 
-        this.eventClass = eventClass;
-
         //Set default event delivery service by default
         this.eventDispatcher = serviceDirectory.get(EventDeliveryService.class);
+
+        //Initialize and reference to the listener registry
+        this.listenerRegistry = listenerManager.getRegistry(networkId, eventClass);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void addListener(L listener) {
-        listenerManager.getRegistry(networkId, eventClass).addListener(listener);
+        listenerRegistry.addListener(listener);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void removeListener(L listener) {
-        listenerManager.getRegistry(networkId, eventClass).removeListener(listener);
+        listenerRegistry.removeListener(listener);
     }
 
     /**
