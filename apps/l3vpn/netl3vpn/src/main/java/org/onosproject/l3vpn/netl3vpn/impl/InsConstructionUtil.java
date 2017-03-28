@@ -237,4 +237,20 @@ public final class InsConstructionUtil {
         l3vpn.routeDistinguisher(dist);
         return l3vpn;
     }
+
+    /**
+     * Constructs network instance for delete of VPN instance.
+     *
+     * @param vpnName VPN name
+     * @return network instances
+     */
+    static NetworkInstances deleteInstance(String vpnName) {
+        NetworkInstance nwInstance = new DefaultNetworkInstance();
+        List<NetworkInstance> insList = new LinkedList<>();
+        NetworkInstances instances = new DefaultNetworkInstances();
+        nwInstance.name(vpnName);
+        insList.add(nwInstance);
+        instances.networkInstance(insList);
+        return instances;
+    }
 }

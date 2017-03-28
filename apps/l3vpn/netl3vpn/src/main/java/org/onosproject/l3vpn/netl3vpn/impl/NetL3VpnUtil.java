@@ -59,12 +59,6 @@ import static org.onosproject.l3vpn.netl3vpn.VpnType.SPOKE;
 public final class NetL3VpnUtil {
 
     /**
-     * Error message for unsupported event from config store.
-     */
-    static final String EVENT_NOT_SUPPORTED = "Unsupported config event has " +
-            "come";
-
-    /**
      * Error message for site VPN name being not present in global VPN.
      */
     static final String SITE_VPN_MISMATCH = "Site VPN instance name did not " +
@@ -112,9 +106,9 @@ public final class NetL3VpnUtil {
             "device information in the augment info.";
 
     /**
-     * Static constant value for management address.
+     * Static constant value for ip address.
      */
-    static final String MG_MT_ADD = "managementAddress";
+    static final String IP = "ipaddress";
 
     /**
      * Error message for VPN type being not supported.
@@ -142,6 +136,37 @@ public final class NetL3VpnUtil {
      * Static constant value of port name.
      */
     static final String PORT_NAME = "portName";
+
+    /**
+     * Static constants to use with accumulator for maximum number of events.
+     */
+    static final int MAX_EVENTS = 1000;
+
+    /**
+     * Static constants to use with accumulator for maximum number of millis.
+     */
+    static final int MAX_BATCH_MS = 5000;
+
+    /**
+     * Static constants to use with accumulator for maximum number of idle
+     * millis.
+     */
+    static final int MAX_IDLE_MS = 1000;
+
+    /**
+     * Static constants for timer name.
+     */
+    static final String TIMER = "dynamic-config-l3vpn-timer";
+
+    /**
+     * Error message for unknown event being occurred.
+     */
+    static final String UNKNOWN_EVENT = "NetL3VPN listener: unknown event: {}";
+
+    /**
+     * Error message for event being null.
+     */
+    static final String EVENT_NULL = "Event cannot be null";
 
     private static final String SITE_ROLE_INVALID = "The given site role is " +
             "invalid";
