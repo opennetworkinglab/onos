@@ -51,7 +51,7 @@ public class XmlConfigParserTest {
         InputStream stream = getClass().getResourceAsStream("/testConfig.xml");
         String switchId = XmlConfigParser.parseSwitchId(XmlConfigParser
                                                                 .loadXml(stream));
-        assertTrue(switchId.equals("ofc-bridge"));
+        assertTrue("ofc-bridge".equals(switchId));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class XmlConfigParserTest {
         InputStream stream = getClass().getResourceAsStream("/testConfig.xml");
         String capableSwitchId = XmlConfigParser
                 .parseCapableSwitchId(XmlConfigParser.loadXml(stream));
-        assertTrue(capableSwitchId.equals("openvswitch"));
+        assertTrue("openvswitch".equals(capableSwitchId));
     }
 
     @Test

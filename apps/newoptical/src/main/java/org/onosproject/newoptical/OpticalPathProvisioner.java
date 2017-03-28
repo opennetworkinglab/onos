@@ -626,7 +626,7 @@ public class OpticalPathProvisioner
 
         // short-term hack for ONS'17 time-frame,
         // only expect OF device to have link discovery.
-        return cp.deviceId().uri().getScheme().equals("of");
+        return "of".equals(cp.deviceId().uri().getScheme());
     }
 
     /**

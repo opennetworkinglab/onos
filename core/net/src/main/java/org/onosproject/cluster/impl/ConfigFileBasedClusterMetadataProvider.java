@@ -166,10 +166,10 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     public boolean isAvailable() {
         try {
             URL url = new URL(metadataUrl);
-            if (url.getProtocol().equals("file")) {
+            if ("file".equals(url.getProtocol())) {
                 File file = new File(metadataUrl.replaceFirst("file://", ""));
                 return file.exists();
-            } else if (url.getProtocol().equals("http")) {
+            } else if ("http".equals(url.getProtocol())) {
                 try (InputStream file = url.openStream()) {
                     return true;
                 }
@@ -188,11 +188,11 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
             URL url = new URL(metadataUrl);
             ClusterMetadata metadata = null;
             long version = 0;
-            if (url.getProtocol().equals("file")) {
+            if ("file".equals(url.getProtocol())) {
                 File file = new File(metadataUrl.replaceFirst("file://", ""));
                 version = file.lastModified();
                 metadata = mapper.readValue(new FileInputStream(file), ClusterMetadata.class);
-            } else if (url.getProtocol().equals("http")) {
+            } else if ("http".equals(url.getProtocol())) {
                 URLConnection conn = url.openConnection();
                 version = conn.getLastModified();
                 metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);

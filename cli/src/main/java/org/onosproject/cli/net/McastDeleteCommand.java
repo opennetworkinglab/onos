@@ -50,7 +50,7 @@ public class McastDeleteCommand extends AbstractShellCommand {
     protected void execute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
 
-        if (sAddr.equals("*") && gAddr.equals("*")) {
+        if ("*".equals(sAddr) && "*".equals(gAddr)) {
             // Clear all routes
             mcastRouteManager.getRoutes().forEach(mcastRouteManager::remove);
             return;

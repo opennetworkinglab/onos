@@ -263,7 +263,7 @@ public class ECLinkStore
         } else {
             // Only forward for ConfigProvider or NullProvider
             // Forwarding was added as a workaround for ONOS-490
-            if (!providerId.scheme().equals("cfg") && !providerId.scheme().equals("null")) {
+            if (!"cfg".equals(providerId.scheme()) && !"null".equals(providerId.scheme())) {
                 return null;
             }
             // Temporary hack for NPE (ONOS-1171).

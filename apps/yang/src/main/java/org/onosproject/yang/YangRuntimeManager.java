@@ -148,7 +148,7 @@ public class YangRuntimeManager implements YangModelRegistry,
         checkNotNull(resourceId, " resource id can't be null.");
         NodeKey key = resourceId.nodeKeys().get(0);
         if (resourceId.nodeKeys().size() == 1 &&
-                key.schemaId().name().equals("/")) {
+                "/".equals(key.schemaId().name())) {
             return modelRegistry;
         }
         log.info("To be implemented.");

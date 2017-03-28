@@ -84,7 +84,7 @@ public class DefaultXmlCodec implements YangDataTreeCodec {
             rootElement.add(Namespace.get(rootNode.getNamespace()));
         }
 
-        if (rootElement.getName().equals("config")) {
+        if ("config".equals(rootElement.getName())) {
             rootElement.add(new Namespace("nc", "urn:ietf:params:xml:ns:netconf:base:1.0"));
         }
 

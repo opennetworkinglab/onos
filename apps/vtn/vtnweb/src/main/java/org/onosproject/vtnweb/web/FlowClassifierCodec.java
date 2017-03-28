@@ -75,12 +75,12 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         String etherType = nullIsIllegal(json.get(ETHER_TYPE), ETHER_TYPE + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setEtherType(etherType);
 
-        if (json.get(PROTOCOL) != null && !(json.get(PROTOCOL)).asText().equals("null")) {
+        if (json.get(PROTOCOL) != null && !"null".equals((json.get(PROTOCOL)).asText())) {
             String protocol = (json.get(PROTOCOL)).asText();
             resultBuilder.setProtocol(protocol);
         }
 
-        if (json.get(PRIORITY) != null && !(json.get(PRIORITY)).asText().equals("null")) {
+        if (json.get(PRIORITY) != null && !"null".equals((json.get(PRIORITY)).asText())) {
             int priority = (json.get(PRIORITY)).asInt();
             resultBuilder.setPriority(priority);
         }
@@ -97,22 +97,22 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         int maxDstPortRange = (json.get(MAX_DST_PORT_RANGE)).asInt();
         resultBuilder.setMaxDstPortRange(maxDstPortRange);
 
-        if (json.get(SRC_IP_PREFIX) != null && !(json.get(SRC_IP_PREFIX)).asText().equals("null")) {
+        if (json.get(SRC_IP_PREFIX) != null && !"null".equals((json.get(SRC_IP_PREFIX)).asText())) {
             String srcIpPrefix = (json.get(SRC_IP_PREFIX)).asText();
             resultBuilder.setSrcIpPrefix(IpPrefix.valueOf(srcIpPrefix));
         }
 
-        if (json.get(DST_IP_PREFIX) != null && !(json.get(DST_IP_PREFIX)).asText().equals("null")) {
+        if (json.get(DST_IP_PREFIX) != null && !"null".equals((json.get(DST_IP_PREFIX)).asText())) {
             String dstIpPrefix = (json.get(DST_IP_PREFIX)).asText();
             resultBuilder.setDstIpPrefix(IpPrefix.valueOf(dstIpPrefix));
         }
 
-        if (json.get(SRC_PORT) != null && !(json.get(SRC_PORT)).asText().equals("null")) {
+        if (json.get(SRC_PORT) != null && !"null".equals((json.get(SRC_PORT)).asText())) {
             String srcPort = (json.get(SRC_PORT)).asText();
             resultBuilder.setSrcPort(VirtualPortId.portId(srcPort));
         }
 
-        if (json.get(DST_PORT) != null && !(json.get(DST_PORT)).asText().equals("null")) {
+        if (json.get(DST_PORT) != null && !"null".equals((json.get(DST_PORT)).asText())) {
             String dstPort = (json.get(DST_PORT)).asText();
             resultBuilder.setDstPort(VirtualPortId.portId(dstPort));
         }

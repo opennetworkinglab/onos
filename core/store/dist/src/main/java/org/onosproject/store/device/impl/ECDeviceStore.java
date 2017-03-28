@@ -287,7 +287,7 @@ public class ECDeviceStore
         } else {
             // Only forward for ConfigProvider
             // Forwarding was added as a workaround for ONOS-490
-            if (!providerId.scheme().equals("cfg")) {
+            if (!"cfg".equals(providerId.scheme())) {
                 return null;
             }
             DeviceInjectedEvent deviceInjectedEvent = new DeviceInjectedEvent(providerId, deviceId, deviceDescription);
@@ -424,7 +424,7 @@ public class ECDeviceStore
         } else {
             // Only forward for ConfigProvider
             // Forwarding was added as a workaround for ONOS-490
-            if (!providerId.scheme().equals("cfg")) {
+            if (!"cfg".equals(providerId.scheme())) {
                 return Collections.emptyList();
             }
             if (master == null) {

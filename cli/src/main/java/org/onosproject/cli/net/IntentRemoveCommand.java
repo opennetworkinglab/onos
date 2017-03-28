@@ -106,7 +106,7 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             try {
                 response = br.readLine();
                 response = response.trim().replace("\n", "");
-                if (response.equals("y")) {
+                if ("y".equals(response)) {
                     this.purgeIntents(ImmutableList.of(intent));
                 }
             } catch (IOException e) {

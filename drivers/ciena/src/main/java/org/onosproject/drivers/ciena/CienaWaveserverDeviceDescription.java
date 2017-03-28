@@ -124,7 +124,7 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
                         XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),
                         annotations.set(AnnotationKeys.PORT_NAME, rxName)
                                 .build()));
-            } else if (!portId.equals("5") && !portId.equals("49")) {
+            } else if (!"5".equals(portId) && !"49".equals(portId)) {
                 DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                         .set(AnnotationKeys.PORT_NAME, name);
                 //FIXME change when all optical types have two way information methods, see jira tickets
@@ -154,13 +154,13 @@ public class CienaWaveserverDeviceDescription extends AbstractHandlerBehaviour
         final String gridTypePath = "ptp-config.adv-config.wl-spacing";
         final String frequencyPath = "ptp-config.adv-config.frequency";
 
-        boolean isEnabled = config.getString(transmitterPath).equals("enabled");
+        boolean isEnabled = "enabled".equals(config.getString(transmitterPath));
         boolean isTunable = tunableType.contains(config.getString(tunablePath));
 
         //FIXME change when all optical types have two way information methods, see jira tickets
         final int speed100GbpsinMbps = 100000;
         OduSignalType oduSignalType = oduPortSpeed == speed100GbpsinMbps ? OduSignalType.ODU4 : null;
-        GridType gridType = config.getString(gridTypePath).equals("FlexGrid") ? GridType.FLEX : null;
+        GridType gridType = "FlexGrid".equals(config.getString(gridTypePath)) ? GridType.FLEX : null;
         ChannelSpacing chSpacing = gridType == GridType.FLEX ? ChannelSpacing.CHL_6P25GHZ : null;
 
         //Working in Ghz //(Nominal central frequency - 193.1)/channelSpacing = spacingMultiplier

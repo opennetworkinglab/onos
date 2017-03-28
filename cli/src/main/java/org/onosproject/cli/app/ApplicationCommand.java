@@ -70,7 +70,7 @@ public class ApplicationCommand extends AbstractShellCommand {
     // Installs the application from input of the specified URL
     private boolean installApp(ApplicationAdminService service, String url) {
         try {
-            if (url.equals("-")) {
+            if ("-".equals(url)) {
                 service.install(System.in);
             } else {
                 service.install(new URL(url).openStream());

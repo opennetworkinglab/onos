@@ -644,7 +644,7 @@ public class VtnManager implements VtnService {
         Subnet subnet = subnetService.getSubnet(subnetId);
         String deviceOwner = virtualPort.deviceOwner();
         if (deviceOwner != null) {
-            if (deviceOwner.equalsIgnoreCase("network:dhcp")) {
+            if ("network:dhcp".equalsIgnoreCase(deviceOwner)) {
                 Sets.newHashSet(devices).stream()
                         .filter(d -> d.type() == Device.Type.SWITCH)
                         .forEach(d -> {

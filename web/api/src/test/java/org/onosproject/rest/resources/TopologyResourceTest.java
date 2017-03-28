@@ -140,12 +140,12 @@ public class TopologyResourceTest extends ResourceTest {
 
         @Override
         public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
-            return connectPoint.elementId().toString().equals("dev2");
+            return "dev2".equals(connectPoint.elementId().toString());
         }
 
         @Override
         public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
-            return connectPoint.elementId().toString().equals("dev1");
+            return "dev1".equals(connectPoint.elementId().toString());
         }
 
     }

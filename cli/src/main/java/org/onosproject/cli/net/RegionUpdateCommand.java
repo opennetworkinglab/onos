@@ -78,7 +78,7 @@ public class RegionUpdateCommand extends AbstractShellCommand {
         List<Set<NodeId>> masters = Lists.newArrayList();
         Set<NodeId> nodeIds = Sets.newHashSet();
         for (String masterArg : masterArgs) {
-            if (masterArg.equals("/")) {
+            if ("/".equals(masterArg)) {
                 masters.add(nodeIds);
                 nodeIds = Sets.newHashSet();
             } else {

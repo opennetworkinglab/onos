@@ -387,7 +387,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
      * @return the virtualPort state
      */
     private State isState(String state) {
-        if (state.equals("ACTIVE")) {
+        if ("ACTIVE".equals(state)) {
             return VirtualPort.State.ACTIVE;
         } else {
             return VirtualPort.State.DOWN;

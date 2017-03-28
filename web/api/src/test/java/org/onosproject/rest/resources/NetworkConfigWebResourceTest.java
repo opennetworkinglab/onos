@@ -142,9 +142,9 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
 
         @Override
         public SubjectFactory getSubjectFactory(String subjectClassKey) {
-            if (subjectClassKey.equals("devices")) {
+            if ("devices".equals(subjectClassKey)) {
                 return mockDevicesSubjectFactory;
-            } else if (subjectClassKey.equals("links")) {
+            } else if ("links".equals(subjectClassKey)) {
                 return mockLinksSubjectFactory;
             }
             return null;

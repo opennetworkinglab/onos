@@ -364,14 +364,14 @@ public class IntentsResourceTest extends ResourceTest {
 
             // check intent type
             final String jsonType = jsonIntent.get("type").asString();
-            if (!jsonType.equals("MockIntent")) {
+            if (!"MockIntent".equals(jsonType)) {
                 reason = "type MockIntent";
                 return false;
             }
 
             // check state field
             final String jsonState = jsonIntent.get("state").asString();
-            if (!jsonState.equals("INSTALLED")) {
+            if (!"INSTALLED".equals(jsonState)) {
                 reason = "state INSTALLED";
                 return false;
             }

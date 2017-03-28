@@ -298,7 +298,7 @@ public class PollingAlarmProviderTest {
 
         @Override
         public Object get(Object key) {
-            if (key.equals("pollFrequency")) {
+            if ("pollFrequency".equals(key)) {
                 return "1";
             }
             return null;

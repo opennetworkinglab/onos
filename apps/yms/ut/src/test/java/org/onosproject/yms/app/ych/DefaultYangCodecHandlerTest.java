@@ -1251,8 +1251,7 @@ public class DefaultYangCodecHandlerTest {
         Iterator<Object> iterator = objectList.iterator();
         while (iterator.hasNext()) {
             Object object = iterator.next();
-            if (object.getClass().getSimpleName()
-                    .equals("LogisticsManagerOpParam")) {
+            if ("LogisticsManagerOpParam".equals(object.getClass().getSimpleName())) {
                 LogisticsManagerOpParam logisticsManagerOpParam =
                         (LogisticsManagerOpParam) object;
                 assertEquals(AM_OBJ + "purchasing-spec: leaf value", "bcd",

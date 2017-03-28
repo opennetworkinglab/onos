@@ -163,7 +163,7 @@ public class FlowsListCommand extends AbstractShellCommand {
             try {
                 response = br.readLine();
                 response = response.trim().replace("\n", "");
-                if (response.equals("y")) {
+                if ("y".equals(response)) {
                     flowService.removeFlowRules(flow);
                 }
             } catch (IOException e) {

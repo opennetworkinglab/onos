@@ -104,7 +104,7 @@ public class GroupsListCommand extends AbstractShellCommand {
                 new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         List<Group> groups;
         GroupState s = null;
-        if (state != null && !state.equals("any")) {
+        if (!"any".equals(state)) {
             s = GroupState.valueOf(state.toUpperCase());
         }
         Iterable<Device> devices = deviceService.getDevices();

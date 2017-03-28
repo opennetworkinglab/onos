@@ -123,13 +123,13 @@ public class TenantNetworkWebResource extends AbstractWebResource {
     }
 
     private State isState(String state) {
-        if (state.equals("ACTIVE")) {
+        if ("ACTIVE".equals(state)) {
             return TenantNetwork.State.ACTIVE;
-        } else if (state.equals("BUILD")) {
+        } else if ("BUILD".equals(state)) {
             return TenantNetwork.State.BUILD;
-        } else if (state.equals("DOWN")) {
+        } else if ("DOWN".equals(state)) {
             return TenantNetwork.State.DOWN;
-        } else if (state.equals("ERROR")) {
+        } else if ("ERROR".equals(state)) {
             return TenantNetwork.State.ERROR;
         } else {
             return null;
@@ -137,7 +137,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
     }
 
     private Type isType(String type) {
-        if (type.equals("LOCAL")) {
+        if ("LOCAL".equals(type)) {
             return TenantNetwork.Type.LOCAL;
         } else {
             return null;
@@ -286,7 +286,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
         String segmentationIdStr = node.get("provider:segmentation_id").asText();
         SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
         TenantId tenantId = TenantId.tenantId(tenantIdStr);
-        if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+        if (segmentationIdStr == null || "null".equals(segmentationIdStr)) {
             segmentationId = get(VtnRscService.class).getL3vni(tenantId);
         }
         TenantNetworkId id = null;
@@ -337,7 +337,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             String segmentationIdStr = node.get("provider:segmentation_id").asText();
             SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdStr);
             TenantId tenantId = TenantId.tenantId(tenantIdStr);
-            if (segmentationIdStr == null || segmentationIdStr.equals("null")) {
+            if (segmentationIdStr == null || "null".equals(segmentationIdStr)) {
                 segmentationId = get(VtnRscService.class).getL3vni(tenantId);
             }
             network = new DefaultTenantNetwork(

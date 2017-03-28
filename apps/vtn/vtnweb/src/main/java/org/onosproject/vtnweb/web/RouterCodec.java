@@ -59,26 +59,26 @@ public class RouterCodec extends JsonCodec<Router> {
         Iterator<String> i = fields.iterator();
         while (i.hasNext()) {
             String s = i.next();
-            if (s.equals("id")) {
+            if ("id".equals(s)) {
                 result.put("id", router.id().routerId());
             }
-            if (s.equals("status")) {
+            if ("status".equals(s)) {
                 result.put("status", router.status().toString());
             }
-            if (s.equals("name")) {
+            if ("name".equals(s)) {
                 result.put("name", router.name().toString());
             }
-            if (s.equals("admin_state_up")) {
+            if ("admin_state_up".equals(s)) {
                 result.put("admin_state_up", router.adminStateUp());
             }
-            if (s.equals("tenant_id")) {
+            if ("tenant_id".equals(s)) {
                 result.put("tenant_id", router.tenantId().toString());
             }
-            if (s.equals("routes")) {
+            if ("routes".equals(s)) {
                 result.put("routes", router.routes() == null ? null : router
                         .routes().toString());
             }
-            if (s.equals("external_gateway_info")) {
+            if ("external_gateway_info".equals(s)) {
                 result.set("external_gateway_info",
                            router.externalGatewayInfo() == null ? null
                                                                : new RouterGatewayInfoCodec()

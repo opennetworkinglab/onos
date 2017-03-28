@@ -59,9 +59,9 @@ public class DevicePortStateCommand extends AbstractShellCommand {
             print(" %s", "Port does not exist");
             return;
         }
-        if (portState.equals("enable")) {
+        if ("enable".equals(portState)) {
             deviceAdminService.changePortState(dev.id(), pnum, true);
-        } else if (portState.equals("disable")) {
+        } else if ("disable".equals(portState)) {
             deviceAdminService.changePortState(dev.id(), pnum, false);
         } else {
             print(" %s", "State must be enable or disable");

@@ -134,7 +134,7 @@ public final class YobUtils {
                 break;
 
             case EMPTY:
-                if (leafValue == null || leafValue.equals("")) {
+                if (leafValue == null || "".equals(leafValue)) {
                     parentSetterMethod.invoke(parentBuilderObject, true);
                 } else {
                     log.info(E_INVALID_EMPTY_DATA);

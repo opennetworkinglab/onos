@@ -252,15 +252,15 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
     private FlowEntry.FlowLiveType getFlowLiveType(String liveType) {
         String liveTypeUC = liveType.toUpperCase();
 
-        if (liveTypeUC.equals("IMMEDIATE")) {
+        if ("IMMEDIATE".equals(liveTypeUC)) {
             return FlowEntry.FlowLiveType.IMMEDIATE;
-        } else if (liveTypeUC.equals("SHORT")) {
+        } else if ("SHORT".equals(liveTypeUC)) {
             return FlowEntry.FlowLiveType.SHORT;
-        } else if (liveTypeUC.equals("MID")) {
+        } else if ("MID".equals(liveTypeUC)) {
             return FlowEntry.FlowLiveType.MID;
-        } else if (liveTypeUC.equals("LONG")) {
+        } else if ("LONG".equals(liveTypeUC)) {
             return FlowEntry.FlowLiveType.LONG;
-        } else if (liveTypeUC.equals("UNKNOWN")) {
+        } else if ("UNKNOWN".equals(liveTypeUC)) {
             return FlowEntry.FlowLiveType.UNKNOWN;
         } else {
             return null; // flow live type error
@@ -276,19 +276,19 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
     private Instruction.Type getInstructionType(String instType) {
         String instTypeUC = instType.toUpperCase();
 
-        if (instTypeUC.equals("OUTPUT")) {
+        if ("OUTPUT".equals(instTypeUC)) {
             return Instruction.Type.OUTPUT;
-        } else if (instTypeUC.equals("GROUP")) {
+        } else if ("GROUP".equals(instTypeUC)) {
             return Instruction.Type.GROUP;
-        } else if (instTypeUC.equals("L0MODIFICATION")) {
+        } else if ("L0MODIFICATION".equals(instTypeUC)) {
             return Instruction.Type.L0MODIFICATION;
-        } else if (instTypeUC.equals("L2MODIFICATION")) {
+        } else if ("L2MODIFICATION".equals(instTypeUC)) {
             return Instruction.Type.L2MODIFICATION;
-        } else if (instTypeUC.equals("TABLE")) {
+        } else if ("TABLE".equals(instTypeUC)) {
             return Instruction.Type.TABLE;
-        } else if (instTypeUC.equals("L3MODIFICATION")) {
+        } else if ("L3MODIFICATION".equals(instTypeUC)) {
             return Instruction.Type.L3MODIFICATION;
-        } else if (instTypeUC.equals("METADATA")) {
+        } else if ("METADATA".equals(instTypeUC)) {
             return Instruction.Type.METADATA;
         } else {
              return null; // instruction type error

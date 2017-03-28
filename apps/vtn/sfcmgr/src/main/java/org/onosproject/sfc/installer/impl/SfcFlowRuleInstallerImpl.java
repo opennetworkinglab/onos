@@ -697,11 +697,11 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
         }
 
         if ((flowClassifier.protocol() != null) && (!flowClassifier.protocol().isEmpty())) {
-            if (flowClassifier.protocol().equalsIgnoreCase("TCP")) {
+            if ("TCP".equalsIgnoreCase(flowClassifier.protocol())) {
                 selector.add(Criteria.matchIPProtocol(IPv4.PROTOCOL_TCP));
-            } else if (flowClassifier.protocol().equalsIgnoreCase("UDP")) {
+            } else if ("UDP".equalsIgnoreCase(flowClassifier.protocol())) {
                 selector.add(Criteria.matchIPProtocol(IPv4.PROTOCOL_UDP));
-            } else if (flowClassifier.protocol().equalsIgnoreCase("ICMP")) {
+            } else if ("ICMP".equalsIgnoreCase(flowClassifier.protocol())) {
                 selector.add(Criteria.matchIPProtocol(IPv4.PROTOCOL_ICMP));
             }
         } else if (fiveTuple != null && fiveTuple.protocol() != 0) {
@@ -709,8 +709,8 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
         }
 
         if (((flowClassifier.etherType() != null) && (!flowClassifier.etherType().isEmpty()))
-                && (flowClassifier.etherType().equals("IPv4") || flowClassifier.etherType().equals("IPv6"))) {
-            if (flowClassifier.etherType().equals("IPv4")) {
+                && ("IPv4".equals(flowClassifier.etherType()) || "IPv6".equals(flowClassifier.etherType()))) {
+            if ("IPv4".equals(flowClassifier.etherType())) {
                 selector.matchEthType(Ethernet.TYPE_IPV4);
             } else {
                 selector.matchEthType(Ethernet.TYPE_IPV6);

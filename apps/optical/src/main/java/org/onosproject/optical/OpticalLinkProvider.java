@@ -110,7 +110,7 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
         public void event(LinkEvent event) {
             if (event.type() == LinkEvent.Type.LINK_ADDED) {
                 Link link = event.subject();
-                if (link.providerId().scheme().equals("cfg")) {
+                if ("cfg".equals(link.providerId().scheme())) {
                     processLink(event.subject());
                 }
             }

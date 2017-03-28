@@ -207,7 +207,7 @@ public final class JuniperUtils {
 
     private static DefaultPortDescription parseDefaultPort(HierarchicalConfiguration cfg) {
         PortNumber portNumber = portNumber(cfg.getString(LO_INDEX));
-        boolean enabled = cfg.getString(STATUS).equals("up");
+        boolean enabled = "up".equals(cfg.getString(STATUS));
         int speed = parseInt(cfg.getString(SPEED).replaceAll(MBPS, ""));
 
 

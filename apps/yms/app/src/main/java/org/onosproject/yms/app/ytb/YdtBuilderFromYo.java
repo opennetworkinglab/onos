@@ -800,7 +800,7 @@ public class YdtBuilderFromYo {
                 }
                 break;
             }
-            if (!val.equals("")) {
+            if (!"".equals(val)) {
                 leafListVal.add(val);
             }
         }

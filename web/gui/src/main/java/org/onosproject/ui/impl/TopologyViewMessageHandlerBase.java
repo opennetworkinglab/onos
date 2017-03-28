@@ -489,7 +489,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             .id(hostId.toString())
             .addProp(Properties.MAC, host.mac())
             .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")
-            .addProp(Properties.VLAN, vlan.equals("-1") ? "none" : vlan)
+            .addProp(Properties.VLAN, "-1".equals(vlan) ? "none" : vlan)
             .addSeparator()
             .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
             .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));

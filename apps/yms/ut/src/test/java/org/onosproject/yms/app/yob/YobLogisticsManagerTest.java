@@ -48,7 +48,7 @@ public class YobLogisticsManagerTest {
                     (YdtExtendedContext) childCtx, YdtTestUtils
                             .getSchemaRegistry());
             Class<?> aClass = yangObject.getClass();
-            if (aClass.getSimpleName().equals("CustomssupervisorOpParam")) {
+            if ("CustomssupervisorOpParam".equals(aClass.getSimpleName())) {
                 try {
                     Field field = aClass.getDeclaredField("supervisor");
                     Field onosYangNodeOperationType = aClass
@@ -67,8 +67,7 @@ public class YobLogisticsManagerTest {
                 }
             }
 
-            if (aClass.getSimpleName().equals(
-                    "MerchandisersupervisorOpParam")) {
+            if ("MerchandisersupervisorOpParam".equals(aClass.getSimpleName())) {
                 try {
                     Field field = aClass.getDeclaredField("supervisor");
                     field.setAccessible(true);
@@ -82,7 +81,7 @@ public class YobLogisticsManagerTest {
                 }
             }
 
-            if (aClass.getSimpleName().equals("WarehousesupervisorOpParam")) {
+            if ("WarehousesupervisorOpParam".equals(aClass.getSimpleName())) {
                 try {
                     Field field = aClass.getDeclaredField("supervisor");
                     field.setAccessible(true);

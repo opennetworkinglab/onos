@@ -54,8 +54,7 @@ public class YobListTest {
                 (YdtExtendedContext) childCtx, YdtTestUtils.
                         getSchemaRegistry());
         assertNotNull(yangObject);
-        assertTrue(yangObject.getClass().getSimpleName()
-                           .equals("RootlistOpParam"));
+        assertTrue("RootlistOpParam".equals(yangObject.getClass().getSimpleName()));
         try {
 
             Field field =
@@ -99,8 +98,7 @@ public class YobListTest {
                 (YdtExtendedContext) ydtContext1, YdtTestUtils
                         .getSchemaRegistry());
         assertNotNull(yangObject);
-        assertTrue(yangObject.getClass().getSimpleName()
-                           .equals("RootlistOpParam"));
+        assertTrue("RootlistOpParam".equals(yangObject.getClass().getSimpleName()));
         try {
 
             Field field = yangObject.getClass()

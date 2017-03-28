@@ -99,7 +99,7 @@ public class PolicyAddCommand extends AbstractShellCommand {
         if (dstPort != 0) {
             tpb.setDstPort(dstPort);
         }
-        if (!proto.equals("ip")) {
+        if (!"ip".equals(proto)) {
             tpb.setIpProto(proto);
         }
         if (Policy.Type.valueOf(policyType) == Policy.Type.TUNNEL_FLOW) {

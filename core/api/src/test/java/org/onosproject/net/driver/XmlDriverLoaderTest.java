@@ -41,7 +41,7 @@ public class XmlDriverLoaderTest {
 
         Iterator<Driver> iterator = provider.getDrivers().iterator();
         Driver driver = iterator.next();
-        if (!driver.name().equals("foo.1")) {
+        if (!"foo.1".equals(driver.name())) {
             driver = iterator.next();
         }
 
@@ -87,7 +87,7 @@ public class XmlDriverLoaderTest {
         Driver driver;
         do {
             driver = iterator.next();
-        } while (!driver.name().equals("foo.2"));
+        } while (!"foo.2".equals(driver.name()));
         assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviour.class));
         assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviourTwo.class));
     }
@@ -101,14 +101,14 @@ public class XmlDriverLoaderTest {
         Driver driver;
         do {
             driver = iterator.next();
-        } while (!driver.name().equals("foo.2"));
+        } while (!"foo.2".equals(driver.name()));
         assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviour.class));
         Behaviour b2 = driver.createBehaviour(new DefaultDriverHandler(
                                                       new DefaultDriverData(
                                                               driver, DeviceId.deviceId("test_device"))),
                                               TestBehaviour.class);
-        assertTrue("incorrect multiple same behaviour inheritance", b2.getClass()
-                .getSimpleName().equals("TestBehaviourImpl2"));
+        assertTrue("incorrect multiple same behaviour inheritance",
+                   "TestBehaviourImpl2".equals(b2.getClass().getSimpleName()));
         assertTrue("incorrect multiple behaviour inheritance", driver.hasBehaviour(TestBehaviourTwo.class));
     }
 

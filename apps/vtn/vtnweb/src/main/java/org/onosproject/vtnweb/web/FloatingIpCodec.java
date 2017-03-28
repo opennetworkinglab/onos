@@ -60,36 +60,36 @@ public final class FloatingIpCodec extends JsonCodec<FloatingIp> {
         Iterator<String> i = fields.iterator();
         while (i.hasNext()) {
             String s = i.next();
-            if (s.equals("floating_network_id")) {
+            if ("floating_network_id".equals(s)) {
                 result.put("floating_network_id", floatingIp.networkId()
                         .toString());
             }
-            if (s.equals("router_id")) {
+            if ("router_id".equals(s)) {
                 result.put("router_id",
                            floatingIp.routerId() == null ? null : floatingIp
                                    .routerId().routerId());
             }
-            if (s.equals("tenant_id")) {
+            if ("tenant_id".equals(s)) {
                 result.put("tenant_id", floatingIp.tenantId().toString());
             }
-            if (s.equals("port_id")) {
+            if ("port_id".equals(s)) {
                 result.put("port_id",
                            floatingIp.portId() == null ? null : floatingIp
                                    .portId().toString());
             }
-            if (s.equals("id")) {
+            if ("id".equals(s)) {
                 result.put("id", floatingIp.id().floatingIpId().toString());
             }
-            if (s.equals("fixed_ip_address")) {
+            if ("fixed_ip_address".equals(s)) {
                 result.put("fixed_ip_address",
                            floatingIp.fixedIp() == null ? null : floatingIp
                                    .fixedIp().toString());
             }
-            if (s.equals("floating_ip_address")) {
+            if ("floating_ip_address".equals(s)) {
                 result.put("floating_ip_address", floatingIp.floatingIp()
                         .toString());
             }
-            if (s.equals("status")) {
+            if ("status".equals(s)) {
                 result.put("status", floatingIp.status().toString());
             }
         }

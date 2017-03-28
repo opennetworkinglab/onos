@@ -62,7 +62,7 @@ public class ReviewCommand extends AbstractShellCommand {
         if (accept == null) {
             smService.review(appId);
             printPolicy(smService, app);
-        } else if (accept.trim().equals("accept")) {
+        } else if ("accept".equals(accept.trim())) {
             smService.acceptPolicy(appId);
             printPolicy(smService, app);
         } else {

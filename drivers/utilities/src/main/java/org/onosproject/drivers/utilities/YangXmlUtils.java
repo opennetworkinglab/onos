@@ -131,7 +131,7 @@ public class YangXmlUtils {
     private void addProperties(HierarchicalConfiguration cfg, HierarchicalConfiguration complete) {
         cfg.getKeys().forEachRemaining(key -> {
             String property = (String) cfg.getProperty(key);
-            if (!property.equals("")) {
+            if (!"".equals(property)) {
                 complete.setProperty(key, property);
             }
         });

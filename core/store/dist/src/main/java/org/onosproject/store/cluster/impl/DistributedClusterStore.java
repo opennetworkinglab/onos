@@ -345,7 +345,7 @@ public class DistributedClusterStore
     private void readComponentConfiguration() {
         Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getName());
         for (ConfigProperty property : configProperties) {
-            if (property.name().equals("heartbeatInterval")) {
+            if ("heartbeatInterval".equals(property.name())) {
                 String s = property.value();
                 if (s == null) {
                     setHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL);
@@ -362,7 +362,7 @@ public class DistributedClusterStore
                             heartbeatInterval);
                 }
             }
-            if (property.name().equals("phiFailureThreshold")) {
+            if ("phiFailureThreshold".equals(property.name())) {
                 String s = property.value();
                 if (s == null) {
                     setPhiFailureThreshold(DEFAULT_PHI_FAILURE_THRESHOLD);

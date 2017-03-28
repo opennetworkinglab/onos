@@ -147,7 +147,7 @@ public class XmlDriverLoader {
         String name = driverCfg.getString(NAME);
         String parentsString = driverCfg.getString(EXTENDS, "");
         List<Driver> parents = Lists.newArrayList();
-        if (!parentsString.equals("")) {
+        if (!"".equals(parentsString)) {
             List<String> parentsNames;
             if (parentsString.contains(",")) {
                 parentsNames = Arrays.asList(parentsString.replace(" ", "").split(","));

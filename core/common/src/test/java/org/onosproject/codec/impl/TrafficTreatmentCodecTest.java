@@ -114,7 +114,7 @@ public class TrafficTreatmentCodecTest {
             int counter = 0;
             for (int idx = 0; idx < node.size(); idx++) {
                 String type = node.get(idx).get("type").asText();
-                if (!type.equals("METER") && !type.equals("TABLE")) {
+                if (!"METER".equals(type) && !"TABLE".equals(type)) {
                     counter++;
                 }
             }

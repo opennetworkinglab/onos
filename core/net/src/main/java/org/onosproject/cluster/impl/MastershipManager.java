@@ -128,7 +128,7 @@ public class MastershipManager
     public void modified() {
         Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getCanonicalName());
         for (ConfigProperty property : configProperties) {
-            if (property.name().equals("useRegionForBalanceRoles")) {
+            if ("useRegionForBalanceRoles".equals(property.name())) {
                 useRegionForBalanceRoles = property.asBoolean();
             }
         }
