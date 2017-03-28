@@ -1,0 +1,49 @@
+/*
+WARNING:
+This yang model is just for fuction ONOS opensource project demo purpose only,
+And is subject to change in future, Huawei does not commit provide compatibilty
+in commercial product.
+*/
+module ne-l3vpncomm {
+    namespace "ne-l3vpn-comm";
+    prefix "l3vpncomm";
+    import ne-l3vpncomm-type {
+        prefix l3vpncomm-type;
+    }
+    organization "Huawei Technologies Co., Ltd";
+    contact "Huawei Industrial Base
+        Bantian, Longgang
+        Shenzhen 518129
+        People's Republic of China
+        Website: http://www.huawei.com
+        Email: support@huawei.com";
+    description "";
+    revision "2014-12-25" {
+        description "Initial version";
+    }
+    grouping l3vpnIfs {
+        container l3vpnIfs {
+        description "";
+            list l3vpnIf {
+                key "ifName";
+                description "interface Name.";
+                leaf ifName {
+                    type string;
+                    description "interface Name";
+                }
+                leaf ipv4Addr {
+                    when "subnetMask != null";
+                    mandatory "true";
+                    type "l3vpncomm-type:ipv4Address";
+                    description "Interface Address.";
+                }
+                leaf subnetMask {
+                    when "ipv4Addr != null";
+                    mandatory "true";
+                    type "l3vpncomm-type:ipv4Address";
+                    description "Interface address mask.";
+                }
+            }
+        }
+    }
+}

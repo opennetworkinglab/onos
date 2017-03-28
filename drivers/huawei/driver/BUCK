@@ -1,0 +1,25 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:org.apache.servicemix.bundles.dom4j',
+  '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
+  '//drivers/utilities:onos-drivers-utilities',
+  '//protocols/netconf/api:onos-protocols-netconf-api',
+  '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
+  '//drivers/huawei/yangmodel:onos-drivers-huawei-yangmodel',
+  '//apps/config:onos-apps-config',
+  '//lib:onos-yang-model',
+  '//lib:onos-yang-runtime',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_ADAPTERS',
+  '//utils/osgi:onlab-osgi-tests',
+]
+
+osgi_jar_with_tests(
+  name = 'onos-drivers-huawei-driver',
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+  resources_root = 'src/main/resources',
+  resources = glob(['src/main/resources/**']),
+)

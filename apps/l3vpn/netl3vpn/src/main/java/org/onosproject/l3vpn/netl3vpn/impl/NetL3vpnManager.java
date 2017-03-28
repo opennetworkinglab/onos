@@ -147,7 +147,6 @@ import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangMo
 
 /**
  * The IETF net l3vpn manager implementation.
- * // TODO: Implementation of the manager class.
  */
 @Component(immediate = true)
 public class NetL3vpnManager {

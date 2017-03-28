@@ -1,0 +1,16 @@
+BUNDLES = [
+  '//drivers/huawei/yangmodel:onos-drivers-huawei-yangmodel',
+  '//drivers/huawei/driver:onos-drivers-huawei-driver',
+]
+
+onos_app(
+  app_name = 'org.onosproject.drivers.huawei',
+  title = 'Huawei Device Drivers',
+  category = 'Drivers',
+  url = 'http://onosproject.org',
+  description = 'ONOS Huawei Device Drivers application.',
+  included_bundles = BUNDLES,
+  required_apps = [
+    'org.onosproject.netconf'
+  ],
+)

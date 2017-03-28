@@ -95,6 +95,7 @@ ONOS_DRIVERS = [
     '//drivers/juniper:onos-drivers-juniper-oar',
     '//drivers/lisp:onos-drivers-lisp-oar',
     '//drivers/flowspec:onos-drivers-flowspec-oar',
+    '//drivers/huawei:onos-drivers-huawei-oar',
 ]
 
 ONOS_PROVIDERS = [

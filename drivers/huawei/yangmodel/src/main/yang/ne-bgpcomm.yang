@@ -1,0 +1,77 @@
+/*
+WARNING:
+This yang model is just for fuction ONOS opensource project demo purpose only,
+And is subject to change in future, Huawei does not commit provide compatibilty
+in commercial product.
+*/
+module ne-bgpcomm {
+    namespace "ne-bgpcomm";
+    prefix bgpcomm;
+    import ne-bgpcomm-type {
+        prefix bgpcomm-type;
+    }
+    organization "Huawei Technologies Co., Ltd";
+    contact "Huawei Industrial Base
+     Bantian, Longgang
+     Shenzhen 518129
+     People's Republic of China
+     Website: http://www.huawei.com
+     Email: support@huawei.com";
+    description "ne-bgpcomm yang";
+    revision "2014-12-25" {
+        description "Initial version";
+    }
+
+    container devices {
+        list device {
+            key deviceid;
+            leaf deviceid {
+                type string;
+            }
+            container bgp {
+                container bgpcomm {
+                    description "";
+                    container bgpVrfs {
+                        description "";
+                        list bgpVrf {
+                            key "vrfName";
+                            description "BGP instance class";
+                            leaf vrfName {
+                                description "Specifies the name of the VPN in stance.
+                                It is a string of 1 to 31 case-sensitive characters.";
+                                type string;
+                            }
+                            container bgpVrfAFs {
+                                description "";
+                                list bgpVrfAF {
+                                    key "afType";
+                                    description "IPv4 unicast Address family class for
+                                    BGP instance";
+                                    leaf afType {
+                                        type "bgpcomm-type:bgpcommPrefixType";
+                                        description "Address family";
+                                    }
+                                    container importRoutes {
+                                        description "";
+                                        list importRoute {
+                                            key "importProtocol importProcessId";
+                                            description "Import route class";
+                                            leaf importProtocol {
+                                                type "bgpcomm-type:bgpcommImRouteProtocol";
+                                                description "Specifies the protocol from
+                                                which routes are imported.";
+                                            }
+                                            leaf importProcessId {
+                                                type "string";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

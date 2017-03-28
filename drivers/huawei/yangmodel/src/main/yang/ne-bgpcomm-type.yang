@@ -1,0 +1,115 @@
+/*
+WARNING:
+This yang model is just for fuction ONOS opensource project demo purpose only,
+And is subject to change in future, Huawei does not commit provide compatibilty
+in commercial product.
+*/
+module ne-bgpcomm-type {
+    namespace "ne-bgpcomm-type";
+    prefix bgpcomm-type;
+    organization "Huawei Technologies Co., Ltd";
+    contact "Huawei Industrial Base
+     Bantian, Longgang
+     Shenzhen 518129
+     People's Republic of China
+     Website: http://www.huawei.com
+     Email: support@huawei.com";
+    description "ne-bgpcomm-type yang";
+    revision "2014-12-25" {
+        description "Initial version";
+    }
+    typedef bgpcommImRouteProtocol {
+        type enumeration {
+            enum "direct" {
+                value 0;
+                description "direct:";
+            }
+            enum "ospf" {
+                value 1;
+                description "ospf:";
+            }
+            enum "isis" {
+                value 2;
+                description "isis:";
+            }
+            enum "static" {
+                value 3;
+                description "static:";
+            }
+            enum "rip" {
+                value 4;
+                description "rip:";
+            }
+            enum "ospfv3" {
+                value 5;
+                description "ospfv3:";
+            }
+            enum "ripng" {
+                value 6;
+                description "ripng:";
+            }
+            enum "unr" {
+                value 7;
+                description "unr:";
+            }
+            enum "op-route" {
+                value 8;
+                description "op-route:";
+            }
+        }
+        description "";
+    }
+    typedef bgpcommPrefixType {
+        type enumeration {
+            enum "ipv4uni" {
+                value 0;
+                description "ipv4uni:";
+            }
+            enum "ipv4multi" {
+                value 1;
+                description "ipv4multi:";
+            }
+            enum "ipv4vpn" {
+                value 2;
+                description "ipv4vpn:";
+            }
+            enum "ipv6uni" {
+                value 3;
+                description "ipv6uni:";
+            }
+            enum "ipv6vpn" {
+                value 4;
+                description "ipv6vpn:";
+            }
+            enum "ipv4flow" {
+                value 5;
+                description "ipv4flow:";
+            }
+            enum "l2vpnad" {
+                value 6;
+                description "l2vpnad:";
+            }
+            enum "mvpn" {
+                value 7;
+                description "mvpn:";
+            }
+            enum "evpn" {
+                value 8;
+                description "evpn:";
+            }
+            enum "ipv4vpnmcast" {
+                value 9;
+                description "ipv4vpnmcast:";
+            }
+            enum "ls" {
+                value 10;
+                description "ls:";
+            }
+            enum "mdt" {
+                value 11;
+                description "mdt:";
+            }
+        }
+        description "";
+    }
+}

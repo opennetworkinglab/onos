@@ -17,6 +17,8 @@
 package org.onosproject.l3vpn.netl3vpn;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.L3vpnConfig;
+import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.yang.model.ModelObjectData;
 
@@ -156,8 +158,8 @@ public class DeviceInfo {
      */
     public ModelObjectData processCreateInstance(DriverService driverSvc,
                                                  ModelObjectData modelData) {
-        // TODO: Need to call the behaviour.
-        return null;
+        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        return (ModelObjectData) config.createInstance(modelData);
     }
 
     /**
@@ -171,8 +173,8 @@ public class DeviceInfo {
      */
     public ModelObjectData processCreateInterface(DriverService driverSvc,
                                                   ModelObjectData modData) {
-        // TODO: Need to call the behaviour.
-        return null;
+        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        return (ModelObjectData) config.bindInterface(modData);
     }
 
     /**
@@ -188,8 +190,8 @@ public class DeviceInfo {
     public ModelObjectData processCreateBgpInfo(DriverService driverSvc,
                                                 BgpInfo bgpInfo,
                                                 BgpDriverInfo driverInfo) {
-        // TODO: Need to call the behaviour.
-        return null;
+        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        return (ModelObjectData) config.createBgpInfo(bgpInfo, driverInfo);
     }
 
     /**
@@ -202,9 +204,9 @@ public class DeviceInfo {
      * @return driver instance model object data
      */
     public ModelObjectData processDeleteInstance(DriverService driverSvc,
-                                          ModelObjectData modData) {
-        // TODO: Need to call the behaviour.
-        return null;
+                                                 ModelObjectData modData) {
+        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        return (ModelObjectData) config.deleteInstance(modData);
     }
 
     /**
@@ -217,7 +219,7 @@ public class DeviceInfo {
      * @return driver interface model object data
      */
     public ModelObjectData processDeleteInterface(DriverService driverSvc,
-                                           ModelObjectData objectData) {
+                                                  ModelObjectData objectData) {
         // TODO: Need to call the behaviour.
         return null;
     }
@@ -233,9 +235,20 @@ public class DeviceInfo {
      * @return driver BGP model object data
      */
     public ModelObjectData processDeleteBgpInfo(DriverService driverSvc,
-                                         BgpInfo bgpInfo,
-                                         BgpDriverInfo driverInfo) {
+                                                BgpInfo bgpInfo,
+                                                BgpDriverInfo driverInfo) {
         // TODO: Need to call the behaviour.
         return null;
+    }
+
+    /**
+     * Returns the L3VPN config instance from the behaviour.
+     *
+     * @param driverSvc driver service
+     * @return L3VPN config
+     */
+    private L3vpnConfig getL3VpnConfig(DriverService driverSvc) {
+        DriverHandler handler = driverSvc.createHandler(deviceId);
+        return handler.behaviour(L3vpnConfig.class);
     }
 }
