@@ -39,6 +39,7 @@ public final class ResourceIdParser {
     public static final String VAL_CHK = "\\@";
     public static final String KEY_CHK = "\\$";
     public static final String NM_CHK = "\\#";
+    public static final String EL_CHK = "\\|";
 
 
     private ResourceIdParser() {

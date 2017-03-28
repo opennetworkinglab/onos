@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.config.DynamicConfigEvent;
 import org.onosproject.config.DynamicConfigListener;
 import org.onosproject.config.DynamicConfigService;
+import org.onosproject.config.ResourceIdParser;
 import org.onosproject.config.Filter;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -34,7 +35,6 @@ import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.netconf.client.NetconfTranslator.OperationType;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.InnerNode;
-import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafNode;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
@@ -48,7 +48,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -84,11 +86,18 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     private static final int MAX_BATCH_MS = 5000;
     private static final int MAX_IDLE_MS = 1000;
 
-    private ResourceId resId = new ResourceId.Builder()
+    private ResourceId defParent = new ResourceId.Builder()
             .addBranchPointSchema(DEVICES, DEVNMSPACE)
             .addBranchPointSchema(DEVICE, DEVNMSPACE)
-            .addKeyLeaf(DEVICE_ID, DEVNMSPACE, "netconf:172.16.5.11:22")
+            .addBranchPointSchema(DEVICE_ID, DEVNMSPACE)
             .build();
+
+    //TODO remove this hack after store ordering is fixed
+    private static final String EXCPATH = "root|devices#ne-l3vpn-api|" +
+            "device#ne-l3vpn-api$deviceid#ne-l3vpn-api#netconf:172.16.5.11:22|" +
+            "l3vpn#ne-l3vpn-api|l3vpncomm#ne-l3vpn-api|l3vpnInstances#ne-l3vpn-api|" +
+            "l3vpnInstance#ne-l3vpn-api$vrfName#ne-l3vpn-api#vrf2|l3vpnIfs#ne-l3vpn-api";
+    //end of hack
 
     @Activate
     protected void activate() {
@@ -104,34 +113,9 @@ public class NetconfActiveComponent implements DynamicConfigListener {
 
     @Override
     public boolean isRelevant(DynamicConfigEvent event) {
-        return checkIfRelevant(event.subject());
-    }
-
-    /**
-     * Checks if this event is relevant for active component.
-     *
-     * @param id resource id
-     * @return true if relevant
-     */
-    private boolean checkIfRelevant(ResourceId id) {
-        checkNotNull(id, "resource id can't be null");
-        List<NodeKey> nodeKeys = id.nodeKeys();
-        if (nodeKeys != null && !nodeKeys.isEmpty() && nodeKeys.size() == 2) {
-            NodeKey key = nodeKeys.get(0);
-            if (key.schemaId().name().equals(DEVICES)) {
-                key = nodeKeys.get(1);
-                if (key.schemaId().name().equals(DEVICE)) {
-                    ListKey listKey = (ListKey) key;
-                    List<KeyLeaf> keyLeaves = listKey.keyLeafs();
-                    if (keyLeaves != null && !keyLeaves.isEmpty()) {
-                        return keyLeaves.get(0).leafSchema().name()
-                                .equals(DEVICE_ID);
-                    }
-                }
-            }
-        }
-        log.debug("not a relevant event for netconf active component");
-        return false;
+        String resId = ResourceIdParser.parseResId(event.subject());
+        String refId = ResourceIdParser.parseResId(defParent);
+        return (resId.substring(0, (refId.length() - 1)).compareTo(refId) == 0);
     }
 
     public boolean isMaster(DeviceId deviceId) {
@@ -152,7 +136,7 @@ public class NetconfActiveComponent implements DynamicConfigListener {
      * @param resourceId the resourceId of the root of the subtree to be edited
      * @return true if the update succeeds false otherwise
      */
-    private boolean configDelete(DataNode node, DeviceId deviceId, ResourceId resourceId) {
+    private boolean    configDelete(DataNode node, DeviceId deviceId, ResourceId resourceId) {
         return parseAndEdit(node, deviceId, resourceId, OperationType.DELETE);
     }
 
@@ -182,15 +166,17 @@ public class NetconfActiveComponent implements DynamicConfigListener {
     private boolean parseAndEdit(DataNode node, DeviceId deviceId,
                                  ResourceId resourceId,
                                  NetconfTranslator.OperationType operationType) {
-
-        //add all low level nodes of devices
-        Iterator<Map.Entry<NodeKey, DataNode>> it = ((InnerNode) node)
-                .childNodes().entrySet().iterator();
+        //FIXME separate edit and delete, delete can proceed with a null node
         DefaultResourceData.Builder builder = DefaultResourceData.builder();
-        while (it.hasNext()) {
-            DataNode n = it.next().getValue();
-            if (!n.key().schemaId().name().equals("deviceid")) {
-                builder.addDataNode(n);
+        if (node != null) {
+            //add all low level nodes of devices
+            Iterator<Map.Entry<NodeKey, DataNode>> it = ((InnerNode) node)
+                    .childNodes().entrySet().iterator();
+            while (it.hasNext()) {
+                DataNode n = it.next().getValue();
+                if (!n.key().schemaId().name().equals("deviceid")) {
+                    builder.addDataNode(n);
+                }
             }
         }
         //add resouce id //TODO: check if it is correct
@@ -256,6 +242,81 @@ public class NetconfActiveComponent implements DynamicConfigListener {
         }
     }
 
+    /**
+     * Retrieves device key from Resource id.
+     *
+     * @param path associated with the event
+     * @return the deviceId of the effected device
+     */
+    @Beta
+    public ResourceId getDeviceKey(ResourceId path) {
+        String resId = ResourceIdParser.parseResId(path);
+        String[] el = resId.split(ResourceIdParser.EL_CHK);
+        if (el.length < 2) {
+            throw new RuntimeException(new NetconfException("Invalid resource id, cannot apply"));
+        }
+        if (!el[1].contains((ResourceIdParser.KEY_SEP))) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        String[] keys = el[1].split(ResourceIdParser.KEY_CHK);
+        if (keys.length < 2) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        String[] parts = keys[1].split(ResourceIdParser.NM_CHK);
+        if (parts.length < 3) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        if (parts[2].split("\\:").length != 3) {
+            throw new RuntimeException(new NetconfException("Invalid device id form, cannot apply"));
+        }
+        return (new ResourceId.Builder()
+                .addBranchPointSchema(el[0].split(ResourceIdParser.NM_CHK)[0],
+                        el[0].split(ResourceIdParser.NM_CHK)[1])
+                .addBranchPointSchema(keys[0].split(ResourceIdParser.NM_CHK)[0],
+                        keys[0].split(ResourceIdParser.NM_CHK)[1])
+                .addKeyLeaf(parts[0], parts[1], parts[2])
+                .build());
+
+    }
+
+    /**
+     * Retrieves device id from Resource id.
+     *
+     * @param path associated with the event
+     * @return the deviceId of the effected device
+     */
+    @Beta
+    public DeviceId getDeviceId(ResourceId path) {
+        String resId = ResourceIdParser.parseResId(path);
+        String[] el = resId.split(ResourceIdParser.EL_CHK);
+        if (el.length < 2) {
+            throw new RuntimeException(new NetconfException("Invalid resource id, cannot apply"));
+        }
+        if (!el[2].contains((ResourceIdParser.KEY_SEP))) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        String[] keys = el[2].split(ResourceIdParser.KEY_CHK);
+        if (keys.length < 2) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        String[] parts = keys[1].split(ResourceIdParser.NM_CHK);
+        if (parts.length < 3) {
+            throw new RuntimeException(new NetconfException("Invalid device id key, cannot apply"));
+        }
+        String[] temp = parts[2].split("\\:");
+        String ip, port;
+        if (temp.length != 3) {
+            throw new RuntimeException(new NetconfException("Invalid device id form, cannot apply"));
+        }
+        ip = temp[1];
+        port = temp[2];
+        try {
+            return DeviceId.deviceId(new URI("netconf", ip + ":" + port, (String) null));
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Unable to build deviceID for device " + ip + ":" + port, ex);
+        }
+    }
+
     /* Accumulates events to allow processing after a desired number of events were accumulated.
     */
     private class InternalEventAccummulator extends AbstractAccumulator<DynamicConfigEvent> {
@@ -264,35 +325,72 @@ public class NetconfActiveComponent implements DynamicConfigListener {
         }
         @Override
         public void processItems(List<DynamicConfigEvent> events) {
-            DynamicConfigEvent event = null;
+            Map<ResourceId, List<DynamicConfigEvent>> evtmap = new LinkedHashMap<>();
+            Boolean handleEx = false; //hack
+            ResourceId exId = null; //hack
             for (DynamicConfigEvent e : events) {
-                //checkIfRelevant already filters only the relevant events
-                event = e;
-                checkNotNull(event, "process:Event cannot be null");
-                switch (event.type()) {
-                    case NODE_ADDED:
-                    case NODE_UPDATED:
-                    case NODE_REPLACED:
-                        Filter filt = new Filter();
-                        DataNode node = cfgService.readNode(event.subject(), filt);
-                        DeviceId deviceId = getDeviceId(node);
-                        if (!isMaster(deviceId)) {
-                            log.info("NetConfListener: not master, ignoring config for {}", event.type());
-                            return;
-                        }
-                        initiateConnection(deviceId);
-                        configUpdate(node, deviceId, event.subject());
-                        break;
-                    case NODE_DELETED:
-                        log.info("NetConfListener: RXD DELETE EVT for {}", event.type());
-                        //configDelete(null, null, event.subject());
-                        break;
-                    case UNKNOWN_OPRN:
-                    default:
-                        log.warn("NetConfListener: unknown event: {}", event.type());
-                        break;
+                checkNotNull(e, "process:Event cannot be null");
+                ResourceId cur = e.subject();
+                //TODO remove this hack after store ordering is fixed
+                if (ResourceIdParser.parseResId(cur).compareTo(EXCPATH) == 0) {
+                    if (e.type() == DynamicConfigEvent.Type.NODE_ADDED) {
+                        log.info("Received an event for the xempted path ADD {}", e.type());
+                        handleEx = true;
+                        exId = cur;
+                    } else {
+                        log.warn("Received an event for the xempted path {}, NOT handled!!", e.type());
+                    }
+                } else { //actual code
+                    ResourceId key = getDeviceKey(e.subject());
+                    List<DynamicConfigEvent> el = evtmap.get(key);
+                    if (el == null) {
+                        el = new ArrayList<>();
+                    }
+                    el.add(e);
+                    evtmap.put(key, el);
                 }
             }
+            evtmap.forEach((k, v) -> {
+                log.info("Current deviceKey {}", k);
+                DeviceId curDevice = getDeviceId(k);
+                if (!isMaster(curDevice)) {
+                    log.info("NetConfListener: not master, ignoring config for device {}", k);
+                    return;
+                }
+                initiateConnection(curDevice);
+                for (DynamicConfigEvent curEvt : v) {
+                    switch (curEvt.type()) {
+                        case NODE_ADDED:
+                        case NODE_UPDATED:
+                        case NODE_REPLACED:
+                            Filter filt = new Filter();
+                            DataNode node = cfgService.readNode(k, filt);
+                            configUpdate(node, curDevice, k);
+                            break;
+                        case NODE_DELETED:
+                            log.info("NetConfListener: RXD DELETE EVT for {}", k);
+                            configDelete(null, curDevice, k); //TODO curEvt.subject());
+                            break;
+                        case UNKNOWN_OPRN:
+                        default:
+                            log.warn("NetConfListener: unknown event: {}", curEvt.type());
+                            break;
+                    }
+                }
+            });
+            //TODO remove this hack after store ordering is fixed
+            if (handleEx) {
+                log.info("Handling exception path {}", exId);
+                DeviceId exDevice = getDeviceId(exId);
+                if (!isMaster(exDevice)) {
+                    log.info("NetConfListener: not master, ignoring config for expath {}", exId);
+                    return;
+                }
+                initiateConnection(exDevice);
+                Filter filt = new Filter();
+                DataNode exnode = cfgService.readNode(exId, filt);
+                configUpdate(exnode, exDevice, exId);
+            } //end of hack
         }
     }
 }
