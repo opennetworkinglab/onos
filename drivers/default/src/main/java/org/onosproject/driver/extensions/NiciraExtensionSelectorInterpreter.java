@@ -28,6 +28,9 @@ import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmConntrackMark;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmConntrackStateMasked;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmConntrackZone;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmEncapEthType;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmNsi;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmNsp;
@@ -66,6 +69,22 @@ public class NiciraExtensionSelectorInterpreter
                                          .type())) {
             return true;
         }
+        if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE
+                .type())) {
+            return true;
+        }
+        if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_ZONE
+                .type())) {
+            return true;
+        }
+        if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_MARK
+                .type())) {
+            return true;
+        }
+        if (extensionSelectorType.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_LABEL
+                .type())) {
+            return true;
+        }
         return false;
     }
 
@@ -97,6 +116,20 @@ public class NiciraExtensionSelectorInterpreter
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH4.type())) {
             // TODO
         }
+
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE.type())) {
+            NiciraMatchCtState niciraMatchCtState = (NiciraMatchCtState) extensionSelector;
+            return factory.oxms().conntrackStateMasked(U32.of(niciraMatchCtState.ctState()),
+                    U32.of(niciraMatchCtState.ctStateMask()));
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_ZONE.type())) {
+            NiciraMatchCtZone niciraMatchCtZone = (NiciraMatchCtZone) extensionSelector;
+            return factory.oxms().conntrackZone(U16.of(niciraMatchCtZone.ctZone()));
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_MARK.type())) {
+            NiciraMatchCtMark niciraMatchCtMark = (NiciraMatchCtMark) extensionSelector;
+            return factory.oxms().conntrackMark(U32.of(niciraMatchCtMark.ctMark()));
+        }
         return null;
     }
 
@@ -115,7 +148,18 @@ public class NiciraExtensionSelectorInterpreter
             OFOxmEncapEthType oxmField = (OFOxmEncapEthType) oxm;
             return new NiciraMatchEncapEthType(oxmField.getValue().getRaw());
         }
-
+        if (oxm.getMatchField() == MatchField.CONNTRACK_STATE) {
+            OFOxmConntrackStateMasked oxmField = (OFOxmConntrackStateMasked) oxm;
+            return new NiciraMatchCtState(oxmField.getValue().getRaw(), oxmField.getMask().getRaw());
+        }
+        if (oxm.getMatchField() == MatchField.CONNTRACK_ZONE) {
+            OFOxmConntrackZone oxmField = (OFOxmConntrackZone) oxm;
+            return new NiciraMatchCtZone(oxmField.getValue().getRaw());
+        }
+        if (oxm.getMatchField() == MatchField.CONNTRACK_MARK) {
+            OFOxmConntrackMark oxmField = (OFOxmConntrackMark) oxm;
+            return new NiciraMatchCtMark(oxmField.getValue().getRaw());
+        }
         return null;
     }
 
@@ -135,6 +179,15 @@ public class NiciraExtensionSelectorInterpreter
                 || type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH3.type())
                 || type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_CH4.type())) {
             return new NiciraMatchNshContextHeader(type);
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE.type())) {
+            return new NiciraMatchCtState();
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_ZONE.type())) {
+            return new NiciraMatchCtZone();
+        }
+        if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_MARK.type())) {
+            return new NiciraMatchCtMark();
         }
         return null;
     }

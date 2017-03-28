@@ -18,8 +18,10 @@ package org.onosproject.driver.extensions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
-
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Bytes;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.NshContextHeader;
 import org.onosproject.net.NshServiceIndex;
@@ -35,7 +37,9 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionNicira;
+import org.projectfloodlight.openflow.protocol.action.OFActionNiciraCt;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraMove;
+import org.projectfloodlight.openflow.protocol.action.OFActionNiciraNat;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraResubmit;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraResubmitTable;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
@@ -54,12 +58,16 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmNsp;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunGpeNp;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunnelIpv4Dst;
 import org.projectfloodlight.openflow.types.IPv4Address;
+import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U8;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Interpreter for Nicira OpenFlow treatment extensions.
@@ -80,9 +88,19 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
     private static final int TUN_IPV4_DST = 0x00014004;
     private static final int TUN_ID = 0x12008;
 
+    private static final int NAT_RANGE_IPV4_MIN = 0x01;
+    private static final int NAT_RANGE_IPV4_MAX = 0x02;
+    private static final int NAT_RANGE_IPV6_MIN = 0x04;
+    private static final int NAT_RANGE_IPV6_MAX = 0x08;
+    private static final int NAT_RANGE_PROTO_MIN = 0x10;
+    private static final int NAT_RANGE_PROTO_MAX = 0x20;
+
     private static final int SUB_TYPE_RESUBMIT = 1;
     private static final int SUB_TYPE_RESUBMIT_TABLE = 14;
     private static final int SUB_TYPE_MOVE = 6;
+    private static final int SUB_TYPE_CT = 35;
+    private static final int SUB_TYPE_NAT = 36;
+    private static final int SUB_TYPE_CT_CLEAR = 43;
     private static final int SUB_TYPE_PUSH_NSH = 38;
     private static final int SUB_TYPE_POP_NSH = 39;
 
@@ -199,6 +217,15 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                                           .type())) {
             return true;
         }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
+            return true;
+        }
         return false;
     }
 
@@ -298,6 +325,70 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             action.setSrc(mov.src());
             action.setDst(mov.dst());
             return action.build();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type())) {
+            NiciraCt niciraCt = (NiciraCt) extensionTreatment;
+            OFActionNiciraCt.Builder ctAction = factory.actions().buildNiciraCt();
+            ctAction.setFlags(niciraCt.niciraCtFlags());
+            ctAction.setZoneSrc(niciraCt.niciraCtZoneSrc());
+            ctAction.setZone(niciraCt.niciraCtZone());
+            ctAction.setRecircTable(niciraCt.niciraCtRecircTable());
+            ctAction.setAlg(niciraCt.niciraCtAlg());
+
+            for (ExtensionTreatment nestedTreatment : niciraCt.niciraCtNestActions()) {
+                if (nestedTreatment instanceof NiciraNat) {
+                    NiciraNat niciraNat = (NiciraNat) nestedTreatment;
+                    OFActionNiciraNat.Builder action = factory.actions().buildNiciraNat();
+                    action.setFlags(niciraNat.niciraNatFlags());
+
+                    int presetFlags = niciraNat.niciraNatPresentFlags();
+                    action.setRangePresent(presetFlags);
+
+                    List<IPv4Address> ipv4RangeList = Lists.newArrayList();
+                    List<IPv6Address> ipv6RangeList = Lists.newArrayList();
+                    List<U16> portRangeList = Lists.newArrayList();
+                    List<U8> padList = Lists.newArrayList();
+                    if ((presetFlags & NAT_RANGE_IPV4_MIN) != 0) {
+                        ipv4RangeList.add(IPv4Address.of(niciraNat.niciraNatIpAddressMin().getIp4Address().toString()));
+                    }
+                    if ((presetFlags & NAT_RANGE_IPV4_MAX) != 0) {
+                        ipv4RangeList.add(IPv4Address.of(niciraNat.niciraNatIpAddressMax().getIp4Address().toString()));
+                    }
+
+                    if ((presetFlags & NAT_RANGE_IPV6_MIN) != 0) {
+                        ipv6RangeList.add(IPv6Address.of(niciraNat.niciraNatIpAddressMin().getIp6Address().toString()));
+                    }
+                    if ((presetFlags & NAT_RANGE_IPV6_MAX) != 0) {
+                        ipv6RangeList.add(IPv6Address.of(niciraNat.niciraNatIpAddressMax().getIp6Address().toString()));
+                    }
+
+                    if ((presetFlags & NAT_RANGE_PROTO_MIN) != 0) {
+                        portRangeList.add(U16.of(niciraNat.niciraNatPortMin()));
+                    }
+                    if ((presetFlags & NAT_RANGE_PROTO_MAX) != 0) {
+                        portRangeList.add(U16.of(niciraNat.niciraNatPortMax()));
+                    }
+
+                    for (; (ipv6RangeList.size() * 16 + ipv4RangeList.size() * 4
+                            + portRangeList.size() * 2 + padList.size()) % 8 != 0;) {
+                        padList.add(U8.ofRaw((byte) 0));
+                    }
+
+                    action.setIpv4Range(ipv4RangeList);
+                    action.setIpv6Range(ipv6RangeList);
+                    action.setPortRange(portRangeList);
+                    action.setPad(padList);
+
+                    //nat action must be nested in ct action
+                    List<OFAction> actions = Lists.newArrayList();
+                    actions.add(action.build());
+                    ctAction.setActions(actions);
+                }
+            }
+            return ctAction.build();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
+            return factory.actions().niciraCtClear();
         }
         return null;
     }
@@ -404,14 +495,87 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     case SUB_TYPE_RESUBMIT:
                         OFActionNiciraResubmit resubmitAction = (OFActionNiciraResubmit) nicira;
                         return new NiciraResubmit(PortNumber.portNumber(resubmitAction.getInPort()));
-                case SUB_TYPE_PUSH_NSH:
-                    return new NiciraPushNsh();
-                case SUB_TYPE_POP_NSH:
-                    return new NiciraPopNsh();
-                case SUB_TYPE_RESUBMIT_TABLE:
-                    OFActionNiciraResubmitTable resubmitTable = (OFActionNiciraResubmitTable) nicira;
-                    return new NiciraResubmitTable(PortNumber.portNumber(resubmitTable.getInPort()),
-                                                   resubmitTable.getTable());
+                    case SUB_TYPE_PUSH_NSH:
+                        return new NiciraPushNsh();
+                    case SUB_TYPE_POP_NSH:
+                        return new NiciraPopNsh();
+                    case SUB_TYPE_RESUBMIT_TABLE:
+                        OFActionNiciraResubmitTable resubmitTable = (OFActionNiciraResubmitTable) nicira;
+                        return new NiciraResubmitTable(PortNumber.portNumber(resubmitTable.getInPort()),
+                                                       resubmitTable.getTable());
+                    case SUB_TYPE_CT:
+                        OFActionNiciraCt ctAction = (OFActionNiciraCt) nicira;
+                        List<OFAction> actions = ctAction.getActions();
+                        for (OFAction act : actions) {
+                            OFActionExperimenter ctExperimenter = (OFActionExperimenter) act;
+                            if (Long.valueOf(ctExperimenter.getExperimenter()).intValue() == TYPE_NICIRA) {
+                                OFActionNicira actionNicira = (OFActionNicira) ctExperimenter;
+                                switch (actionNicira.getSubtype()) {
+                                    case SUB_TYPE_NAT:
+                                        OFActionNiciraNat natAction = (OFActionNiciraNat) actionNicira;
+                                        int portMin = 0;
+                                        int portMax = 0;
+                                        IpAddress ipAddressMin = IpAddress.valueOf(0);
+                                        IpAddress ipAddressMax = IpAddress.valueOf(0);
+                                        //FIXME: we need to get ipv6 and port from list<ipv4> temporarily,
+                                        // becase loxi don't know how to arrange these data to corresonding field.
+                                        IPv4Address[] arrays = (IPv4Address[]) natAction
+                                                .getIpv4Range().toArray(new IPv4Address[0]);
+                                        int index = 0;
+                                        if ((natAction.getRangePresent() & NAT_RANGE_IPV4_MIN) != 0) {
+                                            ipAddressMin = IpAddress.valueOf(arrays[index++].toString());
+                                        }
+                                        if ((natAction.getRangePresent() & NAT_RANGE_IPV4_MAX) != 0) {
+                                            ipAddressMax = IpAddress.valueOf(arrays[index++].toString());
+                                        }
+                                        if ((natAction.getRangePresent() & NAT_RANGE_IPV6_MIN) != 0) {
+                                            byte[]  bytes = Bytes.concat(arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes());
+
+                                            ipAddressMin = IpAddress.valueOf(IpAddress.Version.INET6, bytes);
+                                        }
+                                        if ((natAction.getRangePresent() & NAT_RANGE_IPV6_MAX) != 0) {
+                                            byte[]  bytes = Bytes.concat(arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes(),
+                                                    arrays[index++].getBytes());
+
+                                            ipAddressMax = IpAddress.valueOf(IpAddress.Version.INET6, bytes);
+                                        }
+                                        if ((natAction.getRangePresent() & NAT_RANGE_PROTO_MIN) != 0) {
+                                            portMin = arrays[index].getInt() >> 16 & 0x0000ffff;
+                                        }
+                                        if ((natAction.getRangePresent() & NAT_RANGE_PROTO_MAX) != 0) {
+                                            portMax = arrays[index].getInt() & 0x0000ffff;
+                                        }
+                                        List<ExtensionTreatment> treatments = new ArrayList<>();
+                                        NiciraNat natTreatment = new NiciraNat(natAction.getFlags(),
+                                                natAction.getRangePresent(),
+                                                portMin, portMax,
+                                                ipAddressMin, ipAddressMax);
+                                        treatments.add(natTreatment);
+                                        return new NiciraCt(ctAction.getFlags(),
+                                                ctAction.getZoneSrc(),
+                                                ctAction.getZone(),
+                                                ctAction.getRecircTable(),
+                                                ctAction.getAlg(),
+                                                treatments);
+                                    default:
+                                        throw new UnsupportedOperationException("Driver does not support nested" +
+                                                " in ct action extension subtype " + actionNicira.getSubtype());
+                                }
+                            }
+                        }
+                        return new NiciraCt(ctAction.getFlags(),
+                                ctAction.getZoneSrc(),
+                                ctAction.getZone(),
+                                ctAction.getRecircTable(),
+                                ctAction.getAlg(),
+                                new ArrayList<>());
+                    case SUB_TYPE_CT_CLEAR:
+                        return new NiciraCtClear();
                     default:
                         throw new UnsupportedOperationException("Driver does not support extension subtype "
                                 + nicira.getSubtype());
@@ -501,6 +665,15 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_NSH_C2_TO_TUN_ID.type())) {
             return NiciraMoveTreatmentFactory.createNiciraMovNshC2ToTunId();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type())) {
+            return new NiciraCt();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type())) {
+            return new NiciraNat();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
+            return new NiciraCtClear();
         }
         throw new UnsupportedOperationException("Driver does not support extension type " + type.toString());
     }

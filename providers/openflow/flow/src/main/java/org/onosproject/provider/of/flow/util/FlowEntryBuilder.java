@@ -979,7 +979,7 @@ public class FlowEntryBuilder {
                         match.get(MatchField.EXP_ODU_SIG_ID).getTslen(),
                         match.get(MatchField.EXP_ODU_SIG_ID).getTsmap());
                 builder.add(matchOduSignalId(oduSignalId));
-            break;
+                break;
             case EXP_ODU_SIGTYPE:
                 try {
                     U8 oduSigType = match.get(MatchField.EXP_ODU_SIGTYPE);
@@ -1037,6 +1037,39 @@ public class FlowEntryBuilder {
                 if (selectorInterpreter != null) {
                     try {
                         OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.ENCAP_ETH_TYPE);
+                        builder.extension(selectorInterpreter.mapOxm(oxm), deviceId);
+                    } catch (UnsupportedOperationException e) {
+                        log.debug(e.getMessage());
+                    }
+                }
+                break;
+            case CONNTRACK_STATE:
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE.type())) {
+                    try {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.CONNTRACK_STATE);
+                        builder.extension(selectorInterpreter.mapOxm(oxm), deviceId);
+                    } catch (UnsupportedOperationException e) {
+                        log.debug(e.getMessage());
+                    }
+                }
+                break;
+            case CONNTRACK_ZONE:
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_ZONE.type())) {
+                    try {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.CONNTRACK_ZONE);
+                        builder.extension(selectorInterpreter.mapOxm(oxm), deviceId);
+                    } catch (UnsupportedOperationException e) {
+                        log.debug(e.getMessage());
+                    }
+                }
+                break;
+            case CONNTRACK_MARK:
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_MARK.type())) {
+                    try {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.CONNTRACK_MARK);
                         builder.extension(selectorInterpreter.mapOxm(oxm), deviceId);
                     } catch (UnsupportedOperationException e) {
                         log.debug(e.getMessage());
