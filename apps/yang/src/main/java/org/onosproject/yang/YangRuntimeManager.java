@@ -40,6 +40,7 @@ import org.onosproject.yang.runtime.YangModelRegistry;
 import org.onosproject.yang.runtime.YangRuntimeService;
 import org.onosproject.yang.runtime.YangSerializer;
 import org.onosproject.yang.runtime.YangSerializerRegistry;
+import org.onosproject.yang.runtime.impl.DefaultModelConverter;
 import org.onosproject.yang.runtime.impl.DefaultYangModelRegistry;
 import org.onosproject.yang.runtime.impl.DefaultYangRuntimeHandler;
 import org.onosproject.yang.runtime.impl.DefaultYangSerializerRegistry;
@@ -71,6 +72,7 @@ public class YangRuntimeManager implements YangModelRegistry,
     private DefaultYangModelRegistry modelRegistry;
     private DefaultYangSerializerRegistry serializerRegistry;
     private DefaultYangRuntimeHandler runtimeService;
+    private DefaultModelConverter modelConverter;
 
     @Activate
     public void activate() {
@@ -81,6 +83,7 @@ public class YangRuntimeManager implements YangModelRegistry,
                 new DefaultYangRuntimeHandler(serializerRegistry, modelRegistry);
         serializerRegistry.registerSerializer(new JsonSerializer());
         serializerRegistry.registerSerializer(new XmlSerializer());
+        modelConverter = new DefaultModelConverter(modelRegistry);
         log.info("Started");
     }
 
@@ -132,14 +135,12 @@ public class YangRuntimeManager implements YangModelRegistry,
 
     @Override
     public ModelObjectData createModel(ResourceData resourceData) {
-        // TODO implementation.
-        return null;
+        return modelConverter.createModel(resourceData);
     }
 
     @Override
     public ResourceData createDataNode(ModelObjectData modelObjectData) {
-        // TODO implementation.
-        return null;
+        return modelConverter.createDataNode(modelObjectData);
     }
 
     @Override
