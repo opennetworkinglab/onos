@@ -24,13 +24,14 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.BoundedThreadPool.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.ofagent.api.OFAgent.State.STARTED;
 import static org.onosproject.ofagent.api.OFAgentService.APPLICATION_NAME;
 
 /**
@@ -77,7 +79,8 @@ public class OFSwitchManager implements OFSwitchService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final OFSwitchCapabilities DEFAULT_CAPABILITIES = DefaultOFSwitchCapabilities.builder()
+    private static final OFSwitchCapabilities DEFAULT_CAPABILITIES =
+            DefaultOFSwitchCapabilities.builder()
             .flowStats()
             .tableStats()
             .portStats()
@@ -106,6 +109,7 @@ public class OFSwitchManager implements OFSwitchService {
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final OFAgentListener ofAgentListener = new InternalOFAgentListener();
+    private final VirtualNetworkListener vNetworkListener = new InternalVirtualNetworkListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final FlowRuleListener flowRuleListener = new InternalFlowRuleListener();
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
@@ -119,13 +123,17 @@ public class OFSwitchManager implements OFSwitchService {
         appId = coreService.registerApplication(APPLICATION_NAME);
         localId = clusterService.getLocalNode().id();
         ioWorker = new NioEventLoopGroup();
+
+        ofAgentService.agents().forEach(this::processOFAgentCreated);
         ofAgentService.addListener(ofAgentListener);
+        virtualNetService.addListener(vNetworkListener);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        virtualNetService.removeListener(vNetworkListener);
         ofAgentService.removeListener(ofAgentListener);
         ofAgentService.agents().forEach(this::processOFAgentStopped);
 
@@ -149,21 +157,25 @@ public class OFSwitchManager implements OFSwitchService {
         return ImmutableSet.copyOf(ofSwitches);
     }
 
-    private void addOFSwitch(DeviceId deviceId) {
+    private void addOFSwitch(NetworkId networkId, DeviceId deviceId) {
         OFSwitch ofSwitch = DefaultOFSwitch.of(
                 dpidWithDeviceId(deviceId),
                 DEFAULT_CAPABILITIES);
         ofSwitchMap.put(deviceId, ofSwitch);
-        log.debug("Added virtual OF switch for {}", deviceId);
-        // TODO connect controllers if the agent is in started state
+        log.info("Added virtual OF switch for {}", deviceId);
+
+        OFAgent ofAgent = ofAgentService.agent(networkId);
+        if (ofAgent.state() == STARTED) {
+            connectController(ofSwitch, ofAgent.controllers());
+        }
     }
 
     private void deleteOFSwitch(DeviceId deviceId) {
-        // TODO disconnect switch if it has active connection
-        OFSwitch ofSwitch = ofSwitchMap.remove(deviceId);
-        if (ofSwitch != null) {
-            log.debug("Removed virtual OFSwitch for {}", deviceId);
-        }
+        OFSwitch ofSwitch = ofSwitchMap.get(deviceId);
+        ofSwitch.controllerChannels().forEach(ChannelOutboundInvoker::disconnect);
+
+        ofSwitchMap.remove(deviceId);
+        log.info("Removed virtual OFSwitch for {}", deviceId);
     }
 
     private void connectController(OFSwitch ofSwitch, Set<OFController> controllers) {
@@ -174,25 +186,22 @@ public class OFSwitchManager implements OFSwitchService {
                     ioWorker);
             connectionHandler.connect();
         });
-        log.debug("Connection requested for {}, controller:{}", ofSwitch.dpid(), controllers);
     }
 
     private void disconnectController(OFSwitch ofSwitch, Set<OFController> controllers) {
         Set<SocketAddress> controllerAddrs = controllers.stream()
-                .map(ctrl -> new InetSocketAddress(ctrl.ip().toInetAddress(), ctrl.port().toInt()))
+                .map(ctrl -> new InetSocketAddress(
+                        ctrl.ip().toInetAddress(), ctrl.port().toInt()))
                 .collect(Collectors.toSet());
 
         ofSwitch.controllerChannels().stream()
                 .filter(channel -> controllerAddrs.contains(channel.remoteAddress()))
                 .forEach(ChannelOutboundInvoker::disconnect);
-        log.debug("Disconnection requested for {}, controller:{}", ofSwitch.dpid(), controllers);
     }
 
     private Set<DeviceId> devices(NetworkId networkId) {
-        DeviceService deviceService = virtualNetService.get(
-                networkId,
-                DeviceService.class);
-        Set<DeviceId> deviceIds = Tools.stream(deviceService.getAvailableDevices())
+        Set<DeviceId> deviceIds = virtualNetService.getVirtualDevices(networkId)
+                .stream()
                 .map(Device::id)
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(deviceIds);
@@ -214,19 +223,13 @@ public class OFSwitchManager implements OFSwitchService {
     }
 
     private void processOFAgentCreated(OFAgent ofAgent) {
-        devices(ofAgent.networkId()).forEach(this::addOFSwitch);
-        DeviceService deviceService = virtualNetService.get(
-                ofAgent.networkId(),
-                DeviceService.class);
-        deviceService.addListener(deviceListener);
+        devices(ofAgent.networkId()).forEach(deviceId -> {
+            addOFSwitch(ofAgent.networkId(), deviceId);
+        });
     }
 
     private void processOFAgentRemoved(OFAgent ofAgent) {
         devices(ofAgent.networkId()).forEach(this::deleteOFSwitch);
-        DeviceService deviceService = virtualNetService.get(
-                ofAgent.networkId(),
-                DeviceService.class);
-        deviceService.removeListener(deviceListener);
     }
 
     private void processOFAgentStarted(OFAgent ofAgent) {
@@ -236,6 +239,11 @@ public class OFSwitchManager implements OFSwitchService {
                 connectController(ofSwitch, ofAgent.controllers());
             }
         });
+
+        DeviceService deviceService = virtualNetService.get(
+                ofAgent.networkId(),
+                DeviceService.class);
+        deviceService.addListener(deviceListener);
 
         PacketService packetService = virtualNetService.get(
                 ofAgent.networkId(),
@@ -256,6 +264,11 @@ public class OFSwitchManager implements OFSwitchService {
             }
         });
 
+        DeviceService deviceService = virtualNetService.get(
+                ofAgent.networkId(),
+                DeviceService.class);
+        deviceService.removeListener(deviceListener);
+
         PacketService packetService = virtualNetService.get(
                 ofAgent.networkId(),
                 PacketService.class);
@@ -265,6 +278,43 @@ public class OFSwitchManager implements OFSwitchService {
                 ofAgent.networkId(),
                 FlowRuleService.class);
         flowRuleService.removeListener(flowRuleListener);
+    }
+
+    private class InternalVirtualNetworkListener implements VirtualNetworkListener {
+
+        @Override
+        public void event(VirtualNetworkEvent event) {
+            switch (event.type()) {
+                case VIRTUAL_DEVICE_ADDED:
+                    eventExecutor.execute(() -> {
+                        log.debug("Virtual device {} added to network {}",
+                                event.virtualDevice().id(),
+                                event.subject());
+                        addOFSwitch(event.subject(), event.virtualDevice().id());
+                    });
+                    break;
+                case VIRTUAL_DEVICE_UPDATED:
+                    // TODO handle device availability updates
+                    break;
+                case VIRTUAL_DEVICE_REMOVED:
+                    eventExecutor.execute(() -> {
+                        log.debug("Virtual device {} removed from network {}",
+                                event.virtualDevice().id(),
+                                event.subject());
+                        deleteOFSwitch(event.virtualDevice().id());
+                    });
+                    break;
+                case NETWORK_UPDATED:
+                case NETWORK_REMOVED:
+                case NETWORK_ADDED:
+                case VIRTUAL_PORT_ADDED:
+                case VIRTUAL_PORT_UPDATED:
+                case VIRTUAL_PORT_REMOVED:
+                default:
+                    // do nothing
+                    break;
+            }
+        }
     }
 
     private class InternalOFAgentListener implements OFAgentListener {
@@ -323,24 +373,10 @@ public class OFSwitchManager implements OFSwitchService {
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
-                case DEVICE_ADDED:
-                    eventExecutor.execute(() -> {
-                        Device device = event.subject();
-                        log.debug("Processing device added: {}", device);
-                        addOFSwitch(device.id());
-                    });
-                    break;
-                case DEVICE_REMOVED:
-                    eventExecutor.execute(() -> {
-                        Device device = event.subject();
-                        log.debug("Processing device added: {}", device);
-                        deleteOFSwitch(device.id());
-                    });
-                    break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    // TODO handle event
-                    break;
+                case DEVICE_ADDED:
                 case DEVICE_UPDATED:
+                case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:
                 case PORT_ADDED:
                     // TODO handle event

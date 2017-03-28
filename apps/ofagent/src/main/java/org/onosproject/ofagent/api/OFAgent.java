@@ -71,6 +71,15 @@ public interface OFAgent {
          */
         OFAgent build();
 
+
+        /**
+         * Returns OF agent builder with the supplied OF agent.
+         *
+         * @param ofAgent ofagent
+         * @return of agent builder
+         */
+        Builder from(OFAgent ofAgent);
+
         /**
          * Returns OF agent builder with the supplied network ID.
          *
@@ -86,6 +95,22 @@ public interface OFAgent {
          * @return of agent builder
          */
         Builder controllers(Set<OFController> controllers);
+
+        /**
+         * Returns OF agent builder with the supplied additional controller.
+         *
+         * @param controller additional controller
+         * @return of agent builder
+         */
+        Builder addController(OFController controller);
+
+        /**
+         * Returns OF agent builder with the supplied controller removed.
+         *
+         * @param controller controller to delete
+         * @return of agent builder
+         */
+        Builder deleteController(OFController controller);
 
         /**
          * Returns OF agent builder with the supplied state.

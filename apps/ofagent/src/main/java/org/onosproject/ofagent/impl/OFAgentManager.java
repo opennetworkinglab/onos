@@ -67,6 +67,8 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
+    private static final String MSG_STARTED = "started";
+    private static final String MSG_STOPPED = "stopped";
     private static final String MSG_IN_STARTED = "is already in active state, do nothing";
     private static final String MSG_IN_STOPPED = "is already in inactive state, do nothing";
 
@@ -117,7 +119,9 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
         leadershipService.removeListener(leadershipListener);
         virtualNetService.removeListener(virtualNetListener);
         ofAgentStore.unsetDelegate(delegate);
-        ofAgentStore.ofAgents().forEach(ofAgent -> stopAgent(ofAgent.networkId()));
+        ofAgentStore.ofAgents().stream()
+                .filter(ofAgent -> ofAgent.state() == STARTED)
+                .forEach(ofAgent -> stopAgent(ofAgent.networkId()));
 
         eventExecutor.shutdown();
         leadershipService.withdraw(appId.name());
@@ -132,6 +136,7 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
             log.warn(String.format(MSG_OFAGENT, ofAgent.networkId(), ERR_IN_USE));
             return;
         }
+        // TODO check if the virtual network exists
         ofAgentStore.createOfAgent(ofAgent);
         log.info(String.format(MSG_OFAGENT, ofAgent.networkId(), MSG_CREATED));
     }
@@ -144,7 +149,7 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
     }
 
     @Override
-    public void removeAgent(NetworkId networkId) {
+    public OFAgent removeAgent(NetworkId networkId) {
         checkNotNull(networkId, ERR_NULL_NETID);
         synchronized (this) {
             OFAgent existing = ofAgentStore.ofAgent(networkId);
@@ -156,8 +161,8 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
                 final String error = String.format(MSG_OFAGENT, networkId, ERR_IN_USE);
                 throw new IllegalStateException(error);
             }
-            ofAgentStore.removeOfAgent(networkId);
             log.info(String.format(MSG_OFAGENT, networkId, MSG_REMOVED));
+            return ofAgentStore.removeOfAgent(networkId);
         }
     }
 
@@ -171,11 +176,13 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
                 throw new IllegalStateException(error);
             }
             if (existing.state() == STARTED) {
-                log.warn(String.format(MSG_OFAGENT, networkId, MSG_IN_STARTED));
-                return;
+                final String error = String.format(MSG_OFAGENT, networkId, MSG_IN_STARTED);
+                throw new IllegalStateException(error);
             }
-            OFAgent updated = DefaultOFAgent.builder(existing).state(STARTED).build();
+            OFAgent updated = DefaultOFAgent.builder()
+                    .from(existing).state(STARTED).build();
             ofAgentStore.updateOfAgent(updated);
+            log.info(String.format(MSG_OFAGENT, networkId, MSG_STARTED));
         }
     }
 
@@ -189,11 +196,13 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
                 throw new IllegalStateException(error);
             }
             if (existing.state() == STOPPED) {
-                log.warn(String.format(MSG_OFAGENT, networkId, MSG_IN_STOPPED));
-                return;
+                final String error = String.format(MSG_OFAGENT, networkId, MSG_IN_STOPPED);
+                throw new IllegalStateException(error);
             }
-            OFAgent updated = DefaultOFAgent.builder(existing).state(STOPPED).build();
+            OFAgent updated = DefaultOFAgent.builder()
+                    .from(existing).state(STOPPED).build();
             ofAgentStore.updateOfAgent(updated);
+            log.info(String.format(MSG_OFAGENT, networkId, MSG_STOPPED));
         }
     }
 

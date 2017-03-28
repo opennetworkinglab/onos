@@ -19,6 +19,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.onosproject.ofagent.api.OFController;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -94,6 +96,7 @@ public final class OFConnectionHandler implements ChannelFutureListener {
                     MSG_CONNECTED,
                     controller.ip(),
                     controller.port()));
+            // FIXME add close future listener to handle connection lost
         } else {
             if (retryCount.getAndIncrement() > MAX_RETRY) {
                 log.warn(String.format(MSG_STATE,
@@ -102,7 +105,8 @@ public final class OFConnectionHandler implements ChannelFutureListener {
                         controller.ip(),
                         controller.port()));
             } else {
-                this.connect();
+                final EventLoop loop = future.channel().eventLoop();
+                loop.schedule(this::connect, 1L, TimeUnit.SECONDS);
             }
         }
     }

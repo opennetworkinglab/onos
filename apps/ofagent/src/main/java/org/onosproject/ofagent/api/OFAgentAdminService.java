@@ -40,8 +40,9 @@ public interface OFAgentAdminService {
      * Removes the OpenFlow agent for the given virtual network.
      *
      * @param networkId virtual network identifier
+     * @return removed ofagent; null if it fails
      */
-    void removeAgent(NetworkId networkId);
+    OFAgent removeAgent(NetworkId networkId);
 
     /**
      * Starts the agent for the given network.

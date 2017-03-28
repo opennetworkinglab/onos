@@ -17,6 +17,7 @@ package org.onosproject.ofagent.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFController;
@@ -96,23 +97,10 @@ public final class DefaultOFAgent implements OFAgent {
         return new Builder();
     }
 
-    /**
-     * Returns new builder instance from the existing agent.
-     *
-     * @param ofAgent the existing agent
-     * @return default ofagent builder
-     */
-    public static Builder builder(OFAgent ofAgent) {
-        return new Builder()
-                .networkId(ofAgent.networkId())
-                .controllers(ofAgent.controllers())
-                .state(ofAgent.state());
-    }
-
     public static final class Builder implements OFAgent.Builder {
 
         private NetworkId networkId;
-        private Set<OFController> controllers;
+        private Set<OFController> controllers = Sets.newHashSet();
         private State state;
 
         private Builder() {
@@ -128,6 +116,14 @@ public final class DefaultOFAgent implements OFAgent {
         }
 
         @Override
+        public Builder from(OFAgent ofAgent) {
+            this.networkId = ofAgent.networkId();
+            this.controllers = Sets.newHashSet(ofAgent.controllers());
+            this.state = ofAgent.state();
+            return this;
+        }
+
+        @Override
         public Builder networkId(NetworkId networkId) {
             this.networkId = networkId;
             return this;
@@ -136,6 +132,18 @@ public final class DefaultOFAgent implements OFAgent {
         @Override
         public Builder controllers(Set<OFController> controllers) {
             this.controllers = controllers;
+            return this;
+        }
+
+        @Override
+        public OFAgent.Builder addController(OFController controller) {
+            this.controllers.add(controller);
+            return this;
+        }
+
+        @Override
+        public OFAgent.Builder deleteController(OFController controller) {
+            this.controllers.remove(controller);
             return this;
         }
 
