@@ -22,7 +22,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.mapping.addresses.MappingAddress;
+import org.onosproject.mapping.instructions.MappingInstruction;
 import org.onosproject.mapping.web.codec.MappingAddressCodec;
+import org.onosproject.mapping.web.codec.MappingInstructionCodec;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -41,6 +43,7 @@ public class MappingCodecRegistrator {
     @Activate
     public void activate() {
         codecService.registerCodec(MappingAddress.class, new MappingAddressCodec());
+        codecService.registerCodec(MappingInstruction.class, new MappingInstructionCodec());
 
         log.info("Started");
     }
@@ -48,6 +51,7 @@ public class MappingCodecRegistrator {
     @Deactivate
     public void deactivate() {
         codecService.unregisterCodec(MappingAddress.class);
+        codecService.unregisterCodec(MappingInstruction.class);
 
         log.info("Stopped");
     }

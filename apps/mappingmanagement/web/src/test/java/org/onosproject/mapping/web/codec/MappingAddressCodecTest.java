@@ -41,7 +41,7 @@ public class MappingAddressCodecTest {
 
     private CodecContext context;
     private JsonCodec<MappingAddress> addressCodec;
-    MappingCodecRegistrator registrator;
+    private MappingCodecRegistrator registrator;
     private static final IpPrefix IPV4_PREFIX = IpPrefix.valueOf("10.1.1.0/24");
     private static final IpPrefix IPV6_PREFIX = IpPrefix.valueOf("fe80::/64");
     private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
