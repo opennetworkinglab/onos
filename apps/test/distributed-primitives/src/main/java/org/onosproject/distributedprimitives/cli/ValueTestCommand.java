@@ -60,15 +60,15 @@ public class ValueTestCommand extends AbstractShellCommand {
                                     .withSerializer(Serializer.using(KryoNamespaces.BASIC))
                                     .build()
                                     .asAtomicValue();
-        if (operation.equals("get")) {
+        if ("get".equals(operation)) {
             print("%s", atomicValue.get());
-        } else if (operation.equals("set")) {
+        } else if ("set".equals(operation)) {
             atomicValue.set(value1);
-        } else if (operation.equals("compareAndSet")) {
+        } else if ("compareAndSet".equals(operation)) {
             print("%b", atomicValue.compareAndSet(value1, value2));
-        } else if (operation.equals("getAndSet")) {
+        } else if ("getAndSet".equals(operation)) {
             print("%s", atomicValue.getAndSet(value1));
-        } else if (operation.equals("destroy")) {
+        } else if ("destroy".equals(operation)) {
             atomicValue.destroy();
         } else {
             print("Error, unknown operation %s", operation);

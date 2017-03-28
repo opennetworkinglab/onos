@@ -56,11 +56,11 @@ public class LeaderElectorTestCommand extends AbstractShellCommand {
                 .withName(name)
                 .build()
                 .asLeaderElector();
-        if (operation.equals("run")) {
+        if ("run".equals(operation)) {
             print(leaderElector.run(topic, localNodeId));
-        } else if (operation.equals("withdraw")) {
+        } else if ("withdraw".equals(operation)) {
             leaderElector.withdraw(topic);
-        } else if (operation.equals("show")) {
+        } else if ("show".equals(operation)) {
             print(leaderElector.getLeadership(topic));
         }
     }

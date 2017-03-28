@@ -54,21 +54,21 @@ public class CounterTestCommand extends AbstractShellCommand {
     protected void execute() {
         StorageService storageService = get(StorageService.class);
         atomicCounter = storageService.getAsyncAtomicCounter(counter).asAtomicCounter();
-        if (operation.equals("get")) {
+        if ("get".equals(operation)) {
             print("%d", atomicCounter.get());
-        } else if (operation.equals("set")) {
+        } else if ("set".equals(operation)) {
             atomicCounter.set(value1);
-        } else if (operation.equals("incrementAndGet")) {
+        } else if ("incrementAndGet".equals(operation)) {
             print("%d", atomicCounter.incrementAndGet());
-        } else if (operation.equals("getAndIncrement")) {
+        } else if ("getAndIncrement".equals(operation)) {
             print("%d", atomicCounter.getAndIncrement());
-        } else if (operation.equals("getAndAdd")) {
+        } else if ("getAndAdd".equals(operation)) {
             print("%d", atomicCounter.getAndAdd(value1));
-        } else if (operation.equals("addAndGet")) {
+        } else if ("addAndGet".equals(operation)) {
             print("%d", atomicCounter.addAndGet(value1));
-        } else if (operation.equals("compareAndSet")) {
+        } else if ("compareAndSet".equals(operation)) {
             print("%b", atomicCounter.compareAndSet(value1, value2));
-        } else if (operation.equals("destroy")) {
+        } else if ("destroy".equals(operation)) {
             atomicCounter.destroy();
         }
     }

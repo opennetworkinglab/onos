@@ -65,31 +65,31 @@ public class ConsistentMapTestCommand extends AbstractShellCommand {
                                     .withName(name)
                                     .withSerializer(Serializer.using(KryoNamespaces.BASIC))
                                     .build();
-        if (operation.equals("get")) {
+        if ("get".equals(operation)) {
             print(map.get(arg1));
-        } else if (operation.equals("put")) {
+        } else if ("put".equals(operation)) {
             print(map.put(arg1, arg2));
-        } else if (operation.equals("size")) {
+        } else if ("size".equals(operation)) {
             print("%d", map.size());
-        } else if (operation.equals("isEmpty")) {
+        } else if ("isEmpty".equals(operation)) {
             print("%b", map.isEmpty());
-        } else if (operation.equals("putIfAbsent")) {
+        } else if ("putIfAbsent".equals(operation)) {
             print(map.putIfAbsent(arg1, arg2));
-        } else if (operation.equals("putAndGet")) {
+        } else if ("putAndGet".equals(operation)) {
             print(map.putAndGet(arg1, arg2));
-        } else if (operation.equals("clear")) {
+        } else if ("clear".equals(operation)) {
             map.clear();
-        } else if (operation.equals("remove")) {
+        } else if ("remove".equals(operation)) {
             if (arg2 == null) {
                 print(map.remove(arg1));
             } else {
                 print("%b", map.remove(arg1, arg2));
             }
-        } else if (operation.equals("containsKey")) {
+        } else if ("containsKey".equals(operation)) {
             print("%b", map.containsKey(arg1));
-        } else if (operation.equals("containsValue")) {
+        } else if ("containsValue".equals(operation)) {
             print("%b", map.containsValue(arg1));
-        } else if (operation.equals("replace")) {
+        } else if ("replace".equals(operation)) {
             if (arg3 == null) {
                 print(map.replace(arg1, arg2));
             } else {
