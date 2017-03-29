@@ -30,9 +30,11 @@ html {
    for any flyout panes, that are positioned "off screen".
  */
 body {
-    height: 100%;
+    height: 100vh;
     margin: 0;
     overflow: hidden;
+    position: absolute;
+    width: 100vw;
 }
 
 #view {

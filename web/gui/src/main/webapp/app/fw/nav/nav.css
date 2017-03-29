@@ -19,6 +19,7 @@
  */
 
 #nav {
+    max-height: calc(100vh - 48px);
     position: absolute;
     top: 48px;
     left: 0;
