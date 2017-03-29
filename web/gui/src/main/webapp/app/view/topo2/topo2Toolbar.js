@@ -13,7 +13,7 @@
         // H: { id: 'hosts-tog', gid: 'm_endstation', isel: false },
         // M: { id: 'offline-tog', gid: 'm_switch', isel: true },
         P: { id: 'topo2-ports-tog', gid: 'm_ports', isel: true },
-        B: { id: 'topo2-bkgrnd-tog', gid: 'm_map', isel: false },
+        B: { id: 'topo2-bkgrnd-tog', gid: 'm_map', isel: true },
 
         // Z: { id: 'oblique-tog', gid: 'm_oblique', isel: false },
         // N: { id: 'filters-btn', gid: 'm_filters' },
