@@ -21,9 +21,10 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
@@ -31,19 +32,20 @@ import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.huawei.DriverUtil.DEV_INFO_FAILURE;
 import static org.onosproject.drivers.huawei.DriverUtil.INT_INFO_FAILURE;
-import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_IFM;
-import static org.onosproject.drivers.huawei.DriverUtil.RPC_IFS;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_FILTER;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_GET;
+import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_IFM;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_FILTER;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_GET;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_IFM;
+import static org.onosproject.drivers.huawei.DriverUtil.RPC_IFS;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_MSG;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_SYS;
 import static org.onosproject.net.Device.Type.ROUTER;
@@ -54,7 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * routers.
  */
 public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
-        implements DeviceDescriptionDiscovery {
+        implements PortStatisticsDiscovery {
 
     private final Logger log = getLogger(getClass());
 
@@ -98,15 +100,7 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
      */
     @Override
     public List<PortDescription> discoverPortDetails() {
-        NetconfSession session = getNetconfSession();
-        String interfaces;
-        try {
-            interfaces = session.get(getInterfacesReq());
-        } catch (IOException e) {
-            throw new IllegalArgumentException(
-                    new NetconfException(INT_INFO_FAILURE));
-        }
-        return ImmutableList.copyOf(parseInterfaceXml(interfaces));
+        return ImmutableList.copyOf(parseInterfaceXml(getInterfaces()));
     }
 
     /**
@@ -179,5 +173,26 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         HuaweiXmlParser parser = new HuaweiXmlParser(interfaces);
         parser.parseInterfaces();
         return parser.getPorts();
+    }
+
+    @Override
+    public Collection<PortStatistics> discoverPortStatistics() {
+        return ImmutableList.copyOf(getPortStatistics(getInterfaces()));
+    }
+
+    private String getInterfaces() {
+        NetconfSession session = getNetconfSession();
+        String interfaces;
+        try {
+            return session.get(getInterfacesReq());
+        } catch (IOException e) {
+            throw new IllegalArgumentException(
+                    new NetconfException(INT_INFO_FAILURE));
+        }
+    }
+
+    private Collection<PortStatistics> getPortStatistics(String ifs) {
+        HuaweiXmlParser parser = new HuaweiXmlParser(ifs);
+        return parser.parsePortsStatistics(handler().data().deviceId());
     }
 }

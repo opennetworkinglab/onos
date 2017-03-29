@@ -16,16 +16,21 @@
 
 package org.onosproject.drivers.huawei;
 
+import com.google.common.collect.Lists;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatistics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,15 +39,16 @@ import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Created by root1 on 27/3/17.
+ * Representation of Huawei XML parser.
  */
-public class HuaweiXmlParser {
+public final class HuaweiXmlParser {
 
     private static final String DATA = "data";
     private static final String IFM = "ifm";
     private static final String IFS = "interfaces";
     private static final String IF = "interface";
     private static final String IF_TYPE = "ifPhyType";
+    private static final String IF_STATS = "ifStatistics";
     private static final String IF_STAT = "ifPhyStatus";
     private static final String IF_NUM = "ifNumber";
     private static final String IF_SPEED = "ifOperSpeed";
@@ -56,6 +62,14 @@ public class HuaweiXmlParser {
     private static final String PDT_VER = "productVer";
     private static final String PLATFORM_VER = "platformVer";
     private static final String SYS_ID = "sysObjectId";
+    private static final String P_RCVD = "receivePacket";
+    private static final String P_SENT = "sendPacket";
+    private static final String B_RCVD = "receiveByte";
+    private static final String B_SENT = "sendByte";
+    private static final String RX_DROP = "rcvDropPacket";
+    private static final String TX_DROP = "sendDropPacket";
+    private static final String RX_ERROR = "rcvErrorPacket";
+    private static final String TX_ERROR = "sendErrorPacket";
 
     private static final String DEV_PARSE_ERR = "Unable to parse the received" +
             " xml reply for system details from the huawei device";
@@ -122,6 +136,14 @@ public class HuaweiXmlParser {
      * Parses interface xml reply and creates ports to be updated.
      */
     void parseInterfaces() {
+        Iterator itr = getInterfaceIterator();
+        while (itr.hasNext()) {
+            Element ifElement = (Element) itr.next();
+            addPorts(ifElement);
+        }
+    }
+
+    private Iterator getInterfaceIterator() {
         Document doc;
         try {
             doc = DocumentHelper.parseText(xml);
@@ -130,12 +152,7 @@ public class HuaweiXmlParser {
         }
         Element root = doc.getRootElement();
         Element parent = root.element(DATA).element(IFM).element(IFS);
-        Iterator itr = parent.elementIterator(IF);
-
-        while (itr.hasNext()) {
-            Element ifElement = (Element) itr.next();
-            addPorts(ifElement);
-        }
+        return parent.elementIterator(IF);
     }
 
     /**
@@ -197,5 +214,60 @@ public class HuaweiXmlParser {
             throw new IllegalArgumentException(P_NAME_INVALID);
         }
         return port;
+    }
+
+    /**
+     * Returns port statistics information for a device.
+     *
+     * @param deviceId device for which port statistics to be fetched
+     * @return port statistics
+     */
+    Collection<PortStatistics> parsePortsStatistics(DeviceId deviceId) {
+        Collection<PortStatistics> pss = Lists.newArrayList();
+        Iterator itr = getInterfaceIterator();
+        while (itr.hasNext()) {
+            Element ifElement = (Element) itr.next();
+            pss.add(getPortStatistics(ifElement, deviceId));
+        }
+        return pss;
+    }
+
+    private PortStatistics getPortStatistics(Element ifElement, DeviceId id) {
+        String ifType = ifElement.element(IF_TYPE).getText();
+
+        DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+
+        if (INTERFACES.contains(ifType)) {
+            Element info = ifElement.element(DYN_INFO);
+
+            int port = Integer.parseInt(getPortNum(ifElement.element(IF_NUM)
+                                                           .getText()));
+            Element statInfo = ifElement.element(IF_STATS);
+            long packetReceived = Long.parseLong(statInfo.element(P_RCVD)
+                                                         .getText());
+            long packetSent = Long.parseLong(statInfo.element(P_SENT).getText());
+            long bytesReceived = Long.parseLong(statInfo.element(B_RCVD)
+                                                        .getText());
+            long bytesSent = Long.parseLong(statInfo.element(B_SENT).getText());
+            long packetsRxDropped = Long.parseLong(statInfo.element(RX_DROP)
+                                                           .getText());
+            long packetsTxDropped = Long.parseLong(statInfo.element(TX_DROP)
+                                                           .getText());
+            long packetsRxErrors = Long.parseLong(statInfo.element(RX_ERROR)
+                                                          .getText());
+            long packetsTxErrors = Long.parseLong(statInfo.element(TX_ERROR)
+                                                          .getText());
+
+            return builder.setDeviceId(id)
+                    .setPacketsReceived(packetReceived)
+                    .setPacketsSent(packetSent)
+                    .setBytesReceived(bytesReceived)
+                    .setBytesSent(bytesSent)
+                    .setPacketsRxDropped(packetsRxDropped)
+                    .setPacketsRxErrors(packetsRxErrors)
+                    .setPacketsTxDropped(packetsTxDropped)
+                    .setPacketsTxErrors(packetsTxErrors).build();
+        }
+        return builder.build();
     }
 }
