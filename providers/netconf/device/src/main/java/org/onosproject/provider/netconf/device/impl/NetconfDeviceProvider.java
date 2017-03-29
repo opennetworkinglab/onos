@@ -49,6 +49,7 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyAdminService;
 import org.onosproject.net.key.DeviceKeyId;
@@ -478,6 +479,17 @@ public class NetconfDeviceProvider extends AbstractProvider
                                         deviceDescriptionDiscovery.discoverPortDetails());
         } else {
             log.warn("No portGetter behaviour for device {}", deviceId);
+        }
+
+        // Port statistics discovery
+        if (device.is(PortStatisticsDiscovery.class)) {
+            PortStatisticsDiscovery d =
+                    device.as(PortStatisticsDiscovery.class);
+            providerService.updatePortStatistics(deviceId,
+                                                 d.discoverPortStatistics());
+        } else {
+            log.warn("No port statistics getter behaviour for device {}",
+                     deviceId);
         }
     }
 
