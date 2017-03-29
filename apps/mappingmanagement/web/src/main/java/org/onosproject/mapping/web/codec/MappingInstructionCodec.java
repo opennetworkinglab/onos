@@ -49,4 +49,13 @@ public final class MappingInstructionCodec extends JsonCodec<MappingInstruction>
 
         return new EncodeMappingInstructionCodecHelper(instruction, context).encode();
     }
+
+    @Override
+    public MappingInstruction decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        return new DecodeMappingInstructionCodecHelper(json, context).decode();
+    }
 }
