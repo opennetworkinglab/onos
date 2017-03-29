@@ -35,7 +35,11 @@ import java.util.stream.Stream;
 
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
-class ConsistentDiscreteResourceSubStore {
+/**
+ * Consistent substore for discrete resources.
+ */
+class ConsistentDiscreteResourceSubStore implements ConsistentResourceSubStore
+        <DiscreteResourceId, DiscreteResource, TransactionalDiscreteResourceSubStore> {
     private ConsistentMap<DiscreteResourceId, ResourceConsumerId> consumers;
     private ConsistentMap<DiscreteResourceId, DiscreteResources> childMap;
 
@@ -52,12 +56,14 @@ class ConsistentDiscreteResourceSubStore {
         childMap.put(Resource.ROOT.id(), DiscreteResources.empty());
     }
 
-    TransactionalDiscreteResourceSubStore transactional(TransactionContext tx) {
+    @Override
+    public TransactionalDiscreteResourceSubStore transactional(TransactionContext tx) {
         return new TransactionalDiscreteResourceSubStore(tx);
     }
 
     // computational complexity: O(1)
-    List<ResourceAllocation> getResourceAllocations(DiscreteResourceId resource) {
+    @Override
+    public List<ResourceAllocation> getResourceAllocations(DiscreteResourceId resource) {
         Versioned<ResourceConsumerId> consumerId = consumers.get(resource);
         if (consumerId == null) {
             return ImmutableList.of();
@@ -66,7 +72,8 @@ class ConsistentDiscreteResourceSubStore {
         return ImmutableList.of(new ResourceAllocation(Resources.discrete(resource).resource(), consumerId.value()));
     }
 
-    Set<DiscreteResource> getChildResources(DiscreteResourceId parent) {
+    @Override
+    public Set<DiscreteResource> getChildResources(DiscreteResourceId parent) {
         Versioned<DiscreteResources> children = childMap.get(parent);
 
         if (children == null) {
@@ -76,7 +83,8 @@ class ConsistentDiscreteResourceSubStore {
         return children.value().values();
     }
 
-    <T> Set<DiscreteResource> getChildResources(DiscreteResourceId parent, Class<T> cls) {
+    @Override
+    public Set<DiscreteResource> getChildResources(DiscreteResourceId parent, Class<?> cls) {
         Versioned<DiscreteResources> children = childMap.get(parent);
 
         if (children == null) {
@@ -86,11 +94,13 @@ class ConsistentDiscreteResourceSubStore {
         return children.value().valuesOf(cls);
     }
 
-    boolean isAvailable(DiscreteResource resource) {
+    @Override
+    public boolean isAvailable(DiscreteResource resource) {
         return getResourceAllocations(resource.id()).isEmpty();
     }
 
-    <T> Stream<DiscreteResource> getAllocatedResources(DiscreteResourceId parent, Class<T> cls) {
+    @Override
+    public Stream<DiscreteResource> getAllocatedResources(DiscreteResourceId parent, Class<?> cls) {
         Set<DiscreteResource> children = getChildResources(parent);
         if (children.isEmpty()) {
             return Stream.of();
@@ -101,7 +111,8 @@ class ConsistentDiscreteResourceSubStore {
                 .filter(x -> consumers.containsKey(x.id()));
     }
 
-    Stream<DiscreteResource> getResources(ResourceConsumerId consumerId) {
+    @Override
+    public Stream<DiscreteResource> getResources(ResourceConsumerId consumerId) {
         return consumers.entrySet().stream()
                 .filter(x -> x.getValue().value().equals(consumerId))
                 .map(Map.Entry::getKey)

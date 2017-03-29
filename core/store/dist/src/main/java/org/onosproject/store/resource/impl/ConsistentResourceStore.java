@@ -15,6 +15,17 @@
  */
 package org.onosproject.store.resource.impl;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
@@ -45,17 +56,6 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -249,11 +249,11 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
             ResourceConsumerId consumerId = allocation.consumerId();
 
             if (resource instanceof DiscreteResource) {
-                if (!discreteTxStore.release((DiscreteResource) resource, consumerId)) {
+                if (!discreteTxStore.release(consumerId, (DiscreteResource) resource)) {
                     return abortTransaction(tx);
                 }
             } else if (resource instanceof ContinuousResource) {
-                if (!continuousTxStore.release((ContinuousResource) resource, consumerId)) {
+                if (!continuousTxStore.release(consumerId, (ContinuousResource) resource)) {
                     return abortTransaction(tx);
                 }
             }

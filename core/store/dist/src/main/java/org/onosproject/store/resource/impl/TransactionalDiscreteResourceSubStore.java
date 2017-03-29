@@ -15,6 +15,9 @@
  */
 package org.onosproject.store.resource.impl;
 
+import java.util.Optional;
+import java.util.Set;
+
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
@@ -24,12 +27,13 @@ import org.onosproject.store.service.TransactionalMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-import java.util.Set;
-
 import static org.onosproject.store.resource.impl.ConsistentResourceStore.SERIALIZER;
 
-class TransactionalDiscreteResourceSubStore {
+/**
+ * Transactional substore for discrete resources.
+ */
+class TransactionalDiscreteResourceSubStore
+        implements TransactionalResourceSubStore<DiscreteResourceId, DiscreteResource> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransactionalMap<DiscreteResourceId, DiscreteResources> childMap;
     private final TransactionalMap<DiscreteResourceId, ResourceConsumerId> consumers;
@@ -40,7 +44,8 @@ class TransactionalDiscreteResourceSubStore {
     }
 
     // check the existence in the set: O(1) operation
-    Optional<DiscreteResource> lookup(DiscreteResourceId id) {
+    @Override
+    public Optional<DiscreteResource> lookup(DiscreteResourceId id) {
         if (!id.parent().isPresent()) {
             return Optional.of(Resource.ROOT);
         }
@@ -53,7 +58,8 @@ class TransactionalDiscreteResourceSubStore {
         return values.lookup(id);
     }
 
-    boolean register(DiscreteResourceId parent, Set<DiscreteResource> resources) {
+    @Override
+    public boolean register(DiscreteResourceId parent, Set<DiscreteResource> resources) {
         // short-circuit: receiving empty resource is regarded as success
         if (resources.isEmpty()) {
             return true;
@@ -76,7 +82,8 @@ class TransactionalDiscreteResourceSubStore {
         return childMap.replace(parent, oldValues, newValues);
     }
 
-    boolean unregister(DiscreteResourceId parent, Set<DiscreteResource> resources) {
+    @Override
+    public boolean unregister(DiscreteResourceId parent, Set<DiscreteResource> resources) {
         // short-circuit: receiving empty resource is regarded as success
         if (resources.isEmpty()) {
             return true;
@@ -107,11 +114,13 @@ class TransactionalDiscreteResourceSubStore {
         return childMap.replace(parent, oldValues, newValues);
     }
 
-    private boolean isAllocated(DiscreteResourceId id) {
+    @Override
+    public boolean isAllocated(DiscreteResourceId id) {
         return consumers.get(id) != null;
     }
 
-    boolean allocate(ResourceConsumerId consumerId, DiscreteResource resource) {
+    @Override
+    public boolean allocate(ResourceConsumerId consumerId, DiscreteResource resource) {
         // if the resource is not registered, then abort
         Optional<DiscreteResource> lookedUp = lookup(resource.id());
         if (!lookedUp.isPresent()) {
@@ -122,13 +131,10 @@ class TransactionalDiscreteResourceSubStore {
         return oldValue == null;
     }
 
-    boolean release(DiscreteResource resource, ResourceConsumerId consumerId) {
+    @Override
+    public boolean release(ResourceConsumerId consumerId, DiscreteResource resource) {
         // if this single release fails (because the resource is allocated to another consumer)
         // the whole release fails
-        if (!consumers.remove(resource.id(), consumerId)) {
-            return false;
-        }
-
-        return true;
+        return consumers.remove(resource.id(), consumerId);
     }
 }
