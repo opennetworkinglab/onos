@@ -18,39 +18,21 @@
  ONOS GUI -- Navigation (theme) -- CSS file
  */
 
-.light #nav {
-    background-color: #231f20;
-}
-.dark #nav {
-    /* TODO: dark theme */
+#nav {
     background-color: #231f20;
 }
 
-.light #nav .nav-hdr {
-    color: #716b6a;
-    background-color: #3c3a3a;
-}
-.dark #nav .nav-hdr {
-    /* TODO: dark theme */
+#nav .nav-hdr {
     color: #716b6a;
     background-color: #3c3a3a;
 }
 
-.light #nav a {
-    color: #c7c7c0;
-    border-bottom: solid #3c3a3a 1px;
-}
-.dark #nav a {
-    /* TODO: dark theme */
+#nav a {
     color: #c7c7c0;
     border-bottom: solid #3c3a3a 1px;
 }
 
-.light #nav a:hover {
-    color: #ffffff;
-}
-.dark #nav a:hover {
-    /* TODO: dark theme */
+#nav a:hover {
     color: #ffffff;
 }
 

@@ -26,8 +26,7 @@
 }
 
 .dark #tooltip {
-    /* TODO: dark theme */
-    background-color: #dbeffc;
-    color: #3c3a3a;
-    border-color: #c7c7c0;
+    background-color: #3a3a60;
+    border-color: #6c6a6a;
+    color: #c7c7c0;
 }

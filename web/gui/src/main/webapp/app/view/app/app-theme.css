@@ -19,14 +19,10 @@
  */
 
 /* -- Drag-n-Drop OAR files -- */
-.light div.dropping {
+div.dropping {
     border: solid 3px #0095d6;
 }
 
-.dark div.dropping {
-    /* TODO: dark theme */
-    border: solid 3px #0095d6;
-}
 
 /* -- confirmation dialog -- */
 .light #app-dialog p.strong {
@@ -34,55 +30,23 @@
     background-color: #ce5b58;
 }
 
-.dark #app-dialog p.strong {
-    /* TODO: dark theme */
-    color: white;
-    background-color: #ce5b58;
-}
-
 .light #app-dialog.floatpanel.dialog {
-    background-color: #fff;
+    background-color: #ffffff;
 }
 
+/* ========== DARK Theme ========== */
+
+
+.dark .app-title {
+    color: #dddddd;
+}
+
+/* -- confirmation dialog -- */
+.dark #app-dialog p.strong {
+    color: red;
+    background-color: #ecd98e;
+}
 .dark #app-dialog.floatpanel.dialog {
-    /* TODO: dark theme */
-    background-color: #fff;
+    background-color: #282528;
+    color:#ddddee;
 }
-
-/* -- details panel -- */
-.light #application-details-panel.floatpanel {
-    background-color: white;
-}
-
-.dark #application-details-panel.floatpanel {
-    /* TODO: dark theme */
-    background-color: white;
-}
-
-.light #application-details-panel hr {
-    border: 1px solid #c7c7c0;
-}
-
-.dark #application-details-panel hr {
-    /* TODO: dark theme */
-    border: 1px solid #c7c7c0;
-}
-
-.light #application-details-panel .bottom tr:nth-child(odd) {
-    background-color: #f4f4f4;
-}
-
-.light #application-details-panel .bottom tr:nth-child(even) {
-    background-color: #fbfbfb;
-}
-
-.dark #application-details-panel .bottom tr:nth-child(odd) {
-    /* TODO: dark theme */
-    background-color: #f4f4f4;
-}
-
-.dark #application-details-panel .bottom tr:nth-child(even) {
-    /* TODO: dark theme */
-    background-color: #fbfbfb;
-}
-

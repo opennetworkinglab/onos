@@ -21,22 +21,27 @@
 .light #flash svg g.flashItem rect {
     fill: #ccc;
 }
-.dark #flash svg g.flashItem rect {
-    fill: #555;
-}
 
 .light #flash svg g.flashItem text {
     fill: #333;
-}
-.dark #flash svg g.flashItem text {
-    fill: #999;
 }
 
 .light .centered {
     box-shadow: 2px 2px 24px 5px #888;
     background-color: #eee;
 }
-/* TODO: confirm / fix dark*/
+
+
+/* ========== DARK Theme ========== */
+
+.dark #flash svg g.flashItem rect {
+    fill: #555;
+}
+
+.dark #flash svg g.flashItem text {
+    fill: #999;
+}
+
 .dark .centered {
     box-shadow: 2px 2px 24px 5px #888;
     background-color: #eee;

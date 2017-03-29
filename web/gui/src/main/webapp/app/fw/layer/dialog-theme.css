@@ -22,8 +22,11 @@
     background-color: #518ecc;
     color: white;
 }
+
+
+/* ========== DARK Theme ========== */
+
 .dark .dialog .dialog-button {
-    /* TODO: dark theme */
-    background-color: #518ecc;
-    color: white;
+    background-color: #345e85;
+    color: #cccccd;
 }

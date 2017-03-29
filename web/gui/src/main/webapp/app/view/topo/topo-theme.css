@@ -87,6 +87,9 @@
 #topo-p-instance .online svg .glyph {
     fill: #fff;
 }
+.dark #topo-p-instance .online svg .glyph.overlay {
+    fill: #fff;
+}
 
 
 /* offline */
@@ -253,7 +256,6 @@
     opacity: .5;
     stroke-dasharray: 8 4;
 }
-/* TODO: Review for not-permitted links */
 #ov-topo svg .link.not-permitted {
     stroke: rgb(255,0,0);
     stroke-width: 5.0;
@@ -383,4 +385,257 @@
 
 #ov-topo svg #topo-sprites use.fill-blue2 {
     fill: #bce;
+}
+
+
+/* ==================================================================== */
+/*   From here are the DARK theme styles - mirroring the above styles   */
+/* ==================================================================== */
+
+/* --- Base SVG Layer --- */
+
+.dark #ov-topo svg {
+    background-color: #152439;
+}
+
+
+/* --- "No Devices" Layer --- */
+
+.dark #ov-topo svg .noDevsBird {
+    fill: #8f4848;
+}
+
+.dark #ov-topo svg #topo-noDevsLayer text {
+    fill: #445461;
+}
+
+/* --- Topo Map --- */
+
+.dark #ov-topo svg #topo-map {
+    stroke-width: 2px;
+    stroke: #37404d;
+    fill: #212c3a;
+}
+
+/* --- general topo-panel styling --- */
+
+.dark .topo-p {
+    background-color: #2f313c;
+    color: #c2c2b7;
+}
+.dark .topo-p svg {
+    background: #8e1e24;
+}
+
+.dark .topo-p svg .glyph {
+    fill: #c2c2b7;
+}
+
+.dark .topo-p hr {
+    background-color: #616876;
+}
+
+.dark .topo-p div.actionBtn svg use.glyph {
+    fill: #5a7f96;
+}
+
+.dark #topo-p-detail .header svg .glyph {
+    fill: #91292f;
+}
+
+.dark #toolbar-topo-tbar .tbar-row.right {
+    color: #666;
+}
+
+/* --- Topo Instance Panel --- */
+
+.dark #topo-p-instance {
+    background-color: #2f313c;
+    color: #c2c2b7;
+    border: 1px solid #364144;
+
+}
+
+.dark #topo-p-instance svg rect {
+    stroke-width: 0;
+    fill: #525660;
+}
+
+/* body of an instance */
+.dark #topo-p-instance .online svg rect {
+    opacity: 1;
+    fill: #838992;
+}
+
+.dark #topo-p-instance svg .glyph {
+    fill: #ddd;
+}
+.dark #topo-p-instance .online svg .glyph {
+    fill: #fff;
+}
+.dark #topo-p-instance .online svg .glyph.overlay {
+    fill: #c7c7c7;
+}
+
+/* offline */
+.dark #topo-p-instance svg .badgeIcon {
+    opacity: 0.4;
+    fill: #939598;
+}
+
+/* online */
+.dark #topo-p-instance .online svg .badgeIcon {
+    opacity: 1.0;
+    fill: #939598;
+}
+.dark #topo-p-instance .online svg .badgeIcon.bird {
+    fill: #ffffff;
+}
+
+.dark #topo-p-instance svg text {
+    text-anchor: left;
+    opacity: 0.5;
+    fill: #aaa;
+}
+
+.dark #topo-p-instance .online svg text {
+    opacity: 1.0;
+    fill: #fff;
+}
+
+.dark #topo-p-instance .onosInst.mastership {
+    opacity: 0.3;
+}
+.dark #topo-p-instance .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+.dark #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+.dark.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+}
+
+/* --- Topo Nodes --- */
+
+/* Device Nodes */
+
+/* note: device without the 'online' class is offline */
+.dark #ov-topo svg .node.device rect {
+    fill: #707070;
+}
+.dark #ov-topo svg .node.device text {
+    fill: #444;
+}
+.dark #ov-topo svg .node.device use {
+    fill: #eee;
+}
+
+.dark #ov-topo svg .node.device.online rect {
+    fill: #525660;
+}
+.dark #ov-topo svg .node.device.online text {
+    fill: #fff;
+}
+.dark #ov-topo svg .node.device.online use {
+    fill: #fff;
+}
+
+.dark #ov-topo svg .node.device.selected rect {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
+
+
+/* Host Nodes */
+
+.dark #ov-topo svg .node.host {
+}
+
+.dark #ov-topo svg .node.host text {
+    stroke: none;
+    font: 9pt sans-serif;
+    fill: #ad5781;
+}
+
+.dark #ov-topo svg .node.host circle {
+    stroke: #a3a596;
+    fill: #8f8272;
+}
+.dark #ov-topo svg .node.host.selected .hostIcon > circle {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
+
+.dark #ov-topo svg .node.host use {
+    fill: #000;
+}
+
+/* --- Topo Links --- */
+.dark #ov-topo svg .link.not-permitted {
+    stroke: rgb(255, 60, 60);
+}
+
+/* Port traffic color visualization for Kbps, Mbps, and Gbps */
+/*  .. values good for both light and dark themes            */
+
+/* Primary, Secondary (optical too) colors good for both themes */
+
+/* Link Labels */
+.dark #ov-topo svg .linkLabel rect {
+    fill: #555;
+}
+
+.dark #ov-topo svg .linkLabel text {
+    fill: #eee;
+}
+
+/* Port Labels */
+
+.dark #ov-topo svg .portLabel rect {
+    fill: #222;
+}
+
+.dark #ov-topo svg .portLabel text {
+    fill: #eee;
+}
+
+/* Number of Links Labels */
+
+.dark #ov-topo text.numLinkText {
+    fill: #eee;
+}
+
+
+/* Sprite Layer */
+
+.dark #ov-topo svg #topo-sprites .gold1 use {
+    stroke: #541;
+}
+.dark #ov-topo svg #topo-sprites .gold1 text {
+    fill: #543;
+}
+
+.dark #ov-topo svg #topo-sprites .blue1 use {
+    stroke: #445;
+}
+.dark #ov-topo svg #topo-sprites .blue1 text {
+    fill: #446;
+}
+
+.dark #ov-topo svg #topo-sprites .gray1 use {
+    stroke: #333;
+}
+.dark #ov-topo svg #topo-sprites .gray1 text {
+    fill: #444;
+}
+
+/* fills */
+.dark #ov-topo svg #topo-sprites use.fill-gray2 {
+    fill: #444;
+}
+
+.dark #ov-topo svg #topo-sprites use.fill-blue2 {
+    fill: #447;
 }

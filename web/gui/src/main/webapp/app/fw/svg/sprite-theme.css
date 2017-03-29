@@ -18,8 +18,6 @@
 /* ------------------------------------------------- */
 /* Sprite Layer */
 
-/* TODO: revisit these styles */
-
 
 #ov-topo svg #topo-sprites .gold1 use {
     stroke: #fda;
@@ -52,4 +50,45 @@
 
 #ov-topo svg #topo-sprites use.fill-blue2 {
     fill: #bce;
+}
+
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-topo svg #topo-sprites .gold1 use {
+    stroke: #541;
+    fill: none;
+}
+
+.dark #ov-topo svg #topo-sprites .gold1 text {
+    fill: #543;
+}
+
+.dark #ov-topo svg #topo-sprites .blue1 use {
+    stroke: #445;
+    fill: none;
+}
+
+.dark #ov-topo svg #topo-sprites .blue1 text {
+    fill: #446;
+}
+
+.dark #ov-topo svg #topo-sprites .gray1 use {
+    stroke: #333;
+    fill: none;
+}
+
+.dark #ov-topo svg #topo-sprites .gray1 text {
+    fill: #444;
+}
+
+/* fills */
+
+.dark #ov-topo svg #topo-sprites use.fill-gray2 {
+    fill: #444;
+}
+
+
+.dark #ov-topo svg #topo-sprites use.fill-blue2 {
+    fill: #447;
 }

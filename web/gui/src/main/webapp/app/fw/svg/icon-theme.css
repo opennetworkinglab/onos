@@ -21,18 +21,9 @@
 .light div.close-btn svg.embeddedIcon g.icon .glyph {
     fill: #333333;
 }
-.dark div.close-btn svg.embeddedIcon g.icon .glyph {
-    /* TODO: dark theme */
-    fill: #333333;
-}
-
 
 /* Sortable table headers */
 .light div.tableColSort svg.embeddedIcon .icon .glyph {
-    fill: #353333;
-}
-.dark div.tableColSort svg.embeddedIcon .icon .glyph {
-    /* TODO: dark theme */
     fill: #353333;
 }
 
@@ -40,25 +31,35 @@
 .light svg.embeddedIcon .icon.active .glyph {
     fill: #04bf34;
 }
-.dark svg.embeddedIcon .icon.active .glyph {
-    /* TODO: dark theme */
-    fill: #04bf34;
-}
 
 .light svg.embeddedIcon .icon.inactive .glyph {
-    fill: #c0242b;
-}
-.dark svg.embeddedIcon .icon.inactive .glyph {
-    /* TODO: dark theme */
     fill: #c0242b;
 }
 
 .light table svg.embeddedIcon .icon .glyph {
     fill: #3c3a3a;
 }
-.dark table svg.embeddedIcon .glyph {
-    /* TODO: dark theme */
-    fill: #3c3a3a;
+
+/* ========== DARK Theme ========== */
+
+.dark div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #8d8d8d;
+}
+
+.dark div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: #888888;
+}
+
+.dark svg.embeddedIcon .icon.active .glyph {
+    fill: #04bf34;
+}
+
+.dark svg.embeddedIcon .icon.inactive .glyph {
+    fill: #c0242b;
+}
+
+.dark table svg.embeddedIcon .icon .glyph {
+    fill: #9999aa;
 }
 
 

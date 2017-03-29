@@ -30,18 +30,6 @@
 .light #ov-flow tr:nth-child(6n) {
     background-color: #f4f4f4;
 }
-.dark #ov-flow tr:nth-child(6n + 1),
-.dark #ov-flow tr:nth-child(6n + 2),
-.dark #ov-flow tr:nth-child(6n + 3) {
-    /* TODO: dark theme */
-    background-color: #fbfbfb;
-}
-.dark #ov-flow tr:nth-child(6n + 4),
-.dark #ov-flow tr:nth-child(6n + 5),
-.dark #ov-flow tr:nth-child(6n) {
-    /* TODO: dark theme */
-    background-color: #f4f4f4;
-}
 
 /* highlighted color */
 .light #ov-flow tr:nth-child(6n + 1).data-change,
@@ -50,20 +38,32 @@
 .light #ov-flow tr:nth-child(6n + 4).data-change,
 .light #ov-flow tr:nth-child(6n + 5).data-change,
 .light #ov-flow tr:nth-child(6n).data-change {
-    /* TODO: theme */
-    background-color: #fdffdc;
-}
-.dark #ov-flow tr:nth-child(6n + 1).data-change,
-.dark #ov-flow tr:nth-child(6n + 2).data-change,
-.dark #ov-flow tr:nth-child(6n + 3).data-change,
-.dark #ov-flow tr:nth-child(6n + 4).data-change,
-.dark #ov-flow tr:nth-child(6n + 5).data-change,
-.dark #ov-flow tr:nth-child(6n).data-change {
-    /* TODO: dark theme */
     background-color: #fdffdc;
 }
 
 #ov-flow td.selector,
 #ov-flow td.treatment {
     opacity: 0.65;
+}
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-flow tr:nth-child(6n + 1),
+.dark #ov-flow tr:nth-child(6n + 2),
+.dark #ov-flow tr:nth-child(6n + 3) {
+    background-color: #333333;
+}
+.dark #ov-flow tr:nth-child(6n + 4),
+.dark #ov-flow tr:nth-child(6n + 5),
+.dark #ov-flow tr:nth-child(6n) {
+    background-color: #3a3a3a;
+}
+
+.dark #ov-flow tr:nth-child(6n + 1).data-change,
+.dark #ov-flow tr:nth-child(6n + 2).data-change,
+.dark #ov-flow tr:nth-child(6n + 3).data-change,
+.dark #ov-flow tr:nth-child(6n + 4).data-change,
+.dark #ov-flow tr:nth-child(6n + 5).data-change,
+.dark #ov-flow tr:nth-child(6n).data-change {
+    background-color: #423708;
 }

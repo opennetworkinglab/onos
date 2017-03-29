@@ -28,29 +28,28 @@
     background-color: #f4f4f4;
 }
 
-.dark #ov-group tr:nth-child(4n + 1),
-.dark #ov-group tr:nth-child(4n + 2) {
-    /* TODO: dark theme */
-    background-color: #fbfbfb;
-}
-.dark #ov-group tr:nth-child(4n + 3),
-.dark #ov-group tr:nth-child(4n) {
-    /* TODO: dark theme */
-    background-color: #f4f4f4;
-}
-
 /* highlighted color */
 .light #ov-group tr:nth-child(4n + 1).data-change,
 .light #ov-group tr:nth-child(4n + 2).data-change,
 .light #ov-group tr:nth-child(4n + 3).data-change,
 .light #ov-group tr:nth-child(4n).data-change {
-    /* TODO: theme */
     background-color: #fdffdc;
 }
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-group tr:nth-child(4n + 1),
+.dark #ov-group tr:nth-child(4n + 2) {
+    background-color: #333333;
+}
+.dark #ov-group tr:nth-child(4n + 3),
+.dark #ov-group tr:nth-child(4n) {
+    background-color: #3a3a3a;
+}
+
 .dark #ov-group tr:nth-child(4n + 1).data-change,
 .dark #ov-group tr:nth-child(4n + 2).data-change,
 .dark #ov-group tr:nth-child(4n + 3).data-change,
 .dark #ov-group tr:nth-child(4n).data-change {
-    /* TODO: dark theme */
-    background-color: #fdffdc;
+    background-color: #423708;
 }

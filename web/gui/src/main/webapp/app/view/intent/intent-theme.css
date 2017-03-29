@@ -29,18 +29,6 @@
 .light #ov-intent tr:nth-child(6n) {
     background-color: #f4f4f4;
 }
-.dark #ov-intent tr:nth-child(6n + 1),
-.dark #ov-intent tr:nth-child(6n + 2),
-.dark #ov-intent tr:nth-child(6n + 3) {
-    /* TODO: dark theme */
-    background-color: #fbfbfb;
-}
-.dark #ov-intent tr:nth-child(6n + 4),
-.dark #ov-intent tr:nth-child(6n + 5),
-.dark #ov-intent tr:nth-child(6n) {
-    /* TODO: dark theme */
-    background-color: #f4f4f4;
-}
 
 .light #ov-intent tr:nth-child(6n + 1).data-change,
 .light #ov-intent tr:nth-child(6n + 2).data-change,
@@ -48,20 +36,32 @@
 .light #ov-intent tr:nth-child(6n + 4).data-change,
 .light #ov-intent tr:nth-child(6n + 5).data-change,
 .light #ov-intent tr:nth-child(6n).data-change {
-    /* TODO: theme */
-    background-color: #fdffdc;
-}
-.dark #ov-intent tr:nth-child(6n + 1).data-change,
-.dark #ov-intent tr:nth-child(6n + 2).data-change,
-.dark #ov-intent tr:nth-child(6n + 3).data-change,
-.dark #ov-intent tr:nth-child(6n + 4).data-change,
-.dark #ov-intent tr:nth-child(6n + 5).data-change,
-.dark #ov-intent tr:nth-child(6n).data-change {
-    /* TODO: dark theme */
     background-color: #fdffdc;
 }
 
 #ov-intent td.resources,
 #ov-intent td.details {
     opacity: 0.65;
+}
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-intent tr:nth-child(6n + 1),
+.dark #ov-intent tr:nth-child(6n + 2),
+.dark #ov-intent tr:nth-child(6n + 3) {
+    background-color: #333333;
+}
+.dark #ov-intent tr:nth-child(6n + 4),
+.dark #ov-intent tr:nth-child(6n + 5),
+.dark #ov-intent tr:nth-child(6n) {
+    background-color: #3a3a3a;
+}
+
+.dark #ov-intent tr:nth-child(6n + 1).data-change,
+.dark #ov-intent tr:nth-child(6n + 2).data-change,
+.dark #ov-intent tr:nth-child(6n + 3).data-change,
+.dark #ov-intent tr:nth-child(6n + 4).data-change,
+.dark #ov-intent tr:nth-child(6n + 5).data-change,
+.dark #ov-intent tr:nth-child(6n).data-change {
+    background-color: #423708;
 }

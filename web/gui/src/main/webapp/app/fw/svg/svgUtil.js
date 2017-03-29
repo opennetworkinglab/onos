@@ -161,14 +161,21 @@
     }
 
     // --- Ordinal scales for 7 values.
+    // TODO: migrate these colors to the theme service.
 
-    // Colors per Mojo-Design's color palette..
+    // Colors per Mojo-Design's color palette.. (version one)
     //               blue       red        dk grey    steel      lt blue    lt red     lt grey
-    var lightNorm = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
-        lightMute = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ],
-        // TODO: dark theme
-        darkNorm  = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
-        darkMute  = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ];
+    // var lightNorm = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
+    //     lightMute = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ],
+
+    // Colors per Mojo-Design's color palette.. (version two)
+    //               blue       lt blue    red        green      brown      teal       lime
+    var lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00' ],
+        lightMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d' ],
+
+        darkNorm  = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00' ],
+        darkMute  = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d' ];
+
 
     var colors= {
         light: {

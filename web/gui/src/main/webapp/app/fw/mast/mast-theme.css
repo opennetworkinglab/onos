@@ -18,68 +18,34 @@
  ONOS GUI -- Masthead (theme) -- CSS file
  */
 
-.light #mast {
-    background-color: #231f20;
-}
-.dark #mast {
-    /* TODO: dark theme */
+#mast {
     background-color: #231f20;
 }
 
-
-.light #mast .nav-menu-button:hover {
-    background-color: #888;
-}
-.dark #mast .nav-menu-button:hover {
+#mast .nav-menu-button:hover {
     background-color: #888;
 }
 
-
-.light #mast-right a {
-    color: #009fdb;
-}
-.dark #mast-right a {
-    /* TODO: dark theme */
+#mast-right a {
     color: #009fdb;
 }
 
-.light #mast nav  {
+#mast nav  {
     color: #009fdb;
 }
-
-.dark #mast nav  {
-    /* TODO: dark theme */
-    color: #009fdb;
-}
-
 
 /* Theme styles for drop down menu */
 
-.light #mast .dropdown {
-    background-color: #231f20;
-    border: 1px solid #dddddd;
-}
-.dark #mast .dropdown {
-    /* TODO: dark theme */
+#mast .dropdown {
     background-color: #231f20;
     border: 1px solid #dddddd;
 }
 
-.light #mast .dropdown a {
-    color: #009fdb;
-    border-bottom: solid #444 1px;
-}
-.dark #mast .dropdown a {
-    /* TODO: dark theme */
+#mast .dropdown a {
     color: #009fdb;
     border-bottom: solid #444 1px;
 }
 
-.light #mast .dropdown a:hover {
-    color: #fff;
-}
-
-.dark #mast .dropdown a:hover {
-    /* TODO: dark theme */
+#mast .dropdown a:hover {
     color: #fff;
 }

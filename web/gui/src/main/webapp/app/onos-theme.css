@@ -18,18 +18,50 @@
  ONOS GUI -- core (theme) -- CSS file
  */
 
-body.light {
+body {
     background-color: white;
 }
-body.dark {
-    /* TODO: dark theme */
-    background-color: #2b2b2b;
+
+#view h2 {
+    color: #3c3a3a;
 }
 
-.light #view h2 {
-    color: #3c3a3a;
+a {
+    color: #009fdb;
+    text-decoration: none;
 }
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: #7fabdb;
+    text-decoration: none;
+}
+
+/* ========== DARK Theme ========== */
+
+body.dark {
+    background-color: #282528;
+}
+
 .dark #view h2 {
-    /* TODO: dark theme */
-    color: #3c3a3a;
+    color: #6a6e6a;
+}
+
+.dark a {
+    color: #007ca6;
+}
+.dark a:visited {
+    color: #4f6e90;
+}
+
+.dark input {
+    color: #dddddd;
+    background-color: #222222;
+    border: 1px solid #666666;
+}
+
+.dark select {
+    color: #dddddd;
+    background-color: #222222;
 }

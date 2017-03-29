@@ -49,17 +49,3 @@ body {
     font-size: 21pt;
     font-weight: lighter;
 }
-
-
-/* TODO: dark versions for links */
-a {
-    color: #009fdb;
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
-a:visited {
-    color: #7fabdb;
-    text-decoration: none;
-}

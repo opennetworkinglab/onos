@@ -77,10 +77,59 @@
 }
 
 
-/* TODO: dark theme */
-/* Selected toggle / radio button */
+/* ========== DARK Theme ========== */
 
+/* Selected toggle / radio button */
 .dark .toggleButton.selected svg.embeddedIcon .icon rect,
 .dark .radioButton.selected svg.embeddedIcon .icon rect {
-    fill: #e7e7e7;
+    fill: #353e45;
+}
+
+/* Selected:hover (normal) button */
+.dark .button:hover svg.embeddedIcon .icon rect {
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Selected:hover toggle-button */
+.dark .toggleButton.selected:hover svg.embeddedIcon .icon rect {
+    fill: #444d54;
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Selected toggle/radio button and normal button glyph color */
+.dark .button svg.embeddedIcon .glyph,
+.dark .toggleButton.selected svg.embeddedIcon .glyph,
+.dark .radioButton.selected svg.embeddedIcon .glyph {
+    fill: #5b99d2;
+}
+
+
+/* === UNSELECTED BUTTONS === */
+
+/* Unselected toggle / radio button */
+.dark .toggleButton svg.embeddedIcon .icon rect,
+.dark .radioButton svg.embeddedIcon .icon rect {
+    /* no fill */
+}
+
+/* Unselected:hover toggle / radio button */
+.dark .toggleButton:hover svg.embeddedIcon .icon rect,
+.dark .radioButton:hover:not(.selected) svg.embeddedIcon .icon rect {
+    fill: #353e45;
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Unselected toggle / radio button */
+.dark .toggleButton svg.embeddedIcon .glyph,
+.dark .radioButton svg.embeddedIcon .glyph {
+    fill: #bbb;
+}
+
+/* Unselected:hover toggle / radio button */
+.dark .toggleButton:hover:not(.selected) svg.embeddedIcon .glyph,
+.dark .radioButton:hover:not(.selected) svg.embeddedIcon .glyph {
+    fill: #5b99d2;
 }

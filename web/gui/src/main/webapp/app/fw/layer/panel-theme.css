@@ -23,9 +23,44 @@
     color: #3c3a3a;
     border: 1px solid #c7c7c0;
 }
-.dark .floatpanel {
-    /* TODO: dark theme */
-    background-color: white;
-    color: #3c3a3a;
+
+.light .floatpanel hr {
     border: 1px solid #c7c7c0;
+}
+
+.light .floatpanel .bottom tr:nth-child(odd) {
+    background-color: #f4f4f4;
+}
+
+.light .floatpanel .bottom tr:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+
+/* ========== DARK Theme ========== */
+
+.dark .floatpanel {
+    background-color: #282528;
+    color: #888c8c;
+    border: 1px solid #364144;
+}
+
+.dark .floatpanel th {
+    background-color: #242424;
+}
+
+.dark .floatpanel h2 {
+    color: #dddddd;
+}
+
+.dark .floatpanel hr {
+    border: 1px solid #30303a;
+}
+
+.dark .floatpanel .bottom tr:nth-child(odd) {
+    background-color: #333333;
+}
+
+.dark .floatpanel .bottom tr:nth-child(even) {
+    background-color: #3a3a3a;
 }
