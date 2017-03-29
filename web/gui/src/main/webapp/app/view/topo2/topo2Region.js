@@ -58,9 +58,12 @@
 
                     this.model = new RegionModel();
                 },
+                isLoadComplete: function() {
+                    return this.bgRendered && this.regionData && this.peers;
+                },
                 loaded: function (key, value) {
                     this[key] = value;
-                    if (this.bgRendered && this.regionData && this.peers) {
+                    if (this.isLoadComplete()) {
                         this.startRegion();
                     }
                 },

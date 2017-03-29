@@ -206,6 +206,10 @@
             t2tbs = _t2tbs_;
 
             var onZoom = function () {
+                if (!t2rs.isLoadComplete()) {
+                    return;
+                }
+
                 var nodes = [].concat(
                         t2rs.regionNodes(),
                         t2rs.regionLinks()

@@ -149,6 +149,7 @@
     var SelectionService = function () {
         instance = this;
         this.selectedNodes = [];
+        this.selectionOrder = [];
     };
 
     SelectionService.prototype = {
@@ -173,16 +174,18 @@
         },
         selectObject: function (node, multiSelectEnabled) {
 
-            var event = d3.event;
-
-            if (multiSelectEnabled && !event.shiftKey || !multiSelectEnabled) {
-                this.clearSelection();
-            }
-
-            var nodeIndex = _.indexOf(this.selectedNodes, node);
+            var event = d3.event,
+                nodeIndex = _.indexOf(this.selectionOrder, node.get('id'));
 
             if (nodeIndex < 0) {
+
+                if (multiSelectEnabled && !event.shiftKey || !multiSelectEnabled) {
+                    this.clearSelection();
+                }
+
                 this.selectedNodes.push(node);
+                this.selectionOrder.push(node.get('id'));
+
                 node.select();
             } else {
                 this.removeNode(node, nodeIndex);
@@ -192,6 +195,7 @@
         },
         removeNode: function (node, index) {
             this.selectedNodes.splice(index, 1);
+            this.selectionOrder.splice(index, 1);
             node.deselect();
         },
         clearSelection: function () {
@@ -200,6 +204,7 @@
             });
 
             this.selectedNodes = [];
+            this.selectionOrder = [];
             this.updateDetails();
         },
         clickConsumed: function (x) {
