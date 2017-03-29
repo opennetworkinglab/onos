@@ -131,9 +131,7 @@ public class StoragePartition implements Managed<StoragePartition> {
         StoragePartitionServer server = new StoragePartitionServer(toAddress(localNodeId),
                 this,
                 serializer,
-                () -> new CopycatTransport(CopycatTransport.Mode.SERVER,
-                                     partition.getId(),
-                                     messagingService),
+                () -> new CopycatTransport(partition.getId(), messagingService),
                 logFolder);
         return server.open().thenRun(() -> this.server = server);
     }
@@ -150,9 +148,7 @@ public class StoragePartition implements Managed<StoragePartition> {
         StoragePartitionServer server = new StoragePartitionServer(toAddress(localNodeId),
                 this,
                 serializer,
-                () -> new CopycatTransport(CopycatTransport.Mode.SERVER,
-                                     partition.getId(),
-                                     messagingService),
+                () -> new CopycatTransport(partition.getId(), messagingService),
                 logFolder);
         return server.join(Collections2.transform(otherMembers, this::toAddress)).thenRun(() -> this.server = server);
     }
@@ -160,9 +156,7 @@ public class StoragePartition implements Managed<StoragePartition> {
     private CompletableFuture<StoragePartitionClient> openClient() {
         client = new StoragePartitionClient(this,
                 serializer,
-                new CopycatTransport(CopycatTransport.Mode.CLIENT,
-                                     partition.getId(),
-                                     messagingService));
+                new CopycatTransport(partition.getId(), messagingService));
         return client.open().thenApply(v -> client);
     }
 

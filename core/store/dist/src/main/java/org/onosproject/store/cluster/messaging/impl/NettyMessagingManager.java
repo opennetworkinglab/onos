@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.util.concurrent.MoreExecutors;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -65,7 +64,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -115,7 +113,7 @@ public class NettyMessagingManager implements MessagingService {
                 @Override
                 public void onRemoval(RemovalNotification<Long, Callback> entry) {
                     if (entry.wasEvicted()) {
-                        entry.getValue().completeExceptionally(new TimeoutException("Timedout waiting for reply"));
+                        entry.getValue().completeExceptionally(new TimeoutException("Timed out waiting for reply"));
                     }
                 }
             })
