@@ -185,7 +185,7 @@ public final class OpenstackSwitchingHandler {
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
             final String error = String.format(
                     ERR_SET_FLOWS + "Failed to get VNI for %s",
-                    instPort, osNet.getName());
+                    instPort, osNet == null ? "<none>" : osNet.getName());
             throw new IllegalStateException(error);
         }
         return Long.valueOf(osNet.getProviderSegID());
