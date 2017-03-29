@@ -737,8 +737,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
-            if (event.type() == LinkEvent.Type.LINK_ADDED
-                    || event.type() == LinkEvent.Type.LINK_REMOVED) {
+            if (event.type() == LinkEvent.Type.LINK_ADDED ||
+                    event.type() == LinkEvent.Type.LINK_UPDATED ||
+                    event.type() == LinkEvent.Type.LINK_REMOVED) {
                 log.debug("Event {} received from Link Service", event.type());
                 scheduleEventHandlerIfNotScheduled(event);
             }
@@ -798,7 +799,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             break;
                         }
                     }
-                    if (event.type() == LinkEvent.Type.LINK_ADDED) {
+                    if (event.type() == LinkEvent.Type.LINK_ADDED ||
+                            event.type() == LinkEvent.Type.LINK_UPDATED) {
                         processLinkAdded((Link) event.subject());
                     } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
                         Link linkRemoved = (Link) event.subject();

@@ -87,7 +87,6 @@ public class SegmentRoutingNeighbourHandler {
             senderMacAddress = config.getDeviceMac(deviceId).toBytes();
             if (targetAddress.isIp4()) {
                 sender = config.getRouterIpAddressForASubnetHost(targetAddress.getIp4Address());
-
             } else {
                 sender = config.getRouterIpAddressForASubnetHost(targetAddress.getIp6Address());
             }

@@ -190,12 +190,16 @@ public class DefaultGroupHandler {
     public void linkUp(Link newLink, boolean isMaster) {
 
         if (newLink.type() != Link.Type.DIRECT) {
-            log.warn("linkUp: unknown link type");
+            // NOTE: A DIRECT link might be transiently marked as INDIRECT
+            //       if BDDP is received before LLDP. We can safely ignore that
+            //       until the LLDP is received and the link is marked as DIRECT.
+            log.info("Ignore link {}->{}. Link type is {} instead of DIRECT.",
+                    newLink.src(), newLink.dst(), newLink.type());
             return;
         }
 
         if (!newLink.src().deviceId().equals(deviceId)) {
-            log.warn("linkUp: deviceId{} doesn't match with link src{}",
+            log.warn("linkUp: deviceId{} doesn't match with link src {}",
                      deviceId, newLink.src().deviceId());
             return;
         }
