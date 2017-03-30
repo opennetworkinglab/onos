@@ -47,6 +47,10 @@ import org.projectfloodlight.openflow.protocol.OFExpPortAdjacencyRequest;
 import org.projectfloodlight.openflow.protocol.OFOplinkPortPower;
 import org.projectfloodlight.openflow.protocol.OFOplinkPortPowerRequest;
 
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Oplink handshaker utility.
  */
@@ -66,6 +70,9 @@ public class OplinkHandshakerUtil {
     private static final int OPSPEC_PORT_POS = 24;
     // Right bit offset for mac
     private static final int OPSPEC_PORT_BIT_OFF = 32;
+
+    // Log
+    private final Logger log = getLogger(getClass());
 
     /**
      * Create a new OplinkHandshakerUtil.
@@ -157,7 +164,7 @@ public class OplinkHandshakerUtil {
             builder.putAll(oldAnnotations);
             OFExpPortAdjacency ad = adMap.get(port.number().toLong());
             OplinkPortAdjacency neighbor = getNeighbor(ad);
-            if (neighbor == null) {
+            if (!linkValidation(deviceService, neighbor)) {
                 // no neighbors found
                 builder.remove(OpticalAnnotations.NEIGHBOR_ID);
                 builder.remove(OpticalAnnotations.NEIGHBOR_PORT);
@@ -168,14 +175,14 @@ public class OplinkHandshakerUtil {
                 String newPort = neighbor.getPort().toString();
                 // Check if annotation already exists
                 if (!newId.equals(oldAnnotations.value(OpticalAnnotations.NEIGHBOR_ID)) ||
-                    !newPort.equals(oldAnnotations.value(OpticalAnnotations.NEIGHBOR_PORT))) {
+                        !newPort.equals(oldAnnotations.value(OpticalAnnotations.NEIGHBOR_PORT))) {
                     builder.set(OpticalAnnotations.NEIGHBOR_ID, newId);
                     builder.set(OpticalAnnotations.NEIGHBOR_PORT, newPort);
                 }
                 addLink(port.number(), neighbor);
             }
             portDescs.add(new DefaultPortDescription(port.number(), port.isEnabled(),
-                    port.type(), port.portSpeed(), builder.build()));
+                                                     port.type(), port.portSpeed(), builder.build()));
         }
         return portDescs;
     }
@@ -210,11 +217,45 @@ public class OplinkHandshakerUtil {
         return null;
     }
 
+    private boolean linkValidation(DeviceService deviceService, OplinkPortAdjacency neighbor) {
+        // check neighbor object
+        if (neighbor == null) {
+            return false;
+        }
+        // check src device is validate or not
+        if (!deviceService.isAvailable(neighbor.getDeviceId())) {
+            log.debug("Invalid adjacency device. devId = {}", neighbor.getDeviceId());
+            return false;
+        }
+        // check src port is validate or not
+        if (deviceService.getPort(neighbor.getDeviceId(), neighbor.getPort()) == null) {
+            log.debug("Invalid adjacency port. devId = {}, port = {}",
+                      neighbor.getDeviceId(), neighbor.getPort());
+            return false;
+        }
+        // validate link
+        return true;
+    }
+
     // Add incoming link with port
     private void addLink(PortNumber portNumber, OplinkPortAdjacency neighbor) {
         ConnectPoint dst = new ConnectPoint(driver.handler().data().deviceId(), portNumber);
-        ConnectPoint src = new ConnectPoint(neighbor.getDeviceId(), neighbor.getPort());
+        Set<Link> links = driver.handler().get(LinkService.class).getIngressLinks(dst);
+        // find out if the new report link is the same as before
+        for (Link link : links) {
+            if (link.src().port().equals(neighbor.getPort())) {
+                return;
+            }
+        }
         OpticalAdjacencyLinkService adService = driver.handler().get(OpticalAdjacencyLinkService.class);
+        // remove the old link of destination connect point
+        if (!links.isEmpty()) {
+            log.debug("Remove link of destination {}.", dst);
+            adService.linksVanished(dst);
+        }
+        // add the new link
+        ConnectPoint src = new ConnectPoint(neighbor.getDeviceId(), neighbor.getPort());
+        log.debug("Add link from {} to {}.", src, dst);
         adService.linkDetected(new DefaultLinkDescription(src, dst, Link.Type.OPTICAL));
     }
 
@@ -223,12 +264,12 @@ public class OplinkHandshakerUtil {
         ConnectPoint dst = new ConnectPoint(driver.handler().data().deviceId(), portNumber);
         // Check so only incoming links are removed
         Set<Link> links = driver.handler().get(LinkService.class).getIngressLinks(dst);
+        // If link exists, remove it, otherwise return
         if (links.isEmpty()) {
             return;
         }
-        // If link exists, remove it
-        OpticalAdjacencyLinkService adService = driver.handler().get(OpticalAdjacencyLinkService.class);
-        adService.linksVanished(dst);
+        log.debug("Remove link for {}.", dst);
+        driver.handler().get(OpticalAdjacencyLinkService.class).linksVanished(dst);
     }
 
     private class OplinkPortAdjacency {
