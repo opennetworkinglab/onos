@@ -136,8 +136,6 @@
                         return this.settings[settingName][nodeType] || this.settings[settingName]._def_;
                     },
                     createForceLayout: function () {
-                        var regionLinks = t2rs.regionLinks(),
-                            regionNodes = t2rs.regionNodes();
 
                         this.force = d3.layout.force()
                             .size(t2vs.getDimensions())
@@ -146,16 +144,10 @@
                             .charge(this.settingOrDefault.bind(this, 'charge'))
                             .linkDistance(this.settingOrDefault.bind(this, 'linkDistance'))
                             .linkStrength(this.settingOrDefault.bind(this, 'linkStrength'))
-                            .nodes(regionNodes)
-                            .links(regionLinks)
+                            .nodes([])
+                            .links([])
                             .on("tick", this.tick.bind(this))
                             .start();
-
-                        this.link = this.elements.linkG.selectAll('.link')
-                            .data(regionLinks, function (d) { return d.get('key'); });
-
-                        this.node = this.elements.nodeG.selectAll('.node')
-                            .data(regionNodes, function (d) { return d.get('id'); });
 
                         this.drag = sus.createDragBehavior(this.force,
                             function () {}, // click event is no longer handled in the drag service

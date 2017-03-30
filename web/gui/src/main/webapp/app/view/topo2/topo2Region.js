@@ -57,6 +57,15 @@
                     });
 
                     this.model = new RegionModel();
+                    this.createEmptyModel();
+
+                },
+                createEmptyModel: function () {
+                    this.model.set({ subregions: t2sr.createSubRegionCollection([], this) });
+                    this.model.set({ devices: t2ds.createDeviceCollection([], this) });
+                    this.model.set({ hosts: t2hs.createHostCollection([], this) });
+                    this.model.set({ peerRegions: t2pr.createCollection([], this) });
+                    this.model.set({ links: t2ls.createLinkCollection([], this) });
                 },
                 isLoadComplete: function() {
                     return this.bgRendered && this.regionData && this.peers;
@@ -90,11 +99,8 @@
                     this.layout.createForceLayout();
                 },
                 clear: function () {
-
                     this.regionData = null;
-
-                    if (!this.model)
-                        return;
+                    this.createEmptyModel();
                 },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
@@ -151,7 +157,6 @@
                     return false;
                 },
                 deselectLink: function () {
-                    console.log('remove link')
                     var selected = _.filter(this.regionLinks(), function (link) {
                         return link.get('selected', true);
                     });
@@ -171,6 +176,10 @@
 
                 update: function (event) {
 
+                    if (!this.isLoadComplete()){
+                        this.layout.createForceLayout();
+                    }
+
                     if (this[event.type]) {
                         this[event.type](event);
                     } else {
@@ -182,9 +191,18 @@
 
                 // Topology update event handlers
                 LINK_ADDED_OR_UPDATED: function (event) {
+
+                    var regionLinks = this.model.get('links'),
+                        device;
+
+                    if (!regionLinks) {
+                        this.model.set({ links: t2ls.createLinkCollection([], this) })
+                    }
+
                     if (event.memo === 'added') {
                         var link = this.model.get('links').add(event.data);
                         link.createLink();
+                        $log.debug('Added Link', link);
                     }
                 },
                 LINK_REMOVED: function (event) {
@@ -194,7 +212,12 @@
                 },
                 DEVICE_ADDED_OR_UPDATED: function (event) {
 
-                    var device;
+                    var regionDevices = this.model.get('devices'),
+                        device;
+
+                    if (!regionDevices) {
+                        this.model.set({ devices: t2ds.createDeviceCollection([], this) })
+                    }
 
                     if (event.memo === 'added') {
                         device = this.model.get('devices').add(event.data);
@@ -206,6 +229,32 @@
                 },
                 DEVICE_REMOVED: function (event) {
                     device.remove();
+                },
+                HOST_ADDED_OR_UPDATED: function (event) {
+                    var regionHosts = this.model.get('hosts'),
+                        host;
+
+                    if (!regionHosts) {
+                        this.model.set({ hosts: t2hs.createHostCollection([], this) })
+                    }
+
+                    if (event.memo === 'added') {
+                        host = this.model.get('hosts').add(event.data);
+                        $log.debug('Added host', host);
+                    }
+                },
+                REGION_ADDED_OR_UPDATED: function (event) {
+                    var regionSubRegions = this.model.get('subregions'),
+                        region;
+
+                    if (!regionSubRegions) {
+                        this.model.set({ subregions: t2sr.createSubRegionCollection([], this) })
+                    }
+
+                    if (event.memo === 'added') {
+                        region = this.model.get('subregions').add(event.data);
+                        $log.debug('Added region', region);
+                    }
                 }
             });
 

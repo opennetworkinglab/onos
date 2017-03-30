@@ -95,7 +95,7 @@
     }
 
     function modelEvent(data) {
-        $log.debug('>> topo2UiModelEvent event:', data);
+        // $log.debug('>> topo2UiModelEvent event:', data);
 
         // TODO: Interpret the event and update our topo model state (if needed)
         // To Decide: Can we assume that the server will only send events
