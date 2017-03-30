@@ -105,6 +105,9 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
      * @return true if the path passes all constraints
      */
     protected boolean checkPath(Path path, List<Constraint> constraints) {
+        if (path == null) {
+            return false;
+        }
         for (Constraint constraint : constraints) {
             if (!constraint.validate(path, resourceService::isAvailable)) {
                 return false;
@@ -174,6 +177,7 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         final List<Constraint> constraints = intent.constraints();
         ImmutableList<DisjointPath> filtered = FluentIterable.from(paths)
                 .filter(path -> checkPath(path, constraints))
+                .filter(path -> checkPath(path.backup(), constraints))
                 .toList();
         if (filtered.isEmpty()) {
             throw new PathNotFoundException(one, two);
