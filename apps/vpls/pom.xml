@@ -35,7 +35,6 @@
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.title>VLAN L2 Broadcast Network App</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.requires>org.onosproject.intentsynchronizer</onos.app.requires>
     </properties>
 
     <dependencies>
@@ -45,19 +44,9 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-intentsync</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <scope>test</scope>
             <classifier>tests</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-sdnip</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
@@ -73,6 +62,15 @@
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

@@ -6,7 +6,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//utils/rest:onlab-rest',
     '//incubator/api:onos-incubator-api',
-    '//apps/intentsync:onos-apps-intentsync',
+    '//core/store/serializers:onos-core-serializers'
 ]
 
 TEST_DEPS = [

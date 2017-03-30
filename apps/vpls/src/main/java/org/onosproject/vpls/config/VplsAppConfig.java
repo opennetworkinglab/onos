@@ -35,6 +35,9 @@ public class VplsAppConfig extends Config<ApplicationId> {
     private static final String INTERFACE = "interfaces";
     private static final String ENCAPSULATION = "encapsulation";
 
+    // Record update time when VPLS distribute store update it
+    private static final String UPDATE_TIME = "lastUpdateTime";
+
     /**
      * Returns a set of configured VPLSs.
      *
@@ -42,9 +45,7 @@ public class VplsAppConfig extends Config<ApplicationId> {
      */
     public Set<VplsConfig> vplss() {
         Set<VplsConfig> vplss = Sets.newHashSet();
-
         JsonNode vplsNode = object.get(VPLS);
-
         if (vplsNode == null) {
             return vplss;
         }
@@ -67,7 +68,6 @@ public class VplsAppConfig extends Config<ApplicationId> {
                                      ifaces,
                                      EncapsulationType.enumFromString(encap)));
         });
-
         return vplss;
     }
 
@@ -214,5 +214,38 @@ public class VplsAppConfig extends Config<ApplicationId> {
      */
     private ArrayNode initVplsConfiguration() {
         return object.putArray(VPLS);
+    }
+
+    /**
+     * Sets the last time of update for the VPLS information in the store.
+     *
+     * @param timestamp the update time
+     */
+    public void updateTime(long timestamp) {
+        object.put(UPDATE_TIME, timestamp);
+    }
+
+    /**
+     * Retrieves the last time of update for the VPLS information in the store.
+     *
+     * @return update time, -1 if there is no update time in the config
+     */
+    public long updateTime() {
+        if (object.get(UPDATE_TIME) != null) {
+            return object.get(UPDATE_TIME).asLong();
+        } else {
+            // No update time
+            return -1L;
+        }
+    }
+
+    /**
+     * Clears all VPLS configurations.
+     */
+    public void clearVplsConfig() {
+        if (object.get(VPLS) != null) {
+            object.remove(VPLS);
+        }
+        initVplsConfiguration();
     }
 }

@@ -17,8 +17,6 @@ package org.onosproject.vpls;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -30,8 +28,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.intf.InterfaceListener;
-import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.neighbour.NeighbourHandlerRegistration;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
@@ -39,122 +35,26 @@ import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
 import org.onosproject.incubator.net.neighbour.NeighbourProtocol;
 import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultHost;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostServiceAdapter;
-import org.onosproject.net.provider.ProviderId;
+import org.onosproject.vpls.api.VplsData;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 /**
- * Tests the the {@link VplsNeighbourHandler} class.
+ * Tests the the {@link VplsNeighbourHandler}.
  */
-public class VplsNeighbourHandlerTest {
+public class VplsNeighbourHandlerTest extends VplsTest {
 
     private static final String IFACES_NOT_EXPECTED =
             "The interfaces reached by the packet are not equal to the " +
                     "interfaces expected.";
-
-    private static final DeviceId DID1 = getDeviceId(1);
-    private static final DeviceId DID2 = getDeviceId(2);
-    private static final DeviceId DID3 = getDeviceId(3);
-    private static final DeviceId DID4 = getDeviceId(4);
-    private static final DeviceId DID5 = getDeviceId(5);
-
-    private static final PortNumber P1 = PortNumber.portNumber(1);
-    private static final PortNumber P2 = PortNumber.portNumber(2);
-    private static final PortNumber P3 = PortNumber.portNumber(3);
-
-    private static final ConnectPoint OF1P1 = new ConnectPoint(DID1, P1);
-    private static final ConnectPoint OF2P1 = new ConnectPoint(DID2, P1);
-    private static final ConnectPoint OF3P1 = new ConnectPoint(DID3, P1);
-    private static final ConnectPoint OF4P1 = new ConnectPoint(DID4, P1);
-    private static final ConnectPoint OF4P2 = new ConnectPoint(DID4, P2);
-    private static final ConnectPoint OF4P3 = new ConnectPoint(DID4, P3);
-    private static final ConnectPoint OF5P1 = new ConnectPoint(DID5, P1);
-    private static final ConnectPoint OF5P2 = new ConnectPoint(DID5, P2);
-    private static final ConnectPoint OF5P3 = new ConnectPoint(DID5, P3);
-
-    private static final String VPLS1 = "vpls1";
-    private static final String VPLS2 = "vpls2";
-    private static final String VPLS3 = "vpls3";
-    private static final String VPLS4 = "vpls4";
-
-    private static final VlanId VLAN100 = VlanId.vlanId("100");
-    private static final VlanId VLAN200 = VlanId.vlanId("200");
-    private static final VlanId VLAN300 = VlanId.vlanId("300");
-    private static final VlanId VLAN400 = VlanId.vlanId("400");
-    private static final VlanId VLAN_NONE = VlanId.NONE;
-
-    private static final Interface V100H1 =
-            new Interface("v100h1", OF1P1, null, null, VLAN100);
-    private static final Interface V100H2 =
-            new Interface("v100h2", OF4P1, null, null, VLAN100);
-    private static final Interface V200H1 =
-            new Interface("v200h1", OF4P2, null, null, VLAN200);
-    private static final Interface V200H2 =
-            new Interface("v200h2", OF2P1, null, null, VLAN200);
-    private static final Interface V300H1 =
-            new Interface("v300h1", OF3P1, null, null, VLAN300);
-    private static final Interface V400H1 =
-            new Interface("v400h1", OF5P1, null, null, VLAN400);
-    private static final Interface VNONEH1 =
-            new Interface("vNoneh1", OF5P2, null, null, VLAN_NONE);
-    private static final Interface VNONEH2 =
-            new Interface("vNoneh2", OF5P3, null, null, VLAN_NONE);
-    private static final Interface VNONEH3 =
-            new Interface("vNoneh3", OF4P3, null, null, VLAN_NONE);
-
-    private static final MacAddress MAC1 = MacAddress.valueOf("00:00:00:00:00:01");
-    private static final MacAddress MAC2 = MacAddress.valueOf("00:00:00:00:00:02");
-    private static final MacAddress MAC3 = MacAddress.valueOf("00:00:00:00:00:03");
-    private static final MacAddress MAC4 = MacAddress.valueOf("00:00:00:00:00:04");
-    private static final MacAddress MAC5 = MacAddress.valueOf("00:00:00:00:00:05");
-    private static final MacAddress MAC6 = MacAddress.valueOf("00:00:00:00:00:06");
-    private static final MacAddress MAC7 = MacAddress.valueOf("00:00:00:00:00:07");
-    private static final MacAddress MAC8 = MacAddress.valueOf("00:00:00:00:00:08");
-    private static final MacAddress MAC9 = MacAddress.valueOf("00:00:00:00:00:09");
-
-    private static final ProviderId PID = new ProviderId("of", "foo");
-
-    private final Host v100Host1 = makeHost(MAC1, VLAN100, OF1P1);
-    private final Host v100Host2 = makeHost(MAC2, VLAN100, OF4P1);
-    private final Host v200Host1 = makeHost(MAC3, VLAN200, OF4P2);
-    private final Host v200Host2 = makeHost(MAC5, VLAN200, OF2P1);
-    private final Host v300Host1 = makeHost(MAC4, VLAN300, OF3P1);
-    private final Host v400Host1 = makeHost(MAC6, VLAN400, OF5P1);
-    private final Host vNoneHost1 = makeHost(MAC7, VLAN_NONE, OF5P2);
-    private final Host vNoneHost2 = makeHost(MAC8, VLAN_NONE, OF5P3);
-    private final Host vNoneHost3 = makeHost(MAC9, VLAN_NONE, OF4P3);
-
-    private final Set<Host> availableHosts = ImmutableSet.of(v100Host1,
-                                                             v100Host2,
-                                                             v200Host1,
-                                                             v300Host1,
-                                                             v200Host2,
-                                                             v400Host1,
-                                                             vNoneHost1,
-                                                             vNoneHost2,
-                                                             vNoneHost3);
-
-    private final Set<Interface> availableInterfaces =
-            ImmutableSet.of(V100H1, V100H2, V200H1, V200H2, V300H1,
-                            V400H1, VNONEH1, VNONEH2, VNONEH3);
-
     private VplsNeighbourHandler vplsNeighbourHandler;
-
     private HostService hostService;
 
     /**
@@ -167,29 +67,46 @@ public class VplsNeighbourHandlerTest {
     @Before
     public void setUp() {
         vplsNeighbourHandler = new VplsNeighbourHandler();
-        SetMultimap<String, Interface> ifacesByVpls =
-                HashMultimap.create();
-        ifacesByVpls.put(VPLS1, V100H1);
-        ifacesByVpls.put(VPLS1, V200H1);
-        ifacesByVpls.put(VPLS1, V300H1);
-        ifacesByVpls.put(VPLS2, V100H2);
-        ifacesByVpls.put(VPLS2, V200H2);
-        ifacesByVpls.put(VPLS3, VNONEH1);
-        ifacesByVpls.put(VPLS3, VNONEH2);
-        ifacesByVpls.put(VPLS4, V400H1);
-        ifacesByVpls.put(VPLS4, VNONEH3);
-        HashMap<String, EncapsulationType> encap = Maps.newHashMap();
-        vplsNeighbourHandler.vplsConfigService =
-                new TestVplsConfigService(ifacesByVpls, encap);
-        vplsNeighbourHandler.interfaceService =
-                new TestInterfaceService();
-        vplsNeighbourHandler.neighbourService =
-                new TestNeighbourService();
         hostService = new TestHostService();
+        vplsNeighbourHandler.vplsStore = new TestVplsStore();
+        vplsNeighbourHandler.interfaceService = new TestInterfaceService();
+        vplsNeighbourHandler.neighbourService = new TestNeighbourService();
+        vplsNeighbourHandler.coreService = new TestCoreService();
+        vplsNeighbourHandler.configService = new TestConfigService();
+
+        // Init VPLS store
+        VplsData vplsData = VplsData.of(VPLS1);
+        vplsData.addInterfaces(ImmutableSet.of(V100H1, V200H1, V300H1));
+        vplsNeighbourHandler.vplsStore.addVpls(vplsData);
+
+        vplsData = VplsData.of(VPLS2);
+        vplsData.addInterfaces(ImmutableSet.of(V100H2, V200H2));
+        vplsNeighbourHandler.vplsStore.addVpls(vplsData);
+
+        vplsData = VplsData.of(VPLS3);
+        vplsData.addInterfaces(ImmutableSet.of(VNONEH1, VNONEH2));
+        vplsNeighbourHandler.vplsStore.addVpls(vplsData);
+
+        vplsData = VplsData.of(VPLS4);
+        vplsData.addInterfaces(ImmutableSet.of(V400H1, VNONEH3));
+        vplsNeighbourHandler.vplsStore.addVpls(vplsData);
+
+        vplsNeighbourHandler.activate();
+
     }
 
     @After
     public void tearDown() {
+        vplsNeighbourHandler.deactivate();
+    }
+
+    /**
+     * Registers neighbour handler to all available interfaces.
+     */
+    @Test
+    public void testConfigNeighbourHandler() {
+        vplsNeighbourHandler.configNeighbourHandler();
+        assertEquals(9, vplsNeighbourHandler.neighbourService.getHandlerRegistrations().size());
     }
 
     /**
@@ -200,21 +117,21 @@ public class VplsNeighbourHandlerTest {
     public void vpls1RequestMessage() {
         // Request messages from v100h1 (VPLS 1) should be received by v200h1 and v300h1
         TestMessageContext requestMessage =
-                makeBroadcastRequestContext(v100Host1);
+                makeBroadcastRequestContext(V100HOST1);
         Set<Interface> expectInterfaces = ImmutableSet.of(V200H1, V300H1);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
 
         // Request messages from v200h1 (VPLS 1) should be received by v100h1 and v300h1
-        requestMessage = makeBroadcastRequestContext(v200Host1);
+        requestMessage = makeBroadcastRequestContext(V200HOST1);
         expectInterfaces = ImmutableSet.of(V100H1, V300H1);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
 
         // Request from v300h1 (VPLS 1) should be received by v100h1 and v200h1
-        requestMessage = makeBroadcastRequestContext(v300Host1);
+        requestMessage = makeBroadcastRequestContext(V300HOST1);
         expectInterfaces = ImmutableSet.of(V100H1, V200H1);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
     }
 
@@ -226,15 +143,15 @@ public class VplsNeighbourHandlerTest {
     public void vpls2RequestMessage() {
         // Request messages from v100h2 (VPLS 2) should be received by v200h2
         TestMessageContext requestMessage =
-                makeBroadcastRequestContext(v100Host2);
+                makeBroadcastRequestContext(V100HOST2);
         Set<Interface> expectInterfaces = ImmutableSet.of(V200H2);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
 
         // Request messages from v200h2 (VPLS 2) should be received by v100h2
-        requestMessage = makeBroadcastRequestContext(v200Host2);
+        requestMessage = makeBroadcastRequestContext(V200HOST2);
         expectInterfaces = ImmutableSet.of(V100H2);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
     }
 
@@ -246,17 +163,17 @@ public class VplsNeighbourHandlerTest {
      */
     @Test
     public void vpls3RequestMessage() {
-        // Request messages from vNoneHost1 (VPLS 3) should be received by vNoneHost2
+        // Request messages from VNONEHOST1 (VPLS 3) should be received by VNONEHOST2
         TestMessageContext requestMessage =
-                makeBroadcastRequestContext(vNoneHost1);
+                makeBroadcastRequestContext(VNONEHOST1);
         Set<Interface> expectInterfaces = ImmutableSet.of(VNONEH2);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
 
         // Request messages from vNoneh2 (VPLS 3) should be received by vNoneh1
-        requestMessage = makeBroadcastRequestContext(vNoneHost2);
+        requestMessage = makeBroadcastRequestContext(VNONEHOST2);
         expectInterfaces = ImmutableSet.of(VNONEH1);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
     }
 
@@ -268,17 +185,17 @@ public class VplsNeighbourHandlerTest {
      */
     @Test
     public void vpls4RequestMessage() {
-        // Request messages from v400Host1 (VPLS 4) should be received by vNoneHost3
+        // Request messages from V400HOST1 (VPLS 4) should be received by VNONEHOST3
         TestMessageContext requestMessage =
-                makeBroadcastRequestContext(v400Host1);
+                makeBroadcastRequestContext(V400HOST1);
         Set<Interface> expectInterfaces = ImmutableSet.of(VNONEH3);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
 
-        // Request messages from vNoneHost3 (VPLS 4) should be received by v400Host1
-        requestMessage = makeBroadcastRequestContext(vNoneHost3);
+        // Request messages from VNONEHOST3 (VPLS 4) should be received by V400HOST1
+        requestMessage = makeBroadcastRequestContext(VNONEHOST3);
         expectInterfaces = ImmutableSet.of(V400H1);
-        vplsNeighbourHandler.handleRequest(requestMessage);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
     }
 
@@ -291,21 +208,21 @@ public class VplsNeighbourHandlerTest {
     public void vpls1ReplyMessage() {
         // Reply messages from v100h1 (VPLS 1) should be received by v200h1
         TestMessageContext replyMessage =
-                makeReplyContext(v100Host1, v200Host1);
+                makeReplyContext(V100HOST1, V200HOST1);
         Set<Interface> expectInterfaces = ImmutableSet.of(V200H1);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply messages from v200h1 (VPLS 1) should be received by v300h1
-        replyMessage = makeReplyContext(v200Host1, v300Host1);
+        replyMessage = makeReplyContext(V200HOST1, V300HOST1);
         expectInterfaces = ImmutableSet.of(V300H1);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply messages from v300h1 (VPLS 1) should be received by v100h1
-        replyMessage = makeReplyContext(v300Host1, v100Host1);
+        replyMessage = makeReplyContext(V300HOST1, V100HOST1);
         expectInterfaces = ImmutableSet.of(V100H1);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
     }
 
@@ -318,15 +235,15 @@ public class VplsNeighbourHandlerTest {
     public void vpls2ReplyMessage() {
         // Reply messages from v100h2 (VPLS 2) should be received by v200h2
         TestMessageContext replyMessage =
-                makeReplyContext(v100Host2, v200Host2);
+                makeReplyContext(V100HOST2, V200HOST2);
         Set<Interface> expectInterfaces = ImmutableSet.of(V200H2);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply messages from v200h2 (VPLS 2) should be received by v100h2
-        replyMessage = makeReplyContext(v200Host2, v100Host2);
+        replyMessage = makeReplyContext(V200HOST2, V100HOST2);
         expectInterfaces = ImmutableSet.of(V100H2);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
     }
 
@@ -339,15 +256,15 @@ public class VplsNeighbourHandlerTest {
     public void vpls3ReplyMessage() {
         // Reply messages from vNoneh1 (VPLS 3) should be received by vNoneh2
         TestMessageContext replyMessage =
-                makeReplyContext(vNoneHost1, vNoneHost2);
+                makeReplyContext(VNONEHOST1, VNONEHOST2);
         Set<Interface> expectInterfaces = ImmutableSet.of(VNONEH2);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply messages from vNoneh2 (VPLS 3) should be received by vNoneh1
-        replyMessage = makeReplyContext(vNoneHost2, vNoneHost1);
+        replyMessage = makeReplyContext(VNONEHOST2, VNONEHOST1);
         expectInterfaces = ImmutableSet.of(VNONEH1);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
     }
 
@@ -360,15 +277,15 @@ public class VplsNeighbourHandlerTest {
     public void vpls4ReplyMessage() {
         // Reply messages from v400h1 (VPLS 4) should be received by vNoneh3
         TestMessageContext replyMessage =
-                makeReplyContext(v400Host1, vNoneHost3);
+                makeReplyContext(V400HOST1, VNONEHOST3);
         Set<Interface> expectInterfaces = ImmutableSet.of(VNONEH3);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply messages from vNoneh3 (VPLS 4) should be received by v400h1
-        replyMessage = makeReplyContext(vNoneHost3, v400Host1);
+        replyMessage = makeReplyContext(VNONEHOST3, V400HOST1);
         expectInterfaces = ImmutableSet.of(V400H1);
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
     }
 
@@ -381,52 +298,56 @@ public class VplsNeighbourHandlerTest {
     public void wrongReplyMessage() {
         // Reply message from v100h1 (VPLS 1) to v100h2 (VPLS 2).
         // Forward results should be empty
-        TestMessageContext replyMessage = makeReplyContext(v100Host1, v100Host2);
+        TestMessageContext replyMessage = makeReplyContext(V100HOST1, V100HOST2);
         Set<Interface> expectInterfaces = ImmutableSet.of();
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply message from v200h2 (VPLS 2) to v300h1 (VPLS 1).
         // Forward results should be empty
-        replyMessage = makeReplyContext(v200Host2, v300Host1);
+        replyMessage = makeReplyContext(V200HOST2, V300HOST1);
         expectInterfaces = ImmutableSet.of();
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply message from vNoneh1 (VPLS 3) to v400h1 (VPLS 4).
         // Forward results should be empty
-        replyMessage = makeReplyContext(vNoneHost1, v400Host1);
+        replyMessage = makeReplyContext(VNONEHOST1, V400HOST1);
         expectInterfaces = ImmutableSet.of();
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
 
         // Reply message from vNoneh3 (VPLS 4) to vNoneH2 (VPLS 3).
         // Forward results should be empty
-        replyMessage = makeReplyContext(vNoneHost3, vNoneHost2);
+        replyMessage = makeReplyContext(VNONEHOST3, VNONEHOST2);
         expectInterfaces = ImmutableSet.of();
-        vplsNeighbourHandler.handleReply(replyMessage, hostService);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
         assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
     }
 
     /**
-     * Returns the device Id of the ith device.
-     *
-     * @param i the device to get the Id of
-     * @return the device Id
+     * Sends reply and request message from a host which not related to any VPLS.
      */
-    private static DeviceId getDeviceId(int i) {
-        return DeviceId.deviceId("" + i);
+    @Test
+    public void testVplsNotfound() {
+        TestMessageContext replyMessage = makeReplyContext(V300HOST2, V100HOST1);
+        Set<Interface> expectInterfaces = ImmutableSet.of();
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(replyMessage);
+        assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, replyMessage.forwardResults);
+        assertTrue(replyMessage.dropped());
+
+        TestMessageContext requestMessage = makeBroadcastRequestContext(V300HOST2);
+        ((TestNeighbourService) vplsNeighbourHandler.neighbourService).sendNeighourMessage(requestMessage);
+        assertEquals(IFACES_NOT_EXPECTED, expectInterfaces, requestMessage.forwardResults);
+        assertTrue(requestMessage.dropped());
     }
 
-    private Host makeHost(MacAddress mac, VlanId vlan, ConnectPoint cp) {
-        return new DefaultHost(PID,
-                               HostId.hostId(mac, vlan),
-                               mac,
-                               vlan,
-                               new HostLocation(cp, 0),
-                               Sets.newHashSet());
-    }
-
+    /**
+     * Generates broadcast request message context by given source host.
+     *
+     * @param host the source host
+     * @return the request message context
+     */
     private TestMessageContext makeBroadcastRequestContext(Host host) {
         return new TestMessageContext(host.location(),
                                       host.mac(),
@@ -435,6 +356,13 @@ public class VplsNeighbourHandlerTest {
                                       NeighbourMessageType.REQUEST);
     }
 
+    /**
+     * Generates reply message context by given source and destination host.
+     *
+     * @param src the source host
+     * @param dst the destination host
+     * @return the reply message context
+     */
     private TestMessageContext makeReplyContext(Host src, Host dst) {
         return new TestMessageContext(src.location(),
                                       src.mac(),
@@ -443,15 +371,16 @@ public class VplsNeighbourHandlerTest {
                                       NeighbourMessageType.REPLY);
     }
 
+    /**
+     * Test message context.
+     */
     private class TestMessageContext implements NeighbourMessageContext {
-
-
         private final NeighbourMessageType type;
         private final MacAddress srcMac;
         private final MacAddress dstMac;
         private final ConnectPoint inPort;
         private final VlanId vlanId;
-
+        private boolean dropped = false;
         public Set<Interface> forwardResults;
 
         /**
@@ -475,8 +404,8 @@ public class VplsNeighbourHandlerTest {
             this.dstMac = dstMac;
             this.vlanId = vlanId;
             this.type = type;
-
             this.forwardResults = Sets.newHashSet();
+            this.dropped = false;
         }
 
         @Override
@@ -518,6 +447,10 @@ public class VplsNeighbourHandlerTest {
         public void forward(ConnectPoint outPort) {
         }
 
+        /**
+         * Records all forward network interface information.
+         * @param outIntf output interface
+         */
         @Override
         public void forward(Interface outIntf) {
             forwardResults.add(outIntf);
@@ -533,6 +466,7 @@ public class VplsNeighbourHandlerTest {
 
         @Override
         public void drop() {
+            this.dropped = true;
         }
 
         @Override
@@ -544,141 +478,16 @@ public class VplsNeighbourHandlerTest {
         public NeighbourProtocol protocol() {
             return null;
         }
-    }
 
-    private class TestVplsConfigService extends VplsConfigServiceAdapter {
-
-        private final SetMultimap<String, Interface> ifacesByVplsName;
-
-        public TestVplsConfigService(SetMultimap<String, Interface> ifacesByVplsName,
-                                     HashMap<String, EncapsulationType> encapByVplsName) {
-            this.ifacesByVplsName = ifacesByVplsName;
-        }
-
-        @Override
-        public void addVpls(String vplsName, Set<String> ifaceNames, String encap) {
-            if (!ifacesByVplsName.containsKey(vplsName)) {
-                ifaceNames.forEach(ifaceName -> {
-                    availableInterfaces.forEach(iface -> {
-                        if (iface.name().equals(ifaceName)) {
-                            ifacesByVplsName.put(vplsName, iface);
-                        }
-                    });
-                });
-            }
-        }
-
-        @Override
-        public void removeVpls(String vplsName) {
-            if (ifacesByVplsName.containsKey(vplsName)) {
-                ifacesByVplsName.removeAll(vplsName);
-            }
-        }
-
-        @Override
-        public void addIface(String vplsName, String ifaceName) {
-            availableInterfaces.forEach(intf -> {
-                if (intf.name().equals(ifaceName)) {
-                    ifacesByVplsName.put(vplsName, intf);
-                }
-            });
-        }
-
-        @Override
-        public void removeIface(String ifaceName) {
-            SetMultimap<String, Interface> toBeRemoved = HashMultimap.create();
-            ifacesByVplsName.entries().forEach(e -> {
-                if (e.getValue().name().equals(ifaceName)) {
-                    toBeRemoved.put(e.getKey(), e.getValue());
-                }
-            });
-            toBeRemoved.entries()
-                    .forEach(e -> ifacesByVplsName.remove(e.getKey(),
-                                                          e.getValue()));
-        }
-
-        @Override
-        public void cleanVplsConfig() {
-            ifacesByVplsName.clear();
-        }
-
-        @Override
-        public Set<Interface> allIfaces() {
-            return ImmutableSet.copyOf(ifacesByVplsName.values());
-        }
-
-        @Override
-        public Set<Interface> ifaces(String name) {
-            return ifacesByVplsName.get(name)
-                    .stream()
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<String> vplsNames() {
-            return ifacesByVplsName.keySet();
-        }
-
-        @Override
-        public SetMultimap<String, Interface> ifacesByVplsName() {
-            return ImmutableSetMultimap.copyOf(ifacesByVplsName);
-        }
-
-        @Override
-        public SetMultimap<String, Interface> ifacesByVplsName(VlanId vlan,
-                                                               ConnectPoint connectPoint) {
-            String vplsName =
-                    ifacesByVplsName.entries().stream()
-                            .filter(e -> e.getValue().connectPoint().equals(connectPoint))
-                            .filter(e -> e.getValue().vlan().equals(vlan))
-                            .map(Map.Entry::getKey)
-                            .findFirst()
-                            .orElse(null);
-            SetMultimap<String, Interface> result = HashMultimap.create();
-            if (vplsName != null &&
-                    ifacesByVplsName.containsKey(vplsName)) {
-                ifacesByVplsName.get(vplsName)
-                        .forEach(intf -> result.put(vplsName, intf));
-                return result;
-            }
-            return null;
+        public boolean dropped() {
+            return dropped;
         }
     }
 
-    class TestHostService extends HostServiceAdapter {
-        @Override
-        public Set<Host> getHostsByMac(MacAddress mac) {
-            return availableHosts.stream()
-                    .filter(host -> host.mac().equals(mac))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Iterable<Host> getHosts() {
-            return availableHosts;
-        }
-
-        @Override
-        public Set<Host> getHostsByVlan(VlanId vlanId) {
-            return availableHosts.stream()
-                    .filter(host -> host.vlan().equals(vlanId))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public int getHostCount() {
-            return availableHosts.size();
-        }
-
-        @Override
-        public Host getHost(HostId hostId) {
-            return availableHosts.stream()
-                    .filter(host -> host.id().equals(hostId))
-                    .findFirst()
-                    .orElse(null);
-        }
-    }
-
+    /**
+     * Test neighbour service; records all registrations between neighbour
+     * message handler and interfaces.
+     */
     private class TestNeighbourService implements NeighbourResolutionService {
         private SetMultimap<ConnectPoint, NeighbourHandlerRegistration> handlerRegs;
 
@@ -732,6 +541,26 @@ public class VplsNeighbourHandlerTest {
             return handlerRegs.asMap();
         }
 
+        /**
+         * Sends neighbour message context to all handler which related to the
+         * context.
+         *
+         * @param context the neighbour message context
+         */
+        public void sendNeighourMessage(NeighbourMessageContext context) {
+            ConnectPoint connectPoint = context.inPort();
+            VlanId vlanId = context.vlan();
+            Collection<NeighbourHandlerRegistration> registrations = handlerRegs.get(connectPoint);
+            registrations.forEach(reg -> {
+                if (reg.intf().vlan().equals(vlanId)) {
+                    reg.handler().handleMessage(context, hostService);
+                }
+            });
+        }
+
+        /**
+         * Test handler registration.
+         */
         private class HandlerRegistration implements NeighbourHandlerRegistration {
             private final Interface intf;
             private final NeighbourMessageHandler handler;
@@ -765,67 +594,6 @@ public class VplsNeighbourHandlerTest {
             public ApplicationId appId() {
                 return appId;
             }
-        }
-    }
-
-    class TestInterfaceService implements InterfaceService {
-
-        @Override
-        public void addListener(InterfaceListener listener) {
-        }
-
-        @Override
-        public void removeListener(InterfaceListener listener) {
-        }
-
-        @Override
-        public Set<Interface> getInterfaces() {
-            return availableInterfaces;
-        }
-
-        @Override
-        public Interface getInterfaceByName(ConnectPoint connectPoint,
-                                            String name) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.name().equals(name))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        @Override
-        public Set<Interface> getInterfacesByPort(ConnectPoint port) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.connectPoint().equals(port))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<Interface> getInterfacesByIp(IpAddress ip) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Set<Interface> getInterfacesByVlan(VlanId vlan) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.vlan().equals(vlan))
-                    .collect(Collectors.toSet());
-        }
-
-        @Override
-        public Interface getMatchingInterface(IpAddress ip) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        @Override
-        public Set<Interface> getMatchingInterfaces(IpAddress ip) {
-            return availableInterfaces.stream()
-                    .filter(intf -> intf.ipAddressesList().contains(ip))
-                    .collect(Collectors.toSet());
         }
     }
 }

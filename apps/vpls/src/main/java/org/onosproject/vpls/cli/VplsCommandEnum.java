@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
  */
 public enum VplsCommandEnum {
     ADD_IFACE("add-if"),
-    CLEAN("clean"),
     CREATE("create"),
     DELETE("delete"),
     LIST("list"),
     REMOVE_IFACE("rem-if"),
     SET_ENCAP("set-encap"),
-    SHOW("show");
+    SHOW("show"),
+    CLEAN("clean");
 
     private final String command;
 
@@ -40,7 +40,7 @@ public enum VplsCommandEnum {
      *
      * @param command the text representing the command
      */
-    private VplsCommandEnum(final String command) {
+    VplsCommandEnum(final String command) {
         this.command = command;
     }
 
@@ -56,7 +56,7 @@ public enum VplsCommandEnum {
      */
     public static List<String> toStringList() {
         return Arrays.stream(values())
-                .map(c -> c.toString())
+                .map(VplsCommandEnum::toString)
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -71,7 +71,7 @@ public enum VplsCommandEnum {
     public static VplsCommandEnum enumFromString(String command) {
         if (command != null && !command.isEmpty()) {
             for (VplsCommandEnum c : values()) {
-                if (command.toString().equalsIgnoreCase(c.toString())) {
+                if (command.equalsIgnoreCase(c.toString())) {
                     return c;
                 }
             }

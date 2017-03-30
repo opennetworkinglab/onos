@@ -16,15 +16,17 @@
 package org.onosproject.vpls.cli.completer;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.karaf.shell.console.completer.ArgumentCompleter;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.EncapsulationType;
+import org.onosproject.vpls.api.Vpls;
+import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.cli.VplsCommandEnum;
-import org.onosproject.vpls.config.VplsConfigService;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -36,22 +38,29 @@ import static org.onosproject.cli.AbstractShellCommand.get;
  * VPLS optional argument completer.
  */
 public class VplsOptArgCompleter extends AbstractChoicesCompleter {
+    protected static Vpls vpls;
+    protected static InterfaceService interfaceService;
 
     @Override
     public List<String> choices() {
-        VplsConfigService vplsConfigService = get(VplsConfigService.class);
-        List<String> argumentList =
-                Lists.newArrayList(getArgumentList().getArguments());
-        String argOne = argumentList.get(1);
+        if (vpls == null) {
+            vpls = get(Vpls.class);
+        }
+        ArgumentCompleter.ArgumentList argumentList = getArgumentList();
+        if (argumentList == null) {
+            return Collections.emptyList();
+        }
+        List<String> argList = Lists.newArrayList(argumentList.getArguments());
+        String argOne = argList.get(1);
         VplsCommandEnum vplsCommandEnum = VplsCommandEnum.enumFromString(argOne);
         if (vplsCommandEnum != null) {
             switch (vplsCommandEnum) {
                 case ADD_IFACE:
-                    return availableIfaces(vplsConfigService);
+                    return availableIfaces();
                 case SET_ENCAP:
                     return encap();
                 case REMOVE_IFACE:
-                    return vplsIfaces(vplsConfigService);
+                    return vplsIfaces();
                 default:
                     return Collections.emptyList();
             }
@@ -64,21 +73,27 @@ public class VplsOptArgCompleter extends AbstractChoicesCompleter {
      *
      * @return the list of interfaces not yet assigned to any VPLS
      */
-    private List<String> availableIfaces(VplsConfigService vplsConfigService) {
-        List<String> ifacesAvailable = Lists.newArrayList();
-        Set<Interface> allIfaces = Sets.newHashSet(vplsConfigService.allIfaces());
-        Set<Interface> usedIfaces = Sets.newHashSet(vplsConfigService.ifaces());
+    private List<String> availableIfaces() {
+        if (interfaceService == null) {
+            interfaceService = get(InterfaceService.class);
+        }
 
-        allIfaces.removeAll(usedIfaces);
-        allIfaces.forEach(iface -> ifacesAvailable.add(iface.name()));
+        Set<Interface> allIfaces = interfaceService.getInterfaces();
+        Set<Interface> usedIfaces = vpls.getAllVpls().stream()
+                .map(VplsData::interfaces)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
 
-        return ifacesAvailable;
+        return allIfaces.stream()
+                .filter(iface -> !usedIfaces.contains(iface))
+                .map(Interface::name)
+                .collect(Collectors.toList());
     }
 
     /**
      * Returns the list of supported encapsulation types.
      *
-     * @return the list of supported encapsualtion types
+     * @return the list of supported encapsulation types
      */
     private List<String> encap() {
         return Arrays.stream(EncapsulationType.values())
@@ -91,15 +106,12 @@ public class VplsOptArgCompleter extends AbstractChoicesCompleter {
      *
      * @return the list of interfaces associated to a VPLS
      */
-    private List<String> vplsIfaces(VplsConfigService vplsConfigService) {
+    private List<String> vplsIfaces() {
         ArgumentCompleter.ArgumentList list = getArgumentList();
         String vplsName = list.getArguments()[2];
-
-        List<String> vplsIfaces = Lists.newArrayList();
-
-        Set<Interface> connectPoints = vplsConfigService.ifaces(vplsName);
-        connectPoints.forEach(iface -> vplsIfaces.add(iface.name()));
-
-        return vplsIfaces;
+        VplsData vplsData = vpls.getVpls(vplsName);
+        return vplsData.interfaces().stream()
+                .map(Interface::name)
+                .collect(Collectors.toList());
     }
 }

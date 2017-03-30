@@ -15,12 +15,13 @@
  */
 package org.onosproject.vpls;
 
-import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -30,16 +31,20 @@ import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.incubator.net.neighbour.NeighbourResolutionService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.vpls.config.VplsConfigService;
+import org.onosproject.vpls.api.VplsData;
+import org.onosproject.vpls.api.VplsStore;
 import org.slf4j.Logger;
 
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,16 +63,13 @@ public class VplsNeighbourHandler {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NeighbourResolutionService neighbourService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VplsConfigService vplsConfigService;
+    protected VplsStore vplsStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService configService;
@@ -88,7 +90,7 @@ public class VplsNeighbourHandler {
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication(Vpls.VPLS_APP);
+        appId = coreService.registerApplication(VplsManager.VPLS_APP);
         interfaceService.addListener(interfaceListener);
         configService.addListener(configListener);
         configNeighbourHandler();
@@ -101,18 +103,16 @@ public class VplsNeighbourHandler {
         neighbourService.unregisterNeighbourHandlers(appId);
     }
 
-    private void configNeighbourHandler() {
+    /**
+     * Registers neighbour handler to all available interfaces.
+     */
+    protected void configNeighbourHandler() {
         neighbourService.unregisterNeighbourHandlers(appId);
-        Set<Interface> interfaces = vplsConfigService.allIfaces();
-
-        interfaceService.getInterfaces()
-                .stream()
-                .filter(interfaces::contains)
-                .forEach(intf -> {
-                    neighbourService.registerNeighbourHandler(intf,
-                                                              neighbourHandler,
-                                                              appId);
-                });
+        interfaceService
+                .getInterfaces()
+                .forEach(intf -> neighbourService.registerNeighbourHandler(intf,
+                                                                       neighbourHandler,
+                                                                       appId));
     }
 
     /**
@@ -123,16 +123,13 @@ public class VplsNeighbourHandler {
         @Override
         public void handleMessage(NeighbourMessageContext context,
                                   HostService hostService) {
-
             switch (context.type()) {
                 case REQUEST:
                     handleRequest(context);
                     break;
-
                 case REPLY:
                     handleReply(context, hostService);
                     break;
-
                 default:
                     log.warn(UNKNOWN_CONTEXT, context.type());
                     break;
@@ -146,16 +143,15 @@ public class VplsNeighbourHandler {
      * @param context the message context
      */
     protected void handleRequest(NeighbourMessageContext context) {
-        SetMultimap<String, Interface> interfaces =
-                vplsConfigService.ifacesByVplsName(context.vlan(),
-                                                   context.inPort());
-        if (interfaces != null) {
-            interfaces.values().stream()
+        // Find target VPLS first, then broadcast to all interface of this VPLS
+        VplsData vplsData = findVpls(context);
+        if (vplsData != null) {
+            vplsData.interfaces().stream()
                     .filter(intf -> !context.inPort().equals(intf.connectPoint()))
                     .forEach(context::forward);
-
         } else {
-            log.debug(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
+            log.warn(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
+            context.drop();
         }
     }
 
@@ -167,18 +163,63 @@ public class VplsNeighbourHandler {
      */
     protected void handleReply(NeighbourMessageContext context,
                                HostService hostService) {
-        Set<Host> hosts = hostService.getHostsByMac(context.dstMac());
-        SetMultimap<String, Interface> interfaces =
-                vplsConfigService.ifacesByVplsName(context.vlan(),
-                                                   context.inPort());
-        if (interfaces != null) {
-            hosts.forEach(host -> interfaces.values().stream()
-                    .filter(intf -> intf.connectPoint().equals(host.location()))
-                    .filter(intf -> intf.vlan().equals(host.vlan()))
-                    .forEach(context::forward));
+        // Find target VPLS, then reply to the host
+        VplsData vplsData = findVpls(context);
+        if (vplsData != null) {
+            MacAddress dstMac = context.dstMac();
+            Set<Host> hosts = hostService.getHostsByMac(dstMac);
+            hosts = hosts.stream()
+                    .filter(host -> vplsData.interfaces().contains(getHostInterface(host)))
+                    .collect(Collectors.toSet());
+
+            // reply to all host in same VPLS
+            hosts.stream()
+                    .map(this::getHostInterface)
+                    .filter(Objects::nonNull)
+                    .forEach(context::forward);
         } else {
-            log.debug(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
+            // this might be happened when we remove an interface from VPLS
+            // just ignore this message
+            log.warn(CAN_NOT_FIND_VPLS, context.inPort(), context.vlan());
+            context.drop();
         }
+    }
+
+    /**
+     * Finds the VPLS with given neighbour message context.
+     *
+     * @param context the neighbour message context
+     * @return the VPLS for specific neighbour message context
+     */
+    private VplsData findVpls(NeighbourMessageContext context) {
+        Collection<VplsData> vplses = vplsStore.getAllVpls();
+        for (VplsData vplsData : vplses) {
+            Set<Interface> interfaces = vplsData.interfaces();
+            ConnectPoint port = context.inPort();
+            VlanId vlanId = context.vlan();
+            boolean match = interfaces.stream()
+                    .anyMatch(iface -> iface.connectPoint().equals(port) &&
+                            iface.vlan().equals(vlanId));
+            if (match) {
+                return vplsData;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the network interface related to the host.
+     *
+     * @param host the host
+     * @return the interface related to the host
+     */
+    private Interface getHostInterface(Host host) {
+        Set<Interface> interfaces = interfaceService.getInterfaces();
+        return interfaces.stream()
+                .filter(iface -> iface.connectPoint().equals(host.location()) &&
+                                 iface.vlan().equals(host.vlan()))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
