@@ -1,0 +1,14 @@
+{
+  "instructions": [
+    {
+      "type": "UNICAST",
+      "subtype": "WEIGHT",
+      "unicastWeight": 1
+    },
+    {
+      "type": "MULTICAST",
+      "subtype": "WEIGHT",
+      "multicastWeight": 2
+    }
+  ]
+}

@@ -152,7 +152,7 @@ public final class MappingAddressJsonMatcher extends
 
             default:
                 // Don't know how to format this type
-                description.appendText("unknown criterion type " + address.type());
+                description.appendText("unknown mapping address type " + address.type());
                 return false;
         }
     }
