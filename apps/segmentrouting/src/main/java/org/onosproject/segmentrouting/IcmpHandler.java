@@ -272,7 +272,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
     private void handleNdpRequest(NeighbourMessageContext pkt, HostService hostService) {
         // ND request for the gateway. We have to reply on behalf of the gateway.
         if (isNdpForGateway(pkt)) {
-            log.debug("Sending NDP reply on behalf of the router");
+            log.trace("Sending NDP reply on behalf of gateway IP for pkt: {}", pkt);
             sendResponse(pkt, config.getRouterMacForAGatewayIp(pkt.target()), hostService);
         } else {
             // NOTE: Ignore NDP packets except those target for the router

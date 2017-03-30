@@ -122,7 +122,8 @@ public class RoutingRulePopulator {
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, hostVlanId, outPort);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
+                                              hostVlanId, outPort, false);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
@@ -156,7 +157,8 @@ public class RoutingRulePopulator {
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
-            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, hostVlanId, outPort);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
+                                              hostVlanId, outPort, true);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
@@ -184,12 +186,14 @@ public class RoutingRulePopulator {
      * @param hostMac MAC address of the nexthop
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the nexthop attaches to
+     * @param revoke true if forwarding objective is meant to revoke forwarding rule
      * @return forwarding objective builder
      * @throws DeviceConfigNotFoundException if given device is not configured
      */
     private ForwardingObjective.Builder routingFwdObjBuilder(
             DeviceId deviceId, IpPrefix prefix,
-            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort)
+            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort,
+            boolean revoke)
             throws DeviceConfigNotFoundException {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
@@ -231,13 +235,14 @@ public class RoutingRulePopulator {
                 mbuilder.matchVlanId(INTERNAL_VLAN);
             }
         } else {
-            log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed in tagged vlan",
-                    hostMac, hostVlanId, connectPoint);
+            log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed"
+                    + " in tagged vlan", hostMac, hostVlanId, connectPoint);
             return null;
         }
-
+        // if the objective is to revoke an existing rule, and for some reason
+        // the next-objective does not exist, then a new one should not be created
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
-                                                             tbuilder.build(), mbuilder.build());
+                                          tbuilder.build(), mbuilder.build(), !revoke);
         if (portNextObjId == -1) {
             // Warning log will come from getPortNextObjective method
             return null;
@@ -437,12 +442,13 @@ public class RoutingRulePopulator {
             // Not-bos pop case (php for the current label). If MPLS-ECMP
             // has been configured, the application we will request the
             // installation for an MPLS-ECMP group.
-            ForwardingObjective.Builder fwdObjNoBosBuilder = getMplsForwardingObjective(targetSwId,
-                                                                                        nextHops,
-                                                                                        true,
-                                                                                        isMplsBos,
-                                                                                        metabuilder.build(),
-                                                                                        routerIp);
+            ForwardingObjective.Builder fwdObjNoBosBuilder =
+                    getMplsForwardingObjective(targetSwId,
+                                               nextHops,
+                                               true,
+                                               isMplsBos,
+                                               metabuilder.build(),
+                                               routerIp);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
                 return Collections.emptyList();
@@ -456,12 +462,13 @@ public class RoutingRulePopulator {
             // Not-bos pop case. If MPLS-ECMP has been configured, the
             // application we will request the installation for an MPLS-ECMP
             // group.
-            ForwardingObjective.Builder fwdObjNoBosBuilder = getMplsForwardingObjective(targetSwId,
-                                                                                        nextHops,
-                                                                                        false,
-                                                                                        isMplsBos,
-                                                                                        metabuilder.build(),
-                                                                                        routerIp);
+            ForwardingObjective.Builder fwdObjNoBosBuilder =
+                    getMplsForwardingObjective(targetSwId,
+                                               nextHops,
+                                               false,
+                                               isMplsBos,
+                                               metabuilder.build(),
+                                               routerIp);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
                 return Collections.emptyList();
@@ -727,9 +734,6 @@ public class RoutingRulePopulator {
             log.warn(e.getMessage() + " Processing SinglePortFilters aborted");
             return null;
         }
-        // suppressed ports still have filtering rules pushed by SR using default vlan
-        ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
-
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
         fob.withKey(Criteria.matchInPort(portnum))
             .addCondition(Criteria.matchEthDst(deviceMac))

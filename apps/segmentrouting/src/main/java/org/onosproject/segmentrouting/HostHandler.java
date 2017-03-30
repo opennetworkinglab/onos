@@ -93,7 +93,7 @@ public class HostHandler {
             log.debug("Populating bridging entry for host {}/{} at {}:{}",
                     mac, vlanId, deviceId, port);
             ForwardingObjective.Builder fob =
-                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port);
+                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port, false);
             if (fob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -132,7 +132,7 @@ public class HostHandler {
         if (accepted(host)) {
             // Revoke bridging table entry
             ForwardingObjective.Builder fob =
-                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port);
+                    bridgingFwdObjBuilder(deviceId, mac, vlanId, port, true);
             if (fob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -170,7 +170,7 @@ public class HostHandler {
         if (accepted(event.prevSubject())) {
             // Revoke previous bridging table entry
             ForwardingObjective.Builder prevFob =
-                    bridgingFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort);
+                    bridgingFwdObjBuilder(prevDeviceId, mac, vlanId, prevPort, true);
             if (prevFob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -193,7 +193,7 @@ public class HostHandler {
         if (accepted(event.subject())) {
             // Populate new bridging table entry
             ForwardingObjective.Builder newFob =
-                    bridgingFwdObjBuilder(newDeviceId, mac, vlanId, newPort);
+                    bridgingFwdObjBuilder(newDeviceId, mac, vlanId, newPort, false);
             if (newFob == null) {
                 log.warn("Fail to create fwd obj for host {}/{}. Abort.", mac, vlanId);
                 return;
@@ -260,11 +260,12 @@ public class HostHandler {
      * @param mac MAC address of the host
      * @param hostVlanId VLAN ID of the host
      * @param outport Port that host attaches to
+     * @param revoke true if forwarding objective is meant to revoke forwarding rule
      * @return Forwarding objective builder
      */
     private ForwardingObjective.Builder bridgingFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId hostVlanId,
-            PortNumber outport) {
+            PortNumber outport, boolean revoke) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
         VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
         Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
@@ -313,9 +314,10 @@ public class HostHandler {
         }
 
         // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
+        // If the objective is to revoke an existing rule, and for some reason
+        // the next-objective does not exist, then a new one should not be created
         int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outport,
-                tbuilder.build(),
-                mbuilder.build());
+                tbuilder.build(), mbuilder.build(), !revoke);
         if (portNextObjId == -1) {
             // Warning log will come from getPortNextObjective method
             return null;

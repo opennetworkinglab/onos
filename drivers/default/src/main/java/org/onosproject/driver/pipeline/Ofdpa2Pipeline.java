@@ -399,12 +399,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
             // NOTE: it is possible that a filtering objective only has vidCriterion
-            log.debug("filtering objective missing dstMac, cannot program TMAC table");
+            log.warn("filtering objective missing dstMac, cannot program TMAC table");
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
                                                          vidCriterion, assignedVlan,
                                                          applicationId)) {
-                log.debug("{} MAC filtering rules in TMAC table: {} for dev: {}",
+                log.trace("{} MAC filtering rules in TMAC table: {} for dev: {}",
                           (install) ? "adding" : "removing", tmacRule, deviceId);
                 ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
             }
@@ -443,7 +443,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             });
 
             for (FlowRule filteringRule : filteringRules) {
-                log.debug("{} VLAN filtering rule in VLAN table: {} for dev: {}",
+                log.trace("{} VLAN filtering rule in VLAN table: {} for dev: {}",
                           (install) ? "adding" : "removing", filteringRule, deviceId);
                 ops = install ? ops.add(filteringRule) : ops.remove(filteringRule);
             }
@@ -451,7 +451,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             ops.newStage();
 
             for (FlowRule assignmentRule : assignmentRules) {
-                log.debug("{} VLAN assignment rule in VLAN table: {} for dev: {}",
+                log.trace("{} VLAN assignment rule in VLAN table: {} for dev: {}",
                         (install) ? "adding" : "removing", assignmentRule, deviceId);
                 ops = install ? ops.add(assignmentRule) : ops.remove(assignmentRule);
             }

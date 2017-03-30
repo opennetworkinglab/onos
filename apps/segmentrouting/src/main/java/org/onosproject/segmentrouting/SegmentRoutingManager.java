@@ -705,21 +705,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     /**
      * Returns the next objective ID for the given portNumber, given the treatment.
      * There could be multiple different treatments to the same outport, which
-     * would result in different objectives. If the next object
-     * does not exist, a new one is created and its id is returned.
+     * would result in different objectives. If the next object does not exist,
+     * and should be created, a new one is created and its id is returned.
      *
      * @param deviceId Device ID
      * @param portNum port number on device for which NextObjective is queried
      * @param treatment the actions to apply on the packets (should include outport)
      * @param meta metadata passed into the creation of a Next Objective if necessary
+     * @param createIfMissing true if a next object should be created if not found
      * @return next objective ID or -1 if an error occurred during retrieval or creation
      */
     public int getPortNextObjectiveId(DeviceId deviceId, PortNumber portNum,
                                       TrafficTreatment treatment,
-                                      TrafficSelector meta) {
+                                      TrafficSelector meta,
+                                      boolean createIfMissing) {
         DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
         if (ghdlr != null) {
-            return ghdlr.getPortNextObjectiveId(portNum, treatment, meta);
+            return ghdlr.getPortNextObjectiveId(portNum, treatment, meta, createIfMissing);
         } else {
             log.warn("getPortNextObjectiveId query - groupHandler for device {}"
                     + " not found", deviceId);

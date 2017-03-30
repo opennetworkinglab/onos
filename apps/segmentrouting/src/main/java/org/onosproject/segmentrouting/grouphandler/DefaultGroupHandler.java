@@ -23,7 +23,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -489,7 +488,7 @@ public class DefaultGroupHandler {
      * Returns the next objective of type simple associated with the port on the
      * device, given the treatment. Different treatments to the same port result
      * in different next objectives. If no such objective exists, this method
-     * creates one and returns the id. Optionally metadata can be passed in for
+     * creates one (if requested) and returns the id. Optionally metadata can be passed in for
      * the creation of the objective. Typically this is used for L2 and L3 forwarding
      * to compute nodes and containers/VMs on the compute nodes directly attached
      * to the switch.
@@ -497,24 +496,31 @@ public class DefaultGroupHandler {
      * @param portNum the port number for the simple next objective
      * @param treatment the actions to apply on the packets (should include outport)
      * @param meta optional metadata passed into the creation of the next objective
+     * @param createIfMissing true if a next object should be created if not found
      * @return int if found or created, -1 if there are errors during the
      *          creation of the next objective.
      */
     public int getPortNextObjectiveId(PortNumber portNum, TrafficTreatment treatment,
-                                      TrafficSelector meta) {
+                                      TrafficSelector meta, boolean createIfMissing) {
         Integer nextId = portNextObjStore
                 .get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment, meta));
+        if (nextId != null) {
+            return nextId;
+        }
+        log.debug("getPortNextObjectiveId in device {}: Next objective id "
+                + "not found for port: {} .. {}", deviceId, portNum,
+                (createIfMissing) ? "creating" : "aborting");
+        if (!createIfMissing) {
+            return -1;
+        }
+        // create missing next objective
+        createGroupFromPort(portNum, treatment, meta);
+        nextId = portNextObjStore.get(new PortNextObjectiveStoreKey(deviceId, portNum,
+                                                                    treatment, meta));
         if (nextId == null) {
-            log.debug("getPortNextObjectiveId in device{}: Next objective id "
-                    + "not found for {} and {} creating", deviceId, portNum);
-            createGroupFromPort(portNum, treatment, meta);
-            nextId = portNextObjStore.get(
-                         new PortNextObjectiveStoreKey(deviceId, portNum, treatment, meta));
-            if (nextId == null) {
-                log.warn("getPortNextObjectiveId: unable to create next obj"
-                        + "for dev:{} port:{}", deviceId, portNum);
-                return -1;
-            }
+            log.warn("getPortNextObjectiveId: unable to create next obj"
+                    + "for dev:{} port:{}", deviceId, portNum);
+            return -1;
         }
         return nextId;
     }
@@ -722,12 +728,12 @@ public class DefaultGroupHandler {
 
             ObjectiveContext context = new DefaultObjectiveContext(
                     (objective) ->
-                            log.debug("createGroupsFromNeighborsets installed NextObj {} on {}",
-                            nextId, deviceId),
+                            log.debug("createGroupsFromNeighborsets installed "
+                                    + "NextObj {} on {}", nextId, deviceId),
                     (objective, error) ->
-                            log.warn("createGroupsFromNeighborsets failed to install NextObj {} on {}: {}",
-                                    nextId, deviceId, error)
-            );
+                            log.warn("createGroupsFromNeighborsets failed to install"
+                                    + " NextObj {} on {}: {}", nextId, deviceId, error)
+                    );
             NextObjective nextObj = nextObjBuilder.add(context);
             log.debug("**createGroupsFromNeighborsets: Submited "
                     + "next objective {} in device {}",
@@ -743,8 +749,6 @@ public class DefaultGroupHandler {
      * all configured subnets.
      */
     public void createGroupsFromVlanConfig() {
-        Set<Interface> interfaces = srManager.interfaceService.getInterfaces();
-
         srManager.getVlanPortMap(deviceId).asMap().forEach((vlanId, ports) -> {
             createBcastGroupFromVlan(vlanId, ports);
         });
@@ -784,7 +788,15 @@ public class DefaultGroupHandler {
             nextObjBuilder.addTreatment(tBuilder.build());
         });
 
-        NextObjective nextObj = nextObjBuilder.add();
+        ObjectiveContext context = new DefaultObjectiveContext(
+            (objective) ->
+                log.debug("createBroadcastGroupFromVlan installed "
+                        + "NextObj {} on {}", nextId, deviceId),
+            (objective, error) ->
+                log.warn("createBroadcastGroupFromVlan failed to install"
+                        + " NextObj {} on {}: {}", nextId, deviceId, error)
+            );
+        NextObjective nextObj = nextObjBuilder.add(context);
         flowObjectiveService.next(deviceId, nextObj);
         log.debug("createBcastGroupFromVlan: Submited next objective {} in device {}",
                   nextId, deviceId);
@@ -825,7 +837,15 @@ public class DefaultGroupHandler {
                 .fromApp(appId)
                 .withMeta(meta);
 
-        NextObjective nextObj = nextObjBuilder.add();
+        ObjectiveContext context = new DefaultObjectiveContext(
+            (objective) ->
+                log.debug("createGroupFromPort installed "
+                        + "NextObj {} on {}", nextId, deviceId),
+            (objective, error) ->
+                log.warn("createGroupFromPort failed to install"
+                        + " NextObj {} on {}: {}", nextId, deviceId, error)
+            );
+        NextObjective nextObj = nextObjBuilder.add(context);
         flowObjectiveService.next(deviceId, nextObj);
         log.debug("createGroupFromPort: Submited next objective {} in device {} "
                 + "for port {}", nextId, deviceId, portNum);

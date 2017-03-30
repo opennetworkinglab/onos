@@ -91,7 +91,7 @@ import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Group handler that emulates Broadcom OF-DPA TTP on CpqD.
+ * Group handler that emulates Broadcom OF-DPA TTP.
  */
 public class Ofdpa2GroupHandler {
     /*
@@ -134,7 +134,7 @@ public class Ofdpa2GroupHandler {
     private FlowObjectiveStore flowObjectiveStore;
     private Cache<GroupKey, List<OfdpaNextGroup>> pendingAddNextObjectives;
     private Cache<NextObjective, List<GroupKey>> pendingRemoveNextObjectives;
-    private ConcurrentHashMap<GroupKey, Set<GroupChainElem>> pendingGroups;
+    private Cache<GroupKey, Set<GroupChainElem>> pendingGroups;
     private ConcurrentHashMap<GroupKey, Set<NextObjective>> pendingUpdateNextObjectives;
     private ScheduledExecutorService groupChecker =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa2-%d", log));
@@ -205,7 +205,15 @@ public class Ofdpa2GroupHandler {
                                     ObjectiveError.GROUPREMOVALFAILED);
                     }
                 }).build();
-        pendingGroups = new ConcurrentHashMap<>();
+        pendingGroups = CacheBuilder.newBuilder()
+                .expireAfterWrite(20, TimeUnit.SECONDS)
+                .removalListener((
+                        RemovalNotification<GroupKey, Set<GroupChainElem>> notification) -> {
+                    if (notification.getCause() == RemovalCause.EXPIRED) {
+                        log.error("Unable to install group with key {} and pending GCEs: {}",
+                                  notification.getKey(), notification.getValue());
+                    }
+                }).build();
         pendingUpdateNextObjectives = new ConcurrentHashMap<>();
         groupChecker.scheduleAtFixedRate(new GroupChecker(), 0, 500, TimeUnit.MILLISECONDS);
 
@@ -875,7 +883,6 @@ public class Ofdpa2GroupHandler {
             updatePendingGroups(gi.nextGroupDesc.appCookie(), l3ecmpGce);
             groupService.addGroup(gi.innerMostGroupDesc);
         }
-
     }
 
     /**
@@ -1061,11 +1068,9 @@ public class Ofdpa2GroupHandler {
 
         nextObjective.next().forEach(trafficTreatment -> {
             PortNumber portNumber = readOutPortFromTreatment(trafficTreatment);
-
             if (portNumber == null) {
                 return;
             }
-
             if (existingPorts.contains(portNumber)) {
                 duplicateBuckets.add(trafficTreatment);
             } else {
@@ -1118,7 +1123,6 @@ public class Ofdpa2GroupHandler {
                  });
             }
         });
-
         return existingPorts;
     }
 
@@ -1180,7 +1184,6 @@ public class Ofdpa2GroupHandler {
             updatePendingGroups(groupInfo.nextGroupDesc.appCookie(), l3ecmpGce);
             groupService.addGroup(groupInfo.innerMostGroupDesc);
         });
-
     }
 
     private void addBucketToBroadcastGroup(NextObjective nextObj,
@@ -1418,9 +1421,6 @@ public class Ofdpa2GroupHandler {
 
         updatePendingNextObjective(l3mcastGroupKey,
                                    new OfdpaNextGroup(allActiveKeys, nextObj));
-
-
-
     }
 
     /**
@@ -1537,8 +1537,6 @@ public class Ofdpa2GroupHandler {
                 .map(id -> HEX_PREFIX + id)
                 .collect(Collectors.toList());
 
-
-
         log.debug("Removing buckets from group id 0x{} pointing to group id(s) {} "
                 + "for next id {} in device {}", Integer.toHexString(modGroup.id().id()),
                 pointedGroupIds, nextObjective.id(), deviceId);
@@ -1561,8 +1559,7 @@ public class Ofdpa2GroupHandler {
     }
 
     /**
-     * Removes all groups in multiple possible group-chains that represent the next
-     * objective.
+     * Removes all groups in multiple possible group-chains that represent the next-obj.
      *
      * @param nextObjective the next objective to remove
      * @param next the NextGroup that represents the existing group-chain for
@@ -1584,24 +1581,24 @@ public class Ofdpa2GroupHandler {
     //  Helper Methods and Classes
     //////////////////////////////////////
 
-    protected void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
-        List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
-        nextList.add(value);
-        List<OfdpaNextGroup> ret = pendingAddNextObjectives.asMap()
-                .putIfAbsent(key, nextList);
-        if (ret != null) {
-            ret.add(value);
-        }
+    protected void updatePendingNextObjective(GroupKey gkey, OfdpaNextGroup value) {
+        pendingAddNextObjectives.asMap().compute(gkey, (k, val) -> {
+            if (val == null) {
+                val = new CopyOnWriteArrayList<OfdpaNextGroup>();
+            }
+            val.add(value);
+            return val;
+        });
     }
 
     protected void updatePendingGroups(GroupKey gkey, GroupChainElem gce) {
-        Set<GroupChainElem> gceSet = Collections.newSetFromMap(
-                new ConcurrentHashMap<GroupChainElem, Boolean>());
-        gceSet.add(gce);
-        Set<GroupChainElem> retval = pendingGroups.putIfAbsent(gkey, gceSet);
-        if (retval != null) {
-            retval.add(gce);
-        }
+        pendingGroups.asMap().compute(gkey, (k, val) -> {
+            if (val == null) {
+                val = Sets.newConcurrentHashSet();
+            }
+            val.add(gce);
+            return val;
+        });
     }
 
     private void addPendingUpdateNextObjective(GroupKey groupKey, NextObjective nextObjective) {
@@ -1650,7 +1647,14 @@ public class Ofdpa2GroupHandler {
     private class GroupChecker implements Runnable {
         @Override
         public void run() {
-            Set<GroupKey> keys = pendingGroups.keySet().stream()
+            if (pendingGroups.size() != 0) {
+                log.debug("pending groups being checked: {}", pendingGroups.asMap().keySet());
+            }
+            if (pendingAddNextObjectives.size() != 0) {
+                log.debug("pending add-next-obj being checked: {}",
+                          pendingAddNextObjectives.asMap().keySet());
+            }
+            Set<GroupKey> keys = pendingGroups.asMap().keySet().stream()
                     .filter(key -> groupService.getGroup(deviceId, key) != null)
                     .collect(Collectors.toSet());
             Set<GroupKey> otherkeys = pendingAddNextObjectives.asMap().keySet().stream()
@@ -1684,7 +1688,6 @@ public class Ofdpa2GroupHandler {
     }
 
     private void processPendingUpdateNextObjs(GroupKey groupKey) {
-
         pendingUpdateNextObjectives.compute(groupKey, (gKey, nextObjs) -> {
             if (nextObjs != null) {
 
@@ -1695,14 +1698,13 @@ public class Ofdpa2GroupHandler {
                     Ofdpa2Pipeline.pass(nextObj);
                 });
             }
-
             return Sets.newHashSet();
         });
     }
 
     private void processPendingAddGroupsOrNextObjs(GroupKey key, boolean added) {
         //first check for group chain
-        Set<GroupChainElem> gceSet = pendingGroups.remove(key);
+        Set<GroupChainElem> gceSet = pendingGroups.asMap().remove(key);
         if (gceSet != null) {
             for (GroupChainElem gce : gceSet) {
                 log.debug("Group service {} group key {} in device {}. "
