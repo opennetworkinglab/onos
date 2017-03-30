@@ -208,6 +208,7 @@
                     _update: function () {
                         this.updateNodes();
                         this.updateLinks();
+                        this.force.start();
                     },
                     updateNodes: function () {
                         var regionNodes = t2rs.regionNodes();
@@ -235,6 +236,8 @@
                         entering.filter('.sub-region').each(t2d3.nodeEnter);
                         entering.filter('.host').each(t2d3.nodeEnter);
                         entering.filter('.peer-region').each(t2d3.nodeEnter);
+
+                        this.force.nodes(regionNodes);
                     },
                     updateLinks: function () {
 
@@ -269,6 +272,8 @@
                             })
                             .style('opacity', 0.0)
                             .remove();
+
+                        this.force.links(regionLinks);
                     },
                     calcPosition: function () {
                         var lines = this;

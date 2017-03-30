@@ -43,6 +43,12 @@
     Collection.prototype = {
         model: Model,
         addModel: function (data) {
+            if (Object.getPrototypeOf(data) !== Object.prototype) {
+                this.models.push(data);
+                this._byId[data.get('id')] = data;
+                return data;
+            }
+
             var CollectionModel = this.model;
             var model = new CollectionModel(data, this);
 
