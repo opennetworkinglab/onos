@@ -85,8 +85,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
             return compareMed(obj1Med, obj2Med);
         }
 
-        if ((pathNlriDetails1 != null || pathNlriDetails2 != null) && (pathNlriDetails1 != null && !pathNlriDetails1
-                        .equals(pathNlriDetails2))) {
+        if (!pathNlriDetails1.equals(pathNlriDetails2)) {
             return comparePeerDetails(pathNlriDetails1, pathNlriDetails2);
         }
         return 0;
@@ -156,10 +155,10 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
     int comparePeerDetails(PathAttrNlriDetailsLocalRib pathNlriDetails1, PathAttrNlriDetailsLocalRib pathNlriDetails2) {
         // consider EBGP over IBGP
         if (pathNlriDetails1.isLocalRibIbgpSession() != pathNlriDetails2.isLocalRibIbgpSession()) {
-            if (pathNlriDetails1 == null || pathNlriDetails1.isLocalRibIbgpSession()) {
+            if (pathNlriDetails1.isLocalRibIbgpSession()) {
                 return -1;
             }
-            if (pathNlriDetails2 == null || pathNlriDetails2.isLocalRibIbgpSession()) {
+            if (pathNlriDetails2.isLocalRibIbgpSession()) {
                 return 1;
             }
         }
