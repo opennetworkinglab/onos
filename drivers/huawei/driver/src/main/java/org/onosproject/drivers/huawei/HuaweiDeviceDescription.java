@@ -184,11 +184,12 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
         NetconfSession session = getNetconfSession();
         String interfaces;
         try {
-            return session.get(getInterfacesReq());
+            interfaces = session.get(getInterfacesReq());
         } catch (IOException e) {
             throw new IllegalArgumentException(
-                    new NetconfException(INT_INFO_FAILURE));
+                    new NetconfException(INT_INFO_FAILURE, e.getCause()));
         }
+        return interfaces;
     }
 
     private Collection<PortStatistics> getPortStatistics(String ifs) {

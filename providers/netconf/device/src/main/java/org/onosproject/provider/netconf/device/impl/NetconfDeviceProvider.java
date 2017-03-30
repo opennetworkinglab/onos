@@ -306,7 +306,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 log.debug("Netconf device {} removed from Netconf subController", deviceId);
             } else {
                 log.warn("Netconf device {} does not exist in the store, " +
-                         "it may already have been removed", deviceId);
+                                 "it may already have been removed", deviceId);
             }
         }
     }
@@ -351,13 +351,13 @@ public class NetconfDeviceProvider extends AbstractProvider
     }
 
     private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription) {
-        if (deviceService.getDevice(deviceId) == null) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
             log.warn("Device {} has not been added to store, " +
                              "maybe due to a problem in connectivity", deviceId);
         } else {
             boolean isReachable = isReachable(deviceId);
             if (isReachable && !deviceService.isAvailable(deviceId)) {
-                Device device = deviceService.getDevice(deviceId);
                 if (device.is(DeviceDescriptionDiscovery.class)) {
                     if (mastershipService.isLocalMaster(deviceId)) {
                         DeviceDescriptionDiscovery deviceDescriptionDiscovery =
@@ -381,13 +381,26 @@ public class NetconfDeviceProvider extends AbstractProvider
                 } else {
                     log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
                                      "using DefaultDeviceDescription", deviceId);
-                            providerService.deviceConnected(
-                                    deviceId, new DefaultDeviceDescription(
+                    providerService.deviceConnected(
+                            deviceId, new DefaultDeviceDescription(
                                     deviceDescription, true, deviceDescription.annotations()));
                 }
             } else if (!isReachable && deviceService.isAvailable(deviceId)) {
                 providerService.deviceDisconnected(deviceId);
+            } else if (isReachable && deviceService.isAvailable(deviceId)) {
+                updatePortStatistics(device);
             }
+        }
+    }
+
+    private void updatePortStatistics(Device device) {
+        if (device.is(PortStatisticsDiscovery.class)) {
+            PortStatisticsDiscovery d = device.as(PortStatisticsDiscovery.class);
+            providerService.updatePortStatistics(device.id(),
+                                                 d.discoverPortStatistics());
+        } else {
+            log.warn("No port statistics getter behaviour for device {}",
+                     device.id());
         }
     }
 
@@ -482,15 +495,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
 
         // Port statistics discovery
-        if (device.is(PortStatisticsDiscovery.class)) {
-            PortStatisticsDiscovery d =
-                    device.as(PortStatisticsDiscovery.class);
-            providerService.updatePortStatistics(deviceId,
-                                                 d.discoverPortStatistics());
-        } else {
-            log.warn("No port statistics getter behaviour for device {}",
-                     deviceId);
-        }
+        updatePortStatistics(device);
     }
 
     /**

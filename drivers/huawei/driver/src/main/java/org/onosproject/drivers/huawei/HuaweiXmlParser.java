@@ -79,7 +79,7 @@ public final class HuaweiXmlParser {
 
     //TODO: All type of interfaces has to be added.
     private static final List INTERFACES = Arrays.asList(
-            "MEth", "LoopBack", "Ethernet", "POS", "GigabitEthernet");
+            "MEth", "Ethernet", "POS", "GigabitEthernet");
 
     private List<PortDescription> ports = new ArrayList<>();
     private String xml;
@@ -259,6 +259,7 @@ public final class HuaweiXmlParser {
                                                           .getText());
 
             return builder.setDeviceId(id)
+                    .setPort(port)
                     .setPacketsReceived(packetReceived)
                     .setPacketsSent(packetSent)
                     .setBytesReceived(bytesReceived)

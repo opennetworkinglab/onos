@@ -110,7 +110,9 @@ public final class DriverUtil {
     /**
      * RPC interfaces message.
      */
-    static final String RPC_IFS = "<interfaces/>";
+    static final String RPC_IFS =
+            "<interfaces><interface><ifPhyType>Ethernet</ifPhyType" +
+                    "></interface></interfaces>";
 
     /**
      * RPC ifm message.
