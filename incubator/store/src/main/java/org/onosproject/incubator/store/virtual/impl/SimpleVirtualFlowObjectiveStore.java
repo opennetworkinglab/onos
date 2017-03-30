@@ -72,13 +72,25 @@ public class SimpleVirtualFlowObjectiveStore
         eventQ = new LinkedBlockingQueue<>();
         tpool.execute(new FlowObjectiveNotifier());
 
-        nextGroupsMap = Maps.newConcurrentMap();
+        initNextGroupsMap();
 
         nextIds = storageService.getAtomicCounter("next-objective-counter");
         log.info("Started");
     }
 
-    private ConcurrentMap<Integer, byte[]> getNextGroups(NetworkId networkId) {
+    public void deactivate() {
+        log.info("Stopped");
+    }
+
+    protected void initNextGroupsMap() {
+        nextGroupsMap = Maps.newConcurrentMap();
+    }
+
+    protected void updateNextGroupsMap(NetworkId networkId,
+                                       ConcurrentMap<Integer, byte[]> nextGroups) {
+    }
+
+    protected ConcurrentMap<Integer, byte[]> getNextGroups(NetworkId networkId) {
         nextGroupsMap.computeIfAbsent(networkId, n -> Maps.newConcurrentMap());
         return nextGroupsMap.get(networkId);
     }
@@ -87,6 +99,7 @@ public class SimpleVirtualFlowObjectiveStore
     public void putNextGroup(NetworkId networkId, Integer nextId, NextGroup group) {
         ConcurrentMap<Integer, byte[]> nextGroups = getNextGroups(networkId);
         nextGroups.put(nextId, group.data());
+        updateNextGroupsMap(networkId, nextGroups);
 
         eventQ.add(new VirtualObjectiveEvent(networkId, ObjectiveEvent.Type.ADD, nextId));
     }
@@ -94,14 +107,22 @@ public class SimpleVirtualFlowObjectiveStore
     @Override
     public NextGroup getNextGroup(NetworkId networkId, Integer nextId) {
         ConcurrentMap<Integer, byte[]> nextGroups = getNextGroups(networkId);
-        return new DefaultNextGroup(nextGroups.get(nextId));
+        byte[] groupData = nextGroups.get(nextId);
+        if (groupData != null) {
+            return new DefaultNextGroup(groupData);
+        }
+        return null;
     }
 
     @Override
     public NextGroup removeNextGroup(NetworkId networkId, Integer nextId) {
         ConcurrentMap<Integer, byte[]> nextGroups = getNextGroups(networkId);
+        byte[] nextGroup = nextGroups.remove(nextId);
+        updateNextGroupsMap(networkId, nextGroups);
+
         eventQ.add(new VirtualObjectiveEvent(networkId, ObjectiveEvent.Type.REMOVE, nextId));
-        return new DefaultNextGroup(nextGroups.remove(nextId));
+
+        return new DefaultNextGroup(nextGroup);
     }
 
     @Override

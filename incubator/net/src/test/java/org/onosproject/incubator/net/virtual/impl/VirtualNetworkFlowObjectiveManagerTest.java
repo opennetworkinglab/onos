@@ -75,7 +75,7 @@ public class VirtualNetworkFlowObjectiveManagerTest
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private TestableIntentService intentService = new FakeIntentManager();
     private ServiceDirectory testDirectory;
-    private SimpleVirtualFlowObjectiveStore flowObjectiveStore;
+    protected SimpleVirtualFlowObjectiveStore flowObjectiveStore;
 
     private VirtualProviderManager providerRegistryService;
     private EventDeliveryService eventDeliveryService;
@@ -91,6 +91,7 @@ public class VirtualNetworkFlowObjectiveManagerTest
     //FIXME: referring flowrule service, store, and provider shouldn't be here
     private VirtualFlowRuleProvider flowRuleProvider = new TestProvider();
     private SimpleVirtualFlowRuleStore flowRuleStore;
+    protected StorageService storageService = new TestStorageService();
 
     @Before
     public void setUp() throws Exception {
@@ -98,7 +99,6 @@ public class VirtualNetworkFlowObjectiveManagerTest
 
         CoreService coreService = new TestCoreService();
         TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
-        StorageService storageService = new TestStorageService();
         TestUtils.setField(virtualNetworkManagerStore, "storageService", storageService);
         virtualNetworkManagerStore.activate();
 
