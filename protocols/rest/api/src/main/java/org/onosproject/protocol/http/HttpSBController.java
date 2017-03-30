@@ -16,12 +16,14 @@
 
 package org.onosproject.protocol.http;
 
+import java.io.InputStream;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.rest.RestSBDevice;
-
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * Abstraction of an HTTP controller. Serves as a one stop shop for obtaining
@@ -47,7 +49,7 @@ public interface HttpSBController {
     /**
      * Returns a device by Ip and Port.
      *
-     * @param ip   device ip
+     * @param ip device ip
      * @param port device port
      * @return RestSBDevice rest device
      */
@@ -70,70 +72,154 @@ public interface HttpSBController {
     /**
      * Does a HTTP POST request with specified parameters to the device.
      *
-     * @param device    device to make the request to
-     * @param request   url of the request
-     * @param payload   payload of the request as an InputStream
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
      * @param mediaType type of content in the payload i.e. application/json
      * @return true if operation returned 200, 201, 202, false otherwise
+     *
+     * @deprecated in Kingfisher (1.10.0)
      */
+    @Deprecated
     boolean post(DeviceId device, String request, InputStream payload, String mediaType);
 
     /**
      * Does a HTTP POST request with specified parameters to the device.
      *
-     * @param <T>           post return type
-     * @param device        device to make the request to
-     * @param request       url of the request
-     * @param payload       payload of the request as an InputStream
-     * @param mediaType     type of content in the payload i.e. application/json
+     * @param <T> post return type
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType type of content in the payload i.e. application/json
      * @param responseClass the type of response object we are interested in,
-     *                      such as String, InputStream.
+     *            such as String, InputStream.
      * @return Object of type requested via responseClass.
      */
-    <T> T post(DeviceId device, String request, InputStream payload,
-               String mediaType, Class<T> responseClass);
+    @Deprecated
+    <T> T post(DeviceId device, String request, InputStream payload, String mediaType, Class<T> responseClass);
 
     /**
      * Does a HTTP PUT request with specified parameters to the device.
      *
-     * @param device    device to make the request to
-     * @param request   resource path of the request
-     * @param payload   payload of the request as an InputStream
+     * @param device device to make the request to
+     * @param request resource path of the request
+     * @param payload payload of the request as an InputStream
      * @param mediaType type of content in the payload i.e. application/json
      * @return true if operation returned 200, 201, 202, false otherwise
+     *
+     * @deprecated in Kingfisher (1.10.0)
      */
+    @Deprecated
     boolean put(DeviceId device, String request, InputStream payload, String mediaType);
 
     /**
+     *
      * Does a HTTP GET request with specified parameters to the device.
      *
-     * @param device    device to make the request to
-     * @param request   url of the request
+     * @param device device to make the request to
+     * @param request url of the request
      * @param mediaType format to retrieve the content in
      * @return an inputstream of data from the reply.
      */
+    @Deprecated
     InputStream get(DeviceId device, String request, String mediaType);
 
     /**
      * Does a HTTP PATCH request with specified parameters to the device.
      *
-     * @param device    device to make the request to
-     * @param request   url of the request
-     * @param payload   payload of the request as an InputStream
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
      * @param mediaType format to retrieve the content in
      * @return true if operation returned 200, 201, 202, false otherwise
+     *
+     * @deprecated in Kingfisher (1.10.0)
      */
+    @Deprecated
     boolean patch(DeviceId device, String request, InputStream payload, String mediaType);
 
     /**
      * Does a HTTP DELETE request with specified parameters to the device.
      *
-     * @param device    device to make the request to
-     * @param request   url of the request
-     * @param payload   payload of the request as an InputStream
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
      * @param mediaType type of content in the payload i.e. application/json
      * @return true if operation returned 200 false otherwise
+     *
+     * @deprecated in Kingfisher (1.10.0)
      */
+    @Deprecated
     boolean delete(DeviceId device, String request, InputStream payload, String mediaType);
+
+    /**
+     * Does a HTTP POST request with specified parameters to the device.
+     *
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType type of content in the payload i.e. application/json
+     * @return status Commonly used status codes defined by HTTP
+     */
+    int post(DeviceId device, String request, InputStream payload, MediaType mediaType);
+
+    /**
+     * Does a HTTP PUT request with specified parameters to the device.
+     *
+     * @param device device to make the request to
+     * @param request resource path of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType type of content in the payload i.e. application/json
+     * @return status Commonly used status codes defined by HTTP
+     */
+    int put(DeviceId device, String request, InputStream payload, MediaType mediaType);
+
+    /**
+     * Does a HTTP PATCH request with specified parameters to the device.
+     *
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType format to retrieve the content in
+     * @return status Commonly used status codes defined by HTTP
+     */
+    int patch(DeviceId device, String request, InputStream payload, MediaType mediaType);
+
+    /**
+     * Does a HTTP DELETE request with specified parameters to the device.
+     *
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType type of content in the payload i.e. application/json
+     * @return status Commonly used status codes defined by HTTP
+     */
+    int delete(DeviceId device, String request, InputStream payload, MediaType mediaType);
+
+    /**
+    *
+    * Does a HTTP GET request with specified parameters to the device.
+    *
+    * @param device device to make the request to
+    * @param request url of the request
+    * @param mediaType format to retrieve the content in
+    * @return an inputstream of data from the reply.
+    */
+    InputStream get(DeviceId device, String request, MediaType mediaType);
+
+    /**
+     * Does a HTTP POST request with specified parameters to the device.
+     *
+     * @param <T> post return type
+     * @param device device to make the request to
+     * @param request url of the request
+     * @param payload payload of the request as an InputStream
+     * @param mediaType type of content in the payload i.e. application/json
+     * @param responseClass the type of response object we are interested in,
+     *            such as String, InputStream.
+     * @return Object of type requested via responseClass.
+     */
+     <T> T post(DeviceId device, String request, InputStream payload, MediaType mediaType, Class<T> responseClass);
+
 
 }
