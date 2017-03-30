@@ -3,7 +3,6 @@ COMPILE_DEPS = [
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
-    '//drivers/lisp:onos-drivers-lisp',
 ]
 
 TEST_DEPS = [

@@ -21,14 +21,6 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
-import org.onosproject.drivers.lisp.extensions.LispAppDataAddress;
-import org.onosproject.drivers.lisp.extensions.LispGcAddress;
-import org.onosproject.drivers.lisp.extensions.LispListAddress;
-import org.onosproject.drivers.lisp.extensions.LispMulticastAddress;
-import org.onosproject.drivers.lisp.extensions.LispNatAddress;
-import org.onosproject.drivers.lisp.extensions.LispNonceAddress;
-import org.onosproject.drivers.lisp.extensions.LispSegmentAddress;
-import org.onosproject.drivers.lisp.extensions.LispSrcDstAddress;
 import org.onosproject.lisp.msg.protocols.DefaultLispLocator.DefaultLocatorBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapNotify.DefaultNotifyBuilder;
 import org.onosproject.lisp.msg.protocols.DefaultLispMapRecord.DefaultMapRecordBuilder;
@@ -70,7 +62,6 @@ import org.onosproject.mapping.actions.MappingAction;
 import org.onosproject.mapping.addresses.ASMappingAddress;
 import org.onosproject.mapping.addresses.DNMappingAddress;
 import org.onosproject.mapping.addresses.EthMappingAddress;
-import org.onosproject.mapping.addresses.ExtensionMappingAddressWrapper;
 import org.onosproject.mapping.addresses.IPMappingAddress;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.net.DeviceId;
@@ -210,106 +201,6 @@ public class MappingEntryBuilderTest {
         DNMappingAddress address = (DNMappingAddress)
                         getMappingAddressByAfiType(DISTINGUISHED_NAME, UNKNOWN);
         assertThat(address.name(), is(UNIQUE_STRING));
-    }
-
-    @Test
-    public void testListLcafAddressConversion() {
-        LispListAddress address = (LispListAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, LIST)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getIpv4()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(((IPMappingAddress) address.getIpv6()).ip(), is(IPV6_MAPPING_ADDRESS));
-    }
-
-    @Test
-    public void testSegmentLcafAddressConversion() {
-        LispSegmentAddress address = (LispSegmentAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, SEGMENT)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getInstanceId(), is(UNIQUE_INT));
-    }
-
-    @Test
-    public void testAsLcafAddressConversion() {
-        org.onosproject.drivers.lisp.extensions.LispAsAddress address =
-                (org.onosproject.drivers.lisp.extensions.LispAsAddress)
-                ((ExtensionMappingAddressWrapper)
-                        getMappingAddressByAfiType(LCAF,
-                                LispCanonicalAddressFormatEnum.AS)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getAsNumber(), is(UNIQUE_INT));
-    }
-
-    @Test
-    public void testAppDataLcafAddressConversion() {
-        LispAppDataAddress address = (LispAppDataAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, APPLICATION_DATA)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getProtocol(), is(UNIQUE_BYTE));
-        assertThat(address.getIpTos(), is(UNIQUE_INT));
-        assertThat(address.getLocalPortLow(), is(UNIQUE_SHORT));
-        assertThat(address.getLocalPortHigh(), is(UNIQUE_SHORT));
-        assertThat(address.getRemotePortLow(), is(UNIQUE_SHORT));
-        assertThat(address.getRemotePortHigh(), is(UNIQUE_SHORT));
-    }
-
-    @Test
-    public void testGcLcafAddressConversion() {
-        LispGcAddress address = (LispGcAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, GEO_COORDINATE)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.isNorth(), is(UNIQUE_BOOLEAN));
-        assertThat(address.getLatitudeDegree(), is(UNIQUE_SHORT));
-        assertThat(address.getLatitudeMinute(), is(UNIQUE_BYTE));
-        assertThat(address.getLatitudeSecond(), is(UNIQUE_BYTE));
-        assertThat(address.isEast(), is(UNIQUE_BOOLEAN));
-        assertThat(address.getLongitudeDegree(), is(UNIQUE_SHORT));
-        assertThat(address.getLongitudeMinute(), is(UNIQUE_BYTE));
-        assertThat(address.getLongitudeSecond(), is(UNIQUE_BYTE));
-        assertThat(address.getAltitude(), is(UNIQUE_INT));
-    }
-
-    @Test
-    public void testNatLcafAddressConversion() {
-        LispNatAddress address = (LispNatAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, NAT)).extensionMappingAddress();
-        assertThat(((IPMappingAddress)
-                address.getPrivateEtrRlocAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(((IPMappingAddress)
-                address.getGlobalEtrRlocAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(((IPMappingAddress)
-                address.getMsRlocAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getEtrUdpPortNumber(), is(UNIQUE_SHORT));
-        assertThat(address.getMsUdpPortNumber(), is(UNIQUE_SHORT));
-        // TODO: need to compare RtrRlocAddresses
-    }
-
-    @Test
-    public void testNonceLcafAddressConversion() {
-        LispNonceAddress address = (LispNonceAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, NONCE)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getNonce(), is(UNIQUE_INT));
-    }
-
-    @Test
-    public void testMulticastLcafAddressConversion() {
-        LispMulticastAddress address = (LispMulticastAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, MULTICAST)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getSrcAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(((IPMappingAddress) address.getGrpAddress()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(address.getInstanceId(), is(UNIQUE_INT));
-        assertThat(address.getSrcMaskLength(), is(UNIQUE_BYTE));
-        assertThat(address.getGrpMaskLength(), is(UNIQUE_BYTE));
-    }
-
-    @Test
-    public void testSrcDstLcafAddressConversion() {
-        LispSrcDstAddress address = (LispSrcDstAddress) ((ExtensionMappingAddressWrapper)
-                getMappingAddressByAfiType(LCAF, SOURCE_DEST)).extensionMappingAddress();
-        assertThat(((IPMappingAddress) address.getSrcPrefix()).ip(), is(IPV4_MAPPING_ADDRESS_1));
-        assertThat(((IPMappingAddress) address.getDstPrefix()).ip(), is(IPV4_MAPPING_ADDRESS_2));
-        assertThat(address.getSrcMaskLength(), is(UNIQUE_BYTE));
-        assertThat(address.getDstMaskLength(), is(UNIQUE_BYTE));
     }
 
     @Test

@@ -53,11 +53,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers-lisp</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <scope>test</scope>
