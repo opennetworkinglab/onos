@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:netty-transport',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
+    '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
 ]
 
 osgi_jar_with_tests (
