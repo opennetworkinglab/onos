@@ -17,9 +17,11 @@
 package org.onosproject.drivers.huawei;
 
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.DefaultDevices;
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.DeviceKeys;
 import org.onosproject.yang.model.AtomicPath;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.InnerModelObject;
+import org.onosproject.yang.model.KeyInfo;
 import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -27,6 +29,8 @@ import org.onosproject.yang.model.MultiInstanceNode;
 
 import java.util.Iterator;
 import java.util.List;
+
+import static org.onosproject.drivers.huawei.L3VpnUtil.getDevIdFromIns;
 
 /**
  * Representation of utility for huawei driver.
@@ -164,23 +168,43 @@ public final class DriverUtil {
      * not present then null is returned. If only one path is available in
      * the list then devices value is returned.
      *
-     * @param id model object data
+     * @param id    model object id
+     * @param isIns if for VPN instance
      * @return device id
      */
-    static String getIdFromModId(ModelObjectId id) {
+    static String getIdFromModId(ModelObjectId id, boolean isIns) {
         if (id == null) {
             return null;
         }
-
         List<AtomicPath> paths = id.atomicPaths();
         int size = paths.size();
-        if (size == 1) {
-            return CONS_DEVICES;
-        } else if (size == 2) {
-            return ((MultiInstanceNode) paths.get(1)).key().toString();
-        } else {
-            throw new IllegalArgumentException(MODEL_OBJ_ID_LIMIT);
+
+        switch (size) {
+            case 1:
+                return CONS_DEVICES;
+
+            case 2:
+                return getDevId(paths, isIns);
+
+            default:
+                throw new IllegalArgumentException(MODEL_OBJ_ID_LIMIT);
         }
+    }
+
+    /**
+     * Returns the device id from the model object id's key info.
+     *
+     * @param paths atomic path list
+     * @param isIns if VPN instance
+     * @return device id
+     */
+    private static String getDevId(List<AtomicPath> paths, boolean isIns) {
+        MultiInstanceNode info = (MultiInstanceNode) paths.get(1);
+        KeyInfo key = info.key();
+        if (!isIns) {
+            return ((DeviceKeys) key).deviceid();
+        }
+        return getDevIdFromIns(key);
     }
 
     /**

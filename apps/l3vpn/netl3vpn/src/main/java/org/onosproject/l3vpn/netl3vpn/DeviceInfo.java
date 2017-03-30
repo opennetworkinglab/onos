@@ -17,7 +17,7 @@
 package org.onosproject.l3vpn.netl3vpn;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.L3vpnConfig;
+import org.onosproject.net.behaviour.L3VpnConfig;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.yang.model.ModelObjectData;
@@ -158,7 +158,7 @@ public class DeviceInfo {
      */
     public ModelObjectData processCreateInstance(DriverService driverSvc,
                                                  ModelObjectData modelData) {
-        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        L3VpnConfig config = getL3VpnConfig(driverSvc);
         return (ModelObjectData) config.createInstance(modelData);
     }
 
@@ -173,7 +173,7 @@ public class DeviceInfo {
      */
     public ModelObjectData processCreateInterface(DriverService driverSvc,
                                                   ModelObjectData modData) {
-        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        L3VpnConfig config = getL3VpnConfig(driverSvc);
         return (ModelObjectData) config.bindInterface(modData);
     }
 
@@ -190,7 +190,7 @@ public class DeviceInfo {
     public ModelObjectData processCreateBgpInfo(DriverService driverSvc,
                                                 BgpInfo bgpInfo,
                                                 BgpDriverInfo driverInfo) {
-        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        L3VpnConfig config = getL3VpnConfig(driverSvc);
         return (ModelObjectData) config.createBgpInfo(bgpInfo, driverInfo);
     }
 
@@ -205,7 +205,7 @@ public class DeviceInfo {
      */
     public ModelObjectData processDeleteInstance(DriverService driverSvc,
                                                  ModelObjectData modData) {
-        L3vpnConfig config = getL3VpnConfig(driverSvc);
+        L3VpnConfig config = getL3VpnConfig(driverSvc);
         return (ModelObjectData) config.deleteInstance(modData);
     }
 
@@ -237,8 +237,8 @@ public class DeviceInfo {
     public ModelObjectData processDeleteBgpInfo(DriverService driverSvc,
                                                 BgpInfo bgpInfo,
                                                 BgpDriverInfo driverInfo) {
-        // TODO: Need to call the behaviour.
-        return null;
+        L3VpnConfig config = getL3VpnConfig(driverSvc);
+        return (ModelObjectData) config.deleteBgpInfo(bgpInfo, driverInfo);
     }
 
     /**
@@ -247,8 +247,8 @@ public class DeviceInfo {
      * @param driverSvc driver service
      * @return L3VPN config
      */
-    private L3vpnConfig getL3VpnConfig(DriverService driverSvc) {
+    private L3VpnConfig getL3VpnConfig(DriverService driverSvc) {
         DriverHandler handler = driverSvc.createHandler(deviceId);
-        return handler.behaviour(L3vpnConfig.class);
+        return handler.behaviour(L3VpnConfig.class);
     }
 }

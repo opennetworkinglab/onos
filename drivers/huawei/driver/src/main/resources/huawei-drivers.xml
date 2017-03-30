@@ -17,8 +17,8 @@
 <drivers>
     <driver name="huawei" extends="" manufacturer="Huawei"
             hwVersion="" swVersion="">
-        <behaviour api="org.onosproject.net.behaviour.L3vpnConfig"
-                   impl="org.onosproject.drivers.huawei.HuaweiL3vpnConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.L3VpnConfig"
+                   impl="org.onosproject.drivers.huawei.HuaweiL3VpnConfig"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.huawei.HuaweiDeviceDescription"/>
         <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"

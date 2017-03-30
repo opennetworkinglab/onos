@@ -33,10 +33,12 @@ import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.devi
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.BgpVrfs;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.DefaultBgpVrfs;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.BgpVrf;
+import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.BgpVrfKeys;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.DefaultBgpVrf;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.BgpVrfAfs;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.DefaultBgpVrfAfs;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.BgpVrfAf;
+import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.BgpVrfAfKeys;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.DefaultBgpVrfAf;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.bgpvrfaf.DefaultImportRoutes;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.nebgpcomm.devices.device.bgp.bgpcomm.bgpvrfs.bgpvrf.bgpvrfafs.bgpvrfaf.ImportRoutes;
@@ -100,28 +102,32 @@ public final class BgpConstructionUtil {
 
         bgpVrf.vrfName(bgpInfo.vpnName());
         Map<RouteProtocol, ProtocolInfo> proMap = bgpInfo.protocolInfo();
-        addRouteProtocol(proMap, bgpVrfAfs);
+        ImportRoute route = addRouteProtocol(proMap, bgpVrfAfs);
 
         bgpVrf.bgpVrfAfs(bgpVrfAfs);
         bgpVrfList.add(bgpVrf);
         bgpVrfs.bgpVrf(bgpVrfList);
         bgpBuilder.bgpVrfs(bgpVrfs);
         bgp.bgpcomm(bgpBuilder);
-        return getModObjData(modIdLevel, bgp, devId, bgpVrf);
+        return getModObjData(modIdLevel, bgp, devId, bgpVrf, route);
     }
 
     /**
      * Adds route protocol from the standard device model to the BGP address
      * family respectively.
+     * //TODO: IPV6 has to be handled.
      *
      * @param proMap    protocol map
      * @param bgpVrfAfs BGP address family
+     * @return import route
      */
-    private static void addRouteProtocol(Map<RouteProtocol, ProtocolInfo> proMap,
-                                         BgpVrfAfs bgpVrfAfs) {
+    private static ImportRoute addRouteProtocol(Map<RouteProtocol, ProtocolInfo> proMap,
+                                                BgpVrfAfs bgpVrfAfs) {
         BgpVrfAf ipv4 = new DefaultBgpVrfAf();
         ImportRoutes ipv4Routes = new DefaultImportRoutes();
         ipv4.afType(of(IPV4UNI));
+
+        ImportRoute route = null;
 
         BgpVrfAf ipv6 = new DefaultBgpVrfAf();
         ImportRoutes ipv6Routes = new DefaultImportRoutes();
@@ -130,7 +136,7 @@ public final class BgpConstructionUtil {
             RouteProtocol protocol = info.getKey();
             ProtocolInfo proInfo = info.getValue();
             if (proInfo.isIpv4Af()) {
-                addImportRoute(ipv4Routes, proInfo, protocol);
+                route = addImportRoute(ipv4Routes, proInfo, protocol);
             }
             if (proInfo.isIpv6Af()) {
                 addImportRoute(ipv6Routes, proInfo, protocol);
@@ -144,6 +150,7 @@ public final class BgpConstructionUtil {
                 !ipv6Routes.importRoute().isEmpty()) {
             addToBgpVrf(ipv6Routes, ipv6, bgpVrfAfs);
         }
+        return route;
     }
 
     /**
@@ -168,13 +175,16 @@ public final class BgpConstructionUtil {
      * @param routes   routes object
      * @param proInfo  protocol info
      * @param protocol route protocol
+     * @return import route object
      */
-    private static void addImportRoute(ImportRoutes routes, ProtocolInfo proInfo,
-                                       RouteProtocol protocol) {
+    private static ImportRoute addImportRoute(ImportRoutes routes,
+                                              ProtocolInfo proInfo,
+                                              RouteProtocol protocol) {
         List<ImportRoute> routeList = new LinkedList<>();
         ImportRoute route = buildAfBgp(proInfo, protocol);
         routeList.add(route);
         routes.importRoute(routeList);
+        return route;
     }
 
     /**
@@ -233,12 +243,17 @@ public final class BgpConstructionUtil {
      * @param bgp        driver BGP object
      * @param devId      device id
      * @param bgpVrf     driver BGP VRF object
+     * @param route      import route object
      * @return model object data
      */
     public static ModelObjectData getModObjData(BgpModelIdLevel modIdLevel,
                                                 Bgp bgp, String devId,
-                                                BgpVrf bgpVrf) {
+                                                BgpVrf bgpVrf, ImportRoute route) {
         switch (modIdLevel) {
+
+            case VPN:
+                return getRouteProModObj(bgpVrf.vrfName(), route, devId);
+
             case ROOT:
                 return getRootModObj(bgp, devId);
 
@@ -251,6 +266,36 @@ public final class BgpConstructionUtil {
             default:
                 throw new IllegalArgumentException(UNSUPPORTED_MODEL_LVL);
         }
+    }
+
+    /**
+     * Returns the model object data of route protocol.
+     *
+     * @param vpnName VPN name
+     * @param route   import route
+     * @param devId   device id
+     * @return model object data
+     */
+    private static ModelObjectData getRouteProModObj(String vpnName,
+                                                     ImportRoute route,
+                                                     String devId) {
+        DeviceKeys key = new DeviceKeys();
+        key.deviceid(devId);
+        BgpVrfKeys vpnKey = new BgpVrfKeys();
+        vpnKey.vrfName(vpnName);
+        BgpVrfAfKeys afKey = new BgpVrfAfKeys();
+        afKey.afType(of(IPV4UNI));
+        ModelObjectId id = ModelObjectId.builder()
+                .addChild(DefaultDevices.class)
+                .addChild(DefaultDevice.class, key)
+                .addChild(DefaultBgp.class)
+                .addChild(DefaultBgpcomm.class)
+                .addChild(DefaultBgpVrfs.class)
+                .addChild(DefaultBgpVrf.class, vpnKey)
+                .addChild(DefaultBgpVrfAfs.class)
+                .addChild(DefaultBgpVrfAf.class, afKey)
+                .addChild(DefaultImportRoutes.class).build();
+        return getData(id, (InnerModelObject) route);
     }
 
     /**
@@ -315,5 +360,82 @@ public final class BgpConstructionUtil {
         device.deviceid(devId);
         device.bgp(bgp);
         return device;
+    }
+
+    /**
+     * Returns the BGP model object data for deletion.
+     *
+     * @param bgpInfo   BGP info
+     * @param bgpConfig BGP driver config
+     * @return model object data
+     */
+    static ModelObjectData getDeleteBgp(BgpInfo bgpInfo,
+                                        BgpDriverInfo bgpConfig) {
+        BgpModelIdLevel modIdLvl = bgpConfig.modIdLevel();
+        switch (modIdLvl) {
+            case ROOT:
+                return getDelRootModObj();
+
+            case DEVICES:
+                return getDelDevicesModObj(bgpConfig.devId());
+
+            case DEVICE:
+                return getDelDeviceModObj(bgpConfig.devId(), bgpInfo.vpnName());
+
+            default:
+                throw new IllegalArgumentException(UNSUPPORTED_MODEL_LVL);
+        }
+    }
+
+    /**
+     * Returns the model object data with respect to device level.
+     *
+     * @param devId   device id
+     * @param vpnName VPN name
+     * @return model object data
+     */
+    private static ModelObjectData getDelDeviceModObj(String devId,
+                                                      String vpnName) {
+        DeviceKeys devKeys = new DeviceKeys();
+        devKeys.deviceid(devId);
+        BgpVrfKeys vpnKey = new BgpVrfKeys();
+        vpnKey.vrfName(vpnName);
+        ModelObjectId modelId = ModelObjectId.builder()
+                .addChild(DefaultDevices.class)
+                .addChild(DefaultDevice.class, devKeys)
+                .addChild(DefaultBgp.class)
+                .addChild(DefaultBgpcomm.class)
+                .addChild(DefaultBgpVrfs.class)
+                .addChild(DefaultBgpVrf.class, vpnKey).build();
+        DefaultBgpVrfAfs afs = new DefaultBgpVrfAfs();
+        return getData(modelId, afs);
+    }
+
+    /**
+     * Returns the model object data with respect to root level.
+     *
+     * @return model object data
+     */
+    private static ModelObjectData getDelRootModObj() {
+        DefaultDevice device = new DefaultDevice();
+        ModelObjectId modelId = ModelObjectId.builder().addChild(
+                DefaultDevices.class).build();
+        return getData(modelId, device);
+    }
+
+    /**
+     * Returns the model object data for devices level.
+     *
+     * @param id device id
+     * @return model object data
+     */
+    private static ModelObjectData getDelDevicesModObj(String id) {
+        DeviceKeys devKeys = new DeviceKeys();
+        devKeys.deviceid(id);
+        ModelObjectId modelId = ModelObjectId.builder()
+                .addChild(DefaultDevices.class)
+                .addChild(DefaultDevice.class, devKeys).build();
+        DefaultBgp bgp = new DefaultBgp();
+        return getData(modelId, bgp);
     }
 }

@@ -48,7 +48,6 @@
         <module>juniper</module>
         <module>lisp</module>
         <module>flowspec</module>
-        <module>huawei</module>
     </modules>
 
     <!--<properties>

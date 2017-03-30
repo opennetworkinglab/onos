@@ -198,7 +198,7 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
     public void addInterfaceInfo(AccessInfo accessInfo, InterfaceInfo intInfo) {
         checkNotNull(accessInfo, ACCESS_INFO_NULL);
         checkNotNull(intInfo, INT_INFO_NULL);
-        intInfoMap.putIfAbsent(accessInfo, intInfo);
+        intInfoMap.put(accessInfo, intInfo);
     }
 
     @Override

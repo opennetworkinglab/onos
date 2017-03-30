@@ -14,31 +14,27 @@
  * limitations under the License.
  */
 
-package org.onosproject.l3vpn.netl3vpn;
+package org.onosproject.drivers.huawei;
+
+import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.DeviceKeys;
+import org.onosproject.yang.model.KeyInfo;
 
 /**
- * Represents the model id level of BGP information to be added to store.
- * //TODO: Further more levels of BGP addition has to be added.
+ * Representation of utility for huawei driver's L3VPN.
  */
-public enum BgpModelIdLevel {
+public final class L3VpnUtil {
+
+    // No instantiation.
+    private L3VpnUtil() {
+    }
 
     /**
-     * Requested model id level is not present, representing top node.
+     * Returns the device id from the instance key.
+     *
+     * @param key instance key
+     * @return device id
      */
-    ROOT,
-
-    /**
-     * Requested model id level is devices container.
-     */
-    DEVICES,
-
-    /**
-     * Requested model id level is device list.
-     */
-    DEVICE,
-
-    /**
-     * Requested model id level is VPN list.
-     */
-    VPN
+    static String getDevIdFromIns(KeyInfo key) {
+        return ((DeviceKeys) key).deviceid();
+    }
 }

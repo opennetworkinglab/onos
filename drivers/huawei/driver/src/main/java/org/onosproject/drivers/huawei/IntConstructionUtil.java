@@ -77,7 +77,7 @@ public final class IntConstructionUtil {
      */
     static ModelObjectData getCreateInt(ModelObjectData modObj) {
         boolean isModIdAvail = true;
-        String id = getIdFromModId(modObj.identifier());
+        String id = getIdFromModId(modObj.identifier(), false);
         Object obj = getObjFromModData(modObj);
         if (id == null) {
             isModIdAvail = false;

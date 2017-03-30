@@ -21,7 +21,7 @@ import org.onosproject.net.driver.HandlerBehaviour;
 /**
  * Behaviour for handling various drivers for l3vpn configurations.
  */
-public interface L3vpnConfig extends HandlerBehaviour {
+public interface L3VpnConfig extends HandlerBehaviour {
 
     /**
      * Create virtual routing forwarding instance on requested device with

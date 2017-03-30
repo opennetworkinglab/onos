@@ -21,7 +21,7 @@ import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.l3vpn.netl3vpn.BgpDriverInfo;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
-import org.onosproject.net.behaviour.L3vpnConfig;
+import org.onosproject.net.behaviour.L3VpnConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.NeL3VpncommType;
 import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.NeBgpcomm;
@@ -40,11 +40,13 @@ import org.onosproject.yang.runtime.YangModelRegistry;
 import java.util.Iterator;
 
 import static org.onosproject.drivers.huawei.BgpConstructionUtil.getCreateBgp;
+import static org.onosproject.drivers.huawei.BgpConstructionUtil.getDeleteBgp;
 import static org.onosproject.drivers.huawei.DriverUtil.DEVICES;
 import static org.onosproject.drivers.huawei.DriverUtil.NAMESPACE;
 import static org.onosproject.drivers.huawei.DriverUtil.SERVICE_NOT_FOUND;
 import static org.onosproject.drivers.huawei.DriverUtil.SLASH;
 import static org.onosproject.drivers.huawei.InsConstructionUtil.getCreateVpnIns;
+import static org.onosproject.drivers.huawei.InsConstructionUtil.getDeleteVpnIns;
 import static org.onosproject.drivers.huawei.IntConstructionUtil.getCreateInt;
 import static org.onosproject.yang.runtime.DefaultModelRegistrationParam.builder;
 import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangModel;
@@ -52,8 +54,8 @@ import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangMo
 /**
  * Configures l3vpn on Huawei devices.
  */
-public class HuaweiL3vpnConfig extends AbstractHandlerBehaviour
-        implements L3vpnConfig {
+public class HuaweiL3VpnConfig extends AbstractHandlerBehaviour
+        implements L3VpnConfig {
 
     /**
      * YANG model registry.
@@ -68,7 +70,7 @@ public class HuaweiL3vpnConfig extends AbstractHandlerBehaviour
     /**
      * Constructs huawei L3VPN config.
      */
-    public HuaweiL3vpnConfig() {
+    public HuaweiL3VpnConfig() {
     }
 
     /**
@@ -148,7 +150,7 @@ public class HuaweiL3vpnConfig extends AbstractHandlerBehaviour
 
     @Override
     public Object deleteInstance(Object objectData) {
-        return InsConstructionUtil.getDeleteVpnIns((ModelObjectData) objectData);
+        return getDeleteVpnIns((ModelObjectData) objectData);
     }
 
     @Override
@@ -159,8 +161,7 @@ public class HuaweiL3vpnConfig extends AbstractHandlerBehaviour
 
     @Override
     public Object deleteBgpInfo(Object bgpInfo, Object bgpConfig) {
-        //TODO:To be committed.
-        return null;
+        return getDeleteBgp((BgpInfo) bgpInfo, (BgpDriverInfo) bgpConfig);
     }
 
     /**

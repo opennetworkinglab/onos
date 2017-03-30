@@ -49,6 +49,7 @@ import java.util.Map;
 import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.DEVICE;
 import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.DEVICES;
 import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.ROOT;
+import static org.onosproject.l3vpn.netl3vpn.BgpModelIdLevel.VPN;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.ANY_TO_ANY;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.HUB;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.SPOKE;
@@ -385,16 +386,15 @@ public final class NetL3VpnUtil {
     /**
      * Returns the interface create model object data.
      *
-     * @param intMap interface map
-     * @param ifs    interface instance
-     * @param id     device id
+     * @param ifNames interfaces
+     * @param ifs     interface instance
+     * @param id      device id
      * @return interface model object data
      */
-    static ModelObjectData getIntCreateModObj(Map<AccessInfo, InterfaceInfo> intMap,
+    static ModelObjectData getIntCreateModObj(List<String> ifNames,
                                               Interfaces ifs, String id) {
         ModelObjectData modData;
-        boolean intAdded = isDevIdPresent(intMap, id);
-        if (intAdded) {
+        if (ifNames.size() > 1) {
             modData = buildIntModDataDevice(id, ifs);
         } else {
             modData = buildIntModDataRoot(id, ifs);
@@ -439,15 +439,20 @@ public final class NetL3VpnUtil {
      *
      * @param bgpMap BGP map
      * @param id     device id
-     * @return driver config info
+     * @param devBgp device BGP info
+     * @param intBgp interface BGP info
+     * @return BGP driver config
      */
     static BgpDriverInfo getBgpCreateConfigObj(Map<BgpInfo, DeviceId> bgpMap,
-                                               String id) {
+                                               String id, BgpInfo devBgp,
+                                               BgpInfo intBgp) {
         boolean isDevIdPresent = isDevIdBgpPresent(bgpMap, id);
         BgpDriverInfo info;
-        if (isDevIdPresent) {
+        if (devBgp != intBgp) {
+            //TODO: With ipv6 BGP it has to be changed
+            info = new BgpDriverInfo(VPN, id);
+        } else if (isDevIdPresent) {
             info = new BgpDriverInfo(DEVICE, id);
-
         } else if (bgpMap.size() != 0) {
             info = new BgpDriverInfo(DEVICES, id);
         } else {
@@ -472,5 +477,49 @@ public final class NetL3VpnUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the model object data for VPN instance deletion.
+     *
+     * @param intMap interface map
+     * @param ins    VPN instance
+     * @param id     device id
+     * @return model object data
+     */
+    static ModelObjectData getVpnDelModObj(Map<AccessInfo, InterfaceInfo> intMap,
+                                           NetworkInstances ins,
+                                           String id) {
+        boolean isDevIdPresent = isDevIdPresent(intMap, id);
+        ModelObjectData modData;
+        if (intMap.size() == 0) {
+            modData = buildInsModDataRoot(id, ins);
+        } else if (isDevIdPresent) {
+            modData = buildInsModDataDevice(id, ins);
+        } else {
+            modData = buildInsModDataDevices(id, ins);
+        }
+        return modData;
+    }
+
+    /**
+     * Returns the BGP driver info for VPN BGP instance deletion.
+     *
+     * @param bgpMap BGP map
+     * @param id     device id
+     * @return BGP driver info
+     */
+    static BgpDriverInfo getVpnBgpDelModObj(Map<BgpInfo, DeviceId> bgpMap,
+                                            String id) {
+        boolean isDevIdPresent = isDevIdBgpPresent(bgpMap, id);
+        BgpDriverInfo driInfo;
+        if (bgpMap.size() == 0) {
+            driInfo = new BgpDriverInfo(ROOT, id);
+        } else if (isDevIdPresent) {
+            driInfo = new BgpDriverInfo(DEVICE, id);
+        } else {
+            driInfo = new BgpDriverInfo(DEVICES, id);
+        }
+        return driInfo;
     }
 }

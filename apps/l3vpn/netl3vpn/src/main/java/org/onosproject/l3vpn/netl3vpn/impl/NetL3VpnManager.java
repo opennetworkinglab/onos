@@ -142,14 +142,16 @@ import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getModIdForL3VpnS
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getModIdForSites;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getResourceData;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getRole;
+import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnBgpDelModObj;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnCreateModObj;
+import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnDelModObj;
 import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangModel;
 
 /**
  * The IETF net l3vpn manager implementation.
  */
 @Component(immediate = true)
-public class NetL3vpnManager {
+public class NetL3VpnManager {
 
     private static final String APP_ID = "org.onosproject.app.l3vpn";
     private static final String L3_VPN_ID_TOPIC = "l3vpn-id";
@@ -569,6 +571,7 @@ public class NetL3vpnManager {
         InterfaceInfo interInfo = new InterfaceInfo(info, portName,
                                                     instance.vpnName());
         l3VpnStore.addInterfaceInfo(accInfo, interInfo);
+        l3VpnStore.addVpnIns(instance.vpnName(), instance);
     }
 
     /**
@@ -645,7 +648,6 @@ public class NetL3vpnManager {
         Map<AccessInfo, InterfaceInfo> intMap = l3VpnStore.getInterfaceInfo();
         generateRdRt(inst, role);
         DeviceInfo info = new DeviceInfo(id);
-        inst.addDevInfo(id, info);
 
         NetworkInstances instances = createInstance(inst, role, ip);
         ModelObjectData devMod = getVpnCreateModObj(intMap, instances,
@@ -655,6 +657,7 @@ public class NetL3vpnManager {
         ResourceData resData = modelConverter.createDataNode(driMod);
         addToStore(resData);
         l3VpnStore.addVpnIns(inst.vpnName(), inst);
+        inst.addDevInfo(id, info);
         return info;
     }
 
@@ -871,7 +874,7 @@ public class NetL3vpnManager {
         Interfaces interfaces = createInterface(pName, ins.vpnName(),
                                                 connect);
         ModelObjectData devMod = getIntCreateModObj(
-                intMap, interfaces, info.deviceId().toString());
+                info.ifNames(), interfaces, info.deviceId().toString());
         ModelObjectData driMod = info.processCreateInterface(driverService,
                                                              devMod);
         ResourceData resData = modelConverter.createDataNode(driMod);
@@ -896,7 +899,7 @@ public class NetL3vpnManager {
         if (intBgp != null) {
             intBgp.vpnName(name);
             BgpDriverInfo config = getBgpCreateConfigObj(
-                    bgpMap, info.deviceId().toString());
+                    bgpMap, info.deviceId().toString(), info.bgpInfo(), intBgp);
             ModelObjectData driData = info.processCreateBgpInfo(
                     driverService, intBgp, config);
             l3VpnStore.addBgpInfo(info.bgpInfo(), info.deviceId());
@@ -965,24 +968,47 @@ public class NetL3vpnManager {
      */
     private void deleteVpnInstance(VpnInstance instance, boolean isIntDeleted) {
         Map<DeviceId, DeviceInfo> devices = instance.devInfo();
-        for (Map.Entry<DeviceId, DeviceInfo> device : devices.entrySet()) {
-            Map<AccessInfo, InterfaceInfo> intMap =
-                    l3VpnStore.getInterfaceInfo();
-            NetworkInstances ins = deleteInstance(instance.vpnName());
-            DeviceInfo dev = device.getValue();
-
-            ModelObjectData devMod = getVpnCreateModObj(
-                    intMap, ins, dev.deviceId().toString());
-            ModelObjectData driMod = dev.processDeleteInstance(driverService,
-                                                               devMod);
-            ResourceData resData = modelConverter.createDataNode(driMod);
-            deleteFromStore(resData);
-            if (!isIntDeleted) {
-                //TODO: Remove from store.
-                remInterfaceFromMap(dev);
+        if (devices != null) {
+            for (Map.Entry<DeviceId, DeviceInfo> device : devices.entrySet()) {
+                NetworkInstances ins = deleteInstance(instance.vpnName());
+                DeviceInfo dev = device.getValue();
+                if (!isIntDeleted) {
+                    remVpnBgp(dev);
+                    remInterfaceFromMap(dev);
+                }
+                Map<AccessInfo, InterfaceInfo> intMap =
+                        l3VpnStore.getInterfaceInfo();
+                String id = dev.deviceId().toString();
+                ModelObjectData devMod = getVpnDelModObj(intMap, ins, id);
+                ModelObjectData driMod = dev.processDeleteInstance(
+                        driverService, devMod);
+                ResourceData resData = modelConverter.createDataNode(driMod);
+                deleteFromStore(resData);
             }
+            l3VpnStore.removeVpnInstance(instance.vpnName());
         }
-        l3VpnStore.removeVpnInstance(instance.vpnName());
+    }
+
+    /**
+     * Removes the BGP information for that complete VPN instance.
+     *
+     * @param dev device info
+     */
+    private void remVpnBgp(DeviceInfo dev) {
+        BgpInfo devBgp = dev.bgpInfo();
+        if (devBgp != null) {
+            l3VpnStore.removeBgpInfo(devBgp);
+            BgpInfo delInfo = new BgpInfo();
+            delInfo.vpnName(devBgp.vpnName());
+            String id = dev.deviceId().toString();
+            Map<BgpInfo, DeviceId> bgpMap = l3VpnStore.getBgpInfo();
+            BgpDriverInfo driConfig = getVpnBgpDelModObj(bgpMap, id);
+            ModelObjectData driData = dev.processDeleteBgpInfo(
+                    driverService, delInfo, driConfig);
+            ResourceData resData = modelConverter.createDataNode(driData);
+            deleteFromStore(resData);
+            l3VpnStore.removeBgpInfo(devBgp);
+        }
     }
 
     /**
@@ -993,7 +1019,7 @@ public class NetL3vpnManager {
      */
     private void deleteFromStore(ResourceData resData) {
         if (resData != null) {
-            configService.deleteNode(resData.resourceId());
+            configService.deleteNodeRecursive(resData.resourceId());
         }
     }
 
@@ -1005,8 +1031,10 @@ public class NetL3vpnManager {
      */
     private void remInterfaceFromMap(DeviceInfo deviceInfo) {
         List<AccessInfo> accesses = deviceInfo.accesses();
-        for (AccessInfo access : accesses) {
-            l3VpnStore.removeInterfaceInfo(access);
+        if (accesses != null) {
+            for (AccessInfo access : accesses) {
+                l3VpnStore.removeInterfaceInfo(access);
+            }
         }
         deviceInfo.ifNames(null);
         deviceInfo.accesses(null);

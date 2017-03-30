@@ -35,6 +35,7 @@ import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.d
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.VpnTargets;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.DefaultVpnTarget;
 import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.VpnTarget;
+import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.DefaultL3VpnIfs;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.DefaultAugmentedNiNetworkInstance;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.Unicast;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.Rts;
@@ -105,7 +106,7 @@ public final class InsConstructionUtil {
     static ModelObjectData getCreateVpnIns(ModelObjectData modObj,
                                            boolean isDevAvail) {
         ModelIdLevel modIdLvl = DEVICE;
-        String id = getIdFromModId(modObj.identifier());
+        String id = getIdFromModId(modObj.identifier(), true);
         Object obj = getObjFromModData(modObj);
 
         if (obj == null) {
@@ -392,7 +393,7 @@ public final class InsConstructionUtil {
      */
     static Object getDeleteVpnIns(ModelObjectData modObj) {
         ModelIdLevel modIdLvl = DEVICE;
-        String id = getIdFromModId(modObj.identifier());
+        String id = getIdFromModId(modObj.identifier(), true);
         Object obj = getObjFromModData(modObj);
 
         if (obj == null) {
@@ -434,20 +435,22 @@ public final class InsConstructionUtil {
         switch (modIdLvl) {
             case ROOT:
                 modId = getModObjIdDriDevices();
-                break;
+                DefaultDevice device = new DefaultDevice();
+                return getData(modId, device);
 
             case DEVICES:
+                DefaultL3Vpn l3Vpn = new DefaultL3Vpn();
                 modId = getModObjIdDriDevice(id).build();
-                break;
+                return getData(modId, l3Vpn);
 
             case DEVICE:
+                DefaultL3VpnIfs l3VpnIfs = new DefaultL3VpnIfs();
                 modId = getModObjIdDriVpn(id, name);
-                break;
+                return getData(modId, l3VpnIfs);
 
             default:
                 throw new IllegalArgumentException(UNSUPPORTED_MODEL_LVL);
         }
-        return getData(modId, null);
     }
 
     /**
