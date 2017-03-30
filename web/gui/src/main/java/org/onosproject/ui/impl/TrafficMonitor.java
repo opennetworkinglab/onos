@@ -18,6 +18,7 @@
 package org.onosproject.ui.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.onosproject.incubator.net.PortStatisticsService.MetricType;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -67,10 +68,10 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static org.onosproject.incubator.net.PortStatisticsService.MetricType.BYTES;
+import static org.onosproject.incubator.net.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.IDLE;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.RELATED_INTENTS;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.*;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
@@ -372,7 +373,9 @@ public class TrafficMonitor extends AbstractTopoMonitor {
             if (type == StatsType.FLOW_STATS) {
                 attachFlowLoad(tlink);
             } else if (type == StatsType.PORT_STATS) {
-                attachPortLoad(tlink);
+                attachPortLoad(tlink, BYTES);
+            } else if (type == StatsType.PORT_PACKET_STATS) {
+                attachPortLoad(tlink, PACKETS);
             }
 
             // we only want to report on links deemed to have traffic
@@ -483,14 +486,14 @@ public class TrafficMonitor extends AbstractTopoMonitor {
         link.addLoad(getLinkFlowLoad(link.two()));
     }
 
-    private void attachPortLoad(TrafficLink link) {
+    private void attachPortLoad(TrafficLink link, MetricType metricType) {
         // For bi-directional traffic links, use
         // the max link rate of either direction
         // (we choose 'one' since we know that is never null)
         Link one = link.one();
-        Load egressSrc = servicesBundle.portStatsService().load(one.src());
-        Load egressDst = servicesBundle.portStatsService().load(one.dst());
-        link.addLoad(maxLoad(egressSrc, egressDst), BPS_THRESHOLD);
+        Load egressSrc = servicesBundle.portStatsService().load(one.src(), metricType);
+        Load egressDst = servicesBundle.portStatsService().load(one.dst(), metricType);
+        link.addLoad(maxLoad(egressSrc, egressDst), metricType == BYTES ? BPS_THRESHOLD : 0);
 //        link.addLoad(maxLoad(egressSrc, egressDst), 10);    // DEBUG ONLY!!
     }
 

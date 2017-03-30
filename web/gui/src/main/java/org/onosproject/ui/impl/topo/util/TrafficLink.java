@@ -243,6 +243,11 @@ public class TrafficLink extends BiLink {
         PORT_STATS,
 
         /**
+         * Number of packets per second.
+         */
+        PORT_PACKET_STATS,
+
+        /**
          * Custom tagged information.
          */
         TAGGED

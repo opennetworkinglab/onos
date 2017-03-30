@@ -75,27 +75,42 @@ public class PortStatisticsManager implements PortStatisticsService {
 
     @Override
     public Load load(ConnectPoint connectPoint) {
+        return load(connectPoint, MetricType.BYTES);
+    }
+
+    @Override
+    public Load load(ConnectPoint connectPoint, MetricType metricType) {
         DataPoint c = current.get(connectPoint);
         DataPoint p = previous.get(connectPoint);
         long now = System.currentTimeMillis();
 
         if (c != null && p != null && (now - c.time < STALE_LIMIT)) {
             if (c.time > p.time + SECOND) {
+                long cve = getEgressValue(c.stats, metricType);
+                long cvi = getIngressValue(c.stats, metricType);
+                long pve = getEgressValue(p.stats, metricType);
+                long pvi = getIngressValue(p.stats, metricType);
                 //Use max of either Tx or Rx load as the total load of a port
                 Load load = null;
-                if (c.stats.bytesSent() >= p.stats.bytesSent()) {
-                    load = new DefaultLoad(c.stats.bytesSent(), p.stats.bytesSent(),
-                                                    (int) (c.time - p.time) / SECOND);
+                if (cve >= pve) {
+                    load = new DefaultLoad(cve, pve, (int) (c.time - p.time) / SECOND);
                 }
-                if (c.stats.bytesReceived() >= p.stats.bytesReceived()) {
-                    Load rcvLoad = new DefaultLoad(c.stats.bytesReceived(), p.stats.bytesReceived(),
-                                                    (int) (c.time - p.time) / SECOND);
+                if (cvi >= pvi) {
+                    Load rcvLoad = new DefaultLoad(cvi, pvi, (int) (c.time - p.time) / SECOND);
                     load = ((load == null) || (rcvLoad.rate() > load.rate())) ? rcvLoad : load;
                 }
                 return load;
             }
         }
         return null;
+    }
+
+    private long getEgressValue(PortStatistics stats, MetricType metricType) {
+        return metricType == MetricType.BYTES ? stats.bytesSent() : stats.packetsSent();
+    }
+
+    private long getIngressValue(PortStatistics stats, MetricType metricType) {
+        return metricType == MetricType.BYTES ? stats.bytesReceived() : stats.packetsReceived();
     }
 
     // Monitors port stats update messages.
