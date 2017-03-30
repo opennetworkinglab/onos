@@ -1902,20 +1902,19 @@ public class OspfNbrImpl implements OspfNbr {
 
                     String key = (String) itr.next();
                     OspfLsa lsa = txList.get(key);
-                    if ((lsa.age() + OspfParameters.INFTRA_NS_DELAY) >= OspfParameters.MAXAGE) {
-                        ((LsaHeader) lsa.lsaHeader()).setAge(OspfParameters.MAXAGE);
-                    } else {
-                        ((LsaHeader) lsa.lsaHeader()).setAge(lsa.age() + OspfParameters.INFTRA_NS_DELAY);
-                    }
-
-                    if ((currentLength + ((LsaHeader) lsa.lsaHeader()).lsPacketLen()) >= maxSize) {
-                        itr.previous();
-                        break;
-                    }
-                    log.debug("FloodingTimer::LSA Type::{}, Header: {}, LSA: {}", lsa.getOspfLsaType(),
-                              lsa.lsaHeader(), lsa);
-
                     if (lsa != null) {
+                        if ((lsa.age() + OspfParameters.INFTRA_NS_DELAY) >= OspfParameters.MAXAGE) {
+                            ((LsaHeader) lsa.lsaHeader()).setAge(OspfParameters.MAXAGE);
+                        } else {
+                            ((LsaHeader) lsa.lsaHeader()).setAge(lsa.age() + OspfParameters.INFTRA_NS_DELAY);
+                        }
+
+                        if ((currentLength + ((LsaHeader) lsa.lsaHeader()).lsPacketLen()) >= maxSize) {
+                            itr.previous();
+                            break;
+                        }
+                        log.debug("FloodingTimer::LSA Type::{}, Header: {}, LSA: {}", lsa.getOspfLsaType(),
+                                  lsa.lsaHeader(), lsa);
                         lsupdate.addLsa(lsa);
                         noLsa++;
                         currentLength = currentLength + ((LsaHeader) lsa.lsaHeader()).lsPacketLen();
