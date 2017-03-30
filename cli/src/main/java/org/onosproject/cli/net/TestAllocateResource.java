@@ -54,11 +54,11 @@ public class TestAllocateResource extends AbstractShellCommand {
     private int nIntendId = 42;
 
 
-    @Argument(index = 0, name = "deviceIdString", description = "Device ID",
+    @Argument(index = 0, name = "deviceId", description = "Device ID",
             required = true, multiValued = false)
     String deviceIdStr = null;
 
-    @Argument(index = 1, name = "portNumberString", description = "PortNumber",
+    @Argument(index = 1, name = "portNumber", description = "PortNumber",
             required = true, multiValued = false)
     String portNumberStr = null;
 
@@ -85,7 +85,7 @@ public class TestAllocateResource extends AbstractShellCommand {
 
     private OchSignal createLambda(int i) {
         return new OchSignal(GridType.FLEX,
-                             ChannelSpacing.CHL_12P5GHZ,
+                             ChannelSpacing.CHL_6P25GHZ,
                              i,
                              1);
     }
