@@ -32,9 +32,22 @@
          selectOrder()
      */
 
+    var allTrafficTypes = [
+            'flowStatsBytes',
+            'portStatsBitSec',
+            'portStatsPktSec'
+        ],
+        allTrafficMsgs = [
+            'Flow Stats (bytes)',
+            'Port Stats (bits / second)',
+            'Port Stats (packets / second)'
+        ];
+
     // internal state
     var trafficMode = null,
-        hoverMode = null;
+        hoverMode = null,
+        allTrafficIndex = 0;
+
 
 
     // === -----------------------------------------------------
@@ -104,18 +117,14 @@
         return true;
     }
 
-    function showAllFlowTraffic() {
+    function showAllTraffic() {
         trafficMode = 'allFlowPort';
         hoverMode = null;
-        wss.sendEvent('requestAllFlowTraffic');
-        flash.flash('All Flow Traffic');
-    }
-
-    function showAllPortTraffic() {
-        trafficMode = 'allFlowPort';
-        hoverMode = null;
-        wss.sendEvent('requestAllPortTraffic');
-        flash.flash('All Port Traffic');
+        wss.sendEvent('requestAllTraffic', {
+            trafficType: allTrafficTypes[allTrafficIndex]
+        });
+        flash.flash(allTrafficMsgs[allTrafficIndex]);
+        allTrafficIndex = (allTrafficIndex + 1) % 3;
     }
 
     function showDeviceLinkFlows () {
@@ -245,8 +254,7 @@
 
                 // invoked from toolbar overlay buttons or keystrokes
                 cancelTraffic: cancelTraffic,
-                showAllFlowTraffic: showAllFlowTraffic,
-                showAllPortTraffic: showAllPortTraffic,
+                showAllTraffic: showAllTraffic,
                 showDeviceLinkFlows: showDeviceLinkFlows,
                 showRelatedIntents: showRelatedIntents,
                 showPrevIntent: showPrevIntent,

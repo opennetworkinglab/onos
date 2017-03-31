@@ -53,10 +53,10 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
@@ -111,8 +111,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String REQ_PREV_INTENT = "requestPrevRelatedIntent";
     private static final String REQ_SEL_INTENT_TRAFFIC = "requestSelectedIntentTraffic";
     private static final String SEL_INTENT = "selectIntent";
-    private static final String REQ_ALL_FLOW_TRAFFIC = "requestAllFlowTraffic";
-    private static final String REQ_ALL_PORT_TRAFFIC = "requestAllPortTraffic";
+    private static final String REQ_ALL_TRAFFIC = "requestAllTraffic";
     private static final String REQ_DEV_LINK_FLOWS = "requestDeviceLinkFlows";
     private static final String CANCEL_TRAFFIC = "cancelTraffic";
     private static final String REQ_SUMMARY = "requestSummary";
@@ -123,8 +122,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String TOPO_START = "topoStart";
     private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
     private static final String TOPO_STOP = "topoStop";
-
-    //Protected Intents events
     private static final String SEL_PROTECTED_INTENT = "selectProtectedIntent";
     private static final String CANCEL_PROTECTED_INTENT_HIGHLIGHT = "cancelProtectedIntentHighlight";
 
@@ -157,7 +154,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String ACTIVATE = "activate";
     private static final String DEACTIVATE = "deactivate";
     private static final String PURGE = "purge";
+    private static final String TRAFFIC_TYPE = "trafficType";
 
+    // field values
+    private static final String FLOW_STATS_BYTES = "flowStatsBytes";
+    private static final String PORT_STATS_BIT_SEC = "portStatsBitSec";
+    private static final String PORT_STATS_PKT_SEC = "portStatsPktSec";
 
     private static final String MY_APP_ID = "org.onosproject.gui";
 
@@ -234,8 +236,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new ResubmitIntent(),
                 new RemoveIntents(),
 
-                new ReqAllFlowTraffic(),
-                new ReqAllPortTraffic(),
+                new ReqAllTraffic(),
                 new ReqDevLinkFlows(),
                 new ReqRelatedIntents(),
                 new ReqNextIntent(),
@@ -560,25 +561,28 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // ========= -----------------------------------------------------------------
 
-    private final class ReqAllFlowTraffic extends RequestHandler {
-        private ReqAllFlowTraffic() {
-            super(REQ_ALL_FLOW_TRAFFIC);
+    private final class ReqAllTraffic extends RequestHandler {
+        private ReqAllTraffic() {
+            super(REQ_ALL_TRAFFIC);
         }
 
         @Override
         public void process(ObjectNode payload) {
-            traffic.monitor(Mode.ALL_FLOW_TRAFFIC);
-        }
-    }
+            String trafficType = string(payload, TRAFFIC_TYPE, FLOW_STATS_BYTES);
 
-    private final class ReqAllPortTraffic extends RequestHandler {
-        private ReqAllPortTraffic() {
-            super(REQ_ALL_PORT_TRAFFIC);
-        }
-
-        @Override
-        public void process(ObjectNode payload) {
-            traffic.monitor(Mode.ALL_PORT_TRAFFIC);
+            switch (trafficType) {
+                case FLOW_STATS_BYTES:
+                    traffic.monitor(Mode.ALL_FLOW_TRAFFIC_BYTES);
+                    break;
+                case PORT_STATS_BIT_SEC:
+                    traffic.monitor(Mode.ALL_PORT_TRAFFIC_BIT_PS);
+                    break;
+                case PORT_STATS_PKT_SEC:
+                    traffic.monitor(Mode.ALL_PORT_TRAFFIC_PKT_PS);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

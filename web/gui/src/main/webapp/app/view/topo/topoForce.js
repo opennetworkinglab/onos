@@ -898,8 +898,8 @@
 
     // TODO: find an automatic way of tracking via the "showHighlights" events
     var allTrafficClasses = 'primary secondary optical animated ' +
-        'port-traffic-Kbps port-traffic-Mbps port-traffic-Gbps ' +
-        'port-traffic-Gbps-choked';
+        'port-traffic-green port-traffic-yellow port-traffic-orange ' +
+        'port-traffic-red';
 
     function clearLinkTrafficStyle() {
         link.style('stroke-width', null)

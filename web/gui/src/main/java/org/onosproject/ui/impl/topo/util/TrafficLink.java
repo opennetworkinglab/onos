@@ -23,12 +23,19 @@ import org.onosproject.ui.topo.BiLink;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
 import org.onosproject.ui.topo.Mod;
-import org.onosproject.ui.topo.TopoUtils;
+import org.onosproject.ui.topo.TopoUtils.Magnitude;
+import org.onosproject.ui.topo.TopoUtils.ValueLabel;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.onosproject.ui.topo.LinkHighlight.Flavor.*;
+import static org.onosproject.ui.topo.LinkHighlight.Flavor.NO_HIGHLIGHT;
+import static org.onosproject.ui.topo.LinkHighlight.Flavor.PRIMARY_HIGHLIGHT;
+import static org.onosproject.ui.topo.LinkHighlight.Flavor.SECONDARY_HIGHLIGHT;
+import static org.onosproject.ui.topo.TopoUtils.formatBytes;
+import static org.onosproject.ui.topo.TopoUtils.formatClippedBitRate;
+import static org.onosproject.ui.topo.TopoUtils.formatFlows;
+import static org.onosproject.ui.topo.TopoUtils.formatPacketRate;
 
 /**
  * Representation of a link and its inverse, and associated traffic data.
@@ -36,9 +43,12 @@ import static org.onosproject.ui.topo.LinkHighlight.Flavor.*;
  * {@link LinkHighlight}s for showing traffic data on the topology view.
  */
 public class TrafficLink extends BiLink {
+    private static final Mod PORT_TRAFFIC_GREEN = new Mod("port-traffic-green");
+    private static final Mod PORT_TRAFFIC_YELLOW = new Mod("port-traffic-yellow");
+    private static final Mod PORT_TRAFFIC_ORANGE = new Mod("port-traffic-orange");
+    private static final Mod PORT_TRAFFIC_RED = new Mod("port-traffic-red");
 
     private static final String EMPTY = "";
-    private static final String QUE = "?";
 
     private long bytes = 0;
     private long rate = 0;
@@ -88,7 +98,7 @@ public class TrafficLink extends BiLink {
      * @return self, for chaining
      */
     public TrafficLink tagFlavor(Flavor flavor) {
-        this.taggedFlavor = flavor;
+        taggedFlavor = flavor;
         return this;
     }
 
@@ -144,14 +154,15 @@ public class TrafficLink extends BiLink {
         StatsType statsType = (StatsType) type;
         switch (statsType) {
             case FLOW_COUNT:
-                return highlightForFlowCount(statsType);
+                return highlightForFlowCount();
 
             case FLOW_STATS:
             case PORT_STATS:
+            case PORT_PACKET_STATS:
                 return highlightForStats(statsType);
 
             case TAGGED:
-                return highlightForTagging(statsType);
+                return highlightForTagging();
 
             default:
                 throw new IllegalStateException("unexpected case: " + statsType);
@@ -159,58 +170,81 @@ public class TrafficLink extends BiLink {
     }
 
     private LinkHighlight highlightForStats(StatsType type) {
-        LinkHighlight hlite = new LinkHighlight(linkId(), SECONDARY_HIGHLIGHT)
-                .setLabel(generateLabel(type));
-        if (!mods.isEmpty()) {
-            mods.forEach(hlite::addMod);
+        ValueLabel vl = null;
+        Mod m = null;
+
+        // based on the type of stats, need to determine the label and "color"...
+        switch (type) {
+            case FLOW_STATS:
+                vl = formatBytes(bytes);
+                // default to "secondary highlighting" of link
+                break;
+
+            case PORT_STATS:
+                vl = formatClippedBitRate(rate);
+
+                // set color based on bits per second...
+                if (vl.magnitude() == Magnitude.ONE ||
+                        vl.magnitude() == Magnitude.KILO) {
+                    m = PORT_TRAFFIC_GREEN;
+
+                } else if (vl.magnitude() == Magnitude.MEGA) {
+                    m = PORT_TRAFFIC_YELLOW;
+
+                } else if (vl.magnitude() == Magnitude.GIGA) {
+                    m = vl.clipped() ? PORT_TRAFFIC_RED : PORT_TRAFFIC_ORANGE;
+                }
+                break;
+
+            case PORT_PACKET_STATS:
+                vl = formatPacketRate(rate);
+
+                // TODO: need to decide color threshold parameters for packets
+                //  for now, we'll just default to "green"
+                m = PORT_TRAFFIC_GREEN;
+                break;
+
+            default:
+                break;
         }
-        return hlite;
+
+        LinkHighlight hlite = new LinkHighlight(linkId(), SECONDARY_HIGHLIGHT);
+        if (vl != null) {
+            hlite.setLabel(vl.toString());
+        }
+        if (m != null) {
+            hlite.addMod(m);
+        }
+
+        return addCustomMods(hlite);
     }
 
-    private LinkHighlight highlightForFlowCount(StatsType type) {
+    private LinkHighlight highlightForFlowCount() {
         Flavor flavor = flows > 0 ? PRIMARY_HIGHLIGHT : SECONDARY_HIGHLIGHT;
         LinkHighlight hlite = new LinkHighlight(linkId(), flavor)
-                .setLabel(generateLabel(type));
-        if (!mods.isEmpty()) {
-            mods.forEach(hlite::addMod);
-        }
-        return hlite;
+                .setLabel(formatFlows(flows));
 
+        return addCustomMods(hlite);
     }
 
-    private LinkHighlight highlightForTagging(StatsType type) {
+    private LinkHighlight highlightForTagging() {
         LinkHighlight hlite = new LinkHighlight(linkId(), taggedFlavor)
-                .setLabel(generateLabel(type));
+                .setLabel(hasTraffic ? formatBytes(bytes).toString() : EMPTY);
+
         if (isOptical) {
             hlite.addMod(LinkHighlight.MOD_OPTICAL);
         }
         if (antMarch) {
             hlite.addMod(LinkHighlight.MOD_ANIMATED);
         }
+        return addCustomMods(hlite);
+    }
+
+    private LinkHighlight addCustomMods(LinkHighlight hlite) {
         if (!mods.isEmpty()) {
             mods.forEach(hlite::addMod);
         }
         return hlite;
-    }
-
-    // Generates a string representation of the load, to be used as a label
-    private String generateLabel(StatsType type) {
-        switch (type) {
-            case FLOW_COUNT:
-                return TopoUtils.formatFlows(flows);
-
-            case FLOW_STATS:
-                return TopoUtils.formatBytes(bytes);
-
-            case PORT_STATS:
-                return TopoUtils.formatBitRate(rate);
-
-            case TAGGED:
-                return hasTraffic ? TopoUtils.formatBytes(bytes) : EMPTY;
-
-            default:
-                return QUE;
-        }
     }
 
     /**

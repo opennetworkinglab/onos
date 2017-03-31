@@ -267,24 +267,37 @@
     stroke: rgba(0,153,51,0.5);
 }
 
-/* Port traffic color visualization for Kbps, Mbps, and Gbps */
+/* Port traffic color visualization:
 
-#ov-topo svg .link.secondary.port-traffic-Kbps {
+    For bits per second we will use:
+        - green for Kbps,
+        - yellow for Mbps,
+        - orange for Gbps, and
+        - red for > 10 Gbps
+
+    For packets per second we will use:
+        - green for > 0
+        - yellow for > ?
+        - orange for > ??
+        - red for > ???
+*/
+
+#ov-topo svg .link.secondary.port-traffic-green {
     stroke: rgb(0,153,51);
     stroke-width: 5.0;
 }
 
-#ov-topo svg .link.secondary.port-traffic-Mbps {
+#ov-topo svg .link.secondary.port-traffic-yellow {
     stroke: rgb(128,145,27);
     stroke-width: 6.5;
 }
 
-#ov-topo svg .link.secondary.port-traffic-Gbps {
+#ov-topo svg .link.secondary.port-traffic-orange {
     stroke: rgb(255, 137, 3);
     stroke-width: 8.0;
 }
 
-#ov-topo svg .link.secondary.port-traffic-Gbps-choked {
+#ov-topo svg .link.secondary.port-traffic-red {
     stroke: rgb(183, 30, 21);
     stroke-width: 8.0;
 }
