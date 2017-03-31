@@ -199,9 +199,19 @@ public class TrafficLink extends BiLink {
             case PORT_PACKET_STATS:
                 vl = formatPacketRate(rate);
 
-                // TODO: need to decide color threshold parameters for packets
-                //  for now, we'll just default to "green"
-                m = PORT_TRAFFIC_GREEN;
+                // FIXME: Provisional color threshold parameters for packets
+                // set color based on bits per second...
+                if (rate < 10) {
+                    m = PORT_TRAFFIC_GREEN;
+
+                } else if (rate < 1000) {
+                    m = PORT_TRAFFIC_YELLOW;
+
+                } else if (rate < 100000) {
+                    m = PORT_TRAFFIC_ORANGE;
+                } else {
+                    m = PORT_TRAFFIC_RED;
+                }
                 break;
 
             default:
