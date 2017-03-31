@@ -127,10 +127,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String PORT = "port";
     private static final int CORE_POOL_SIZE = 10;
 
-    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 10;
+    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
     @Property(name = "pollFrequency", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
             label = "Configure poll frequency for port status and statistics; " +
-                    "default is 10 sec")
+                    "default is 30 sec")
     private int pollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
 
     protected final ExecutorService executor =
