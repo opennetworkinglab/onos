@@ -36,9 +36,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URLEncoder;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * ONOS UI YANG Models message handler.
@@ -55,6 +53,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     // Table Column IDs
     private static final String ID = "id";
+    private static final String MODEL_ID = "modelId";
     private static final String MODULE = "module";
     private static final String REVISION = "revision";
     // TODO: fill out table columns as needed
@@ -62,7 +61,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
     private static final String SOURCE = "source";
 
     private static final String[] COL_IDS = {
-            ID, MODULE, REVISION
+            ID, MODULE, REVISION, MODEL_ID
     };
 
     private static final String UTF8 = "UTF-8";
@@ -122,9 +121,10 @@ public class YangModelMessageHandler extends UiMessageHandler {
         }
 
         private void populateRow(TableModel.Row row, int modelId, YangModuleId moduleId) {
-            row.cell(ID, "YM" + modelId)
+            row.cell(ID, "EM" + moduleId.hashCode())
                     .cell(MODULE, moduleId.moduleName())
-                    .cell(REVISION, moduleId.revision());
+                    .cell(REVISION, moduleId.revision())
+                    .cell(MODEL_ID, "YM" + modelId);
         }
     }
 
@@ -137,7 +137,7 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(ObjectNode payload) {
-            String id = string(payload, ID);
+            String id = string(payload, MODEL_ID);
             String name = string(payload, MODULE);
             YangModule module = getModule(id, name);
 
