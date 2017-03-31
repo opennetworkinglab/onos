@@ -122,7 +122,7 @@ public class LispNonceAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("nonce", nonce)
                 .add("address", address)
                 .toString();

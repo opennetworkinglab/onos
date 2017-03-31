@@ -121,7 +121,7 @@ public final class LispAsAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("AS number", asNumber)
                 .add("address", address)
                 .toString();

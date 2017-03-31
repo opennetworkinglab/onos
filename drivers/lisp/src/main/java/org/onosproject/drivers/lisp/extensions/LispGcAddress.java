@@ -256,7 +256,7 @@ public class LispGcAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("north", north)
                 .add("latitude degree", latitudeDegree)
                 .add("latitude minute", latitudeMinute)

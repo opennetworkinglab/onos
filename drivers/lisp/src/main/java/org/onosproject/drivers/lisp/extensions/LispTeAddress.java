@@ -124,7 +124,7 @@ public final class LispTeAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("TE records", records).toString();
     }
 

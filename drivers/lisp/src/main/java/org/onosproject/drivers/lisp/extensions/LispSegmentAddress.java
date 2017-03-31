@@ -123,7 +123,7 @@ public class LispSegmentAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("address", address)
                 .add("instanceId", instanceId)
                 .toString();

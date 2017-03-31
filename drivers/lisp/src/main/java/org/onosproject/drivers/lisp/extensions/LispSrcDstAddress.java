@@ -156,7 +156,7 @@ public class LispSrcDstAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("source prefix", srcPrefix)
                 .add("destination prefix", dstPrefix)
                 .add("source mask length", srcMaskLength)

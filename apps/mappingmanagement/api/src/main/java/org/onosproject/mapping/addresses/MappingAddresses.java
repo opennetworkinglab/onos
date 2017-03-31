@@ -90,4 +90,15 @@ public final class MappingAddresses {
                   extensionMappingAddressWrapper(ExtensionMappingAddress address, DeviceId deviceId) {
         return new ExtensionMappingAddressWrapper(address, deviceId);
     }
+
+    /**
+     * Creates an extension mapping address wrapper.
+     *
+     * @param address extension mapping address
+     * @return extension mapping address wrapper
+     */
+    public static ExtensionMappingAddressWrapper
+                    extensionMappingAddressWrapper(ExtensionMappingAddress address) {
+        return new ExtensionMappingAddressWrapper(address, null);
+    }
 }

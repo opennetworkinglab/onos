@@ -193,7 +193,7 @@ public class LispNatAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("Map Server UDP port number", msUdpPortNumber)
                 .add("ETR UDP port number", etrUdpPortNumber)
                 .add("global ETR RLOC address", globalEtrRlocAddress)

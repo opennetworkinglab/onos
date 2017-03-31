@@ -174,7 +174,7 @@ public class LispMulticastAddress extends AbstractExtension
 
     @Override
     public String toString() {
-        return toStringHelper(this)
+        return toStringHelper(type().toString())
                 .add("instance ID", instanceId)
                 .add("source mask length", srcMaskLength)
                 .add("group mask length", grpMaskLength)
