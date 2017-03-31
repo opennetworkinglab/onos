@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
@@ -131,13 +132,13 @@ public class NetconfDeviceProviderTest {
         provider.cfgService = cfgService;
         provider.controller = controller;
         provider.deviceKeyAdminService = deviceKeyAdminService;
+        provider.componentConfigService = new ComponentConfigAdapter();
         AbstractProjectableModel.setDriverService(null, new DriverServiceAdapter());
-        provider.activate();
+        provider.activate(null);
     }
 
     @Test
     public void activate() throws Exception {
-
         assertTrue("Provider should be registered", deviceRegistry.getProviders().contains(provider.id()));
         assertEquals("Incorrect device service", deviceService, provider.deviceService);
         assertEquals("Incorrect provider service", providerService, provider.providerService);
