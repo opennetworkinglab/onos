@@ -132,7 +132,7 @@ public final class PortNumber {
     /**
      * Returns the port number representing the specified string value.
      *
-     * @param string port number as string value
+     * @param string port number as decimal, hexadecimal, or octal number string
      * @return port number
      */
     public static PortNumber portNumber(String string) {
