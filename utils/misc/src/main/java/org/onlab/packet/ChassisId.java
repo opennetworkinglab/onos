@@ -73,4 +73,9 @@ public final class ChassisId extends Identifier<Long> {
     public int hashCode() {
         return Long.hashCode(identifier);
     }
+
+    @Override
+    public boolean equals(Object that) {
+        return super.equals(that);
+    }
 }

@@ -199,8 +199,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         List<String> errorMsgs = new ArrayList<String>();
         root.fieldNames()
-                .forEachRemaining(sk ->
-                {
+                .forEachRemaining(sk -> {
                     errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
                                                  service.getSubjectFactory(sk)));
                 });

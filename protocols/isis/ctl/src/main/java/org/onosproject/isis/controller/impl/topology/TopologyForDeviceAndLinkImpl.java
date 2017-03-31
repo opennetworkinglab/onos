@@ -273,14 +273,15 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             }
         }
         return isisRouter;
-    }/*
+    }
 
-    *//**
+    /**
      * Removes Device and Link instance.
      *
      * @param lsPdu ISIS LSPDU instance
      * @return isisRouter isisRouter instance
-     *//*
+     */
+    /*
     public IsisRouter removeDeviceAndLinkInfo(LsPdu lsPdu) {
         IsisRouter isisRouter = createIsisRouter(lsPdu);
         return isisRouter;

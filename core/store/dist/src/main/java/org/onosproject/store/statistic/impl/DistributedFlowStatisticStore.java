@@ -197,10 +197,14 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
 
         // create one if absent and add this rule
         current.putIfAbsent(cp, new HashSet<>());
-        current.computeIfPresent(cp, (c, e) -> { e.add(rule); return e; });
+        current.computeIfPresent(cp, (c, e) -> {
+            e.add(rule); return e;
+        });
 
         // remove previous one if present
-        previous.computeIfPresent(cp, (c, e) -> { e.remove(rule); return e; });
+        previous.computeIfPresent(cp, (c, e) -> {
+            e.remove(rule); return e;
+        });
     }
 
     @Override

@@ -148,11 +148,11 @@ public class SfcManager implements SfcService {
 
         nshSpiPortChainMap = storageService.<PortChainId, Integer>eventuallyConsistentMapBuilder()
                 .withName("nshSpiPortChainMap").withSerializer(serializer)
-                .withTimestampProvider((k, v) ->new WallClockTimestamp()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
 
         portChainFiveTupleMap = storageService.<PortChainId, List<FiveTuple>>eventuallyConsistentMapBuilder()
                 .withName("portChainFiveTupleMap").withSerializer(serializer)
-                .withTimestampProvider((k, v) ->new WallClockTimestamp()).build();
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
 
         nshSpiIdFreeList = storageService.<Integer>setBuilder()
                 .withName("nshSpiIdDeletedList")

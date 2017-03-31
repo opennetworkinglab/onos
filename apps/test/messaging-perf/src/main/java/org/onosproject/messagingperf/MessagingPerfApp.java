@@ -268,7 +268,9 @@ public class MessagingPerfApp {
         communicationService.<Data>addSubscriber(
                 TEST_UNICAST_MESSAGE_TOPIC,
                 decoder,
-                d -> { received.incrementAndGet(); },
+                d -> {
+                    received.incrementAndGet();
+                },
                 messageReceivingExecutor);
 
         communicationService.<Data, Data>addSubscriber(

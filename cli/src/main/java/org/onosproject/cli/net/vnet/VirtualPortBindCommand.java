@@ -83,7 +83,7 @@ public class VirtualPortBindCommand extends AbstractShellCommand {
         VirtualNetworkService service = get(VirtualNetworkService.class);
         Set<VirtualPort> ports = service.getVirtualPorts(NetworkId.networkId(networkId),
                                                     DeviceId.deviceId(deviceId));
-        return ports.stream().filter(p->p.number().equals(aPortNumber))
+        return ports.stream().filter(p -> p.number().equals(aPortNumber))
                 .findFirst().get();
     }
 }

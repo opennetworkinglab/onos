@@ -379,7 +379,7 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
         Set<PortNumber> ports = bridgeConfig.getPortNumbers();
         String tunnelName = "vxlan-" + DEFAULT_IP;
         ports.stream()
-        .filter(p ->p.name().equalsIgnoreCase(tunnelName))
+        .filter(p -> p.name().equalsIgnoreCase(tunnelName))
         .forEach(p -> {
             treatment.setOutput(p);
             sendSfcRule(selector, treatment, deviceId, type, TUNNEL_SEND_PRIORITY);
@@ -899,8 +899,8 @@ public class SfcFlowRuleInstallerImpl implements SfcFlowRuleInstallerService {
     private PortNumber getVxlanPortNumber(DeviceId deviceId) {
         Iterable<Port> ports = deviceService.getPorts(deviceId);
         Port vxlanPort = Sets.newHashSet(ports).stream()
-                .filter(p ->!p.number().equals(PortNumber.LOCAL))
-                .filter(p ->p.annotations().value(AnnotationKeys.PORT_NAME)
+                .filter(p -> !p.number().equals(PortNumber.LOCAL))
+                .filter(p -> p.annotations().value(AnnotationKeys.PORT_NAME)
                         .startsWith(VXLANPORT_HEAD))
                 .findFirst().get();
         return vxlanPort.number();

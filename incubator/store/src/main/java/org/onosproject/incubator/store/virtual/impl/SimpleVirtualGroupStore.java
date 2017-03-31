@@ -412,7 +412,7 @@ public class SimpleVirtualGroupStore
                     Optional<GroupBucket> matchingBucket =
                             existing.buckets().buckets()
                                     .stream()
-                                    .filter((existingBucket)->(existingBucket.equals(bucket)))
+                                    .filter((existingBucket) -> (existingBucket.equals(bucket)))
                                     .findFirst();
                     if (matchingBucket.isPresent()) {
                         ((StoredGroupBucketEntry) matchingBucket.

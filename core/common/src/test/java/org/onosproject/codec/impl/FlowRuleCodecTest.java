@@ -360,8 +360,7 @@ public class FlowRuleCodecTest {
         checkCommonData(rule);
 
         rule.treatment().allInstructions()
-                .forEach(instruction ->
-                {
+                .forEach(instruction -> {
                     String subType;
                     if (instruction.type() == Instruction.Type.L0MODIFICATION) {
                         subType = ((L0ModificationInstruction) instruction)

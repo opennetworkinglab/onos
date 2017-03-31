@@ -66,7 +66,7 @@ public class ONOSLLDP extends LLDP {
     private final byte[] ttlValue = new byte[] {0, 0x78};
 
     // Only needs to be accessed from LinkProbeFactory.
-    public ONOSLLDP(byte ... subtype) {
+    public ONOSLLDP(byte... subtype) {
         super();
         for (byte st : subtype) {
             opttlvs.put(st, new LLDPOrganizationalTLV());

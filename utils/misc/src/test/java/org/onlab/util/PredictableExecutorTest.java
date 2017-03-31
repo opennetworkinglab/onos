@@ -123,6 +123,11 @@ public class PredictableExecutorTest {
             public int hashCode() {
                 return 0;
             }
+
+            @Override
+            public boolean equals(Object that) {
+                return false;
+            }
         });
 
         latch.await(1, TimeUnit.SECONDS);

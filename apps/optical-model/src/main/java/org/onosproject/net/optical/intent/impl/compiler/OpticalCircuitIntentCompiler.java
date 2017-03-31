@@ -304,7 +304,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         List<Resource> tributarySlotResources = portsList.stream()
                 .flatMap(cp -> tributarySlots
                         .stream()
-                        .map(ts-> Resources.discrete(cp.deviceId(), cp.port()).resource().child(ts)))
+                        .map(ts -> Resources.discrete(cp.deviceId(), cp.port()).resource().child(ts)))
                 .collect(Collectors.toList());
 
         if (!tributarySlotResources.stream().allMatch(resourceService::isAvailable)) {

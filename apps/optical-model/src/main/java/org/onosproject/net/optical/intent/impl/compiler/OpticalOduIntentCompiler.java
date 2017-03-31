@@ -210,7 +210,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         Set<Resource> resources = slotsMap.entrySet().stream()
                 .flatMap(x -> x.getValue()
                         .stream()
-                        .flatMap(ts-> Stream.of(
+                        .flatMap(ts -> Stream.of(
                                 Resources.discrete(x.getKey().src().deviceId(), x.getKey().src().port())
                                         .resource().child(ts),
                                 Resources.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port())

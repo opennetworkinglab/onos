@@ -117,7 +117,7 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase {
                                 result.value())).join());
         //test all compute methods in this section
         allKeys.forEach(key -> map.computeIfAbsent(
-                key, v ->allValues.get(allKeys.indexOf(key)
+                key, v -> allValues.get(allKeys.indexOf(key)
                 )).thenAccept(result ->
                                 assertArrayEquals(
                                         allValues.get(allKeys.indexOf(key)),

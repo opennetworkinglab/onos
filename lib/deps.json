@@ -191,7 +191,7 @@
     "slf4j-jdk14": "mvn:org.slf4j:slf4j-jdk14:1.7.21",
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
-    "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.11.2",
+    "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.19",
     "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.8-offline-20170202.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "bndexe": "http://onlab.vicci.org/onos/third-party/biz.aQute.bnd-3.1.0.jar",
