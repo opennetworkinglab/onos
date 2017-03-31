@@ -411,23 +411,24 @@
     }
 
     function generateLabelFunction() {
-        var labels = [];
-        var xGap = 15;
-        var yGap = 17;
+        var labels = [],
+            xGap = 15,
+            yGap = 17;
 
-        return function(newId, newX, newY) {
-
+        return function (newId, newX, newY) {
             var idx = -1;
 
-            labels.forEach(function(l, i) {
-                if (l.id === newId) {
+            labels.forEach(function (lab, i) {
+                var minX, maxX, minY, maxY;
+
+                if (lab.id === newId) {
                     idx = i;
                     return;
                 }
-                var minX = l.x - xGap;
-                var maxX = l.x + xGap;
-                var minY = l.y - yGap;
-                var maxY = l.y + yGap;
+                minX = lab.x - xGap;
+                maxX = lab.x + xGap;
+                minY = lab.y - yGap;
+                maxY = lab.y + yGap;
 
                 if (newX > minX && newX < maxX && newY > minY && newY < maxY) {
                     // labels are overlapped
@@ -438,8 +439,7 @@
 
             if (idx === -1) {
                 labels.push({id: newId, x: newX, y: newY});
-            }
-            else {
+            } else {
                 labels[idx] = {id: newId, x: newX, y: newY};
             }
 
@@ -447,7 +447,7 @@
         }
     }
 
-    var getLabelPosNoOverlap = generateLabelFunction();
+    var getLabelPos = generateLabelFunction();
 
     function transformLabel(p, id) {
         var dx = p.x2 - p.x1,
@@ -456,7 +456,7 @@
             yMid = dy/2 + p.y1;
 
         if (id) {
-            var pos = getLabelPosNoOverlap(id, xMid, yMid);
+            var pos = getLabelPos(id, xMid, yMid);
             return sus.translate(pos.x, pos.y);
         }
 
