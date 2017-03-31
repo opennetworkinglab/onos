@@ -110,14 +110,6 @@
         });
     }
 
-    function addModuleRow(tbody, module) {
-        var tr = tbody.append('tr');
-        moduleCols.forEach(function (col) {
-            tr.append('td').attr('width', 160)
-                .html('<a href="/v1/yang/modules/' + module.name + '" target="_model">' + module[col] + "</a>");
-        });
-    }
-
     function populateBottom(source) {
         var src = bottom.select('pre');
         src.html(source.join('\n'));
@@ -179,7 +171,7 @@
             // row selection callback
             function selCb($event, row) {
                 if ($scope.selId) {
-                    wss.sendEvent(detailsReq, { modelId: row.modelId, module: row.module  });
+                    wss.sendEvent(detailsReq, { modelId: row.modelId, id: row.id  });
                 } else {
                     $scope.hidePanel();
                 }

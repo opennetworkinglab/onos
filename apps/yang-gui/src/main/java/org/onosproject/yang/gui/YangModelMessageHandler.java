@@ -53,15 +53,14 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     // Table Column IDs
     private static final String ID = "id";
-    private static final String MODEL_ID = "modelId";
-    private static final String MODULE = "module";
     private static final String REVISION = "revision";
+    private static final String MODEL_ID = "modelId";
     // TODO: fill out table columns as needed
 
     private static final String SOURCE = "source";
 
     private static final String[] COL_IDS = {
-            ID, MODULE, REVISION, MODEL_ID
+            ID, REVISION, MODEL_ID
     };
 
     private static final String UTF8 = "UTF-8";
@@ -115,16 +114,15 @@ public class YangModelMessageHandler extends UiMessageHandler {
         protected void populateTable(TableModel tm, ObjectNode payload) {
             for (YangModel model : modelRegistry.getModels()) {
                 for (YangModuleId id : model.getYangModulesId()) {
-                    populateRow(tm.addRow(), model.hashCode(), id);
+                    populateRow(tm.addRow(), modelId(model), id);
                 }
             }
         }
 
-        private void populateRow(TableModel.Row row, int modelId, YangModuleId moduleId) {
-            row.cell(ID, "EM" + moduleId.hashCode())
-                    .cell(MODULE, moduleId.moduleName())
+        private void populateRow(TableModel.Row row, String modelId, YangModuleId moduleId) {
+            row.cell(ID, moduleId.moduleName())
                     .cell(REVISION, moduleId.revision())
-                    .cell(MODEL_ID, "YM" + modelId);
+                    .cell(MODEL_ID, modelId);
         }
     }
 
@@ -137,15 +135,15 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(ObjectNode payload) {
-            String id = string(payload, MODEL_ID);
-            String name = string(payload, MODULE);
-            YangModule module = getModule(id, name);
+            String name = string(payload, ID);
+            String modelId = string(payload, MODEL_ID);
+            YangModule module = getModule(modelId, name);
 
             ObjectNode data = objectNode();
-            data.put(ID, id);
+            data.put(ID, name);
             if (module != null) {
-                data.put(MODULE, module.getYangModuleId().moduleName());
                 data.put(REVISION, module.getYangModuleId().revision());
+                data.put(MODEL_ID, modelId);
 
                 ArrayNode source = arrayNode();
                 data.set(SOURCE, source);
@@ -174,11 +172,11 @@ public class YangModelMessageHandler extends UiMessageHandler {
     }
 
 
-    private YangModule getModule(String id, String name) {
-        int nid = Integer.parseInt(id.substring(2));
-        log.info("Got {}; {}", id, nid);
+    private YangModule getModule(String modelId, String name) {
+        int nid = Integer.parseInt(modelId.substring(2));
+        log.info("Got {}; {}", modelId, nid);
         YangModel model = modelRegistry.getModels().stream()
-                .filter(m -> m.hashCode() == nid)
+                .filter(m -> modelId(m).equals(modelId))
                 .findFirst().orElse(null);
         if (model != null) {
             log.info("Got model");
@@ -187,5 +185,9 @@ public class YangModelMessageHandler extends UiMessageHandler {
                     .findFirst().orElse(null);
         }
         return null;
+    }
+
+    private String modelId(YangModel m) {
+        return "YM" + Math.abs(m.hashCode());
     }
 }
