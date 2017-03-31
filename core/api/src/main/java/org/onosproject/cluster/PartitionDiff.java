@@ -36,7 +36,7 @@ public class PartitionDiff {
     public PartitionDiff(Partition oldValue, Partition newValue) {
         this.oldValue = oldValue;
         this.newValue = newValue;
-        this.partitionId = oldValue.getId();
+        this.partitionId = oldValue == null ? null : oldValue.getId();
         this.currentMembers = oldValue == null ? ImmutableSet.of() : ImmutableSet.copyOf(oldValue.getMembers());
         this.newMembers = newValue == null ? ImmutableSet.of() : ImmutableSet.copyOf(newValue.getMembers());
     }
