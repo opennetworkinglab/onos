@@ -50,15 +50,7 @@
         propOrder = [
         ],
         friendlyProps = [
-        ],
-
-        moduleCols = [
-            'name', 'revision'
-        ],
-        friendlyModuleCols = [
-            'Module Name', 'Revision'
         ];
-
 
     function createDetailsPanel() {
         detailsPanel = ps.createPanel(pName, {
@@ -72,13 +64,8 @@
 
     function populateDetails(details) {
         setUpPanel();
-
         populateTop(details);
-        populateBottom(details.modules);
-
-        // topData = top.select('.top-data');
-        // populateTop(topData, details);
-        detailsPanel.height(pHeight);
+        populateBottom(details.source);
     }
 
     function setUpPanel() {
@@ -97,8 +84,9 @@
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').classed('modules-title', true).html('Modules');
-        bottom.append('table');
+        bottom.append('h2').classed('modules-title', true).html('YANG Source');
+        bottom.append('div').classed('module-source');
+        bottom.select('div').append('pre');
     }
 
     function addProp(tbody, index, value) {
@@ -113,7 +101,7 @@
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'nav_yang', 40);
-        top.select('h2').html('Model ID ' + details.id);
+        top.select('h2').html('Module ' + details.module + " (" + details.revision + ")");
 
         var tbody = topTable.append('tbody');
 
@@ -130,35 +118,9 @@
         });
     }
 
-    function populateBottom(modules) {
-        var table = bottom.select('table'),
-            theader = table.append('thead').append('tr'),
-            tbody = table.append('tbody'),
-            tbWidth, tbHeight;
-
-        friendlyModuleCols.forEach(function (col) {
-            theader.append('th').html(col);
-        });
-        modules.forEach(function (module) {
-            addModuleRow(tbody, module);
-        });
-
-        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
-        tbHeight = pHeight
-            - (fs.noPxStyle(detailsPanel.el()
-                .select('.top'), 'height')
-            + fs.noPxStyle(detailsPanel.el()
-                .select('.modules-title'), 'height')
-            + tblPdg);
-
-        table.style({
-            height: tbHeight + 'px',
-            width: tbWidth + 'px',
-            overflow: 'auto',
-            display: 'block'
-        });
-
-        detailsPanel.width(tbWidth + ctnrPdg);
+    function populateBottom(source) {
+        var src = bottom.select('pre');
+        src.html(source.join('\n'));
     }
 
     function closePanel() {
@@ -217,7 +179,7 @@
             // row selection callback
             function selCb($event, row) {
                 if ($scope.selId) {
-                    wss.sendEvent(detailsReq, { id: row.id });
+                    wss.sendEvent(detailsReq, { id: row.id, module: row.module });
                 } else {
                     $scope.hidePanel();
                 }

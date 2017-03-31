@@ -26,11 +26,17 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.model.YangModule;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.YangModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.Set;
 
@@ -49,12 +55,17 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
     // Table Column IDs
     private static final String ID = "id";
-    private static final String MODULES = "modules";
+    private static final String MODULE = "module";
+    private static final String REVISION = "revision";
     // TODO: fill out table columns as needed
 
+    private static final String SOURCE = "source";
+
     private static final String[] COL_IDS = {
-            ID, MODULES
+            ID, MODULE, REVISION
     };
+
+    private static final String UTF8 = "UTF-8";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -104,15 +115,16 @@ public class YangModelMessageHandler extends UiMessageHandler {
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             for (YangModel model : modelRegistry.getModels()) {
-                populateRow(tm.addRow(), model.getYangModulesId());
+                for (YangModuleId id : model.getYangModulesId()) {
+                    populateRow(tm.addRow(), model.hashCode(), id);
+                }
             }
         }
 
-        private void populateRow(TableModel.Row row, Set<YangModuleId> moduleIds) {
-            StringBuilder sb = new StringBuilder();
-            moduleIds.forEach(i -> sb.append(", ").append(i.moduleName())
-                    .append("(").append(i.revision()).append(")"));
-            row.cell(ID, moduleIds.hashCode()).cell(MODULES, sb.toString().substring(2));
+        private void populateRow(TableModel.Row row, int modelId, YangModuleId moduleId) {
+            row.cell(ID, "YM" + modelId)
+                    .cell(MODULE, moduleId.moduleName())
+                    .cell(REVISION, moduleId.revision());
         }
     }
 
@@ -126,32 +138,54 @@ public class YangModelMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             String id = string(payload, ID);
-            YangModel model = getModel(id);
+            String name = string(payload, MODULE);
+            YangModule module = getModule(id, name);
 
             ObjectNode data = objectNode();
             data.put(ID, id);
+            if (module != null) {
+                data.put(MODULE, module.getYangModuleId().moduleName());
+                data.put(REVISION, module.getYangModuleId().revision());
 
-            if (model != null) {
-                ArrayNode modules = arrayNode();
-                model.getYangModulesId().forEach(mid -> {
-                    ObjectNode module = objectNode();
-                    module.put("name", mid.moduleName());
-                    module.put("revision", mid.revision());
-                    modules.add(module);
-                });
-                data.set(MODULES, modules);
+                ArrayNode source = arrayNode();
+                data.set(SOURCE, source);
+
+                addSource(source, module.getYangSource());
             }
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
             sendMessage(DETAILS_RESP, rootNode);
         }
+
+        private void addSource(ArrayNode source, InputStream yangSource) {
+            try (InputStreamReader isr = new InputStreamReader(yangSource);
+                 BufferedReader br = new BufferedReader(isr)) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    source.add(line);
+                }
+
+            } catch (IOException e) {
+                log.warn("Unable to read YANG source", e);
+                return;
+            }
+        }
     }
 
-    private YangModel getModel(String id) {
-        int nid = Integer.parseInt(id);
-        return modelRegistry.getModels().stream()
-                .filter(m -> m.getYangModulesId().hashCode() == nid)
+
+    private YangModule getModule(String id, String name) {
+        int nid = Integer.parseInt(id.substring(2));
+        log.info("Got {}; {}", id, nid);
+        YangModel model = modelRegistry.getModels().stream()
+                .filter(m -> m.hashCode() == nid)
                 .findFirst().orElse(null);
+        if (model != null) {
+            log.info("Got model");
+            return model.getYangModules().stream()
+                    .filter(m -> m.getYangModuleId().moduleName().contentEquals(name))
+                    .findFirst().orElse(null);
+        }
+        return null;
     }
 }

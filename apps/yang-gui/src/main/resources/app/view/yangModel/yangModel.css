@@ -55,13 +55,8 @@
     font-size: 12pt;
 }
 
-#yang-model-details-panel td.label {
-    font-weight: bold;
-    padding-right: 6px;
-    text-align: left;
-}
-
-#yang-model-details-panel th {
-    text-align: left;
-    padding-right: 16px;
+#yang-model-details-panel .model-source {
+    display: block;
+    overflow: scroll;
+    font-family: "Courier New", serif;
 }
