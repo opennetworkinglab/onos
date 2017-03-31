@@ -15,7 +15,9 @@
  */
 package org.onlab.graph;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,13 +26,15 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Class for test KshortestPathsSearch.
  */
-public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> extends GraphTest {
+public class KShortestPathsSearchTest extends GraphTest {
     private KShortestPathsSearch<TestVertex, TestEdge> kShortestPathsSearch = new KShortestPathsSearch<>();
     private GraphPathSearch.Result<TestVertex, TestEdge> result;
 
@@ -38,6 +42,7 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     public void setUp() {
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
     }
+
     @Test
     public void noPath() {
         graph = new AdjacencyListsGraph<>(of(A, B, C, D),
@@ -56,12 +61,27 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
         //Tests that there is only a single path possible between A and B
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
         this.result = kShortestPathsSearch.search(graph, A, B, weigher, 2);
-        Iterator<Path<TestVertex, TestEdge>> itr = result.paths().iterator();
         assertEquals("incorrect paths count", 1, result.paths().size());
         List<TestEdge> correctEdgeList = Lists.newArrayList();
         correctEdgeList.add(new TestEdge(A, B, W1));
         assertTrue("That wrong path was returned.",
                    edgeListsAreEqual(correctEdgeList, result.paths().iterator().next().edges()));
+    }
+
+    @Test
+    public void testResultsAreOneHopPathPlusLongerOnes() {
+        graph = new AdjacencyListsGraph<>(vertexes(), edges());
+        this.result = kShortestPathsSearch.search(graph, B, D, hopWeigher, 42);
+        assertEquals("incorrect paths count", 3, result.paths().size());
+        assertThat("the shortest path size is 1 hop",
+                   Iterables.get(result.paths(), 0).edges().size(),
+                   is(1));
+        assertThat("the 2nd shortest path size is 3 hop",
+                   Iterables.get(result.paths(), 1).edges().size(),
+                   is(3));
+        assertThat("the 3rd shortest path size is 4 hop",
+                   Iterables.get(result.paths(), 2).edges().size(),
+                   is(4));
     }
 
     @Test
@@ -136,9 +156,9 @@ public class KShortestPathsSearchTest<V extends Vertex, E extends Edge<V>> exten
     public void testLimitPathSetSize() {
         //Checks to make sure that no more than K paths are returned
         result = kShortestPathsSearch.search(graph, A, E, weigher, 3);
-        assertTrue("There are an unexpected number of paths.", result.paths().size() == 3);
+        assertEquals("There are an unexpected number of paths.", 3, result.paths().size());
         result = kShortestPathsSearch.search(graph, A, G, weigher, 1);
-        assertTrue("There are an unexpected number of paths.", result.paths().size() == 1);
+        assertEquals("There are an unexpected number of paths.", 1, result.paths().size());
     }
 
 

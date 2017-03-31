@@ -64,16 +64,49 @@ public class GraphTest {
                 }
             };
 
+    /**
+     * EdgeWeigher which only looks at hop count.
+     */
+    protected final EdgeWeigher<TestVertex, TestEdge> hopWeigher =
+            new EdgeWeigher<TestVertex, TestEdge>() {
+                @Override
+                public Weight weight(TestEdge edge) {
+                    return W1;
+                }
+
+                @Override
+                public Weight getInitialWeight() {
+                    return ZW;
+                }
+
+                @Override
+                public Weight getNonViableWeight() {
+                    return TestDoubleWeight.NON_VIABLE_WEIGHT;
+                }
+            };
+
     protected void printPaths(Set<Path<TestVertex, TestEdge>> paths) {
         for (Path p : paths) {
             System.out.println(p);
         }
     }
 
+    /**
+     * @return 8 vertices A to H.
+     */
     protected Set<TestVertex> vertexes() {
         return of(A, B, C, D, E, F, G, H);
     }
 
+    /**
+     * <pre>
+     * A → B → D → H
+     * ↓ ↙ ↓ ↙ ↑ ↗
+     * C → E → F → G
+     * </pre>
+     * Note: not all edges have same weight, see method body for details.
+     * @return 12 edges illustrated as above.
+     */
     protected Set<TestEdge> edges() {
         return of(new TestEdge(A, B, W1),
                   new TestEdge(A, C, W3),

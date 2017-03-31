@@ -65,7 +65,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
 
         for (int k = 1; k < maxPaths; k++) {
 
-            for (int i = 0; i < (resultPaths.get(k - 1).edges().size() - 1); i++) {
+            for (int i = 0; i < resultPaths.get(k - 1).edges().size(); i++) {
                 V spurNode = resultPaths.get(k - 1).edges().get(i).src();
                 List<E> rootPathEdgeList = resultPaths.get(k - 1).edges().subList(0, i);
 
@@ -88,7 +88,7 @@ public class KShortestPathsSearch<V extends Vertex, E extends Edge<V>> extends A
                     spurPath.edges().forEach(totalPath::add);
                     //The following line must use the original weigher not the modified weigher because the modified
                     //weigher will count -1 values used for modifying the graph and return an inaccurate cost.
-                    potentialPaths.add(new DefaultPath<V, E>(totalPath,
+                    potentialPaths.add(new DefaultPath<>(totalPath,
                             calculatePathCost(weigher, totalPath)));
                 }
 
