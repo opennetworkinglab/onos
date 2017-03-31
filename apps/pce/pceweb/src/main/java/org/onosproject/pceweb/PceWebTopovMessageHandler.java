@@ -223,6 +223,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
             if (lspType == null || lspType.equals(STRING_NULL)) {
                 log.error("PCE setup path is failed as LSP type is mandatory");
+                return;
             }
 
             if ((src != null) && (dst != null)) {
