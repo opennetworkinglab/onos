@@ -265,12 +265,6 @@
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
 
-    function parseBitRate(str) {
-        return Number(str.replace(/,/, '')
-                        .replace(/\s+.bps/i, '')
-                        .replace(/\.\d*/, ''));
-    }
-
     // return true if the given debug flag was specified in the query params
     function debugOn(tag) {
         return debugFlags[tag];
@@ -471,7 +465,6 @@
                 noPx: noPx,
                 noPxStyle: noPxStyle,
                 endsWith: endsWith,
-                parseBitRate: parseBitRate,
                 addToTrie: addToTrie,
                 removeFromTrie: removeFromTrie,
                 trieLookup: trieLookup,

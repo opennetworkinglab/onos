@@ -393,32 +393,15 @@
         });
 
         data.links.forEach(function (link) {
-            var ldata = api.findLinkById(link.id),
-                lab = link.label,
-                units, portcls, magnitude;
+            var ldata = api.findLinkById(link.id);
 
             if (ldata && ldata.el && !ldata.el.empty()) {
                 if (!link.subdue) {
                     api.unsupLink(ldata.key, less);
                 }
                 ldata.el.classed(link.css, true);
-                ldata.label = lab;
+                ldata.label = link.label;
 
-                // TODO: this needs to be pulled out into traffic overlay
-                // inject additional styling for port-based traffic
-                if (fs.endsWith(lab, 'bps')) {
-                    units = lab.substring(lab.length-4);
-                    portcls = 'port-traffic-' + units;
-
-                    // for GBps
-                    if (units.substring(0,1) === 'G') {
-                        magnitude = fs.parseBitRate(lab);
-                        if (magnitude >= 9) {
-                            portcls += '-choked'
-                        }
-                    }
-                    ldata.el.classed(portcls, true);
-                }
             } else {
                 $log.warn('HILITE: no link element:', link.id);
             }

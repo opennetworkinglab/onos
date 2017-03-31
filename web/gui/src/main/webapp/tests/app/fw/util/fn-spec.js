@@ -216,7 +216,7 @@ describe('factory: fw/util/fn.js', function() {
             'isMobile', 'isChrome', 'isSafari', 'isFirefox',
             'debugOn', 'debug',
             'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
-            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'parseBitRate', 'addToTrie', 'removeFromTrie', 'trieLookup',
+            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'addToTrie', 'removeFromTrie', 'trieLookup',
             'classNames', 'extend'
         ])).toBeTruthy();
     });
@@ -425,25 +425,5 @@ describe('factory: fw/util/fn.js', function() {
         expect(fs.endsWith("barfood", "foo")).toBe(false);
     });
 
-    // === Tests for parseBitRate()
-    it('should return 5 - a', function () {
-        expect(fs.parseBitRate('5.47 KBps')).toBe(5);
-    });
-
-    it('should return 5 - b', function () {
-        expect(fs.parseBitRate('5. KBps')).toBe(5);
-    });
-
-    it('should return 5 - c', function () {
-        expect(fs.parseBitRate('5 KBps')).toBe(5);
-    });
-
-    it('should return 5 - d', function () {
-        expect(fs.parseBitRate('5 Kbps')).toBe(5);
-    });
-
-    it('should return 2001', function () {
-        expect(fs.parseBitRate('2,001.59 Gbps')).toBe(2001);
-    });
 });
 
