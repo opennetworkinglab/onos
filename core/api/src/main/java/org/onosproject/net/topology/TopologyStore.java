@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.topology;
 
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -26,6 +27,7 @@ import org.onosproject.store.Store;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import java.util.Map;
 
 /**
@@ -127,6 +129,45 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      */
     Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                        LinkWeigher weigher);
+
+    /**
+     * Computes and returns the k-shortest paths between source and
+     * destination devices.
+     *
+     * The first {@code maxPaths} paths will be returned
+     * in ascending order according to the provided {@code weigher}
+     *
+     * @param topology topology descriptor
+     * @param src    source device
+     * @param dst    destination device
+     * @param weigher edge-weight entity
+     * @param maxPaths maximum number of paths (k)
+     * @return set of k-shortest paths
+     */
+    default Set<Path> getKShortestPaths(Topology topology,
+                                        DeviceId src, DeviceId dst,
+                                        LinkWeigher weigher,
+                                        int maxPaths) {
+        return getKShortestPaths(topology, src, dst, weigher)
+                .limit(maxPaths)
+                .collect(GuavaCollectors.toImmutableSet());
+    }
+
+    /**
+     * Computes and returns the k-shortest paths between source and
+     * destination devices.
+     *
+     * @param topology topology descriptor
+     * @param src    source device
+     * @param dst    destination device
+     * @param weigher edge-weight entity
+     * @return stream of k-shortest paths
+     */
+    default Stream<Path> getKShortestPaths(Topology topology,
+                                        DeviceId src, DeviceId dst,
+                                        LinkWeigher weigher) {
+        return getPaths(topology, src, dst, weigher).stream();
+    }
 
     /**
      * Computes and returns the set of disjoint shortest path pairs

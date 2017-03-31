@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -169,8 +170,35 @@ public class TopologyManager
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
-        checkNotNull(weigher, "Link weight cannot be null");
+        checkNotNull(weigher, LINK_WEIGHT_NULL);
         return store.getPaths(topology, src, dst, weigher);
+    }
+
+    @Override
+    public Set<Path> getKShortestPaths(Topology topology, DeviceId src,
+                                       DeviceId dst, LinkWeigher weigher,
+                                       int maxPaths) {
+        checkPermission(TOPOLOGY_READ);
+
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weigher, LINK_WEIGHT_NULL);
+        return store.getKShortestPaths(topology, src, dst, weigher, maxPaths);
+    }
+
+    @Override
+    public Stream<Path> getKShortestPaths(Topology topology,
+                                          DeviceId src,
+                                          DeviceId dst,
+                                          LinkWeigher weigher) {
+        checkPermission(TOPOLOGY_READ);
+
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weigher, LINK_WEIGHT_NULL);
+        return store.getKShortestPaths(topology, src, dst, weigher);
     }
 
     @Override

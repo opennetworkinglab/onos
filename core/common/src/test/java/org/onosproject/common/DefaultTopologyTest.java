@@ -40,7 +40,6 @@ import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyVertex;
 
 import java.util.Set;
-
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.*;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -121,6 +120,12 @@ public class DefaultTopologyTest {
 
         paths = dt.getPaths(D1, D3, WEIGHER);
         assertEquals("incorrect path count", 1, paths.size());
+
+        paths = dt.getKShortestPaths(D1, D2, 42);
+        assertEquals("incorrect path count", 2, paths.size());
+
+        assertEquals("incorrect path count", 2, dt.getKShortestPaths(D1, D2).limit(42).count());
+
     }
 
     @Test

@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.get;
@@ -223,6 +224,22 @@ public class DistributedTopologyStore
     public Set<Path> getPaths(Topology topology, DeviceId src,
                               DeviceId dst, LinkWeigher weigher) {
         return defaultTopology(topology).getPaths(src, dst, weigher);
+    }
+
+    @Override
+    public Set<Path> getKShortestPaths(Topology topology,
+                                       DeviceId src, DeviceId dst,
+                                       LinkWeigher weigher,
+                                       int maxPaths) {
+        return defaultTopology(topology).getKShortestPaths(src, dst, weigher, maxPaths);
+    }
+
+    @Override
+    public Stream<Path> getKShortestPaths(Topology topology,
+                                          DeviceId src,
+                                          DeviceId dst,
+                                          LinkWeigher weigher) {
+        return defaultTopology(topology).getKShortestPaths(src, dst, weigher);
     }
 
     @Override
