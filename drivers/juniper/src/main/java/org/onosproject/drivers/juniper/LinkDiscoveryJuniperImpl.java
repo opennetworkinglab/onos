@@ -19,7 +19,6 @@ package org.onosproject.drivers.juniper;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -31,7 +30,6 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Optional;
@@ -41,6 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.juniper.JuniperUtils.LinkAbstraction;
 import static org.onosproject.drivers.juniper.JuniperUtils.parseJuniperLldp;
 import static org.onosproject.drivers.juniper.JuniperUtils.requestBuilder;
+import static org.onosproject.drivers.utilities.XmlConfigParser.loadXmlString;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_LLDP_NBR_INFO;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -72,8 +71,7 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
             return ImmutableSet.of();
         }
         log.debug("Reply from device {} : {}", localDeviceId, reply);
-        Set<LinkAbstraction> linkAbstractions = parseJuniperLldp(
-                XmlConfigParser.loadXml(new ByteArrayInputStream(reply.getBytes())));
+        Set<LinkAbstraction> linkAbstractions = parseJuniperLldp(loadXmlString(reply));
         log.debug("Set of LinkAbstraction discovered {}", linkAbstractions);
 
         DeviceService deviceService = this.handler().get(DeviceService.class);
@@ -126,9 +124,9 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
 
             JuniperUtils.createBiDirLinkDescription(localDeviceId,
                                                     localPort.get(),
-                                               remoteDevice.id(),
-                                               remotePort.get(),
-                                               descriptions);
+                                                    remoteDevice.id(),
+                                                    remotePort.get(),
+                                                    descriptions);
 
         }
         return descriptions;

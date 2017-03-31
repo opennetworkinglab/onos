@@ -118,7 +118,7 @@ public class NetconfSessionImpl implements NetconfSession {
             try {
                 netconfConnection.connect(null, 1000 * connectTimeout, 1000 * connectTimeout);
             } catch (IOException e) {
-                throw new NetconfException("Cannot open a connection with device" + deviceInfo, e);
+                throw new NetconfException("Cannot open a connection with device " + deviceInfo, e);
             }
             boolean isAuthenticated;
             try {

@@ -33,6 +33,7 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
+import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,12 +46,15 @@ import static org.onosproject.net.DefaultAnnotations.Builder;
 import static org.onosproject.net.Device.Type.ROUTER;
 import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Utility class for Netconf XML for Juniper.
  * Tested with MX240 junos 14.2
  */
 public final class JuniperUtils {
+
+    private static final Logger log = getLogger(JuniperUtils.class);
 
     public static final String FAILED_CFG = "Failed to retrieve configuration.";
 
@@ -173,6 +177,9 @@ public final class JuniperUtils {
                         if (interf.getString(IF_TYPE).contains(ETH) &&
                                 interf.getString(SPEED).contains(MBPS)) {
                             portDescriptions.add(parseDefaultPort(interf));
+                        } else {
+                            log.debug("Ignoring default port candidate {}",
+                                      interf.getString(NAME));
                         }
                     } else if (interf.getString(IF_LO_ENCAP) != null &&
                             !interf.getString(NAME).contains("pfe") &&
@@ -180,6 +187,9 @@ public final class JuniperUtils {
                         portDescriptions.add(parseLogicalPort(interf));
                     } else if (interf.getString(NAME).contains("lo")) {
                         portDescriptions.add(parseLoopback(interf));
+                    } else {
+                        log.debug("Ignoring unknown port {}",
+                                  interf.getString(NAME));
                     }
                 }
             }
