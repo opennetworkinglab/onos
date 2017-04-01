@@ -25,32 +25,27 @@
     var $log, $scope, fs, mast, ps, wss, is;
 
     // constants
-    var topPdg = 28,
-        ctnrPdg = 24,
-        pWidth = 800,
-        scrollSize = 17,
-        tblPdg = 50;
+    var topPdg = 20,
+        hFudge = 12,
+        srcFudge = 130,
+        pWidth = 800;
 
     // internal state
     var detailsPanel,
-        ymodel,
         pStartY,
         pHeight,
         wSize,
         top,
-        topTable,
         bottom,
-        iconDiv;
+        iconDiv,
+        srcFrame,
+        srcDiv;
 
     // constants
     var pName = 'yang-model-details-panel',
         detailsReq = 'yangModelDetailsRequest',
-        detailsResp = 'yangModelDetailsResponse',
+        detailsResp = 'yangModelDetailsResponse';
 
-        propOrder = [
-        ],
-        friendlyProps = [
-        ];
 
     function createDetailsPanel() {
         detailsPanel = ps.createPanel(pName, {
@@ -58,60 +53,56 @@
             margin: 0,
             hideMargin: 0
         });
+        detailsPanel.el().style({ top: pStartY + 'px'});
         $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
+    }
+
+    function fixHeight(d, h) {
+        d.style({ height: h + 'px'});
     }
 
     function populateDetails(details) {
         setUpPanel();
         populateTop(details);
         populateBottom(details.source);
+
+        detailsPanel.height(pHeight);
+        // also have to fix the height of the source frame to make scroll work
+        fixHeight(srcFrame, pHeight - srcFudge);
     }
 
     function setUpPanel() {
-        var container, closeBtn, dataDiv;
+        var container, closeBtn;
         detailsPanel.empty();
 
         container = detailsPanel.append('div').classed('container', true);
 
         top = container.append('div').classed('top', true);
+
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
+
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
-        topTable = top.append('div').classed('top-content', true)
-            .append('table');
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').classed('modules-title', true).html('YANG Source');
-        bottom.append('div').classed('module-source');
-        bottom.select('div').append('pre');
-    }
+        bottom.append('h2').html('YANG Source');
 
-    function addProp(tbody, index, value) {
-        var tr = tbody.append('tr');
-
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
-        }
-        addCell('label', friendlyProps[index] + ' :');
-        addCell('value', value);
+        srcFrame = bottom.append('div').classed('src-frame', true);
+        srcDiv = srcFrame.append('div').classed('module-source', true);
+        srcDiv.append('pre');
     }
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'nav_yang', 40);
-        top.select('h2').html('Module ' + details.module + " (" + details.revision + ")");
-
-        var tbody = topTable.append('tbody');
-
-        propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, details[prop]);
-        });
+        top.select('h2')
+            .html('Module ' + details.id + ' (' + details.revision + ')');
     }
 
     function populateBottom(source) {
-        var src = bottom.select('pre');
+        var src = srcDiv.select('pre');
         src.html(source.join('\n'));
     }
 
@@ -129,13 +120,10 @@
         div.on('click', closePanel);
     }
 
-
     // callback invoked when data from a details request returns from server
     function respDetailsCb(data) {
         $scope.panelData = data.details;
-        ymodel = data.yangModel;
         $scope.$apply();
-        // TODO: complete the detail panel directive.
         $log.debug('YANG_MODEL>', detailsResp, data);
     }
 
@@ -203,7 +191,7 @@
                 pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
                         + mast.mastHeight() + topPdg;
                 wSize = fs.windowSize(pStartY);
-                pHeight = wSize.height;
+                pHeight = wSize.height - hFudge;
             }
 
             function initPanel() {

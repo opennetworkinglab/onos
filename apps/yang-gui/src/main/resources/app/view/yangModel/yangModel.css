@@ -19,10 +19,6 @@
     display: inline-block;
 }
 
-#ov-yang-model div.ctrl-btns {
-}
-
-
 
 #yang-model-details-panel.floatpanel {
     z-index: 0;
@@ -49,14 +45,9 @@
 #yang-model-details-panel h2 {
     display: inline-block;
     margin: 8px 0;
+    padding-left: 6px;
 }
 
-#yang-model-details-panel .top-content table {
-    font-size: 12pt;
-}
-
-#yang-model-details-panel .model-source {
-    display: block;
-    overflow: scroll;
-    font-family: "Courier New", serif;
+#yang-model-details-panel .src-frame {
+    overflow: auto;
 }

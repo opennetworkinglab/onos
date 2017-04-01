@@ -14,3 +14,9 @@
  * limitations under the License.
  */
 
+.light #yang-model-details-panel .src-frame {
+    background-color: #f4f4f4;
+}
+.dark #yang-model-details-panel .src-frame {
+    background-color: #1b1b1b;
+}

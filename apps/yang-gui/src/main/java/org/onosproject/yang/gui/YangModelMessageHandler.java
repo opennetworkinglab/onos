@@ -55,7 +55,6 @@ public class YangModelMessageHandler extends UiMessageHandler {
     private static final String ID = "id";
     private static final String REVISION = "revision";
     private static final String MODEL_ID = "modelId";
-    // TODO: fill out table columns as needed
 
     private static final String SOURCE = "source";
 
@@ -63,12 +62,9 @@ public class YangModelMessageHandler extends UiMessageHandler {
             ID, REVISION, MODEL_ID
     };
 
-    private static final String UTF8 = "UTF-8";
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private YangModelRegistry modelRegistry;
-    // TODO: fill out other fields as necessary
 
 
     // ===============-=-=-=-=-=-==================-=-=-=-=-=-=-===========
@@ -119,7 +115,8 @@ public class YangModelMessageHandler extends UiMessageHandler {
             }
         }
 
-        private void populateRow(TableModel.Row row, String modelId, YangModuleId moduleId) {
+        private void populateRow(TableModel.Row row, String modelId,
+                                 YangModuleId moduleId) {
             row.cell(ID, moduleId.moduleName())
                     .cell(REVISION, moduleId.revision())
                     .cell(MODEL_ID, modelId);
@@ -166,7 +163,6 @@ public class YangModelMessageHandler extends UiMessageHandler {
 
             } catch (IOException e) {
                 log.warn("Unable to read YANG source", e);
-                return;
             }
         }
     }
