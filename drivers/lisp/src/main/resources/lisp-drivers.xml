@@ -15,7 +15,18 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="lisp-sdn" manufacturer="LISP" hwVersion="LISP" swVersion="1.0">
+    <driver name="default"
+            manufacturer="IETF" hwVersion="LISP Reference Router" swVersion=".*">
+        <behaviour api="org.onosproject.lisp.ctl.ExtensionMappingAddressInterpreter"
+                   impl="org.onosproject.drivers.lisp.extensions.LispExtensionMappingAddressInterpreter"/>
+        <behaviour api="org.onosproject.lisp.ctl.ExtensionMappingAddressResolver"
+                   impl="org.onosproject.drivers.lisp.extensions.LispExtensionMappingAddressInterpreter"/>
+    </driver>
+
+    <!-- OpenLISP software router
+         https://github.com/lip6-lisp/data-plane -->
+    <driver name="openlisp" extends="default"
+            manufacturer="LIP6" hwVersion="OpenLISP Router" swVersion=".*">
     </driver>
 </drivers>
 

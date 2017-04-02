@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.lisp.ctl.ExtensionMappingAddressInterpreter;
 import org.onosproject.lisp.msg.protocols.LispLocator;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
@@ -41,21 +42,26 @@ import org.onosproject.mapping.MappingTreatment;
 import org.onosproject.mapping.MappingValue;
 import org.onosproject.mapping.actions.MappingAction;
 import org.onosproject.mapping.actions.MappingActions;
+import org.onosproject.mapping.addresses.ExtensionMappingAddress;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.addresses.MappingAddresses;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
 
+import static org.onosproject.mapping.addresses.ExtensionMappingAddressType.ExtensionMappingAddressTypes.*;
+
 /**
  * Mapping entry builder class.
  */
 public class MappingEntryBuilder {
     private static final Logger log =
-                            LoggerFactory.getLogger(MappingEntryBuilder.class);
+            LoggerFactory.getLogger(MappingEntryBuilder.class);
 
     private static final int IPV4_PREFIX_LENGTH = 32;
     private static final int IPV6_PREFIX_LENGTH = 128;
@@ -66,17 +72,36 @@ public class MappingEntryBuilder {
     private final MappingAction action;
     private final List<MappingTreatment> treatments;
 
+    private final DeviceService deviceService;
+
     /**
      * Default constructor for MappingEntryBuilder.
      *
-     * @param deviceId device identifier
-     * @param record   LISP map record
+     * @param deviceId      device identifier
+     * @param record        LISP map record
+     * @param deviceService device service
+     */
+    public MappingEntryBuilder(DeviceId deviceId, LispMapRecord record,
+                               DeviceService deviceService) {
+        this.deviceId = deviceId;
+        this.address = buildAddress(record);
+        this.action = buildAction(record);
+        this.treatments = buildTreatments(record);
+        this.deviceService = deviceService;
+    }
+
+    /**
+     * Default constructor for MappingEntryBuilder.
+     *
+     * @param deviceId      device identifier
+     * @param record        LISP map record
      */
     public MappingEntryBuilder(DeviceId deviceId, LispMapRecord record) {
         this.deviceId = deviceId;
         this.address = buildAddress(record);
         this.action = buildAction(record);
         this.treatments = buildTreatments(record);
+        this.deviceService = null;
     }
 
     /**
@@ -169,8 +194,7 @@ public class MappingEntryBuilder {
      */
     private MappingAddress buildAddress(LispMapRecord record) {
 
-        return record == null ? null :
-                getAddress(record.getEidPrefixAfi());
+        return record == null ? null : getAddress(record.getEidPrefixAfi());
     }
 
     /**
@@ -188,22 +212,22 @@ public class MappingEntryBuilder {
 
         switch (address.getAfi()) {
             case IP4:
-                return afi2MappingAddress(address);
+                return afi2mapping(address);
             case IP6:
-                return afi2MappingAddress(address);
+                return afi2mapping(address);
             case AS:
                 int asNum = ((LispAsAddress) address).getASNum();
                 return MappingAddresses.asMappingAddress(String.valueOf(asNum));
             case DISTINGUISHED_NAME:
                 String dn = ((LispDistinguishedNameAddress)
-                                                address).getDistinguishedName();
+                        address).getDistinguishedName();
                 return MappingAddresses.dnMappingAddress(dn);
             case MAC:
                 MacAddress macAddress = ((LispMacAddress) address).getAddress();
                 return MappingAddresses.ethMappingAddress(macAddress);
             case LCAF:
-                LispLcafAddress lcafAddress = (LispLcafAddress) address;
-                return lcaf2Extension(lcafAddress);
+                return deviceService == null ? null :
+                                     lcaf2extension((LispLcafAddress) address);
             default:
                 log.warn("Unsupported address type {}", address.getAfi());
                 break;
@@ -215,13 +239,89 @@ public class MappingEntryBuilder {
     /**
      * Converts LCAF address to extension mapping address.
      *
-     * @param lcaf LCAF address
+     * @param lcaf          LCAF address
      * @return extension mapping address
      */
-    private MappingAddress lcaf2Extension(LispLcafAddress lcaf) {
+    private MappingAddress lcaf2extension(LispLcafAddress lcaf) {
 
-        // TODO: move LCAF to extension mapping to LISP Extension Interpreter
-        return null;
+        Device device = deviceService.getDevice(deviceId);
+
+        ExtensionMappingAddressInterpreter addressInterpreter;
+        ExtensionMappingAddress mappingAddress = null;
+        if (device.is(ExtensionMappingAddressInterpreter.class)) {
+            addressInterpreter = device.as(ExtensionMappingAddressInterpreter.class);
+        } else {
+            addressInterpreter = null;
+        }
+
+        switch (lcaf.getType()) {
+            case LIST:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(LIST_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case SEGMENT:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(SEGMENT_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case AS:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(AS_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case APPLICATION_DATA:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(APPLICATION_DATA_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case GEO_COORDINATE:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(GEO_COORDINATE_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case NAT:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(NAT_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case NONCE:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(NONCE_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case MULTICAST:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(MULTICAST_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case TRAFFIC_ENGINEERING:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(TRAFFIC_ENGINEERING_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            case SOURCE_DEST:
+                if (addressInterpreter != null &&
+                        addressInterpreter.supported(SOURCE_DEST_ADDRESS.type())) {
+                    mappingAddress = addressInterpreter.mapLcafAddress(lcaf);
+                }
+                break;
+            default:
+                log.warn("Unsupported extension mapping address type {}", lcaf.getType());
+                break;
+        }
+
+        return mappingAddress != null ?
+                MappingAddresses.extensionMappingAddressWrapper(mappingAddress, deviceId) : null;
     }
 
     /**
@@ -230,7 +330,7 @@ public class MappingEntryBuilder {
      * @param afiAddress IP typed AFI address
      * @return generalized mapping address
      */
-    private MappingAddress afi2MappingAddress(LispAfiAddress afiAddress) {
+    private MappingAddress afi2mapping(LispAfiAddress afiAddress) {
         switch (afiAddress.getAfi()) {
             case IP4:
                 IpAddress ipv4Address = ((LispIpv4Address) afiAddress).getAddress();

@@ -74,16 +74,7 @@ import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.AS;
 import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.DISTINGUISHED_NAME;
 import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.IP4;
 import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.IP6;
-import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.LCAF;
 import static org.onosproject.lisp.msg.types.AddressFamilyIdentifierEnum.MAC;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.APPLICATION_DATA;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.GEO_COORDINATE;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.LIST;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.MULTICAST;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.NAT;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.NONCE;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.SEGMENT;
-import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.SOURCE_DEST;
 import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum.UNKNOWN;
 
 /**

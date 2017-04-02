@@ -34,6 +34,7 @@ import org.onosproject.mapping.MappingProviderRegistry;
 import org.onosproject.mapping.MappingProviderService;
 import org.onosproject.mapping.MappingStore;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.lisp.mapping.util.MappingEntryBuilder;
@@ -58,6 +59,9 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MappingProviderRegistry providerRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     protected MappingProviderService providerService;
 
@@ -166,7 +170,8 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                                      List<LispMapRecord> records,
                                      MappingStore.Type type) {
             records.forEach(r -> {
-                MappingEntry me = new MappingEntryBuilder(deviceId, r).build();
+                MappingEntry me =
+                        new MappingEntryBuilder(deviceId, r, deviceService).build();
                 providerService.mappingAdded(me, type);
             });
         }

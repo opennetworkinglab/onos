@@ -73,7 +73,10 @@ public class LispDeviceProvider extends AbstractProvider implements DeviceProvid
     private static final String SCHEME_NAME = "lisp";
     private static final String DEVICE_PROVIDER_PACKAGE = "org.onosproject.lisp.provider.device";
 
-    private static final String UNKNOWN = "unknown";
+    private static final String MANUFACTURER = "IETF";
+    private static final String HARDWARE_VERSION = "LISP Reference Router";
+    private static final String SOFTWARE_VERSION = "1.0";
+    private static final String SERIAL_NUMBER = "unknown";
     private static final String IS_NULL_MSG = "LISP device info is null";
     private static final String IPADDRESS = "ipaddress";
     private static final String LISP = "lisp";
@@ -147,8 +150,8 @@ public class LispDeviceProvider extends AbstractProvider implements DeviceProvid
         DeviceDescription deviceDescription = new DefaultDeviceDescription(
                 deviceId.uri(),
                 Device.Type.ROUTER,
-                UNKNOWN, UNKNOWN,
-                UNKNOWN, UNKNOWN,
+                MANUFACTURER, HARDWARE_VERSION,
+                SOFTWARE_VERSION, SERIAL_NUMBER,
                 cid, false,
                 annotations);
         if (deviceService.getDevice(deviceId) == null) {

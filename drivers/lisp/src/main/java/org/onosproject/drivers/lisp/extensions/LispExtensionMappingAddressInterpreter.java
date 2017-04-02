@@ -110,9 +110,11 @@ public class LispExtensionMappingAddressInterpreter extends AbstractHandlerBehav
             LispAfiAddress ipv4 = mapping2afi(listAddress.getIpv4());
             LispAfiAddress ipv6 = mapping2afi(listAddress.getIpv6());
 
-            List<LispAfiAddress> addresses = ImmutableList.of(ipv4, ipv6);
-
-            return new LispListLcafAddress(addresses);
+            if (ipv4 != null && ipv6 != null) {
+                return new LispListLcafAddress(ImmutableList.of(ipv4, ipv6));
+            } else {
+                return new LispListLcafAddress(ImmutableList.of());
+            }
         }
 
         if (type.equals(SEGMENT_ADDRESS.type())) {
