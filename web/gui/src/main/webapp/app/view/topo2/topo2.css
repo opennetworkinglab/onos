@@ -31,35 +31,10 @@
     -webkit-user-select: none;
 }
 
-/* -- TEMPORARY CSS (to be deleted) -- */
-#topo2tmp div {
-    padding: 8px 24px;
-    margin: 8px;
-    background-color: #ddddff;
-}
-#topo2tmp div div {
-    padding: 4px 10px;
-}
 
-#topo2tmp h4 {
-    margin: 0
-}
-#topo2tmp p {
-    margin: 0
-}
-#topo2tmp .nav-me:hover {
-    background-color: #bbbbdd;
-}
-#topo2tmp .nav-me {
-    font-weight: bold;
-    text-decoration: underline;
-    cursor: pointer;
-}
 
 #breadcrumbs {
     font-size: 13px;
-    background: #f5f5f5;
-    border-bottom: 1px solid #c7c7c0;
     position: absolute;
     padding: 10px 20px;
     left: 0;
@@ -79,7 +54,6 @@
 #breadcrumbs .breadcrumb:after {
     content: '»';
     pointer-events: none;
-    color: #353535;
     line-height: 20px;
     margin-left: 5px;
 }
@@ -87,7 +61,6 @@
 #breadcrumbs .breadcrumb:last-child a {
     pointer-events: none;
     font-weight: 600;
-    color: #757575;
 }
 
 #breadcrumbs .breadcrumb:last-child:after {
