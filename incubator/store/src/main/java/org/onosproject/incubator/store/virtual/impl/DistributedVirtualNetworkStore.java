@@ -73,6 +73,7 @@ import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
@@ -303,6 +304,12 @@ public class DistributedVirtualNetworkStore
 
     @Override
     public void removeTenantId(TenantId tenantId) {
+        //Remove all the virtual networks of this tenant
+        Set<VirtualNetwork> networkIdSet = getNetworks(tenantId);
+        if (networkIdSet != null) {
+            networkIdSet.forEach(virtualNetwork -> removeNetwork(virtualNetwork.id()));
+        }
+
         tenantIdSet.remove(tenantId);
     }
 
@@ -347,6 +354,11 @@ public class DistributedVirtualNetworkStore
     public void removeNetwork(NetworkId networkId) {
         // Make sure that the virtual network exists before attempting to remove it.
         if (networkExists(networkId)) {
+            //Remove all the devices of this network
+            Set<VirtualDevice> deviceSet = getDevices(networkId);
+            if (deviceSet != null) {
+                deviceSet.forEach(virtualDevice -> removeDevice(networkId, virtualDevice.id()));
+            }
             //TODO update both maps in one transaction.
 
             VirtualNetwork virtualNetwork = networkIdVirtualNetworkMap.remove(networkId);
@@ -401,6 +413,11 @@ public class DistributedVirtualNetworkStore
     @Override
     public void removeDevice(NetworkId networkId, DeviceId deviceId) {
         checkState(networkExists(networkId), "The network has not been added.");
+        //Remove all the virtual ports of the this device
+        Set<VirtualPort> virtualPorts = getPorts(networkId, deviceId);
+        if (virtualPorts != null) {
+            virtualPorts.forEach(virtualPort -> removePort(networkId, deviceId, virtualPort.number()));
+        }
         //TODO update both maps in one transaction.
 
         Set<DeviceId> deviceIdSet = new HashSet<>();
@@ -421,13 +438,14 @@ public class DistributedVirtualNetworkStore
 
             deviceIdVirtualDeviceMap.remove(deviceId);
         }
-        //TODO remove virtual links and ports when removing the virtual device
     }
 
     @Override
     public VirtualHost addHost(NetworkId networkId, HostId hostId, MacAddress mac,
                                VlanId vlan, HostLocation location, Set<IpAddress> ips) {
         checkState(networkExists(networkId), "The network has not been added.");
+        checkState(virtualPortExists(networkId, location.deviceId(), location.port()),
+                "The virtual port has not been created.");
         Set<HostId> hostIdSet = networkIdHostIdSetMap.get(networkId);
         if (hostIdSet == null) {
             hostIdSet = new HashSet<>();
@@ -465,10 +483,33 @@ public class DistributedVirtualNetworkStore
         }
     }
 
+    /**
+     * Returns if the given virtual port exists.
+     *
+     * @param networkId network identifier
+     * @param deviceId virtual device Id
+     * @param portNumber virtual port number
+     * @return true if the virtual port exists, false otherwise.
+     */
+    private boolean virtualPortExists(NetworkId networkId, DeviceId deviceId, PortNumber portNumber) {
+        Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap.get(networkId);
+        if (virtualPortSet != null) {
+            return virtualPortSet.stream().anyMatch(
+                    p -> p.element().id().equals(deviceId) &&
+                            p.number().equals(portNumber));
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public VirtualLink addLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst,
                                Link.State state, TunnelId realizedBy) {
         checkState(networkExists(networkId), "The network has not been added.");
+        checkState(virtualPortExists(networkId, src.deviceId(), src.port()),
+                "The source virtual port has not been added.");
+        checkState(virtualPortExists(networkId, dst.deviceId(), dst.port()),
+                "The destination virtual port has not been added.");
         Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(networkId);
         if (virtualLinkSet == null) {
             virtualLinkSet = new HashSet<>();
@@ -546,10 +587,8 @@ public class DistributedVirtualNetworkStore
         VirtualDevice device = deviceIdVirtualDeviceMap.get(deviceId);
         checkNotNull(device, "The device has not been created for deviceId: " + deviceId);
 
-        boolean exist = virtualPortSet.stream().anyMatch(
-                p -> p.element().id().equals(deviceId) &&
-                        p.number().equals(portNumber));
-        checkState(!exist, "The requested Port Number is already in use");
+        checkState(!virtualPortExists(networkId, deviceId, portNumber),
+                "The requested Port Number has been added.");
 
         VirtualPort virtualPort = new DefaultVirtualPort(networkId, device,
                                                          portNumber, realizedBy);
@@ -567,15 +606,16 @@ public class DistributedVirtualNetworkStore
         Set<VirtualPort> virtualPortSet = networkIdVirtualPortSetMap
                 .get(networkId);
 
-        VirtualPort vPort = virtualPortSet.stream().filter(
+        Optional<VirtualPort> virtualPortOptional = virtualPortSet.stream().filter(
                 p -> p.element().id().equals(deviceId) &&
-                        p.number().equals(portNumber)).findFirst().get();
-        checkNotNull(vPort, "The virtual port has not been added.");
+                        p.number().equals(portNumber)).findFirst();
+        checkState(virtualPortOptional.isPresent(), "The virtual port has not been added.");
 
         VirtualDevice device = deviceIdVirtualDeviceMap.get(deviceId);
         checkNotNull(device, "The device has not been created for deviceId: "
                 + deviceId);
 
+        VirtualPort vPort = virtualPortOptional.get();
         virtualPortSet.remove(vPort);
         vPort = new DefaultVirtualPort(networkId, device, portNumber, realizedBy);
         virtualPortSet.add(vPort);
@@ -590,6 +630,11 @@ public class DistributedVirtualNetworkStore
         VirtualDevice device = deviceIdVirtualDeviceMap.get(deviceId);
         checkNotNull(device, "The device has not been created for deviceId: "
                 + deviceId);
+
+        if (networkIdVirtualPortSetMap.get(networkId) == null) {
+            log.warn("No port has been created for NetworkId: {}", networkId);
+            return;
+        }
 
         Set<VirtualPort> virtualPortSet = new HashSet<>();
         networkIdVirtualPortSetMap.get(networkId).forEach(port -> {
@@ -613,6 +658,30 @@ public class DistributedVirtualNetworkStore
                         new VirtualNetworkEvent(VirtualNetworkEvent.Type.VIRTUAL_PORT_REMOVED,
                                                 networkId, device, virtualPort)
                 ));
+
+                //Remove all the virtual links connected to this virtual port
+                Set<VirtualLink> existingVirtualLinks = networkIdVirtualLinkSetMap.get(networkId);
+                if (existingVirtualLinks != null && !existingVirtualLinks.isEmpty()) {
+                    Set<VirtualLink> virtualLinkSet = new HashSet<>();
+                    ConnectPoint cp = new ConnectPoint(deviceId, portNumber);
+                    existingVirtualLinks.forEach(virtualLink -> {
+                        if (virtualLink.src().equals(cp) || virtualLink.dst().equals(cp)) {
+                            virtualLinkSet.add(virtualLink);
+                        }
+                    });
+                    virtualLinkSet.forEach(virtualLink ->
+                            removeLink(networkId, virtualLink.src(), virtualLink.dst()));
+                }
+
+                //Remove all the hosts connected to this virtual port
+                Set<HostId> hostIdSet = new HashSet<>();
+                hostIdVirtualHostMap.forEach((hostId, virtualHost) -> {
+                    if (virtualHost.location().deviceId().equals(deviceId) &&
+                            virtualHost.location().port().equals(portNumber)) {
+                        hostIdSet.add(hostId);
+                    }
+                });
+                hostIdSet.forEach(hostId -> removeHost(networkId, hostId));
             }
         }
     }

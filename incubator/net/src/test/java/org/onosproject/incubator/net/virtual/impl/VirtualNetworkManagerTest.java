@@ -427,6 +427,17 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
     }
 
     /**
+     * Tests adding a virtual host where no virtual port exists.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testCreateVirtualHostWithNoVirtualPort() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork1 =
+                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        manager.createVirtualHost(virtualNetwork1.id(), HID1, MAC1, VLAN1, LOC1, IPSET1);
+    }
+
+    /**
      * Tests add and remove of virtual hosts.
      */
     @Test
@@ -436,6 +447,19 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
                 manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
         VirtualNetwork virtualNetwork2 =
                 manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+
+        VirtualDevice virtualDevice1 =
+                manager.createVirtualDevice(virtualNetwork1.id(), DID1);
+        VirtualDevice virtualDevice2 =
+                manager.createVirtualDevice(virtualNetwork2.id(), DID2);
+
+        ConnectPoint hostCp1 = new ConnectPoint(DID1, P1);
+        ConnectPoint hostCp2 = new ConnectPoint(DID2, P2);
+        manager.createVirtualPort(virtualNetwork1.id(), hostCp1.deviceId(), hostCp1.port(),
+                new ConnectPoint(virtualDevice1.id(), hostCp1.port()));
+        manager.createVirtualPort(virtualNetwork2.id(), hostCp2.deviceId(), hostCp2.port(),
+                new ConnectPoint(virtualDevice2.id(), hostCp2.port()));
+
         manager.createVirtualHost(virtualNetwork1.id(), HID1, MAC1, VLAN1, LOC1, IPSET1);
         manager.createVirtualHost(virtualNetwork2.id(), HID2, MAC2, VLAN2, LOC2, IPSET2);
 
@@ -590,6 +614,70 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         validateEvents((Enum[]) expectedEventTypes.toArray(
                 new VirtualNetworkEvent.Type[expectedEventTypes.size()]));
     }
+
+    /**
+     * Tests when a virtual element is removed, all the other elements depending on it are also removed.
+     */
+    @Test
+    public void testRemoveAllElements() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork1 =
+                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        VirtualDevice virtualDevice1 =
+                manager.createVirtualDevice(virtualNetwork1.id(), DID1);
+        VirtualDevice virtualDevice2 =
+                manager.createVirtualDevice(virtualNetwork1.id(), DID2);
+        ConnectPoint src = new ConnectPoint(virtualDevice1.id(), PortNumber.portNumber(1));
+        manager.createVirtualPort(virtualNetwork1.id(), src.deviceId(), src.port(),
+                new ConnectPoint(PHYDID1, PortNumber.portNumber(1)));
+
+        ConnectPoint dst = new ConnectPoint(virtualDevice2.id(), PortNumber.portNumber(2));
+        manager.createVirtualPort(virtualNetwork1.id(), dst.deviceId(), dst.port(),
+                new ConnectPoint(PHYDID2, PortNumber.portNumber(2)));
+
+        manager.createVirtualLink(virtualNetwork1.id(), src, dst);
+        manager.createVirtualLink(virtualNetwork1.id(), dst, src);
+
+        ConnectPoint hostCp = new ConnectPoint(DID1, P1);
+        manager.createVirtualPort(virtualNetwork1.id(), hostCp.deviceId(), hostCp.port(),
+                new ConnectPoint(PHYDID1, P1));
+        manager.createVirtualHost(virtualNetwork1.id(), HID1, MAC1, VLAN1, LOC1, IPSET1);
+
+        //When a virtual port is removed, all virtual links connected to it should also be removed.
+        manager.removeVirtualPort(virtualNetwork1.id(), DID1, PortNumber.portNumber(1));
+        Set<VirtualLink> virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
+        assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
+
+        //When a virtual port is removed, all virtual hosts located to it should also be removed.
+        manager.removeVirtualPort(virtualNetwork1.id(), DID1, P1);
+        Set<VirtualHost> virtualHosts = manager.getVirtualHosts(virtualNetwork1.id());
+        assertTrue("The virtual host set should be empty.", virtualHosts.isEmpty());
+
+        manager.createVirtualPort(virtualNetwork1.id(), src.deviceId(), src.port(),
+                new ConnectPoint(PHYDID1, PortNumber.portNumber(1)));
+        manager.createVirtualLink(virtualNetwork1.id(), src, dst);
+        manager.createVirtualLink(virtualNetwork1.id(), dst, src);
+        manager.createVirtualPort(virtualNetwork1.id(), hostCp.deviceId(), hostCp.port(),
+                new ConnectPoint(PHYDID1, P1));
+        manager.createVirtualHost(virtualNetwork1.id(), HID1, MAC1, VLAN1, LOC1, IPSET1);
+
+        //When a virtual device is removed, all virtual ports, hosts and links depended on it should also be removed.
+        manager.removeVirtualDevice(virtualNetwork1.id(), DID1);
+        Set<VirtualPort> virtualPorts = manager.getVirtualPorts(virtualNetwork1.id(), DID1);
+        assertTrue("The virtual port set of DID1 should be empty", virtualPorts.isEmpty());
+        virtualLinks = manager.getVirtualLinks(virtualNetwork1.id());
+        assertTrue("The virtual link set should be empty.", virtualLinks.isEmpty());
+        virtualHosts = manager.getVirtualHosts(virtualNetwork1.id());
+        assertTrue("The virtual host set should be empty.", virtualHosts.isEmpty());
+
+        //When a tenantId is removed, all the virtual networks belonging to it should also be removed.
+        manager.unregisterTenantId(TenantId.tenantId(tenantIdValue1));
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        Set<VirtualNetwork> virtualNetworks = manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1));
+        assertNotNull("The virtual network set should not be null", virtualNetworks);
+        assertTrue("The virtual network set should be empty.", virtualNetworks.isEmpty());
+    }
+
 
     /**
      * Tests the addOrUpdateIntent() method in the store with a null intent.
