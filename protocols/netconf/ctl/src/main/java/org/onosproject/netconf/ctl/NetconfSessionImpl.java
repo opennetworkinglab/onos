@@ -167,7 +167,7 @@ public class NetconfSessionImpl implements NetconfSession {
             this.addDeviceOutputListener(new NetconfDeviceOutputEventListenerImpl(deviceInfo));
             sendHello();
         } catch (IOException e) {
-            log.error("Failed to create ch.ethz.ssh2.Session session.", e);
+            log.error("Failed to create ch.ethz.ssh2.Session session {} ", e.getMessage());
             throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
                                                deviceInfo, e);
         }
@@ -257,13 +257,17 @@ public class NetconfSessionImpl implements NetconfSession {
     private void checkAndRestablishSession() throws NetconfException {
         if (sshSession.getState() != 2) {
             try {
+                log.debug("The session with {} was reopened", deviceInfo.getDeviceId());
                 startSshSession();
             } catch (IOException e) {
                 log.debug("The connection with {} was reopened", deviceInfo.getDeviceId());
                 try {
+                    connectionActive = false;
+                    replies.clear();
+                    messageIdInteger.set(0);
                     startConnection();
                 } catch (IOException e2) {
-                    log.error("No connection {} for device", netconfConnection, e2);
+                    log.error("No connection {} for device {}", netconfConnection, e.getMessage());
                     throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
                 }
             }
@@ -610,7 +614,8 @@ public class NetconfSessionImpl implements NetconfSession {
         @Override
         public void notify(NetconfDeviceOutputEvent event)  {
             Optional<Integer> messageId = event.getMessageID();
-
+            log.debug("messageID {}, waiting replies messageIDs {}", messageId,
+                      replies.keySet());
             if (!messageId.isPresent()) {
                 errorReplies.add(event.getMessagePayload());
                 log.error("Device {} sent error reply {}",
