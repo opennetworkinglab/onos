@@ -38,7 +38,6 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.net.DeviceId;
-import org.osgi.framework.BundleContext;
 
 import java.util.ArrayList;
 import java.util.List;
