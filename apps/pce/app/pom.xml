@@ -110,5 +110,10 @@
            <artifactId>easymock</artifactId>
            <scope>test</scope>
        </dependency>
-    </dependencies>
+       <dependency>
+           <groupId>org.onosproject</groupId>
+           <artifactId>onos-app-bandwidthmgmt</artifactId>
+           <version>${project.version}</version>
+       </dependency>
+   </dependencies>
 </project>

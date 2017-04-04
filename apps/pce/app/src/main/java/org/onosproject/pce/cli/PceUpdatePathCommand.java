@@ -27,7 +27,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.TunnelId;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.api.PceService;
@@ -62,7 +62,7 @@ public class PceUpdatePathCommand extends AbstractShellCommand {
         List<Constraint> constrntList = new LinkedList<>();
         // Assign bandwidth. Data rate unit is in Bps.
         if (bandwidth != null) {
-            constrntList.add(BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
+            constrntList.add(PceBandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit.valueOf("BPS")));
         }
 
         // Cost validation

@@ -16,22 +16,15 @@
 package org.onosproject.pce.util;
 
 import com.google.common.collect.ImmutableSet;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import org.onosproject.pce.pceservice.ExplicitPathInfo;
+import org.onosproject.pce.pcestore.PcePathInfo;
+import org.onosproject.pce.pcestore.api.PceStore;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.onosproject.incubator.net.tunnel.TunnelId;
-import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.pce.pceservice.ExplicitPathInfo;
-import org.onosproject.pce.pcestore.PcePathInfo;
-import org.onosproject.pce.pcestore.api.PceStore;
 
 /**
  * Provides test implementation of PceStore.
@@ -39,7 +32,6 @@ import org.onosproject.pce.pcestore.api.PceStore;
 public class PceStoreAdapter implements PceStore {
 
     // Mapping tunnel with device local info with tunnel consumer id
-    private ConcurrentMap<TunnelId, ResourceConsumer> tunnelInfoMap = new ConcurrentHashMap<>();
 
     // Set of Path info
     private Set<PcePathInfo> failedPathInfoSet = new HashSet<>();
@@ -48,18 +40,8 @@ public class PceStoreAdapter implements PceStore {
     private Map<String, List<ExplicitPathInfo>> tunnelNameExplicitPathInfoMap = new HashMap<>();
 
     @Override
-    public boolean existsTunnelInfo(TunnelId tunnelId) {
-        return tunnelInfoMap.containsKey(tunnelId);
-    }
-
-    @Override
     public boolean existsFailedPathInfo(PcePathInfo pathInfo) {
         return failedPathInfoSet.contains(pathInfo);
-    }
-
-    @Override
-    public int getTunnelInfoCount() {
-        return tunnelInfoMap.size();
     }
 
     @Override
@@ -68,38 +50,13 @@ public class PceStoreAdapter implements PceStore {
     }
 
     @Override
-    public Map<TunnelId, ResourceConsumer> getTunnelInfos() {
-       return tunnelInfoMap.entrySet().stream()
-                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()));
-    }
-
-    @Override
     public Iterable<PcePathInfo> getFailedPathInfos() {
        return ImmutableSet.copyOf(failedPathInfoSet);
     }
 
     @Override
-    public ResourceConsumer getTunnelInfo(TunnelId tunnelId) {
-        return tunnelInfoMap.get(tunnelId);
-    }
-
-    @Override
-    public void addTunnelInfo(TunnelId tunnelId, ResourceConsumer tunnelConsumerId) {
-        tunnelInfoMap.put(tunnelId, tunnelConsumerId);
-    }
-
-    @Override
     public void addFailedPathInfo(PcePathInfo pathInfo) {
         failedPathInfoSet.add(pathInfo);
-    }
-
-    @Override
-    public boolean removeTunnelInfo(TunnelId tunnelId) {
-        tunnelInfoMap.remove(tunnelId);
-        if (tunnelInfoMap.containsKey(tunnelId)) {
-            return false;
-        }
-        return true;
     }
 
     @Override

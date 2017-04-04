@@ -34,4 +34,5 @@
     <artifact>mvn:${project.groupId}/onos-app-pce/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-pceweb/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-pcerest/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-bandwidthmgmt/${project.version}</artifact>
 </app>

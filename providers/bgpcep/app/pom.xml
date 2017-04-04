@@ -85,6 +85,11 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-bandwidthmgmt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-app-pcerest</artifactId>
             <version>${project.version}</version>
         </dependency>

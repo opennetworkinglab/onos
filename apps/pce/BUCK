@@ -1,0 +1,15 @@
+BUNDLES = [
+    '//apps/pce/bandwidthmgmt:onos-apps-pce-bandwidthmgmt',
+    '//apps/pce/app:onos-apps-pce-app',
+    '//apps/pce/pcerest:onos-apps-pce-pcerest',
+    '//apps/pce/pceweb:onos-apps-pce-pceweb',
+]
+
+onos_app (
+  app_name='org.onosproject.pce',
+    title = 'PCE APP',
+    category = 'PCE',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'PCE Service App.',
+)

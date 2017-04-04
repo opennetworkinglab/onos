@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/pcep-api:onos-apps-pcep-api',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS
+)
+
+onos_app (
+    app_name = 'org.onosproject.bandwidthmgmt',
+    title = 'PCE Bandwidth Management',
+    category = 'default',
+    url = 'http://onosproject.org',
+    description = 'PCE Bandwidth Management.',
+)

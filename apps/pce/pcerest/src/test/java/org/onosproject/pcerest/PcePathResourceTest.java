@@ -49,7 +49,7 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
-import org.onosproject.core.GroupId;
+// import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -80,7 +80,7 @@ public class PcePathResourceTest extends PceResourceTest {
     private final TunnelService tunnelService = createMock(TunnelService.class);
     private final TunnelEndPoint src = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(23423));
     private final TunnelEndPoint dst = IpTunnelEndPoint.ipTunnelPoint(IpAddress.valueOf(32421));
-    private final GroupId groupId = new GroupId(92034);
+    // private final DefaultGroupId groupId = new DefaultGroupId(92034);
     private final TunnelName tunnelName = TunnelName.tunnelName("TunnelName");
     private final TunnelId tunnelId = TunnelId.valueOf("41654654");
     private final ProviderId producerName = new ProviderId("producer1", "13");
@@ -174,7 +174,7 @@ public class PcePathResourceTest extends PceResourceTest {
 
        // Tunnel
        tunnel = new DefaultTunnel(producerName, src, dst, Tunnel.Type.VXLAN,
-                                  Tunnel.State.ACTIVE, groupId, tunnelId,
+                                  Tunnel.State.ACTIVE, null, tunnelId,
                                   tunnelName, path, builderAnn.build());
 
         explicitPathInfoList = Lists.newLinkedList();

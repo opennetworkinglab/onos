@@ -16,9 +16,12 @@
 package org.onosproject.pce.pceservice.constraint;
 
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.Path;
-import org.onosproject.net.intent.ResourceContext;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.ResourceContext;
+import org.onosproject.pcep.api.TeLinkConfig;
 
 import java.util.Objects;
 
@@ -130,25 +133,38 @@ public final class CostConstraint implements Constraint {
 
     @Override
     public double cost(Link link, ResourceContext context) {
-        //TODO: Usage of annotations are for transient solution. In future will be replaces with the
-        // network config service / Projection model.
+        return 0;
+    }
+
+    /**
+     * Validates the link based on cost type specified.
+     *
+     * @param link to validate cost type constraint
+     * @param netCfgService instance of netCfgService
+     * @return true if link satisfies cost constraint otherwise false
+     */
+    public double isValidLink(Link link, NetworkConfigService netCfgService) {
+        if (netCfgService == null) {
+            return -1;
+        }
+
+        TeLinkConfig cfg = netCfgService.getConfig(LinkKey.linkKey(link.src(), link.dst()), TeLinkConfig.class);
+        if (cfg == null) {
+            //If cost configuration absent return -1[It is not L3 device]
+            return -1;
+        }
+
         switch (type) {
-        case COST:
-            if (link.annotations().value(COST) != null) {
-                return Double.parseDouble(link.annotations().value(COST));
-            }
+            case COST:
+                //If IGP cost is zero then IGP cost is not assigned for that link
+                return cfg.igpCost() == 0 ? -1 : cfg.igpCost();
 
-            //If cost annotations absent return -1[It is not L3 device]
-            return -1;
-        case TE_COST:
-            if (link.annotations().value(TE_COST) != null) {
-                return Double.parseDouble(link.annotations().value(TE_COST));
-            }
+            case TE_COST:
+                //If TE cost is zero then TE cost is not assigned for that link
+                return cfg.teCost() == 0 ? -1 : cfg.teCost();
 
-            //If TE cost annotations absent return -1[It is not L3 device]
-            return -1;
-        default:
-            return -1;
+            default:
+                return -1;
         }
     }
 

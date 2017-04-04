@@ -13,6 +13,7 @@ BUNDLES = [
   '//providers/bgpcep/flow:onos-providers-bgpcep-flow',
   '//apps/pce/app:onos-apps-pce-app',
   '//apps/pce/pceweb:onos-apps-pce-pceweb',
+  '//apps/pce/bandwidthmgmt:onos-apps-pce-bandwidthmgmt', 
 ]
 
 onos_app (

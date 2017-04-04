@@ -37,11 +37,11 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -223,7 +223,6 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
 
             if (lspType == null || lspType.equals(STRING_NULL)) {
                 log.error("PCE setup path is failed as LSP type is mandatory");
-                return;
             }
 
             if ((src != null) && (dst != null)) {
@@ -620,7 +619,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
 
         if (bwValue != 0.0) {
-            listConstrnt.add(BandwidthConstraint.of(bwValue, DataRateUnit.valueOf(BANDWIDTH_BPS)));
+            listConstrnt.add(PceBandwidthConstraint.of(bwValue, DataRateUnit.valueOf(BANDWIDTH_BPS)));
         }
 
         if (costTypeVal != null) {
@@ -703,12 +702,15 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         }
     }
 
+    /**
+     * Handles the event of topology listeners.
+     */
     private void findTunnelAndHighlights() {
         Collection<Tunnel> tunnelSet = null;
         Highlights highlights = new Highlights();
-        paths.clear();
+        paths.removeAll(paths);
         tunnelSet = tunnelService.queryTunnel(MPLS);
-        if (tunnelSet.isEmpty()) {
+        if (tunnelSet.size() == 0) {
             log.warn("Tunnel does not exist");
             sendMessage(highlightsMessage(highlights));
             return;
@@ -745,9 +747,12 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         hilightAndSendPaths(highlights);
     }
 
+    /**
+     * Handles the event of topology listeners.
+     */
     private void highlightsForTunnel(Tunnel tunnel) {
         Highlights highlights = new Highlights();
-        paths.clear();
+        paths.removeAll(paths);
         if (tunnel.path() == null) {
             log.error("path does not exist");
             sendMessage(highlightsMessage(highlights));

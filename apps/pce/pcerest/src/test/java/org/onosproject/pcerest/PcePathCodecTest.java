@@ -28,13 +28,13 @@ import org.junit.Test;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.pce.pceservice.PcePath;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 
 /**
  * PCE path codec unit tests.
@@ -92,7 +92,7 @@ public class PcePathCodecTest {
         assertThat(pcePath.costConstraint(), is(costConstraint));
         // testing bandwidth
         String bandwidth = "200";
-        Constraint bandwidthConstraint = BandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit
+        Constraint bandwidthConstraint = PceBandwidthConstraint.of(Double.valueOf(bandwidth), DataRateUnit
                     .valueOf("BPS"));
         assertThat(pcePath.bandwidthConstraint(), is(bandwidthConstraint));
     }

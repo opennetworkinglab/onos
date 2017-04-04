@@ -37,13 +37,13 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pceservice.api.PceService;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.slf4j.Logger;
 
 /**
@@ -132,7 +132,7 @@ public class PceSetupPathCommand extends AbstractShellCommand {
         // Add bandwidth
         // bandwidth default data rate unit is in BPS
         if (bandwidth != 0.0) {
-            listConstrnt.add(BandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("BPS")));
+            listConstrnt.add(PceBandwidthConstraint.of(bandwidth, DataRateUnit.valueOf("BPS")));
         }
 
         // Add cost

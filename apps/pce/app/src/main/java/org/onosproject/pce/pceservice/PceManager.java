@@ -17,11 +17,14 @@ package org.onosproject.pce.pceservice;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.felix.scr.annotations.Activate;
@@ -45,6 +48,9 @@ import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
@@ -54,21 +60,19 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.pce.pceservice.constraint.SharedBandwidthConstraint;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceConsumer;
-import org.onosproject.net.resource.ResourceQueryService;
-import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.Resources;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
@@ -79,6 +83,7 @@ import org.onosproject.pce.pceservice.api.PceService;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pcep.api.DeviceCapability;
+import org.onosproject.pcep.api.TeLinkConfig;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
@@ -118,9 +123,6 @@ public class PceManager implements PceService {
     public static final String DEVICE_TYPE = "type";
     public static final String L3_DEVICE = "L3";
 
-    private static final String TUNNEL_CONSUMER_ID_GEN_TOPIC = "pcep-tunnel-consumer-id";
-    private IdGenerator tunnelConsumerIdGen;
-
     private static final String LSRID = "lsrId";
     private static final String TRUE = "true";
     private static final String FALSE = "false";
@@ -131,12 +133,6 @@ public class PceManager implements PceService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ResourceService resourceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ResourceQueryService resourceQueryService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PathService pathService;
@@ -162,13 +158,27 @@ public class PceManager implements PceService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected BandwidthMgmtService bandwidthMgmtService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netConfigRegistry;
+
     private TunnelListener listener = new InnerTunnelListener();
     private ApplicationId appId;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();
 
-    public static final int INITIAL_DELAY = 30;
-    public static final int PERIODIC_DELAY = 30;
+    private List<TunnelId> rsvpTunnelsWithLocalBw = new ArrayList<>();
+
+    private final ConfigFactory<LinkKey, TeLinkConfig> configFactory =
+            new ConfigFactory<LinkKey, TeLinkConfig>(SubjectFactories.LINK_SUBJECT_FACTORY,
+                    TeLinkConfig.class, "teLinkConfig") {
+                @Override
+                public TeLinkConfig createConfig() {
+                    return new TeLinkConfig();
+                }
+            };
 
     /**
      * Creates new instance of PceManager.
@@ -182,7 +192,6 @@ public class PceManager implements PceService {
 
         tunnelService.addListener(listener);
 
-        tunnelConsumerIdGen = coreService.getIdGenerator(TUNNEL_CONSUMER_ID_GEN_TOPIC);
         localLspIdIdGen = coreService.getIdGenerator(LOCAL_LSP_ID_GEN_TOPIC);
         localLspIdIdGen.getNewId(); // To prevent 0, the 1st value generated from being used in protocol.
         localLspIdFreeList = storageService.<Short>setBuilder()
@@ -192,6 +201,7 @@ public class PceManager implements PceService {
                 .asDistributedSet();
 
         topologyService.addListener(topologyListener);
+        netConfigRegistry.registerConfigFactory(configFactory);
 
         log.info("Started");
     }
@@ -200,6 +210,8 @@ public class PceManager implements PceService {
     protected void deactivate() {
         tunnelService.removeListener(listener);
         topologyService.removeListener(topologyListener);
+        netConfigRegistry.unregisterConfigFactory(configFactory);
+
         log.info("Stopped");
     }
 
@@ -460,8 +472,8 @@ public class PceManager implements PceService {
 
             while (iterator.hasNext()) {
                 Constraint constraint = iterator.next();
-                if (constraint instanceof BandwidthConstraint) {
-                    bwConstraintValue = ((BandwidthConstraint) constraint).bandwidth().bps();
+                if (constraint instanceof PceBandwidthConstraint) {
+                    bwConstraintValue = ((PceBandwidthConstraint) constraint).bandwidth().bps();
                 } else if (constraint instanceof CostConstraint) {
                     costConstraint = (CostConstraint) constraint;
                 }
@@ -534,11 +546,9 @@ public class PceManager implements PceService {
                                           TunnelName.tunnelName(tunnelName), computedPath,
                                           annotationBuilder.build());
 
-        // Allocate bandwidth.
-        TunnelConsumerId consumerId = null;
+        // Allocate bandwidth for all tunnels.
         if (bwConstraintValue != 0) {
-            consumerId = reserveBandwidth(computedPath, bwConstraintValue, null);
-            if (consumerId == null) {
+            if (!reserveBandwidth(computedPath, bwConstraintValue, null)) {
                 pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints,
                         lspType, explicitPathInfo));
                 return false;
@@ -548,16 +558,19 @@ public class PceManager implements PceService {
         TunnelId tunnelId = tunnelService.setupTunnel(appId, src, tunnel, computedPath);
         if (tunnelId == null) {
             pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
-            if (consumerId != null) {
-                resourceService.release(consumerId);
+
+            if (bwConstraintValue != 0) {
+                computedPath.links().forEach(ln -> bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(ln),
+                        Double.parseDouble(tunnel.annotations().value(BANDWIDTH))));
             }
+
             return false;
         }
 
-        if (consumerId != null) {
-            // Store tunnel consumer id in LSP store.
-            pceStore.addTunnelInfo(tunnelId, consumerId);
+        if (bwConstraintValue != 0 && lspType == WITH_SIGNALLING) {
+            rsvpTunnelsWithLocalBw.add(tunnelId);
         }
+
         return true;
     }
 
@@ -581,7 +594,7 @@ public class PceManager implements PceService {
         double bwConstraintValue = 0;
         String costType = null;
         SharedBandwidthConstraint shBwConstraint = null;
-        BandwidthConstraint bwConstraint = null;
+        PceBandwidthConstraint bwConstraint = null;
         CostConstraint costConstraint = null;
 
         if (constraints != null) {
@@ -589,8 +602,8 @@ public class PceManager implements PceService {
             Iterator<Constraint> iterator = constraints.iterator();
             while (iterator.hasNext()) {
                 Constraint constraint = iterator.next();
-                if (constraint instanceof BandwidthConstraint) {
-                    bwConstraint = (BandwidthConstraint) constraint;
+                if (constraint instanceof PceBandwidthConstraint) {
+                    bwConstraint = (PceBandwidthConstraint) constraint;
                     bwConstraintValue = bwConstraint.bandwidth().bps();
                 } else if (constraint instanceof CostConstraint) {
                     costConstraint = (CostConstraint) constraint;
@@ -684,7 +697,6 @@ public class PceManager implements PceService {
         annotationBuilder.set(PCC_TUNNEL_ID, tunnel.annotations().value(PCC_TUNNEL_ID));
 
         Path computedPath = computedPathSet.iterator().next();
-        TunnelConsumerId consumerId = null;
         LspType lspType = LspType.valueOf(lspSigType);
         long localLspId = 0;
         if (lspType != WITH_SIGNALLING) {
@@ -700,10 +712,9 @@ public class PceManager implements PceService {
                                                  tunnel.tunnelName(), computedPath,
                                                  annotationBuilder.build());
 
-        // Allocate shared bandwidth.
+        // Allocate shared bandwidth for all tunnels.
         if (bwConstraintValue != 0) {
-            consumerId = reserveBandwidth(computedPath, bwConstraintValue, shBwConstraint);
-            if (consumerId == null) {
+            if (!reserveBandwidth(computedPath, bwConstraintValue, shBwConstraint)) {
                 return false;
             }
         }
@@ -712,15 +723,14 @@ public class PceManager implements PceService {
                                                              computedPath);
 
         if (updatedTunnelId == null) {
-            if (consumerId != null) {
-                resourceService.release(consumerId);
+            if (bwConstraintValue != 0) {
+                releaseSharedBwForNewTunnel(computedPath, bwConstraintValue, shBwConstraint);
             }
             return false;
         }
 
-        if (consumerId != null) {
-            // Store tunnel consumer id in LSP store.
-            pceStore.addTunnelInfo(updatedTunnelId, consumerId);
+        if (bwConstraintValue != 0 && lspType == WITH_SIGNALLING) {
+            rsvpTunnelsWithLocalBw.add(updatedTunnelId);
         }
 
         return true;
@@ -748,6 +758,35 @@ public class PceManager implements PceService {
     @Override
     public Tunnel queryPath(TunnelId tunnelId) {
         return tunnelService.queryTunnel(tunnelId);
+    }
+
+    private boolean releaseSharedBwForNewTunnel(Path computedPath, double bandwidthConstraint,
+                                                SharedBandwidthConstraint shBwConstraint) {
+        checkNotNull(computedPath);
+        checkNotNull(bandwidthConstraint);
+        double bwToAllocate;
+
+        Double additionalBwValue = null;
+        if (shBwConstraint != null) {
+            additionalBwValue = ((bandwidthConstraint - shBwConstraint.sharedBwValue().bps()) <= 0) ? null
+                    : (bandwidthConstraint - shBwConstraint.sharedBwValue().bps());
+        }
+
+        for (Link link : computedPath.links()) {
+            bwToAllocate = 0;
+            if ((shBwConstraint != null) && (shBwConstraint.links().contains(link))) {
+                if (additionalBwValue != null) {
+                    bwToAllocate = additionalBwValue;
+                }
+            } else {
+                bwToAllocate = bandwidthConstraint;
+            }
+
+            if (bwToAllocate != 0) {
+                bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(link), bwToAllocate);
+            }
+        }
+        return true;
     }
 
     /**
@@ -801,8 +840,16 @@ public class PceManager implements PceService {
                 if (constraint instanceof CapabilityConstraint) {
                     cost = ((CapabilityConstraint) constraint).isValidLink(edge.link(), deviceService,
                                                                            netCfgService) ? 1 : -1;
+                } else if (constraint instanceof PceBandwidthConstraint) {
+                    cost = ((PceBandwidthConstraint) constraint).isValidLink(edge.link(),
+                            bandwidthMgmtService) ? 1 : -1;
+                } else if (constraint instanceof SharedBandwidthConstraint) {
+                    cost = ((SharedBandwidthConstraint) constraint).isValidLink(edge.link(),
+                            bandwidthMgmtService) ? 1 : -1;
+                } else if (constraint instanceof CostConstraint) {
+                    cost = ((CostConstraint) constraint).isValidLink(edge.link(), netCfgService);
                 } else {
-                    cost = constraint.cost(edge.link(), resourceService::isAvailable);
+                    cost = constraint.cost(edge.link(), null);
                 }
             }
             return cost;
@@ -841,7 +888,7 @@ public class PceManager implements PceService {
 
             if (tunnel.annotations().value(BANDWIDTH) != null) {
                 //Requested bandwidth will be same as previous allocated bandwidth for the tunnel
-                BandwidthConstraint localConst = new BandwidthConstraint(Bandwidth.bps(Double.parseDouble(tunnel
+                PceBandwidthConstraint localConst = new PceBandwidthConstraint(Bandwidth.bps(Double.parseDouble(tunnel
                         .annotations().value(BANDWIDTH))));
                 constraintList.add(localConst);
             }
@@ -870,14 +917,13 @@ public class PceManager implements PceService {
     }
 
      // Allocates the bandwidth locally for PCECC tunnels.
-    private TunnelConsumerId reserveBandwidth(Path computedPath, double bandwidthConstraint,
+    private boolean reserveBandwidth(Path computedPath, double bandwidthConstraint,
                                   SharedBandwidthConstraint shBwConstraint) {
         checkNotNull(computedPath);
         checkNotNull(bandwidthConstraint);
         Resource resource = null;
         double bwToAllocate = 0;
-
-        TunnelConsumerId consumer = TunnelConsumerId.valueOf(tunnelConsumerIdGen.getNewId());
+        Map<Link, Double> linkMap = new HashMap<>();
 
         /**
          * Shared bandwidth sub-case : Lesser bandwidth required than original -
@@ -905,24 +951,20 @@ public class PceManager implements PceService {
              *  is not required to allocate anything.
              */
             if (bwToAllocate != 0) {
-                resource = Resources.continuous(link.src().deviceId(), link.src().port(), Bandwidth.class)
-                        .resource(bwToAllocate);
-                resAlloc = resourceService.allocate(consumer, resource);
-
-                // If allocation for any link fails, then release the partially allocated bandwidth.
-                if (!resAlloc.isPresent()) {
-                    resourceService.release(consumer);
-                    return null;
+                if (!bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link.src(), link.dst()),
+                        bwToAllocate)) {
+                    // If allocation for any link fails, then release the partially allocated bandwidth
+                    // for all links allocated
+                    linkMap.forEach((ln, aDouble) -> bandwidthMgmtService
+                                                     .releaseLocalReservedBw(LinkKey.linkKey(ln), aDouble));
+                    return false;
                 }
+
+                linkMap.put(link, bwToAllocate);
             }
         }
 
-        /*
-         * Note: Storing of tunnel consumer id is done by caller of bandwidth reservation function. So deleting tunnel
-         * consumer id should be done by caller of bandwidth releasing function. This will prevent ambiguities related
-         * to who is supposed to store/delete.
-         */
-        return consumer;
+        return true;
     }
 
     /*
@@ -950,24 +992,13 @@ public class PceManager implements PceService {
             }
         }
 
-        ResourceConsumer tunnelConsumerId = pceStore.getTunnelInfo(tunnel.tunnelId());
-        if (tunnelConsumerId == null) {
-            //If bandwidth for old tunnel is not allocated i,e 0 then no need to release
-            log.debug("Bandwidth not allocated (0 bandwidth) for old LSP.");
-            return;
-        }
-
         if (isLinkShared) {
             releaseSharedBandwidth(newTunnel, tunnel);
             return;
         }
 
-        resourceService.release(tunnelConsumerId);
-        /*
-         * Note: Storing of tunnel consumer id is done by caller of bandwidth reservation function. So deleting tunnel
-         * consumer id should be done by caller of bandwidth releasing function. This will prevent ambiguities related
-         * to who is supposed to store/delete.
-         */
+        tunnel.path().links().forEach(tn -> bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(tn),
+                Double.parseDouble(tunnel.annotations().value(BANDWIDTH))));
     }
 
     /**
@@ -975,27 +1006,24 @@ public class PceManager implements PceService {
      *  allocated in shared mode initially.
      */
     private synchronized void releaseSharedBandwidth(Tunnel newTunnel, Tunnel oldTunnel) {
-        // 1. Release old tunnel's bandwidth.
-        resourceService.release(pceStore.getTunnelInfo(oldTunnel.tunnelId()));
 
-        // 2. Release new tunnel's bandwidth, if new tunnel bandwidth is allocated
-        ResourceConsumer consumer = pceStore.getTunnelInfo(newTunnel.tunnelId());
-        if (consumer == null) {
-            //If bandwidth for new tunnel is not allocated i,e 0 then no need to allocate
-            return;
+        boolean isAllocate = false;
+        Double oldTunnelBw = Double.parseDouble(oldTunnel.annotations().value(BANDWIDTH));
+        Double newTunnelBw = Double.parseDouble(newTunnel.annotations().value(BANDWIDTH));
+
+        if (newTunnelBw > oldTunnelBw) {
+            isAllocate = true;
         }
 
-        resourceService.release(consumer);
-
-        // 3. Allocate new tunnel's complete bandwidth.
-        double bandwidth = Double.parseDouble(newTunnel.annotations().value(BANDWIDTH));
-        Resource resource;
-
         for (Link link : newTunnel.path().links()) {
-            resource = Resources.continuous(link.src().deviceId(), link.src().port(), Bandwidth.class)
-                    .resource(bandwidth);
-            resourceService.allocate(consumer, resource); // Reusing new tunnel's TunnelConsumerId intentionally.
-
+            if (oldTunnel.path().links().contains(link)) {
+                if (!isAllocate) {
+                    bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(link),
+                            oldTunnelBw - newTunnelBw);
+                }
+            } else {
+                bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(link), oldTunnelBw);
+            }
         }
     }
 
@@ -1017,19 +1045,12 @@ public class PceManager implements PceService {
             }
 
             switch (event.type()) {
-            case TUNNEL_ADDED:
-                // Allocate bandwidth for non-initiated, delegated LSPs with non-zero bandwidth (learned LSPs).
-                String pceInit = tunnel.annotations().value(PCE_INIT);
-                if (FALSE.equalsIgnoreCase(pceInit) && bwConstraintValue != 0) {
-                    TunnelConsumerId consumerId = reserveBandwidth(tunnel.path(), bwConstraintValue, null);
-                    if (consumerId != null) {
-                        // Store tunnel consumer id in LSP store.
-                        pceStore.addTunnelInfo(tunnel.tunnelId(), consumerId);
-                    }
-                }
-                break;
-
             case TUNNEL_UPDATED:
+                if (rsvpTunnelsWithLocalBw.contains(tunnel.tunnelId())) {
+                    releaseBandwidth(event.subject());
+                        rsvpTunnelsWithLocalBw.remove(tunnel.tunnelId());
+                }
+
                 if (tunnel.state() == UNSTABLE) {
                     /*
                      * During LSP DB sync if PCC doesn't report LSP which was PCE initiated, it's state is turned into
@@ -1040,7 +1061,7 @@ public class PceManager implements PceService {
                     List<Constraint> constraints = new LinkedList<>();
                     String bandwidth = tunnel.annotations().value(BANDWIDTH);
                     if (bandwidth != null) {
-                        constraints.add(new BandwidthConstraint(Bandwidth
+                        constraints.add(new PceBandwidthConstraint(Bandwidth
                                 .bps(Double.parseDouble(bandwidth))));
                     }
 
@@ -1068,14 +1089,16 @@ public class PceManager implements PceService {
                     localLspIdFreeList.add(Short.valueOf(tunnel.annotations().value(LOCAL_LSP_ID)));
                 }
                 // If not zero bandwidth, and delegated (initiated LSPs will also be delegated).
-                if (bwConstraintValue != 0
-                        && mastershipService.getLocalRole(tunnel.path().src().deviceId()) == MastershipRole.MASTER) {
-                    releaseBandwidth(tunnel);
+                if (bwConstraintValue != 0 && mastershipService.getLocalRole(tunnel.path().src()
+                        .deviceId()) == MastershipRole.MASTER) {
+                    if (lspType != WITH_SIGNALLING) {
+                        releaseBandwidth(tunnel);
+                    }
                 }
 
-                if (pceStore.getTunnelInfo(tunnel.tunnelId()) != null) {
+                /*if (pceStore.getTunnelInfo(tunnel.tunnelId()) != null) {
                     pceStore.removeTunnelInfo(tunnel.tunnelId());
-                }
+                }*/
 
                 break;
 

@@ -34,8 +34,8 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.pce.pcestore.api.PceStore;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 
 import java.util.List;
 
@@ -147,7 +147,7 @@ public class DefaultPcePathTest {
         CostConstraint costConstExpected = CostConstraint.of(CostConstraint.Type.values()[Integer.valueOf(cost) - 1]);
         CostConstraint costConstActual = (CostConstraint) path.costConstraint();
         assertThat(costConstActual.type(), is(costConstExpected.type()));
-        BandwidthConstraint bandwidthActual = (BandwidthConstraint) path.bandwidthConstraint();
+        PceBandwidthConstraint bandwidthActual = (PceBandwidthConstraint) path.bandwidthConstraint();
         assertThat(bandwidthActual.bandwidth().bps(), is(Double.valueOf(bandwidth)));
     }
 }

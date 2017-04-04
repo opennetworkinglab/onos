@@ -19,11 +19,10 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.ResourceContext;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
-import org.onosproject.net.resource.Resources;
+import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -99,16 +98,28 @@ public final class SharedBandwidthConstraint extends BooleanConstraint {
 
     @Override
     public boolean isValid(Link link, ResourceContext context) {
+        return false;
+        //Do nothing instead using isValidLink needs pce service to validate link
+    }
+
+    /**
+     * Validates the link based on shared bandwidth constraint.
+     *
+     * @param link to validate shared bandwidth constraint
+     * @param bandwidthMgmtService instance of BandwidthMgmtService
+     * @return true if link satisfies shared bandwidth constraint otherwise false
+     */
+    public boolean isValidLink(Link link, BandwidthMgmtService bandwidthMgmtService) {
+        if (bandwidthMgmtService == null) {
+            return false;
+        }
         changedBwValue = requestBwValue;
         if (links.contains(link)) {
             changedBwValue = requestBwValue.isGreaterThan(sharedBwValue) ? requestBwValue.subtract(sharedBwValue)
                     : Bandwidth.bps(0);
         }
 
-        return Stream
-                .of(link.src(), link.dst())
-                .map(cp -> Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(
-                        changedBwValue.bps())).allMatch(context::isAvailable);
+        return bandwidthMgmtService.isBandwidthAvailable(link, changedBwValue.bps());
     }
 
     @Override

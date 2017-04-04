@@ -15,43 +15,8 @@
  */
 package org.onosproject.pce.pceservice;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.resource.Resources.continuous;
-import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
-import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
-import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
-import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
-import static org.onosproject.pce.pceservice.PathComputationTest.D1;
-import static org.onosproject.pce.pceservice.PathComputationTest.D2;
-import static org.onosproject.pce.pceservice.PathComputationTest.D3;
-import static org.onosproject.pce.pceservice.PathComputationTest.D4;
-import static org.onosproject.pce.pceservice.PathComputationTest.D5;
-import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE1;
-import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE2;
-import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE3;
-import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE4;
-import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE5;
-import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
-import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
-import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,15 +47,13 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Path;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Resource;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeight;
@@ -103,16 +66,50 @@ import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.pce.pceservice.PathComputationTest.MockNetConfigRegistryAdapter;
-import org.onosproject.pce.pceservice.PathComputationTest.MockPathResourceService;
 import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pce.util.MockDeviceService;
 import org.onosproject.pce.util.PceStoreAdapter;
 import org.onosproject.pce.util.TunnelServiceAdapter;
 import org.onosproject.pcep.api.DeviceCapability;
+import org.onosproject.pcep.api.TeLinkConfig;
 import org.onosproject.store.service.TestStorageService;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.ESTABLISHED;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
+import static org.onosproject.pce.pceservice.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pce.pceservice.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
+import static org.onosproject.pce.pceservice.PathComputationTest.D1;
+import static org.onosproject.pce.pceservice.PathComputationTest.D2;
+import static org.onosproject.pce.pceservice.PathComputationTest.D3;
+import static org.onosproject.pce.pceservice.PathComputationTest.D4;
+import static org.onosproject.pce.pceservice.PathComputationTest.D5;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE1;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE2;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE3;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE4;
+import static org.onosproject.pce.pceservice.PathComputationTest.DEVICE5;
+import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
+import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PLSP_ID;
+import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.COST;
+import static org.onosproject.pce.pceservice.constraint.CostConstraint.Type.TE_COST;
 
 /**
  * Tests the functions of PceManager.
@@ -120,8 +117,6 @@ import com.google.common.collect.ImmutableSet;
 public class PceManagerTest {
 
     private PathComputationTest pathCompTest = new PathComputationTest();
-    private MockPathResourceService resourceService =
-            pathCompTest.new MockPathResourceService();
     private MockTopologyService topologyService = new MockTopologyService();
     private MockMastershipService mastershipService = new MockMastershipService();
     private MockPathService pathService = new MockPathService();
@@ -130,9 +125,10 @@ public class PceManagerTest {
     private MockTunnelServiceAdapter tunnelService = new MockTunnelServiceAdapter();
     private TestStorageService storageService = new TestStorageService();
     private MockDeviceService deviceService = new MockDeviceService();
-    private MockNetConfigRegistryAdapter netConfigRegistry =
-            new PathComputationTest.MockNetConfigRegistryAdapter();
+    private MockNetConfigRegistryAdapter netConfigRegistry = new PathComputationTest.MockNetConfigRegistryAdapter();
     private PceStore pceStore = new PceStoreAdapter();
+    private PathComputationTest.MockBandwidthMgmtService bandwidthMgmtService = new PathComputationTest
+                                                                                            .MockBandwidthMgmtService();
 
     public static ProviderId providerId = new ProviderId("pce", "foo");
     private static final String L3 = "L3";
@@ -140,12 +136,12 @@ public class PceManagerTest {
     private static final String PCECC_CAPABILITY = "pceccCapability";
     private static final String SR_CAPABILITY = "srCapability";
     private static final String LABEL_STACK_CAPABILITY = "labelStackCapability";
-    private static final String TUNNEL_NAME = "T123";
 
     private TopologyGraph graph = null;
     private Device deviceD1, deviceD2, deviceD3, deviceD4, deviceD5;
     private Device pcepDeviceD1, pcepDeviceD2, pcepDeviceD3, pcepDeviceD4;
     private Link link1, link2, link3, link4, link5, link6;
+    protected static int flowsDownloaded;
     private TunnelListener tunnelListener;
     private TopologyListener listener;
     private Topology topology;
@@ -156,15 +152,16 @@ public class PceManagerTest {
     public void startUp() throws TestUtilsException {
         listener = TestUtils.getField(pceManager, "topologyListener");
         pceManager.pathService = pathService;
-        pceManager.resourceService = resourceService;
         pceManager.topologyService = topologyService;
         pceManager.tunnelService = tunnelService;
         pceManager.coreService = coreService;
         pceManager.storageService = storageService;
         pceManager.deviceService = deviceService;
         pceManager.netCfgService = netConfigRegistry;
+        pceManager.netConfigRegistry = netConfigRegistry;
         pceManager.pceStore = pceStore;
         pceManager.mastershipService = mastershipService;
+        pceManager.bandwidthMgmtService = bandwidthMgmtService;
         pceManager.activate();
     }
 
@@ -180,15 +177,66 @@ public class PceManagerTest {
         }
     }
 
-    private void build4RouterTopo(boolean setCost, boolean setPceccCap,
-                                  boolean setSrCap, boolean setLabelStackCap,
-                                  int bandwidth) {
+    private void build4RouterTopo(boolean setCost, boolean setPceccCap, boolean setSrCap,
+                                 boolean setLabelStackCap, int bandwidth) {
         link1 = PathComputationTest.addLink(DEVICE1, 10, DEVICE2, 20, setCost, 50);
         link2 = PathComputationTest.addLink(DEVICE2, 30, DEVICE4, 40, setCost, 20);
         link3 = PathComputationTest.addLink(DEVICE1, 80, DEVICE3, 70, setCost, 100);
         link4 = PathComputationTest.addLink(DEVICE3, 60, DEVICE4, 50, setCost, 80);
         link5 = PathComputationTest.addLink(DEVICE2, 60, DEVICE5, 50, setCost, 80);
         link6 = PathComputationTest.addLink(DEVICE4, 60, DEVICE5, 50, setCost, 80);
+
+        if (setCost) {
+            TeLinkConfig teLinkConfig = netConfigRegistry.addConfig(LinkKey.linkKey(link1), TeLinkConfig.class);
+            teLinkConfig.igpCost(50)
+                    .apply();
+
+            TeLinkConfig teLinkConfig2 = netConfigRegistry.addConfig(LinkKey.linkKey(link2), TeLinkConfig.class);
+            teLinkConfig2.igpCost(20)
+                    .apply();
+
+            TeLinkConfig teLinkConfig3 = netConfigRegistry.addConfig(LinkKey.linkKey(link3), TeLinkConfig.class);
+            teLinkConfig3.igpCost(100)
+                    .apply();
+
+            TeLinkConfig teLinkConfig4 = netConfigRegistry.addConfig(LinkKey.linkKey(link4), TeLinkConfig.class);
+            teLinkConfig4.igpCost(80)
+                    .apply();
+
+            TeLinkConfig teLinkConfig5 = netConfigRegistry.addConfig(LinkKey.linkKey(link5), TeLinkConfig.class);
+            teLinkConfig5.igpCost(80)
+                    .apply();
+
+            TeLinkConfig teLinkConfig6 = netConfigRegistry.addConfig(LinkKey.linkKey(link6), TeLinkConfig.class);
+            teLinkConfig6.igpCost(80)
+                    .apply();
+        } else {
+            TeLinkConfig teLinkConfig = netConfigRegistry.addConfig(LinkKey.linkKey(link1), TeLinkConfig.class);
+            teLinkConfig.teCost(50)
+                    .apply();
+
+
+            TeLinkConfig teLinkConfig2 = netConfigRegistry.addConfig(LinkKey.linkKey(link2), TeLinkConfig.class);
+            teLinkConfig2.teCost(20)
+                    .apply();
+
+            TeLinkConfig teLinkConfig3 = netConfigRegistry.addConfig(LinkKey.linkKey(link3), TeLinkConfig.class);
+            teLinkConfig3.teCost(100)
+                    .apply();
+
+            TeLinkConfig teLinkConfig4 = netConfigRegistry.addConfig(LinkKey.linkKey(link4), TeLinkConfig.class);
+            teLinkConfig4.teCost(80)
+                    .apply();
+
+            TeLinkConfig teLinkConfig5 = netConfigRegistry.addConfig(LinkKey.linkKey(link5), TeLinkConfig.class);
+            teLinkConfig5.teCost(80)
+                    .apply();
+
+            TeLinkConfig teLinkConfig6 = netConfigRegistry.addConfig(LinkKey.linkKey(link6), TeLinkConfig.class);
+            teLinkConfig6.teCost(80)
+                    .apply();
+        }
+
 
         Set<TopologyVertex> vertexes = new HashSet<TopologyVertex>();
         vertexes.add(D1);
@@ -256,63 +304,71 @@ public class PceManagerTest {
         deviceService.addDevice(deviceD4);
         deviceService.addDevice(deviceD5);
 
-        mkDevCap("1.1.1.1", setLabelStackCap, setPceccCap, setSrCap);
-        mkDevCap("2.2.2.2", setLabelStackCap, setPceccCap, setSrCap);
-        mkDevCap("3.3.3.3", setLabelStackCap, setPceccCap, setSrCap);
-        mkDevCap("4.4.4.4", setLabelStackCap, setPceccCap, setSrCap);
-        mkDevCap("5.5.5.5", setLabelStackCap, setPceccCap, setSrCap);
+        DeviceCapability device1Cap = netConfigRegistry.addConfig(DeviceId.deviceId("1.1.1.1"), DeviceCapability.class);
+        device1Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-        if (bandwidth != 0) {
-            List<Resource> resources = new LinkedList<>();
+        DeviceCapability device2Cap = netConfigRegistry.addConfig(DeviceId.deviceId("2.2.2.2"), DeviceCapability.class);
+        device2Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-            resources.add(continuous(link1.src().deviceId(), link1.src().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link2.src().deviceId(), link2.src().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link3.src().deviceId(), link3.src().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link4.src().deviceId(), link4.src().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link5.src().deviceId(), link5.src().port(),
-                    Bandwidth.class).resource(bandwidth));
+        DeviceCapability device3Cap = netConfigRegistry.addConfig(DeviceId.deviceId("3.3.3.3"), DeviceCapability.class);
+        device3Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-            resources.add(continuous(link1.dst().deviceId(), link1.dst().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link2.dst().deviceId(), link2.dst().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link3.dst().deviceId(), link3.dst().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link4.dst().deviceId(), link4.dst().port(),
-                    Bandwidth.class).resource(bandwidth));
-            resources.add(continuous(link5.dst().deviceId(), link5.dst().port(),
-                    Bandwidth.class).resource(bandwidth));
+        DeviceCapability device4Cap = netConfigRegistry.addConfig(DeviceId.deviceId("4.4.4.4"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(setLabelStackCap)
+        .setLocalLabelCap(setPceccCap)
+        .setSrCap(setSrCap)
+        .apply();
 
-            resourceService.allocate(IntentId.valueOf(bandwidth), resources);
-        }
-    }
-
-    private void mkDevCap(String strDeviceId, boolean setLabelStackCap,
-                          boolean setPceccCap, boolean setSrCap) {
-        DeviceCapability deviceCap = netConfigRegistry.addConfig(
-                DeviceId.deviceId(strDeviceId), DeviceCapability.class);
-        deviceCap.setLabelStackCap(setLabelStackCap)
+        DeviceCapability device5Cap = netConfigRegistry.addConfig(DeviceId.deviceId("5.5.5.5"), DeviceCapability.class);
+        device4Cap.setLabelStackCap(setLabelStackCap)
                 .setLocalLabelCap(setPceccCap)
                 .setSrCap(setSrCap)
                 .apply();
+
+        if (bandwidth != 0) {
+            Set<Double> unreserved = new HashSet<>();
+            unreserved.add(new Double(bandwidth));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link1), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link1), new Double(0));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link2), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link2), new Double(0));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link3), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link3), new Double(0));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link4), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link4), new Double(0));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link5), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link5), new Double(0));
+
+            bandwidthMgmtService.addUnreservedBw(LinkKey.linkKey(link6), unreserved);
+            bandwidthMgmtService.allocLocalReservedBw(LinkKey.linkKey(link6), new Double(0));
+        }
     }
 
     /**
      * Tests path success with (IGP) cost constraint for signalled LSP.
      */
     @Test
-    public void setupPathSuccessIgpCostSignalledLsp() {
+    public void setupPathTest1() {
         build4RouterTopo(true, false, false, false, 0); // IGP cost is set here.
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
     }
 
@@ -320,15 +376,13 @@ public class PceManagerTest {
      * Tests path failure with (IGP) cost constraint for signalled LSP.
      */
     @Test
-    public void setupPathFailureIgpCostSignalledLsp() {
-        // TE cost is set here, not IGP.
-        build4RouterTopo(false, false, false, false, 0);
-        List<Constraint> constraints = new LinkedList<>();
+    public void setupPathTest2() {
+        build4RouterTopo(false, false, false, false, 0); // TE cost is set here, not IGP.
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
         assertThat(result, is(false));
     }
 
@@ -336,16 +390,14 @@ public class PceManagerTest {
      * Tests path success with TE-cost constraint for signalled LSP.
      */
     @Test
-    public void setupPathSuccessTeCostSignalledLsp() {
-        // TE cost is set here.
-        build4RouterTopo(false, false, false, false, 0);
+    public void setupPathTest3() {
+        build4RouterTopo(false, false, false, false, 0); // TE cost is set here.
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
     }
 
@@ -353,16 +405,14 @@ public class PceManagerTest {
      * Tests path failure with TE-cost constraint for signalled LSP.
      */
     @Test
-    public void setupPathFailureTeCostSignalledLsp() {
-        // IGP cost is set here, not TE.
-        build4RouterTopo(true, false, false, false, 0);
+    public void setupPathTest4() {
+        build4RouterTopo(true, false, false, false, 0); // IGP cost is set here, not TE.
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
         assertThat(result, is(false));
     }
 
@@ -370,16 +420,15 @@ public class PceManagerTest {
      * Tests path success with (IGP) cost constraint for non-SR non-signalled LSP.
      */
     @Test
-    public void setupPathSuccessIgpCostNonSignalledLsp() {
+    public void setupPathTest5() {
         build4RouterTopo(true, true, false, false, 0);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITHOUT_SIGNALLING_AND_WITHOUT_SR,
-                null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints,
+                                              WITHOUT_SIGNALLING_AND_WITHOUT_SR, null);
         assertThat(result, is(true));
     }
 
@@ -387,34 +436,31 @@ public class PceManagerTest {
      * Tests path success with TE-cost constraint for non-SR non-sgnalled LSP.
      */
     @Test
-    public void setupPathSuccessTeCostNonSignalledLsp() {
+    public void setupPathTest6() {
         build4RouterTopo(false, true, false, false, 0);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITHOUT_SIGNALLING_AND_WITHOUT_SR,
-                null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints,
+                                              WITHOUT_SIGNALLING_AND_WITHOUT_SR, null);
         assertThat(result, is(true));
     }
 
     /**
-     * Tests path failure with TE-cost constraint for non-SR
-     * non-signalled LSP(CR). Label capability not registered.
+     * Tests path failure with TE-cost constraint for non-SR non-signalled LSP(CR). Label capability not registered.
      */
     @Test
-    public void setupPathFailureTeCostNonSignalledLsp() {
+    public void setupPathTest7() {
         build4RouterTopo(true, false, false, false, 0);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITHOUT_SIGNALLING_AND_WITHOUT_SR,
-                null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints,
+                                              WITHOUT_SIGNALLING_AND_WITHOUT_SR, null);
         assertThat(result, is(false));
     }
 
@@ -422,18 +468,18 @@ public class PceManagerTest {
      * Tests path failure as bandwidth is requested but is not registered.
      */
     @Test
-    public void setupPathFailureBandwidthNotRegistered() {
-        build4RouterTopo(true, false, false, false, 0);
+    public void setupPathTest8() {
+        build4RouterTopo(true, false, false, false, 2);
+
         List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints,
+                WITH_SIGNALLING, null);
         assertThat(result, is(false));
     }
 
@@ -441,34 +487,32 @@ public class PceManagerTest {
      * Tests path failure as bandwidth requested is more than registered.
      */
     @Test
-    public void setupPathFailureNotEnoughBandwidthRegistered() {
+    public void setupPathTest9() {
         build4RouterTopo(false, false, false, false, 5);
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(false));
     }
 
     /**
-     * Tests path setup failure(without signalling). Label capability is not
-     * present.
+     * Tests path setup failure(without signalling). Label capability is not present.
      */
     @Test
-    public void setupPathFailureNoLabelCapability() {
+    public void setupPathTest10() {
         build4RouterTopo(false, false, false, false, 0);
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, SR_WITHOUT_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints,
+             SR_WITHOUT_SIGNALLING, null);
         assertThat(result, is(false));
     }
 
@@ -476,18 +520,17 @@ public class PceManagerTest {
      * Tests path setup without signalling and with bandwidth reservation.
      */
     @Test
-    public void setupPathSuccessWithoutSignalling() {
+    public void setupPathTest12() {
         build4RouterTopo(false, true, true, true, 15);
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, SR_WITHOUT_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123",
+                constraints, SR_WITHOUT_SIGNALLING, null);
         assertThat(result, is(true));
     }
 
@@ -495,28 +538,26 @@ public class PceManagerTest {
      * Tests path setup without cost/bandwidth constraints.
      */
     @Test
-    public void setupPathSuccessWithoutConstraints() {
+    public void setupPathTest13() {
         build4RouterTopo(false, false, false, false, 0);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", null, WITH_SIGNALLING, null);
         assertThat(result, is(true));
     }
 
     /**
      * Tests path setup with explicit path with loose node D2.
      */
-    @Test
-    public void setupPathExplicitPathInfoLooseD2() {
+   @Test
+    public void setupPathTest14() {
         build4RouterTopo(false, false, false, false, 0);
 
         List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                D2.deviceId());
+        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D2.deviceId());
         explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123", null, WITH_SIGNALLING,
+                explicitPathInfoList);
 
         Tunnel tunnel = pceManager.queryAllPath().iterator().next();
         List<Link> links = new LinkedList<>();
@@ -530,141 +571,134 @@ public class PceManagerTest {
     /**
      * Tests path setup with explicit path with loose node D3.
      */
-    @Test
-    public void setupPathExplicitPathInfoLooseD3() {
-        build4RouterTopo(false, false, false, false, 0);
+   @Test
+   public void setupPathTest15() {
+       build4RouterTopo(false, false, false, false, 0);
 
-        List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                D3.deviceId());
-        explicitPathInfoList.add(obj);
+       List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
+       ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D3.deviceId());
+       explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+       boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(), "T123", null, WITH_SIGNALLING,
+               explicitPathInfoList);
 
-        Tunnel tunnel = pceManager.queryAllPath().iterator().next();
-        List<Link> links = new LinkedList<>();
-        links.add(link3);
-        links.add(link4);
-        links.add(link6);
+       Tunnel tunnel = pceManager.queryAllPath().iterator().next();
+       List<Link> links = new LinkedList<>();
+       links.add(link3);
+       links.add(link4);
+       links.add(link6);
 
-        assertThat(result, is(true));
-        assertThat(tunnel.path().links().equals(links), is(true));
-    }
+       assertThat(result, is(true));
+       assertThat(tunnel.path().links().equals(links), is(true));
+   }
 
     /**
      * Tests path setup with explicit path with loose node D4 , D3 - path fails.
      */
-    @Test
-    public void setupPathExplicitPathInfoFail() {
-        build4RouterTopo(false, false, false, false, 0);
+   @Test
+   public void setupPathTest16() {
+       build4RouterTopo(false, false, false, false, 0);
 
-        List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                D4.deviceId());
-        explicitPathInfoList.add(obj);
-        obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D3.deviceId());
-        explicitPathInfoList.add(obj);
+       List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
+       ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D4.deviceId());
+       explicitPathInfoList.add(obj);
+       obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D3.deviceId());
+       explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+       boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(), "T123", null, WITH_SIGNALLING,
+               explicitPathInfoList);
 
-        assertThat(result, is(false));
-    }
+       assertThat(result, is(false));
+   }
 
     /**
-     * Tests path setup with explicit path with strict node D2 - without reacble
-     * to src - path fails.
+     * Tests path setup with explicit path with strict node D2 - without reacble to src - path fails.
      */
-    @Test
-    public void setupPathExplicitPathInfoStrictD2Fail() {
-        build4RouterTopo(false, false, false, false, 0);
+   @Test
+   public void setupPathTest17() {
+       build4RouterTopo(false, false, false, false, 0);
 
-        List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT,
-                D2.deviceId());
-        explicitPathInfoList.add(obj);
+       List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
+       ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
+       explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+       boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(), "T123", null, WITH_SIGNALLING,
+               explicitPathInfoList);
 
-        assertThat(result, is(false));
-    }
+       assertThat(result, is(false));
+   }
 
     /**
      * Tests path setup with explicit path with loose node D2, strict D2.
      */
-    @Test
-    public void setupPathExplicitPathInfoLooseAndStrictD2() {
-        build4RouterTopo(false, false, false, false, 0);
+   @Test
+   public void setupPathTest18() {
+       build4RouterTopo(false, false, false, false, 0);
 
-        List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                D2.deviceId());
-        explicitPathInfoList.add(obj);
-        obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
-        explicitPathInfoList.add(obj);
+       List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
+       ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, D2.deviceId());
+       explicitPathInfoList.add(obj);
+       obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
+       explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+       boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(), "T123", null, WITH_SIGNALLING,
+               explicitPathInfoList);
 
-        Tunnel tunnel = pceManager.queryAllPath().iterator().next();
-        List<Link> links = new LinkedList<>();
-        links.add(link1);
-        links.add(link5);
+       Tunnel tunnel = pceManager.queryAllPath().iterator().next();
+       List<Link> links = new LinkedList<>();
+       links.add(link1);
+       links.add(link5);
 
-        assertThat(result, is(true));
-        assertThat(tunnel.path().links().equals(links), is(true));
-    }
+       assertThat(result, is(true));
+       assertThat(tunnel.path().links().equals(links), is(true));
+   }
 
     /**
      * Tests path setup with explicit path with loose D1-D2, strict D2.
      */
-    @Test
-    public void setupPathExplicitPathInfoLooseLink1StrictD2() {
-        build4RouterTopo(false, false, false, false, 0);
+   @Test
+   public void setupPathTest19() {
+       build4RouterTopo(false, false, false, false, 0);
 
-        List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                link1);
-        explicitPathInfoList.add(obj);
-        obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
-        explicitPathInfoList.add(obj);
+       List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
+       ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, link1);
+       explicitPathInfoList.add(obj);
+       obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
+       explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(),
-                TUNNEL_NAME, null, WITH_SIGNALLING, explicitPathInfoList);
+       boolean result = pceManager.setupPath(D1.deviceId(), D5.deviceId(), "T123", null, WITH_SIGNALLING,
+               explicitPathInfoList);
 
-        Tunnel tunnel = pceManager.queryAllPath().iterator().next();
-        List<Link> links = new LinkedList<>();
-        links.add(link1);
-        links.add(link5);
+       Tunnel tunnel = pceManager.queryAllPath().iterator().next();
+       List<Link> links = new LinkedList<>();
+       links.add(link1);
+       links.add(link5);
 
-        assertThat(result, is(true));
-        assertThat(tunnel.path().links().equals(links), is(true));
-    }
+       assertThat(result, is(true));
+       assertThat(tunnel.path().links().equals(links), is(true));
+   }
 
     /**
      * Tests path update with increase in bandwidth.
      */
     @Test
-    public void updatePathIncreaseBandwidth() {
+    public void updatePathTest1() {
         build4RouterTopo(false, true, true, true, 100);
 
         // Setup tunnel.
         List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(60.0));
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(60.0));
         constraints.add(bwConstraint);
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         // Change constraint and update it.
         constraints = new LinkedList<>();
-        bwConstraint = new BandwidthConstraint(Bandwidth.bps(50.0));
+        bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(50.0));
         constraints.add(bwConstraint);
         constraints.add(costConstraint);
 
@@ -687,24 +721,23 @@ public class PceManagerTest {
      * Tests path update with decrease in bandwidth.
      */
     @Test
-    public void updatePathDecreaseBandwidth() {
+    public void updatePathTest2() {
         build4RouterTopo(false, true, true, true, 100);
 
         // Setup tunnel.
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(60.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(60.0));
         constraints.add(bwConstraint);
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, SR_WITHOUT_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123",
+                constraints, SR_WITHOUT_SIGNALLING, null);
         assertThat(result, is(true));
 
         // Change constraint and update it.
         constraints.remove(bwConstraint);
-        bwConstraint = new BandwidthConstraint(Bandwidth.bps(70.0));
+        bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(70.0));
         constraints.add(bwConstraint);
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
@@ -723,15 +756,15 @@ public class PceManagerTest {
      * Tests path update without cost/bandwidth constraints.
      */
     @Test
-    public void updatePathWithoutConstraints() {
+    public void updatePathTest3() {
         build4RouterTopo(false, true, true, true, 100);
 
         // Setup tunnel.
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
-        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
@@ -743,40 +776,36 @@ public class PceManagerTest {
         }
 
         Iterable<Tunnel> queryTunnelResult = pceManager.queryAllPath();
-        assertThat((int) queryTunnelResult.spliterator().getExactSizeIfKnown(),
-                is(2));
+        assertThat((int) queryTunnelResult.spliterator().getExactSizeIfKnown(), is(2));
     }
 
     /**
-     * Tests path update without cost/bandwidth constraints and with explicit
-     * path object.
+     * Tests path update without cost/bandwidth constraints and with explicit path object.
      */
     @Test
-    public void updatePathExplicitPathInfo() {
+    public void updatePathTest4() {
         build4RouterTopo(false, true, true, true, 100);
 
         // Setup tunnel.
         List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(60.0));
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(60.0));
         constraints.add(bwConstraint);
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
         List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                link1);
+        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, link1);
         explicitPathInfoList.add(obj);
         obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
         explicitPathInfoList.add(obj);
 
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, explicitPathInfoList);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, explicitPathInfoList);
         assertThat(result, is(true));
 
         // Change constraint and update it.
         constraints = new LinkedList<>();
-        bwConstraint = new BandwidthConstraint(Bandwidth.bps(50.0));
+        bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(50.0));
         constraints.add(bwConstraint);
         constraints.add(costConstraint);
 
@@ -796,14 +825,14 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests path release with explicit info.
+     * Tests path release.
      */
     @Test
-    public void releasePathExplicitPathInfo() {
+    public void releasePathTest1() {
         build4RouterTopo(false, false, false, false, 5);
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
-        BandwidthConstraint bwConst = new BandwidthConstraint(Bandwidth.bps(3));
+        PceBandwidthConstraint bwConst = new PceBandwidthConstraint(Bandwidth.bps(3));
         constraints.add(bwConst);
         constraints.add(costConstraint);
 
@@ -813,8 +842,7 @@ public class PceManagerTest {
         obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
         explicitPathInfoList.add(obj);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), TUNNEL_NAME,
-                constraints, WITH_SIGNALLING, explicitPathInfoList);
+        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, explicitPathInfoList);
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
         assertThat(tunnels.size(), is(1));
@@ -831,14 +859,13 @@ public class PceManagerTest {
      * Tests path release failure.
      */
     @Test
-    public void releasePathFailure() {
+    public void releasePathTest2() {
         build4RouterTopo(false, false, false, false, 5);
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
         constraints.add(costConstraint);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), TUNNEL_NAME,
-                constraints, WITH_SIGNALLING, null);
+        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
         assertThat(tunnels.size(), is(1));
@@ -852,19 +879,18 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests path release.
+     * Tests path release failure.
      */
     @Test
-    public void releasePath() {
+    public void releasePathTest3() {
         build4RouterTopo(false, false, false, false, 5);
         List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(TE_COST);
-        BandwidthConstraint bwConst = new BandwidthConstraint(Bandwidth.bps(3));
+        PceBandwidthConstraint bwConst = new PceBandwidthConstraint(Bandwidth.bps(3));
         constraints.add(bwConst);
         constraints.add(costConstraint);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), TUNNEL_NAME,
-                constraints, WITH_SIGNALLING, null);
+        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T123", constraints, WITH_SIGNALLING, null);
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
         assertThat(tunnels.size(), is(1));
@@ -881,53 +907,49 @@ public class PceManagerTest {
      * Tests tunnel events added and removed.
      */
     @Test
-    public void tunnelEventAddedRemoved() {
+    public void tunnelEventTest1() {
         build4RouterTopo(false, true, true, true, 15);
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T1", constraints,
+        boolean isSuccess = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T1", constraints,
                 SR_WITHOUT_SIGNALLING, null);
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
+        assertThat(isSuccess, is(true));
 
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
 
         for (Tunnel tunnel : tunnels) {
-            TunnelEvent event = new TunnelEvent(TunnelEvent.Type.TUNNEL_ADDED,
-                    tunnel);
+            TunnelEvent event = new TunnelEvent(TunnelEvent.Type.TUNNEL_ADDED, tunnel);
             tunnelListener.event(event);
 
-            pceManager.releasePath(tunnel.tunnelId());
+            isSuccess = pceManager.releasePath(tunnel.tunnelId());
+            assertThat(isSuccess, is(true));
 
             event = new TunnelEvent(TunnelEvent.Type.TUNNEL_REMOVED, tunnel);
             tunnelListener.event(event);
         }
-
-        assertThat(pceStore.getTunnelInfoCount(), is(0));
     }
 
     /**
      * Tests label allocation/removal in CR case based on tunnel event.
      */
     @Test
-    public void labelAllocationRemoval() {
+    public void tunnelEventTest2() {
         build4RouterTopo(false, true, true, true, 15);
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T2", constraints,
+        boolean isSuccess = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T2", constraints,
                 WITHOUT_SIGNALLING_AND_WITHOUT_SR, null);
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
+        assertThat(isSuccess, is(true));
 
         TunnelEvent event;
         Collection<Tunnel> tunnels = (Collection<Tunnel>) pceManager.queryAllPath();
@@ -944,32 +966,30 @@ public class PceManagerTest {
             event = new TunnelEvent(TunnelEvent.Type.TUNNEL_UPDATED, tunnel);
             tunnelListener.event(event);
 
-            pceManager.releasePath(tunnel.tunnelId());
+            isSuccess = pceManager.releasePath(tunnel.tunnelId());
+            assertThat(isSuccess, is(true));
 
             event = new TunnelEvent(TunnelEvent.Type.TUNNEL_REMOVED, tunnel);
             tunnelListener.event(event);
         }
-
-        assertThat(pceStore.getTunnelInfoCount(), is(0));
     }
 
     /**
      * Tests handling UNSTABLE state based on tunnel event.
      */
     @Test
-    public void tunnelEventUnstable() {
+    public void tunnelEventTest3() {
         build4RouterTopo(false, true, true, true, 15);
-        List<Constraint> constraints = new LinkedList<>();
-        BandwidthConstraint bwConstraint = new BandwidthConstraint(
-                Bandwidth.bps(10.0));
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        PceBandwidthConstraint bwConstraint = new PceBandwidthConstraint(Bandwidth.bps(10.0));
         CostConstraint costConstraint = new CostConstraint(TE_COST);
 
         constraints.add(costConstraint);
         constraints.add(bwConstraint);
 
-        pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T2", constraints,
+        boolean isSuccess = pceManager.setupPath(D1.deviceId(), D2.deviceId(), "T2", constraints,
                 WITHOUT_SIGNALLING_AND_WITHOUT_SR, null);
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
+        assertThat(isSuccess, is(true));
         assertThat(pceStore.getFailedPathInfoCount(), is(0));
 
         TunnelEvent event;
@@ -987,35 +1007,32 @@ public class PceManagerTest {
             event = new TunnelEvent(TunnelEvent.Type.TUNNEL_UPDATED, tunnel);
             tunnelListener.event(event);
         }
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
+
         assertThat(pceStore.getFailedPathInfoCount(), is(1));
     }
 
     /**
-     * Tests resiliency when L2 link is down.
+     * Tests resilency when L2 link is down.
      */
     @Test
-    public void resiliencyLinkFail() {
+    public void resilencyTest1() {
         build4RouterTopo(true, false, false, false, 10);
 
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
         assertThat(pceStore.getFailedPathInfoCount(), is(0));
 
         List<Event> reasons = new LinkedList<>();
-        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED,
-                link2);
+        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
         reasons.add(linkEvent);
         final TopologyEvent event = new TopologyEvent(
                 TopologyEvent.Type.TOPOLOGY_CHANGED,
@@ -1025,7 +1042,7 @@ public class PceManagerTest {
         //Change Topology : remove link2
         Set<TopologyEdge> tempEdges = new HashSet<>();
         tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
-        topologyService.changeInTopology(getGraph(null, tempEdges));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
         listener.event(event);
 
         List<Link> links = new LinkedList<>();
@@ -1038,22 +1055,21 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resiliency when L2 and L4 link is down.
+     * Tests resilency when L2 and L4 link is down.
      */
     @Test
-    public void resiliencyMultipleLinkFailsNoAlternativePath() {
+    public void resilencyTest2() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1070,7 +1086,7 @@ public class PceManagerTest {
         Set<TopologyEdge> tempEdges = new HashSet<>();
         tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
         tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
-        topologyService.changeInTopology(getGraph(null, tempEdges));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
         listener.event(event);
 
         //No Path
@@ -1078,22 +1094,21 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resiliency when D2 device is down.
+     * Tests resilency when D2 device is down.
      */
     @Test
-    public void resiliencyDeviceFail() {
+    public void resilencyTest3() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1110,35 +1125,35 @@ public class PceManagerTest {
         Set<TopologyEdge> tempEdges = new HashSet<>();
         tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
         tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
-        topologyService.changeInTopology(getGraph(null, tempEdges));
+        topologyService.changeInTopology(getGraph(null,  tempEdges));
         listener.event(event);
 
         List<Link> links = new LinkedList<>();
         links.add(link3);
         links.add(link4);
 
+        Path path = tunnelService.queryAllTunnels().iterator().next().path();
         //Path is D1-D3-D4
-        assertThat(pathService.paths().iterator().next().links(), is(links));
-        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+        assertThat(path.links(), is(links));
+        assertThat(path.cost(), is((double) 180));
     }
 
     /**
-     * Tests resiliency when ingress device is down.
+     * Tests resilency when ingress device is down.
      */
     @Test
-    public void resiliencyIngressDeviceFail() {
+    public void resilencyTest4() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1163,22 +1178,21 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resiliency when D2 and D3 devices are down.
+     * Tests resilency when D2 and D3 devices are down.
      */
     @Test
-    public void resiliencyMultipleDevicesFailNoAlternativePath() {
+    public void resilencyTest5() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1213,22 +1227,21 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resiliency when egress device is down.
+     * Tests resilency when egress device is down.
      */
     @Test
-    public void resiliencyEgressDeviceFail() {
+    public void resilencyTest6() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1256,22 +1269,63 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resiliency when D2 device is suspended.
+     * Tests resilency when egress device is down.
      */
     @Test
-    public void resiliencyDeviceSuspended() {
+    public void resilencyTest7() {
         build4RouterTopo(true, false, false, false, 10);
 
-        List<Constraint> constraints = new LinkedList<>();
+        List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, null);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link4);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device4 , link2 and link4
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        tempEdges.add(new DefaultTopologyEdge(D3, D4, link4));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D4);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        //No path
+        assertThat(pathService.paths().size(), is(0));
+    }
+
+    /**
+     * Tests resilency when D2 device is suspended.
+     */
+    @Test
+    public void resilencyTest8() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
         assertThat(result, is(true));
 
         List<Event> reasons = new LinkedList<>();
@@ -1298,42 +1352,89 @@ public class PceManagerTest {
         links.add(link3);
         links.add(link4);
 
+        Path path = tunnelService.queryAllTunnels().iterator().next().path();
+
         //Path is D1-D3-D4
-        assertThat(pathService.paths().iterator().next().links(), is(links));
-        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+        assertThat(path.links(), is(links));
+        assertThat(path.cost(), is((double) 180));
+    }
+
+    /**
+     * Tests resilency when D2 device availability is changed.
+     */
+    @Test
+    public void resilencyTest11() {
+        build4RouterTopo(true, false, false, false, 10);
+
+        List<Constraint> constraints = new LinkedList<Constraint>();
+        CostConstraint costConstraint = new CostConstraint(COST);
+        constraints.add(costConstraint);
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
+        constraints.add(localBwConst);
+
+        //Setup the path , tunnel created
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, null);
+        assertThat(result, is(true));
+
+        List<Event> reasons = new LinkedList<>();
+        LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link1);
+        reasons.add(linkEvent);
+        linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
+        reasons.add(linkEvent);
+
+        final TopologyEvent event = new TopologyEvent(
+                TopologyEvent.Type.TOPOLOGY_CHANGED,
+                topology,
+                reasons);
+
+        //Change Topology : remove device2 , link1 and link2
+        Set<TopologyEdge> tempEdges = new HashSet<>();
+        tempEdges.add(new DefaultTopologyEdge(D1, D2, link1));
+        tempEdges.add(new DefaultTopologyEdge(D2, D4, link2));
+        Set<TopologyVertex> tempVertexes = new HashSet<>();
+        tempVertexes.add(D2);
+        topologyService.changeInTopology(getGraph(tempVertexes, tempEdges));
+        listener.event(event);
+
+        List<Link> links = new LinkedList<>();
+        links.add(link3);
+        links.add(link4);
+
+        Path path = tunnelService.queryAllTunnels().iterator().next().path();
+
+        //Path is D1-D3-D4
+        assertThat(path.links(), is(links));
+        assertThat(path.cost(), is((double) 180));
     }
 
     /**
      * Tests resilency when link2 availability is changed.
      */
     @Test
-    public void resilencyExplicitPathInfoSpecified() {
+    public void resilencyTest12() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
         CostConstraint costConstraint = new CostConstraint(COST);
         constraints.add(costConstraint);
-        BandwidthConstraint localBwConst = new BandwidthConstraint(
-                Bandwidth.bps(10));
+        PceBandwidthConstraint localBwConst = new PceBandwidthConstraint(Bandwidth.bps(10));
         constraints.add(localBwConst);
 
         List<ExplicitPathInfo> explicitPathInfoList = Lists.newLinkedList();
-        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE,
-                link1);
+        ExplicitPathInfo obj = new ExplicitPathInfo(ExplicitPathInfo.Type.LOOSE, link1);
         explicitPathInfoList.add(obj);
         obj = new ExplicitPathInfo(ExplicitPathInfo.Type.STRICT, D2.deviceId());
         explicitPathInfoList.add(obj);
 
         //Setup the path , tunnel created
-        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(),
-                TUNNEL_NAME, constraints, WITH_SIGNALLING, explicitPathInfoList);
+        boolean result = pceManager.setupPath(D1.deviceId(), D4.deviceId(), "T123",
+                constraints, WITH_SIGNALLING, explicitPathInfoList);
         assertThat(result, is(true));
-        assertThat(pceStore.getTunnelInfoCount(), is(1));
         assertThat(pceStore.getFailedPathInfoCount(), is(0));
 
         List<Event> reasons = new LinkedList<>();
-        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED,
-                link2);
+        final LinkEvent linkEvent = new LinkEvent(LinkEvent.Type.LINK_REMOVED, link2);
         reasons.add(linkEvent);
         final TopologyEvent event = new TopologyEvent(
                 TopologyEvent.Type.TOPOLOGY_CHANGED,
@@ -1358,7 +1459,6 @@ public class PceManagerTest {
     public void tearDown() {
         pceManager.deactivate();
         pceManager.pathService = null;
-        pceManager.resourceService = null;
         pceManager.tunnelService = null;
         pceManager.coreService = null;
         pceManager.storageService = null;
@@ -1367,6 +1467,7 @@ public class PceManagerTest {
         pceManager.pceStore = null;
         pceManager.topologyService = null;
         pceManager.mastershipService = null;
+        flowsDownloaded = 0;
     }
 
     private class MockTopologyService extends TopologyServiceAdapter {
@@ -1375,8 +1476,7 @@ public class PceManagerTest {
         }
 
         @Override
-        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-                                  LinkWeight weight) {
+        public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
             DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
             DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
             Set<TopologyVertex> vertices = graph.getVertexes();
@@ -1385,9 +1485,8 @@ public class PceManagerTest {
                 return ImmutableSet.of();
             }
 
-            GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                    PathComputationTest.graphSearch()
-                            .search(graph, srcV, dstV, adapt(weight), ALL_PATHS);
+            GraphPathSearch.Result<TopologyVertex, TopologyEdge> result = PathComputationTest.graphSearch()
+                    .search(graph, srcV, dstV, adapt(weight), ALL_PATHS);
             ImmutableSet.Builder<Path> builder = ImmutableSet.builder();
             for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
                 builder.add(PathComputationTest.networkPath(path));
@@ -1396,14 +1495,24 @@ public class PceManagerTest {
         }
     }
 
-    private TopologyGraph getGraph(Set<TopologyVertex> removedVertex,
-                                   Set<TopologyEdge> removedEdges) {
+    private TopologyGraph getGraph(Set<TopologyVertex> removedVertex, Set<TopologyEdge> removedEdges) {
         if (removedVertex != null) {
-            removedVertex.forEach(vertexes::remove);
+            vertexes.remove(removedVertex);
+            removedVertex.forEach(new Consumer<TopologyVertex>() {
+                @Override
+                public void accept(TopologyVertex v) {
+                    vertexes.remove(v);
+                }
+            });
         }
 
         if (removedEdges != null) {
-            removedEdges.forEach(edges::remove);
+            removedEdges.forEach(new Consumer<TopologyEdge>() {
+                @Override
+                public void accept(TopologyEdge e) {
+                    edges.remove(e);
+                }
+            });
         }
 
         return new DefaultTopologyGraph(vertexes, edges);
@@ -1420,8 +1529,7 @@ public class PceManagerTest {
 
             // Otherwise get all paths between the source and destination edge
             // devices.
-            computedPaths = topologyService.getPaths(null, (DeviceId) src,
-                    (DeviceId) dst, weight);
+            computedPaths = topologyService.getPaths(null, (DeviceId) src, (DeviceId) dst, weight);
             return computedPaths;
         }
 
@@ -1431,18 +1539,15 @@ public class PceManagerTest {
     }
 
     private class MockTunnelServiceAdapter extends TunnelServiceAdapter {
-        private HashMap<TunnelId, Tunnel> tunnelIdAsKeyStore = new HashMap<>();
+        private HashMap<TunnelId, Tunnel> tunnelIdAsKeyStore = new HashMap<TunnelId, Tunnel>();
         private int tunnelIdCounter = 0;
 
         @Override
-        public TunnelId setupTunnel(ApplicationId producerId,
-                                    ElementId srcElementId,
-                                    Tunnel tunnel, Path path) {
+        public TunnelId setupTunnel(ApplicationId producerId, ElementId srcElementId, Tunnel tunnel, Path path) {
             TunnelId tunnelId = TunnelId.valueOf(String.valueOf(++tunnelIdCounter));
-            Tunnel tunnelToInsert = new DefaultTunnel(tunnel.providerId(),
-                    tunnel.src(), tunnel.dst(), tunnel.type(),
-                    tunnel.state(), tunnel.groupId(), tunnelId,
-                    tunnel.tunnelName(), path, tunnel.annotations());
+            Tunnel tunnelToInsert = new DefaultTunnel(tunnel.providerId(), tunnel.src(), tunnel.dst(), tunnel.type(),
+                                                      tunnel.state(), tunnel.groupId(), tunnelId, tunnel.tunnelName(),
+                                                      path, tunnel.annotations());
             tunnelIdAsKeyStore.put(tunnelId, tunnelToInsert);
             return tunnelId;
         }
@@ -1453,33 +1558,28 @@ public class PceManagerTest {
         }
 
         /**
-         * Stimulates the effect of receiving PLSP id and LSP id from protocol
-         * PCRpt msg.
+         * Stimulates the effect of receiving PLSP id and LSP id from protocol PCRpt msg.
          */
-        public TunnelId updateTunnelWithLspIds(Tunnel tunnel, String pLspId,
-                                               String localLspId, State state) {
+        public TunnelId updateTunnelWithLspIds(Tunnel tunnel, String pLspId, String localLspId, State state) {
             TunnelId tunnelId = tunnel.tunnelId();
             Builder annotationBuilder = DefaultAnnotations.builder();
             annotationBuilder.putAll(tunnel.annotations());
 
-            // PCRpt in response to PCInitate msg will carry PLSP id allocated
-            // by PCC.
+            // PCRpt in response to PCInitate msg will carry PLSP id allocated by PCC.
             if (tunnel.annotations().value(PLSP_ID) == null) {
                 annotationBuilder.set(PLSP_ID, pLspId);
             }
 
-            // Signalled LSPs will carry local LSP id allocated by signalling
-            // protocol(PCC).
+            // Signalled LSPs will carry local LSP id allocated by signalling protocol(PCC).
             if (tunnel.annotations().value(LOCAL_LSP_ID) == null) {
                 annotationBuilder.set(LOCAL_LSP_ID, localLspId);
             }
             SparseAnnotations annotations = annotationBuilder.build();
             tunnelIdAsKeyStore.remove(tunnelId, tunnel);
 
-            Tunnel tunnelToInsert = new DefaultTunnel(tunnel.providerId(),
-                    tunnel.src(), tunnel.dst(), tunnel.type(),
-                    state, tunnel.groupId(), tunnelId, tunnel.tunnelName(),
-                    tunnel.path(), annotations);
+            Tunnel tunnelToInsert = new DefaultTunnel(tunnel.providerId(), tunnel.src(), tunnel.dst(), tunnel.type(),
+                                                      state, tunnel.groupId(), tunnelId, tunnel.tunnelName(),
+                                                      tunnel.path(), annotations);
 
             tunnelIdAsKeyStore.put(tunnelId, tunnelToInsert);
 
@@ -1508,45 +1608,40 @@ public class PceManagerTest {
         }
 
         @Override
-        public Collection<Tunnel> queryTunnel(TunnelEndPoint src,
-                                              TunnelEndPoint dst) {
-            Collection<Tunnel> result = new HashSet<>();
+        public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
+            Collection<Tunnel> result = new HashSet<Tunnel>();
             Tunnel tunnel = null;
             for (TunnelId tunnelId : tunnelIdAsKeyStore.keySet()) {
                 tunnel = tunnelIdAsKeyStore.get(tunnelId);
 
-                if ((null != tunnel) && (src.equals(tunnel.src())) &&
-                        (dst.equals(tunnel.dst()))) {
+                if ((null != tunnel) && (src.equals(tunnel.src())) && (dst.equals(tunnel.dst()))) {
                     result.add(tunnel);
                 }
             }
 
-            return result.size() == 0 ? Collections.emptySet() :
-                    ImmutableSet.copyOf(result);
+            return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
         }
 
         @Override
         public Collection<Tunnel> queryTunnel(Tunnel.Type type) {
-            Collection<Tunnel> result = new HashSet<>();
+            Collection<Tunnel> result = new HashSet<Tunnel>();
 
             for (TunnelId tunnelId : tunnelIdAsKeyStore.keySet()) {
                 result.add(tunnelIdAsKeyStore.get(tunnelId));
             }
 
-            return result.size() == 0 ? Collections.emptySet() :
-                    ImmutableSet.copyOf(result);
+            return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
         }
 
         @Override
         public Collection<Tunnel> queryAllTunnels() {
-            Collection<Tunnel> result = new HashSet<>();
+            Collection<Tunnel> result = new HashSet<Tunnel>();
 
             for (TunnelId tunnelId : tunnelIdAsKeyStore.keySet()) {
                 result.add(tunnelIdAsKeyStore.get(tunnelId));
             }
 
-            return result.size() == 0 ? Collections.emptySet() :
-                    ImmutableSet.copyOf(result);
+            return result.size() == 0 ? Collections.emptySet() : ImmutableSet.copyOf(result);
         }
 
         @Override
@@ -1555,8 +1650,7 @@ public class PceManagerTest {
 
             for (Tunnel t : tunnelIdAsKeyStore.values()) {
                 for (Link l : t.path().links()) {
-                    if (l.src().deviceId().equals(deviceId) ||
-                            l.dst().deviceId().equals(deviceId)) {
+                    if (l.src().deviceId().equals(deviceId) || l.dst().deviceId().equals(deviceId)) {
                         tunnelList.add(t);
                         break;
                     }
