@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.mapping.MappingKey;
 import org.onosproject.mapping.MappingTreatment;
+import org.onosproject.mapping.MappingValue;
 import org.onosproject.mapping.actions.MappingAction;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.instructions.MappingInstruction;
@@ -31,6 +32,7 @@ import org.onosproject.mapping.web.codec.MappingAddressCodec;
 import org.onosproject.mapping.web.codec.MappingInstructionCodec;
 import org.onosproject.mapping.web.codec.MappingKeyCodec;
 import org.onosproject.mapping.web.codec.MappingTreatmentCodec;
+import org.onosproject.mapping.web.codec.MappingValueCodec;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -53,6 +55,7 @@ public class MappingCodecRegistrator {
         codecService.registerCodec(MappingAction.class, new MappingActionCodec());
         codecService.registerCodec(MappingTreatment.class, new MappingTreatmentCodec());
         codecService.registerCodec(MappingKey.class, new MappingKeyCodec());
+        codecService.registerCodec(MappingValue.class, new MappingValueCodec());
 
         log.info("Started");
     }
@@ -64,6 +67,7 @@ public class MappingCodecRegistrator {
         codecService.unregisterCodec(MappingAction.class);
         codecService.unregisterCodec(MappingTreatment.class);
         codecService.unregisterCodec(MappingKey.class);
+        codecService.unregisterCodec(MappingValue.class);
 
         log.info("Stopped");
     }
