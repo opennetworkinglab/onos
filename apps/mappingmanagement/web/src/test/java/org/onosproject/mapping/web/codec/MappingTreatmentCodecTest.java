@@ -170,6 +170,12 @@ public class MappingTreatmentCodecTest {
                 }
             }
 
+            // check address
+            final JsonNode jsonAddressNode = jsonNode.get(MappingKeyCodec.ADDRESS);
+
+            assertThat(jsonAddressNode,
+                    MappingAddressJsonMatcher.matchesMappingAddress(mappingTreatment.address()));
+
             return true;
         }
 
