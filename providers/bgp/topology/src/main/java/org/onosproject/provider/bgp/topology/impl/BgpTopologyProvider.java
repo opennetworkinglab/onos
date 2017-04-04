@@ -13,26 +13,13 @@
 
 package org.onosproject.provider.bgp.topology.impl;
 
-import static org.onosproject.bgp.controller.BgpDpid.uri;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Device.Type.ROUTER;
-import static org.onosproject.net.Device.Type.VIRTUAL;
-import static org.onosproject.incubator.net.resource.label.LabelResourceId.labelResourceId;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.HashMap;
-
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.Ip4Address;
-import org.onlab.util.Bandwidth;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.Ip4Address;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpDpid;
 import org.onosproject.bgp.controller.BgpLinkListener;
@@ -60,7 +47,7 @@ import org.onosproject.bgpio.types.attr.BgpAttrRouterIdV4;
 import org.onosproject.bgpio.types.attr.BgpLinkAttrIgpMetric;
 import org.onosproject.bgpio.types.attr.BgpLinkAttrMaxLinkBandwidth;
 import org.onosproject.bgpio.types.attr.BgpLinkAttrTeDefaultMetric;
-import org.onosproject.core.CoreService;
+import org.onosproject.bgpio.types.attr.BgpLinkAttrUnRsrvdLinkBandwidth;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.mastership.MastershipService;
@@ -70,10 +57,10 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -92,8 +79,21 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.api.TeLinkConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
+import static org.onosproject.bgp.controller.BgpDpid.uri;
+import static org.onosproject.incubator.net.resource.label.LabelResourceId.labelResourceId;
+import static org.onosproject.net.Device.Type.ROUTER;
+import static org.onosproject.net.Device.Type.VIRTUAL;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Provider which uses an BGP controller to detect network infrastructure topology.
@@ -124,9 +124,6 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -316,17 +313,14 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
             LinkDescription linkDes = buildLinkDes(linkNlri, details, true);
 
-            //If already link exists, return
-            if (linkService.getLink(linkDes.src(), linkDes.dst()) != null || linkProviderService == null) {
-                return;
-            }
+
 
             /*
              * Update link ports and configure bandwidth on source and destination port using networkConfig service
              * Only master of source link registers for bandwidth
              */
             if (mastershipService.isLocalMaster(linkDes.src().deviceId())) {
-                registerBandwidth(linkDes, details);
+                registerBandwidthAndTeMetric(linkDes, details);
             }
 
             //Updating ports of the link
@@ -458,8 +452,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
              */
             if (networkConfigService != null && mastershipService.isLocalMaster(linkDes.src().deviceId())) {
                 // Releases registered resource for this link
-                networkConfigService.removeConfig(linkDes.src(), BandwidthCapacity.class);
-                networkConfigService.removeConfig(linkDes.dst(), BandwidthCapacity.class);
+                networkConfigService.removeConfig(LinkKey.linkKey(linkDes.src(), linkDes.dst()), TeLinkConfig.class);
             }
 
             linkProviderService.linkVanished(linkDes);
@@ -467,6 +460,11 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             linkDes = new DefaultLinkDescription(linkDes.dst(), linkDes.src(), Link.Type.DIRECT,
                     false, linkDes.annotations());
             linkProviderService.linkVanished(linkDes);
+            if (networkConfigService != null && mastershipService.isLocalMaster(linkDes.src().deviceId())) {
+                // Releases registered resource for this link
+                networkConfigService.removeConfig(LinkKey.linkKey(linkDes.src(), linkDes.dst()), TeLinkConfig.class);
+            }
+
         }
     }
 
@@ -479,7 +477,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
         labelResourceAdminService.createDevicePool(deviceId, beginLabel, endLabel);
     }
 
-    private void registerBandwidth(LinkDescription linkDes, PathAttrNlriDetails details) {
+    private void registerBandwidthAndTeMetric(LinkDescription linkDes, PathAttrNlriDetails details) {
         if (details ==  null) {
             log.error("Couldnot able to register bandwidth ");
             return;
@@ -492,7 +490,10 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
         }
 
         List<BgpValueType> tlvs = ((LinkStateAttributes) attribute.iterator().next()).linkStateAttributes();
-        float maxReservableBw = 0;
+        double maxReservableBw = 0;
+        List<Float>  unreservedBw = new ArrayList<>();
+        int teMetric = 0;
+        int igpMetric = 0;
 
         for (BgpValueType tlv : tlvs) {
             switch (tlv.getType()) {
@@ -501,20 +502,33 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 //will get in bits/second , convert to MBPS to store in network config service
                 maxReservableBw = maxReservableBw / 1000000;
                 break;
+            case LinkStateAttributes.ATTR_LINK_UNRES_BANDWIDTH:
+                unreservedBw = ((BgpLinkAttrUnRsrvdLinkBandwidth) tlv).getLinkAttrUnRsrvdLinkBandwidth();
+                break;
+            case LinkStateAttributes.ATTR_LINK_TE_DEFAULT_METRIC:
+                teMetric = ((BgpLinkAttrTeDefaultMetric) tlv).attrLinkDefTeMetric();
+                break;
+            case LinkStateAttributes.ATTR_LINK_IGP_METRIC:
+                igpMetric = ((BgpLinkAttrIgpMetric) tlv).attrLinkIgpMetric();
+                break;
             default: // do nothing
             }
         }
 
-        if (maxReservableBw == 0.0) {
-            return;
+        //Configure bandwidth for src and dst port
+        TeLinkConfig config = networkConfigService.addConfig(LinkKey.linkKey(linkDes.src(), linkDes.dst()),
+                                                             TeLinkConfig.class);
+        Double bw = 0.0;
+        if (unreservedBw.size() > 0) {
+            bw = unreservedBw.get(0).doubleValue(); //Low priority
         }
 
-        //Configure bandwidth for src and dst port
-        BandwidthCapacity config = networkConfigService.addConfig(linkDes.src(), BandwidthCapacity.class);
-        config.capacity(Bandwidth.bps(maxReservableBw)).apply();
+        config.maxResvBandwidth(maxReservableBw)
+                .unResvBandwidth(bw).teCost(teMetric).igpCost(igpMetric);
+                //.apply();
 
-        config = networkConfigService.addConfig(linkDes.dst(), BandwidthCapacity.class);
-        config.capacity(Bandwidth.bps(maxReservableBw)).apply();
+        networkConfigService.applyConfig(LinkKey.linkKey(linkDes.src(),
+                linkDes.dst()), TeLinkConfig.class, config.node());
     }
 
     private DefaultAnnotations.Builder getAnnotations(DefaultAnnotations.Builder annotationBuilder, boolean isNode,
@@ -529,8 +543,6 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
         boolean abrBit = false;
         boolean externalBit = false;
         boolean pseudo = false;
-        int igpMetric = 0;
-        int teMetric = 0;
         byte[] areaId = null;
         Ip4Address routerId = null;
         for (BgpValueType tlv : tlvs) {
@@ -549,12 +561,6 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
                 break;
             case LinkStateAttributes.ATTR_NODE_IPV4_LOCAL_ROUTER_ID:
                 routerId = ((BgpAttrRouterIdV4) tlv).attrRouterId();
-                break;
-            case LinkStateAttributes.ATTR_LINK_IGP_METRIC:
-                igpMetric = ((BgpLinkAttrIgpMetric) tlv).attrLinkIgpMetric();
-                break;
-            case LinkStateAttributes.ATTR_LINK_TE_DEFAULT_METRIC:
-                teMetric = ((BgpLinkAttrTeDefaultMetric) tlv).attrLinkDefTeMetric();
                 break;
             default: // do nothing
             }
@@ -578,15 +584,6 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
             if (routerId != null) {
                 // LsrID
                 annotationBuilder.set(LSRID, String.valueOf(routerId));
-            }
-        } else {
-            // Annotations for link
-            if (igpMetric != 0) {
-                annotationBuilder.set(COST, String.valueOf(igpMetric));
-            }
-
-            if (teMetric != 0) {
-                annotationBuilder.set(TE_COST, String.valueOf(teMetric));
             }
         }
         return annotationBuilder;

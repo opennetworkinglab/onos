@@ -12,22 +12,10 @@
  */
 package org.onosproject.provider.bgp.topology.impl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
-import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +23,6 @@ import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
-import org.onlab.util.Bandwidth;
 import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgpio.exceptions.BgpParseException;
@@ -49,13 +36,8 @@ import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.AutonomousSystemTlv;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.IsIsNonPseudonode;
-import org.onosproject.bgpio.types.LinkStateAttributes;
-import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
-import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.incubator.net.resource.label.LabelResourcePool;
-import org.onosproject.mastership.MastershipServiceAdapter;
-import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.bgpio.types.LinkLocalRemoteIdentifiersTlv;
+import org.onosproject.bgpio.types.LinkStateAttributes;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeFlagBitTlv;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeIsIsAreaId;
@@ -65,6 +47,10 @@ import org.onosproject.bgpio.types.attr.BgpLinkAttrMaxLinkBandwidth;
 import org.onosproject.bgpio.types.attr.BgpLinkAttrTeDefaultMetric;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourcePool;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -72,12 +58,14 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
+import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -91,16 +79,28 @@ import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.config.basics.BandwidthCapacity;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAdminService;
 import org.onosproject.net.resource.ResourceId;
+import org.onosproject.pcep.api.TeLinkConfig;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.MastershipRole.MASTER;
 
 /**
  * Test for BGP topology provider.
@@ -201,6 +201,11 @@ public class BgpTopologyProviderTest {
     private class MockNetConfigRegistryAdapter extends NetworkConfigRegistryAdapter {
         private ConfigFactory cfgFactory;
         private Map<ConnectPoint, BandwidthCapacity> classConfig = new HashMap<>();
+        private Map<LinkKey, TeLinkConfig> teLinkConfig = new HashMap<>();
+
+        public Map<LinkKey, TeLinkConfig> getTeLinkConfig() {
+            return teLinkConfig;
+        }
 
         @Override
         public void registerConfigFactory(ConfigFactory configFactory) {
@@ -223,6 +228,15 @@ public class BgpTopologyProviderTest {
                 ConfigApplyDelegate delegate = new InternalApplyDelegate();
                 devCap.init((ConnectPoint) subject, null, node, mapper, delegate);
                 return (C) devCap;
+            } else if (configClass == TeLinkConfig.class) {
+                TeLinkConfig linkConfig = new TeLinkConfig();
+                teLinkConfig.put((LinkKey) subject, linkConfig);
+
+                JsonNode node = new ObjectNode(new MockJsonNode());
+                ObjectMapper mapper = new ObjectMapper();
+                ConfigApplyDelegate delegate = new InternalApplyDelegate();
+                linkConfig.init((LinkKey) subject, null, node, mapper, delegate);
+                return (C) linkConfig;
             }
 
             return null;
@@ -230,13 +244,19 @@ public class BgpTopologyProviderTest {
 
         @Override
         public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
-            classConfig.remove(subject);
+            if (configClass == BandwidthCapacity.class) {
+                classConfig.remove(subject);
+            } else if (configClass == TeLinkConfig.class) {
+                teLinkConfig.remove(subject);
+            }
         }
 
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
             if (configClass == BandwidthCapacity.class) {
                 return (C) classConfig.get(subject);
+            } else if (configClass == TeLinkConfig.class) {
+                return (C) teLinkConfig.get(subject);
             }
             return null;
         }
@@ -387,7 +407,7 @@ public class BgpTopologyProviderTest {
     /* Class implement device test registry */
     private class TestLinkRegistry implements LinkProviderRegistry {
         LinkProvider linkProvider;
-        Set<Link> links = new HashSet<>();
+        LinkedList<Link> links = new LinkedList<>();
 
         @Override
         public LinkProviderService register(LinkProvider provider) {
@@ -790,10 +810,11 @@ public class BgpTopologyProviderTest {
         for (BgpLinkListener l : controller.linkListener) {
             l.addLink(linkNlri, details);
             assertThat(linkRegistry.links.size(), is(1));
-            assertThat(linkRegistry.links.iterator().next().annotations().value(BgpTopologyProvider.COST),
-                    is("10"));
-            assertThat(linkRegistry.links.iterator().next().annotations().value(BgpTopologyProvider.TE_COST),
-                    is("20"));
+            TeLinkConfig config = networkConfigService.getTeLinkConfig().get(LinkKey.linkKey(linkRegistry.links
+                            .getFirst().src(), linkRegistry.links.getLast().dst()));
+
+            assertThat(config.igpCost(), is(10));
+            assertThat(config.teCost(), is(20));
 
             l.deleteLink(linkNlri);
             assertThat(linkRegistry.links.size(), is(0));
@@ -1030,11 +1051,13 @@ public class BgpTopologyProviderTest {
 
         for (BgpLinkListener l : controller.linkListener) {
             l.addLink(linkNlri, details);
+            LinkKey linkKey = LinkKey.linkKey(linkRegistry.links.getFirst().src(),
+                    linkRegistry.links.getLast().dst());
             assertThat(linkRegistry.links.size(), is(1));
-            assertThat(linkRegistry.links.iterator().next().annotations().value(BgpTopologyProvider.COST),
-                    is("10"));
-            assertThat(linkRegistry.links.iterator().next().annotations().value(BgpTopologyProvider.TE_COST),
-                    is("20"));
+            TeLinkConfig config = networkConfigService.getTeLinkConfig().get(linkKey);
+
+            assertThat(config.igpCost(), is(10));
+            assertThat(config.teCost(), is(20));
 
             ConnectPoint src = new ConnectPoint(
                     DeviceId.deviceId("l3:rd=0::routinguniverse=0:asn=10:isoid=1414.1414.0014"),
@@ -1042,18 +1065,13 @@ public class BgpTopologyProviderTest {
             ConnectPoint dst = new ConnectPoint(
                     DeviceId.deviceId("l3:rd=0::routinguniverse=0:asn=10:isoid=1e1e.1e1e.001e"),
                     PortNumber.portNumber(4294967396L));
-            BandwidthCapacity bandwidth = networkConfigService.getConfig(src, BandwidthCapacity.class);
-            assertThat(bandwidth.capacity().bps(), is(70.0 * 1_000_000L));
 
-            bandwidth = networkConfigService.getConfig(dst, BandwidthCapacity.class);
-            assertThat(bandwidth.capacity(), is(Bandwidth.bps(70.0 * 1_000_000L)));
+            assertThat(config.maxResvBandwidth(), is(70.0));
 
             l.deleteLink(linkNlri);
             assertThat(linkRegistry.links.size(), is(0));
-            bandwidth = networkConfigService.getConfig(src, BandwidthCapacity.class);
-            assertThat(bandwidth, is(nullValue()));
-            bandwidth = networkConfigService.getConfig(dst, BandwidthCapacity.class);
-            assertThat(bandwidth, is(nullValue()));
+            config = networkConfigService.getTeLinkConfig().get(linkKey);
+            assertThat(config, is(nullValue()));
         }
     }
 }

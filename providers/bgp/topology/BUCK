@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
     '//incubator/store:onos-incubator-store',
     '//incubator/api:onos-incubator-api',
+    '//apps/pcep-api:onos-apps-pcep-api',
 ]
 
 TEST_DEPS = [
