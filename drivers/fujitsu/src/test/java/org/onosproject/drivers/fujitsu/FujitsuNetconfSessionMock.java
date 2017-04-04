@@ -211,6 +211,10 @@ public class FujitsuNetconfSessionMock implements NetconfSession {
     }
 
     @Override
+    public void checkAndReestablish() throws NetconfException {
+    }
+
+    @Override
     public void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) {
     }
 

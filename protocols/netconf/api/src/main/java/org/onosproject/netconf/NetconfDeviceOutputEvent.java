@@ -23,7 +23,7 @@ import com.google.common.base.MoreObjects;
 import java.util.Optional;
 
 /**
- * Describes network configuration event.
+ * Describes a NETCONF device related event.
  */
 public final class NetconfDeviceOutputEvent extends
         AbstractEvent<NetconfDeviceOutputEvent.Type, Object> {
@@ -33,7 +33,7 @@ public final class NetconfDeviceOutputEvent extends
     private final NetconfDeviceInfo deviceInfo;
 
     /**
-     * Type of network configuration events.
+     * Type of device related events.
      */
     public enum Type {
         /**
@@ -55,6 +55,13 @@ public final class NetconfDeviceOutputEvent extends
          * Signifies that the device has encountered an error.
          */
         DEVICE_ERROR,
+
+        /**
+         * Signifies that the device has closed the session.
+         * ONOS will try to reopen it, if it fails again
+         * it will mark the device as unreachable.
+         */
+        SESSION_CLOSED,
 
     }
 

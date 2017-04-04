@@ -19,6 +19,7 @@ package org.onosproject.netconf.ctl;
 import com.google.common.annotations.Beta;
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
+import ch.ethz.ssh2.channel.Channel;
 import com.google.common.base.Preconditions;
 import org.onosproject.netconf.TargetConfig;
 import org.onosproject.netconf.NetconfDeviceInfo;
@@ -42,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
-
 
 
 /**
@@ -99,6 +99,7 @@ public class NetconfSessionImpl implements NetconfSession {
     private Map<Integer, CompletableFuture<String>> replies;
     private List<String> errorReplies;
     private boolean subscriptionConnected = false;
+    private String notificationFilterSchema = null;
 
 
     public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
@@ -131,7 +132,7 @@ public class NetconfSessionImpl implements NetconfSession {
                             deviceInfo.password().equals("") ? null : deviceInfo.password());
                 } else if (deviceInfo.getKey() != null) {
                     log.debug("Authenticating with key to device {} with username {}",
-                            deviceInfo.getDeviceId(), deviceInfo.name());
+                              deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPublicKey(
                             deviceInfo.name(), deviceInfo.getKey(),
                             deviceInfo.password().equals("") ? null : deviceInfo.password());
@@ -200,6 +201,7 @@ public class NetconfSessionImpl implements NetconfSession {
     @Override
     public void startSubscription(String filterSchema) throws NetconfException {
         if (!subscriptionConnected) {
+            notificationFilterSchema = filterSchema;
             startSubscriptionConnection(filterSchema);
         }
         streamHandler.setEnableNotifications(true);
@@ -255,18 +257,23 @@ public class NetconfSessionImpl implements NetconfSession {
 
     }
 
-    private void checkAndRestablishSession() throws NetconfException {
-        if (sshSession.getState() != 2) {
+    public void checkAndReestablish() throws NetconfException {
+        if (sshSession.getState() != Channel.STATE_OPEN) {
             try {
-                log.debug("The session with {} was reopened", deviceInfo.getDeviceId());
+                log.debug("Trying to reopen the Sesion with {}", deviceInfo.getDeviceId());
                 startSshSession();
-            } catch (IOException e) {
-                log.debug("The connection with {} was reopened", deviceInfo.getDeviceId());
+            } catch (IOException | IllegalStateException e) {
+                log.debug("Trying to reopen the Connection with {}", deviceInfo.getDeviceId());
                 try {
                     connectionActive = false;
                     replies.clear();
                     messageIdInteger.set(0);
                     startConnection();
+                    if (subscriptionConnected) {
+                        log.debug("Restarting subscription with {}", deviceInfo.getDeviceId());
+                        subscriptionConnected = false;
+                        startSubscription(notificationFilterSchema);
+                    }
                 } catch (IOException e2) {
                     log.error("No connection {} for device {}", netconfConnection, e.getMessage());
                     throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
@@ -296,7 +303,7 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     private String sendRequest(String request) throws NetconfException {
-        checkAndRestablishSession();
+        checkAndReestablish();
         final int messageId = messageIdInteger.getAndIncrement();
         request = formatRequestMessageId(request, messageId);
         request = formatXmlHeader(request);
@@ -639,7 +646,7 @@ public class NetconfSessionImpl implements NetconfSession {
     public class NetconfSessionDelegateImpl implements NetconfSessionDelegate {
 
         @Override
-        public void notify(NetconfDeviceOutputEvent event)  {
+        public void notify(NetconfDeviceOutputEvent event) {
             Optional<Integer> messageId = event.getMessageID();
             log.debug("messageID {}, waiting replies messageIDs {}", messageId,
                       replies.keySet());

@@ -17,6 +17,8 @@
 package org.onosproject.netconf;
 
 import com.google.common.annotations.Beta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -325,6 +327,19 @@ public interface NetconfSession {
      * @param capabilities list of capabilities the device has.
      */
     void setDeviceCapabilities(List<String> capabilities);
+
+    /**
+     * Checks the state of the underlying SSH session and connection
+     * and if necessary it reestablishes it.
+     * Should be implemented, providing a default here for retrocompatibility.
+     * @throws NetconfException when there is a problem in reestablishing
+     * the connection or the session to the device.
+     */
+
+    default void checkAndReestablish() throws NetconfException {
+        Logger log = LoggerFactory.getLogger(NetconfSession.class);
+        log.error("Not implemented/exposed by the underlying session implementation");
+    }
 
     /**
      * Remove a listener from the underlying stream handler implementation.

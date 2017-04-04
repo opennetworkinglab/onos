@@ -53,6 +53,7 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.key.DeviceKeyAdminService;
@@ -70,6 +71,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -114,7 +116,6 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
-
 
 
     protected static final String APP_NAME = "org.onosproject.netconf";
@@ -427,8 +428,11 @@ public class NetconfDeviceProvider extends AbstractProvider
     private void updatePortStatistics(Device device) {
         if (device.is(PortStatisticsDiscovery.class)) {
             PortStatisticsDiscovery d = device.as(PortStatisticsDiscovery.class);
-            providerService.updatePortStatistics(device.id(),
-                                                 d.discoverPortStatistics());
+            Collection<PortStatistics> portStatistics = d.discoverPortStatistics();
+            if (portStatistics != null) {
+                providerService.updatePortStatistics(device.id(),
+                                                     portStatistics);
+            }
         } else {
             log.warn("No port statistics getter behaviour for device {}",
                      device.id());

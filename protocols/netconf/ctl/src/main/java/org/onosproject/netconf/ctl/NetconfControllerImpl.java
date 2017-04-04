@@ -52,9 +52,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * The implementation of NetconfController.
@@ -92,6 +95,10 @@ public class NetconfControllerImpl implements NetconfController {
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
     protected NetconfDeviceFactory deviceFactory = new DefaultNetconfDeviceFactory();
+
+    protected final ExecutorService executor =
+            Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
+                                                           "connection-reopen-%d", log));
 
     @Activate
     public void activate(ComponentContext context) {
@@ -145,7 +152,7 @@ public class NetconfControllerImpl implements NetconfController {
         netconfReplyTimeout = newNetconfReplyTimeout;
         netconfConnectTimeout = newNetconfConnectTimeout;
         log.info("Settings: {} = {}, {} = {}",
-                PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout, PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout);
+                 PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout, PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout);
     }
 
     @Override
@@ -195,7 +202,7 @@ public class NetconfControllerImpl implements NetconfController {
                     port = Integer.parseInt(info[2]);
                 } else {
                     ip = Arrays.asList(info).stream().filter(el -> !el.equals(info[0])
-                    && !el.equals(info[info.length - 1]))
+                            && !el.equals(info[info.length - 1]))
                             .reduce((t, u) -> t + ":" + u)
                             .get();
                     log.debug("ip v6 {}", ip);
@@ -204,26 +211,26 @@ public class NetconfControllerImpl implements NetconfController {
             }
             try {
                 DeviceKey deviceKey = deviceKeyService.getDeviceKey(
-                                DeviceKeyId.deviceKeyId(deviceId.toString()));
+                        DeviceKeyId.deviceKeyId(deviceId.toString()));
                 NetconfDeviceInfo deviceInfo = null;
                 if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
                     UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
 
                     deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
-                            usernamepasswd.password(),
-                            IpAddress.valueOf(ip),
-                            port);
+                                                       usernamepasswd.password(),
+                                                       IpAddress.valueOf(ip),
+                                                       port);
 
                 } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
                     String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
                     String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
-                    String sshkey =   deviceKey.annotations().value(AnnotationKeys.SSHKEY);
+                    String sshkey = deviceKey.annotations().value(AnnotationKeys.SSHKEY);
 
                     deviceInfo = new NetconfDeviceInfo(username,
-                            password,
-                            IpAddress.valueOf(ip),
-                            port,
-                            sshkey);
+                                                       password,
+                                                       IpAddress.valueOf(ip),
+                                                       port,
+                                                       sshkey);
                 } else {
                     log.error("Unknown device key for device {}", deviceId);
                 }
@@ -291,7 +298,6 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
 
-
     //Device factory for the specific NetconfDeviceImpl
     private class DefaultNetconfDeviceFactory implements NetconfDeviceFactory {
 
@@ -307,8 +313,23 @@ public class NetconfControllerImpl implements NetconfController {
 
         @Override
         public void event(NetconfDeviceOutputEvent event) {
+            DeviceId did = event.getDeviceInfo().getDeviceId();
             if (event.type().equals(NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED)) {
-                removeDevice(event.getDeviceInfo().getDeviceId());
+                removeDevice(did);
+            } else if (event.type().equals(NetconfDeviceOutputEvent.Type.SESSION_CLOSED)) {
+                log.info("Trying to reestablish connection with device {}", did);
+                executor.execute(() -> {
+                    try {
+                        netconfDeviceMap.get(did).getSession().checkAndReestablish();
+                        log.info("Connection with device {} was reestablished", did);
+                    } catch (NetconfException e) {
+                        log.error("The SSH connection with device {} couldn't be " +
+                                          "reestablished due to {}. " +
+                                          "Marking the device as unreachable", e.getMessage());
+                        log.debug("Complete exception: ", e);
+                        removeDevice(did);
+                    }
+                });
             }
         }
 

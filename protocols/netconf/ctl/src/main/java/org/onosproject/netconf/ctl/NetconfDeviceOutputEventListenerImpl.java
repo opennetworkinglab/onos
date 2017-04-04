@@ -48,10 +48,12 @@ public class NetconfDeviceOutputEventListenerImpl implements NetconfDeviceOutput
                 break;
             case DEVICE_UNREGISTERED:
                 log.warn("Device {} has closed session", deviceInfo);
-                //TODO tell onos about closed session
                 break;
             case DEVICE_ERROR:
                 log.warn("Device {} has error: {}", deviceInfo, event.getMessagePayload());
+                break;
+            case SESSION_CLOSED:
+                log.warn("Device {} has closed Session: {}", deviceInfo, event.getMessagePayload());
                 break;
             default:
                 log.warn("Wrong event type {} ", event.type());

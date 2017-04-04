@@ -185,7 +185,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                         log.debug("Netconf device {}  sent error char in session," +
                                           " will need to be reopend", netconfDeviceInfo);
                         NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
-                                NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
+                                NetconfDeviceOutputEvent.Type.SESSION_CLOSED,
                                 null, null, Optional.of(-1), netconfDeviceInfo);
                         netconfDeviceEventListeners.forEach(
                                 listener -> listener.event(event));
