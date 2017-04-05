@@ -15,7 +15,6 @@
  */
 package org.onosproject.mapping.web.codec;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +22,6 @@ import org.junit.Test;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.mapping.addresses.MappingAddress;
@@ -59,7 +57,7 @@ public class MappingAddressCodecTest {
         registrator.codecService = manager;
         registrator.activate();
 
-        context = new MappingTestContext(registrator.codecService);
+        context = new MappingCodecContextAdapter(registrator.codecService);
 
         addressCodec = context.codec(MappingAddress.class);
         assertThat(addressCodec, notNullValue());
@@ -118,35 +116,5 @@ public class MappingAddressCodecTest {
         MappingAddress address = MappingAddresses.ethMappingAddress(MAC);
         ObjectNode result = addressCodec.encode(address, context);
         assertThat(result, matchesMappingAddress(address));
-    }
-
-    /**
-     * Test mapping codec context.
-     */
-    private class MappingTestContext implements CodecContext {
-        private final ObjectMapper mapper = new ObjectMapper();
-        private final CodecService manager;
-
-        /**
-         * Constructs a new mock codec context.
-         */
-        public MappingTestContext(CodecService manager) {
-            this.manager = manager;
-        }
-
-        @Override
-        public ObjectMapper mapper() {
-            return mapper;
-        }
-
-        @Override
-        public <T> JsonCodec<T> codec(Class<T> entityClass) {
-            return manager.getCodec(entityClass);
-        }
-
-        @Override
-        public <T> T getService(Class<T> serviceClass) {
-            return null;
-        }
     }
 }

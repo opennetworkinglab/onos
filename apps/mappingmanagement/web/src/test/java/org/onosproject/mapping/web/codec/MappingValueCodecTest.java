@@ -16,7 +16,6 @@
 package org.onosproject.mapping.web.codec;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
@@ -25,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.mapping.DefaultMappingTreatment;
@@ -79,7 +77,7 @@ public class MappingValueCodecTest {
         registrator.codecService = manager;
         registrator.activate();
 
-        context = new MappingValueCodecTest.MappingTestContext(registrator.codecService);
+        context = new MappingCodecContextAdapter(registrator.codecService);
         valueCodec = context.codec(MappingValue.class);
         assertThat(valueCodec, notNullValue());
     }
@@ -202,36 +200,6 @@ public class MappingValueCodecTest {
          */
         static MappingValueJsonMatcher matchesMappingValue(MappingValue mappingValue) {
             return new MappingValueJsonMatcher(mappingValue);
-        }
-    }
-
-    /**
-     * Test mapping codec context.
-     */
-    private class MappingTestContext implements CodecContext {
-        private final ObjectMapper mapper = new ObjectMapper();
-        private final CodecService manager;
-
-        /**
-         * Constructs a new mock codec context.
-         */
-        public MappingTestContext(CodecService manager) {
-            this.manager = manager;
-        }
-
-        @Override
-        public ObjectMapper mapper() {
-            return mapper;
-        }
-
-        @Override
-        public <T> JsonCodec<T> codec(Class<T> entityClass) {
-            return manager.getCodec(entityClass);
-        }
-
-        @Override
-        public <T> T getService(Class<T> serviceClass) {
-            return null;
         }
     }
 

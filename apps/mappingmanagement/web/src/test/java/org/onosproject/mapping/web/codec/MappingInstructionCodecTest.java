@@ -15,13 +15,11 @@
  */
 package org.onosproject.mapping.web.codec;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.mapping.instructions.MappingInstruction;
@@ -59,7 +57,7 @@ public class MappingInstructionCodecTest {
         registrator.codecService = manager;
         registrator.activate();
 
-        context = new MappingInstructionCodecTest.MappingTestContext(registrator.codecService);
+        context = new MappingCodecContextAdapter(registrator.codecService);
 
         instructionCodec = context.codec(MappingInstruction.class);
         assertThat(instructionCodec, notNullValue());
@@ -119,35 +117,6 @@ public class MappingInstructionCodecTest {
                         MappingInstructions.multicastPriority(MULTICAST_PRIORITY);
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
-        assertThat(instructionJson, matchesInstruction(instruction));    }
-
-    /**
-     * Test mapping codec context.
-     */
-    private class MappingTestContext implements CodecContext {
-        private final ObjectMapper mapper = new ObjectMapper();
-        private final CodecService manager;
-
-        /**
-         * Constructs a new mock codec context.
-         */
-        public MappingTestContext(CodecService manager) {
-            this.manager = manager;
-        }
-
-        @Override
-        public ObjectMapper mapper() {
-            return mapper;
-        }
-
-        @Override
-        public <T> JsonCodec<T> codec(Class<T> entityClass) {
-            return manager.getCodec(entityClass);
-        }
-
-        @Override
-        public <T> T getService(Class<T> serviceClass) {
-            return null;
-        }
+        assertThat(instructionJson, matchesInstruction(instruction));
     }
 }
