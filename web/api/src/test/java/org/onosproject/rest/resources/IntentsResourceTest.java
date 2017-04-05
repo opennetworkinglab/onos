@@ -41,6 +41,7 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowEntryAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
@@ -142,7 +143,7 @@ public class IntentsResourceTest extends ResourceTest {
     /**
      * Mock class for a flow entry.
      */
-    private static class MockFlowEntry implements FlowEntry {
+    private static class MockFlowEntry extends FlowEntryAdapter {
         final DeviceId deviceId;
         final long baseValue;
         TrafficTreatment treatment;
@@ -158,18 +159,8 @@ public class IntentsResourceTest extends ResourceTest {
         }
 
         @Override
-        public FlowEntryState state() {
-            return FlowEntryState.ADDED;
-        }
-
-        @Override
         public long life() {
             return life(SECONDS);
-        }
-
-        @Override
-        public FlowLiveType liveType() {
-            return null;
         }
 
         @Override
@@ -190,16 +181,6 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public long lastSeen() {
             return baseValue + 44;
-        }
-
-        @Override
-        public int errType() {
-            return 0;
-        }
-
-        @Override
-        public int errCode() {
-            return 0;
         }
 
         @Override
@@ -243,25 +224,6 @@ public class IntentsResourceTest extends ResourceTest {
             return (int) (baseValue + 77);
         }
 
-        @Override
-        public int hardTimeout() {
-            return 0;
-        }
-
-        @Override
-        public FlowRule.FlowRemoveReason reason() {
-            return  FlowRule.FlowRemoveReason.NO_REASON;
-        }
-
-        @Override
-        public boolean isPermanent() {
-            return false;
-        }
-
-        @Override
-        public int tableId() {
-            return 0;
-        }
 
         @Override
         public boolean exactMatch(FlowRule rule) {
@@ -270,11 +232,6 @@ public class IntentsResourceTest extends ResourceTest {
                     this.id().equals(rule.id()) &&
                     this.treatment.equals(rule.treatment()) &&
                     this.selector().equals(rule.selector());
-        }
-
-        @Override
-        public FlowRuleExtPayLoad payLoad() {
-            return null;
         }
 
         @Override

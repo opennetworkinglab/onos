@@ -52,9 +52,9 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowEntryAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -119,7 +119,7 @@ public class FlowsResourceTest extends ResourceTest {
     /**
      * Mock class for a flow entry.
      */
-    private static class MockFlowEntry implements FlowEntry {
+    private static class MockFlowEntry extends FlowEntryAdapter {
         final DeviceId deviceId;
         final long baseValue;
         TrafficTreatment treatment;
@@ -166,16 +166,6 @@ public class FlowsResourceTest extends ResourceTest {
         }
 
         @Override
-        public int errType() {
-            return 0;
-        }
-
-        @Override
-        public int errCode() {
-            return 0;
-        }
-
-        @Override
         public FlowId id() {
             final long id = baseValue + 55;
             return FlowId.valueOf(id);
@@ -217,33 +207,8 @@ public class FlowsResourceTest extends ResourceTest {
         }
 
         @Override
-        public int hardTimeout() {
-            return 0;
-        }
-
-        @Override
         public FlowRemoveReason reason() {
             return  FlowRemoveReason.NO_REASON;
-        }
-
-        @Override
-        public boolean isPermanent() {
-            return false;
-        }
-
-        @Override
-        public int tableId() {
-            return 0;
-        }
-
-        @Override
-        public boolean exactMatch(FlowRule rule) {
-            return false;
-        }
-
-        @Override
-        public FlowRuleExtPayLoad payLoad() {
-            return null;
         }
     }
 
