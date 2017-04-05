@@ -97,6 +97,11 @@
         zoomer.reset();
     }
 
+    function zoomCallback(sc, tr) {
+        // keep the map lines constant width while zooming
+        this.node().style('stroke-width', (2.0 / sc) + 'px');
+    }
+
     angular.module('ovTopo2')
     .factory('Topo2MapService', [
         '$log', '$location', 'Topo2ViewController', 'PrefsService',
@@ -126,7 +131,8 @@
                 setMap: setMap,
                 setUpMap: setUpMap,
                 openMapSelection: openMapSelection,
-                resetZoom: resetZoom
+                resetZoom: resetZoom,
+                zoomCallback: zoomCallback
             });
 
             return instance || new MapLayer();

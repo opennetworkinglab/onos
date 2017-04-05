@@ -73,6 +73,9 @@
                 offsetY: tr[1]
             };
 
+        // Allow map service to react to change in zoom parameters
+        t2ms.zoomCallback(sc, tr);
+
         // Note: Meta data stored in the context of the current layout,
         //       automatically, by the server
 
