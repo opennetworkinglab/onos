@@ -15,6 +15,7 @@
  */
 package org.onosproject.mapping.web.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +29,11 @@ import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.addresses.MappingAddresses;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.mapping.web.codec.MappingAddressJsonMatcher.matchesMappingAddress;
 
@@ -40,7 +45,10 @@ public class MappingAddressCodecTest {
     private CodecContext context;
     private JsonCodec<MappingAddress> addressCodec;
     private MappingCodecRegistrator registrator;
-    private static final IpPrefix IPV4_PREFIX = IpPrefix.valueOf("10.1.1.0/24");
+    private static final String IPV4_STRING = "1.2.3.4";
+    private static final String PORT_STRING = "32";
+    private static final IpPrefix IPV4_PREFIX =
+            IpPrefix.valueOf(IPV4_STRING + "/" + PORT_STRING);
     private static final IpPrefix IPV6_PREFIX = IpPrefix.valueOf("fe80::/64");
     private static final MacAddress MAC = MacAddress.valueOf("00:00:11:00:00:01");
     private static final String DN = "onos";
@@ -116,5 +124,33 @@ public class MappingAddressCodecTest {
         MappingAddress address = MappingAddresses.ethMappingAddress(MAC);
         ObjectNode result = addressCodec.encode(address, context);
         assertThat(result, matchesMappingAddress(address));
+    }
+
+    /**
+     * Tests the decoding of mapping address from JSON object.
+     *
+     * @throws IOException if processing the resource fails
+     */
+    @Test
+    public void testMappingAddressDecode() throws IOException {
+        MappingAddress address = getAddress("MappingAddress.json");
+        assertThat(address.toString(),
+                is("IPV4:" + IPV4_STRING + "/" + PORT_STRING));
+    }
+
+    /**
+     * Reads in a mapping address from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded mappingAddress
+     * @throws IOException if processing the resource fails
+     */
+    private MappingAddress getAddress(String resourceName) throws IOException {
+        InputStream jsonStream = MappingAddressCodecTest.class.getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        assertThat(json, notNullValue());
+        MappingAddress address = addressCodec.decode((ObjectNode) json, context);
+        assertThat(address, notNullValue());
+        return address;
     }
 }

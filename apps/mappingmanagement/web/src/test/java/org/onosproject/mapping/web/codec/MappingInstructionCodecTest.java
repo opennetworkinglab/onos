@@ -15,6 +15,7 @@
  */
 package org.onosproject.mapping.web.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +29,11 @@ import org.onosproject.mapping.instructions.MulticastMappingInstruction;
 import org.onosproject.mapping.instructions.UnicastMappingInstruction;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.mapping.web.codec.MappingInstructionJsonMatcher.matchesInstruction;
 
@@ -45,6 +50,9 @@ public class MappingInstructionCodecTest {
     private static final int UNICAST_PRIORITY = 1;
     private static final int MULTICAST_WEIGHT = 2;
     private static final int MULTICAST_PRIORITY = 2;
+
+    private static final String UNICAST_TYPE_STRING = "UNICAST";
+    private static final String WEIGHT_SUBTYPE_STRING = "WEIGHT";
 
     /**
      * Sets up for each test.
@@ -118,5 +126,33 @@ public class MappingInstructionCodecTest {
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the decoding of mapping instruction from JSON object.
+     *
+     * @throws IOException if processing the resource fails
+     */
+    @Test
+    public void testMappingInstructionDecode() throws IOException {
+        UnicastMappingInstruction instruction = (UnicastMappingInstruction) getInstruction("MappingInstruction.json");
+        assertThat(instruction.type().toString(), is(UNICAST_TYPE_STRING));
+        assertThat(instruction.subtype().toString(), is(WEIGHT_SUBTYPE_STRING));
+    }
+
+    /**
+     * Reads in a mapping instruction from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded mappingInstruction
+     * @throws IOException if processing the resource fails
+     */
+    private MappingInstruction getInstruction(String resourceName) throws IOException {
+        InputStream jsonStream = MappingInstructionCodecTest.class.getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        assertThat(json, notNullValue());
+        MappingInstruction instruction = instructionCodec.decode((ObjectNode) json, context);
+        assertThat(instruction, notNullValue());
+        return instruction;
     }
 }

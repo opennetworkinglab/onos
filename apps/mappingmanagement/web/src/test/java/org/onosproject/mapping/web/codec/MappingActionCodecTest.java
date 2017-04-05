@@ -15,6 +15,7 @@
  */
 package org.onosproject.mapping.web.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +31,11 @@ import org.onosproject.mapping.actions.ForwardMappingAction;
 import org.onosproject.mapping.actions.NativeForwardMappingAction;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.mapping.web.codec.MappingActionJsonMatcher.matchesAction;
 
@@ -38,6 +43,8 @@ import static org.onosproject.mapping.web.codec.MappingActionJsonMatcher.matches
  * Unit tests for MappingActionCodec.
  */
 public class MappingActionCodecTest {
+
+    private static final String NO_ACTION_STRING = "NO_ACTION";
 
     private CodecContext context;
     private JsonCodec<MappingAction> actionCodec;
@@ -106,4 +113,31 @@ public class MappingActionCodecTest {
         final ObjectNode actionJson = actionCodec.encode(action, context);
         assertThat(actionJson, matchesAction(action));
     }
-}
+
+    /**
+     * Tests decoding of a mapping key JSON object.
+     *
+     * @throws IOException if processing the resource fails
+     */
+    @Test
+    public void testMappingActionDecode() throws IOException {
+        MappingAction action = getAction("MappingAction.json");
+        assertThat(action.toString(), is(NO_ACTION_STRING));
+    }
+
+    /**
+     * Reads in a mapping action from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded mappingAction
+     * @throws IOException if processing the resource fails
+     */
+    private MappingAction getAction(String resourceName) throws IOException {
+        InputStream jsonStream = MappingActionCodecTest.class.getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        assertThat(json, notNullValue());
+        MappingAction action = actionCodec.decode((ObjectNode) json, context);
+        assertThat(action, notNullValue());
+        return action;
+    }
+ }
