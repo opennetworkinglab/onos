@@ -593,9 +593,9 @@ public final class PimInterface {
     }
 
     private static class RouteData {
-        public final IpAddress ipAddress;
-        public final MacAddress macAddress;
-        public long timestamp;
+        final IpAddress ipAddress;
+        final MacAddress macAddress;
+        long timestamp;
 
         public RouteData(IpAddress ip, MacAddress mac) {
             this.ipAddress = ip;

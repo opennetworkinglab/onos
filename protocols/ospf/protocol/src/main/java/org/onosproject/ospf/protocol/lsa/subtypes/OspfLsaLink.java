@@ -22,11 +22,11 @@ import com.google.common.base.MoreObjects;
  */
 public class OspfLsaLink {
 
-    public String linkId;
-    public String linkData;
-    public int linkType;
-    public int metric;
-    public int tos;
+    private String linkId;
+    private String linkData;
+    private int linkType;
+    private int metric;
+    private int tos;
 
     /**
      * Gets link id.

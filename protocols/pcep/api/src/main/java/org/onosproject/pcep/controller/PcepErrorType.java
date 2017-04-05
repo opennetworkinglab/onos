@@ -32,7 +32,7 @@ public enum  PcepErrorType {
     INVALIDOPERATION(19),
     VIRTUALNETWORKTLVMISSING(255);
 
-    public  int value;
+    int value;
 
     /**
      * Creates an instance of Pcep Error Type.

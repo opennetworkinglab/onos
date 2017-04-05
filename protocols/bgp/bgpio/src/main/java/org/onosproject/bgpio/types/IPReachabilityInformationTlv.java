@@ -49,7 +49,7 @@ public class IPReachabilityInformationTlv implements BgpValueType {
 
     private byte prefixLen;
     private byte[] ipPrefix;
-    public short length;
+    private short length;
 
     /**
      * Constructor to initialize parameters.

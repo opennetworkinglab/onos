@@ -41,7 +41,7 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BgpValueType {
     public static final int NO_OF_BITS = 8;
     public static final int NO_OF_PRIORITY = 8;
 
-    public short sType;
+    private short sType;
 
     /* ISIS administrative group */
     private List<Float> maxUnResBandwidth = new ArrayList<Float>();

@@ -30,10 +30,10 @@ import java.util.List;
  */
 public class FlowObjectiveCompositionTree {
 
-    public FlowObjectiveCompositionManager.PolicyOperator operator;
-    public FlowObjectiveCompositionTree leftChild;
-    public FlowObjectiveCompositionTree rightChild;
-    public short applicationId;
+    FlowObjectiveCompositionManager.PolicyOperator operator;
+    FlowObjectiveCompositionTree leftChild;
+    FlowObjectiveCompositionTree rightChild;
+    protected short applicationId;
     protected FilterTable filterTable;
     protected ForwardTable forwardTable;
     protected NextTable nextTable;

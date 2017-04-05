@@ -63,7 +63,7 @@ public class BgpKeepaliveMsgVer4 implements BgpKeepaliveMsg {
     public static final int PACKET_MINIMUM_LENGTH = 19;
     public static final int MARKER_LENGTH = 16;
     public static final BgpType MSG_TYPE = BgpType.KEEP_ALIVE;
-    public static byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+    static byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};

@@ -50,7 +50,7 @@ public class Controller {
     private static final BgpFactory FACTORY4 = BgpFactories.getFactory(BgpVersion.BGP_4);
 
     private ChannelGroup cg;
-    public Channel serverChannel;
+    private Channel serverChannel;
 
     // Configuration options
     protected static final short BGP_PORT_NUM = 179;

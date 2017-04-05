@@ -28,9 +28,9 @@ import org.onosproject.ospf.controller.OspfAreaAddressRange;
  */
 public class OspfAreaAddressRangeImpl implements OspfAreaAddressRange {
 
-    public Ip4Address ipAddress;
-    public String mask;
-    public boolean advertise;
+    private Ip4Address ipAddress;
+    private String mask;
+    private boolean advertise;
 
     /**
      * Gets the IP address.

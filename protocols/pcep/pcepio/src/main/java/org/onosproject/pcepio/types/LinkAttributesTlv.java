@@ -50,7 +50,7 @@ public class LinkAttributesTlv implements PcepValueType {
     protected static final Logger log = LoggerFactory.getLogger(LinkAttributesTlv.class);
 
     public static final short TYPE = (short) 65286;
-    public short hLength;
+    short hLength;
 
     public static final int TLV_HEADER_LENGTH = 4;
 

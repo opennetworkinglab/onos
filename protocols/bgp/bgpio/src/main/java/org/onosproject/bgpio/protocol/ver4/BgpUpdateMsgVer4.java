@@ -84,7 +84,7 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     public static final int MIN_LEN_AFTER_WITHDRW_ROUTES = 2;
     public static final int MINIMUM_COMMON_HEADER_LENGTH = 19;
     public static final BgpType MSG_TYPE = BgpType.UPDATE;
-    public static byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+    private static byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                               (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};

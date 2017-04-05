@@ -179,8 +179,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
     RoutingRulePopulator routingRulePopulator = null;
-    public ApplicationId appId;
-    public DeviceConfiguration deviceConfiguration = null;
+    ApplicationId appId;
+    DeviceConfiguration deviceConfiguration = null;
 
     DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
@@ -215,17 +215,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     /**
      * Per device next objective ID store with (device id + neighbor set) as key.
      */
-    public EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
+    EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
             nsNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + subnet) as key.
      */
-    public EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
+    EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer>
             vlanNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + port) as key.
      */
-    public EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
+    EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
 
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
@@ -497,6 +497,51 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             deviceSubnetMap.put(device.id(), deviceConfiguration.getSubnets(device.id()));
         });
         return deviceSubnetMap;
+    }
+
+    /**
+     * Extracts the application ID from the manager.
+     *
+     * @return application ID
+     */
+    public ApplicationId appId() {
+        return appId;
+    }
+
+    /**
+     * Returns the device configuration.
+     *
+     * @return device configuration
+     */
+    public DeviceConfiguration deviceConfiguration() {
+        return deviceConfiguration;
+    }
+
+    /**
+     * Per device next objective ID store with (device id + neighbor set) as key.
+     *
+     * @return next objective ID store
+     */
+    public EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer> nsNextObjStore() {
+        return nsNextObjStore;
+    }
+
+    /**
+     * Per device next objective ID store with (device id + subnet) as key.
+     *
+     * @return vlan next object store
+     */
+    public EventuallyConsistentMap<VlanNextObjectiveStoreKey, Integer> vlanNextObjStore() {
+        return vlanNextObjStore;
+    }
+
+    /**
+     * Per device next objective ID store with (device id + port) as key.
+     *
+     * @return port next object store.
+     */
+    public EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer> portNextObjStore() {
+        return portNextObjStore;
     }
 
     /**

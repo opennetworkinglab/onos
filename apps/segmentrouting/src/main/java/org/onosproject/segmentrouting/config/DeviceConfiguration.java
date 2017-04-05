@@ -698,7 +698,7 @@ public class DeviceConfiguration implements DeviceProperties {
 
     private boolean isSuppressedPort(ConnectPoint connectPoint) {
         SegmentRoutingAppConfig appConfig = srManager.cfgService
-                .getConfig(srManager.appId, SegmentRoutingAppConfig.class);
+                .getConfig(srManager.appId(), SegmentRoutingAppConfig.class);
         if (appConfig != null && appConfig.suppressSubnet().contains(connectPoint)) {
             log.info("Interface configuration on port {} is ignored", connectPoint);
             return true;

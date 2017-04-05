@@ -24,8 +24,8 @@ import java.util.List;
  * Provides an update table for Forward.
  */
 public class ForwardUpdateTable {
-    public List<ForwardingObjective> addObjectives;
-    public List<ForwardingObjective> removeObjectives;
+    List<ForwardingObjective> addObjectives;
+    List<ForwardingObjective> removeObjectives;
 
     public ForwardUpdateTable() {
         this.addObjectives = new ArrayList<>();

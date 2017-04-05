@@ -126,9 +126,9 @@ public class DefaultGroupHandler {
                     + " Skipping value assignment in DefaultGroupHandler");
         }
         this.flowObjectiveService = flowObjService;
-        this.nsNextObjStore = srManager.nsNextObjStore;
-        this.vlanNextObjStore = srManager.vlanNextObjStore;
-        this.portNextObjStore = srManager.portNextObjStore;
+        this.nsNextObjStore = srManager.nsNextObjStore();
+        this.vlanNextObjStore = srManager.vlanNextObjStore();
+        this.portNextObjStore = srManager.portNextObjStore();
         this.srManager = srManager;
 
         populateNeighborMaps();

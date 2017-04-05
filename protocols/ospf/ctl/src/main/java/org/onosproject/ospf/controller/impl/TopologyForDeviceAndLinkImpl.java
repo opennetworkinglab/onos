@@ -606,7 +606,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             routerLsa.lsType();
             List<OspfLsaLink> ospfLsaLinkList = routerLsa.routerLink();
             for (OspfLsaLink link : ospfLsaLinkList) {
-                if (link.linkType == 1 || link.linkType == 2) {
+                if (link.linkType() == 1 || link.linkType() == 2) {
                     if ((routerLsa.advertisingRouter().equals(ospfArea.routerId())) ||
                             (link.equals(ospfArea.routerId()))) {
                         log.debug("OspfInterface information will not display in web ");
@@ -641,7 +641,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
             RouterLsa routerLsa = (RouterLsa) ospfLsa;
             List<OspfLsaLink> ospfLsaLinkList = routerLsa.routerLink();
             for (OspfLsaLink link : ospfLsaLinkList) {
-                if (link.linkType == 1 || link.linkType == 2) {
+                if (link.linkType() == 1 || link.linkType() == 2) {
                     if ((routerLsa.advertisingRouter().equals(ospfArea.routerId())) ||
                             (link.equals(ospfArea.routerId()))) {
                         log.debug("OspfInterface information will not display in web ");

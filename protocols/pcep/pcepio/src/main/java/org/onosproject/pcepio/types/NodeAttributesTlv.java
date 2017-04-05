@@ -52,7 +52,7 @@ public class NodeAttributesTlv implements PcepValueType {
     protected static final Logger log = LoggerFactory.getLogger(NodeAttributesTlv.class);
 
     public static final short TYPE = (short) 65285;
-    public short hLength;
+    short hLength;
 
     public static final int TLV_HEADER_LENGTH = 4;
     // LinkDescriptors Sub-TLVs (variable)

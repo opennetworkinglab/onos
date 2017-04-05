@@ -811,7 +811,7 @@ public class L2TunnelHandler {
                 .addCondition(Criteria.matchVlanId(outerTag))
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
                 .permit()
-                .fromApp(srManager.appId);
+                .fromApp(srManager.appId());
     }
 
     /**
@@ -844,7 +844,7 @@ public class L2TunnelHandler {
         trafficTreatment.setOutput(egressPort);
 
         return DefaultForwardingObjective.builder()
-                .fromApp(srManager.appId)
+                .fromApp(srManager.appId())
                 .makePermanent()
                 .nextStep(nextId)
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
@@ -872,7 +872,7 @@ public class L2TunnelHandler {
         trafficSelector.matchInPort(inPort);
 
         return DefaultForwardingObjective.builder()
-                .fromApp(srManager.appId)
+                .fromApp(srManager.appId())
                 .makePermanent()
                 .nextStep(nextId)
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
@@ -905,7 +905,7 @@ public class L2TunnelHandler {
             nextObjBuilder = DefaultNextObjective
                     .builder()
                     .withType(NextObjective.Type.SIMPLE)
-                    .fromApp(srManager.appId);
+                    .fromApp(srManager.appId());
             // The pw label is the bottom of stack. It has to
             // be different -1.
             if (l2Tunnel.pwLabel().toInt() == MplsLabel.MAX_MPLS) {
@@ -928,7 +928,7 @@ public class L2TunnelHandler {
             MplsLabel srLabel;
             try {
                  srLabel = MplsLabel.mplsLabel(
-                         srManager.deviceConfiguration.getIPv4SegmentId(egressId)
+                         srManager.deviceConfiguration().getIPv4SegmentId(egressId)
                  );
             } catch (DeviceConfigNotFoundException e) {
                 log.warn("Sr label not configured");
@@ -942,7 +942,7 @@ public class L2TunnelHandler {
             MacAddress ingressMac;
             try {
                 ingressMac = srManager
-                        .deviceConfiguration
+                        .deviceConfiguration()
                         .getDeviceMac(srcCp.deviceId());
             } catch (DeviceConfigNotFoundException e) {
                 log.warn("Was not able to find the ingress mac");
@@ -952,7 +952,7 @@ public class L2TunnelHandler {
             MacAddress neighborMac;
             try {
                 neighborMac = srManager
-                        .deviceConfiguration
+                        .deviceConfiguration()
                         .getDeviceMac(dstCp.deviceId());
             } catch (DeviceConfigNotFoundException e) {
                 log.warn("Was not able to find the neighbor mac");
@@ -965,7 +965,7 @@ public class L2TunnelHandler {
             nextObjBuilder = DefaultNextObjective
                     .builder()
                     .withType(NextObjective.Type.SIMPLE)
-                    .fromApp(srManager.appId);
+                    .fromApp(srManager.appId());
         }
         treatmentBuilder.setOutput(srcCp.port());
         nextObjBuilder.addTreatment(treatmentBuilder.build());

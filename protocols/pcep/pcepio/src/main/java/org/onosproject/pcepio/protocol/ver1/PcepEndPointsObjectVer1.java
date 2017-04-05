@@ -53,15 +53,15 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
     static final byte END_POINTS_OBJ_CLASS = 4;
     static final byte END_POINTS_OBJECT_VERSION = 1;
     static final short END_POINTS_OBJ_MINIMUM_LENGTH = 12;
-    public static byte endPointObjType;
+    static byte endPointObjType;
 
     static final PcepObjectHeader DEFAULT_END_POINTS_OBJECT_HEADER = new PcepObjectHeader(END_POINTS_OBJ_CLASS,
             END_POINTS_OBJ_TYPE, PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED,
             END_POINTS_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader endPointsObjHeader;
-    public int sourceIpAddress;
-    public int destIpAddress;
+    int sourceIpAddress;
+    int destIpAddress;
 
     /**
      * Constructor to initialize all variables.
