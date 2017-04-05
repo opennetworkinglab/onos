@@ -151,24 +151,24 @@ public class AbstractVirtualListenerManagerTest {
     private enum Type { FOO }
 
     private static class Thing extends AbstractEvent<Type, String> {
-        private Thing(String subject) {
+        protected Thing(String subject) {
             super(Type.FOO, subject);
         }
     }
 
-    private static class Prickle extends Thing {
+    private static final class Prickle extends Thing {
         private Prickle(String subject) {
             super(subject);
         }
     }
 
-    private static class Goo extends Thing {
+    private static final class Goo extends Thing {
         private Goo(String subject) {
             super(subject);
         }
     }
 
-    private static class Bar extends Thing {
+    private static final class Bar extends Thing {
         private Bar(String subject) {
             super(subject);
         }
