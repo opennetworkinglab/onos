@@ -35,8 +35,7 @@
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>OpenStack networking application</onos.app.readme>
         <onos.app.requires>
-            org.onosproject.openstacknode,
-            org.onosproject.scalablegateway
+            org.onosproject.openstacknode
         </onos.app.requires>
         <web.context>/onos/openstacknetworking</web.context>
         <api.version>1.0.0</api.version>
@@ -101,11 +100,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-openstacknode</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-scalablegateway</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

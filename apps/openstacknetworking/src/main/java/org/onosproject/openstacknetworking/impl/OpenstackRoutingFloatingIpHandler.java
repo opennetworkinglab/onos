@@ -48,7 +48,6 @@ import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
-import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
@@ -101,9 +100,6 @@ public class OpenstackRoutingFloatingIpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScalableGatewayService gatewayService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -193,7 +189,7 @@ public class OpenstackRoutingFloatingIpHandler {
                 .matchIPDst(floating.toIpPrefix())
                 .build();
 
-        gatewayService.getGatewayDeviceIds().forEach(gnodeId -> {
+        osNodeService.gatewayDeviceIds().forEach(gnodeId -> {
             TrafficTreatment externalTreatment = DefaultTrafficTreatment.builder()
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
                     .setEthDst(instPort.macAddress())
@@ -258,12 +254,12 @@ public class OpenstackRoutingFloatingIpHandler {
                 .matchIPSrc(instPort.ipAddress().toIpPrefix())
                 .build();
 
-        gatewayService.getGatewayDeviceIds().forEach(gnodeId -> {
+        osNodeService.gatewayDeviceIds().forEach(gnodeId -> {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setIpSrc(floating.getIp4Address())
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
                     .setEthDst(Constants.DEFAULT_EXTERNAL_ROUTER_MAC)
-                    .setOutput(gatewayService.getUplinkPort(gnodeId))
+                    .setOutput(osNodeService.externalPort(gnodeId).get())
                     .build();
 
             RulePopulatorUtil.setRule(

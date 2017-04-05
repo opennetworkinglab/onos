@@ -49,7 +49,6 @@ import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
-import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Router;
@@ -94,9 +93,6 @@ public class OpenstackRoutingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScalableGatewayService gatewayService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
@@ -195,14 +191,14 @@ public class OpenstackRoutingHandler {
                 .forEach(osNode -> {
                     setRulesToGateway(
                             osNode.intBridge(),
-                            gatewayService.getGatewayGroupId(osNode.intBridge()),
+                            osNodeService.gatewayGroupId(osNode.intBridge()),
                             Long.valueOf(osNet.getProviderSegID()),
                             IpPrefix.valueOf(osSubnet.getCidr()),
                             install);
                 });
 
         // take the first outgoing packet to controller for source NAT
-        gatewayService.getGatewayDeviceIds()
+        osNodeService.gatewayDeviceIds()
                 .forEach(gwDeviceId -> setRulesToController(
                         gwDeviceId,
                         Long.valueOf(osNet.getProviderSegID()),
@@ -225,13 +221,13 @@ public class OpenstackRoutingHandler {
                 .filter(osNode -> osNode.type() == COMPUTE)
                 .forEach(osNode -> setRulesToGatewayWithDstIp(
                         osNode.intBridge(),
-                        gatewayService.getGatewayGroupId(osNode.intBridge()),
+                        osNodeService.gatewayGroupId(osNode.intBridge()),
                         Long.valueOf(network.getProviderSegID()),
                         IpAddress.valueOf(osSubnet.getGateway()),
                         install));
 
         IpAddress gatewayIp = IpAddress.valueOf(osSubnet.getGateway());
-        gatewayService.getGatewayDeviceIds()
+        osNodeService.gatewayDeviceIds()
                 .forEach(gwDeviceId -> setGatewayIcmpRule(
                         gatewayIp,
                         gwDeviceId,

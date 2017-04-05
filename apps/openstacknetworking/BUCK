@@ -6,7 +6,6 @@ COMPILE_DEPS = [
   '//utils/rest:onlab-rest',
   '//cli:onos-cli',
   '//apps/openstacknode:onos-apps-openstacknode',
-  '//apps/scalablegateway:onos-apps-scalablegateway',
   '//lib:openstack4j-core',
 ]
 
@@ -26,7 +25,6 @@ onos_app (
   url = 'http://onosproject.org',
   description = 'OpenStack Networking application.',
   required_apps = [
-    'org.onosproject.openstacknode',
-    'org.onosproject.scalablegateway'
+    'org.onosproject.openstacknode'
   ]
 )

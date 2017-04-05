@@ -16,6 +16,7 @@
 package org.onosproject.openstacknode;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.core.GroupId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -127,4 +128,34 @@ public interface OpenstackNodeService
      * @return port number; or empty value
      */
     Optional<PortNumber> externalPort(DeviceId intBridgeId);
+    /**
+     * Returns gateway node with the given device identifier.
+     *
+     * @param deviceId The gateway node deviceId
+     * @return The gateway node information
+     */
+    OpenstackNode gatewayNode(DeviceId deviceId);
+
+    /**
+     * Returns group id for gateway load balance.
+     * If the group does not exist in the supplied source device, creates one.
+     *
+     * @param srcDeviceId source device id
+     * @return The group id
+     */
+    GroupId gatewayGroupId(DeviceId srcDeviceId);
+
+    /**
+     * Returns the list of gateway node information with the given device identifier.
+     *
+     * @return The list of gateway node information
+     */
+    List<OpenstackNode> gatewayNodes();
+
+    /**
+     * Returns the list of gateway`s device identifiers.
+     *
+     * @return The list of device identifier]
+     */
+    List<DeviceId> gatewayDeviceIds();
 }

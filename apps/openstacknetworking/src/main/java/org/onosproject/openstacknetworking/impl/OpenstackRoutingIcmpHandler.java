@@ -51,8 +51,6 @@ import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
-import org.onosproject.scalablegateway.api.GatewayNode;
-import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
@@ -100,9 +98,6 @@ public class OpenstackRoutingIcmpHandler {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScalableGatewayService gatewayService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -147,7 +142,7 @@ public class OpenstackRoutingIcmpHandler {
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
                 .build();
 
-        gatewayService.getGatewayDeviceIds().forEach(gateway -> {
+        osNodeService.gatewayDeviceIds().forEach(gateway -> {
             packetService.requestPackets(
                     icmpSelector,
                     PacketPriority.CONTROL,
@@ -335,7 +330,7 @@ public class OpenstackRoutingIcmpHandler {
                 .setPayload(ipPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(gatewayService.getUplinkPort(srcDevice))
+                .setOutput(osNodeService.externalPort(srcDevice).get())
                 .build();
 
         OutboundPacket packet = new DefaultOutboundPacket(
@@ -386,7 +381,7 @@ public class OpenstackRoutingIcmpHandler {
         public void process(PacketContext context) {
             if (context.isHandled()) {
                 return;
-            } else if (!gatewayService.getGatewayDeviceIds().contains(
+            } else if (!osNodeService.gatewayDeviceIds().contains(
                     context.inPacket().receivedFrom().deviceId())) {
                 // return if the packet is not from gateway nodes
                 return;
@@ -423,14 +418,6 @@ public class OpenstackRoutingIcmpHandler {
                     if (osNode.type() == GATEWAY) {
                         log.info("GATEWAY node {} detected", osNode.hostname());
                         eventExecutor.execute(() -> {
-                            // TODO add events to scalable gateway so that we
-                            // don't need to add gateway here and there
-                            GatewayNode gnode = GatewayNode.builder()
-                                    .gatewayDeviceId(osNode.intBridge())
-                                    .dataIpAddress(osNode.dataIp().get().getIp4Address())
-                                    .uplinkIntf(osNode.externalPortName().get())
-                                    .build();
-                            gatewayService.addGatewayNode(gnode);
                             requestPacket(appId);
                         });
                     }

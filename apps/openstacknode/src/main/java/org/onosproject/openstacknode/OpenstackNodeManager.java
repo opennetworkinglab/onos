@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknode;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -35,6 +37,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.GroupId;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -60,6 +63,10 @@ import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupKey;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.openstacknode.OpenstackNodeEvent.NodeState;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
@@ -113,6 +120,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     private static final int DPID_BEGIN = 3;
 
     private static final String APP_ID = "org.onosproject.openstacknode";
+
     private static final Class<OpenstackNodeConfig> CONFIG_CLASS = OpenstackNodeConfig.class;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -139,6 +147,12 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupService groupService;
+
     @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
             label = "OVSDB server listen port")
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
@@ -164,6 +178,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
 
     private ConsistentMap<String, OpenstackNode> nodeStore;
 
+    private SelectGroupHandler selectGroupHandler;
     private ApplicationId appId;
     private NodeId localNodeId;
 
@@ -186,6 +201,8 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
         configRegistry.registerConfigFactory(configFactory);
         configRegistry.addListener(configListener);
         componentConfigService.registerProperties(getClass());
+
+        selectGroupHandler = new SelectGroupHandler(groupService, deviceService, driverService, appId);
 
         readConfiguration();
         log.info("Started");
@@ -275,12 +292,25 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     @Override
     public void processCompleteState(OpenstackNode node) {
         process(new OpenstackNodeEvent(COMPLETE, node));
+        switch (node.type()) {
+            case COMPUTE:
+                selectGroupHandler.createGatewayGroup(node.intBridge(), gatewayNodes());
+                break;
+            case GATEWAY:
+                updateGatewayGroup(node, true);
+                break;
+            default:
+                break;
+        }
         log.info("Finished init {}", node.hostname());
     }
 
     @Override
     public void processIncompleteState(OpenstackNode node) {
         process(new OpenstackNodeEvent(INCOMPLETE, node));
+        if (node.type().equals(NodeType.GATEWAY)) {
+            updateGatewayGroup(node, false);
+        }
     }
 
     @Override
@@ -329,6 +359,65 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .filter(p -> p.annotations().value(PORT_NAME).equals(PATCH_INTG_BRIDGE) &&
                         p.isEnabled())
                 .map(Port::number).findFirst();
+    }
+
+    @Override
+    public OpenstackNode gatewayNode(DeviceId deviceId) {
+        OpenstackNode gatewayNode = nodeByDeviceId(deviceId);
+        if (gatewayNode == null) {
+            log.warn("Gateway with device ID {} does not exist");
+            return null;
+        }
+        return gatewayNode;
+    }
+
+    @Override
+    public synchronized GroupId gatewayGroupId(DeviceId srcDeviceId) {
+        GroupKey groupKey = selectGroupHandler.getGroupKey(srcDeviceId);
+        Group group = groupService.getGroup(srcDeviceId, groupKey);
+        if (group == null) {
+            log.info("Created gateway group for {}", srcDeviceId);
+            return selectGroupHandler.createGatewayGroup(srcDeviceId, gatewayNodes());
+        } else {
+            return group.id();
+        }
+    }
+
+    @Override
+    public List<OpenstackNode> gatewayNodes() {
+        return nodeStore.values()
+                .stream()
+                .map(Versioned::value)
+                .filter(node -> node.type().equals(NodeType.GATEWAY))
+                .filter(node -> node.state().equals(COMPLETE))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DeviceId> gatewayDeviceIds() {
+        List<DeviceId> deviceIdList = Lists.newArrayList();
+
+        nodeStore.values()
+                .stream()
+                .map(Versioned::value)
+                .filter(node -> node.type().equals(NodeType.GATEWAY))
+                .filter(node -> node.state().equals(COMPLETE))
+                .forEach(node -> deviceIdList.add(node.intBridge()));
+        return deviceIdList;
+    }
+
+    private void updateGatewayGroup(OpenstackNode gatewayNode, boolean isInsert) {
+        nodeStore.values()
+                .stream()
+                .map(Versioned::value)
+                .filter(node -> node.type().equals(NodeType.COMPUTE))
+                .filter(node -> node.state().equals(COMPLETE))
+                .forEach(node -> {
+                    selectGroupHandler.updateGatewayGroupBuckets(node.intBridge(),
+                            ImmutableList.of(gatewayNode),
+                            isInsert);
+                    log.trace("Updated gateway group on {}", node.intBridge());
+                });
     }
 
     private void initNode(OpenstackNode node) {
@@ -675,6 +764,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                         eventExecutor.execute(() -> handler.connected(device));
                     } else {
                         eventExecutor.execute(() -> handler.disconnected(device));
+                        log.warn("OpenstackNode with device ID {} is disconnected", device.id());
                     }
                     break;
                 default:

@@ -50,7 +50,6 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.OpenstackNodeService;
-import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedSet;
@@ -117,9 +116,6 @@ public class OpenstackRoutingSnatHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackRouterService osRouterService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScalableGatewayService gatewayService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -311,7 +307,7 @@ public class OpenstackRoutingSnatHandler {
                 break;
         }
 
-        gatewayService.getGatewayDeviceIds().forEach(deviceId -> {
+        osNodeService.gatewayDeviceIds().forEach(deviceId -> {
             DeviceId srcDeviceId = srcInstPort.deviceId();
             TrafficTreatment.Builder tmpBuilder =
                     DefaultTrafficTreatment.builder(tBuilder.build());
@@ -367,10 +363,10 @@ public class OpenstackRoutingSnatHandler {
         }
 
         tBuilder.setIpSrc(externalIp);
-        gatewayService.getGatewayDeviceIds().forEach(deviceId -> {
+        osNodeService.gatewayDeviceIds().forEach(deviceId -> {
             TrafficTreatment.Builder tmpBuilder =
                     DefaultTrafficTreatment.builder(tBuilder.build());
-            tmpBuilder.setOutput(gatewayService.getUplinkPort(deviceId));
+            tmpBuilder.setOutput(osNodeService.externalPort(deviceId).get());
             ForwardingObjective fo = DefaultForwardingObjective.builder()
                     .withSelector(sBuilder.build())
                     .withTreatment(tmpBuilder.build())
@@ -415,7 +411,7 @@ public class OpenstackRoutingSnatHandler {
         ethPacketIn.setPayload(iPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(gatewayService.getUplinkPort(srcDevice))
+                .setOutput(osNodeService.externalPort(srcDevice).get())
                 .build();
         ethPacketIn.resetChecksum();
         packetService.emit(new DefaultOutboundPacket(
@@ -459,7 +455,7 @@ public class OpenstackRoutingSnatHandler {
         public void process(PacketContext context) {
             if (context.isHandled()) {
                 return;
-            } else if (!gatewayService.getGatewayDeviceIds().contains(
+            } else if (!osNodeService.gatewayDeviceIds().contains(
                     context.inPacket().receivedFrom().deviceId())) {
                 // return if the packet is not from gateway nodes
                 return;

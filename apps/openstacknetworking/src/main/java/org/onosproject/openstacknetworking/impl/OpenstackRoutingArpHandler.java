@@ -33,8 +33,8 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.scalablegateway.api.ScalableGatewayService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknode.OpenstackNodeService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -60,10 +60,10 @@ public class OpenstackRoutingArpHandler {
     protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScalableGatewayService gatewayService;
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService osNetworkService;
+    protected OpenstackNodeService osNodeService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -123,7 +123,7 @@ public class OpenstackRoutingArpHandler {
         public void process(PacketContext context) {
             if (context.isHandled()) {
                 return;
-            } else if (!gatewayService.getGatewayDeviceIds().contains(
+            } else if (!osNodeService.gatewayDeviceIds().contains(
                     context.inPacket().receivedFrom().deviceId())) {
                 // return if the packet is not from gateway nodes
                 return;
