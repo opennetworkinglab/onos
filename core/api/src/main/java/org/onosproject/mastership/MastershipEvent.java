@@ -22,6 +22,8 @@ import org.onosproject.net.DeviceId;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Objects;
+
 /**
  * Describes a device mastership event.
  */
@@ -87,6 +89,26 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
      */
     public RoleInfo roleInfo() {
         return roleInfo;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type(), subject(), roleInfo(), time());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof MastershipEvent) {
+            final MastershipEvent other = (MastershipEvent) obj;
+            return Objects.equals(this.type(), other.type()) &&
+                    Objects.equals(this.subject(), other.subject()) &&
+                    Objects.equals(this.roleInfo(), other.roleInfo()) &&
+                    Objects.equals(this.time(), other.time());
+        }
+        return false;
     }
 
     @Override
