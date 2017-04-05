@@ -95,6 +95,10 @@ public class PceSetupPathCommand extends AbstractShellCommand {
             required = false, multiValued = true)
     String[] explicitPathInfoStrings;
 
+    @Option(name = "-l", aliases = "--loadBalancing", description = "The load balancing option for user. ",
+            required = false, multiValued = false)
+    boolean loadBalancing = false;
+
     //explicitPathInfo format : Type/SubType/Value(DeviceId or Link info)
     //If Value is Device : Type/SubType/deviceId
     //If Value is Link : Type/SubType/SourceDeviceId/SourcePortNo/DestinationDeviceId/DestinationPortNo
@@ -188,6 +192,15 @@ public class PceSetupPathCommand extends AbstractShellCommand {
                 explicitPathInfo.add(obj);
             }
         }
+
+        //with load balancing option
+        if (loadBalancing) {
+            if (!service.setupPath(srcDevice, dstDevice, name, listConstrnt, lspType, loadBalancing)) {
+                error("Path creation failed.");
+            }
+            return;
+        }
+
         if (!service.setupPath(srcDevice, dstDevice, name, listConstrnt, lspType, explicitPathInfo)) {
             error("Path creation failed.");
         }

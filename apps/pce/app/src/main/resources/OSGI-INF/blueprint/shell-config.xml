@@ -27,5 +27,11 @@
     <command>
       <action class="org.onosproject.pce.cli.PceDeletePathCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.pce.cli.PceQueryLoadBalancingPathCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.pce.cli.PceDeleteLoadBalancingPathCommand"/>
+    </command>
   </command-bundle>
 </blueprint>

@@ -16,9 +16,11 @@
 
 package org.onosproject.pceweb;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.DataRateUnit;
@@ -50,10 +52,12 @@ import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.Mod;
 import org.onosproject.ui.topo.NodeBadge;
+import org.onosproject.ui.topo.TopoJson;
 import org.onosproject.ui.topo.TopoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -85,6 +89,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
     private static final String DST = "DST";
     private static final String SRC = "SRC";
     private static final String BANDWIDTH = "bw";
+    private static final String LOADBALANCING = "lb";
     private static final String BANDWIDTHTYPE = "bwtype";
     private static final String COSTTYPE = "ctype";
     private static final String LSPTYPE = "lsptype";
@@ -198,6 +203,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             String bandWidth = string(payload, BANDWIDTH);
             String bandWidthType = string(payload, BANDWIDTHTYPE);
             String costType = string(payload, COSTTYPE);
+            String loadBalancing = string(payload, LOADBALANCING);
             String lspType = string(payload, LSPTYPE);
             String tunnelName = string(payload, TUNNEL_NAME);
 
@@ -226,7 +232,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
 
             if ((src != null) && (dst != null)) {
-                findAndSendPaths(src, dst, bandWidth, bandWidthType, costType, lspType, tunnelName);
+                findAndSendPaths(src, dst, bandWidth, bandWidthType, costType, lspType, tunnelName, loadBalancing);
             }
         }
     }
@@ -371,8 +377,26 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             for (Tunnel tunnel : tunnelSet) {
                 if (tunnel.type() == MPLS) {
                     if (tunnel.state().equals(ACTIVE)) {
-                        arrayNode.add(tunnel.tunnelId().toString());
-                        arrayNode.add(tunnel.tunnelName().toString());
+
+                        if (tunnel.annotations().value("loadBalancingPathName") != null) {
+                            boolean present = false;
+                            if (!arrayNode.isNull()) {
+                                for (JsonNode node : arrayNode) {
+                                    if (node.asText().equals(tunnel.annotations().value("loadBalancingPathName"))) {
+                                        present = true;
+                                        break;
+                                    }
+                                }
+                                if (!present) {
+                                    arrayNode.add("");
+                                    arrayNode.add(tunnel.annotations().value("loadBalancingPathName"));
+                                }
+                            }
+
+                        } else {
+                            arrayNode.add(tunnel.tunnelId().toString());
+                            arrayNode.add(tunnel.tunnelName().toString());
+                        }
                     }
                 }
             }
@@ -394,12 +418,22 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             String tunnelId = string(payload, TUNNEL_ID);
+            String pathName = string(payload, "tunnelname");
 
-            if (tunnelId == null) {
-                log.error("PCE update path is failed.");
+            //TODO: if tunnel id null it is load banlanced path
+            if (tunnelId.equals("") && pathName != null) {
+                findAndSendPathsRemove(STRING_NULL, pathName);
+             /*   List<TunnelId> tunnelIds = pceService.getLoadBalancedPath(pathName);
+                for (TunnelId id : tunnelIds) {
+                    Tunnel tunnel = tunnelService.queryTunnel(id);
+                    if (tunnel != null) {
+
+                    }
+                }*/
+            } else {
+                findAndSendPathsRemove(tunnelId, null);
             }
 
-            findAndSendPathsRemove(tunnelId);
         }
     }
 
@@ -421,8 +455,27 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             tunnelSet = tunnelService.queryTunnel(MPLS);
             for (Tunnel tunnel : tunnelSet) {
                 if (tunnel.state().equals(ACTIVE)) {
-                    arrayNode.add(tunnel.tunnelId().toString());
-                    arrayNode.add(tunnel.tunnelName().toString());
+                    //TODO: if it is load balancing need to check whether to send tunnel ID as null or some negative
+                    //TODO;value
+                    if (tunnel.annotations().value("loadBalancingPathName") != null) {
+                        boolean present = false;
+                        if (!arrayNode.isNull()) {
+                            for (JsonNode node : arrayNode) {
+                                if (node.asText().equals(tunnel.annotations().value("loadBalancingPathName"))) {
+                                    present = true;
+                                    break;
+                                }
+                            }
+                            if (!present) {
+                                arrayNode.add("");
+                                arrayNode.add(tunnel.annotations().value("loadBalancingPathName"));
+                            }
+                        }
+
+                    } else {
+                        arrayNode.add(tunnel.tunnelId().toString());
+                        arrayNode.add(tunnel.tunnelName().toString());
+                    }
                 }
             }
 
@@ -443,26 +496,24 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             String tunnelIdStr = string(payload, TUNNEL_ID);
+            String pathName = string(payload, "tunnelname");
 
-            if (tunnelIdStr == null) {
-                log.error("Tunnel Id is NULL.");
-                return;
-            }
-
-            if (tunnelIdStr.equals(STRING_NULL)) {
-                log.error("Tunnel Id is NULL.");
-                return;
-            }
-
-            if (pceService == null) {
-                log.error("PCE service is not active");
-                return;
-            }
-
-            TunnelId tunnelId = TunnelId.valueOf(tunnelIdStr);
-            Tunnel tunnel = tunnelService.queryTunnel(tunnelId);
-            if (tunnel != null) {
-                highlightsForTunnel(tunnel);
+            if (tunnelIdStr.equals("")) {
+                List<Tunnel> tunnels = Lists.newLinkedList();
+                List<TunnelId> tunnelIds = pceService.queryLoadBalancingPath(pathName);
+                for (TunnelId id : tunnelIds) {
+                    Tunnel t = tunnelService.queryTunnel(id);
+                    tunnels.add(t);
+                }
+                if (!tunnels.isEmpty()) {
+                    highlightsForTunnel(tunnels);
+                }
+            } else {
+                TunnelId tunnelId = TunnelId.valueOf(tunnelIdStr);
+                Tunnel t = tunnelService.queryTunnel(tunnelId);
+                if (t != null) {
+                    highlightsForTunnel(t);
+                }
             }
         }
     }
@@ -492,7 +543,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      */
     private void findAndSendPaths(ElementId src, ElementId dst, String bandWidth,
                                   String bandWidthType, String costType,
-                                  String lspType, String tunnelName) {
+                                  String lspType, String tunnelName, String loadBalancing) {
         log.debug("src={}; dst={};", src, dst);
         boolean path;
         List<Constraint> listConstrnt;
@@ -515,9 +566,17 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
                 break;
         }
 
+        boolean loadBalancingOpt = Boolean.parseBoolean(loadBalancing);
+
         //TODO: need to get explicit paths [temporarily using null as the value]
-        path = pceService.setupPath((DeviceId) src, (DeviceId) dst,
-                tunnelName, listConstrnt, lspTypeVal, null);
+
+        if (loadBalancingOpt) {
+            path = pceService.setupPath((DeviceId) src, (DeviceId) dst, tunnelName, listConstrnt, lspTypeVal,
+                    loadBalancingOpt);
+        } else {
+            path = pceService.setupPath((DeviceId) src, (DeviceId) dst, tunnelName, listConstrnt, lspTypeVal,
+                    null);
+        }
 
         if (!path) {
             log.error("setup path is failed");
@@ -562,19 +621,24 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
      *
      * @param tunnelIdStr tunnelId
      */
-    private void findAndSendPathsRemove(String tunnelIdStr) {
-        if (tunnelIdStr != null) {
+    private void findAndSendPathsRemove(String tunnelIdStr, String pathName) {
             if (pceService == null) {
                 log.error("PCE service is not active");
                 return;
             }
+            boolean path;
 
-            TunnelId tunnelId = TunnelId.valueOf(tunnelIdStr);
-            boolean path = pceService.releasePath(tunnelId);
+            if (tunnelIdStr.equals(STRING_NULL) && !pathName.equals(STRING_NULL)) {
+                path = pceService.releasePath(pathName);
+            } else {
+                TunnelId tunnelId = TunnelId.valueOf(tunnelIdStr);
+                path = pceService.releasePath(tunnelId);
+            }
+
             if (!path) {
                 log.error("remove path is failed");
             }
-        }
+
     }
 
     private ImmutableSet.Builder<Link> buildPaths(ImmutableSet.Builder<Link> pathBuilder) {
@@ -747,12 +811,22 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
         hilightAndSendPaths(highlights);
     }
 
+    private void highlightsForTunnel(Tunnel... tunnels) {
+        highlightsForTunnel(Arrays.asList(tunnels));
+    }
     /**
      * Handles the event of topology listeners.
      */
-    private void highlightsForTunnel(Tunnel tunnel) {
+    private void highlightsForTunnel(List<Tunnel> tunnels) {
         Highlights highlights = new Highlights();
         paths.removeAll(paths);
+
+        if (tunnels.isEmpty()) {
+            log.error("path does not exist");
+            sendMessage(TopoJson.highlightsMessage(highlights));
+            return;
+        }
+        for (Tunnel tunnel : tunnels) {
         if (tunnel.path() == null) {
             log.error("path does not exist");
             sendMessage(highlightsMessage(highlights));
@@ -777,6 +851,7 @@ public class PceWebTopovMessageHandler extends UiMessageHandler {
             }
         }
         paths.add(tunnel.path());
+        }
 
         ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
         allPathLinks = buildPaths(builder).build();

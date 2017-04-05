@@ -57,6 +57,35 @@ public interface PceService {
                       List<ExplicitPathInfo> explicitPathInfo);
 
     /**
+     * Creates new path based on constraints and LSP type with load balancing option.
+     *
+     * @param src source device
+     * @param dst destination device
+     * @param tunnelName name of the tunnel
+     * @param constraints list of constraints to be applied on path
+     * @param lspType type of path to be setup
+     * @param loadBalancing load balancing option enable or not
+     * @return false on failure and true on successful path creation
+     */
+    boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints, LspType lspType,
+                      boolean loadBalancing);
+
+    /**
+     * Creates new path based on constraints and LSP type with load balancing and explicit path options.
+     *
+     * @param src source device
+     * @param dst destination device
+     * @param tunnelName name of the tunnel
+     * @param constraints list of constraints to be applied on path
+     * @param lspType type of path to be setup
+     * @param explicitPathInfo list of explicit path info
+     * @param loadBalancing load balancing option enable or not
+     * @return false on failure and true on successful path creation
+     */
+    boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints, LspType lspType,
+                      List<ExplicitPathInfo> explicitPathInfo, boolean loadBalancing);
+
+    /**
      * Updates an existing path.
      *
      * @param tunnelId tunnel identifier
@@ -72,6 +101,14 @@ public interface PceService {
      * @return false on failure and true on successful path removal
      */
     boolean releasePath(TunnelId tunnelId);
+
+    /**
+     * Releases load balancing paths.
+     *
+     * @param loadBalancingPathName load balance path name
+     * @return false on failure and true on successful paths removal
+     */
+    boolean releasePath(String loadBalancingPathName);
 
     /**
      * Queries all paths.
@@ -95,4 +132,12 @@ public interface PceService {
      * @return list of explicit path info
      */
     List<ExplicitPathInfo> explicitPathInfoList(String tunnelName);
+
+    /**
+     * Queries load balancing paths on load balance path name.
+     *
+     * @param pathName load balance path name
+     * @return list of load balancing tunnels
+     */
+    List<TunnelId> queryLoadBalancingPath(String pathName);
 }

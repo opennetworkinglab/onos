@@ -15,6 +15,7 @@
  */
 package org.onosproject.pce.pcestore.api;
 
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pcestore.PcePathInfo;
 
@@ -79,4 +80,35 @@ public interface PceStore {
      * @return list of explicit path info
      */
     List<ExplicitPathInfo> getTunnelNameExplicitPathInfoMap(String tunnelName);
+
+    //DisjointPath getDisjointPaths(String tunnelName);
+
+    //boolean addDisjointPathInfo(String tunnelName, DisjointPath path);
+
+    /**
+     * Stores load balancing tunnels by load balance path name.
+     *
+     * @param loadBalancingPathName load balancing path name
+     * @param tunnelIds list load balancing tunnels
+     * @return success or failure
+     */
+    boolean addLoadBalancingTunnelIdsInfo(String loadBalancingPathName, TunnelId... tunnelIds);
+
+    /**
+     * Query load balancing tunnels by load balance path name.
+     *
+     * @param loadBalancingPathName load balancing path name
+     * @return list of load balancing tunnels
+     */
+    List<TunnelId> getLoadBalancingTunnelIds(String loadBalancingPathName);
+
+    /**
+     * Removes load balancing tunnel info.
+     *
+     * @param loadBalancingPathName load balancing path name
+     * @return success or failure
+     */
+    boolean removeLoadBalancingTunnelIdsInfo(String loadBalancingPathName);
+
+    //boolean removeDisjointPathInfo(String tunnelName);
 }

@@ -16,6 +16,7 @@
 package org.onosproject.pce.pcestore;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Arrays;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pceservice.LspType;
 import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
@@ -56,6 +58,9 @@ public class DistributedPceStore implements PceStore {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    //Mapping tunnel name with Disjoint paths
+    private ConsistentMap<String, List<TunnelId>> tunnelNameDisjoinTunnelIdInfo;
 
     // List of Failed path info
     private DistributedSet<PcePathInfo> failedPathSet;
@@ -93,6 +98,15 @@ public class DistributedPceStore implements PceStore {
                                 .register(KryoNamespaces.API)
                                 .register(ExplicitPathInfo.class)
                                 .register(ExplicitPathInfo.Type.class)
+                                .build()))
+                .build();
+
+        tunnelNameDisjoinTunnelIdInfo = storageService.<String, List<TunnelId>>consistentMapBuilder()
+                .withName("onos-pce-disjointTunnelIds")
+                .withSerializer(Serializer.using(
+                        new KryoNamespace.Builder()
+                                .register(KryoNamespaces.API)
+                                .register(TunnelId.class)
                                 .build()))
                 .build();
 
@@ -157,4 +171,51 @@ public class DistributedPceStore implements PceStore {
         return null;
     }
 
+/*    @Override
+    public DisjointPath getDisjointPaths(String tunnelName) {
+        if (tunnelNameDisjointPathInfo.get(tunnelName) != null) {
+            return tunnelNameDisjointPathInfo.get(tunnelName).value();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean addDisjointPathInfo(String tunnelName, DisjointPath path) {
+        checkNotNull(tunnelName);
+        checkNotNull(path);
+        return tunnelNameDisjointPathInfo.put(tunnelName, path) != null ? true : false;
+    }*/
+
+    @Override
+    public boolean addLoadBalancingTunnelIdsInfo(String tunnelName, TunnelId... tunnelIds) {
+        checkNotNull(tunnelName);
+        checkNotNull(tunnelIds);
+        return tunnelNameDisjoinTunnelIdInfo.put(tunnelName, Arrays.asList(tunnelIds)) != null ? true : false;
+    }
+
+    @Override
+    public List<TunnelId> getLoadBalancingTunnelIds(String tunnelName) {
+        if (tunnelNameDisjoinTunnelIdInfo.get(tunnelName) != null) {
+            return tunnelNameDisjoinTunnelIdInfo.get(tunnelName).value();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean removeLoadBalancingTunnelIdsInfo(String tunnelName) {
+        if (tunnelNameDisjoinTunnelIdInfo.remove(tunnelName) == null) {
+            log.error("Failed to remove entry {} for this tunnelName in DisjointTunnelIdsInfoMap" + tunnelName);
+            return false;
+        }
+        return true;
+    }
+
+ /*   @Override
+    public boolean removeDisjointPathInfo(String tunnelName) {
+        if (tunnelNameDisjointPathInfo.remove(tunnelName) == null) {
+            log.error("Failed to remove entry {} for this tunnelName in DisjointPathInfoMap", tunnelName);
+            return false;
+        }
+        return true;
+    }*/
 }

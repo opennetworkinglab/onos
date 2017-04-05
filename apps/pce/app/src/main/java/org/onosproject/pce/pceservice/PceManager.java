@@ -17,6 +17,7 @@ package org.onosproject.pce.pceservice;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.onosproject.net.DisjointPath;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -168,6 +169,7 @@ public class PceManager implements PceService {
     private ApplicationId appId;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();
+    public static final String LOAD_BALANCING_PATH_NAME = "loadBalancingPathName";
 
     private List<TunnelId> rsvpTunnelsWithLocalBw = new ArrayList<>();
 
@@ -421,13 +423,26 @@ public class PceManager implements PceService {
     @Override
     public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
                              LspType lspType) {
-        return setupPath(src, dst, tunnelName, constraints, lspType, null);
+        return setupPath(src, dst, tunnelName, constraints, lspType, null, false);
     }
 
     //[TODO:] handle requests in queue
     @Override
     public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
                              LspType lspType, List<ExplicitPathInfo> explicitPathInfo) {
+        return setupPath(src, dst, tunnelName, constraints, lspType, explicitPathInfo, false);
+
+    }
+
+    @Override
+    public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
+                             LspType lspType, boolean loadBalancing) {
+        return setupPath(src, dst, tunnelName, constraints, lspType, null, loadBalancing);
+    }
+
+    @Override
+    public boolean setupPath(DeviceId src, DeviceId dst, String tunnelName, List<Constraint> constraints,
+                             LspType lspType, List<ExplicitPathInfo> explicitPathInfo, boolean loadBalancing) {
         checkNotNull(src);
         checkNotNull(dst);
         checkNotNull(tunnelName);
@@ -439,7 +454,8 @@ public class PceManager implements PceService {
 
         if (srcDevice == null || dstDevice == null) {
             // Device is not known.
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo,
+                    loadBalancing));
             return false;
         }
 
@@ -449,7 +465,8 @@ public class PceManager implements PceService {
 
         if (srcLsrId == null || dstLsrId == null) {
             // LSR id is not known.
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo,
+                    loadBalancing));
             return false;
         }
 
@@ -457,7 +474,8 @@ public class PceManager implements PceService {
         DeviceCapability cfg = netCfgService.getConfig(DeviceId.deviceId(srcLsrId), DeviceCapability.class);
         if (cfg == null) {
             log.debug("No session to ingress.");
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo,
+                    loadBalancing));
             return false;
         }
 
@@ -495,6 +513,11 @@ public class PceManager implements PceService {
         }
         Set<Path> computedPathSet = Sets.newLinkedHashSet();
 
+        if (loadBalancing) {
+            return setupDisjointPaths(src, dst, constraints, tunnelName, bwConstraintValue, lspType, costConstraint,
+                    srcEndPoint, dstEndPoint);
+        }
+
         if (explicitPathInfo != null && !explicitPathInfo.isEmpty()) {
             List<Path> finalComputedPath = computeExplicitPath(explicitPathInfo, src, dst, constraints);
             if (finalComputedPath == null) {
@@ -516,7 +539,8 @@ public class PceManager implements PceService {
 
         // NO-PATH
         if (computedPathSet.isEmpty()) {
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo,
+                    loadBalancing));
             return false;
         }
 
@@ -550,14 +574,15 @@ public class PceManager implements PceService {
         if (bwConstraintValue != 0) {
             if (!reserveBandwidth(computedPath, bwConstraintValue, null)) {
                 pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints,
-                        lspType, explicitPathInfo));
+                        lspType, explicitPathInfo, loadBalancing));
                 return false;
             }
         }
 
         TunnelId tunnelId = tunnelService.setupTunnel(appId, src, tunnel, computedPath);
         if (tunnelId == null) {
-            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo));
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, explicitPathInfo,
+                    loadBalancing));
 
             if (bwConstraintValue != 0) {
                 computedPath.links().forEach(ln -> bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(ln),
@@ -571,6 +596,114 @@ public class PceManager implements PceService {
             rsvpTunnelsWithLocalBw.add(tunnelId);
         }
 
+        return true;
+    }
+
+    private boolean setupDisjointPaths(DeviceId src, DeviceId dst, List<Constraint> constraints, String tunnelName,
+                                       double bwConstraintValue, LspType lspType, CostConstraint costConstraint,
+                                       TunnelEndPoint srcEndPoint, TunnelEndPoint dstEndPoint) {
+        Set<DisjointPath> paths = pathService.getDisjointPaths(src, dst, weight(constraints));
+
+        // NO-PATH
+        if (paths.isEmpty()) {
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, null, true));
+            return false;
+        }
+
+        DisjointPath path = null;
+        if (!paths.isEmpty()) {
+            path = paths.iterator().next();
+        }
+
+        Builder annotationBuilder = DefaultAnnotations.builder();
+        double bw = 0;
+        if (bwConstraintValue != 0) {
+            //TODO: BW needs to be divided by 2 :: bwConstraintValue/2
+            bw = bwConstraintValue / 2;
+            annotationBuilder.set(BANDWIDTH, String.valueOf(bw));
+        }
+        if (costConstraint != null) {
+            annotationBuilder.set(COST_TYPE, String.valueOf(costConstraint.type()));
+        }
+        annotationBuilder.set(LSP_SIG_TYPE, lspType.name());
+        annotationBuilder.set(PCE_INIT, TRUE);
+        annotationBuilder.set(DELEGATE, TRUE);
+        annotationBuilder.set(LOAD_BALANCING_PATH_NAME, tunnelName);
+
+        //Path computedPath = computedPathSet.iterator().next();
+
+        if (lspType != WITH_SIGNALLING) {
+            /*
+             * Local LSP id which is assigned by RSVP for RSVP signalled LSPs, will be assigned by
+             * PCE for non-RSVP signalled LSPs.
+             */
+            annotationBuilder.set(LOCAL_LSP_ID, String.valueOf(getNextLocalLspId()));
+        }
+
+        //Generate different tunnel name for disjoint paths
+        String tunnel1 = (new StringBuilder()).append(tunnelName).append("_1").toString();
+        String tunnel2 = (new StringBuilder()).append(tunnelName).append("_2").toString();
+
+        // For SR-TE tunnels, call SR manager for label stack and put it inside tunnel.
+        Tunnel tunnelPrimary = new DefaultTunnel(null, srcEndPoint, dstEndPoint, MPLS, INIT, null, null,
+                TunnelName.tunnelName(tunnel1), path.primary(),
+                annotationBuilder.build());
+
+        Tunnel tunnelBackup = new DefaultTunnel(null, srcEndPoint, dstEndPoint, MPLS, INIT, null, null,
+                TunnelName.tunnelName(tunnel2), path.backup(),
+                annotationBuilder.build());
+
+        // Allocate bandwidth.
+        if (bwConstraintValue != 0) {
+            if (!reserveBandwidth(path.primary(), bw, null)) {
+                pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnel1, constraints,
+                                                           lspType, null, true));
+                return false;
+            }
+
+            if (!reserveBandwidth(path.backup(), bw, null)) {
+                //Release bandwidth resource for tunnel1
+                if (bwConstraintValue != 0) {
+                    path.primary().links().forEach(ln ->
+                                         bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(ln),
+                                         Double.parseDouble(tunnelPrimary.annotations().value(BANDWIDTH))));
+                }
+
+                pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnel2, constraints,
+                                                           lspType, null, true));
+                return false;
+            }
+        }
+
+        TunnelId tunnelId1 = tunnelService.setupTunnel(appId, src, tunnelPrimary, path.primary());
+        if (tunnelId1 == null) {
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, null, true));
+
+            if (bwConstraintValue != 0) {
+                path.primary().links().forEach(ln -> bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(ln),
+                                                   Double.parseDouble(tunnelPrimary.annotations().value(BANDWIDTH))));
+            }
+
+            return false;
+        }
+
+        TunnelId tunnelId2 = tunnelService.setupTunnel(appId, src, tunnelBackup, path.backup());
+        if (tunnelId2 == null) {
+            //Release 1st tunnel
+            releasePath(tunnelId2);
+
+            pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, null, true));
+
+            if (bwConstraintValue != 0) {
+                path.backup().links().forEach(ln -> bandwidthMgmtService.releaseLocalReservedBw(LinkKey.linkKey(ln),
+                                                    Double.parseDouble(tunnelBackup.annotations().value(BANDWIDTH))));
+            }
+
+            return false;
+        }
+
+        pceStore.addLoadBalancingTunnelIdsInfo(tunnelName, tunnelId1, tunnelId2);
+        //pceStore.addDisjointPathInfo(tunnelName, path);
         return true;
     }
 
@@ -751,6 +884,26 @@ public class PceManager implements PceService {
     }
 
     @Override
+    public boolean releasePath(String loadBalancingPathName) {
+        checkNotNull(loadBalancingPathName);
+
+        List<TunnelId> tunnelIds = pceStore.getLoadBalancingTunnelIds(loadBalancingPathName);
+        if (tunnelIds != null && !tunnelIds.isEmpty()) {
+            for (TunnelId id : tunnelIds) {
+                if (!tunnelService.downTunnel(appId, id)) {
+                    return false;
+                }
+            }
+
+            //pceStore.removeDisjointPathInfo(loadBalancedPathName);
+            pceStore.removeLoadBalancingTunnelIdsInfo(loadBalancingPathName);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public Iterable<Tunnel> queryAllPath() {
         return tunnelService.queryTunnel(MPLS);
     }
@@ -907,7 +1060,8 @@ public class PceManager implements PceService {
                 pceStore.addFailedPathInfo(new PcePathInfo(tunnel.path().src().deviceId(), tunnel
                         .path().dst().deviceId(), tunnel.tunnelName().value(), constraintList,
                         LspType.valueOf(tunnel.annotations().value(LSP_SIG_TYPE)),
-                         pceStore.getTunnelNameExplicitPathInfoMap(tunnel.tunnelName().value())));
+                         pceStore.getTunnelNameExplicitPathInfoMap(tunnel.tunnelName().value()),
+                        tunnel.annotations().value(LOAD_BALANCING_PATH_NAME) != null ? true : false));
                 //Release that tunnel calling PCInitiate
                 releasePath(tunnel.tunnelId());
             }
@@ -1079,7 +1233,8 @@ public class PceManager implements PceService {
                                                                   links.get(links.size() - 1).dst().deviceId(),
                                                                   tunnel.tunnelName().value(), constraints, lspType,
                                                                   pceStore.getTunnelNameExplicitPathInfoMap(tunnel
-                                                                          .tunnelName().value())));
+                                                                          .tunnelName().value()), tunnel.annotations()
+                            .value(LOAD_BALANCING_PATH_NAME) != null ? true : false));
                 }
 
                 break;
@@ -1113,6 +1268,11 @@ public class PceManager implements PceService {
     @Override
     public List<ExplicitPathInfo> explicitPathInfoList(String tunnelName) {
         return pceStore.getTunnelNameExplicitPathInfoMap(tunnelName);
+    }
+
+    @Override
+    public List<TunnelId> queryLoadBalancingPath(String pathName) {
+        return pceStore.getLoadBalancingTunnelIds(pathName);
     }
 
     //Computes path from tunnel store and also path failed to setup.

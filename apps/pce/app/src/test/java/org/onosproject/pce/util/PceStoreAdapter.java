@@ -16,12 +16,15 @@
 package org.onosproject.pce.util;
 
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.ExplicitPathInfo;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Arrays;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +41,9 @@ public class PceStoreAdapter implements PceStore {
 
     // Locally maintain with tunnel name as key and corresponding list of explicit path object
     private Map<String, List<ExplicitPathInfo>> tunnelNameExplicitPathInfoMap = new HashMap<>();
+
+    //Mapping tunnel name with Disjoint paths
+    private Map<String, List<TunnelId>> loadBalancingPathNameTunnelIdInfo = new HashMap<>();
 
     @Override
     public boolean existsFailedPathInfo(PcePathInfo pathInfo) {
@@ -77,4 +83,47 @@ public class PceStoreAdapter implements PceStore {
     public List<ExplicitPathInfo> getTunnelNameExplicitPathInfoMap(String tunnelName) {
         return tunnelNameExplicitPathInfoMap.get(tunnelName);
     }
+
+/*    @Override
+    public DisjointPath getDisjointPaths(String tunnelName) {
+        if (tunnelNameDisjointPathInfo.get(tunnelName) != null) {
+            return tunnelNameDisjointPathInfo.get(tunnelName);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean addDisjointPathInfo(String tunnelName, DisjointPath path) {
+        return tunnelNameDisjointPathInfo.put(tunnelName, path) != null ? true : false;
+    }*/
+
+    @Override
+    public boolean addLoadBalancingTunnelIdsInfo(String loadBalancingPathName, TunnelId... tunnelIds) {
+        return loadBalancingPathNameTunnelIdInfo.put(loadBalancingPathName,
+                Arrays.asList(tunnelIds)) != null ? true : false;
+    }
+
+    @Override
+    public List<TunnelId> getLoadBalancingTunnelIds(String loadBalancingPathName) {
+        if (loadBalancingPathNameTunnelIdInfo.get(loadBalancingPathName) != null) {
+            return loadBalancingPathNameTunnelIdInfo.get(loadBalancingPathName);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean removeLoadBalancingTunnelIdsInfo(String loadBalancingPathName) {
+        if (loadBalancingPathNameTunnelIdInfo.remove(loadBalancingPathName) == null) {
+            return false;
+        }
+        return true;
+    }
+
+/*    @Override
+    public boolean removeDisjointPathInfo(String tunnelName) {
+        if (tunnelNameDisjointPathInfo.remove(tunnelName) == null) {
+            return false;
+        }
+        return true;
+    }*/
 }

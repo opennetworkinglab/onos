@@ -286,7 +286,7 @@ public class PcePathResourceTest extends PceResourceTest {
      */
     @Test
     public void testDelete() {
-        expect(pceService.releasePath(anyObject()))
+        expect(pceService.releasePath(TunnelId.valueOf("1")))
                          .andReturn(true)
                          .anyTimes();
         replay(pceService);

@@ -43,6 +43,8 @@ public final class PcePathInfo {
 
     private List<ExplicitPathInfo> explicitPathInfo; //Explicit path info to compute explicit path
 
+    private boolean loadBalancing; //load balancing option
+
     /**
      * Initialization of member variables.
      *
@@ -52,19 +54,22 @@ public final class PcePathInfo {
      * @param constraints list of constraints
      * @param lspType lsp type
      * @param explicitPathInfo explicit path info
+     * @param loadBalancing load balancing option
      */
     public PcePathInfo(DeviceId src,
                     DeviceId dst,
                     String name,
                     List<Constraint> constraints,
                     LspType lspType,
-                    List<ExplicitPathInfo> explicitPathInfo) {
+                    List<ExplicitPathInfo> explicitPathInfo,
+                    boolean loadBalancing) {
        this.src = src;
        this.dst = dst;
        this.name = name;
        this.constraints = constraints;
        this.lspType = lspType;
        this.explicitPathInfo = explicitPathInfo;
+       this.loadBalancing = loadBalancing;
     }
 
     /**
@@ -77,6 +82,7 @@ public final class PcePathInfo {
        this.constraints = null;
        this.lspType = null;
        this.explicitPathInfo = null;
+       this.loadBalancing = false;
     }
 
     /**
@@ -187,9 +193,27 @@ public final class PcePathInfo {
         this.explicitPathInfo = explicitPathInfo;
     }
 
+    /**
+     * Returns whether stored path has enabled load balancing.
+     *
+     * @return load balancing option is enable
+     */
+    public boolean isLoadBalancing() {
+        return loadBalancing;
+    }
+
+    /**
+     * Sets load balancing option is enable.
+     *
+     * @param loadBalancing load balancing option is enable
+     */
+    public void loadBalancing(boolean loadBalancing) {
+        this.loadBalancing = loadBalancing;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(src, dst, name, constraints, lspType, explicitPathInfo);
+        return Objects.hash(src, dst, name, constraints, lspType, explicitPathInfo, loadBalancing);
     }
 
     @Override
@@ -204,7 +228,8 @@ public final class PcePathInfo {
                     Objects.equals(this.name, other.name) &&
                     Objects.equals(this.constraints, other.constraints) &&
                     Objects.equals(this.lspType, other.lspType) &&
-                    Objects.equals(this.explicitPathInfo, other.explicitPathInfo);
+                    Objects.equals(this.explicitPathInfo, other.explicitPathInfo) &&
+                    Objects.equals(this.loadBalancing, other.loadBalancing);
         }
         return false;
     }
@@ -219,6 +244,7 @@ public final class PcePathInfo {
                 .add("Constraints", constraints)
                 .add("explicitPathInfo", explicitPathInfo)
                 .add("LspType", lspType)
+                .add("loadBalancing", loadBalancing)
                 .toString();
     }
 }

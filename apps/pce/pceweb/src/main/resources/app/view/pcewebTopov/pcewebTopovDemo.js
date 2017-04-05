@@ -121,6 +121,10 @@
         addAttribute('pce-cost-type-name', 'pce-cost-type', 'Cost Type', 'checkbox');
         addAttribute('pce-cost-type-valname', 'pce-cost-type-igp', 'IGP', 'radio');
         addAttribute('pce-cost-type-valname', 'pce-cost-type-te', 'TE', 'radio');
+
+        //Add the load balancing related inputs.
+        addAttribute('pce-load-balancing-option-name', 'pce-load-balance', 'Load balancing', 'checkbox');
+
         //Add the LSP type related inputs.
         p.append('span').text("Lsp Type *");
         p.append('br');
@@ -197,6 +201,11 @@
 
             if (val == 'CostType') {
                 constType = 'CT';
+                return;
+            }
+
+            if (val == 'LoadBalancing') {
+                constType = 'LB';
                 return;
             }
 
@@ -464,6 +473,8 @@
                 }
             }
 
+            var loadBalancedOption = isChecked('pce-load-balance');
+
             var lspTypeVal = null;
 
             if (isChecked('pce-lsp-type-cr')) {
@@ -480,6 +491,7 @@
                 bw: bandValue,
                 bwtype: bandType,
                 ctype: costTypeVal,
+                lb: loadBalancedOption,
                 lsptype: lspTypeVal,
                 tunnelname: getCheckedValue('pce-tunnel-name-id')
             });
@@ -515,7 +527,8 @@
             var tunnelNameVal = isChecked('tunnel-id-remove-'+idx);
             if (tunnelNameVal) {
                 wss.sendEvent(remPathmsg, {
-                    tunnelid: tunnelNameDataRemove.a[idx]
+                    tunnelid: tunnelNameDataRemove.a[idx],
+                    tunnelname: tunnelNameDataRemove.a[++idx]
                 });
             }
             idx++;
@@ -530,7 +543,8 @@
             var tunnelNameVal = isChecked('tunnel-id-query-'+idx);
             if (tunnelNameVal) {
                 wss.sendEvent(showTunnelHighlightMsg, {
-                    tunnelid: tunnelNameDataQuery.a[idx]
+                    tunnelid: tunnelNameDataQuery.a[idx],
+                    tunnelname: tunnelNameDataQuery.a[++idx]
                 });
             }
             idx++;
