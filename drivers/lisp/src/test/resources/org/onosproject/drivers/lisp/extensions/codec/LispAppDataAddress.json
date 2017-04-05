@@ -1,0 +1,12 @@
+{
+  "protocol": 1,
+  "ipTos": 1,
+  "localPortLow": 1,
+  "localPortHigh": 1,
+  "remotePortLow": 1,
+  "remotePortHigh": 1,
+  "address": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.0/24"
+  }
+}

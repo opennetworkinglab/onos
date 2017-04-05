@@ -3,12 +3,18 @@ COMPILE_DEPS = [
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
+    '//apps/mappingmanagement/web:onos-apps-mappingmanagement-web',
     '//core/store/serializers:onos-core-serializers'
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
+    '//lib:jersey-test-framework-core',
+    '//lib:jersey-test-framework-jetty',
+    '//utils/osgi:onlab-osgi-tests',
+    '//web/api:onos-rest-tests',
+    '//apps/mappingmanagement/web:onos-apps-mappingmanagement-web-tests',
 ]
 
 BUNDLES = [

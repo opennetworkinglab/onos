@@ -15,6 +15,6 @@
  */
 
 /**
- * LISP extensions package.
+ * LISP extensions codec package.
  */
-package org.onosproject.drivers.lisp.extensions;
+package org.onosproject.drivers.lisp.extensions.codec;
