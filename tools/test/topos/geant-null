@@ -3,41 +3,58 @@
 # Creates a replica of the GEANT topology using ONOS null provider
 # -----------------------------------------------------------------------------
 
+# config
+host=${1:-localhost}
+nports=24
+sleepfor=5
+
+
+# start custom simulation..
+onos ${host} null-simulation start custom
+
+
+## unfortunately, it takes a time for the sim to start up
+#  this is not ideal...
+
+echo
+echo "Sleeping while sim starts up... (${sleepfor} seconds)..."
+echo
+sleep ${sleepfor}
+
+# Add devices, links, and hosts
 onos ${1:-localhost} <<-EOF
 
-null-simulation start custom
-
-null-create-device switch ATH 24 37.984149 23.7279843
-null-create-device switch LIS 24 38.707792 -9.1365069
-null-create-device switch LON 24 51.507321 -0.1276473
-null-create-device switch BRU 24 50.846556 4.351697
-null-create-device switch PAR 24 48.856610 2.3514992
-null-create-device switch DUB 24 53.349764 -8.2602731
-null-create-device switch MAD 24 40.416704 -3.7035824
-null-create-device switch GEN 24 46.201755 6.1466014
-null-create-device switch MIL 24 45.466797 9.1904984
-null-create-device switch SOF 24 42.697721 23.3225964
-null-create-device switch BUC 24 44.436141 26.1027443
-null-create-device switch VIE 24 48.208353 15.3725042
-null-create-device switch FRA 24 50.110652 8.6820934
-null-create-device switch COP 24 55.686724 9.5700724
-null-create-device switch TLN 24 59.437215 24.7453688
-null-create-device switch RIG 24 56.949397 24.1051846
-null-create-device switch KAU 24 54.898106 23.9117515
-null-create-device switch POZ 24 52.408266 16.9335199
-null-create-device switch PRA 24 50.087465 14.4212503
-null-create-device switch BRA 24 48.135908 18.1597440
-null-create-device switch ZAG 24 45.813154 15.9770298
-null-create-device switch LJU 24 46.049865 14.5068921
-null-create-device switch BUD 24 47.498381 19.0404707
-null-create-device switch MLT 24 35.898754 14.5134889
-null-create-device switch LUX 24 49.815868 6.1296751
-null-create-device switch MAR 24 43.296174 5.3699525
-null-create-device switch HAM 24 50.699641 10.6301627
-null-create-device switch AMS 24 50.828525 -4.546936
-null-create-device switch STO 24 43.296174 5.3699525
-null-create-device switch OSL 24 53.550341 10.000654
-null-create-device switch HEL 24 52.374436 4.89799560
+null-create-device switch ATH ${nports} 37.984149 23.7279843
+null-create-device switch LIS ${nports} 38.707792 -9.1365069
+null-create-device switch LON ${nports} 51.507321 -0.1276473
+null-create-device switch BRU ${nports} 50.846556 4.351697
+null-create-device switch PAR ${nports} 48.856610 2.3514992
+null-create-device switch DUB ${nports} 53.349764 -8.2602731
+null-create-device switch MAD ${nports} 40.416704 -3.7035824
+null-create-device switch GEN ${nports} 46.201755 6.1466014
+null-create-device switch MIL ${nports} 45.466797 9.1904984
+null-create-device switch SOF ${nports} 42.697721 23.3225964
+null-create-device switch BUC ${nports} 44.436141 26.1027443
+null-create-device switch VIE ${nports} 48.208353 15.3725042
+null-create-device switch FRA ${nports} 50.110652 8.6820934
+null-create-device switch COP ${nports} 55.686724 9.5700724
+null-create-device switch TLN ${nports} 59.437215 24.7453688
+null-create-device switch RIG ${nports} 56.949397 24.1051846
+null-create-device switch KAU ${nports} 54.898106 23.9117515
+null-create-device switch POZ ${nports} 52.408266 16.9335199
+null-create-device switch PRA ${nports} 50.087465 14.4212503
+null-create-device switch BRA ${nports} 48.135908 18.1597440
+null-create-device switch ZAG ${nports} 45.813154 15.9770298
+null-create-device switch LJU ${nports} 46.049865 14.5068921
+null-create-device switch BUD ${nports} 47.498381 19.0404707
+null-create-device switch MLT ${nports} 35.898754 14.5134889
+null-create-device switch LUX ${nports} 49.815868 6.1296751
+null-create-device switch MAR ${nports} 43.296174 5.3699525
+null-create-device switch HAM ${nports} 50.699641 10.6301627
+null-create-device switch AMS ${nports} 50.828525 -4.546936
+null-create-device switch STO ${nports} 43.296174 5.3699525
+null-create-device switch OSL ${nports} 53.550341 10.000654
+null-create-device switch HEL ${nports} 52.374436 4.89799560
 
 null-create-link direct ATH MIL
 null-create-link direct MIL ATH
