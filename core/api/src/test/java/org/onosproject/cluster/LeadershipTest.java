@@ -59,7 +59,7 @@ public class LeadershipTest {
 
     /**
      * Tests that objects are created properly and accessor methods return
-     * the correct vsalues.
+     * the correct values.
      */
     @Test
     public void checkConstruction() {
