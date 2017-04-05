@@ -15,7 +15,10 @@
  */
 package org.onosproject.cluster;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.event.AbstractEvent;
+
+import java.util.Objects;
 
 /**
  * Describes a cluster metadata event.
@@ -52,5 +55,33 @@ public class ClusterMetadataEvent extends AbstractEvent<ClusterMetadataEvent.Typ
      */
     public ClusterMetadataEvent(Type type, ClusterMetadata metadata, long time) {
         super(type, metadata, time);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type(), subject(), time());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof ClusterMetadataEvent) {
+            final ClusterMetadataEvent other = (ClusterMetadataEvent) obj;
+            return Objects.equals(this.type(), other.type()) &&
+                    Objects.equals(this.subject(), other.subject()) &&
+                    Objects.equals(this.time(), other.time());
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this.getClass())
+                .add("type", type())
+                .add("subject", subject())
+                .add("time", time())
+                .toString();
     }
 }
