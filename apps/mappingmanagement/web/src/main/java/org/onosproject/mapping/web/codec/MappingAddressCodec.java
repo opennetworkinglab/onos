@@ -46,6 +46,10 @@ public final class MappingAddressCodec extends JsonCodec<MappingAddress> {
 
     @Override
     public MappingAddress decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
         DecodeMappingAddressCodecHelper decoder =
                             new DecodeMappingAddressCodecHelper(json);
         return decoder.decode();

@@ -43,6 +43,10 @@ public final class MappingActionCodec extends JsonCodec<MappingAction> {
 
     @Override
     public MappingAction decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
         DecodeMappingActionCodecHelper decoder =
                 new DecodeMappingActionCodecHelper(json);
         return decoder.decode();
