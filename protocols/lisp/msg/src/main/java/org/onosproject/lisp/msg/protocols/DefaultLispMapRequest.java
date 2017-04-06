@@ -375,7 +375,12 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
             }
 
             // reply record -> 32 bits
-            int replyRecord = byteBuf.readInt();
+            int replyRecord = 0;
+
+            // only obtains the reply record when map data present bit is set
+            if (mapDataPresent) {
+                replyRecord = byteBuf.readInt();
+            }
 
             return new DefaultRequestBuilder()
                         .withIsAuthoritative(authoritative)
