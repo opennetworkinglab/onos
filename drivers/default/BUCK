@@ -1,7 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:openflowj',
-    '//drivers/utilities:onos-drivers-utilities',
     '//protocols/openflow/api:onos-protocols-openflow-api',
     '//core/store/serializers:onos-core-serializers',
 ]
