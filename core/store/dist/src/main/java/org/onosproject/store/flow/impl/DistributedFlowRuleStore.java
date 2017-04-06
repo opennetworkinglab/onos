@@ -117,7 +117,6 @@ public class DistributedFlowRuleStore
     private final Logger log = getLogger(getClass());
 
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 8;
-    private static final boolean DEFAULT_BACKUP_ENABLED = true;
     private static final int DEFAULT_MAX_BACKUP_COUNT = 2;
     private static final boolean DEFAULT_PERSISTENCE_ENABLED = false;
     private static final int DEFAULT_BACKUP_PERIOD_MILLIS = 2000;
@@ -128,10 +127,6 @@ public class DistributedFlowRuleStore
     @Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
             label = "Number of threads in the message handler pool")
     private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
-
-    @Property(name = "backupEnabled", boolValue = DEFAULT_BACKUP_ENABLED,
-            label = "Indicates whether backups are enabled or not")
-    private volatile boolean backupEnabled = DEFAULT_BACKUP_ENABLED;
 
     @Property(name = "backupPeriod", intValue = DEFAULT_BACKUP_PERIOD_MILLIS,
             label = "Delay in ms between successive backup runs")
@@ -210,14 +205,12 @@ public class DistributedFlowRuleStore
 
         registerMessageHandlers(messageHandlingExecutor);
 
-        if (backupEnabled) {
-            replicaInfoManager.addListener(flowTable);
-            backupTask = backupSenderExecutor.scheduleWithFixedDelay(
-                    flowTable::backup,
-                    0,
-                    backupPeriod,
-                    TimeUnit.MILLISECONDS);
-        }
+        replicaInfoManager.addListener(flowTable);
+        backupTask = backupSenderExecutor.scheduleWithFixedDelay(
+                flowTable::backup,
+                0,
+                backupPeriod,
+                TimeUnit.MILLISECONDS);
 
         deviceTableStats = storageService.<DeviceId, List<TableStatisticsEntry>>eventuallyConsistentMapBuilder()
                 .withName("onos-flow-table-stats")
@@ -233,10 +226,8 @@ public class DistributedFlowRuleStore
 
     @Deactivate
     public void deactivate(ComponentContext context) {
-        if (backupEnabled) {
-            replicaInfoManager.removeListener(flowTable);
-            backupTask.cancel(true);
-        }
+        replicaInfoManager.removeListener(flowTable);
+        backupTask.cancel(true);
         configService.unregisterProperties(getClass(), false);
         unregisterMessageHandlers();
         deviceTableStats.removeListener(tableStatsListener);
@@ -251,22 +242,17 @@ public class DistributedFlowRuleStore
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            backupEnabled = DEFAULT_BACKUP_ENABLED;
             logConfig("Default config");
             return;
         }
 
         Dictionary properties = context.getProperties();
         int newPoolSize;
-        boolean newBackupEnabled;
         int newBackupPeriod;
         int newBackupCount;
         try {
             String s = get(properties, "msgHandlerPoolSize");
             newPoolSize = isNullOrEmpty(s) ? msgHandlerPoolSize : Integer.parseInt(s.trim());
-
-            s = get(properties, "backupEnabled");
-            newBackupEnabled = isNullOrEmpty(s) ? backupEnabled : Boolean.parseBoolean(s.trim());
 
             s = get(properties, "backupPeriod");
             newBackupPeriod = isNullOrEmpty(s) ? backupPeriod : Integer.parseInt(s.trim());
@@ -275,28 +261,15 @@ public class DistributedFlowRuleStore
             newBackupCount = isNullOrEmpty(s) ? backupCount : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
             newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
-            newBackupEnabled = DEFAULT_BACKUP_ENABLED;
             newBackupPeriod = DEFAULT_BACKUP_PERIOD_MILLIS;
             newBackupCount = DEFAULT_MAX_BACKUP_COUNT;
         }
 
         boolean restartBackupTask = false;
-        if (newBackupEnabled != backupEnabled) {
-            backupEnabled = newBackupEnabled;
-            if (!backupEnabled) {
-                replicaInfoManager.removeListener(flowTable);
-                if (backupTask != null) {
-                    backupTask.cancel(false);
-                    backupTask = null;
-                }
-            } else {
-                replicaInfoManager.addListener(flowTable);
-            }
-            restartBackupTask = backupEnabled;
-        }
+
         if (newBackupPeriod != backupPeriod) {
             backupPeriod = newBackupPeriod;
-            restartBackupTask = backupEnabled;
+            restartBackupTask = true;
         }
         if (restartBackupTask) {
             if (backupTask != null) {
@@ -352,8 +325,8 @@ public class DistributedFlowRuleStore
     }
 
     private void logConfig(String prefix) {
-        log.info("{} with msgHandlerPoolSize = {}; backupEnabled = {}, backupPeriod = {}, backupCount = {}",
-                 prefix, msgHandlerPoolSize, backupEnabled, backupPeriod, backupCount);
+        log.info("{} with msgHandlerPoolSize = {}; backupPeriod = {}, backupCount = {}",
+                 prefix, msgHandlerPoolSize, backupPeriod, backupCount);
     }
 
     // This is not a efficient operation on a distributed sharded
@@ -712,7 +685,7 @@ public class DistributedFlowRuleStore
 
         private void handleEvent(ReplicaInfoEvent event) {
             DeviceId deviceId = event.subject();
-            if (!backupEnabled || !mastershipService.isLocalMaster(deviceId)) {
+            if (!mastershipService.isLocalMaster(deviceId)) {
                 return;
             }
             if (event.type() == MASTER_CHANGED) {
@@ -890,9 +863,6 @@ public class DistributedFlowRuleStore
         }
 
         private void backup() {
-            if (!backupEnabled) {
-                return;
-            }
             try {
                 // compute a mapping from node to the set of devices whose flow entries it should backup
                 Map<NodeId, Set<DeviceId>> devicesToBackupByNode = Maps.newHashMap();
