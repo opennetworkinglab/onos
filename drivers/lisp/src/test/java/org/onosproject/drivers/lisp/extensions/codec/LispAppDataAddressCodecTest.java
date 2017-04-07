@@ -233,8 +233,8 @@ public class LispAppDataAddressCodecTest {
         InputStream jsonStream = LispAppDataAddressCodecTest.class.getResourceAsStream(resourceName);
         JsonNode json = context.mapper().readTree(jsonStream);
         assertThat(json, notNullValue());
-        LispAppDataAddress nextObjective = appDataAddressCodec.decode((ObjectNode) json, context);
-        assertThat(nextObjective, notNullValue());
-        return nextObjective;
+        LispAppDataAddress appDataAddress = appDataAddressCodec.decode((ObjectNode) json, context);
+        assertThat(appDataAddress, notNullValue());
+        return appDataAddress;
     }
 }
