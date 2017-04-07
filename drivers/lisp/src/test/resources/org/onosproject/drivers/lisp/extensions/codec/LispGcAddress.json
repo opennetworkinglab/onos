@@ -1,0 +1,15 @@
+{
+  "north": true,
+  "latitudeDegree": 1,
+  "latitudeMinute": 1,
+  "latitudeSecond": 1,
+  "east": false,
+  "longitudeDegree": 2,
+  "longitudeMinute": 2,
+  "longitudeSecond": 2,
+  "altitude": 3,
+  "address": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.0/24"
+  }
+}

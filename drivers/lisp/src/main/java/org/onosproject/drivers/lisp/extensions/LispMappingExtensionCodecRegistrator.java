@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.drivers.lisp.extensions.codec.LispAppDataAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispAsAddressCodec;
+import org.onosproject.drivers.lisp.extensions.codec.LispGcAddressCodec;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 import org.slf4j.Logger;
 
@@ -50,6 +51,7 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
 
         codecService.registerCodec(LispAppDataAddress.class, new LispAppDataAddressCodec());
         codecService.registerCodec(LispAsAddress.class, new LispAsAddressCodec());
+        codecService.registerCodec(LispGcAddress.class, new LispGcAddressCodec());
 
         log.info("Started");
     }
@@ -58,6 +60,7 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
     public void deactivate() {
         codecService.unregisterCodec(LispAppDataAddress.class);
         codecService.unregisterCodec(LispAsAddress.class);
+        codecService.unregisterCodec(LispGcAddress.class);
 
         registrator.deactivate();
         registrator = null;
