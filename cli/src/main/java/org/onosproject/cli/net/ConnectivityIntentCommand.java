@@ -420,8 +420,9 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             if (resourceGroupId.toLowerCase().startsWith("0x")) {
                 return ResourceGroup.of(Long.parseUnsignedLong(resourceGroupId.substring(2), 16));
             }
+            return ResourceGroup.of(resourceGroupId);
         }
-        return ResourceGroup.of(resourceGroupId);
+        return null;
     }
 
     /**
