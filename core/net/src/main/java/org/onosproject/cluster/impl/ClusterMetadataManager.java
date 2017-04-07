@@ -131,7 +131,7 @@ public class ClusterMetadataManager
         String metadataUri = System.getProperty("onos.cluster.metadata.uri");
         try {
             String protocol = metadataUri == null ? null : new URL(metadataUri).getProtocol();
-            if (!"file".equals(protocol) && !"http".equals(protocol)) {
+            if (protocol != null && (!"file".equals(protocol) && !"http".equals(protocol))) {
                 return getProvider(protocol);
             }
             // file provider supports both "file" and "http" uris
