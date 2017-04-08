@@ -19,7 +19,9 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.provider.nil.CustomTopologySimulator;
 import org.onosproject.provider.nil.NullProviders;
+import org.onosproject.provider.nil.TopologySimulator;
 
 import static org.onosproject.cli.StartStopCompleter.START;
 
@@ -30,13 +32,15 @@ import static org.onosproject.cli.StartStopCompleter.START;
         description = "Starts or stops topology simulation")
 public class NullControlCommand extends AbstractShellCommand {
 
+    private static final String CUSTOM = "custom";
+
     @Argument(index = 0, name = "cmd", description = "Control command: start/stop",
             required = true, multiValued = false)
     String cmd = null;
 
     @Argument(index = 1, name = "topoShape",
-            description = "Topology shape: e.g. configured, linear, reroute, centipede, tree, spineleaf, " +
-                    ", mesh, fattree",
+            description = "Topology shape: e.g. configured, linear, reroute, " +
+                    "centipede, tree, spineleaf, mesh, fattree, custom",
             required = false, multiValued = false)
     String topoShape = null;
 
@@ -48,6 +52,18 @@ public class NullControlCommand extends AbstractShellCommand {
         }
         service.setProperty(NullProviders.class.getName(), "enabled",
                             cmd.equals(START) ? "true" : "false");
+
+        // If we are re-starting the "custom" topology, reset the counts
+        //  on the auto-assigned IDs for null-devices and null-hosts, so that
+        //  scripts can rely on consistent assignment of IDs to nodes.
+        if (CUSTOM.equals(topoShape) && START.equals(cmd)) {
+            NullProviders npService = get(NullProviders.class);
+            TopologySimulator simulator = npService.currentSimulator();
+            if (simulator instanceof CustomTopologySimulator) {
+                CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
+                sim.resetIdSeeds();
+            }
+        }
     }
 
 }

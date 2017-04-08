@@ -107,4 +107,13 @@ public class CustomTopologySimulator extends TopologySimulator {
     @Override
     protected void createHosts() {
     }
+
+    /**
+     * Resets the device and host ID seeds to the default values. That is, the
+     * next assigned values will start from 1 again.
+     */
+    public void resetIdSeeds() {
+        nextDeviceId = 0;
+        nextHostId = 0;
+    }
 }

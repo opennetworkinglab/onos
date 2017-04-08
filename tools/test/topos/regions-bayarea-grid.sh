@@ -206,7 +206,7 @@ EOF
 
 ### Add regions and associate devices with them
 #
-# region-add <region-id> <region-name> <region-type> <long/Y> <lat/X> <region-master>
+# region-add <region-id> <region-name> <region-type> <lat/Y> <long/X> <region-master>
 # region-add-devices <region-id> <device-id>...
 
 onos ${host} <<-EOF
