@@ -1,0 +1,13 @@
+{
+  "instanceId": 1,
+  "srcMaskLength": 2,
+  "grpMaskLength": 3,
+  "srcAddress": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.0/24"
+  },
+  "grpAddress": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.0/24"
+  }
+}

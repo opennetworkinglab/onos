@@ -26,7 +26,7 @@ import org.onlab.packet.IpPrefix;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
-import org.onosproject.drivers.lisp.extensions.LispAsAddress;
+import org.onosproject.drivers.lisp.extensions.LispListAddress;
 import org.onosproject.drivers.lisp.extensions.LispMappingExtensionCodecRegistrator;
 import org.onosproject.mapping.addresses.MappingAddresses;
 import org.onosproject.mapping.web.codec.MappingAddressJsonMatcher;
@@ -39,20 +39,20 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Unit tests for LispAsAddressCodec.
+ * Unit tests for LispListAddressCodec.
  */
-public class LispAsAddressCodecTest {
+public class LispListAddressCodecTest {
 
-    private static final int AS_NUMBER = 1;
     private static final IpPrefix IPV4_PREFIX = IpPrefix.valueOf("10.1.1.0/24");
+    private static final IpPrefix IPV6_PREFIX = IpPrefix.valueOf("fe80::/64");
 
     private CodecContext context;
-    private JsonCodec<LispAsAddress> asAddressCodec;
+    private JsonCodec<LispListAddress> listAddressCodec;
     private LispMappingExtensionCodecRegistrator registrator;
 
     /**
      * Sets up for each test.
-     * Creates a context and fetches the LispAsAddress codec.
+     * Creates a context and fetches the LispListAddress codec.
      */
     @Before
     public void setUp() {
@@ -62,8 +62,9 @@ public class LispAsAddressCodecTest {
         registrator.activate();
 
         context = new LispMappingExtensionCodecContextAdapter(registrator.codecService);
-        asAddressCodec = context.codec(LispAsAddress.class);
-        assertThat("AS address codec should not be null", asAddressCodec, notNullValue());
+        listAddressCodec = context.codec(LispListAddress.class);
+        assertThat("List address codec should not be null",
+                listAddressCodec, notNullValue());
     }
 
     /**
@@ -75,63 +76,63 @@ public class LispAsAddressCodecTest {
     }
 
     /**
-     * Tests encoding of a LispAsAddress object.
+     * Tests encoding of a LispListAddress object.
      */
     @Test
-    public void testLispAsAddressEncode() {
-        LispAsAddress address = new LispAsAddress.Builder()
-                .withAsNumber(AS_NUMBER)
-                .withAddress(MappingAddresses.ipv4MappingAddress(IPV4_PREFIX))
+    public void testLispListAddressEncode() {
+        LispListAddress address = new LispListAddress.Builder()
+                .withIpv4(MappingAddresses.ipv4MappingAddress(IPV4_PREFIX))
+                .withIpv6(MappingAddresses.ipv6MappingAddress(IPV6_PREFIX))
                 .build();
-        ObjectNode addressJson = asAddressCodec.encode(address, context);
-        assertThat("errors in encoding AS address JSON",
-                addressJson, LispAsAddressJsonMatcher.matchesAsAddress(address));
+        ObjectNode addressJson = listAddressCodec.encode(address, context);
+        assertThat("errors in encoding List address JSON",
+                addressJson, LispListAddressJsonMatcher.matchesListAddress(address));
     }
 
     /**
-     * Tests decoding of a LispAsAddress JSON object.
+     * Tests decoding of a LispListAddress JSON object.
      */
     @Test
-    public void testLispAsAddressDecode() throws IOException {
-        LispAsAddress address = getLispAsAddress("LispAsAddress.json");
+    public void testLispListAddressDecode() throws IOException {
+        LispListAddress address = getLispListAddress("LispListAddress.json");
 
-        assertThat("incorrect AS number", address.getAsNumber(), is(AS_NUMBER));
-        assertThat("incorrect mapping address", address.getAddress(),
-                    is(MappingAddresses.ipv4MappingAddress(IPV4_PREFIX)));
+        assertThat("incorrect IPv4 address", address.getIpv4(),
+                is(MappingAddresses.ipv4MappingAddress(IPV4_PREFIX)));
+        assertThat("incorrect IPv6 address", address.getIpv6(),
+                is(MappingAddresses.ipv6MappingAddress(IPV6_PREFIX)));
     }
 
     /**
-     * Hamcrest matcher for LispAsAddress.
+     * Hamcrest matcher for LispListAddress.
      */
-    public static final class LispAsAddressJsonMatcher
+    public static final class LispListAddressJsonMatcher
             extends TypeSafeDiagnosingMatcher<JsonNode> {
 
-        private final LispAsAddress address;
+        private final LispListAddress address;
 
         /**
          * Default constructor.
          *
-         * @param address LispAsAddress object
+         * @param address LispListAddress object
          */
-        private LispAsAddressJsonMatcher(LispAsAddress address) {
+        private LispListAddressJsonMatcher(LispListAddress address) {
             this.address = address;
         }
 
         @Override
         protected boolean matchesSafely(JsonNode jsonNode, Description description) {
 
-            // check protocol
-            int jsonAsNumber = jsonNode.get(LispAsAddressCodec.AS_NUMBER).asInt();
-            int asNumber = address.getAsNumber();
-            if (jsonAsNumber != asNumber) {
-                description.appendText("AsNumber was " + jsonAsNumber);
-                return false;
-            }
+            // check ipv4
+            MappingAddressJsonMatcher ipv4Matcher =
+                    MappingAddressJsonMatcher.matchesMappingAddress(address.getIpv4());
 
-            // check address
-            MappingAddressJsonMatcher addressMatcher =
-                    MappingAddressJsonMatcher.matchesMappingAddress(address.getAddress());
-            return addressMatcher.matches(jsonNode.get(LispAppDataAddressCodec.ADDRESS));
+            // check ipv6
+            MappingAddressJsonMatcher ipv6Matcher =
+                    MappingAddressJsonMatcher.matchesMappingAddress(address.getIpv6());
+
+            return ipv4Matcher.matches(jsonNode.get(LispListAddressCodec.IPV4)) ||
+                    ipv6Matcher.matches(jsonNode.get(LispListAddressCodec.IPV6));
+
         }
 
         @Override
@@ -140,29 +141,29 @@ public class LispAsAddressCodecTest {
         }
 
         /**
-         * Factory to allocate a LispAsAddress matcher.
+         * Factory to allocate a LispListAddress matcher.
          *
-         * @param address LispAsAddress object we are looking for
+         * @param address LispListAddress object we are looking for
          * @return matcher
          */
-        public static LispAsAddressJsonMatcher matchesAsAddress(LispAsAddress address) {
-            return new LispAsAddressJsonMatcher(address);
+        public static LispListAddressJsonMatcher matchesListAddress(LispListAddress address) {
+            return new LispListAddressJsonMatcher(address);
         }
     }
 
     /**
-     * Reads in a LispAsAddress from the given resource and decodes it.
+     * Reads in a LispListAddress from the given resource and decodes it.
      *
      * @param resourceName resource to use to read the JSON for the rule
-     * @return decoded LispAsAddress
+     * @return decoded LispListAddress
      * @throws IOException if processing the resource fails
      */
-    private LispAsAddress getLispAsAddress(String resourceName) throws IOException {
-        InputStream jsonStream = LispAsAddressCodecTest.class.getResourceAsStream(resourceName);
+    private LispListAddress getLispListAddress(String resourceName) throws IOException {
+        InputStream jsonStream = LispListAddressCodecTest.class.getResourceAsStream(resourceName);
         JsonNode json = context.mapper().readTree(jsonStream);
         assertThat("JSON string should not be null", json, notNullValue());
-        LispAsAddress asAddress = asAddressCodec.decode((ObjectNode) json, context);
-        assertThat("decoded address should not be null", asAddress, notNullValue());
-        return asAddress;
+        LispListAddress listAddress = listAddressCodec.decode((ObjectNode) json, context);
+        assertThat("decoded address should not be null", listAddress, notNullValue());
+        return listAddress;
     }
 }

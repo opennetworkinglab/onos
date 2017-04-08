@@ -24,6 +24,8 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.drivers.lisp.extensions.codec.LispAppDataAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispAsAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispGcAddressCodec;
+import org.onosproject.drivers.lisp.extensions.codec.LispListAddressCodec;
+import org.onosproject.drivers.lisp.extensions.codec.LispMulticastAddressCodec;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 import org.slf4j.Logger;
 
@@ -52,6 +54,8 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
         codecService.registerCodec(LispAppDataAddress.class, new LispAppDataAddressCodec());
         codecService.registerCodec(LispAsAddress.class, new LispAsAddressCodec());
         codecService.registerCodec(LispGcAddress.class, new LispGcAddressCodec());
+        codecService.registerCodec(LispListAddress.class, new LispListAddressCodec());
+        codecService.registerCodec(LispMulticastAddress.class, new LispMulticastAddressCodec());
 
         log.info("Started");
     }
@@ -61,6 +65,8 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
         codecService.unregisterCodec(LispAppDataAddress.class);
         codecService.unregisterCodec(LispAsAddress.class);
         codecService.unregisterCodec(LispGcAddress.class);
+        codecService.unregisterCodec(LispListAddress.class);
+        codecService.unregisterCodec(LispMulticastAddress.class);
 
         registrator.deactivate();
         registrator = null;
