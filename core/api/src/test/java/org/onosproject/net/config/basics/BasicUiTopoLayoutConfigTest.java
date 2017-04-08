@@ -42,7 +42,7 @@ public class BasicUiTopoLayoutConfigTest extends AbstractConfigTest {
 
     private static final String LAYOUT_JSON = "configs.layouts.1.json";
 
-    private static final String L_DEFAULT = "_default_";
+    private static final String L_DEFAULT = "root";
     private static final String L1 = "l1";
     private static final String L2 = "l2";
     private static final String L3 = "l3";

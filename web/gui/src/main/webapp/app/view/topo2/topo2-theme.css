@@ -170,15 +170,12 @@
 
 /* note: device without the 'online' class is offline */
 #ov-topo2 svg .node.device rect {
-    /* TODO: theme */
     fill: #f0f0f0;
 }
 #ov-topo2 svg .node.device text {
-    /*TODO: theme*/
     fill: #bbb;
 }
 #ov-topo2 svg .node.device use {
-    /*TODO: theme*/
     fill: #777;
 }
 
@@ -196,6 +193,10 @@
 
 #ov-topo2 svg .node.sub-region rect {
     fill: #ffffff;
+}
+
+#ov-topo2 svg .node.sub-region text {
+    stroke: #000000;
 }
 
 #ov-topo2 svg .node.sub-region use {
@@ -603,6 +604,10 @@
 
 .dark #ov-topo2 svg .node.sub-region rect {
     fill: #525660;
+}
+
+.dark #ov-topo2 svg .node.sub-region text {
+    stroke: #eeeeee;
 }
 
 .dark #ov-topo2 svg .node.sub-region use {

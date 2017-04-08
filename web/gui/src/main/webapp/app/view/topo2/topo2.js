@@ -32,7 +32,7 @@
 
     // Internal state
     var zoomer,
-        currentLayoutId = '_default_';  // NOTE: see UiTopoLayoutId.DEFAULT_STR
+        currentLayoutId = 'root';  // NOTE: see UiTopoLayoutId.DEFAULT_STR
 
 
     // --- Glyphs, Icons, and the like -----------------------------------

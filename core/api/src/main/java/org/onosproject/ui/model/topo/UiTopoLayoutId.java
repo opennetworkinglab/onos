@@ -23,7 +23,7 @@ import org.onlab.util.Identifier;
  */
 public final class UiTopoLayoutId extends Identifier<String> {
 
-    private static final String DEFAULT_STR = "_default_";
+    private static final String DEFAULT_STR = "root";
 
     /**
      * Default topology layout identifier.

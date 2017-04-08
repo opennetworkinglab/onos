@@ -65,13 +65,25 @@
                     },
                     addLayout: function (data) {
 
+                        var oldBgType = this.bgType,
+                            oldBgId = this.bgId;
+
                         this.background = data;
                         this.bgType = data.bgType;
+                        this.bgId = data.bgId;
                         this.zoomData = data.bgZoom;
 
                         var _this = this,
                             pan = zoomPan(this.zoomData),
                             scale = zoomScale(this.zoomData);
+
+                        // TODO: test for same background... avoid reload on same
+
+                        //  Avoid re-loading the background / sprite layer
+                        //  if the type and ID are same as last time.
+
+                        //  For example, europe map can be panned/zoomed to
+                        //   focus on different countries
 
                         if (this.bgType === 'geo') {
 
@@ -101,6 +113,8 @@
                             // No background type - Tell the region the background is ready for placing nodes
                             t2ms.hide();
                             t2sls.hide();
+
+                            // TODO: don't just use previous layout's pan/zoom settings!
                             // _this.region.loaded('bgRendered', true);
                             // t2zs.panAndZoom(pan, _this.background.bgZoomScale, 1000);
                         }

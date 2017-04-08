@@ -36,7 +36,7 @@ Module that contains the d3.force.layout logic
         function (_is_) {
             return {
                 nodeEnter: nodeEnter,
-                nodeExit: nodeExit,
+                nodeExit: nodeExit
             };
         }
     ]

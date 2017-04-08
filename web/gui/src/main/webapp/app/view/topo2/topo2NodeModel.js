@@ -33,16 +33,21 @@
 
     // note: these are the device icon colors without affinity (no master)
     var dColTheme = {
-        light: {
-            online: '#444444',
-            offline: '#cccccc'
+            light: {
+                online: '#444444',
+                offline: '#cccccc'
+            },
+            dark: {
+                // TODO: theme
+                online: '#444444',
+                offline: '#cccccc'
+            }
         },
-        dark: {
-            // TODO: theme
-            online: '#444444',
-            offline: '#cccccc'
-        }
-    };
+        // and here are the stroke colors of the glyph, per theme
+        dUseTheme = {
+            light: 'white',
+            dark: 'black'
+        };
 
     angular.module('ovTopo2')
     .factory('Topo2NodeModel', [
@@ -258,7 +263,7 @@
                     // Icon
                     glyph = is.addDeviceIcon(node, glyphId, devIconDim);
                     glyph.attr(this.iconBox(devIconDim, 0));
-                    glyph.style('fill', 'white');
+                    glyph.style('fill', dUseTheme[ts.theme()]);
 
                     node.attr('transform',
                         sus.translate(-halfDevIcon, -halfDevIcon));
