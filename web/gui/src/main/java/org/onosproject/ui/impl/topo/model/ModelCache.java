@@ -79,6 +79,10 @@ class ModelCache {
 
     private static final Logger log = LoggerFactory.getLogger(ModelCache.class);
 
+    // TODO: add NetworkConfigService to service bundle
+//    private final NetworkConfigService cfgService =
+//            DefaultServiceDirectory.getService(NetworkConfigService.class);
+
     private final ServiceBundle services;
     private final EventDispatcher dispatcher;
     private final UiTopology uiTopology = new UiTopology();
@@ -563,6 +567,11 @@ class ModelCache {
 
         services.region().getRegions().forEach(r -> {
             RegionId rid = r.id();
+
+//            BasicRegionConfig rcfg = cfgService.getConfig(rid, BasicRegionConfig.class);
+//            services.netcfg() ...
+            // TODO: figure out how to include peer-location data in UiRegion instance
+
             UiRegion region = uiTopology.findRegion(rid);
             if (region != null) {
                 reconcileDevicesAndHostsWithRegion(allDevices, allHosts, rid, region);
@@ -600,7 +609,7 @@ class ModelCache {
                 allDevices.remove(dev);
             } else {
                 log.warn("Region device ID {} but no UiDevice in topology",
-                        devId);
+                         devId);
             }
 
             Set<Host> hosts = services.host().getConnectedHosts(devId);
@@ -614,7 +623,7 @@ class ModelCache {
                     allHosts.remove(host);
                 } else {
                     log.warn("Region host ID {} but no UiHost in topology",
-                            hid);
+                             hid);
                 }
             }
         });

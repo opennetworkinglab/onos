@@ -27,6 +27,11 @@ public abstract class AbstractUiTest {
     protected static final String EOL = String.format("%n");
 
     /**
+     * Tolerance for Double equality assertions.
+     */
+    protected static final double TOLERANCE = Double.MIN_VALUE * 2;
+
+    /**
      * Prints the given string to stdout.
      *
      * @param s string to print

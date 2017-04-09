@@ -196,7 +196,6 @@
 }
 
 #ov-topo2 svg .node.sub-region text {
-    stroke: #000000;
 }
 
 #ov-topo2 svg .node.sub-region use {
@@ -607,7 +606,6 @@
 }
 
 .dark #ov-topo2 svg .node.sub-region text {
-    stroke: #eeeeee;
 }
 
 .dark #ov-topo2 svg .node.sub-region use {

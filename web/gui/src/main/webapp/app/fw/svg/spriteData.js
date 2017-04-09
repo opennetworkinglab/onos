@@ -71,6 +71,12 @@
             .addLabel('Segment Routing', 120, 10, {anchor: 'right'})
             .register();
 
+        ssApi.createLayout('segmentRoutingTwo', 70, 75)
+            .addSprite('rack', 10, 40, 20)
+            .addSprite('rack', 40, 40, 20)
+            .addLabel('Segment Routing 2', 120, 10, {anchor: 'right'})
+            .register();
+
         ssApi.dump();
         // ----------------------------------------------------------$$$
     }

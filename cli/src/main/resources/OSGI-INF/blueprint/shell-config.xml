@@ -688,6 +688,12 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.RegionAddPeerLocCommand"/>
+            <completers>
+                <ref component-id="regionIdCompleter"/>
+            </completers>
+        </command>
 
         <!-- UI Layout commands -->
         <command>
