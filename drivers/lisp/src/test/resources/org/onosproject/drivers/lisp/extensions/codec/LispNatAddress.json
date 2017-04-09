@@ -1,0 +1,30 @@
+{
+  "msUdpPortNumber": 1,
+  "etrUdpPortNumber": 2,
+  "globalEtrRlocAddress": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.1/24"
+  },
+  "msRlocAddress": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.2/24"
+  },
+  "privateEtrRlocAddress": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.3/24"
+  },
+  "rtrRlocAddresses": [
+    {
+      "type": "IPV4",
+      "ipv4": "10.1.1.1/24"
+    },
+    {
+      "type": "IPV4",
+      "ipv4": "10.1.1.2/24"
+    },
+    {
+      "type": "IPV4",
+      "ipv4": "10.1.1.3/24"
+    }
+  ]
+}
