@@ -1009,6 +1009,7 @@ public final class LinkConverter {
     public static TeLinkEvent teNetworkLink2yangTeLinkEvent(TeTopologyEventTypeEnum eventType,
                                                             NetworkLinkEventSubject linkData,
                                                             TeTopologyService teTopologyService) {
+        checkNotNull(linkData);
         TeLinkEvent.TeLinkEventBuilder teLinkEventBuilder = new DefaultTeLinkEvent.TeLinkEventBuilder();
 
         TeTopologyEventType yangEventType = new TeTopologyEventType(eventType);
