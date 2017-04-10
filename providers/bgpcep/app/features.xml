@@ -21,12 +21,12 @@
         <bundle>mvn:${project.groupId}/onos-bgpio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-pce/${project.version}</bundle>

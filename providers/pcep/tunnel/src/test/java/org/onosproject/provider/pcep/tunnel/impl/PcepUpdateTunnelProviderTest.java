@@ -20,9 +20,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
-import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
-import static org.onosproject.pcep.controller.PcepAnnotationKeys.LOCAL_LSP_ID;
-import static org.onosproject.pcep.controller.PcepAnnotationKeys.PLSP_ID;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.LOCAL_LSP_ID;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.PLSP_ID;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,15 +49,15 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.pcep.controller.ClientCapability;
-import org.onosproject.pcep.controller.LspKey;
-import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.server.ClientCapability;
+import org.onosproject.pcep.server.LspKey;
+import org.onosproject.pcep.server.PccId;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 
-import static org.onosproject.pcep.controller.LspType.WITH_SIGNALLING;
-import static org.onosproject.pcep.controller.LspType.SR_WITHOUT_SIGNALLING;
-import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.server.LspType.WITH_SIGNALLING;
+import static org.onosproject.pcep.server.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 /**
  * Test for PCEP update tunnel.
  */

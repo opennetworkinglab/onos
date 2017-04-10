@@ -195,7 +195,7 @@
 
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-pcep-controller-api</artifactId>
+                <artifactId>onos-pcep-server-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -213,7 +213,7 @@
             </dependency>
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-pcep-controller-api</artifactId>
+                <artifactId>onos-pcep-server-api</artifactId>
                 <version>${project.version}</version>
                 <classifier>tests</classifier>
                 <scope>test</scope>
