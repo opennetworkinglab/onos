@@ -20,10 +20,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.onosproject.pcep.controller.LspType.WITH_SIGNALLING;
-import static org.onosproject.pcep.controller.LspType.SR_WITHOUT_SIGNALLING;
-import static org.onosproject.pcep.controller.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
-import static org.onosproject.pcep.controller.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.server.LspType.WITH_SIGNALLING;
+import static org.onosproject.pcep.server.LspType.SR_WITHOUT_SIGNALLING;
+import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,8 +52,8 @@ import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.pcep.controller.ClientCapability;
-import org.onosproject.pcep.controller.PccId;
+import org.onosproject.pcep.server.ClientCapability;
+import org.onosproject.pcep.server.PccId;
 
 /**
  * Test for PCEP setup tunnel.

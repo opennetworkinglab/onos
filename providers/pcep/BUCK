@@ -2,9 +2,9 @@ BUNDLES = [
     '//providers/pcep/topology:onos-providers-pcep-topology',
     '//providers/pcep/tunnel:onos-providers-pcep-tunnel',
     '//providers/pcep/cli:onos-providers-pcep-cli',
-    '//protocols/pcep/api:onos-protocols-pcep-api',
+    '//protocols/pcep/server/api:onos-protocols-pcep-server-api',
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
-    '//protocols/pcep/ctl:onos-protocols-pcep-ctl',
+    '//protocols/pcep/server/ctl:onos-protocols-pcep-server-ctl',
     '//apps/pcep-api:onos-apps-pcep-api',
     '//lib:netty',
 ]

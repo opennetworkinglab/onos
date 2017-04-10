@@ -57,10 +57,10 @@ import org.onosproject.pcep.api.PcepLinkListener;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepSwitch;
 import org.onosproject.pcep.api.PcepSwitchListener;
-import org.onosproject.pcep.controller.PccId;
-import org.onosproject.pcep.controller.PcepClient;
-import org.onosproject.pcep.controller.PcepClientController;
-import org.onosproject.pcep.controller.PcepNodeListener;
+import org.onosproject.pcep.server.PccId;
+import org.onosproject.pcep.server.PcepClient;
+import org.onosproject.pcep.server.PcepClientController;
+import org.onosproject.pcep.server.PcepNodeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

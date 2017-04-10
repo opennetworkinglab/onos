@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-pcep-controller-api</artifactId>
+            <artifactId>onos-pcep-server-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-pcep-controller-impl</artifactId>
+            <artifactId>onos-pcep-server-impl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

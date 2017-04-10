@@ -25,14 +25,13 @@
         <version>1.12.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-pcep-controller</artifactId>
+    <artifactId>onos-pcep-protocol</artifactId>
     <packaging>pom</packaging>
 
     <description>ONOS Pcep Protocol subsystem</description>
 
     <modules>
-        <module>api</module>
-        <module>ctl</module>
+        <module>server</module>
         <module>pcepio</module>
     </modules>
 

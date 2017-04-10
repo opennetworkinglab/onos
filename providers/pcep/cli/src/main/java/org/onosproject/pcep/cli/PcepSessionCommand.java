@@ -19,9 +19,9 @@ package org.onosproject.pcep.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.pcep.controller.PcepClientController;
-import org.onosproject.pcep.controller.PcepErrorDetail;
-import org.onosproject.pcep.controller.PcepErrorType;
+import org.onosproject.pcep.server.PcepClientController;
+import org.onosproject.pcep.server.PcepErrorDetail;
+import org.onosproject.pcep.server.PcepErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

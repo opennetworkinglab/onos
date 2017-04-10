@@ -21,8 +21,8 @@
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcepio/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-provider-cli/${project.version}</artifact>
