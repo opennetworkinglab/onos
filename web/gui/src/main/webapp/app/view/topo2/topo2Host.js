@@ -93,6 +93,8 @@
                 },
                 setScale: function () {
 
+                    if (!this.el) return;
+
                     var dim = hostIconDim,
                         multipler = 1;
 

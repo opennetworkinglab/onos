@@ -307,7 +307,7 @@
 
                 var labelScale = labelDim / (labelDim * t2zs.scale());
 
-                d3.select('#topo2-portLabels')
+                d3.select('.topo2-portLabels')
                     .selectAll('.portLabel')
                     .selectAll('*')
                     .style('transform', 'scale(' + labelScale + ')');
