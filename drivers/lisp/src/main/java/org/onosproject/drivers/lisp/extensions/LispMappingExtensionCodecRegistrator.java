@@ -30,6 +30,8 @@ import org.onosproject.drivers.lisp.extensions.codec.LispNatAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispNonceAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispSegmentAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispSrcDstAddressCodec;
+import org.onosproject.drivers.lisp.extensions.codec.LispTeAddressCodec;
+import org.onosproject.drivers.lisp.extensions.codec.LispTeRecordCodec;
 import org.onosproject.mapping.web.MappingCodecRegistrator;
 import org.slf4j.Logger;
 
@@ -64,6 +66,8 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
         codecService.registerCodec(LispNonceAddress.class, new LispNonceAddressCodec());
         codecService.registerCodec(LispSegmentAddress.class, new LispSegmentAddressCodec());
         codecService.registerCodec(LispSrcDstAddress.class, new LispSrcDstAddressCodec());
+        codecService.registerCodec(LispTeAddress.class, new LispTeAddressCodec());
+        codecService.registerCodec(LispTeAddress.TeRecord.class, new LispTeRecordCodec());
 
         log.info("Started");
     }
@@ -79,6 +83,8 @@ public class LispMappingExtensionCodecRegistrator extends MappingCodecRegistrato
         codecService.unregisterCodec(LispNonceAddress.class);
         codecService.unregisterCodec(LispSegmentAddress.class);
         codecService.unregisterCodec(LispSrcDstAddress.class);
+        codecService.unregisterCodec(LispTeAddress.class);
+        codecService.unregisterCodec(LispTeAddress.TeRecord.class);
 
         registrator.deactivate();
         registrator = null;

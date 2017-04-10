@@ -1,0 +1,22 @@
+{
+  "records": [
+    {
+      "lookup": true,
+      "rlocProbe": true,
+      "strict": true,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "10.1.1.1/24"
+      }
+    },
+    {
+      "lookup": false,
+      "rlocProbe": false,
+      "strict": false,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "10.1.1.2/24"
+      }
+    }
+  ]
+}
