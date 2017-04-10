@@ -57,7 +57,8 @@
                 loc = {};
 
             if (t2bgs.getBackgroundType() === 'geo') {
-                // TODO: Set coords for geo (lat/long)
+                setLongLat(node);
+                return true;
             } else {
                 loc.gridX = -20;
                 loc.gridY = 10 * node.index();
