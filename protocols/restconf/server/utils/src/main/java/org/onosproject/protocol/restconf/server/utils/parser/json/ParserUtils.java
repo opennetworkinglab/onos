@@ -564,15 +564,16 @@ public final class ParserUtils {
                 ydtNode = ydtNode.getFirstChild();
             }
 
+            if (ydtNode == null) {
+                // There is no more node to find in YDT
+                return null;
+            }
+
             if (((YdtExtendedContext) ydtNode).getYdtContextOperationType() != NONE) {
                 // We found last node
                 break;
             }
 
-            if (ydtNode == null) {
-                // There is no more node to find in YDT
-                return null;
-            }
 
             opType = ((YdtExtendedContext) ydtNode).getYdtContextOperationType();
         }
