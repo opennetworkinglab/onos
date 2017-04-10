@@ -1,0 +1,12 @@
+{
+  "srcMaskLength": 1,
+  "dstMaskLength": 2,
+  "srcPrefix": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.1/24"
+  },
+  "dstPrefix": {
+    "type": "IPV4",
+    "ipv4": "10.1.1.2/24"
+  }
+}
