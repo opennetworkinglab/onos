@@ -223,6 +223,10 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
                                                        schemaRegistry,
                                                        opType);
 
+        if (ydtBuilder == null) {
+                return null;
+        }
+
         YdtExtendedContext rootNode = ((YdtExtendedContext) ydtBuilder
                 .getRootNode());
 
@@ -231,12 +235,8 @@ public class DefaultYangCodecHandler implements YangCodecHandler {
                     .getFirstChild()));
         }
 
-        // Get the module object by using YANG data tree
-        if (ydtBuilder != null) {
-            return getObjectList(ydtBuilder.getRootNode());
-        }
-
-        return null;
+        // Return the module object by using YANG data tree
+        return getObjectList(rootNode);
     }
 
     //returns notification event object
