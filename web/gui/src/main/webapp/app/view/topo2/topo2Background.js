@@ -77,16 +77,7 @@
                             pan = zoomPan(this.zoomData),
                             scale = zoomScale(this.zoomData);
 
-                        // TODO: test for same background... avoid reload on same
-
-                        //  Avoid re-loading the background / sprite layer
-                        //  if the type and ID are same as last time.
-
-                        //  For example, europe map can be panned/zoomed to
-                        //   focus on different countries
-
                         if (this.bgType === 'geo') {
-
                             // Hide Sprite Layer and show Map
                             t2sls.hide();
                             t2ms.show();
