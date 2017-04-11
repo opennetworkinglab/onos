@@ -34,3 +34,7 @@ ssh -t -t $ONOS_USER@$OCT "
     export stcColor=$stcColor
     stc fast
 "
+
+mkdir -p /tmp/stc
+scp -r ${ONOS_USER}@${OCT}:/tmp/stc/* /tmp/stc/
+
