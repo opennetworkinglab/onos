@@ -1169,7 +1169,7 @@ public class OspfInterfaceImpl implements OspfInterface {
 
                     OspfLsa ospfLsa =
                             (OspfLsa) nbr.getPendingReTxList().get(((OspfAreaImpl) ospfArea).getLsaKey(lsRequest));
-                    if (lsRequest != null && ospfLsa != null) {
+                    if (ospfLsa != null) {
                         String isSame = ((OspfLsdbImpl) ospfArea.database()).isNewerOrSameLsa(
                                 lsRequest, (LsaHeader) ospfLsa);
                         if (isSame.equals("same")) {
