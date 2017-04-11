@@ -57,11 +57,13 @@ public final class RulePopulatorUtil {
                                                     DeviceId deviceId,
                                                     Ip4Address remoteIp) {
         Device device = deviceService.getDevice(deviceId);
-        if (device != null && !device.is(ExtensionTreatmentResolver.class)) {
+        if (device == null) {
+            return null;
+        }
+        if (!device.is(ExtensionTreatmentResolver.class)) {
             log.error("The extension treatment is not supported");
             return null;
         }
-
         ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
         ExtensionTreatment treatment = resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
         try {
