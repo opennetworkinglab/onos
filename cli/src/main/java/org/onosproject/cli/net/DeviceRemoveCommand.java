@@ -34,7 +34,11 @@ public class DeviceRemoveCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        get(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
+        try {
+            get(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
+        } catch (IllegalStateException e) {
+            print("There was some issue in removing device, please try again");
+        }
     }
 
 }
