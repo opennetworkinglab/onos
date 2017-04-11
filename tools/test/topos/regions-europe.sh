@@ -52,14 +52,14 @@ EOF
 onos ${host} <<-EOF
 
 # -- root layout
-layout-add root @europe . . 6.664 -2992.552 -2473.084
+layout-add root @europe . . 4.66 -2562.93 -412.56
 
 # -- layouts for top level regions
-layout-add lUK @europe rUK root 31.43 -14979.6 -12644.8
-layout-add lIT @europe rIT root 14.72 -7793.2 -6623.8
-layout-add lFR @europe rFR root 16.91 -8225.7 -7198.1
-layout-add lDE @europe rDE root 17.63 -9119.6 -7044.9
-layout-add lES @europe rES root 21.41 -9994.5 -10135.6
+layout-add lUK @europe rUK root 11.63 -6652.54 -938.04
+layout-add lIT @europe rIT root 7.15 -4818.73 -1330.36
+layout-add lFR @europe rFR root 8.98 -5378.99 -1334.77
+layout-add lDE @europe rDE root 10.06 -6739.05 -1002.4
+layout-add lES @europe rES root 10.34 -5804.84 -2464.81
 
 # -- layouts for country sub-regions
 layout-add lMilan +segmentRoutingTwo rMilan lIT 0.86 68.58 54.71
