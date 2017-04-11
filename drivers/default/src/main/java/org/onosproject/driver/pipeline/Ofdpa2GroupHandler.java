@@ -1384,7 +1384,6 @@ public class Ofdpa2GroupHandler {
                         nextObj.appId());
         GroupChainElem l3mcastGce = new GroupChainElem(l3mcastGroupDescription,
                                                        groupInfos.size(), true);
-
         groupInfos.forEach(groupInfo -> {
             // update original NextGroup with new bucket-chain
             Deque<GroupKey> newBucketChain = new ArrayDeque<>();
@@ -1471,25 +1470,28 @@ public class Ofdpa2GroupHandler {
                         + "for next:{} in dev:{}", nextObjective.id(), deviceId);
                 continue;
             }
+            if (group.buckets().buckets().isEmpty()) {
+                log.warn("Can't get output port information from group {} " +
+                                 "because there is no bucket in the group.",
+                         group.id().toString());
+                continue;
+            }
             PortNumber pout = readOutPortFromTreatment(
                                   group.buckets().buckets().get(0).treatment());
             if (portsToRemove.contains(pout)) {
                 chainsToRemove.add(gkeys);
             }
         }
-
         if (chainsToRemove.isEmpty()) {
             log.warn("Could not find appropriate group-chain for removing bucket"
                     + " for next id {} in dev:{}", nextObjective.id(), deviceId);
             Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
             return;
         }
-
         List<GroupBucket> bucketsToRemove = Lists.newArrayList();
         //first group key is the one we want to modify
         GroupKey modGroupKey = chainsToRemove.get(0).peekFirst();
         Group modGroup = groupService.getGroup(deviceId, modGroupKey);
-
         for (Deque<GroupKey> foundChain : chainsToRemove) {
             //second group key is the one we wish to remove the reference to
             if (foundChain.size() < 2) {
@@ -1500,7 +1502,6 @@ public class Ofdpa2GroupHandler {
                 continue;
             }
             GroupKey pointedGroupKey = foundChain.stream().collect(Collectors.toList()).get(1);
-
             Group pointedGroup = groupService.getGroup(deviceId, pointedGroupKey);
 
             if (pointedGroup == null) {
