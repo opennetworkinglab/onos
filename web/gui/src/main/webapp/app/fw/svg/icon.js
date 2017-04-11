@@ -71,6 +71,7 @@
         nav_processors: 'allTraffic',
 
         nav_topo: 'topo',
+        nav_topo2: 'm_cloud',
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',

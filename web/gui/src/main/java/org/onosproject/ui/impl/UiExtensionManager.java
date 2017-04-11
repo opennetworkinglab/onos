@@ -132,11 +132,7 @@ public class UiExtensionManager
                 new UiView(PLATFORM, "processor", "Packet Processors", "nav_processors"),
                 new UiView(PLATFORM, "partition", "Partitions", "nav_partitions"),
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
-
-                // FIXME: leave commented out for now, while still under development
-                // (remember to also comment out inclusions in index.html)
-//                new UiView(NETWORK, "topo2", "New-Topo"),
-
+                new UiView(NETWORK, "topo2", "Topology 2", "nav_topo2"),
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),
                 new UiViewHidden("port"),

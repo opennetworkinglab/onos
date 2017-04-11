@@ -43,7 +43,7 @@
                         this.el.addRow();
                         this.addSecondRow();
 
-                        this.el.show();
+                        this.el.hide();
                     },
                     initKeyData: function () {
                         _.each(k2b, function(value, key) {
@@ -72,6 +72,10 @@
                         var v =  this.getKey(key);
                         if (suppressIfMobile && fs.isMobile()) { return; }
                         v.tog = this.el.addToggle(v.id, v.gid, v.isel, v.cb, v.tt);
+                    },
+
+                    toggle: function () {
+                        this.el.toggle();
                     },
 
                     addFirstRow: function () {

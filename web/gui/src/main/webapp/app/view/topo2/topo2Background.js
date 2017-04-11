@@ -63,11 +63,8 @@
                         t2ms.init();
                         this.zoomer = t2zs.getZoomer();
                     },
+
                     addLayout: function (data) {
-
-                        var oldBgType = this.bgType,
-                            oldBgId = this.bgId;
-
                         this.background = data;
                         this.bgType = data.bgType;
                         this.bgId = data.bgId;
@@ -105,14 +102,17 @@
                             t2ms.hide();
                             t2sls.hide();
 
-                            // TODO: don't just use previous layout's pan/zoom settings!
-                            // _this.region.loaded('bgRendered', true);
-                            // t2zs.panAndZoom(pan, _this.background.bgZoomScale, 1000);
+                            _this.region.loaded('bgRendered', true);
+
+                            // Use default zoom and pan
+                            t2zs.panAndZoom([0, 0], 1);
                         }
                     },
+
                     getBackgroundType: function () {
                         return this.bgType;
                     },
+
                     resetZoom: function () {
                         var pan = zoomPan(this.zoomData, true);
                         t2zs.panAndZoom(pan, zoomScale(this.zoomData, true), 1000);

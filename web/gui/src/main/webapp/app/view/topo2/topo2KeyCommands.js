@@ -17,7 +17,8 @@
 (function () {
 
     // Injected Services
-    var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs, t2fs, t2sls, t2tbs;
+    var $log, fs, ks, flash, wss, t2ps, t2bgs, ps, t2is, t2sp, t2vs, t2rs,
+        t2fs, t2sls, t2tbs;
 
     // Commmands
     function actionMap() {
@@ -31,6 +32,7 @@
             E: [equalizeMasters, 'Equalize mastership roles'],
             X: [resetNodeLocation, 'Reset Node Location'],
             U: [unpinNode, 'Unpin node (mouse over)'],
+            dot: [toggleToolbar, 'Toggle Toolbar'],
 
             esc: handleEscape,
 
@@ -139,6 +141,10 @@
         flash.flash('Unpin node');
     }
 
+    function toggleToolbar() {
+        t2tbs.toggle();
+    }
+
     function notValid(what) {
         $log.warn('topo.js getActionEntry(): Not a valid ' + what);
     }
@@ -162,12 +168,13 @@
 
     angular.module('ovTopo2')
     .factory('Topo2KeyCommandService', [
-        '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService', 'Topo2PrefsService',
-        'Topo2BackgroundService', 'PrefsService', 'Topo2InstanceService',
-        'Topo2SummaryPanelService', 'Topo2ViewService', 'Topo2RegionService',
-        'Topo2SpriteLayerService',
-        function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_, _t2is_, _t2sp_,
-                  _t2vs_, _t2rs_, _t2sls_) {
+        '$log', 'FnService', 'KeyService', 'FlashService', 'WebSocketService',
+        'Topo2PrefsService', 'Topo2BackgroundService', 'PrefsService',
+        'Topo2InstanceService', 'Topo2SummaryPanelService', 'Topo2ViewService',
+        'Topo2RegionService', 'Topo2SpriteLayerService',
+
+        function (_$log_, _fs_, _ks_, _flash_, _wss_, _t2ps_, _t2bgs_, _ps_,
+                  _t2is_, _t2sp_, _t2vs_, _t2rs_, _t2sls_) {
 
             $log = _$log_;
             fs = _fs_;
