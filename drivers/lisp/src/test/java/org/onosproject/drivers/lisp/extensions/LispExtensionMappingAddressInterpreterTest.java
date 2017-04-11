@@ -15,12 +15,28 @@
  */
 package org.onosproject.drivers.lisp.extensions;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
+import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.drivers.lisp.extensions.codec.LispAppDataAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispAsAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispGcAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispListAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispMappingExtensionCodecContextAdapter;
+import org.onosproject.drivers.lisp.extensions.codec.LispMulticastAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispNatAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispNonceAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispSegmentAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispSrcDstAddressCodecTest;
+import org.onosproject.drivers.lisp.extensions.codec.LispTeAddressCodecTest;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispIpv4Address;
 import org.onosproject.lisp.msg.types.LispIpv6Address;
@@ -41,7 +57,14 @@ import org.onosproject.mapping.addresses.ExtensionMappingAddressType;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.addresses.MappingAddresses;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.drivers.lisp.extensions.LispExtensionMappingAddressInterpreter.*;
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType.ExtensionMappingAddressTypes.*;
 /**
  * Unit tests for LispExtensionMappingAddressInterpreter.
@@ -61,6 +84,10 @@ public class LispExtensionMappingAddressInterpreterTest {
     private static final boolean UNIQUE_BOOLEAN = true;
 
     private LispExtensionMappingAddressInterpreter interpreter;
+
+    private CodecContext context;
+    private LispMappingExtensionCodecRegistrator registrator;
+
     private ExtensionMappingAddress listExtAddress;
     private ExtensionMappingAddress segmentExtAddress;
     private ExtensionMappingAddress asExtAddress;
@@ -88,8 +115,18 @@ public class LispExtensionMappingAddressInterpreterTest {
         interpreter = new LispExtensionMappingAddressInterpreter();
         initExtAddresses();
         initLcafAddresses();
+
+        CodecManager manager = new CodecManager();
+        registrator = new LispMappingExtensionCodecRegistrator();
+        registrator.codecService = manager;
+        registrator.activate();
+
+        context = new LispMappingExtensionCodecContextAdapter(registrator.codecService);
     }
 
+    /**
+     * Initializes all extension mapping addresses.
+     */
     private void initExtAddresses() {
         listExtAddress = getExtMappingAddress(LIST_ADDRESS.type());
         segmentExtAddress = getExtMappingAddress(SEGMENT_ADDRESS.type());
@@ -103,6 +140,9 @@ public class LispExtensionMappingAddressInterpreterTest {
         srcDstExtAddress = getExtMappingAddress(SOURCE_DEST_ADDRESS.type());
     }
 
+    /**
+     * Initializes all LCAF addresses.
+     */
     private void initLcafAddresses() {
         listLcafAddress = getLcafMappingAddress(LIST_ADDRESS.type());
         segmentLcafAddress = getLcafMappingAddress(SEGMENT_ADDRESS.type());
@@ -116,6 +156,9 @@ public class LispExtensionMappingAddressInterpreterTest {
         srcDstLcafAddress = getLcafMappingAddress(SOURCE_DEST_ADDRESS.type());
     }
 
+    /**
+     * Tests supportability of a certain LISP extension mapping address.
+     */
     @Test
     public void testSupported() {
         assertTrue("List extension address should be supported",
@@ -140,6 +183,9 @@ public class LispExtensionMappingAddressInterpreterTest {
                 interpreter.supported(srcDstExtAddress.type()));
     }
 
+    /**
+     * Tests conversion from LISP extension mapping address to LCAF address.
+     */
     @Test
     public void testMapMappingAddress() {
 
@@ -157,6 +203,9 @@ public class LispExtensionMappingAddressInterpreterTest {
                 .testEquals();
     }
 
+    /**
+     * Tests conversion from LCAF address to LISP extension mapping address.
+     */
     @Test
     public void testMapLcafAddress() {
 
@@ -172,6 +221,120 @@ public class LispExtensionMappingAddressInterpreterTest {
                 .addEqualityGroup(teExtAddress, interpreter.mapLcafAddress(teLcafAddress))
                 .addEqualityGroup(srcDstExtAddress, interpreter.mapLcafAddress(srcDstLcafAddress))
                 .testEquals();
+    }
+
+    /**
+     * Tests encoding of an ExtensionMappingAddress object.
+     */
+    @Test
+    public void testAddressEncode() {
+        JsonNode listAddressJson =
+                interpreter.encode(listExtAddress, context).get(LISP_LIST_ADDRESS);
+        JsonNode segmentAddressJson =
+                interpreter.encode(segmentExtAddress, context).get(LISP_SEGMENT_ADDRESS);
+        JsonNode asAddressJson =
+                interpreter.encode(asExtAddress, context).get(LISP_AS_ADDRESS);
+        JsonNode appDataAddressJson =
+                interpreter.encode(appDataExtAddress, context).get(LISP_APPLICATION_DATA_ADDRESS);
+        JsonNode gcAddressJson =
+                interpreter.encode(gcExtAddress, context).get(LISP_GEO_COORDINATE_ADDRESS);
+        JsonNode natAddressJson =
+                interpreter.encode(natExtAddress, context).get(LISP_NAT_ADDRESS);
+        JsonNode nonceAddressJson =
+                interpreter.encode(nonceExtAddress, context).get(LISP_NONCE_ADDRESS);
+        JsonNode multicastAddressJson =
+                interpreter.encode(multicastExtAddress, context).get(LISP_MULTICAST_ADDRESS);
+        JsonNode teAddressJson =
+                interpreter.encode(teExtAddress, context).get(LISP_TRAFFIC_ENGINEERING_ADDRESS);
+        JsonNode srcDstAddressJson =
+                interpreter.encode(srcDstExtAddress, context).get(LISP_SOURCE_DEST_ADDRESS);
+
+        MatcherAssert.assertThat("errors in encoding List address JSON",
+                listAddressJson, LispListAddressCodecTest.LispListAddressJsonMatcher
+                        .matchesListAddress((LispListAddress) listExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding Segment address JSON",
+                segmentAddressJson, LispSegmentAddressCodecTest.LispSegmentAddressJsonMatcher
+                        .matchesSegmentAddress((LispSegmentAddress) segmentExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding AS address JSON",
+                asAddressJson, LispAsAddressCodecTest.LispAsAddressJsonMatcher
+                        .matchesAsAddress((LispAsAddress) asExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding AppData address JSON",
+                appDataAddressJson, LispAppDataAddressCodecTest.LispAppDataAddressJsonMatcher
+                        .matchesAppDataAddress((LispAppDataAddress) appDataExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding GC address JSON",
+                gcAddressJson, LispGcAddressCodecTest.LispGcAddressJsonMatcher
+                        .matchesGcAddress((LispGcAddress) gcExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding NAT address JSON",
+                natAddressJson, LispNatAddressCodecTest.LispNatAddressJsonMatcher
+                        .matchesNatAddress((LispNatAddress) natExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding Nonce address JSON",
+                nonceAddressJson, LispNonceAddressCodecTest.LispNonceAddressJsonMatcher
+                        .matchesNonceAddress((LispNonceAddress) nonceExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding Multicast address JSON",
+                multicastAddressJson, LispMulticastAddressCodecTest.LispMulticastAddressJsonMatcher
+                        .matchesMulticastAddress((LispMulticastAddress) multicastExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding TE address JSON",
+                teAddressJson, LispTeAddressCodecTest.LispTeAddressJsonMatcher
+                        .matchesTeAddress((LispTeAddress) teExtAddress));
+
+        MatcherAssert.assertThat("errors in encoding SrcDst address JSON",
+                srcDstAddressJson, LispSrcDstAddressCodecTest.LispSrcDstAddressJsonMatcher
+                        .matchesSrcDstAddress((LispSrcDstAddress) srcDstExtAddress));
+    }
+
+    /**
+     * Tests decoding of an ExtensionMappingAddress JSON object.
+     */
+    @Test
+    public void testAddressDecode() throws IOException {
+        List<ExtensionMappingAddress> addresses =
+                getLispExtensionMappingAddresses("LispExtensionMappingAddress.json");
+
+        new EqualsTester()
+                .addEqualityGroup(addresses.get(0), listExtAddress)
+                .addEqualityGroup(addresses.get(1), segmentExtAddress)
+                .addEqualityGroup(addresses.get(2), asExtAddress)
+                .addEqualityGroup(addresses.get(3), appDataExtAddress)
+                .addEqualityGroup(addresses.get(4), gcExtAddress)
+                .addEqualityGroup(addresses.get(5), natExtAddress)
+                .addEqualityGroup(addresses.get(6), nonceExtAddress)
+                .addEqualityGroup(addresses.get(7), multicastExtAddress)
+                .addEqualityGroup(addresses.get(8), teExtAddress)
+                .addEqualityGroup(addresses.get(9), srcDstExtAddress)
+                .testEquals();
+    }
+
+    /**
+     * Reads in a collection of LispExtensionMappingAddresses from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded LispExtensionMappingAddresses
+     * @throws IOException if processing the resource fails
+     */
+    private List<ExtensionMappingAddress> getLispExtensionMappingAddresses(String resourceName)
+            throws IOException {
+        InputStream jsonStream = LispExtensionMappingAddressInterpreterTest.class
+                                 .getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        assertThat("JSON string should not be null", json, notNullValue());
+
+        final List<ExtensionMappingAddress> addresses = Lists.newArrayList();
+
+        for (int addrIndex = 0; addrIndex < json.size(); addrIndex++) {
+            ExtensionMappingAddress address = interpreter.decode(json.get(addrIndex).deepCopy(), context);
+            assertThat("decoded address should not be null", address, notNullValue());
+            addresses.add(address);
+        }
+
+        return addresses;
     }
 
     private LispLcafAddress getLcafMappingAddress(ExtensionMappingAddressType type) {

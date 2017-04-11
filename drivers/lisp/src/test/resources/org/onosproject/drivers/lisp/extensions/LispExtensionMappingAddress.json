@@ -1,0 +1,154 @@
+[
+  {
+    "type": "LIST_ADDRESS",
+    "listAddress": {
+      "ipv4": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "ipv6": {
+        "type": "IPV6",
+        "ipv6": "1111:2222:3333:4444:5555:6666:7777:8886/128"
+      }
+    }
+  },
+  {
+    "type": "SEGMENT_ADDRESS",
+    "segmentAddress": {
+      "instanceId": 1,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "AS_ADDRESS",
+    "asAddress": {
+      "asNumber": 1,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "APPLICATION_DATA_ADDRESS",
+    "applicationDataAddress": {
+      "protocol": 1,
+      "ipTos": 1,
+      "localPortLow": 1,
+      "localPortHigh": 1,
+      "remotePortLow": 1,
+      "remotePortHigh": 1,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "GEO_COORDINATE_ADDRESS",
+    "geoCoordinateAddress": {
+      "north": true,
+      "latitudeDegree": 1,
+      "latitudeMinute": 1,
+      "latitudeSecond": 1,
+      "east": true,
+      "longitudeDegree": 1,
+      "longitudeMinute": 1,
+      "longitudeSecond": 1,
+      "altitude": 1,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "NAT_ADDRESS",
+    "natAddress": {
+      "msUdpPortNumber": 1,
+      "etrUdpPortNumber": 1,
+      "globalEtrRlocAddress": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "msRlocAddress": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "privateEtrRlocAddress": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "rtrRlocAddresses": [
+        {
+          "type": "IPV4",
+          "ipv4": "1.2.3.4/32"
+        },
+        {
+          "type": "IPV6",
+          "ipv6": "1111:2222:3333:4444:5555:6666:7777:8886/128"
+        }
+      ]
+    }
+  },
+  {
+    "type": "NONCE_ADDRESS",
+    "nonceAddress": {
+      "nonce": 1,
+      "address": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "MULTICAST_ADDRESS",
+    "multicastAddress": {
+      "instanceId": 1,
+      "srcMaskLength": 1,
+      "grpMaskLength": 1,
+      "srcAddress": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "grpAddress": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  },
+  {
+    "type": "TRAFFIC_ENGINEERING_ADDRESS",
+    "trafficEngineeringAddress": {
+      "records": [
+        {
+          "lookup": true,
+          "rlocProbe": true,
+          "strict": true,
+          "address": {
+            "type": "IPV4",
+            "ipv4": "1.2.3.4/32"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "SOURCE_DEST_ADDRESS",
+    "sourceDestAddress": {
+      "srcMaskLength": 1,
+      "dstMaskLength": 1,
+      "srcPrefix": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      },
+      "dstPrefix": {
+        "type": "IPV4",
+        "ipv4": "1.2.3.4/32"
+      }
+    }
+  }
+]

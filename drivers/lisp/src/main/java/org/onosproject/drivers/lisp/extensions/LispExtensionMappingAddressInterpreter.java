@@ -15,11 +15,14 @@
  */
 package org.onosproject.drivers.lisp.extensions;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.codec.CodecContext;
 import org.onosproject.lisp.ctl.ExtensionMappingAddressInterpreter;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
 import org.onosproject.lisp.msg.types.LispDistinguishedNameAddress;
@@ -50,6 +53,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType.ExtensionMappingAddressTypes.*;
 /**
  * Interpreter for mapping address extension.
@@ -62,6 +67,22 @@ public class LispExtensionMappingAddressInterpreter extends AbstractHandlerBehav
 
     private static final int IPV4_PREFIX_LENGTH = 32;
     private static final int IPV6_PREFIX_LENGTH = 128;
+
+    protected static final String LISP_LIST_ADDRESS = "listAddress";
+    protected static final String LISP_SEGMENT_ADDRESS = "segmentAddress";
+    protected static final String LISP_AS_ADDRESS = "asAddress";
+    protected static final String LISP_APPLICATION_DATA_ADDRESS = "applicationDataAddress";
+    protected static final String LISP_GEO_COORDINATE_ADDRESS = "geoCoordinateAddress";
+    protected static final String LISP_NAT_ADDRESS = "natAddress";
+    protected static final String LISP_NONCE_ADDRESS = "nonceAddress";
+    protected static final String LISP_MULTICAST_ADDRESS = "multicastAddress";
+    protected static final String LISP_TRAFFIC_ENGINEERING_ADDRESS = "trafficEngineeringAddress";
+    protected static final String LISP_SOURCE_DEST_ADDRESS = "sourceDestAddress";
+
+    private static final String TYPE = "type";
+
+    private static final String MISSING_MEMBER_MESSAGE =
+            " member is required in LispExtensionMappingAddressInterpreter";
 
     @Override
     public boolean supported(ExtensionMappingAddressType type) {
@@ -568,5 +589,132 @@ public class LispExtensionMappingAddressInterpreter extends AbstractHandlerBehav
         }
 
         return null;
+    }
+
+    @Override
+    public ObjectNode encode(ExtensionMappingAddress mappingAddress, CodecContext context) {
+        checkNotNull(mappingAddress, "Extension mapping address cannot be null");
+        ExtensionMappingAddressType type = mappingAddress.type();
+        ObjectNode root = context.mapper().createObjectNode();
+
+        if (type.equals(LIST_ADDRESS.type())) {
+            LispListAddress listAddress = (LispListAddress) mappingAddress;
+            root.set(LISP_LIST_ADDRESS,
+                    context.codec(LispListAddress.class).encode(listAddress, context));
+        }
+        if (type.equals(SEGMENT_ADDRESS.type())) {
+            LispSegmentAddress segmentAddress = (LispSegmentAddress) mappingAddress;
+            root.set(LISP_SEGMENT_ADDRESS,
+                    context.codec(LispSegmentAddress.class).encode(segmentAddress, context));
+        }
+        if (type.equals(AS_ADDRESS.type())) {
+            LispAsAddress asAddress = (LispAsAddress) mappingAddress;
+            root.set(LISP_AS_ADDRESS,
+                    context.codec(LispAsAddress.class).encode(asAddress, context));
+        }
+        if (type.equals(APPLICATION_DATA_ADDRESS.type())) {
+            LispAppDataAddress appDataAddress = (LispAppDataAddress) mappingAddress;
+            root.set(LISP_APPLICATION_DATA_ADDRESS,
+                    context.codec(LispAppDataAddress.class).encode(appDataAddress, context));
+        }
+        if (type.equals(GEO_COORDINATE_ADDRESS.type())) {
+            LispGcAddress gcAddress = (LispGcAddress) mappingAddress;
+            root.set(LISP_GEO_COORDINATE_ADDRESS,
+                    context.codec(LispGcAddress.class).encode(gcAddress, context));
+        }
+        if (type.equals(NAT_ADDRESS.type())) {
+            LispNatAddress natAddress = (LispNatAddress) mappingAddress;
+            root.set(LISP_NAT_ADDRESS,
+                    context.codec(LispNatAddress.class).encode(natAddress, context));
+        }
+        if (type.equals(NONCE_ADDRESS.type())) {
+            LispNonceAddress nonceAddress = (LispNonceAddress) mappingAddress;
+            root.set(LISP_NONCE_ADDRESS, context.codec(LispNonceAddress.class).encode(nonceAddress, context));
+        }
+        if (type.equals(MULTICAST_ADDRESS.type())) {
+            LispMulticastAddress multicastAddress = (LispMulticastAddress) mappingAddress;
+            root.set(LISP_MULTICAST_ADDRESS,
+                    context.codec(LispMulticastAddress.class).encode(multicastAddress, context));
+        }
+        if (type.equals(TRAFFIC_ENGINEERING_ADDRESS.type())) {
+            LispTeAddress teAddress = (LispTeAddress) mappingAddress;
+            root.set(LISP_TRAFFIC_ENGINEERING_ADDRESS,
+                    context.codec(LispTeAddress.class).encode(teAddress, context));
+        }
+        if (type.equals(SOURCE_DEST_ADDRESS.type())) {
+            LispSrcDstAddress srcDstAddress = (LispSrcDstAddress) mappingAddress;
+            root.set(LISP_SOURCE_DEST_ADDRESS,
+                    context.codec(LispSrcDstAddress.class).encode(srcDstAddress, context));
+        }
+
+        return root;
+    }
+
+    @Override
+    public ExtensionMappingAddress decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        // parse extension type
+        String typeString = nullIsIllegal(json.get(TYPE),
+                TYPE + MISSING_MEMBER_MESSAGE).asText();
+
+        if (typeString.equals(LIST_ADDRESS.name())) {
+            return context.codec(LispListAddress.class)
+                    .decode(get(json, LISP_LIST_ADDRESS), context);
+        }
+        if (typeString.equals(SEGMENT_ADDRESS.name())) {
+            return context.codec(LispSegmentAddress.class)
+                    .decode(get(json, LISP_SEGMENT_ADDRESS), context);
+        }
+        if (typeString.equals(AS_ADDRESS.name())) {
+            return context.codec(LispAsAddress.class)
+                    .decode(get(json, LISP_AS_ADDRESS), context);
+        }
+        if (typeString.equals(APPLICATION_DATA_ADDRESS.name())) {
+            return context.codec(LispAppDataAddress.class)
+                    .decode(get(json, LISP_APPLICATION_DATA_ADDRESS), context);
+        }
+        if (typeString.equals(GEO_COORDINATE_ADDRESS.name())) {
+            return context.codec(LispGcAddress.class)
+                    .decode(get(json, LISP_GEO_COORDINATE_ADDRESS), context);
+        }
+        if (typeString.equals(NAT_ADDRESS.name())) {
+            return context.codec(LispNatAddress.class)
+                    .decode(get(json, LISP_NAT_ADDRESS), context);
+        }
+        if (typeString.equals(NONCE_ADDRESS.name())) {
+            return context.codec(LispNonceAddress.class)
+                    .decode(get(json, LISP_NONCE_ADDRESS), context);
+        }
+        if (typeString.equals(MULTICAST_ADDRESS.name())) {
+            return context.codec(LispMulticastAddress.class)
+                    .decode(get(json, LISP_MULTICAST_ADDRESS), context);
+        }
+        if (typeString.equals(TRAFFIC_ENGINEERING_ADDRESS.name())) {
+            return context.codec(LispTeAddress.class)
+                    .decode(get(json, LISP_TRAFFIC_ENGINEERING_ADDRESS), context);
+        }
+        if (typeString.equals(SOURCE_DEST_ADDRESS.name())) {
+            return context.codec(LispSrcDstAddress.class)
+                    .decode(get(json, LISP_SOURCE_DEST_ADDRESS), context);
+        }
+
+        throw new UnsupportedOperationException(
+                "Driver does not support extension type " + typeString);
+    }
+
+    /**
+     * Gets a child Object Node from a parent by name. If the child is not found
+     * or does nor represent an object, null is returned.
+     *
+     * @param parent parent object
+     * @param childName name of child to query
+     * @return child object if found, null if not found or if not an object
+     */
+    private static ObjectNode get(ObjectNode parent, String childName) {
+        JsonNode node = parent.path(childName);
+        return node.isObject() && !node.isNull() ? (ObjectNode) node : null;
     }
 }
