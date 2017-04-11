@@ -63,7 +63,11 @@
         fNodesTimer,            // timer for delayed nodes update
         fLinksTimer,            // timer for delayed links update
         dim,                    // the dimensions of the force layout [w,h]
-        linkNums = [];          // array of link number labels
+        linkNums = [],          // array of link number labels
+        devIconDim = 36,        // node target dimension
+        devIconDimMin = 20,     // node minimum dimension when zoomed out
+        devIconDimMax = 40,     // node maximum dimension when zoomed in
+        portLabelDim = 30;
 
     // SVG elements;
     var linkG, linkLabelG, numLinkLblsG, portLabelG, nodeG;
@@ -588,6 +592,53 @@
         $timeout(updateLinks, 2000);
     }
 
+    function deviceScale() {
+        var scale = uplink.zoomer().scale(),
+            dim = devIconDim,
+            multiplier = 1;
+
+        if (dim * scale < devIconDimMin) {
+            multiplier = devIconDimMin / (dim * scale);
+        } else if (dim * scale > devIconDimMax) {
+            multiplier = devIconDimMax / (dim * scale);
+        }
+
+        return multiplier;
+    }
+
+    function linkWidthScale(scale) {
+        var scale = uplink.zoomer().scale();
+        return linkScale(widthRatio) / scale;
+    }
+
+    function portLabelScale(scale) {
+        var scale = uplink.zoomer().scale();
+        return portLabelDim / (portLabelDim * scale);
+    }
+
+    function setNodeScale(scale) {
+        // Scale the network nodes
+        _.each(network.nodes, function (node) {
+            if (node.class === 'host') {
+                node.el.selectAll('g').style('transform', 'scale(' + deviceScale(scale) + ')');
+                node.el.selectAll('text').style('transform', 'scale(' + deviceScale(scale) + ')');
+                return;
+            }
+            node.el.selectAll('*')
+                .style('transform', 'scale(' + deviceScale(scale) + ')');
+        });
+
+        // Scale the network links
+        _.each(network.links, function (link) {
+            link.el.style('stroke-width', linkWidthScale(scale) + 'px');
+        });
+
+        d3.select('#topo-portLabels')
+            .selectAll('.portLabel')
+            .selectAll('*')
+            .style('transform', 'scale(' + portLabelScale(scale) + ')');
+    }
+
     function resetAllLocations() {
         tms.resetAllLocations();
         updateNodes();
@@ -607,6 +658,8 @@
     // IMPLEMENTATION NOTE: _updateNodes() should NOT stop, start, or resume
     //  the force layout; that needs to be determined and implemented elsewhere
     function _updateNodes() {
+
+        var scale = uplink.zoomer().scale();
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -962,7 +1015,9 @@
             showHosts: function () { return showHosts; },
             restyleLinkElement: restyleLinkElement,
             updateLinkLabelModel: updateLinkLabelModel,
-            linkConfig: function () { return linkConfig; }
+            linkConfig: function () { return linkConfig; },
+            deviceScale: deviceScale,
+            linkWidthScale: linkWidthScale,
         };
     }
 
@@ -1092,7 +1147,7 @@
 
                 tov.setApi(mkOverlayApi(), tss);
                 tms.initModel(mkModelApi(uplink), dim);
-                td3.initD3(mkD3Api());
+                td3.initD3(mkD3Api(), uplink.zoomer());
                 tss.initSelect(mkSelectApi());
                 tts.initTraffic(mkTrafficApi());
                 tpis.initProtectedIntents(mkTrafficApi());
@@ -1188,6 +1243,7 @@
                 unpin: unpin,
                 showMastership: showMastership,
                 showBadLinks: showBadLinks,
+                setNodeScale: setNodeScale,
 
                 resetAllLocations: resetAllLocations,
                 addDevice: addDevice,

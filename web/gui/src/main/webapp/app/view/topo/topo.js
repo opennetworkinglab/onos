@@ -262,6 +262,8 @@
 
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
+
+        tfs.setNodeScale(sc);
     }
 
     function setUpZoom() {
