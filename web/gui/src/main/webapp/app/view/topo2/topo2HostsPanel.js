@@ -33,18 +33,24 @@
     }
 
     function formatHostData(data) {
-        return {
+        var format = {
             title: data.get('id'),
-            propOrder: ['MAC', 'IP', 'VLAN', '-', 'Latitude', 'Longitude'],
+            propOrder: ['MAC', 'IP', 'VLAN'],
             props: {
                 '-': '',
                 'MAC': data.get('id'),
                 'IP': data.get('ips')[0],
-                'VLAN': 'None', // TODO: VLAN is not currently in the data received from backend
-                'Latitude': data.get('location').lat,
-                'Longitude': data.get('location').lng
+                'VLAN': 'None' // TODO: VLAN is not currently in the data received from backend
             }
         };
+
+        if (data.get('location')) {
+            format.propOrder.push('-', 'Latitude', 'Longitude');
+            format.props['Latitude'] = data.get('location').lat;
+            format.props['Longitude'] = data.get('location').lng;
+        }
+
+        return format;
     }
 
     function displayPanel(data) {
