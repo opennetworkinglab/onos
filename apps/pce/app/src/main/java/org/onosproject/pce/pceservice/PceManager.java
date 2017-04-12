@@ -690,7 +690,7 @@ public class PceManager implements PceService {
         TunnelId tunnelId2 = tunnelService.setupTunnel(appId, src, tunnelBackup, path.backup());
         if (tunnelId2 == null) {
             //Release 1st tunnel
-            releasePath(tunnelId2);
+            releasePath(tunnelId1);
 
             pceStore.addFailedPathInfo(new PcePathInfo(src, dst, tunnelName, constraints, lspType, null, true));
 
