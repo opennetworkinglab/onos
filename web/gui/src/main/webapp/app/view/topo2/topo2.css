@@ -32,6 +32,16 @@
 }
 
 
+/* --- "No Devices" Layer --- */
+
+#ov-topo2 svg #topo2-noDevsLayer {
+    visibility: hidden;
+}
+
+#ov-topo2 svg #topo2-noDevsLayer text {
+    font-size: 60pt;
+    font-style: italic;
+}
 
 #breadcrumbs {
     font-size: 13px;

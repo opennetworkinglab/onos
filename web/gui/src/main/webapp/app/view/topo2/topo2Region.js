@@ -36,9 +36,9 @@
         '$log', 'Topo2Model', 'Topo2SubRegionService', 'Topo2DeviceService',
         'Topo2HostService', 'Topo2LinkService', 'Topo2ZoomService', 'Topo2DetailsPanelService',
         'Topo2BreadcrumbService', 'Topo2ViewController', 'Topo2SpriteLayerService', 'Topo2MapService',
-        'Topo2MapConfigService', 'Topo2PeerRegionService',
+        'Topo2MapConfigService', 'Topo2PeerRegionService', 'Topo2NoDevicesConnectedService',
         function ($log, _Model_, t2sr, t2ds, t2hs, t2ls, t2zs, t2dps, t2bcs, ViewController,
-                  t2sls, t2ms, t2mcs, t2pr) {
+                  t2sls, t2ms, t2mcs, t2pr, t2ndcs) {
 
             Model = _Model_;
 
@@ -78,8 +78,6 @@
                 },
                 startRegion: function () {
 
-                    var _this = this;
-
                     this.model.set({
                         id: this.regionData.id,
                         layerOrder: this.regionData.layerOrder
@@ -97,6 +95,7 @@
                     }
 
                     this.layout.createForceLayout();
+                    this.displayNoDevs();
                 },
                 clear: function () {
                     this.regionData = null;
@@ -198,6 +197,14 @@
                     }
 
                     this.layout.update()
+                    this.displayNoDevs();
+                },
+                displayNoDevs: function () {
+                    if (this.regionNodes().length > 0) {
+                        t2ndcs.hide();
+                    } else {
+                        t2ndcs.show();
+                    }
                 },
 
                 // Topology update event handlers
