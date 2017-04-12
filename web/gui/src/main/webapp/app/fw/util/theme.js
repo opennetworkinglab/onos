@@ -29,7 +29,6 @@
 
     // internal state
     var listeners = [],
-        currentTheme,
         thidx;
 
     // TODO: fine tune these colors
@@ -75,9 +74,9 @@
         return themes[thidx];
     }
 
-    function setTheme(t, force) {
+    function setTheme(t) {
         var idx = themes.indexOf(t);
-        if (force || idx > -1 && idx !== thidx) {
+        if (idx > -1 && idx !== thidx) {
             thidx = idx;
             ps.setPrefs('theme', { idx: thidx });
             applyTheme();
@@ -94,18 +93,15 @@
 
     function applyTheme(evt) {
         thidx = ps.getPrefs('theme', { idx: thidx }).idx;
-        if (currentTheme != thidx) {
-            $log.info('Applying theme:', thidx);
-            updateBodyClass();
-            themeEvent(evt || 'set');
-        }
+        $log.info('Applying theme:', thidx);
+        updateBodyClass();
+        themeEvent(evt || 'set');
     }
 
     function updateBodyClass() {
         var body = d3.select('body');
         body.classed(themeStr, false);
         body.classed(getTheme(), true);
-        currentTheme = thidx;
     }
 
     function themeEvent(w) {
@@ -123,7 +119,7 @@
     }
 
     function removeListener(lsnr) {
-        listeners = listeners.filter(function(obj) { return obj === lsnr; });
+        listeners = listeners.filter(function(obj) { return obj !== lsnr; });
     }
 
     // color = logical color name
