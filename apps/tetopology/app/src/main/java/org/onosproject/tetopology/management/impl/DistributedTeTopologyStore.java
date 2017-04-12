@@ -1004,6 +1004,12 @@ public class DistributedTeTopologyStore
         }
         // Then remove it from teNodeMap
         InternalTeNode node = teNodeMap.remove(nodeKey);
+
+        if (node == null) {
+            log.error("No node found for nodeKey {}", nodeKey);
+            return;
+        }
+
         removeTeNodeMapEntrys(node);
         // Remove it from networkNodeMap
         if (teNodeRemove && node != null) {
