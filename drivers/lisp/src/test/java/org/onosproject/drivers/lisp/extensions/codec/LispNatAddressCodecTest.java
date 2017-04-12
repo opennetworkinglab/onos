@@ -31,7 +31,7 @@ import org.onosproject.drivers.lisp.extensions.LispMappingExtensionCodecRegistra
 import org.onosproject.drivers.lisp.extensions.LispNatAddress;
 import org.onosproject.mapping.addresses.MappingAddress;
 import org.onosproject.mapping.addresses.MappingAddresses;
-import org.onosproject.mapping.web.codec.MappingAddressJsonMatcher;
+import org.onosproject.mapping.codec.MappingAddressJsonMatcher;
 
 import java.io.IOException;
 import java.io.InputStream;

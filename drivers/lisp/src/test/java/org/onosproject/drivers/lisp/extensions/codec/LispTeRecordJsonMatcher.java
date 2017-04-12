@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.drivers.lisp.extensions.LispTeAddress;
-import org.onosproject.mapping.web.codec.MappingAddressJsonMatcher;
+import org.onosproject.mapping.codec.MappingAddressJsonMatcher;
 
 /**
  * Hamcrest matcher for TeRecord.

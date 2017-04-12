@@ -32,7 +32,7 @@ import org.onosproject.drivers.lisp.extensions.codec.LispSegmentAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispSrcDstAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispTeAddressCodec;
 import org.onosproject.drivers.lisp.extensions.codec.LispTeRecordCodec;
-import org.onosproject.mapping.web.MappingCodecRegistrator;
+import org.onosproject.mapping.MappingCodecRegistrator;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;

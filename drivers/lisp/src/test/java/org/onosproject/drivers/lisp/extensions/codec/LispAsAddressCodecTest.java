@@ -29,7 +29,7 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.drivers.lisp.extensions.LispAsAddress;
 import org.onosproject.drivers.lisp.extensions.LispMappingExtensionCodecRegistrator;
 import org.onosproject.mapping.addresses.MappingAddresses;
-import org.onosproject.mapping.web.codec.MappingAddressJsonMatcher;
+import org.onosproject.mapping.codec.MappingAddressJsonMatcher;
 
 import java.io.IOException;
 import java.io.InputStream;
