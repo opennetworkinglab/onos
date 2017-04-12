@@ -133,8 +133,9 @@ public class DistributedTopologyStore
             new InternalBroadcastPointListener();
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         configService.registerProperties(getClass());
+        modified(context);
         KryoNamespace.Builder hostSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API);
 
