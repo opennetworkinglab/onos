@@ -32,6 +32,7 @@
             E: [equalizeMasters, 'Equalize mastership roles'],
             X: [resetNodeLocation, 'Reset Node Location'],
             U: [unpinNode, 'Unpin node (mouse over)'],
+            H: [toggleHosts, 'Toggle host visibility'],
             dot: [toggleToolbar, 'Toggle Toolbar'],
 
             esc: handleEscape,
@@ -143,6 +144,10 @@
 
     function toggleToolbar() {
         t2tbs.toggle();
+    }
+
+    function toggleHosts() {
+        t2rs.toggleHosts();
     }
 
     function notValid(what) {

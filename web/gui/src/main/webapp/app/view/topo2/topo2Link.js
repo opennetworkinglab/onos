@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn;
+    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn, ps;
 
     var linkLabelOffset = '0.35em';
 
@@ -315,10 +315,7 @@
 
                 this.el = link;
                 this.restyleLinkElement();
-
-                if (this.get('type') === 'hostLink') {
-                    // sus.visible(link, api.showHosts());
-                }
+                this.setVisibility();
             },
             setScale: function () {
 
@@ -339,6 +336,15 @@
                 if (this.get('enhanced')) {
                     this.enhance();
                 }
+            },
+            setVisibility: function () {
+
+                if (this.get('type') !== 'UiEdgeLink') {
+                    return;
+                }
+
+                var visible = ps.getPrefs('topo2_prefs')['hosts'];
+                this.el.style('visibility', visible ? 'visible' : 'hidden');
             },
             remove: function () {
 
@@ -369,9 +375,9 @@
     .factory('Topo2LinkService', [
         '$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
-        'Topo2ViewService', 'Topo2LinkPanelService', 'FnService',
+        'Topo2ViewService', 'Topo2LinkPanelService', 'FnService', 'PrefsService',
         function (_$log_, _c_, _Model_, _ts_, _sus_,
-            _t2zs_, _t2vs_, _t2lps_, _fn_) {
+            _t2zs_, _t2vs_, _t2lps_, _fn_, _ps_) {
 
             $log = _$log_;
             ts = _ts_;
@@ -382,6 +388,7 @@
             Model = _Model_;
             t2lps = _t2lps_;
             fn = _fn_;
+            ps = _ps_;
 
             return {
                 createLinkCollection: createLinkCollection

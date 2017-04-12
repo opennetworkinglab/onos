@@ -173,7 +173,18 @@
 
                     return false;
                 },
+                toggleHosts: function () {
+                    var state = this.lookupPrefState('hosts');
+                    this.updatePrefState('hosts', !state);
 
+                    _.each(this.model.get('hosts').models, function (host) {
+                        host.setVisibility();
+                    });
+
+                    _.each(this.model.get('links').models, function (link) {
+                        link.setVisibility();
+                    });
+                },
                 update: function (event) {
 
                     if (!this.isLoadComplete()){

@@ -87,6 +87,10 @@
             flash.flash(verb + ' ' + this.displayName);
             this.updatePrefState(this.prefs.visible, on);
         },
+        lookupPrefState: function (key) {
+            // Return 0 if not defined
+            return ps.getPrefs('topo2_prefs')[key] || 0;
+        },
         updatePrefState: function (key, value) {
             var state = ps.getPrefs('topo2_prefs');
             state[key] = value ? 1 : 0;

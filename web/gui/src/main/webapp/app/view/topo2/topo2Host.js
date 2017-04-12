@@ -48,8 +48,8 @@
     angular.module('ovTopo2')
     .factory('Topo2HostService', [
         'Topo2Collection', 'Topo2NodeModel', 'Topo2ViewService',
-        'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService',
-        function (_c_, NodeModel, _t2vs_, is, zs, t2hds) {
+        'IconService', 'Topo2ZoomService', 'Topo2HostsPanelService', 'PrefsService',
+        function (_c_, NodeModel, _t2vs_, is, zs, t2hds, ps) {
 
             Collection = _c_;
 
@@ -95,6 +95,10 @@
                     this.el.select('g').selectAll('*')
                         .style('transform', 'scale(' + multipler + ')');
                 },
+                setVisibility: function () {
+                    var visible = ps.getPrefs('topo2_prefs')['hosts'];
+                    this.el.style('visibility', visible ? 'visible' : 'hidden');
+                },
                 onEnter: function (el) {
                     var node = d3.select(el),
                         icon = this.icon(),
@@ -127,6 +131,7 @@
 
                     this.setScale();
                     this.setUpEvents();
+                    this.setVisibility();
                 }
             });
 
