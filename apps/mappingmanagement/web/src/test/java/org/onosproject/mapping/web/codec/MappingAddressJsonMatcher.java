@@ -54,7 +54,7 @@ public final class MappingAddressJsonMatcher extends
     }
 
     /**
-     * Matches an AS mapping address object,
+     * Matches an AS mapping address object.
      *
      * @param address mapping address to match
      * @return true if the JSON matches the mapping address, false otherwise
