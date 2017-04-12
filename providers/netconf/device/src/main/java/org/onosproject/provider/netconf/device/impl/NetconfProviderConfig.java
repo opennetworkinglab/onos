@@ -28,8 +28,10 @@ import java.util.Set;
 
 /**
  * Configuration for Netconf provider.
+ * @deprecated 1.10.0 Kingfisher
  */
 @Beta
+@Deprecated
 public class NetconfProviderConfig extends Config<ApplicationId> {
 
     public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
@@ -42,7 +44,6 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
 
     public Set<NetconfDeviceAddress> getDevicesAddresses() throws ConfigException {
         Set<NetconfDeviceAddress> devicesAddresses = Sets.newHashSet();
-
         try {
             for (JsonNode node : array) {
                 String ip = node.path(IP).asText();
@@ -61,7 +62,8 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
         return devicesAddresses;
     }
 
-    public class NetconfDeviceAddress {
+    public class
+    NetconfDeviceAddress {
         private final IpAddress ip;
         private final int port;
         private final String name;

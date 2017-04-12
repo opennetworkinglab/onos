@@ -1,19 +1,15 @@
 {
-  "devices":{
-    "netconf:10.1.9.24:830":{
-      "basic":{
-        "driver":"ovs-netconf"
+  "devices": {
+    "netconf:192.168.56.104:830": {
+      "netconf": {
+        "ip": "192.168.56.104",
+        "port": 830,
+        "username": "mininet",
+        "password": "mininet"
+      },
+      "basic": {
+        "driver": "ovs-netconf"
       }
-    }
-  },
-  "apps":{
-    "org.onosproject.netconf":{
-      "devices":[{
-        "username":"mininet",
-        "password":"mininet",
-        "ip":"10.1.9.24",
-        "port":830
-      }]
     }
   }
 }

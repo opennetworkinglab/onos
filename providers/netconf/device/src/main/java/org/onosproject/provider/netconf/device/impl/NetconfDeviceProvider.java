@@ -16,8 +16,11 @@
 
 package org.onosproject.provider.netconf.device.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +47,7 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -73,6 +77,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -119,7 +125,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
 
     protected static final String APP_NAME = "org.onosproject.netconf";
-    private static final String SCHEME_NAME = "netconf";
+    protected static final String SCHEME_NAME = "netconf";
     private static final String DEVICE_PROVIDER_PACKAGE = "org.onosproject.netconf.provider.device";
     private static final String UNKNOWN = "unknown";
     protected static final String ISNULL = "NetconfDeviceInfo is null";
@@ -147,7 +153,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
     protected ScheduledFuture<?> scheduledTask;
 
-    private final ConfigFactory factory =
+    protected final List<ConfigFactory> factories = ImmutableList.of(
+            new ConfigFactory<DeviceId, NetconfDeviceConfig>(
+                    SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                    NetconfDeviceConfig.class, SCHEME_NAME) {
+                @Override
+                public NetconfDeviceConfig createConfig() {
+                    return new NetconfDeviceConfig();
+                }
+            },
             new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
                                                                     NetconfProviderConfig.class,
                                                                     "devices",
@@ -156,7 +170,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                 public NetconfProviderConfig createConfig() {
                     return new NetconfProviderConfig();
                 }
-            };
+            });
+
     protected final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
     private ApplicationId appId;
     private boolean active;
@@ -168,10 +183,11 @@ public class NetconfDeviceProvider extends AbstractProvider
         componentConfigService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         appId = coreService.registerApplication(APP_NAME);
-        cfgService.registerConfigFactory(factory);
+        factories.forEach(cfgService::registerConfigFactory);
         cfgService.addListener(cfgListener);
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
+        translateConfig();
         executor.execute(NetconfDeviceProvider.this::connectDevices);
         modified(context);
         log.info("Started");
@@ -191,7 +207,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         deviceService.removeListener(deviceListener);
         providerRegistry.unregister(this);
         providerService = null;
-        cfgService.unregisterConfigFactory(factory);
+        factories.forEach(cfgService::unregisterConfigFactory);
         scheduledTask.cancel(true);
         executor.shutdown();
         log.info("Stopped");
@@ -343,49 +359,31 @@ public class NetconfDeviceProvider extends AbstractProvider
     }
 
     private void connectDevices() {
-        NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
-        if (cfg != null) {
-            try {
-                cfg.getDevicesAddresses().forEach(addr -> {
-                    DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
-                    Preconditions.checkNotNull(deviceId, ISNULL);
-                    //Netconf configuration object
-                    ChassisId cid = new ChassisId();
-                    String ipAddress = addr.ip().toString();
-                    SparseAnnotations annotations = DefaultAnnotations.builder()
-                            .set(IPADDRESS, ipAddress)
-                            .set(PORT, String.valueOf(addr.port()))
-                            .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
-                            .build();
-                    DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                            deviceId.uri(),
-                            Device.Type.SWITCH,
-                            UNKNOWN, UNKNOWN,
-                            UNKNOWN, UNKNOWN,
-                            cid, false,
-                            annotations);
-                    storeDeviceKey(addr, deviceId);
-
-                    if (deviceService.getDevice(deviceId) == null) {
-                        providerService.deviceConnected(deviceId, deviceDescription);
-                    }
-                    try {
-                        checkAndUpdateDevice(deviceId, deviceDescription);
-                    } catch (Exception e) {
-                        log.error("Unhandled exception checking {}", deviceId, e);
-                    }
-                });
-            } catch (ConfigException e) {
-                log.error("Cannot read config error " + e);
+        Set<DeviceId> deviceSubjects =
+                cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
+        deviceSubjects.forEach(deviceId -> {
+            NetconfDeviceConfig config =
+                    cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
+            DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
+            log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
+                      deviceId, config.ip(), config.port(), config.username());
+            storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
+            if (deviceService.getDevice(deviceId) == null) {
+                providerService.deviceConnected(deviceId, deviceDescription);
             }
-        }
+            try {
+                checkAndUpdateDevice(deviceId, deviceDescription);
+            } catch (Exception e) {
+                log.error("Unhandled exception checking {}", deviceId, e);
+            }
+        });
     }
 
     private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription) {
         Device device = deviceService.getDevice(deviceId);
         if (device == null) {
             log.warn("Device {} has not been added to store, " +
-                             "maybe due to a problem in connectivity", deviceId);
+                             "since it's not reachable", deviceId);
         } else {
             boolean isReachable = isReachable(deviceId);
             if (isReachable && !deviceService.isAvailable(deviceId)) {
@@ -393,16 +391,19 @@ public class NetconfDeviceProvider extends AbstractProvider
                     if (mastershipService.isLocalMaster(deviceId)) {
                         DeviceDescriptionDiscovery deviceDescriptionDiscovery =
                                 device.as(DeviceDescriptionDiscovery.class);
-                        DeviceDescription updatedDeviceDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
+                        DeviceDescription updatedDeviceDescription =
+                                deviceDescriptionDiscovery.discoverDeviceDetails();
                         if (updatedDeviceDescription != null &&
                                 !descriptionEquals(device, updatedDeviceDescription)) {
                             providerService.deviceConnected(
                                     deviceId, new DefaultDeviceDescription(
-                                            updatedDeviceDescription, true, updatedDeviceDescription.annotations()));
+                                            updatedDeviceDescription, true,
+                                            updatedDeviceDescription.annotations()));
                         } else if (updatedDeviceDescription == null) {
                             providerService.deviceConnected(
                                     deviceId, new DefaultDeviceDescription(
-                                            deviceDescription, true, deviceDescription.annotations()));
+                                            deviceDescription, true,
+                                            deviceDescription.annotations()));
                         }
                         //if ports are not discovered, retry the discovery
                         if (deviceService.getPorts(deviceId).isEmpty()) {
@@ -451,48 +452,48 @@ public class NetconfDeviceProvider extends AbstractProvider
     }
 
     private void checkAndUpdateDevices() {
-        NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
-        if (cfg != null) {
-            log.info("Checking connection to devices in configuration");
-            try {
-                cfg.getDevicesAddresses().forEach(addr -> {
-                    DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
-                    Preconditions.checkNotNull(deviceId, ISNULL);
-                    //Netconf configuration object
-                    ChassisId cid = new ChassisId();
-                    String ipAddress = addr.ip().toString();
-                    SparseAnnotations annotations = DefaultAnnotations.builder()
-                            .set(IPADDRESS, ipAddress)
-                            .set(PORT, String.valueOf(addr.port()))
-                            .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
-                            .build();
-                    DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                            deviceId.uri(),
-                            Device.Type.SWITCH,
-                            UNKNOWN, UNKNOWN,
-                            UNKNOWN, UNKNOWN,
-                            cid, false,
-                            annotations);
-                    storeDeviceKey(addr, deviceId);
-                    checkAndUpdateDevice(deviceId, deviceDescription);
-                });
-            } catch (ConfigException e) {
-                log.error("Cannot read config error " + e);
-            }
-        }
+        Set<DeviceId> deviceSubjects =
+                cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
+        deviceSubjects.forEach(deviceId -> {
+            NetconfDeviceConfig config =
+                    cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
+            DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
+            storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
+            checkAndUpdateDevice(deviceId, deviceDescription);
+        });
     }
 
-    private void storeDeviceKey(NetconfProviderConfig.NetconfDeviceAddress addr, DeviceId deviceId) {
-        if (addr.sshkey().equals("")) {
+    private DeviceDescription createDeviceRepresentation(DeviceId deviceId, NetconfDeviceConfig config) {
+        Preconditions.checkNotNull(deviceId, ISNULL);
+        //Netconf configuration object
+        ChassisId cid = new ChassisId();
+        String ipAddress = config.ip().toString();
+        SparseAnnotations annotations = DefaultAnnotations.builder()
+                .set(IPADDRESS, ipAddress)
+                .set(PORT, String.valueOf(config.port()))
+                .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
+                .build();
+        return new DefaultDeviceDescription(
+                deviceId.uri(),
+                Device.Type.SWITCH,
+                UNKNOWN, UNKNOWN,
+                UNKNOWN, UNKNOWN,
+                cid, false,
+                annotations);
+    }
+
+    private void storeDeviceKey(String sshKey, String username, String password, DeviceId deviceId) {
+        if (sshKey.equals("")) {
             deviceKeyAdminService.addKey(
                     DeviceKey.createDeviceKeyUsingUsernamePassword(
                             DeviceKeyId.deviceKeyId(deviceId.toString()),
-                            null, addr.name(), addr.password()));
+                            null, username, password));
         } else {
             deviceKeyAdminService.addKey(
                     DeviceKey.createDeviceKeyUsingSshKey(
                             DeviceKeyId.deviceKeyId(deviceId.toString()),
-                            null, addr.name(), addr.password(), addr.sshkey()));
+                            null, username, password,
+                            sshKey));
         }
     }
 
@@ -508,7 +509,7 @@ public class NetconfDeviceProvider extends AbstractProvider
             }
             deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(deviceId.toString()));
             throw new RuntimeException(new NetconfException(
-                    "Can't connect to NETCONF " + "device on " + deviceId + ":" + deviceId, e));
+                    "Can't connect to NETCONF device " + deviceId, e));
 
         }
     }
@@ -549,6 +550,38 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
     }
 
+
+    protected void translateConfig() {
+        NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
+        if (cfg != null) {
+            try {
+                cfg.getDevicesAddresses().forEach(addr -> {
+                    DeviceId deviceId = getDeviceId(addr.ip().toString(), addr.port());
+                    log.info("Translating config for device {}", deviceId);
+                    if (cfgService.getConfig(deviceId, NetconfDeviceConfig.class) == null) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        ObjectNode device = mapper.createObjectNode();
+                        device.put("ip", addr.ip().toString());
+                        device.put("port", addr.port());
+                        device.put("username", addr.name());
+                        device.put("password", addr.password());
+                        device.put("sshkey", addr.sshkey());
+                        cfgService.applyConfig(deviceId, NetconfDeviceConfig.class, device);
+                    } else {
+                        // This is a corner case where new updated config is
+                        // pushed with old /app tree after an initial with the
+                        // new device/ tree. Since old method will be deprecated
+                        // it's ok to ignore
+                        log.warn("Config for device {} already exists, ignoring", deviceId);
+                    }
+
+                });
+            } catch (ConfigException e) {
+                log.error("Cannot read config error " + e);
+            }
+        }
+    }
+
     /**
      * Listener for configuration events.
      */
@@ -557,12 +590,20 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.execute(NetconfDeviceProvider.this::connectDevices);
+            if (event.configClass().equals(NetconfDeviceConfig.class)) {
+                executor.execute(NetconfDeviceProvider.this::connectDevices);
+            } else {
+                log.warn("Injecting device via this Json is deprecated, " +
+                                 "please put configuration under devices/ as shown in the wiki");
+                translateConfig();
+            }
+
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return event.configClass().equals(NetconfProviderConfig.class) &&
+            return (event.configClass().equals(NetconfDeviceConfig.class) ||
+                    event.configClass().equals(NetconfProviderConfig.class)) &&
                     (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
         }
