@@ -23,13 +23,14 @@
     'use strict';
 
     // Injected Services
-    var panel, gs, wss, flash, bs, fs, ns, ls;
+    var panel, gs, wss, flash, bs, fs, ns, ls, ns;
 
     // Internal State
     var detailsPanel;
 
     // configuration
     var id = 'topo2-p-detail',
+        devicePath = 'device',
         handlerMap = {
             'showDetails': showDetails
         };
@@ -103,10 +104,16 @@
 
         detailsPanel.emptyRegions();
 
+
+        var navFn = function () {
+            ns.navTo(devicePath, { devId: data.id });
+        };
+
         var svg = detailsPanel.appendToHeader('div')
                 .classed('icon clickable', true)
                 .append('svg'),
             title = detailsPanel.appendToHeader('h2')
+                .on('click', navFn)
                 .classed('clickable', true),
             table = detailsPanel.appendToBody('table'),
             tbody = table.append('tbody');
