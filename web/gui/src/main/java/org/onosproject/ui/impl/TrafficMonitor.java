@@ -26,6 +26,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -38,6 +39,7 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.ui.impl.topo.util.IntentSelection;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
@@ -67,11 +69,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import static org.onosproject.incubator.net.PortStatisticsService.MetricType.BYTES;
 import static org.onosproject.incubator.net.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.*;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.IDLE;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.RELATED_INTENTS;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
@@ -586,7 +591,23 @@ public class TrafficMonitor extends AbstractTopoMonitor {
                     if (installable instanceof PathIntent) {
                         links = ((PathIntent) installable).path().links();
                     } else if (installable instanceof FlowRuleIntent) {
-                        links = addEdgeLinksIfNeeded(intent, linkResources(installable));
+                        Collection<Link> l = new ArrayList<>();
+                        l.addAll(linkResources(installable));
+                        // Add cross connect links
+                        if (intent instanceof OpticalConnectivityIntent) {
+                            OpticalConnectivityIntent ocIntent = (OpticalConnectivityIntent) intent;
+                            LinkService linkService = servicesBundle.linkService();
+                            DeviceService deviceService = servicesBundle.deviceService();
+                            l.addAll(linkService.getDeviceIngressLinks(ocIntent.getSrc().deviceId()).stream()
+                                    .filter(i ->
+                                            deviceService.getDevice(i.src().deviceId()).type() == Device.Type.SWITCH)
+                                    .collect(Collectors.toList()));
+                            l.addAll(linkService.getDeviceEgressLinks(ocIntent.getDst().deviceId()).stream()
+                                    .filter(e ->
+                                            deviceService.getDevice(e.dst().deviceId()).type() == Device.Type.SWITCH)
+                                    .collect(Collectors.toList()));
+                        }
+                        links = l;
                     } else if (installable instanceof FlowObjectiveIntent) {
                         links = addEdgeLinksIfNeeded(intent, linkResources(installable));
                     } else if (installable instanceof LinkCollectionIntent) {

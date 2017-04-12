@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -32,8 +30,10 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.ProtectionEndpointIntent;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.impl.topo.util.TrafficLink;
 import org.onosproject.ui.impl.topo.util.TrafficLink.StatsType;
@@ -49,7 +49,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -198,9 +200,9 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
     private Highlights protectedIntentHighlights() {
         Highlights highlights = new Highlights();
         TrafficLinkMap linkMap = new TrafficLinkMap();
+        IntentService intentService = servicesBundle.intentService();
         if (selectedIntent != null) {
-            List<Intent> installables = servicesBundle.intentService()
-                    .getInstallableIntents(selectedIntent.key());
+            List<Intent> installables = intentService.getInstallableIntents(selectedIntent.key());
 
             if (installables != null) {
                 ProtectionEndpointIntent ep1 = installables.stream()
@@ -225,7 +227,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                     .filter(FlowRuleIntent.class::isInstance)
                     .map(FlowRuleIntent.class::cast)
                     // only consider fwd links so that ants march in one direction
-                    // TODO: ⇅didn't help need further investigation.
+                    // TODO: didn't help need further investigation.
                     //.filter(i -> !i.resources().contains(marker("rev")))
                     .collect(Collectors.groupingBy(this::isPrimary));
 
@@ -241,8 +243,14 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                 List<FlowRuleIntent> backTransit = transits.getOrDefault(false, ImmutableList.of());
                 populateLinks(backup, backHead, backTail, backTransit);
 
+                // Add packet to optical links
+                if (!usingBackup(primary)) {
+                    primary.addAll(protectedIntentMultiLayer(primHead, primTail));
+                }
+                backup.addAll(protectedIntentMultiLayer(backHead, backTail));
+
                 boolean isOptical = selectedIntent instanceof OpticalConnectivityIntent;
-                //last parameter (traffic) signals if the link is highlited with ants or solid line
+                //last parameter (traffic) signals if the link is highlighted with ants or solid line
                 //Flavor is swapped so green is primary path.
                 if (usingBackup(primary)) {
                     //the backup becomes in use so we have a dotted line
@@ -260,12 +268,67 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                 colorLinks(highlights, linkMap);
                 highlights.subdueAllElse(Highlights.Amount.MINIMALLY);
             } else {
-                log.debug("Selected Intent has no installables intents");
+                log.debug("Selected Intent has no installable intents");
             }
         } else {
             log.debug("Selected Intent is null");
         }
         return highlights;
+    }
+
+    /**
+     * Returns the packet to optical mapping given a head and tail of a protection path.
+     *
+     * @param head head of path
+     * @param tail tail of path
+     */
+    private Set<Link> protectedIntentMultiLayer(ConnectPoint head, ConnectPoint tail) {
+        List<Link> links = new LinkedList<>();
+        LinkService linkService = servicesBundle.linkService();
+        IntentService intentService = servicesBundle.intentService();
+
+        // Ingress cross connect link
+        links.addAll(
+                linkService.getEgressLinks(head).stream()
+                        .filter(l -> l.type() == Link.Type.OPTICAL)
+                        .collect(Collectors.toList())
+        );
+
+        // Egress cross connect link
+        links.addAll(
+                linkService.getIngressLinks(tail).stream()
+                        .filter(l -> l.type() == Link.Type.OPTICAL)
+                        .collect(Collectors.toList())
+        );
+
+        // The protected intent does not rely on a multi-layer mapping
+        if (links.size() != 2) {
+            return Collections.emptySet();
+        }
+
+        // Expected head and tail of optical circuit (not connectivity!) intent
+        ConnectPoint ocHead = links.get(0).dst();
+        ConnectPoint ocTail = links.get(1).src();
+
+        // Optical connectivity
+        // FIXME: assumes that transponder (OTN device) is a one-to-one mapping
+        // We need to track the multi-layer aspects better
+        intentService.getIntents().forEach(intent -> {
+            if (intent instanceof OpticalConnectivityIntent) {
+                OpticalConnectivityIntent ocIntent = (OpticalConnectivityIntent) intent;
+                if (ocHead.deviceId().equals(ocIntent.getSrc().deviceId()) &&
+                        ocTail.deviceId().equals(ocIntent.getDst().deviceId())) {
+                    intentService.getInstallableIntents(ocIntent.key()).forEach(i -> {
+                        if (i instanceof FlowRuleIntent) {
+                            FlowRuleIntent fr = (FlowRuleIntent) i;
+                            links.addAll(linkResources(fr));
+                        }
+                    });
+                }
+            }
+        });
+
+        return new LinkedHashSet<>(links);
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
