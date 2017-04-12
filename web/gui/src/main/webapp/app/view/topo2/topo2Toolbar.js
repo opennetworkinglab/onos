@@ -30,7 +30,6 @@
 
                 var Toolbar = function () {
                     instance = this;
-                    this.el = tbs.createToolbar(this.className);
                 };
 
                 Toolbar.prototype = {
@@ -38,6 +37,7 @@
                     className: 'topo2-toolbar',
 
                     init: function () {
+                        this.el = tbs.createToolbar(this.className);
                         this.initKeyData();
                         this.addFirstRow();
                         this.el.addRow();

@@ -35,6 +35,7 @@
         this.appendElement('#topo2-background', 'g');
         zoomLayer = d3.select('#topo2-zoomlayer');
         zoomer = t2zs.getZoomer();
+        currentMap = null;
     }
 
     function setUpMap(mapId, mapFilePath, mapScale) {
