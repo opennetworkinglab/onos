@@ -446,7 +446,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
      */
     protected Key key() {
         Key key = null;
-        ApplicationId appIdForIntent;
 
         if (intentKey != null) {
             key = Key.of(intentKey, appId());
