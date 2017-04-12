@@ -24,9 +24,9 @@
 
     var Collection, Model;
 
-    var hostIconDim = 20,
-        hostIconDimMin = 15,
-        hostIconDimMax = 20,
+    var hostIconDim = 15,
+        hostIconDimMin = 8,
+        hostIconDimMax = 15,
         remappedDeviceTypes = {};
 
     function createHostCollection(data, region) {
@@ -98,7 +98,6 @@
                 onEnter: function (el) {
                     var node = d3.select(el),
                         icon = this.icon(),
-                        iconDim = hostIconDim,
                         textDy = 5,
                         textDx = (hostIconDim * 2) + 20;
 
@@ -108,12 +107,14 @@
                         .attr('class', 'svgIcon hostIcon');
 
                     g.append('circle').attr('r', hostIconDim);
+
+                    var glyphSize = hostIconDim * 1.5;
                     g.append('use').attr({
                         'xlink:href': '#' + icon,
-                        width: iconDim,
-                        height: iconDim,
-                        x: -iconDim / 2,
-                        y: -iconDim / 2
+                        width: glyphSize,
+                        height: glyphSize,
+                        x: -glyphSize / 2,
+                        y: -glyphSize / 2
                     });
 
                     var labelText = this.label();
