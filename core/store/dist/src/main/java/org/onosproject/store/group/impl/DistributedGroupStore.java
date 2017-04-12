@@ -164,8 +164,9 @@ public class DistributedGroupStore
 
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
+        modified(context);
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
                 .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
