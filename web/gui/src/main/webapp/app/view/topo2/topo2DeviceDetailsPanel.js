@@ -104,7 +104,6 @@
 
         detailsPanel.emptyRegions();
 
-
         var navFn = function () {
             ns.navTo(devicePath, { devId: data.id });
         };
@@ -120,6 +119,11 @@
 
         gs.addGlyph(svg, (data.type || 'unknown'), 26);
         title.text(data.title);
+
+        if (!data.props.Latitude) {
+            var locationIndex = data.propOrder.indexOf('Latitude');
+            data.propOrder.splice(locationIndex - 1, 3);
+        }
 
         ls.listProps(tbody, data);
         addBtnFooter();
