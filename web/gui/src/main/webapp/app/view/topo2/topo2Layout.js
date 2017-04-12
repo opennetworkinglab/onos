@@ -169,13 +169,10 @@
 
                         t2zs.panAndZoom([x, y], scale, 1000);
                     },
+                    setLinkPosition: function (link) {
+                        link.setPosition.bind(link)();
+                    },
                     tick: function () {
-
-                        this.link
-                            .attr("x1", function (d) { return d.get('source').x; })
-                            .attr("y1", function (d) { return d.get('source').y; })
-                            .attr("x2", function (d) { return d.get('target').x; })
-                            .attr("y2", function (d) { return d.get('target').y; });
 
                         this.node
                             .attr({
@@ -185,6 +182,13 @@
                                     return sus.translate(dx, dy);
                                 }
                             });
+
+                        this.link
+                            .each(this.setLinkPosition)
+                            .attr("x1", function (d) { return d.get('position').x1; })
+                            .attr("y1", function (d) { return d.get('position').y1; })
+                            .attr("x2", function (d) { return d.get('position').x2; })
+                            .attr("y2", function (d) { return d.get('position').y2; });
                     },
 
                     start: function () {

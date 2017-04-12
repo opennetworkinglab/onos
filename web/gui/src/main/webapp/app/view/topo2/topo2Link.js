@@ -211,6 +211,28 @@
                 this.set('enhanced', false);
                 d3.select('.topo2-portLabels').selectAll('.portLabel').remove();
             },
+            setPosition: function () {
+                this.set({
+                    position: {
+                        x1: this.get('source').x,
+                        y1: this.get('source').y,
+                        x2: this.get('target').x,
+                        y2: this.get('target').y
+                    }
+                });
+
+                if (this.get('enhanced')) {
+                    this.updatePortPosition();
+                }
+            },
+            updatePortPosition: function () {
+                var sourcePos = this.locatePortLabel(1),
+                    targetPos = this.locatePortLabel();
+                d3.select('#topo2-port-src')
+                    .attr('transform', sus.translate(sourcePos.x, sourcePos.y));
+                d3.select('#topo2-port-tgt')
+                    .attr('transform', sus.translate(targetPos.x, targetPos.y));
+            },
             getSelected: function () {
                 return this.collection.filter(function (m) {
                     return m.get('selected');
