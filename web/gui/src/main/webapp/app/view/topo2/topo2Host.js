@@ -59,7 +59,6 @@
                 events: {
                     'click': 'onClick'
                 },
-
                 initialize: function () {
                     this.super = this.constructor.__super__;
                     this.super.initialize.apply(this, arguments);
@@ -78,18 +77,7 @@
                     return remappedDeviceTypes[type] || type || 'm_endstation';
                 },
                 label: function () {
-                    var labelText = this.get('id'),
-                        ips = this.get('ips');
-
-                    if (this.labelIndex() === 0) {
-                        return '';
-                    }
-
-                    if (ips && ips.length > 0) {
-                        labelText = ips[0];
-                    }
-
-                    return labelText;
+                    return this.get('ips')[0] || 'unknown';
                 },
                 setScale: function () {
 
