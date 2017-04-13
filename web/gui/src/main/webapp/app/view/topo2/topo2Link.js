@@ -302,7 +302,7 @@
 
                 var dx = farX - nearX,
                     dy = farY - nearY,
-                    k = (32 * offset) / dist(dx, dy);
+                    k = ((20 * t2zs.scale()) * offset) / dist(dx, dy);
 
                 return { x: k * dx + nearX, y: k * dy + nearY };
             },
