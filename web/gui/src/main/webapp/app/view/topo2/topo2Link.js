@@ -31,8 +31,6 @@
             .domain([1, 12])
             .range([widthRatio, 12 * widthRatio])
             .clamp(true),
-        allLinkTypes = 'direct optical tunnel UiDeviceLink',
-        allLinkSubTypes = 'not-permitted',
         labelDim = 30;
 
     // configuration
@@ -306,50 +304,26 @@
 
                 return { x: k * dx + nearX, y: k * dy + nearY };
             },
-            restyleLinkElement: function (immediate) {
-                // this fn's job is to look at raw links and decide what svg classes
-                // need to be applied to the line element in the DOM
-                var th = ts.theme(),
-                    el = this.el,
-                    type = this.get('type'),
-                    online = this.online(),
-                    modeCls = this.expected() ? '-inactive' : 'not-permitted',
-                    delay = immediate ? 0 : 1000;
-
-                // NOTE: understand why el is sometimes undefined on addLink events...
-                // Investigated:
-                // el is undefined when it's a reverse link that is being added.
-                // updateLinks (which sets ldata.el) isn't called before this is called.
-                // Calling _updateLinks in addLinkUpdate fixes it, but there might be
-                // a more efficient way to fix it.
-                if (el && !el.empty()) {
-                    el.classed('link', true);
-                    el.classed(allLinkSubTypes, false);
-                    el.classed(modeCls, !online);
-                    el.classed(allLinkTypes, false);
-                    if (type) {
-                        el.classed(type, true);
-                    }
-                    el.transition()
-                        .duration(delay)
-                        .attr('stroke', linkConfig[th].baseColor);
-
-                    this.setScale();
-                }
-            },
             onEnter: function (el) {
-                var link = d3.select(el);
+                var link = d3.select(el),
+                    th = ts.theme(),
+                    delay = 1000;
 
                 this.el = link;
-                this.restyleLinkElement();
+
+                link.transition()
+                    .duration(delay)
+                    .attr('stroke', linkConfig[th].baseColor);
+
                 this.setVisibility();
+                this.setScale();
             },
             setScale: function () {
 
                 if (!this.el) return;
 
                 var width = linkScale(widthRatio) / t2zs.scale();
-                this.el.style('stroke-width', width + 'px');
+                this.el.attr('stroke-width', width + 'px');
 
                 var labelScale = labelDim / (labelDim * t2zs.scale());
 

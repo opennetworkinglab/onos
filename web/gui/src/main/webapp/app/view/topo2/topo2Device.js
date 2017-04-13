@@ -29,7 +29,7 @@
         virtual: 'cord'
     };
 
-    function createDeviceCollection(data, region) {
+    function createDeviceCollection(data) {
 
         var DeviceCollection = Collection.extend({
             model: Model
@@ -65,7 +65,7 @@
                         this.super = this.constructor.__super__;
                         this.super.initialize.apply(this, arguments);
                     },
-                    onChange: function (change) {
+                    onChange: function () {
                         if (this.el) {
                             this.el.attr('class', this.svgClassName());
                             var rect = this.el.select('.icon-rect');

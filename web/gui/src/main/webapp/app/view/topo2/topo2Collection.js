@@ -26,7 +26,7 @@
 
     function Collection(models, options) {
 
-        var opts = options || (options = {});
+        var opts = options || {};
 
         this.models = [];
         this._reset();

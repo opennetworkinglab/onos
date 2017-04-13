@@ -55,7 +55,7 @@
         'SvgUtilService', 'IconService', 'ThemeService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2NodePositionService',
         'Topo2SelectService', 'Topo2MastershipService',
-        function (Model, _fn_, _ps_, _sus_, _is_, _ts_,
+        function (Model, _fn_, _t2ps_, _sus_, _is_, _ts_,
             _t2mcs_, zoomService, _t2nps_, t2ss, t2mss) {
 
             ts = _ts_;

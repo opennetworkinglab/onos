@@ -79,14 +79,13 @@
     .factory('Topo2LayoutService',
         [
             '$log', '$timeout', 'WebSocketService', 'SvgUtilService', 'Topo2RegionService',
-            'Topo2D3Service', 'Topo2ViewService', 'Topo2SelectService', 'Topo2ZoomService',
+            'Topo2ViewService', 'Topo2SelectService', 'Topo2ZoomService',
             'Topo2ViewController',
-            function ($log, $timeout, wss, sus, t2rs, t2d3, t2vs, t2ss, t2zs,
+            function ($log, $timeout, wss, sus, t2rs, t2vs, t2ss, t2zs,
                       ViewController) {
 
                 var Layout = ViewController.extend({
                     init: function (svg, forceG, uplink, dim, zoomer, opts) {
-                        $log.debug('initialize Layout');
                         instance = this;
 
                         this.svg = svg;
@@ -94,7 +93,6 @@
                         // Append all the SVG Group elements to the forceG object
                         this.createForceElements();
 
-                        this.uplink = uplink;
                         this.dim = dim;
                         this.zoomer = zoomer;
 
@@ -219,10 +217,7 @@
                             .transition()
                             .attr('opacity', 1);
 
-                        entering.filter('.device').each(t2d3.nodeEnter);
-                        entering.filter('.sub-region').each(t2d3.nodeEnter);
-                        entering.filter('.host').each(t2d3.nodeEnter);
-                        entering.filter('.peer-region').each(t2d3.nodeEnter);
+                        entering.each(function (d) { d.onEnter(this, d) });
 
                         this.force.nodes(regionNodes);
                     },
@@ -246,7 +241,7 @@
                                 'stroke-width': linkConfig.inWidth
                             });
 
-                        entering.each(t2d3.nodeEnter);
+                        entering.each(function (d) { d.onEnter(this, d) });
 
                         // operate on exiting links:
                         this.link.exit()

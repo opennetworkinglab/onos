@@ -31,7 +31,6 @@
         layout;
 
     function init() {
-        $log.debug("Topo2BreadcrumbService Initiated");
         breadcrumbs = [];
         breadcrumbContainer = d3.select('#breadcrumbs');
 

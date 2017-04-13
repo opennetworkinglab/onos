@@ -25,9 +25,6 @@
     // Injected Services
     var $log, $loc, ps, ms, flash, sus, t2zs, countryFilters;
 
-    // Injected Classes
-    var MapSelectionDialog;
-
     // internal state
     var instance, mapG, zoomLayer, zoomer, currentMap;
 
@@ -67,24 +64,6 @@
         return promise;
     }
 
-    // TODO: deprecated - maps are defined per layout on the server side.
-    function setMap(map) {
-        ps.setPrefs('topo2_mapid', map);
-        return setUpMap.bind(this)();
-    }
-
-    // TODO: deprecated - map selection does not make sense in Topo2
-    function openMapSelection() {
-        $log.warn('openMapSelection DISABLED');
-
-        // MapSelectionDialog.prototype.currentMap = currentMap;
-        //
-        // new MapSelectionDialog({
-        //     okHandler: function (preferences) {
-        //         setMap(preferences);
-        //     }
-        // }).open();
-    }
 
     function resetZoom() {
         zoomer.reset();
@@ -102,12 +81,10 @@
     angular.module('ovTopo2')
     .factory('Topo2MapService', [
         '$log', '$location', 'Topo2ViewController', 'PrefsService',
-        'MapService', 'FlashService', 'SvgUtilService', 'Topo2CountryFilters',
-        'Topo2MapDialog', 'Topo2ZoomService',
+        'MapService', 'FlashService', 'SvgUtilService', 'Topo2ZoomService',
 
         function (_$log_, _$loc_, ViewController, _ps_,
-                  _ms_, _flash_, _sus_, _t2cf_,
-                  _t2md_, _t2zs_) {
+                  _ms_, _flash_, _sus_, _t2zs_) {
 
             $log = _$log_;
             $loc = _$loc_;
@@ -115,8 +92,6 @@
             ms = _ms_;
             flash = _flash_;
             sus = _sus_;
-            countryFilters = _t2cf_;
-            MapSelectionDialog = _t2md_;
             t2zs = _t2zs_;
 
             var MapLayer = ViewController.extend({
@@ -125,9 +100,7 @@
                 displayName: 'Map',
 
                 init: init,
-                setMap: setMap,
                 setUpMap: setUpMap,
-                openMapSelection: openMapSelection,
                 resetZoom: resetZoom,
                 zoomCallback: zoomCallback,
                 getCurrentMap: getCurrentMap

@@ -31,9 +31,7 @@
     var ovtopo2, svg, defs, zoomLayer, forceG;
 
     // Internal state
-    var zoomer,
-        currentLayoutId = 'root';  // NOTE: see UiTopoLayoutId.DEFAULT_STR
-
+    var zoomer;
 
     // --- Glyphs, Icons, and the like -----------------------------------
 
@@ -47,12 +45,7 @@
 
     // callback invoked when the SVG view has been resized..
     function svgResized(s) {
-        $log.debug('topo2 view resized', s);
         t2fs.newDim([s.width, s.height]);
-    }
-
-    function setUpKeys(overlayKeys) {
-        $log.debug('topo2: set up keys....');
     }
 
     // --- Pan and Zoom --------------------------------------------------
@@ -124,12 +117,8 @@
                 dim,
                 wh,
                 uplink = {
-                    // provides function calls back into this space
-                    // showNoDevs: showNoDevs,
-                    // projection: function () { return projection; },
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; }
-                    // opacifyMap: opacifyMap,
                 };
 
             $scope = _$scope_;
@@ -192,7 +181,6 @@
             dim = [wh.width, wh.height];
 
             // set up our keyboard shortcut bindings
-            setUpKeys();
             setUpZoom();
             setUpDefs();
 
@@ -207,28 +195,14 @@
             t2fs.init(svg, forceG, uplink, dim, zoomer);
 
             // === ORIGINAL CODE ===
-
-            // setUpToolbar();
-            // setUpNoDevs();
-
-            // tes.bindHandlers();
-            // setUpSprites();
-
-            // forceG = zoomLayer.append('g').attr('id', 'topo-force');
-            // tfs.initForce(svg, forceG, uplink, dim);
-            // tis.initInst({ showMastership: tfs.showMastership });
-            // tps.initPanels();
-
             // restoreConfigFromPrefs();
             // ttbs.setDefaultOverlay(prefsState.ovid);
-
-            // $log.debug('registered overlays...', tov.list());
 
             summaryPanel.init(detailsPanel);
             detailsPanel.init(summaryPanel);
 
             // Now that we are initialized, ask the server for what we
-            //  need to show.
+            // need to show.
             t2es.start();
 
             $log.log('OvTopo2Ctrl has been created');
