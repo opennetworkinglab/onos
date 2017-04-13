@@ -61,7 +61,7 @@
     }
 
     function render() {
-        hostPanel.el.show();
+        hostPanel.show();
         hostPanel.emptyRegions();
 
         var svg = hostPanel.appendToHeader('div')
@@ -77,7 +77,7 @@
     }
 
     function show() {
-        hostPanel.el.show();
+        hostPanel.show();
     }
 
     function hide() {

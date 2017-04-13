@@ -26,7 +26,7 @@
     var Panel, gs, wss, flash, ls;
 
     // Internal State
-    var summaryPanel, summaryData;
+    var summaryPanel, summaryData, detailsPanel;
 
     // configuration
     var id = 'topo2-p-summary',
@@ -39,7 +39,9 @@
             showSummary: handleSummaryData
         };
 
-    function init() {
+    function init(_detailsPanel_) {
+
+        detailsPanel = _detailsPanel_;
 
         bindHandlers();
         wss.sendEvent('requestSummary');
@@ -76,12 +78,32 @@
         wss.bindHandlers(handlerMap);
     }
 
+    function hide() {
+        summaryPanel.el.hide(detailsPanel.getInstance().up);
+    }
+
+    function show() {
+
+        var _show = function () {
+            summaryPanel.el.show();
+        };
+
+        var summaryHeight = summaryPanel.el.bbox().height;
+        if (detailsPanel.isVisible()) {
+            detailsPanel.getInstance().down(summaryHeight, _show);
+        } else {
+            _show();
+        }
+    }
+
+
     function toggle() {
-        var on = summaryPanel.el.toggle(),
-            verb = on ? 'Show' : 'Hide';
+        var on = summaryPanel.isVisible(),
+            verb = on ? 'Hide' : 'Show';
 
         flash.flash(verb + ' Summary Panel');
         wss.sendEvent(on ? 'requestSummary' : 'cancelSummary');
+        on ? hide(): show();
     }
 
     function destroy() {
@@ -105,7 +127,8 @@
                 init: init,
                 toggle: toggle,
                 destroy: destroy,
-                isVisible: function () { return summaryPanel.isVisible(); }
+                isVisible: function () { return summaryPanel.isVisible(); },
+                getInstance: function () { return summaryPanel; }
             };
         }
     ]);

@@ -23,7 +23,7 @@
     'use strict';
 
     // Injected Services
-    var panel, gs, wss, flash, bs, fs, ns, ls, ns;
+    var panel, gs, wss, flash, bs, fs, ns, ls;
 
     // Internal State
     var detailsPanel;
@@ -63,10 +63,10 @@
         }
     };
 
-    function init() {
+    function init(summaryPanel) {
 
         bindHandlers();
-        detailsPanel = panel();
+        detailsPanel = panel(summaryPanel);
     }
 
     function addBtnFooter() {
@@ -185,7 +185,7 @@
     }
 
     function show() {
-        detailsPanel.el.show();
+        detailsPanel.show();
     }
 
     function hide() {
@@ -222,7 +222,8 @@
                 show: show,
                 hide: hide,
                 destroy: destroy,
-                isVisible: function () { return detailsPanel.isVisible(); }
+                isVisible: function () { return detailsPanel.isVisible(); },
+                getInstance: function () { return detailsPanel; }
             };
         }
     ]);

@@ -224,8 +224,8 @@
 
             // $log.debug('registered overlays...', tov.list());
 
-            summaryPanel.init();
-            detailsPanel.init();
+            summaryPanel.init(detailsPanel);
+            detailsPanel.init(summaryPanel);
 
             // Now that we are initialized, ask the server for what we
             //  need to show.

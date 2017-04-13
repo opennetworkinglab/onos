@@ -53,7 +53,7 @@
     }
 
     function render() {
-        subRegionPanel.el.show();
+        subRegionPanel.show();
         subRegionPanel.emptyRegions();
 
         var svg = subRegionPanel.appendToHeader('div')
@@ -69,7 +69,7 @@
     }
 
     function show() {
-        subRegionPanel.el.show();
+        subRegionPanel.show();
     }
 
     function hide() {
