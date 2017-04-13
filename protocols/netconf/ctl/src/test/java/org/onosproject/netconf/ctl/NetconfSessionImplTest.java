@@ -18,7 +18,9 @@ package org.onosproject.netconf.ctl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.onosproject.netconf.TargetConfig.*;
+import static org.junit.Assert.assertFalse;
+import static org.onosproject.netconf.TargetConfig.RUNNING;
+import static org.onosproject.netconf.TargetConfig.CANDIDATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,6 +66,7 @@ public class NetconfSessionImplTest {
     private static final String TEST_USERNAME = "netconf";
     private static final String TEST_PASSWORD = "netconf123";
     private static final String TEST_HOSTNAME = "127.0.0.1";
+
     private static final String TEST_SERFILE =
             System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "testkey.ser";
 
@@ -71,6 +74,17 @@ public class NetconfSessionImplTest {
             "<some-yang-element xmlns=\"some-namespace\">"
             + "<some-child-element/>"
             + "</some-yang-element>";
+
+    private static final String EDIT_CONFIG_REQUEST =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><rpc message-id=\"6\"  "
+                    + "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n"
+                    + "<edit-config>\n"
+                    + "<target><running/></target>\n"
+                    + "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n"
+                    + "<some-yang-element xmlns=\"some-namespace\">"
+                    + "<some-child-element/></some-yang-element></config>\n"
+                    + "</edit-config>\n"
+                    + "</rpc>]]>]]>";
 
     private static NetconfSession session1;
     private static NetconfSession session2;
@@ -130,7 +144,9 @@ public class NetconfSessionImplTest {
         log.info("Starting edit-config async");
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
-            assertTrue("NETCONF edit-config command failed", session1.editConfig(RUNNING, null, SAMPLE_REQUEST));
+            assertTrue("NETCONF edit-config command failed",
+                       session1.editConfig(TargetConfig.RUNNING.toString(),
+                                           null, SAMPLE_REQUEST));
         } catch (NetconfException e) {
             e.printStackTrace();
             fail("NETCONF edit-config test failed: " + e.getMessage());
@@ -139,11 +155,41 @@ public class NetconfSessionImplTest {
     }
 
     @Test
+    public void testEditConfigRequestWithOnlyNewConfiguration() {
+        log.info("Starting edit-config async");
+        assertNotNull("Incorrect sessionId", session1.getSessionId());
+        try {
+            assertTrue("NETCONF edit-config command failed",
+                       session1.editConfig(EDIT_CONFIG_REQUEST));
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail("NETCONF edit-config test failed: " + e.getMessage());
+        }
+        log.info("Finishing edit-config async");
+    }
+
+    @Test
+    public void testDeleteConfigRequestWithRunningTargetConfiguration() {
+        log.info("Starting delete-config async");
+        assertNotNull("Incorrect sessionId", session1.getSessionId());
+        try {
+            assertFalse("NETCONF delete-config command failed",
+                        session1.deleteConfig(TargetConfig.RUNNING));
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail("NETCONF delete-config test failed: " + e.getMessage());
+        }
+        log.info("Finishing delete-config async");
+    }
+
+    @Test
     public void testCopyConfigRequest() {
         log.info("Starting copy-config async");
         assertNotNull("Incorrect sessionId", session1.getSessionId());
         try {
-            assertTrue("NETCONF edit-config command failed", session1.copyConfig(RUNNING, "candidate"));
+            assertTrue("NETCONF copy-config command failed",
+                       session1.copyConfig(TargetConfig.RUNNING.toString(),
+                                           "candidate"));
         } catch (NetconfException e) {
             e.printStackTrace();
             fail("NETCONF edit-config test failed: " + e.getMessage());
@@ -183,6 +229,33 @@ public class NetconfSessionImplTest {
         }
         log.info("Finishing get async");
     }
+
+    @Test
+    public void testLockRequest() {
+        log.info("Starting lock async");
+        assertNotNull("Incorrect sessionId", session1.getSessionId());
+        try {
+            assertTrue("NETCONF lock request failed", session1.lock());
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail("NETCONF lock test failed: " + e.getMessage());
+        }
+        log.info("Finishing lock async");
+    }
+
+    @Test
+    public void testUnLockRequest() {
+        log.info("Starting unlock async");
+        assertNotNull("Incorrect sessionId", session1.getSessionId());
+        try {
+            assertTrue("NETCONF unlock request failed", session1.unlock());
+        } catch (NetconfException e) {
+            e.printStackTrace();
+            fail("NETCONF unlock test failed: " + e.getMessage());
+        }
+        log.info("Finishing unlock async");
+    }
+
 
     @Test
     public void testConcurrentSameSessionAccess() throws InterruptedException {
@@ -304,24 +377,56 @@ public class NetconfSessionImplTest {
             Pattern.compile("(<\\?xml).*"
                     + "(<rpc message-id=\")[0-9]*(\") *(xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + "(<edit-config>)\\R?"
-                    + "(<target>\\R?((<candidate/>)|(<running/>)|(<startup/>))\\R?</target>)\\R?"
+                    + "(<target>\\R?((<" + TargetConfig.CANDIDATE.toString() + "/>)|"
+                                    + "(<" + TargetConfig.RUNNING.toString() + "/>)|"
+                                    + "(<" + TargetConfig.STARTUP.toString() + "/>))\\R?</target>)\\R?"
                     + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
                     + ".*"
                     + "(</config>)\\R?(</edit-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+
+
+    public static final Pattern LOCK_REQ_PATTERN =
+            Pattern.compile("(<\\?xml).*"
+                                    + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
+                                    + "message-id=\")[0-9]*(\">)\\R?"
+                                    + "(<lock>)\\R?"
+                                    + "(<target>\\R?((<" + TargetConfig.CANDIDATE.toString() + "/>)|"
+                                    + "(<" + TargetConfig.RUNNING.toString() + "/>)|"
+                                    + "(<" + TargetConfig.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+                                    + "(</lock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+
+    public static final Pattern UNLOCK_REQ_PATTERN =
+            Pattern.compile("(<\\?xml).*"
+                                    + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
+                                    + "message-id=\")[0-9]*(\">)\\R?"
+                                    + "(<unlock>)\\R?"
+                                    + "(<target>\\R?((<" + TargetConfig.CANDIDATE.toString() + "/>)|"
+                                    + "(<" + TargetConfig.RUNNING.toString() + "/>)|"
+                                    + "(<" + TargetConfig.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+                                    + "(</unlock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 
     public static final Pattern COPY_CONFIG_REQ_PATTERN =
             Pattern.compile("(<\\?xml).*"
                     + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" message-id=\")[0-9]*(\">)\\R?"
                     + "(<copy-config>)\\R?"
-                    + "(<target>\\R?((<candidate/>)|(<running/>)|(<startup/>))\\R?</target>)\\R?"
-                    + "(<source>)\\R?(<config>)((candidate)|(running)|(startup))(</config>)\\R?(</source>)\\R?"
-                    + "(</copy-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+                    + "(<target>\\R?((<" + TargetConfig.CANDIDATE.toString() + "/>)|"
+                                    + "(<" + TargetConfig.RUNNING.toString() + "/>)|"
+                                    + "(<" + TargetConfig.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+                                    + "(<source>)\\R?(<config>)(("
+                                    + TargetConfig.CANDIDATE.toString() + ")|("
+                                    + TargetConfig.RUNNING.toString() + ")|("
+                                    + TargetConfig.STARTUP.toString()
+                                    + "))(</config>)\\R?(</source>)\\R?"
+                                    + "(</copy-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 
     public static final Pattern GET_CONFIG_REQ_PATTERN =
             Pattern.compile("(<\\?xml).*"
                     + "(<rpc message-id=\")[0-9]*(\"  xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
-                    + "(<get-config>)\\R?"
-                    + "(<source>)\\R?((<candidate/>)|(<running/>)|(<startup/>))\\R?(</source>)\\R?"
+                    + "(<get-config>)\\R?" + "(<source>)\\R?((<"
+                                    + TargetConfig.CANDIDATE.toString()
+                                    + "/>)|(<" + TargetConfig.RUNNING.toString()
+                                    + "/>)|(<" + TargetConfig.STARTUP.toString()
+                                    + "/>))\\R?(</source>)\\R?"
                     + "(<filter type=\"subtree\">).*(</filter>)\\R?"
                     + "(</get-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
 

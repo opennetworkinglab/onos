@@ -27,21 +27,13 @@ public enum TargetConfig {
         this.name = name;
     }
 
-    TargetConfig toTargetConfig(String targetConfig) {
-        switch (targetConfig) {
-            case "running":
-                return RUNNING;
-            case "candidate":
-                return CANDIDATE;
-            case "startup":
-                return STARTUP;
-            default:
-                return null;
-        }
+    public static TargetConfig toTargetConfig(String targetConfig) {
+        return valueOf(targetConfig.toUpperCase());
     }
 
     @Override
     public String toString() {
         return this.name;
     }
+
 }

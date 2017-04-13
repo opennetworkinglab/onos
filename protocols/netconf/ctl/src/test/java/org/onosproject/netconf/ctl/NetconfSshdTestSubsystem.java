@@ -194,7 +194,9 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
                                 outputStream.write(helloReply + END_PATTERN);
                                 outputStream.flush();
                             } else if (NetconfSessionImplTest.EDIT_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
-                                 || NetconfSessionImplTest.COPY_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()) {
+                                 || NetconfSessionImplTest.COPY_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
+                                    || NetconfSessionImplTest.LOCK_REQ_PATTERN.matcher(deviceRequest).matches()
+                                    || NetconfSessionImplTest.UNLOCK_REQ_PATTERN.matcher(deviceRequest).matches()) {
                                 outputStream.write(NetconfSessionImplTest.getOkReply(messageId) + END_PATTERN);
                                 outputStream.flush();
                             } else if (NetconfSessionImplTest.GET_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
