@@ -81,6 +81,12 @@
                         detailsPanel.updateDetails(id, nodeType);
                         detailsPanel.show();
                     },
+                    displayMastership: function () {
+                        var id = this.mastershipService.mastership(),
+                            suppress = id ? this.get('master') !== id : false;
+
+                        this.set({ mastership: suppress });
+                    },
                     onExit: function () {
                         var node = this.el;
                         node.select('use')

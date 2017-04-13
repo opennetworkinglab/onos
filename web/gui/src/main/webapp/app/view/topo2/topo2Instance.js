@@ -2,7 +2,7 @@
     'use strict';
 
     // injected refs
-    var $log, ps, sus, gs, flash, ts;
+    var $log, ps, sus, gs, flash, ts, t2mss;
 
     // api from topo
     var api;
@@ -61,15 +61,14 @@
             .classed('affinity', false);
         el.classed('affinity', true);
 
-        // suppress all elements except nodes whose master is this instance
-        api.showMastership(d.id);
+        t2mss.setMastership(d.id);
     }
 
     function cancelAffinity() {
         d3.selectAll('.onosInst')
             .classed('mastership affinity', false);
 
-        api.showMastership(null);
+        t2mss.setMastership(null);
     }
 
     function attachUiBadge(svg) {
@@ -271,15 +270,16 @@
     angular.module('ovTopo2')
         .factory('Topo2InstanceService', [
             '$log', 'PanelService', 'SvgUtilService', 'GlyphService',
-            'FlashService', 'ThemeService',
+            'FlashService', 'ThemeService', 'Topo2MastershipService',
 
-            function (_$log_, _ps_, _sus_, _gs_, _flash_, _ts_) {
+            function (_$log_, _ps_, _sus_, _gs_, _flash_, _ts_, _t2mss_) {
                 $log = _$log_;
                 ps = _ps_;
                 sus = _sus_;
                 gs = _gs_;
                 flash = _flash_;
                 ts = _ts_;
+                t2mss = _t2mss_;
 
                 return {
                     initInst: initInst,

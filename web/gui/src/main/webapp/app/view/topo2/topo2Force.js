@@ -25,7 +25,7 @@
     // injected refs
     var $log, $loc, wss;
 
-    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs, t2tbs;
+    var t2is, t2rs, t2ls, t2vs, t2bcs, t2ss, t2bgs, t2tbs, t2mss;
     var svg, forceG, uplink, dim, opts, zoomer;
 
     // D3 Selections
@@ -49,6 +49,7 @@
         t2ss.init(svg, zoomer);
         t2ss.region = t2rs;
         t2rs.layout = t2ls;
+        t2mss.region = t2rs;
         t2tbs.init();
         navToBookmarkedRegion($loc.search().regionId);
     }
@@ -120,25 +121,6 @@
 
     // ========================== Main Service Definition
 
-    function showMastershipFor(id) {
-        suppressLayers(true);
-        node.each(function (n) {
-            if (n.master === id) {
-                n.el.classed('suppressedmax', false);
-            }
-        });
-    }
-
-    function supAmt(less) {
-        return less ? 'suppressed' : 'suppressedmax';
-    }
-
-    function suppressLayers(b, less) {
-        var cls = supAmt(less);
-        node.classed(cls, b);
-        // link.classed(cls, b);
-    }
-
     function newDim(_dim_) {
         dim = _dim_;
         t2vs.newDim(dim);
@@ -189,9 +171,9 @@
         '$log', '$location', 'WebSocketService', 'Topo2InstanceService',
         'Topo2RegionService', 'Topo2LayoutService', 'Topo2ViewService',
         'Topo2BreadcrumbService', 'Topo2ZoomService', 'Topo2SelectService',
-        'Topo2BackgroundService', 'Topo2ToolbarService',
+        'Topo2BackgroundService', 'Topo2ToolbarService', 'Topo2MastershipService',
         function (_$log_, _$loc_, _wss_, _t2is_, _t2rs_, _t2ls_,
-            _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_, _t2tbs_) {
+            _t2vs_, _t2bcs_, zoomService, _t2ss_, _t2bgs_, _t2tbs_, _t2mss_) {
 
             $log = _$log_;
             $loc = _$loc_;
@@ -204,6 +186,7 @@
             t2ss = _t2ss_;
             t2bgs = _t2bgs_;
             t2tbs = _t2tbs_;
+            t2mss = _t2mss_;
 
             var onZoom = function () {
                 if (!t2rs.isLoadComplete()) {

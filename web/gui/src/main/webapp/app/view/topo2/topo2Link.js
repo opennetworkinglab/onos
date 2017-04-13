@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn, ps;
+    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn, ps, t2mss;
 
     var linkLabelOffset = '0.35em';
 
@@ -134,7 +134,8 @@
                     this.get('type'),
                     {
                         enhanced: this.get('enhanced'),
-                        selected: this.get('selected')
+                        selected: this.get('selected'),
+                        suppressedmax: this.get('mastership')
                     }
                 );
             },
@@ -346,6 +347,9 @@
                 var visible = ps.getPrefs('topo2_prefs')['hosts'];
                 this.el.style('visibility', visible ? 'visible' : 'hidden');
             },
+            displayMastership: function () {
+                this.set({ mastership: t2mss.mastership() !== null});
+            },
             remove: function () {
 
                 var width = linkScale(widthRatio) / t2zs.scale();
@@ -376,8 +380,9 @@
         '$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
         'Topo2ViewService', 'Topo2LinkPanelService', 'FnService', 'PrefsService',
+        'Topo2MastershipService',
         function (_$log_, _c_, _Model_, _ts_, _sus_,
-            _t2zs_, _t2vs_, _t2lps_, _fn_, _ps_) {
+            _t2zs_, _t2vs_, _t2lps_, _fn_, _ps_, _t2mss_) {
 
             $log = _$log_;
             ts = _ts_;
@@ -389,6 +394,7 @@
             t2lps = _t2lps_;
             fn = _fn_;
             ps = _ps_;
+            t2mss = _t2mss_;
 
             return {
                 createLinkCollection: createLinkCollection

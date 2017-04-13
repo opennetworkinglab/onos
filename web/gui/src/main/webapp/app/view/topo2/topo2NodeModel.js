@@ -54,9 +54,9 @@
         'Topo2Model', 'FnService', 'Topo2PrefsService',
         'SvgUtilService', 'IconService', 'ThemeService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2NodePositionService',
-        'Topo2SelectService',
+        'Topo2SelectService', 'Topo2MastershipService',
         function (Model, _fn_, _ps_, _sus_, _is_, _ts_,
-            _t2mcs_, zoomService, _t2nps_, t2ss) {
+            _t2mcs_, zoomService, _t2nps_, t2ss, t2mss) {
 
             ts = _ts_;
             fn = _fn_;
@@ -69,6 +69,7 @@
             return Model.extend({
                 initialize: function () {
                     this.node = this.createNode();
+                    this.mastershipService = t2mss;
                     this._events = {
                         'mouseover': 'mouseoverHandler',
                         'mouseout': 'mouseoutHandler'
@@ -202,7 +203,8 @@
                             online: this.get('online'),
                             selected: this.get('selected'),
                             hovered: this.get('hovered'),
-                            fixed: this.get('fixed')
+                            fixed: this.get('fixed'),
+                            suppressedmax: this.get('mastership')
                         }
                     );
                 },
@@ -212,6 +214,9 @@
                 },
                 resetPosition: function () {
                     t2nps.setLongLat(this);
+                },
+                displayMastership: function () {
+                    this.set({ mastership: t2mss.mastership() !== null});
                 },
                 update: function () {
                     this.updateLabel();
