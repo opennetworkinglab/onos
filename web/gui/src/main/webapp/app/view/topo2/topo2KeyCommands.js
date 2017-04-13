@@ -33,6 +33,7 @@
             X: [resetNodeLocation, 'Reset Node Location'],
             U: [unpinNode, 'Unpin node (mouse over)'],
             H: [toggleHosts, 'Toggle host visibility'],
+            M: [toggleOfflineDevices, 'Toggle offline visibility'],
             dot: [toggleToolbar, 'Toggle Toolbar'],
 
             esc: handleEscape,
@@ -146,8 +147,18 @@
         t2tbs.toggle();
     }
 
+    function actionedFlashed(action, message) {
+        flash.flash(action + ' ' + message);
+    }
+
     function toggleHosts() {
-        t2rs.toggleHosts();
+        var on = t2rs.toggleHosts();
+        actionedFlashed(on ? 'Show': 'Hide', 'Hosts')
+    }
+
+    function toggleOfflineDevices() {
+        var on = t2rs.toggleOfflineDevices();
+        actionedFlashed(on ? 'Show': 'Hide', 'offline devices')
     }
 
     function notValid(what) {

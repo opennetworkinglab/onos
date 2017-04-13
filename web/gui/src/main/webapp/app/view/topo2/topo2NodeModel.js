@@ -22,7 +22,7 @@
 (function () {
     'use strict';
 
-    var ps, sus, is, ts, t2mcs, t2nps, fn;
+    var t2ps, sus, is, ts, t2mcs, t2nps, fn;
 
     var devIconDim = 36,
         devIconDimMin = 20,
@@ -60,7 +60,7 @@
 
             ts = _ts_;
             fn = _fn_;
-            ps = _ps_;
+            t2ps = _t2ps_;
             sus = _sus_;
             is = _is_;
             t2mcs = _t2mcs_;
@@ -124,7 +124,7 @@
                     return 'unknown';
                 },
                 labelIndex: function () {
-                    return ps.get('dlbls');
+                    return t2ps.get('dlbls');
                 },
                 label: function () {
                     var props = this.get('props'),
@@ -278,7 +278,10 @@
                     }
 
                     this.setScale();
-                }
+                },
+
+                // Override Methods
+                setOfflineVisibility: function () {},
             });
         }]
     );

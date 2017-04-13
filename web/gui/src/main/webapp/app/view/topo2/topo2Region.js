@@ -215,6 +215,17 @@
                     _.each(this.model.get('links').models, function (link) {
                         link.setVisibility();
                     });
+
+                    return !state;
+                },
+                toggleOfflineDevices: function () {
+                    var state = this.lookupPrefState('offline_devices');
+                    this.updatePrefState('offline_devices', !state);
+                    _.each(this.regionNodes(), function (node) {
+                        node.setOfflineVisibility();
+                    });
+
+                    return !state;
                 },
                 update: function (event) {
 

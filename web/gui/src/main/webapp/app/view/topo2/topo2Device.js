@@ -46,9 +46,10 @@
     }
 
     angular.module('ovTopo2')
-    .factory('Topo2DeviceService',
-        ['Topo2Collection', 'Topo2NodeModel', 'Topo2DeviceDetailsPanel', 'Topo2SelectService',
-            function (_c_, _nm_, detailsPanel, t2ss) {
+    .factory('Topo2DeviceService', [
+            'Topo2Collection', 'Topo2NodeModel', 'Topo2DeviceDetailsPanel',
+            'PrefsService',
+            function (_c_, _nm_, detailsPanel, ps) {
 
                 Collection = _c_;
 
@@ -69,6 +70,8 @@
                             this.el.attr('class', this.svgClassName());
                             var rect = this.el.select('.icon-rect');
                             rect.style('fill', this.devGlyphColor());
+
+                            this.setOfflineVisibility();
                         }
                     },
                     icon: function () {
@@ -85,7 +88,12 @@
                         var id = this.mastershipService.mastership(),
                             suppress = id ? this.get('master') !== id : false;
 
-                        this.set({ mastership: suppress });
+                        this.set({mastership: suppress});
+                    },
+                    setOfflineVisibility: function () {
+                        var showOffline = ps.getPrefs('topo2_prefs')['offline_devices'],
+                            display = this.get('online') || showOffline;
+                        this.el.style('visibility', display ? 'visible' : 'hidden');
                     },
                     onExit: function () {
                         var node = this.el;
