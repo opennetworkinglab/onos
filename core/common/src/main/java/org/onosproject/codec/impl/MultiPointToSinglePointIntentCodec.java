@@ -51,8 +51,9 @@ public class MultiPointToSinglePointIntentCodec extends JsonCodec<MultiPointToSi
         final ObjectNode egress =
                 connectPointCodec.encode(intent.egressPoint(), context);
 
-        final ObjectNode objectCP = context.mapper().createObjectNode();
-        final ArrayNode jsonconnectPoints = objectCP.putArray(CP_POINTS);
+        // Check ingress are not null and not contain egress
+        ObjectNode objectCP = context.mapper().createObjectNode();
+        ArrayNode jsonconnectPoints = objectCP.putArray(CP_POINTS);
 
         if (intent.ingressPoints() != null) {
             for (final ConnectPoint cp : intent.ingressPoints()) {
@@ -61,39 +62,38 @@ public class MultiPointToSinglePointIntentCodec extends JsonCodec<MultiPointToSi
             result.set(INGRESS_POINT, jsonconnectPoints);
         }
         result.set(EGRESS_POINT, egress);
-
         return result;
     }
 
     @Override
     public MultiPointToSinglePointIntent decode(ObjectNode json, CodecContext context) {
         MultiPointToSinglePointIntent.Builder builder = MultiPointToSinglePointIntent.builder();
-
         IntentCodec.intentAttributes(json, context, builder);
         ConnectivityIntentCodec.intentAttributes(json, context, builder);
 
-        ObjectNode egressJson = nullIsIllegal(get(json, EGRESS_POINT),
-                EGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
-        ConnectPoint egress = context.codec(ConnectPoint.class)
-                .decode(egressJson, context);
-        builder.egressPoint(egress);
+        ArrayNode ingressJson = nullIsIllegal((ArrayNode) json.get(INGRESS_POINT),
+                                              INGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
 
-        ObjectNode ingressJson = nullIsIllegal(get(json, INGRESS_POINT),
-                INGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
         if (ingressJson != null) {
             final JsonCodec<ConnectPoint> connectPointCodec =
                     context.codec(ConnectPoint.class);
-            JsonNode connectPointsJson = get(json, INGRESS_POINT).get(CP_POINTS);
+            JsonNode connectPointsJson = json.get(INGRESS_POINT);
 
             Set<ConnectPoint> ingressCp = new HashSet<ConnectPoint>();
             if (connectPointsJson != null) {
-                for (JsonNode cP : connectPointsJson) {
-                    ingressCp.add(connectPointCodec.decode((ObjectNode) cP,
-                            context));
+                for (int i = 0; i < connectPointsJson.size(); i++) {
+                    ingressCp.add(connectPointCodec.decode(get(connectPointsJson, i),
+                                                           context));
                 }
                 builder.ingressPoints(ingressCp);
             }
         }
+
+        ObjectNode egressJson = nullIsIllegal(get(json, EGRESS_POINT),
+                                              EGRESS_POINT + IntentCodec.MISSING_MEMBER_MESSAGE);
+        ConnectPoint egress = context.codec(ConnectPoint.class)
+                .decode(egressJson, context);
+        builder.egressPoint(egress);
 
         return builder.build();
     }

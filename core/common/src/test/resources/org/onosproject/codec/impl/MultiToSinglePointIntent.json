@@ -1,0 +1,34 @@
+{
+  "type": "MultiPointToSinglePointIntent",
+  "id" : "0x0",
+  "appId": "foo",
+  "resources": [],
+  "state": "INSTALLED",
+  "selector": {
+    "criteria": []
+  },
+  "treatment": {
+    "instructions": [
+      {
+        "type": "NOACTION"
+      }
+    ],
+    "deferred": []
+  },
+  "priority": 100,
+  "constraints": [],
+  "ingressPoint": [
+    {
+      "port": "3",
+      "device": "333"
+    },
+    {
+      "port": "1",
+      "device": "111"
+    }
+  ],
+  "egressPoint": {
+    "port": "2",
+    "device": "222"
+  }
+}

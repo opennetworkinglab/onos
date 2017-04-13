@@ -77,6 +77,7 @@ public class IntentsWebResource extends AbstractWebResource {
             "SinglePointToMultiPointIntent";
     private static final String MULTI_TO_SINGLE_POINT_INTENT =
             "MultiPointToSinglePointIntent";
+
     private static final String INTENT = "Intent";
     private static final String APP_ID = "appId";
     private static final String ID = "id";
@@ -126,7 +127,7 @@ public class IntentsWebResource extends AbstractWebResource {
 
 
     /**
-     * Gets intent intallables by application ID and key.
+     * Gets intent installables by application ID and key.
      * @param appId application identifier
      * @param key   intent key
      *
@@ -354,7 +355,6 @@ public class IntentsWebResource extends AbstractWebResource {
                 latch.await(WITHDRAW_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.info("REST Delete operation timed out waiting for intent {}", k);
-                Thread.currentThread().interrupt();
             }
             // double check the state
             IntentState state = service.getIntentState(k);
