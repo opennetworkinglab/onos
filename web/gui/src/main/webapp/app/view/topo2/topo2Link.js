@@ -212,15 +212,41 @@
                 this.set('enhanced', false);
                 d3.select('.topo2-portLabels').selectAll('.portLabel').remove();
             },
+            amt: function (numLinks, index) {
+                var gap = 6;
+                return (index - ((numLinks - 1) / 2)) * gap;
+            },
+            defaultPosition: function () {
+                return {
+                    x1: this.get('source').x,
+                    y1: this.get('source').y,
+                    x2: this.get('target').x,
+                    y2: this.get('target').y
+                }
+            },
+            calcMovement: function (amt, flipped) {
+                var pos = this.defaultPosition(),
+                    mult = flipped ? -amt : amt,
+                    dx = pos.x2 - pos.x1,
+                    dy = pos.y2 - pos.y1,
+                    length = Math.sqrt((dx * dx) + (dy * dy));
+
+                return {
+                    x1: pos.x1 + (mult * dy / length),
+                    y1: pos.y1 + (mult * -dx / length),
+                    x2: pos.x2 + (mult * dy / length),
+                    y2: pos.y2 + (mult * -dx / length)
+                };
+            },
             setPosition: function () {
-                this.set({
-                    position: {
-                        x1: this.get('source').x,
-                        y1: this.get('source').y,
-                        x2: this.get('target').x,
-                        y2: this.get('target').y
-                    }
-                });
+
+                var multiline = this.get('multiline');
+                if (multiline) {
+                    var offsetAmt = this.amt(multiline.deviceLinks, multiline.index);
+                    this.set('position', this.calcMovement(offsetAmt));
+                } else {
+                    this.set('position', this.defaultPosition());
+                }
 
                 if (this.get('enhanced')) {
                     this.updatePortPosition();

@@ -75,15 +75,6 @@
         return true;
     }
 
-    function getDefaultPosition(link) {
-        return {
-            x1: link.get('source').x,
-            y1: link.get('source').y,
-            x2: link.get('target').x,
-            y2: link.get('target').y
-        };
-    }
-
     angular.module('ovTopo2')
     .factory('Topo2LayoutService',
         [
@@ -273,15 +264,8 @@
                     },
                     calcPosition: function () {
                         var lines = this;
-
                         lines.each(function (d) {
-                            if (d.get('type') === 'hostLink') {
-                                d.set('position', getDefaultPosition(d));
-                            }
-                        });
-
-                        lines.each(function (d) {
-                            d.set('position', getDefaultPosition(d));
+                            d.setPosition.bind(d)();
                         });
                     },
                     sendUpdateMeta: function (d, clearPos) {

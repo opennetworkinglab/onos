@@ -83,6 +83,8 @@
                         layerOrder: this.regionData.layerOrder
                     });
 
+                    this.sortMultiLinks();
+
                     this.model.set({ subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this) });
                     this.model.set({ devices: t2ds.createDeviceCollection(this.regionData.devices, this) });
                     this.model.set({ hosts: t2hs.createHostCollection(this.regionData.hosts, this) });
@@ -101,14 +103,44 @@
                     this.regionData = null;
                     this.createEmptyModel();
                 },
+                removePort: function (key) {
+                    var regex = new RegExp('^[^/]*');
+                    return regex.exec(key)[0];
+                },
+                sortMultiLinks: function () {
+                    var _this = this,
+                        deviceConnections = {};
+
+                    _.each(this.regionData.links, function (link) {
+                        var devA = _this.removePort(link.epA),
+                            devB = _this.removePort(link.epB),
+                            key = devA + '~' + devB;
+
+                        if (!deviceConnections[key]) {
+                            deviceConnections[key] = [];
+                        }
+
+                        deviceConnections[key].push(link);
+                    });
+
+                    _.each(deviceConnections, function (connection) {
+                        if (connection.length > 1) {
+                            _.orderBy(connection, ['portA']);
+                            _.each(connection, function (link, index) {
+                                link.multiline = {
+                                    deviceLinks: connection.length,
+                                    index: index
+                                };
+                            })
+                        }
+                    });
+                },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
                 },
                 findNodeById: function (link, id) {
                     if (link.get('type') !== 'UiEdgeLink') {
-                        // Remove /{port} from id if needed
-                        var regex = new RegExp('^[^/]*');
-                        id = regex.exec(id)[0];
+                        id = this.removePort(id);
                     }
                     return this.model.get('devices').get(id) ||
                         this.model.get('hosts').get(id) ||
