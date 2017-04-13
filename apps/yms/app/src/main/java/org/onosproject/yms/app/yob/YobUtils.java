@@ -673,7 +673,7 @@ public final class YobUtils {
         } catch (ClassNotFoundException e) {
             log.error(E_FAIL_TO_LOAD_CLASS, className);
             throw new YobException(E_FAIL_TO_LOAD_CLASS +
-                                           eventSubjectClass.getName());
+                                           qualName);
         } catch (InstantiationException e) {
             log.error(E_FAIL_TO_CREATE_OBJ, className);
             throw new YobException(E_FAIL_TO_CREATE_OBJ +
