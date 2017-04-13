@@ -731,6 +731,9 @@ public class SimpleVirtualGroupStore
                     existing = groupEntriesById.get(networkId)
                             .get(group.deviceId()).get(group.id());
                 }
+                if (existing == null) {
+                    break;
+                }
 
                 log.trace("groupMissing: group "
                                   + "entry {} in device {} moving "
