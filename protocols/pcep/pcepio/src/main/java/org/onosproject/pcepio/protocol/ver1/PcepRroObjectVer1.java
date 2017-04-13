@@ -262,7 +262,6 @@ public class PcepRroObjectVer1 implements PcepRroObject {
             for (int i = 0; i < pad; i++) {
                 cb.writeByte((byte) 0);
             }
-            length = length + pad;
         }
         objLenIndex = cb.writerIndex();
         return objLenIndex;
