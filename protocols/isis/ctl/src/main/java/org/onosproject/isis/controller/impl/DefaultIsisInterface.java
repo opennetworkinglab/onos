@@ -863,6 +863,10 @@ public class DefaultIsisInterface implements IsisInterface {
             neighbor.setLocalExtendedCircuitId(stateTlv.localCircuitId());
             buildStoreAndSendSelfGeneratedLspIfNotExistInDb(channel, IsisRouterType.get(helloPacket.circuitType()));
         }
+        if (neighbor == null) {
+            log.debug("neighbor object is null!!!!");
+            return;
+        }
 
         neighbor.setHoldingTime(helloPacket.holdingTime());
         neighbor.stopInactivityTimeCheck();
