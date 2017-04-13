@@ -197,6 +197,10 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 version = conn.getLastModified();
                 metadata = mapper.readValue(conn.getInputStream(), ClusterMetadata.class);
             }
+            if (null == metadata) {
+                log.warn("Metadata is null in the function fetchMetadata");
+                throw new NullPointerException();
+            }
             return new Versioned<>(new ClusterMetadata(PROVIDER_ID,
                                                        metadata.getName(),
                                                        Sets.newHashSet(metadata.getNodes()),
