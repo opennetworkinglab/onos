@@ -262,8 +262,8 @@ public class TeTopologyRestconfProvider extends AbstractProvider
                                         YangProtocolEncodingFormat.JSON,
                                         YmsOperationType.QUERY_REPLY);
 
-        if ((yo == null)) {
-            log.error("YMS decoder returns {} for restconf {}", yo, deviceId);
+        if (yo == null) {
+            log.error("YMS decoder returns null for restconf {}", deviceId);
             return;
         }
 
