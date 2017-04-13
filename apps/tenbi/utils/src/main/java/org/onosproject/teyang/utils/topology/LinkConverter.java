@@ -730,32 +730,34 @@ public final class LinkConverter {
                 }
             }
 
-            TeNodeId teSupportNodeId = findTeNodeId(teNetworkFound,
+            if (teLinkFound != null) {
+                TeNodeId teSupportNodeId = findTeNodeId(teNetworkFound,
                                                     teLinkFound.source().sourceNode());
-            long tenIdLong = -1;
-            if (teSupportNodeId != null) {
-                tenIdLong = Ip4Address.valueOf(teSupportNodeId.dottedQuad().string()).toInt();
-            }
-            long teSupportLinkTpId = findTeTpId(teNetworkFound,
-                                                teLinkFound.source().sourceNode(),
-                                                teLinkFound.source().sourceTp());
+                long tenIdLong = -1;
+                if (teSupportNodeId != null) {
+                    tenIdLong = Ip4Address.valueOf(teSupportNodeId.dottedQuad().string()).toInt();
+                }
+                long teSupportLinkTpId = findTeTpId(teNetworkFound,
+                                                    teLinkFound.source().sourceNode(),
+                                                    teLinkFound.source().sourceTp());
 
-            org.onosproject.tetopology.management.api.TeTopologyId teTopologyId = null;
-            if (teNetworkFound.yangAugmentedInfo(AugmentedNwNetwork.class) != null) {
-                AugmentedNwNetwork augmentTeIds =
-                        (AugmentedNwNetwork) teNetworkFound.yangAugmentedInfo(AugmentedNwNetwork.class);
-                teTopologyId =
-                        new org.onosproject.tetopology.management.api.TeTopologyId(
-                                augmentTeIds.clientId().uint32(),
-                                augmentTeIds.providerId().uint32(),
-                                augmentTeIds.teTopologyId().string());
-            }
+                org.onosproject.tetopology.management.api.TeTopologyId teTopologyId = null;
+                if (teNetworkFound.yangAugmentedInfo(AugmentedNwNetwork.class) != null) {
+                    AugmentedNwNetwork augmentTeIds =
+                            (AugmentedNwNetwork) teNetworkFound.yangAugmentedInfo(AugmentedNwNetwork.class);
+                    teTopologyId =
+                            new org.onosproject.tetopology.management.api.TeTopologyId(
+                                    augmentTeIds.clientId().uint32(),
+                                    augmentTeIds.providerId().uint32(),
+                                    augmentTeIds.teTopologyId().string());
+                }
 
-            supportTeLinkId = new TeLinkTpGlobalKey(teTopologyId.providerId(),
-                                                    teTopologyId.clientId(),
-                                                    Long.valueOf(teTopologyId
-                                                            .topologyId()),
-                                                    tenIdLong, teSupportLinkTpId);
+                supportTeLinkId = new TeLinkTpGlobalKey(teTopologyId.providerId(),
+                                                        teTopologyId.clientId(),
+                                                        Long.valueOf(teTopologyId
+                                                                .topologyId()),
+                                                        tenIdLong, teSupportLinkTpId);
+            }
         }
 
         return supportTeLinkId;
