@@ -68,10 +68,10 @@ public class IntentConfigurableRegistrator {
     private String labelSelection = DEFAULT_LABEL_SELECTION;
 
     private static final boolean DEFAULT_FLOW_OPTIMIZATION = false;
-    @Property(name = "useFlowOptimization",
+    @Property(name = "optimizeInstructions",
             boolValue = DEFAULT_FLOW_OPTIMIZATION,
             label = "Indicates whether or not to optimize the flows in the link collection compiler")
-    private boolean useFlowOptimization = DEFAULT_FLOW_OPTIMIZATION;
+    private boolean optimizeInstructions = DEFAULT_FLOW_OPTIMIZATION;
 
     private static final boolean DEFAULT_COPY_TTL = false;
     @Property(name = "useCopyTtl",
@@ -99,7 +99,7 @@ public class IntentConfigurableRegistrator {
         if (context == null) {
             log.info("Settings: useFlowObjectives={}", useFlowObjectives);
             log.info("Settings: labelSelection={}", labelSelection);
-            log.info("Settings: useFlowOptimization={}", useFlowOptimization);
+            log.info("Settings: useFlowOptimization={}", optimizeInstructions);
             log.info("Settings: useCopyTtl={}", useCopyTtl);
             return;
         }
@@ -135,15 +135,15 @@ public class IntentConfigurableRegistrator {
         boolean newFlowOptimization;
         try {
             String s = Tools.get(context.getProperties(), "useFlowOptimization");
-            newFlowOptimization = isNullOrEmpty(s) ? useFlowOptimization : Boolean.parseBoolean(s.trim());
+            newFlowOptimization = isNullOrEmpty(s) ? optimizeInstructions : Boolean.parseBoolean(s.trim());
         } catch (ClassCastException e) {
-            newFlowOptimization = useFlowOptimization;
+            newFlowOptimization = optimizeInstructions;
         }
 
-        if (useFlowOptimization != newFlowOptimization) {
-            useFlowOptimization = newFlowOptimization;
+        if (optimizeInstructions != newFlowOptimization) {
+            optimizeInstructions = newFlowOptimization;
             changeFlowOptimization();
-            log.info("Settings: useFlowOptimization={}", useFlowOptimization);
+            log.info("Settings: useFlowOptimization={}", optimizeInstructions);
         }
 
         boolean newCopyTtl;
@@ -216,7 +216,7 @@ public class IntentConfigurableRegistrator {
     }
 
     private void changeFlowOptimization() {
-        LinkCollectionCompiler.optimize = useFlowOptimization;
+        LinkCollectionCompiler.optimizeInstructions = optimizeInstructions;
     }
 
     private void changeCopyTtl() {

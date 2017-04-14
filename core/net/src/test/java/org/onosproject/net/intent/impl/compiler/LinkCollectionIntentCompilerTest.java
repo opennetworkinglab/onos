@@ -104,7 +104,7 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
         sut.registrator = registrator;
         sut.resourceService = new MockResourceService();
 
-        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, intentExtensionService);

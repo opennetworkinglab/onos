@@ -77,7 +77,7 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.*;
 /**
  * Shared APIs and implementations for Link Collection compilers.
  */
-public class LinkCollectionCompiler<T> {
+public abstract class LinkCollectionCompiler<T> {
 
     /**
      * Reference to the label allocator.
@@ -88,7 +88,7 @@ public class LinkCollectionCompiler<T> {
      * Influence compiler behavior. If true the compiler
      * try to optimize the chain of the actions.
      */
-    static boolean optimize;
+    static boolean optimizeInstructions;
 
     /**
      * Influence compiler behavior. If true the compiler
@@ -186,6 +186,13 @@ public class LinkCollectionCompiler<T> {
      * Error message for unsupported instructions.
      */
     private static final String UNSUPPORTED_INSTRUCTION = "Unknown instruction type";
+
+    /**
+     * Influence compiler behavior.
+     *
+     * @return true if we need the compiler optimizeTreatments the chain of the actions.
+     */
+    abstract boolean optimizeTreatments();
 
     /**
      * Creates the flows representations. This default implementation does
@@ -331,7 +338,7 @@ public class LinkCollectionCompiler<T> {
                  * The encapsulation modifies the packet. If we are optimizing
                  * we have to update the state.
                  */
-                if (optimize) {
+                if (optimizeTreatments()) {
                     preCondition = encapBuilder;
                 }
             } else {
@@ -345,7 +352,7 @@ public class LinkCollectionCompiler<T> {
          * the others.
          */
         TrafficSelector prevState = preCondition.build();
-        if (optimize) {
+        if (optimizeTreatments()) {
             egressPoints = orderedEgressPoints(prevState, egressPoints);
         }
         /*
@@ -395,7 +402,7 @@ public class LinkCollectionCompiler<T> {
              * Finally we set the output action.
              */
             treatmentBuilder.setOutput(egressPoint.connectPoint().port());
-            if (optimize) {
+            if (optimizeTreatments()) {
                 /*
                  * We update the previous state. In this way instead of
                  * transiting from FIP->FEP we do FEP->FEP and so on.
@@ -558,7 +565,7 @@ public class LinkCollectionCompiler<T> {
          * point then the others.
          */
         TrafficSelector prevState = filteredIngressPoint.get().trafficSelector();
-        if (optimize) {
+        if (optimizeTreatments()) {
             egressPoints = orderedEgressPoints(prevState, egressPoints);
         }
         /*
