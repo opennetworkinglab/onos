@@ -256,7 +256,7 @@ public class LispControllerImpl implements LispController {
         public boolean addConnectedRouter(LispRouterId routerId, LispRouter router) {
 
             if (connectedRouters.get(routerId) != null) {
-                log.error("Trying to add connectedRouter but found a previous " +
+                log.warn("Trying to add connectedRouter but found a previous " +
                           "value for routerId: {}", routerId);
                 return false;
             } else {
