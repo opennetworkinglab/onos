@@ -367,8 +367,12 @@ public class IPv6 extends IP implements IExtensionHeader {
             } else {
                 deserializer = Data.deserializer();
             }
-            ipv6.payload = deserializer.deserialize(data, bb.position(),
-                                               bb.limit() - bb.position());
+
+            int remainingLength = bb.limit() - bb.position();
+            int payloadLength = ipv6.payloadLength;
+            int bytesToRead = (payloadLength <= remainingLength) ?
+                    payloadLength : remainingLength;
+            ipv6.payload = deserializer.deserialize(data, bb.position(), bytesToRead);
             ipv6.payload.setParent(ipv6);
 
             return ipv6;

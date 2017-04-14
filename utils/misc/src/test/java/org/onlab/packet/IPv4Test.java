@@ -30,21 +30,21 @@ import static org.junit.Assert.assertTrue;
  */
 public class IPv4Test {
 
-    private Deserializer<IPv4> deserializer;
+    private static Deserializer<IPv4> deserializer;
 
-    private byte version = 4;
-    private byte headerLength = 6;
-    private byte diffServ = 2;
-    private short totalLength = 20;
-    private short identification = 1;
-    private byte flags = 1;
-    private short fragmentOffset = 1;
-    private byte ttl = 60;
-    private byte protocol = 4;
-    private short checksum = 4;
-    private int sourceAddress = 1;
-    private int destinationAddress = 2;
-    private byte[] options = new byte[] {0x1, 0x2, 0x3, 0x4};
+    private static final byte VERSION = 4;
+    private static final byte HEADER_LENGTH = 6;
+    private static final byte DIFF_SERV = 2;
+    private static final short TOTAL_LENGTH = 60;
+    private static final short IDENTIFICATION = 1;
+    private static final byte FLAGS = 1;
+    private static final short FRAGMENT_OFFSET = 1;
+    private static final byte TTL = 60;
+    private static final byte PROTOCOL = 4;
+    private static final short CHECKSUM = 4;
+    private static final int SOURCE_ADDRESS = 1;
+    private static final int DESTINATION_ADDRESS = 2;
+    private static final byte[] OPTIONS = new byte[] {0x1, 0x2, 0x3, 0x4};
 
     private byte[] headerBytes;
 
@@ -52,19 +52,19 @@ public class IPv4Test {
     public void setUp() throws Exception {
         deserializer = IPv4.deserializer();
 
-        ByteBuffer bb = ByteBuffer.allocate(headerLength * 4);
+        ByteBuffer bb = ByteBuffer.allocate(HEADER_LENGTH * 4);
 
-        bb.put((byte) ((version & 0xf) << 4 | headerLength & 0xf));
-        bb.put(diffServ);
-        bb.putShort(totalLength);
-        bb.putShort(identification);
-        bb.putShort((short) ((flags & 0x7) << 13 | fragmentOffset & 0x1fff));
-        bb.put(ttl);
-        bb.put(protocol);
-        bb.putShort(checksum);
-        bb.putInt(sourceAddress);
-        bb.putInt(destinationAddress);
-        bb.put(options);
+        bb.put((byte) ((VERSION & 0xf) << 4 | HEADER_LENGTH & 0xf));
+        bb.put(DIFF_SERV);
+        bb.putShort(TOTAL_LENGTH);
+        bb.putShort(IDENTIFICATION);
+        bb.putShort((short) ((FLAGS & 0x7) << 13 | FRAGMENT_OFFSET & 0x1fff));
+        bb.put(TTL);
+        bb.put(PROTOCOL);
+        bb.putShort(CHECKSUM);
+        bb.putInt(SOURCE_ADDRESS);
+        bb.putInt(DESTINATION_ADDRESS);
+        bb.put(OPTIONS);
 
         headerBytes = bb.array();
     }
@@ -86,18 +86,18 @@ public class IPv4Test {
     public void testDeserialize() throws Exception {
         IPv4 ipv4 = deserializer.deserialize(headerBytes, 0, headerBytes.length);
 
-        assertEquals(version, ipv4.getVersion());
-        assertEquals(headerLength, ipv4.getHeaderLength());
-        assertEquals(diffServ, ipv4.getDiffServ());
-        assertEquals(totalLength, ipv4.getTotalLength());
-        assertEquals(identification, ipv4.getIdentification());
-        assertEquals(flags, ipv4.getFlags());
-        assertEquals(fragmentOffset, ipv4.getFragmentOffset());
-        assertEquals(ttl, ipv4.getTtl());
-        assertEquals(protocol, ipv4.getProtocol());
-        assertEquals(checksum, ipv4.getChecksum());
-        assertEquals(sourceAddress, ipv4.getSourceAddress());
-        assertEquals(destinationAddress, ipv4.getDestinationAddress());
+        assertEquals(VERSION, ipv4.getVersion());
+        assertEquals(HEADER_LENGTH, ipv4.getHeaderLength());
+        assertEquals(DIFF_SERV, ipv4.getDiffServ());
+        assertEquals(TOTAL_LENGTH, ipv4.getTotalLength());
+        assertEquals(IDENTIFICATION, ipv4.getIdentification());
+        assertEquals(FLAGS, ipv4.getFlags());
+        assertEquals(FRAGMENT_OFFSET, ipv4.getFragmentOffset());
+        assertEquals(TTL, ipv4.getTtl());
+        assertEquals(PROTOCOL, ipv4.getProtocol());
+        assertEquals(CHECKSUM, ipv4.getChecksum());
+        assertEquals(SOURCE_ADDRESS, ipv4.getSourceAddress());
+        assertEquals(DESTINATION_ADDRESS, ipv4.getDestinationAddress());
         assertTrue(ipv4.isTruncated());
     }
 
@@ -109,17 +109,17 @@ public class IPv4Test {
         IPv4 ipv4 = deserializer.deserialize(headerBytes, 0, headerBytes.length);
         String str = ipv4.toString();
 
-        assertTrue(StringUtils.contains(str, "version=" + version));
-        assertTrue(StringUtils.contains(str, "headerLength=" + headerLength));
-        assertTrue(StringUtils.contains(str, "diffServ=" + diffServ));
-        assertTrue(StringUtils.contains(str, "totalLength=" + totalLength));
-        assertTrue(StringUtils.contains(str, "identification=" + identification));
-        assertTrue(StringUtils.contains(str, "flags=" + flags));
-        assertTrue(StringUtils.contains(str, "fragmentOffset=" + fragmentOffset));
-        assertTrue(StringUtils.contains(str, "ttl=" + ttl));
-        assertTrue(StringUtils.contains(str, "protocol=" + protocol));
-        assertTrue(StringUtils.contains(str, "checksum=" + checksum));
-        assertTrue(StringUtils.contains(str, "sourceAddress=" + sourceAddress));
-        assertTrue(StringUtils.contains(str, "destinationAddress=" + destinationAddress));
+        assertTrue(StringUtils.contains(str, "version=" + VERSION));
+        assertTrue(StringUtils.contains(str, "headerLength=" + HEADER_LENGTH));
+        assertTrue(StringUtils.contains(str, "diffServ=" + DIFF_SERV));
+        assertTrue(StringUtils.contains(str, "totalLength=" + TOTAL_LENGTH));
+        assertTrue(StringUtils.contains(str, "identification=" + IDENTIFICATION));
+        assertTrue(StringUtils.contains(str, "flags=" + FLAGS));
+        assertTrue(StringUtils.contains(str, "fragmentOffset=" + FRAGMENT_OFFSET));
+        assertTrue(StringUtils.contains(str, "ttl=" + TTL));
+        assertTrue(StringUtils.contains(str, "protocol=" + PROTOCOL));
+        assertTrue(StringUtils.contains(str, "checksum=" + CHECKSUM));
+        assertTrue(StringUtils.contains(str, "sourceAddress=" + SOURCE_ADDRESS));
+        assertTrue(StringUtils.contains(str, "destinationAddress=" + DESTINATION_ADDRESS));
     }
 }

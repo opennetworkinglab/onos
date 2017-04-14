@@ -709,8 +709,12 @@ s     */
             } else {
                 deserializer = Data.deserializer();
             }
-            ipv4.payload = deserializer.deserialize(data, bb.position(),
-                                                    bb.limit() - bb.position());
+
+            int remainingLength = bb.limit() - bb.position();
+            int payloadLength = ipv4.totalLength - ipv4.headerLength * 4;
+            int bytesToRead = (payloadLength <= remainingLength) ?
+                    payloadLength : remainingLength;
+            ipv4.payload = deserializer.deserialize(data, bb.position(), bytesToRead);
             ipv4.payload.setParent(ipv4);
 
             if (ipv4.totalLength != length) {
