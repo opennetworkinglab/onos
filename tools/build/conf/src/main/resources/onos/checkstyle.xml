@@ -108,6 +108,7 @@
 
     <module name="RegexpHeader">
         <property name="headerFile" value="tools/build/conf/src/main/resources/onos/onos-java.header"/>
+        <property name="fileExtensions" value="java"/>
     </module>
 
 

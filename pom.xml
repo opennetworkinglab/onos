@@ -51,6 +51,7 @@
 
     <modules>
         <module>lib</module>
+        <module>tools/build/conf</module>
 
         <module>utils</module>
         <module>core</module>

@@ -3,6 +3,7 @@ UTILS = [
     '//utils/junit:onlab-junit',
     '//utils/misc:onlab-misc',
     '//utils/rest:onlab-rest',
+    '//tools/build/conf:onos-build-conf',
 ]
 
 API = [
