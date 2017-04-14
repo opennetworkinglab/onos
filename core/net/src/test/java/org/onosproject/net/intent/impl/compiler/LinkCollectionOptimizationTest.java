@@ -82,7 +82,7 @@ public class LinkCollectionOptimizationTest extends AbstractLinkCollectionTest {
         /*
          * We activate the optimizations.
          */
-        LinkCollectionCompiler.optimize = true;
+        LinkCollectionCompiler.optimizeInstructions = true;
         LinkCollectionCompiler.copyTtl = true;
 
         replay(coreService, intentExtensionService);

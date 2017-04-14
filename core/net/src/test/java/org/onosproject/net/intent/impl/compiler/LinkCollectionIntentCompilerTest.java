@@ -101,7 +101,7 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
         sut.registrator = registrator;
 
-        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, intentExtensionService);

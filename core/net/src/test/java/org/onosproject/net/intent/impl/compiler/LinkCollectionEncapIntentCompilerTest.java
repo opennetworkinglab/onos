@@ -79,7 +79,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
         sut.registrator = registrator;
         sut.resourceService = new MockResourceService();
 
-        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, intentExtensionService);
@@ -325,7 +325,6 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                         .builder()
                         .popMpls(IPV4.ethType())
                         .setOutput(d1p10.port())
-                        .popMpls(IPV4.ethType())
                         .setOutput(d1p11.port())
                         .build()
         ));
@@ -579,8 +578,6 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                         .pushMpls()
                         .setMpls(((MplsCriterion) mpls100Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d1p10.port())
-                        .popVlan()
-                        .pushMpls()
                         .setMpls(((MplsCriterion) mpls200Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d1p11.port())
                         .build()
@@ -855,8 +852,6 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                                 .stream()
                                 .filter(instruction -> instruction instanceof ModEtherInstruction)
                                 .findFirst().get()).mac())
-                        .popMpls(IPV4.ethType())
-                        .pushVlan()
                         .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
                         .setOutput(d1p11.port())
                         .build()
@@ -1101,12 +1096,12 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
         assertThat(ruleS1.treatment(), is(
                 DefaultTrafficTreatment
                         .builder()
+                        .setVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
+                        .setOutput(d1p11.port())
                         .popVlan()
                         .pushMpls()
                         .setMpls(((MplsCriterion) mpls100Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d1p10.port())
-                        .setVlanId(((VlanIdCriterion) vlan100Selector.getCriterion(VLAN_VID)).vlanId())
-                        .setOutput(d1p11.port())
                         .build()
         ));
 
@@ -1161,6 +1156,7 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                         .pushVlan()
                         .setVlanId(VlanId.vlanId(LABEL))
                         .setOutput(d1p0.port())
+                        .popVlan()
                         .setOutput(d1p11.port())
                         .build()
         ));
@@ -1362,6 +1358,8 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                         .pushMpls()
                         .setMpls(MplsLabel.mplsLabel(LABEL))
                         .setOutput(d1p0.port())
+                        .popMpls(IPV4.ethType())
+                        .pushVlan()
                         .setVlanId(((VlanIdCriterion) vlan200Selector.getCriterion(VLAN_VID)).vlanId())
                         .setOutput(d1p11.port())
                         .build()
@@ -1779,8 +1777,6 @@ public class LinkCollectionEncapIntentCompilerTest extends AbstractLinkCollectio
                                 .stream()
                                 .filter(instruction -> instruction instanceof ModEtherInstruction)
                                 .findFirst().get()).mac())
-                        .popVlan()
-                        .pushMpls()
                         .setMpls(((MplsCriterion) mpls100Selector.getCriterion(MPLS_LABEL)).label())
                         .setOutput(d1p11.port())
                         .build()
