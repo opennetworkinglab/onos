@@ -96,7 +96,7 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
         compiler.registrator = registrator;
         compiler.resourceService = resourceService;
 
-        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, intentExtensionService);

@@ -138,6 +138,11 @@ public class LinkCollectionIntentObjectiveCompiler
     }
 
     @Override
+    boolean optimizeTreatments() {
+        return false;
+    }
+
+    @Override
     protected List<Objective> createRules(LinkCollectionIntent intent,
                                           DeviceId deviceId,
                                           Set<PortNumber> inPorts,

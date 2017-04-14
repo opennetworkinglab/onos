@@ -127,6 +127,11 @@ public class LinkCollectionIntentCompiler
     }
 
     @Override
+    boolean optimizeTreatments() {
+        return true;
+    }
+
+    @Override
     protected List<FlowRule> createRules(LinkCollectionIntent intent,
                                          DeviceId deviceId,
                                          Set<PortNumber> inPorts,
@@ -150,7 +155,7 @@ public class LinkCollectionIntentCompiler
                         labels
                 );
 
-                if (optimize) {
+                if (optimizeInstructions) {
                     TrafficTreatment compactedTreatment = compactActions(instructions.treatment());
                     instructions = new ForwardingInstructions(compactedTreatment, instructions.selector());
                 }

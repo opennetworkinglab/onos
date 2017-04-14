@@ -83,7 +83,7 @@ public class LinkCollectionIntentCompilerP2PTest extends AbstractLinkCollectionT
         sut.registrator = registrator;
         sut.resourceService = new MockResourceService();
 
-        LinkCollectionCompiler.optimize = false;
+        LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, intentExtensionService);
