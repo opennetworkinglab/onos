@@ -18,10 +18,6 @@ package org.onosproject.ui.model.topo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.ui.model.AbstractUiModelTest;
 
 import static org.junit.Assert.assertEquals;
@@ -31,18 +27,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class UiClusterMemberTest extends AbstractUiModelTest {
 
-    private static final NodeId NODE_ID = NodeId.nodeId("Node-1");
-    private static final IpAddress NODE_IP = IpAddress.valueOf("1.2.3.4");
-
-    private static final ControllerNode CNODE_1 =
-            new DefaultControllerNode(NODE_ID, NODE_IP);
-
     private UiTopology topo;
     private UiClusterMember member;
 
     @Before
     public void setUp() {
-        topo = new UiTopology();
+        topo = new UiTopology(MOCK_SERVICES);
     }
 
     @Test

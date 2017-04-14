@@ -16,9 +16,11 @@
 
 package org.onosproject.ui.model;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
@@ -88,10 +90,21 @@ public class AbstractUiModelTest extends AbstractUiTest {
                 }
             };
 
-    private static final ClusterService MOCK_CLUSTER = new MockClusterService();
+    protected static final ClusterService MOCK_CLUSTER = new MockClusterService();
 
+    protected static final NodeId NODE_ID = NodeId.nodeId("Node-1");
+    protected static final IpAddress NODE_IP = IpAddress.valueOf("1.2.3.4");
+
+    protected static final ControllerNode CNODE_1 =
+            new DefaultControllerNode(NODE_ID, NODE_IP);
 
     private static class MockClusterService extends ClusterServiceAdapter {
+
+        @Override
+        public ControllerNode getNode(NodeId nodeId) {
+            return CNODE_1;
+        }
+
         @Override
         public ControllerNode.State getState(NodeId nodeId) {
             // For now, a hardcoded state of ACTIVE (but not READY)

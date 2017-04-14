@@ -25,7 +25,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.region.RegionId;
-import org.onosproject.ui.AbstractUiTest;
+import org.onosproject.ui.model.AbstractUiModelTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,7 +38,7 @@ import static org.onosproject.net.PortNumber.portNumber;
 /**
  * Unit tests for {@link UiTopology}.
  */
-public class UiTopologyTest extends AbstractUiTest {
+public class UiTopologyTest extends AbstractUiModelTest {
 
     private static final DeviceId DEV_X = deviceId("dev-X");
     private static final DeviceId DEV_Y = deviceId("dev-Y");
@@ -79,7 +79,7 @@ public class UiTopologyTest extends AbstractUiTest {
 
     @Before
     public void setUp() {
-        topo = new UiTopology();
+        topo = new UiTopology(MOCK_SERVICES);
         devLink = new UiDeviceLink(null, DX1_DY2);
         devLink.attachBackingLink(LINK_X1_TO_Y2);
     }

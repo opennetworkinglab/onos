@@ -60,7 +60,7 @@ public class UiRegion extends UiNode {
 
     private final UiTopology topology;
 
-    private final Region region;
+    private final RegionId regionId;
 
     // keep track of hierarchy (inferred from UiTopoLayoutService)
     private RegionId parent;
@@ -76,7 +76,7 @@ public class UiRegion extends UiNode {
         // Implementation Note: if region is null, this UiRegion is being used
         //  as a container for devices, hosts, links that belong to no region.
         this.topology = topology;
-        this.region = region;
+        this.regionId = region == null ? NULL_ID : region.id();
 
         setLayerOrder(DEFAULT_LAYER_TAGS);
     }
@@ -104,7 +104,7 @@ public class UiRegion extends UiNode {
      * @return region ID
      */
     public RegionId id() {
-        return region == null ? NULL_ID : region.id();
+        return regionId;
     }
 
     /**
@@ -169,6 +169,7 @@ public class UiRegion extends UiNode {
 
     @Override
     public String name() {
+        Region region = backingRegion();
         return region == null ? NULL_NAME : region.name();
     }
 
@@ -179,7 +180,7 @@ public class UiRegion extends UiNode {
      * @return the backing region instance
      */
     public Region backingRegion() {
-        return region;
+        return topology.services.region().getRegion(regionId);
     }
 
     /**
@@ -210,6 +211,7 @@ public class UiRegion extends UiNode {
      * @return region type
      */
     public Region.Type type() {
+        Region region = backingRegion();
         return region == null ? null : region.type();
     }
 

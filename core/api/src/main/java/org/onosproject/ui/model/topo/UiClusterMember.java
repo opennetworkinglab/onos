@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
 
 /**
@@ -27,8 +28,10 @@ import static org.onosproject.cluster.ControllerNode.State.INACTIVE;
  */
 public class UiClusterMember extends UiElement {
 
+    private static final String NODE_CANNOT_BE_NULL = "Node cannot be null";
+
     private final UiTopology topology;
-    private final ControllerNode cnode;
+    private final NodeId nodeId;
 
     private ControllerNode.State state = INACTIVE;
 
@@ -40,13 +43,14 @@ public class UiClusterMember extends UiElement {
      * @param cnode    underlying controller node
      */
     public UiClusterMember(UiTopology topology, ControllerNode cnode) {
+        checkNotNull(cnode, NODE_CANNOT_BE_NULL);
         this.topology = topology;
-        this.cnode = cnode;
+        this.nodeId = cnode.id();
     }
 
     @Override
     public String toString() {
-        return "UiClusterMember{" + cnode +
+        return "UiClusterMember{" + nodeId +
                 ", online=" + isOnline() +
                 ", ready=" + isReady() +
                 "}";
@@ -63,7 +67,7 @@ public class UiClusterMember extends UiElement {
      * @return the backing controller node instance
      */
     public ControllerNode backingNode() {
-        return cnode;
+        return topology.services.cluster().getNode(nodeId);
     }
 
     /**
@@ -81,7 +85,7 @@ public class UiClusterMember extends UiElement {
      * @return member identifier
      */
     public NodeId id() {
-        return cnode.id();
+        return nodeId;
     }
 
     /**
@@ -90,7 +94,7 @@ public class UiClusterMember extends UiElement {
      * @return the IP address
      */
     public IpAddress ip() {
-        return cnode.ip();
+        return backingNode().ip();
     }
 
     /**

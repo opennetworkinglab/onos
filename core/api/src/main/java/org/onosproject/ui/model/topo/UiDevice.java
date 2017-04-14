@@ -21,13 +21,17 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.region.RegionId;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Represents a device.
  */
 public class UiDevice extends UiNode {
 
+    private static final String DEVICE_CANNOT_BE_NULL = "Device cannot be null";
+
     private final UiTopology topology;
-    private final Device device;
+    private final DeviceId deviceId;
 
     private RegionId regionId;
 
@@ -38,8 +42,9 @@ public class UiDevice extends UiNode {
      * @param device   backing device
      */
     public UiDevice(UiTopology topology, Device device) {
+        checkNotNull(device, DEVICE_CANNOT_BE_NULL);
         this.topology = topology;
-        this.device = device;
+        this.deviceId = device.id();
     }
 
     /**
@@ -65,7 +70,7 @@ public class UiDevice extends UiNode {
      * @return device ID
      */
     public DeviceId id() {
-        return device.id();
+        return deviceId;
     }
 
     @Override
@@ -79,7 +84,7 @@ public class UiDevice extends UiNode {
      * @return the backing device instance
      */
     public Device backingDevice() {
-        return device;
+        return topology.services.device().getDevice(deviceId);
     }
 
     /**
@@ -107,6 +112,6 @@ public class UiDevice extends UiNode {
      * @return the device type
      */
     public String type() {
-        return device.type().toString().toLowerCase();
+        return backingDevice().type().toString().toLowerCase();
     }
 }

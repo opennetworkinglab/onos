@@ -85,13 +85,14 @@ class ModelCache {
 
     private final ServiceBundle services;
     private final EventDispatcher dispatcher;
-    private final UiTopology uiTopology = new UiTopology();
+    private final UiTopology uiTopology;
 
     private Topo2Jsonifier t2json;
 
     ModelCache(ServiceBundle services, EventDispatcher eventDispatcher) {
         this.services = services;
         this.dispatcher = eventDispatcher;
+        uiTopology = new UiTopology(services);
     }
 
     @Override

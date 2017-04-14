@@ -21,6 +21,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.region.RegionId;
+import org.onosproject.ui.model.ServiceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,16 @@ public class UiTopology extends UiElement {
     // a container for devices, hosts, etc. belonging to no region
     private final UiRegion nullRegion = new UiRegion(this, null);
 
+    final ServiceBundle services;
+
+    /**
+     * Creates a new UI topology backed by the specified service bundle.
+     *
+     * @param services service bundle
+     */
+    public UiTopology(ServiceBundle services) {
+        this.services = services;
+    }
 
     @Override
     public String toString() {
