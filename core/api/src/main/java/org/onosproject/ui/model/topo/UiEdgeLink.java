@@ -16,14 +16,18 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.PortNumber;
+
 /**
  * Designates a link between a device and a host; that is, an edge link.
  */
 public class UiEdgeLink extends UiLink {
 
-    private final String hostId;
-    private final String edgeDevice;
-    private final String edgePort;
+    private final HostId hostId;
+    private final DeviceId deviceId;
+    private final PortNumber port;
 
     /**
      * Creates a UI link.
@@ -33,25 +37,53 @@ public class UiEdgeLink extends UiLink {
      */
     public UiEdgeLink(UiTopology topology, UiLinkId id) {
         super(topology, id);
-        hostId = id.idA();
-        edgeDevice = id.elementB().toString();
-        edgePort = id.portB().toString();
+        hostId = HostId.hostId(id.idA());
+        deviceId = (DeviceId) id.elementB();
+        port = id.portB();
     }
 
     @Override
     public String endPointA() {
-        return hostId;
+        return hostId.toString();
     }
 
     @Override
     public String endPointB() {
-        return edgeDevice;
+        return deviceId.toString();
     }
 
     // no port for end-point A
 
     @Override
     public String endPortB() {
-        return edgePort;
+        return port.toString();
     }
+
+    /**
+     * Returns the host identifier.
+     *
+     * @return host identifier
+     */
+    public HostId hostId() {
+        return hostId;
+    }
+
+    /**
+     * Returns the edge device identifier.
+     *
+     * @return device identifier
+     */
+    public DeviceId deviceId() {
+        return deviceId;
+    }
+
+    /**
+     * Returns the edge port number.
+     *
+     * @return edge port number
+     */
+    public PortNumber portNumber() {
+        return port;
+    }
+
 }

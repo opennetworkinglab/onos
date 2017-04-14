@@ -17,6 +17,7 @@
 package org.onosproject.ui.impl.topo.model;
 
 import org.onosproject.event.EventListener;
+import org.onosproject.ui.model.topo.UiModelEvent;
 
 /**
  * Can receive {@link UiModelEvent}s.

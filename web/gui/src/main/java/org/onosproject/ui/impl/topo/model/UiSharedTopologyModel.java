@@ -67,6 +67,7 @@ import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiDeviceLink;
 import org.onosproject.ui.model.topo.UiHost;
+import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiSynthLink;
 import org.slf4j.Logger;

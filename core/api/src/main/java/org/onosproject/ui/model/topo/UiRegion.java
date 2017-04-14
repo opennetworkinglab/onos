@@ -30,6 +30,7 @@ import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.region.RegionId.regionId;
 
 /**
@@ -310,5 +311,71 @@ public class UiRegion extends UiNode {
         }
         String name = region.name();
         return isNullOrEmpty(name) ? NO_NAME : name;
+    }
+
+    /**
+     * Determins whether the specified event is relevant to the view
+     * constrained to this region.
+     *
+     * @param event UI model event
+     * @return true if relevant
+     */
+    public boolean isRelevant(UiModelEvent event) {
+        switch (event.type()) {
+            case CLUSTER_MEMBER_ADDED_OR_UPDATED:
+            case CLUSTER_MEMBER_REMOVED:
+                return true;
+
+            case REGION_ADDED_OR_UPDATED:
+            case REGION_REMOVED:
+                return isRegionRelevant(((UiRegion) event.subject()).id());
+
+            case DEVICE_ADDED_OR_UPDATED:
+            case DEVICE_REMOVED:
+                return isDeviceRelevant(((UiDevice) event.subject()).id());
+
+            case LINK_ADDED_OR_UPDATED:
+            case LINK_REMOVED:
+                return isLinkRelevant((UiLink) event.subject());
+
+            case HOST_ADDED_OR_UPDATED:
+            case HOST_MOVED:
+            case HOST_REMOVED:
+                return isDeviceRelevant(((UiHost) event.subject()).locationDevice());
+
+            default:
+                return true;
+        }
+    }
+
+    private boolean isDeviceRelevant(DeviceId deviceId) {
+        return deviceIds.contains(deviceId);
+    }
+
+    private boolean isLinkRelevant(UiLink uiLink) {
+        if (uiLink instanceof UiDeviceLink) {
+            UiDeviceLink uiDeviceLink = (UiDeviceLink) uiLink;
+            return isDeviceRelevant(uiDeviceLink.deviceA()) ||
+                    isDeviceRelevant(uiDeviceLink.deviceB());
+
+        } else if (uiLink instanceof UiRegionLink) {
+            UiRegionLink uiRegionLink = (UiRegionLink) uiLink;
+            return isRegionRelevant(uiRegionLink.regionA()) ||
+                    isRegionRelevant(uiRegionLink.regionB());
+
+        } else if (uiLink instanceof UiRegionDeviceLink) {
+            UiRegionDeviceLink uiRegionDeviceLink = (UiRegionDeviceLink) uiLink;
+            return isRegionRelevant(uiRegionDeviceLink.region()) ||
+                    isDeviceRelevant(uiRegionDeviceLink.device());
+
+        } else if (uiLink instanceof UiEdgeLink) {
+            UiEdgeLink uiEdgeLink = (UiEdgeLink) uiLink;
+            return isDeviceRelevant(uiEdgeLink.deviceId());
+        }
+        return false;
+    }
+
+    private boolean isRegionRelevant(RegionId regionId) {
+        return kids.contains(regionId);
     }
 }

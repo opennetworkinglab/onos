@@ -271,6 +271,7 @@ public class UiTopology extends UiElement {
      */
     public void remove(UiDevice uiDevice) {
         UiDevice d = deviceLookup.remove(uiDevice.id());
+        // TODO: Update the containing region
         if (d != null) {
             d.destroy();
         }

@@ -16,11 +16,10 @@
 
 package org.onosproject.ui.impl.topo;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.UiWebSocket;
-import org.onosproject.ui.impl.topo.model.UiModelEvent;
+import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.model.topo.UiClusterMember;
@@ -129,23 +128,17 @@ public class UiTopoSession implements UiModelListener {
     }
 
     @Override
-    public void event(UiModelEvent event) {
-        String msg = messagesEnabled
-                ? "Event received: {}"
-                : "Event received: {}, but not transmitted";
-        log.debug(msg, event);
-
-        if (messagesEnabled) {
-            ObjectNode payload = t2json.jsonEvent(event);
-
-            // TODO: add filtering for relevant objects only...
-            // TO Decide: Since the session holds the state of what is being
-            //   displayed on the client, we should filter out any model events
-            //   that are not relevant, and only send up events for objects that
-            //   are currently being viewed by the user.
-
-            webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, payload);
+    public boolean isRelevant(UiModelEvent event) {
+        if (!messagesEnabled) {
+            return false;
         }
+        UiRegion uiRegion = sharedModel.getRegion(currentLayout.regionId());
+        return uiRegion.isRelevant(event);
+    }
+
+    @Override
+    public void event(UiModelEvent event) {
+        webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, t2json.jsonEvent(event));
     }
 
     /**

@@ -1,24 +1,23 @@
 /*
- *  Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package org.onosproject.ui.impl.topo.model;
+package org.onosproject.ui.model.topo;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.event.AbstractEvent;
-import org.onosproject.ui.model.topo.UiElement;
 
 /**
  * UI Topology model events.
@@ -28,7 +27,7 @@ public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
     /**
      * Enumeration of event types.
      */
-    enum Type {
+    public enum Type {
         CLUSTER_MEMBER_ADDED_OR_UPDATED,
         CLUSTER_MEMBER_REMOVED,
 
@@ -58,8 +57,8 @@ public class UiModelEvent extends AbstractEvent<UiModelEvent.Type, UiElement> {
      * @param data    data containing details of the subject
      * @param memo    a note about the event
      */
-    protected UiModelEvent(Type type, UiElement subject, ObjectNode data,
-                           String memo) {
+    public UiModelEvent(Type type, UiElement subject, ObjectNode data,
+                        String memo) {
         super(type, subject);
         this.data = data;
         this.memo = memo;

@@ -45,7 +45,7 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
-import org.onosproject.ui.impl.topo.model.UiModelEvent;
+import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiElement;

@@ -26,7 +26,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.region.Region;
-import org.onosproject.ui.impl.topo.model.UiModelEvent.Type;
+import org.onosproject.ui.model.topo.UiModelEvent.Type;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiDeviceLink;
