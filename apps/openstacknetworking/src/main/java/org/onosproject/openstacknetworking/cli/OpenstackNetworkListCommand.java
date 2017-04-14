@@ -41,7 +41,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
         description = "Lists all OpenStack networks")
 public class OpenstackNetworkListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-40s%-20s%-20s%-8s";
+    private static final String FORMAT = "%-40s%-20s%-20s%-20s%-8s";
 
     @Override
     protected void execute() {
@@ -58,7 +58,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
             return;
         }
 
-        print(FORMAT, "ID", "Name", "VNI", "Subnets");
+        print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets");
         for (Network net: networks) {
             List<String> subnets = service.subnets().stream()
                     .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
@@ -66,6 +66,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
                     .collect(Collectors.toList());
             print(FORMAT, net.getId(),
                     net.getName(),
+                    net.getNetworkType().toString(),
                     net.getProviderSegID(),
                     subnets.isEmpty() ? "" : subnets);
         }

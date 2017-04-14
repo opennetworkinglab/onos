@@ -344,6 +344,17 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     }
 
     @Override
+    public Optional<PortNumber> vlanPort(DeviceId intBridgeId) {
+        Optional<String> vlanPortName = nodeByDeviceId(intBridgeId).vlanPort();
+
+        return deviceService.getPorts(intBridgeId).stream()
+                .filter(p -> p.annotations().value(PORT_NAME).equals(vlanPortName.get()) &&
+                        p.isEnabled())
+                .map(Port::number).findFirst();
+
+    }
+
+    @Override
     public Optional<DeviceId> routerBridge(DeviceId intBridgeId) {
         OpenstackNode node = nodeByDeviceId(intBridgeId);
         if (node == null || node.type().equals(NodeType.COMPUTE)) {

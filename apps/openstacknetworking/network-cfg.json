@@ -1,0 +1,51 @@
+{
+    "apps" : {
+        "org.onosproject.openstacknode" : {
+            "openstacknode" : {
+                 "nodes" : [
+                        {
+                                "hostname" : "compute-01",
+                                "type" : "COMPUTE",
+                                "managementIp" : "172.16.130.4",
+                                "vlanPort" : "eth2",
+                                "dataIp" : "172.16.130.4",
+                                "integrationBridge" : "of:00000000000000a1"
+                        },
+                        {
+                                "hostname" : "compute-02",
+                                "type" : "COMPUTE",
+                                "managementIp" : "172.16.130.6",
+                                "vlanPort" : "eth2",
+                                "dataIp" : "172.16.130.6",
+                                "integrationBridge" : "of:00000000000000a2"
+                        },
+                        {
+                                "hostname" : "gateway-01",
+                                "type" : "GATEWAY",
+                                "managementIp" : "172.16.130.3",
+                                "dataIp" : "172.16.130.3",
+                                "vlanPort" : "eth2",
+                                "integrationBridge" : "of:00000000000000a3",
+                                "routerBridge" : "of:00000000000000b1",
+                                "uplinkPort" : "quagga-router",
+                                "routerController" : "172.17.0.2"
+
+                        }
+                ]
+            }
+        }
+    },
+    "devices" : {
+        "of:00000000000000a1" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:00000000000000a2" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        }
+    }
+}
+

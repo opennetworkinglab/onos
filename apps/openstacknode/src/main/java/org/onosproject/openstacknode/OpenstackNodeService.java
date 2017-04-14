@@ -112,6 +112,14 @@ public interface OpenstackNodeService
     Optional<PortNumber> tunnelPort(DeviceId intBridgeId);
 
     /**
+     * Returns vlan port number of a given integration bridge device.
+     *
+     * @param intBridgeId integration bridge device id
+     * @return port number; or empty value
+     */
+    Optional<PortNumber> vlanPort(DeviceId intBridgeId);
+
+    /**
      * Returns router bridge device ID connected to a given integration bridge.
      * It returns valid value only if the node type is GATEWAY.
      *
@@ -128,6 +136,7 @@ public interface OpenstackNodeService
      * @return port number; or empty value
      */
     Optional<PortNumber> externalPort(DeviceId intBridgeId);
+
     /**
      * Returns gateway node with the given device identifier.
      *

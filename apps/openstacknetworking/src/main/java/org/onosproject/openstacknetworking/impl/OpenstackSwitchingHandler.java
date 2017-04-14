@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
@@ -106,8 +107,18 @@ public final class OpenstackSwitchingHandler {
     }
 
     private void setNetworkRules(InstancePort instPort, boolean install) {
-        setTunnelTagFlowRules(instPort, install);
-        setForwardingRules(instPort, install);
+        switch (osNetworkService.network(instPort.networkId()).getNetworkType()) {
+            case VXLAN:
+                setTunnelTagFlowRules(instPort, install);
+                setForwardingRules(instPort, install);
+                break;
+            case VLAN:
+                setVlanTagFlowRules(instPort, install);
+                setForwardingRulesForVlan(instPort, install);
+                break;
+            default:
+                break;
+        }
     }
 
     private void setForwardingRules(InstancePort instPort, boolean install) {
@@ -159,6 +170,53 @@ public final class OpenstackSwitchingHandler {
                 });
     }
 
+    private void setForwardingRulesForVlan(InstancePort instPort, boolean install) {
+        // switching rules for the instPorts in the same node
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(instPort.ipAddress().toIpPrefix())
+                .matchVlanId(getVlanId(instPort))
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .setEthDst(instPort.macAddress())
+                .setOutput(instPort.portNumber())
+                .build();
+
+        RulePopulatorUtil.setRule(
+                flowObjectiveService,
+                appId,
+                instPort.deviceId(),
+                selector,
+                treatment,
+                ForwardingObjective.Flag.SPECIFIC,
+                PRIORITY_SWITCHING_RULE,
+                install);
+
+        // switching rules for the instPorts in the remote node
+        osNodeService.completeNodes().stream()
+                .filter(osNode -> osNode.type() == COMPUTE)
+                .filter(osNode -> !osNode.intBridge().equals(instPort.deviceId()))
+                .filter(osNode -> osNode.vlanPort().isPresent())
+                .forEach(osNode -> {
+                    TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
+                                    .setOutput(osNodeService.vlanPort(osNode.intBridge()).get())
+                                    .build();
+
+                    RulePopulatorUtil.setRule(
+                            flowObjectiveService,
+                            appId,
+                            osNode.intBridge(),
+                            selector,
+                            treatmentToRemote,
+                            ForwardingObjective.Flag.SPECIFIC,
+                            PRIORITY_SWITCHING_RULE,
+                            install);
+                });
+
+    }
+
     private void setTunnelTagFlowRules(InstancePort instPort, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -179,6 +237,43 @@ public final class OpenstackSwitchingHandler {
                 PRIORITY_TUNNEL_TAG_RULE,
                 install);
     }
+
+    private void setVlanTagFlowRules(InstancePort instPort, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(instPort.portNumber())
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .pushVlan()
+                .setVlanId(getVlanId(instPort))
+                .build();
+
+        RulePopulatorUtil.setRule(
+                flowObjectiveService,
+                appId,
+                instPort.deviceId(),
+                selector,
+                treatment,
+                ForwardingObjective.Flag.SPECIFIC,
+                PRIORITY_TUNNEL_TAG_RULE,
+                install);
+
+    }
+
+    private VlanId getVlanId(InstancePort instPort) {
+        Network osNet = osNetworkService.network(instPort.networkId());
+
+        if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
+            final String error = String.format(
+                    ERR_SET_FLOWS + "Failed to get VNI for %s",
+                    instPort, osNet == null ? "<none>" : osNet.getName());
+            throw new IllegalStateException(error);
+        }
+
+        return VlanId.vlanId(osNet.getProviderSegID());
+    }
+
 
     private Long getVni(InstancePort instPort) {
         Network osNet = osNetworkService.network(instPort.networkId());
