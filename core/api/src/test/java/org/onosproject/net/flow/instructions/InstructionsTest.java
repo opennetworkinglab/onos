@@ -986,7 +986,7 @@ public class InstructionsTest {
                                 Instruction.Type.L2MODIFICATION,
                                 L2ModificationInstruction.ModMplsHeaderInstruction.class);
         assertThat(pushHeaderInstruction.ethernetType().toString(),
-                   is(EthType.EtherType.MPLS_MULTICAST.toString()));
+                   is(EthType.EtherType.MPLS_UNICAST.toString()));
         assertThat(pushHeaderInstruction.subtype(),
                    is(L2ModificationInstruction.L2SubType.MPLS_PUSH));
     }
@@ -1002,7 +1002,7 @@ public class InstructionsTest {
                                 Instruction.Type.L2MODIFICATION,
                                 L2ModificationInstruction.ModMplsHeaderInstruction.class);
         assertThat(pushHeaderInstruction.ethernetType().toString(),
-                   is(EthType.EtherType.MPLS_MULTICAST.toString()));
+                   is(EthType.EtherType.MPLS_UNICAST.toString()));
         assertThat(pushHeaderInstruction.subtype(),
                    is(L2ModificationInstruction.L2SubType.MPLS_POP));
     }

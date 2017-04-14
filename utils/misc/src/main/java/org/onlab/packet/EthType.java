@@ -36,7 +36,7 @@ public class EthType {
         QINQ(0x88a8, "qinq", null),
         BDDP(0x8942, "bddp", org.onlab.packet.LLDP.deserializer()),
         MPLS_UNICAST(0x8847, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
-        MPLS_MULTICAST(0x8848, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
+        MPLS_MULTICAST(0x8848, "mpls_multicast", org.onlab.packet.MPLS.deserializer()),
         EAPOL(0x888e, "eapol", org.onlab.packet.EAPOL.deserializer()),
         UNKNOWN(0, "unknown", null);
 
