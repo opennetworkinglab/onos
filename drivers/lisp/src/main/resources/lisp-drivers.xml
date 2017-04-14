@@ -19,7 +19,7 @@
             manufacturer="IETF" hwVersion="LISP Reference Router" swVersion=".*">
         <behaviour api="org.onosproject.lisp.ctl.ExtensionMappingAddressInterpreter"
                    impl="org.onosproject.drivers.lisp.extensions.LispExtensionMappingAddressInterpreter"/>
-        <behaviour api="org.onosproject.lisp.ctl.ExtensionMappingAddressResolver"
+        <behaviour api="org.onosproject.mapping.addresses.ExtensionMappingAddressResolver"
                    impl="org.onosproject.drivers.lisp.extensions.LispExtensionMappingAddressInterpreter"/>
     </driver>
 
