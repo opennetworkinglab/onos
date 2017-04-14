@@ -15,27 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.collect.Lists;
-import io.atomix.catalyst.concurrent.SingleThreadContext;
-import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.Client;
-import io.atomix.catalyst.transport.Server;
-import io.atomix.catalyst.transport.Transport;
-import io.atomix.copycat.protocol.ConnectRequest;
-import io.atomix.copycat.protocol.ConnectResponse;
-import io.atomix.copycat.protocol.PublishRequest;
-import io.atomix.copycat.protocol.PublishResponse;
-import io.atomix.copycat.protocol.Response;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onlab.util.Tools;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingService;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
@@ -46,6 +25,25 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+
+import com.google.common.collect.Lists;
+import io.atomix.catalyst.concurrent.SingleThreadContext;
+import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.transport.Address;
+import io.atomix.catalyst.transport.Client;
+import io.atomix.catalyst.transport.Server;
+import io.atomix.catalyst.transport.Transport;
+import io.atomix.copycat.protocol.ConnectRequest;
+import io.atomix.copycat.protocol.ConnectResponse;
+import io.atomix.copycat.protocol.Response;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.onlab.packet.IpAddress;
+import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -135,7 +133,7 @@ public class CopycatTransportTest {
                 } catch (InterruptedException e) {
                     fail();
                 }
-                connection.<ConnectRequest, ConnectResponse>send(ConnectRequest.builder()
+                connection.<ConnectRequest, ConnectResponse>sendAndReceive(ConnectRequest.builder()
                         .withClientId(UUID.randomUUID().toString())
                         .build())
                         .thenAccept(response -> {
@@ -166,15 +164,12 @@ public class CopycatTransportTest {
                 serverContext.checkThread();
                 latch.countDown();
                 serverContext.schedule(Duration.ofMillis(100), () -> {
-                    connection.<PublishRequest, PublishResponse>send(PublishRequest.builder()
-                            .withSession(1)
-                            .withEventIndex(3)
-                            .withPreviousIndex(2)
+                    connection.<ConnectRequest, ConnectResponse>sendAndReceive(ConnectRequest.builder()
+                            .withClientId("foo")
                             .build())
                             .thenAccept(response -> {
                                 serverContext.checkThread();
                                 assertEquals(Response.Status.OK, response.status());
-                                assertEquals(1, response.index());
                                 latch.countDown();
                             });
                 });
@@ -187,15 +182,14 @@ public class CopycatTransportTest {
             client.connect(new Address(IP_STRING, endpoint2.port())).thenAccept(connection -> {
                 clientContext.checkThread();
                 latch.countDown();
-                connection.handler(PublishRequest.class, request -> {
+                connection.handler(ConnectRequest.class, request -> {
                     clientContext.checkThread();
                     latch.countDown();
-                    assertEquals(1, request.session());
-                    assertEquals(3, request.eventIndex());
-                    assertEquals(2, request.previousIndex());
-                    return CompletableFuture.completedFuture(PublishResponse.builder()
+                    assertEquals("foo", request.client());
+                    return CompletableFuture.completedFuture(ConnectResponse.builder()
                             .withStatus(Response.Status.OK)
-                            .withIndex(1)
+                            .withLeader(new Address(IP_STRING, endpoint2.port()))
+                            .withMembers(Lists.newArrayList(new Address(IP_STRING, endpoint2.port())))
                             .build());
                 });
             });
@@ -219,7 +213,7 @@ public class CopycatTransportTest {
             server.listen(new Address(IP_STRING, endpoint2.port()), connection -> {
                 serverContext.checkThread();
                 latch.countDown();
-                connection.closeListener(c -> {
+                connection.onClose(c -> {
                     serverContext.checkThread();
                     latch.countDown();
                 });
@@ -232,7 +226,7 @@ public class CopycatTransportTest {
             client.connect(new Address(IP_STRING, endpoint2.port())).thenAccept(connection -> {
                 clientContext.checkThread();
                 latch.countDown();
-                connection.closeListener(c -> {
+                connection.onClose(c -> {
                     clientContext.checkThread();
                     latch.countDown();
                 });
@@ -263,7 +257,7 @@ public class CopycatTransportTest {
             server.listen(new Address(IP_STRING, endpoint2.port()), connection -> {
                 serverContext.checkThread();
                 latch.countDown();
-                connection.closeListener(c -> {
+                connection.onClose(c -> {
                     latch.countDown();
                 });
                 serverContext.schedule(Duration.ofMillis(100), () -> {
@@ -281,7 +275,7 @@ public class CopycatTransportTest {
             client.connect(new Address(IP_STRING, endpoint2.port())).thenAccept(connection -> {
                 clientContext.checkThread();
                 latch.countDown();
-                connection.closeListener(c -> {
+                connection.onClose(c -> {
                     latch.countDown();
                 });
             });
