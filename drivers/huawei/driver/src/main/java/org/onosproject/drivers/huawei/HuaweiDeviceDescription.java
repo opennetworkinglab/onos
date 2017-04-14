@@ -17,6 +17,7 @@
 package org.onosproject.drivers.huawei;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -37,7 +38,6 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.huawei.DriverUtil.DEV_INFO_FAILURE;
-import static org.onosproject.drivers.huawei.DriverUtil.INT_INFO_FAILURE;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_FILTER;
 import static org.onosproject.drivers.huawei.DriverUtil.RPC_CLOSE_GET;
@@ -177,17 +177,21 @@ public class HuaweiDeviceDescription extends AbstractHandlerBehaviour
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
-        return ImmutableList.copyOf(getPortStatistics(getInterfaces()));
+        String interfaces = getInterfaces();
+        if (StringUtils.isNotBlank(interfaces)) {
+            Collection<PortStatistics> portStats = getPortStatistics(interfaces);
+            return ImmutableList.copyOf(portStats);
+        }
+        return null;
     }
 
     private String getInterfaces() {
         NetconfSession session = getNetconfSession();
-        String interfaces;
+        String interfaces = null;
         try {
             interfaces = session.get(getInterfacesReq());
         } catch (IOException e) {
-            throw new IllegalArgumentException(
-                    new NetconfException(INT_INFO_FAILURE, e.getCause()));
+            log.info("Failed to retrive interface {} ", e.getMessage());
         }
         return interfaces;
     }

@@ -238,8 +238,6 @@ public final class HuaweiXmlParser {
         DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
 
         if (INTERFACES.contains(ifType)) {
-            Element info = ifElement.element(DYN_INFO);
-
             int port = Integer.parseInt(getPortNum(ifElement.element(IF_NUM)
                                                            .getText()));
             Element statInfo = ifElement.element(IF_STATS);
