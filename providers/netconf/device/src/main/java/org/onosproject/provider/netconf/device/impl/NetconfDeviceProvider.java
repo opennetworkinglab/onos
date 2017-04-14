@@ -417,7 +417,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                 }
             } else if (!isReachable && deviceService.isAvailable(deviceId)) {
                 providerService.deviceDisconnected(deviceId);
-            } else if (isReachable && deviceService.isAvailable(deviceId)) {
+            } else if (isReachable && deviceService.isAvailable(deviceId) &&
+                    mastershipService.isLocalMaster(deviceId)) {
                 updatePortStatistics(device);
             }
         }
