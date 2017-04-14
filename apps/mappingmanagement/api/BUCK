@@ -5,9 +5,6 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
-    '//utils/osgi:onlab-osgi-tests',
-    '//web/api:onos-rest-tests',
-    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar_with_tests (

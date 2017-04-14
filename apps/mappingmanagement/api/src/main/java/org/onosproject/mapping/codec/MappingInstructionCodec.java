@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class MappingInstructionCodec extends JsonCodec<MappingInstruction> {
 
-    protected static final Logger log = LoggerFactory.getLogger(MappingInstruction.class);
+    protected static final Logger log = LoggerFactory.getLogger(MappingInstructionCodec.class);
 
     protected static final String TYPE = "type";
     protected static final String SUBTYPE = "subtype";

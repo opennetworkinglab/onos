@@ -32,7 +32,7 @@ public class MappingWebResource extends AbstractWebResource {
     // FIXME: dummy method for generating swagger.json file
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAlarms() {
+    public Response getMappings() {
         return null;
     }
 }
