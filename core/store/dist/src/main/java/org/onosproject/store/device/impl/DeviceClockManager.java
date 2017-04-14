@@ -17,6 +17,8 @@ package org.onosproject.store.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -27,6 +29,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipEvent.Type;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.DeviceId;
@@ -34,6 +40,9 @@ import org.onosproject.net.device.DeviceClockService;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.MastershipBasedTimestamp;
 import org.slf4j.Logger;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * Clock service to issue Timestamp based on Device Mastership.
@@ -48,35 +57,97 @@ public class DeviceClockManager implements DeviceClockService {
     protected MastershipTermService mastershipTermService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
     protected NodeId localNodeId;
 
     private final AtomicLong ticker = new AtomicLong(0);
 
+    // Map from DeviceId -> last known term number for this node.
+    // using Cache class but using it as Map which will age out old entries
+    private final Cache<DeviceId, Long> myLastKnownTerm =
+            CacheBuilder.newBuilder()
+                .expireAfterAccess(5, TimeUnit.MINUTES)
+                .build();
+
+    private MastershipListener listener;
+
     @Activate
     public void activate() {
         localNodeId = clusterService.getLocalNode().id();
+
+        listener = new InnerMastershipListener();
+        mastershipService.addListener(listener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        mastershipService.removeListener(listener);
         log.info("Stopped");
     }
 
     @Override
     public Timestamp getTimestamp(DeviceId deviceId) {
-        MastershipTerm term = mastershipTermService.getMastershipTerm(deviceId);
-        if (term == null || !localNodeId.equals(term.master())) {
+        Long termNumber = refreshLastKnownTerm(deviceId);
+        if (termNumber == null) {
+            log.warn("Requested timestamp for {} which {}"
+                    + "doesn't have known recent mastership term",
+                    deviceId, localNodeId);
             throw new IllegalStateException("Requesting timestamp for " + deviceId + " without mastership");
         }
-        return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
+        return new MastershipBasedTimestamp(termNumber, ticker.incrementAndGet());
     }
 
     @Override
     public boolean isTimestampAvailable(DeviceId deviceId) {
+        return myLastKnownTerm.getIfPresent(deviceId) != null ||
+               refreshLastKnownTerm(deviceId) != null;
+    }
+
+    /**
+     * Refreshes this node's last known term number to the latest state.
+     *
+     * @param deviceId of the Device to refresh mastership term
+     * @return latest mastership term number or null if this node
+     *         did not have a term number recently
+     */
+    private Long refreshLastKnownTerm(DeviceId deviceId) {
         MastershipTerm term = mastershipTermService.getMastershipTerm(deviceId);
-        return term != null && localNodeId.equals(term.master());
+        return myLastKnownTerm.asMap().compute(deviceId, (key, old) -> {
+            if (old == null) {
+                return Optional.ofNullable(term)
+                            .filter(t -> localNodeId.equals(t.master()))
+                            .map(MastershipTerm::termNumber)
+                            .orElse(null);
+            }
+            return Optional.ofNullable(term)
+                    .filter(t -> localNodeId.equals(t.master()))
+                    .map(MastershipTerm::termNumber)
+                    // TODO make following integer wrap-safe
+                    .map(tn -> Math.max(old, tn))
+                    .orElse(old);
+        });
+    }
+
+    /**
+     * Refreshes {@link DeviceClockManager#myLastKnownTerm} on Master update event.
+     */
+    private final class InnerMastershipListener implements MastershipListener {
+
+        @Override
+        public boolean isRelevant(MastershipEvent event) {
+            return event.type() == Type.MASTER_CHANGED;
+        }
+
+        @Override
+        public void event(MastershipEvent event) {
+            if (localNodeId.equals(event.roleInfo().master())) {
+                refreshLastKnownTerm(event.subject());
+            }
+        }
     }
 }
