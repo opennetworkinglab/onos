@@ -5,6 +5,7 @@ COMPILE_DEPS = [
   '//core/store/serializers:onos-core-serializers',
   '//lib:onos-yang-model',
   '//lib:onos-yang-runtime',
+  '//apps/yang:onos-apps-yang',
 ]
 
 TEST_DEPS = [

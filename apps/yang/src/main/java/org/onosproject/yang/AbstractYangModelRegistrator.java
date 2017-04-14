@@ -22,11 +22,16 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.yang.model.YangModel;
+import org.onosproject.yang.model.YangModuleId;
+import org.onosproject.yang.runtime.AppModuleInfo;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
+import org.onosproject.yang.runtime.ModelRegistrationParam.Builder;
 import org.onosproject.yang.runtime.YangModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangModel;
 
@@ -38,10 +43,9 @@ public abstract class AbstractYangModelRegistrator {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Class<?> loaderClass;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected YangModelRegistry modelRegistry;
-
+    private Map<YangModuleId, AppModuleInfo> appInfo;
     private YangModel model;
     private ModelRegistrationParam registrationParam;
 
@@ -49,19 +53,44 @@ public abstract class AbstractYangModelRegistrator {
      * Creates a model registrator primed with the class-loader of the specified
      * class.
      *
-     * @param loaderClass class whose class loader is to be used for locating schema data
+     * @param loaderClass class whose class loader is to be used for locating
+     *                    schema data
      */
     protected AbstractYangModelRegistrator(Class<?> loaderClass) {
         this.loaderClass = loaderClass;
     }
 
+    /**
+     * Creates a model registrator primed with the class-loader of the specified
+     * class and application info.
+     *
+     * @param loaderClass class whose class loader is to be used for locating
+     *                    schema data
+     * @param appInfo     application information
+     */
+    protected AbstractYangModelRegistrator(Class<?> loaderClass,
+                                           Map<YangModuleId, AppModuleInfo> appInfo) {
+        this.loaderClass = loaderClass;
+        this.appInfo = appInfo;
+    }
+
     @Activate
     protected void activate() {
         model = getYangModel(loaderClass);
-        registrationParam = DefaultModelRegistrationParam.builder()
-                .setYangModel(model).build();
+        ModelRegistrationParam.Builder b =
+                DefaultModelRegistrationParam.builder().setYangModel(model);
+        registrationParam = getAppInfo(b).setYangModel(model).build();
         modelRegistry.registerModel(registrationParam);
         log.info("Started");
+    }
+
+    private ModelRegistrationParam.Builder getAppInfo(Builder b) {
+        if (appInfo != null) {
+            appInfo.entrySet().stream().filter(
+                    entry -> model.getYangModule(entry.getKey()) != null).forEach(
+                    entry -> b.addAppModuleInfo(entry.getKey(), entry.getValue()));
+        }
+        return b;
     }
 
     @Deactivate

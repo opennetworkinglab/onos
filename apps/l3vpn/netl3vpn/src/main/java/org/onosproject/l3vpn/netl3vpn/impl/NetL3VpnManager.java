@@ -53,9 +53,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.IetfInetTypes;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.IetfL3VpnSvc;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.DefaultL3VpnSvc;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.L3VpnSvc;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.accessvpnpolicy.VpnAttachment;
@@ -76,8 +74,6 @@ import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.re
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siterouting.RoutingProtocols;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siterouting.routingprotocols.RoutingProtocol;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.yang.types.rev20130715.IetfYangTypes;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.l3vpn.svc.ext.rev20160730.L3VpnSvcExt;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.l3vpn.svc.ext.rev20160730.l3vpnsvcext.l3vpnsvc.sites.site.sitenetworkaccesses.sitenetworkaccess.bearer.DefaultAugmentedL3VpnBearer;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.l3vpn.svc.ext.rev20160730.l3vpnsvcext.l3vpnsvc.sites.site.sitenetworkaccesses.sitenetworkaccess.bearer.requestedtype.DefaultAugmentedL3VpnRequestedType;
 import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.l3vpn.svc.ext.rev20160730.l3vpnsvcext.requestedtypegrouping.requestedtypeprofile.RequestedTypeChoice;
@@ -92,12 +88,6 @@ import org.onosproject.yang.model.ModelObjectId;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.YangModel;
-import org.onosproject.yang.model.YangModuleId;
-import org.onosproject.yang.runtime.DefaultAppModuleInfo;
-import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
-import org.onosproject.yang.runtime.ModelRegistrationParam;
-import org.onosproject.yang.runtime.YangModelRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +135,6 @@ import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getRole;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnBgpDelModObj;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnCreateModObj;
 import static org.onosproject.l3vpn.netl3vpn.impl.NetL3VpnUtil.getVpnDelModObj;
-import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangModel;
 
 /**
  * The IETF net l3vpn manager implementation.
@@ -177,9 +166,6 @@ public class NetL3VpnManager {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected YangModelRegistry modelRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ModelConverter modelConverter;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -200,27 +186,21 @@ public class NetL3VpnManager {
 
     private ApplicationId appId;
 
-    private ModelRegistrationParam regParam;
-
     private ResourceId id;
 
     private ResourceId module;
 
     private ResourceId sites;
 
-    private boolean isElectedLeader = false;
+    private boolean isElectedLeader;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(APP_ID);
         l3VpnIdGen = coreService.getIdGenerator(L3_VPN_ID_TOPIC);
-
         localNodeId = clusterService.getLocalNode().id();
-
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
-
-        registerModel();
         getResourceId();
         configService.addListener(configListener);
         log.info("Started");
@@ -228,49 +208,10 @@ public class NetL3VpnManager {
 
     @Deactivate
     protected void deactivate() {
-        modelRegistry.unregisterModel(regParam);
         configService.removeListener(configListener);
-
         leadershipService.withdraw(appId.name());
         leadershipService.removeListener(leadershipEventListener);
-
         log.info("Stopped");
-    }
-
-    private void registerModel() {
-        YangModel model = getYangModel(IetfInetTypes.class);
-        Iterator<YangModuleId> it = model.getYangModulesId().iterator();
-
-        //Create model registration param.
-        ModelRegistrationParam.Builder b =
-                DefaultModelRegistrationParam.builder().setYangModel(model);
-
-        YangModuleId id;
-        while (it.hasNext()) {
-            id = it.next();
-            switch (id.moduleName()) {
-                case "ietf-inet-types":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            IetfInetTypes.class, null));
-                    break;
-                case "ietf-l3vpn-svc":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            IetfL3VpnSvc.class, null));
-                    break;
-                case "ietf-yang-types":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            IetfYangTypes.class, null));
-                    break;
-                case "l3vpn-svc-ext":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            L3VpnSvcExt.class, null));
-                    break;
-                default:
-                    break;
-            }
-        }
-        regParam = b.build();
-        modelRegistry.registerModel(regParam);
     }
 
     /**
