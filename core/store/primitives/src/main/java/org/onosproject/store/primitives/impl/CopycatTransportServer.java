@@ -76,7 +76,7 @@ public class CopycatTransportServer implements Server {
                     sender,
                     messagingService,
                     context);
-            connection.closeListener(connections::remove);
+            connection.onClose(connections::remove);
             connections.add(connection);
 
             CompletableFuture<byte[]> future = new CompletableFuture<>();

@@ -15,24 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.base.Throwables;
-import io.atomix.catalyst.concurrent.Listener;
-import io.atomix.catalyst.concurrent.Listeners;
-import io.atomix.catalyst.concurrent.ThreadContext;
-import io.atomix.catalyst.serializer.SerializationException;
-import io.atomix.catalyst.transport.Connection;
-import io.atomix.catalyst.transport.MessageHandler;
-import io.atomix.catalyst.transport.TransportException;
-import io.atomix.catalyst.util.reference.ReferenceCounted;
-import org.apache.commons.io.IOUtils;
-import org.onlab.util.Tools;
-import org.onosproject.cluster.PartitionId;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingException;
-import org.onosproject.store.cluster.messaging.MessagingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -44,6 +26,24 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
+import com.google.common.base.Throwables;
+import io.atomix.catalyst.concurrent.Listener;
+import io.atomix.catalyst.concurrent.Listeners;
+import io.atomix.catalyst.concurrent.ThreadContext;
+import io.atomix.catalyst.serializer.SerializationException;
+import io.atomix.catalyst.transport.Connection;
+import io.atomix.catalyst.transport.TransportException;
+import io.atomix.catalyst.util.reference.ReferenceCounted;
+import org.apache.commons.io.IOUtils;
+import org.onlab.util.Tools;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingException;
+import org.onosproject.store.cluster.messaging.MessagingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.store.primitives.impl.CopycatTransport.CLOSE;
@@ -85,7 +85,33 @@ public class CopycatTransportConnection implements Connection {
     }
 
     @Override
-    public <T, U> CompletableFuture<U> send(T message) {
+    public CompletableFuture<Void> send(Object message) {
+        ThreadContext context = ThreadContext.currentContextOrThrow();
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            DataOutputStream dos = new DataOutputStream(baos);
+            dos.writeByte(MESSAGE);
+            context.serializer().writeObject(message, baos);
+            if (message instanceof ReferenceCounted) {
+                ((ReferenceCounted<?>) message).release();
+            }
+
+            messagingService.sendAsync(endpoint, remoteSubject, baos.toByteArray())
+                    .whenComplete((r, e) -> {
+                        if (e != null) {
+                            context.executor().execute(() -> future.completeExceptionally(e));
+                        } else {
+                            context.executor().execute(() -> future.complete(null));
+                        }
+                    });
+        } catch (SerializationException | IOException e) {
+            future.completeExceptionally(e);
+        }
+        return future;
+    }
+
+    @Override
+    public <T, U> CompletableFuture<U> sendAndReceive(T message) {
         ThreadContext context = ThreadContext.currentContextOrThrow();
         CompletableFuture<U> future = new CompletableFuture<>();
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -210,7 +236,15 @@ public class CopycatTransportConnection implements Connection {
     }
 
     @Override
-    public <T, U> Connection handler(Class<T> type, MessageHandler<T, U> handler) {
+    public <T, U> Connection handler(Class<T> type, Consumer<T> handler) {
+        return handler(type, r -> {
+            handler.accept(r);
+            return null;
+        });
+    }
+
+    @Override
+    public <T, U> Connection handler(Class<T> type, Function<T, CompletableFuture<U>> handler) {
         if (log.isTraceEnabled()) {
             log.trace("Registered handler on connection {}-{}: {}", partitionId, connectionId, type);
         }
@@ -219,12 +253,12 @@ public class CopycatTransportConnection implements Connection {
     }
 
     @Override
-    public Listener<Throwable> exceptionListener(Consumer<Throwable> consumer) {
+    public Listener<Throwable> onException(Consumer<Throwable> consumer) {
         return exceptionListeners.add(consumer);
     }
 
     @Override
-    public Listener<Connection> closeListener(Consumer<Connection> consumer) {
+    public Listener<Connection> onClose(Consumer<Connection> consumer) {
         return closeListeners.add(consumer);
     }
 
@@ -329,10 +363,10 @@ public class CopycatTransportConnection implements Connection {
      * Internal container for a handler/context pair.
      */
     private static class InternalHandler {
-        private final MessageHandler handler;
+        private final Function handler;
         private final ThreadContext context;
 
-        InternalHandler(MessageHandler handler, ThreadContext context) {
+        InternalHandler(Function handler, ThreadContext context) {
             this.handler = handler;
             this.context = context;
         }
@@ -340,13 +374,18 @@ public class CopycatTransportConnection implements Connection {
         @SuppressWarnings("unchecked")
         CompletableFuture<Object> handle(Object message) {
             CompletableFuture<Object> future = new CompletableFuture<>();
-            context.execute(() -> handler.handle(message).whenComplete((r, e) -> {
-                if (e != null) {
-                    future.completeExceptionally((Throwable) e);
-                } else {
-                    future.complete(r);
+            context.executor().execute(() -> {
+                CompletableFuture<Object> responseFuture = (CompletableFuture<Object>) handler.apply(message);
+                if (responseFuture != null) {
+                    responseFuture.whenComplete((r, e) -> {
+                        if (e != null) {
+                            future.completeExceptionally((Throwable) e);
+                        } else {
+                            future.complete(r);
+                        }
+                    });
                 }
-            }));
+            });
             return future;
         }
     }

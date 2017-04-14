@@ -90,7 +90,7 @@ public class CopycatTransportClient implements Client {
                                     endpoint,
                                     messagingService,
                                     context);
-                            connection.closeListener(connections::remove);
+                            connection.onClose(connections::remove);
                             connections.add(connection);
                             future.complete(connection);
                             log.debug("Created connection {}-{} to {}", partitionId, connectionId, address);
