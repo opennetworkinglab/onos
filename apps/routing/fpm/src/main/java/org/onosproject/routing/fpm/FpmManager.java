@@ -34,6 +34,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
@@ -84,6 +86,7 @@ public class FpmManager implements FpmInfoService {
 
     private static final int FPM_PORT = 2620;
     private static final String APP_NAME = "org.onosproject.fpm";
+    private static final int IDLE_TIMEOUT_SECS = 5;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -163,19 +166,24 @@ public class FpmManager implements FpmInfoService {
     }
 
     private void startServer() {
+        HashedWheelTimer timer = new HashedWheelTimer(
+                groupedThreads("onos/fpm", "fpm-timer-%d", log));
+
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
                 newCachedThreadPool(groupedThreads("onos/fpm", "sm-boss-%d", log)),
                 newCachedThreadPool(groupedThreads("onos/fpm", "sm-worker-%d", log)));
         ChannelPipelineFactory pipelineFactory = () -> {
             // Allocate a new session per connection
+            IdleStateHandler idleHandler =
+                    new IdleStateHandler(timer, IDLE_TIMEOUT_SECS, 0, 0);
             FpmSessionHandler fpmSessionHandler =
                     new FpmSessionHandler(new InternalFpmListener());
-            FpmFrameDecoder fpmFrameDecoder =
-                    new FpmFrameDecoder();
+            FpmFrameDecoder fpmFrameDecoder = new FpmFrameDecoder();
 
             // Setup the processing pipeline
             ChannelPipeline pipeline = Channels.pipeline();
             pipeline.addLast("FpmFrameDecoder", fpmFrameDecoder);
+            pipeline.addLast("idle", idleHandler);
             pipeline.addLast("FpmSession", fpmSessionHandler);
             return pipeline;
         };
@@ -210,6 +218,10 @@ public class FpmManager implements FpmInfoService {
     }
 
     private void fpmMessage(FpmPeer peer, FpmHeader fpmMessage) {
+        if (fpmMessage.type() == FpmHeader.FPM_TYPE_KEEPALIVE) {
+            return;
+        }
+
         Netlink netlink = fpmMessage.netlink();
         RtNetlink rtNetlink = netlink.rtNetlink();
 

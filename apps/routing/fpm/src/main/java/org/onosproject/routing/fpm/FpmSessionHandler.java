@@ -21,7 +21,9 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateEvent;
+import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.onosproject.routing.fpm.protocol.FpmHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Session handler for FPM protocol.
  */
-public class FpmSessionHandler extends SimpleChannelHandler {
+public class FpmSessionHandler extends IdleStateAwareChannelHandler {
 
     private static Logger log = LoggerFactory.getLogger(FpmSessionHandler.class);
 
@@ -42,6 +44,9 @@ public class FpmSessionHandler extends SimpleChannelHandler {
 
     private Channel channel;
     private FpmPeer us;
+
+    private boolean useKeepalives;
+    private boolean initialized;
 
     /**
      * Class constructor.
@@ -56,13 +61,35 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
         FpmHeader fpmMessage = (FpmHeader) e.getMessage();
+
+        initConnection(ctx, fpmMessage);
+
         fpmListener.fpmMessage(us, fpmMessage);
+    }
+
+    private void initConnection(ChannelHandlerContext ctx, FpmHeader message) {
+        if (!initialized) {
+            useKeepalives = message.version() >= FpmHeader.FPM_VERSION_ONOS_EXT;
+            if (useKeepalives) {
+                log.info("Using keepalives");
+            } else {
+                log.info("Not using keepalives");
+                // Remove the idle channel handler if using a protocol version
+                // with no keepalive messages
+                ctx.getPipeline().remove("idle");
+            }
+            initialized = true;
+        }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
-        log.error("Exception thrown while handling FPM message", e.getCause());
+        if (e.getCause() instanceof ReadTimeoutException) {
+            log.warn("Haven't heard from FPM client for a while");
+        } else {
+            log.error("Exception thrown while handling FPM message", e.getCause());
+        }
         if (channel != null) {
             channel.close();
         }
@@ -110,5 +137,15 @@ public class FpmSessionHandler extends SimpleChannelHandler {
             fpmListener.peerDisconnected(us);
         }
         channel = null;
+    }
+
+    @Override
+    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
+            throws Exception {
+        log.warn("FPM channel idle");
+        if (useKeepalives) {
+            ctx.getChannel().close();
+        }
+        super.channelIdle(ctx, e);
     }
 }
