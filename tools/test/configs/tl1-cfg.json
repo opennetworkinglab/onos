@@ -1,0 +1,12 @@
+{
+  "devices": {
+    "tl1:127.0.0.1:20": {
+      "tl1": {
+        "ip": "127.0.0.1",
+        "port": 20,
+        "username": "dev",
+        "password": "dev"
+      }
+    }
+  }
+}

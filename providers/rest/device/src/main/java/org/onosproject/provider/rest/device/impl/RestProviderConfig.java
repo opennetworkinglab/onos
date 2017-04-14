@@ -30,7 +30,9 @@ import java.util.Set;
 
 /**
  * Configuration for RestSB provider.
+ * @deprecated 1.10.0 Kingfisher. Please Use RestDeviceConfig
  */
+@Deprecated
 @Beta
 public class RestProviderConfig extends Config<ApplicationId> {
 

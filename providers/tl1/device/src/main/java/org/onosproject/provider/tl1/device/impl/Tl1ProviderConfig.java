@@ -28,7 +28,10 @@ import java.util.Set;
 
 /**
  * Configuration for TL1 provider.
+ * @deprecated 1.10.0 Kingfisher
+ *
  */
+@Deprecated
 public class Tl1ProviderConfig extends Config<ApplicationId> {
     public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
     private static final String IP = "ip";

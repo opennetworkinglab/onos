@@ -1,20 +1,16 @@
 {
   "devices": {
     "rest:127.0.0.1:8080": {
+      "rest": {
+        "ip": "127.0.0.1",
+        "port": 8080,
+        "username": "dev",
+        "password": "dev",
+        "protocol": "http"
+      },
       "basic": {
         "driver": "restCiena"
       }
-    }
-  },
-  "apps": {
-    "org.onosproject.restsb": {
-      "devices": [{
-        "username": "dev",
-        "password": "",
-        "ip": "127.0.0.1",
-        "port": 8080,
-        "protocol": "http"
-      }]
     }
   }
 }

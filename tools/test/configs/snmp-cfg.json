@@ -1,0 +1,12 @@
+{
+  "devices": {
+    "snmp:127.0.0.1:555": {
+      "snmp": {
+        "ip": "127.0.0.1",
+        "port": 555,
+        "username": "dev",
+        "password": "dev"
+      }
+    }
+  }
+}

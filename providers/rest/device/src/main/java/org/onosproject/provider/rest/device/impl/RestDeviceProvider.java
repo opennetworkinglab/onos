@@ -17,6 +17,7 @@
 package org.onosproject.provider.rest.device.impl;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,6 +40,7 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -54,15 +56,18 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.protocol.rest.DefaultRestSBDevice;
 import org.onosproject.protocol.rest.RestSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 
 import javax.ws.rs.ProcessingException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
@@ -78,7 +83,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class RestDeviceProvider extends AbstractProvider
         implements DeviceProvider {
     private static final String APP_NAME = "org.onosproject.restsb";
-    private static final String REST = "rest";
+    protected static final String REST = "rest";
     private static final String JSON = "json";
     private static final String PROVIDER = "org.onosproject.provider.rest.device";
     private static final String IPADDRESS = "ipaddress";
@@ -115,7 +120,7 @@ public class RestDeviceProvider extends AbstractProvider
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/restsbprovider", "device-installer-%d", log));
 
-    private final ConfigFactory factory =
+    protected final List<ConfigFactory> factories = ImmutableList.of(
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  RestProviderConfig.class,
                                                                  "devices",
@@ -124,7 +129,16 @@ public class RestDeviceProvider extends AbstractProvider
                 public RestProviderConfig createConfig() {
                     return new RestProviderConfig();
                 }
-            };
+            },
+            new ConfigFactory<DeviceId, RestDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                                                          RestDeviceConfig.class,
+                                                          REST) {
+                @Override
+                public RestDeviceConfig createConfig() {
+                    return new RestDeviceConfig();
+                }
+            });
+
     private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
 
     private Set<DeviceId> addedDevices = new HashSet<>();
@@ -134,9 +148,10 @@ public class RestDeviceProvider extends AbstractProvider
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
         providerService = providerRegistry.register(this);
-        cfgService.registerConfigFactory(factory);
+        factories.forEach(cfgService::registerConfigFactory);
         cfgService.addListener(cfgLister);
-        executor.execute(RestDeviceProvider.this::connectDevices);
+        executor.execute(RestDeviceProvider.this::createAndConnectDevices);
+        executor.execute(RestDeviceProvider.this::createDevices);
         log.info("Started");
     }
 
@@ -146,7 +161,7 @@ public class RestDeviceProvider extends AbstractProvider
         controller.getDevices().keySet().forEach(this::deviceRemoved);
         providerRegistry.unregister(this);
         providerService = null;
-        cfgService.unregisterConfigFactory(factory);
+        factories.forEach(cfgService::unregisterConfigFactory);
         log.info("Stopped");
     }
 
@@ -319,31 +334,61 @@ public class RestDeviceProvider extends AbstractProvider
         controller.removeDevice(deviceId);
     }
 
-    private void connectDevices() {
+    //Method to connect devices provided via net-cfg under devices/ tree
+    private void createAndConnectDevices() {
+        Set<DeviceId> deviceSubjects =
+                cfgService.getSubjects(DeviceId.class, RestDeviceConfig.class);
+        connectDevices(deviceSubjects.stream()
+                               .filter(deviceId -> deviceService.getDevice(deviceId) == null)
+                               .map(deviceId -> {
+                                   RestDeviceConfig config =
+                                           cfgService.getConfig(deviceId, RestDeviceConfig.class);
+                                   RestSBDevice device = new DefaultRestSBDevice(config.ip(),
+                                                                                 config.port(),
+                                                                                 config.username(),
+                                                                                 config.password(),
+                                                                                 config.protocol(),
+                                                                                 config.url(),
+                                                                                 false, config.testUrl(),
+                                                                                 config.manufacturer(),
+                                                                                 config.hwVersion(),
+                                                                                 config.swVersion());
+                                   return device;
+
+                               }).collect(Collectors.toSet()));
+    }
+
+    //Old method to register devices provided via net-cfg under apps/rest/ tree
+    private void createDevices() {
         RestProviderConfig cfg = cfgService.getConfig(appId, RestProviderConfig.class);
         try {
             if (cfg != null && cfg.getDevicesAddresses() != null) {
-                //Precomputing the devices to be removed
-                Set<RestSBDevice> toBeRemoved = new HashSet<>(controller.getDevices().values());
-                toBeRemoved.removeAll(cfg.getDevicesAddresses());
-                //Adding new devices
-                cfg.getDevicesAddresses().stream()
-                        .filter(device -> {
-                            device.setActive(false);
-                            controller.addDevice(device);
-                            return testDeviceConnection(device);
-                        })
-                        .forEach(device -> {
-                            deviceAdded(device);
-                        });
-                //Removing devices not wanted anymore
-                toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
+                connectDevices(cfg.getDevicesAddresses());
+
             }
         } catch (ConfigException e) {
             log.error("Configuration error {}", e);
         }
         log.debug("REST Devices {}", controller.getDevices());
         addedDevices.clear();
+    }
+
+    private void connectDevices(Set<RestSBDevice> devices) {
+        //Precomputing the devices to be removed
+        Set<RestSBDevice> toBeRemoved = new HashSet<>(controller.getDevices().values());
+        toBeRemoved.removeAll(devices);
+        //Adding new devices
+        devices.stream()
+                .filter(device -> {
+                    device.setActive(false);
+                    controller.addDevice(device);
+                    return testDeviceConnection(device);
+                })
+                .forEach(device -> {
+                    deviceAdded(device);
+                });
+        //Removing devices not wanted anymore
+        toBeRemoved.forEach(device -> deviceRemoved(device.deviceId()));
     }
 
     private void discoverPorts(DeviceId deviceId) {
@@ -376,13 +421,19 @@ public class RestDeviceProvider extends AbstractProvider
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            executor.execute(RestDeviceProvider.this::connectDevices);
+            if (event.configClass().equals(RestDeviceConfig.class)) {
+                executor.execute(RestDeviceProvider.this::createAndConnectDevices);
+            } else {
+                log.warn("Injecting device via this Json is deprecated, " +
+                                 "please put configuration under devices/");
+                executor.execute(RestDeviceProvider.this::createDevices);
+            }
         }
 
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            //TODO refactor
-            return event.configClass().equals(RestProviderConfig.class) &&
+            return (event.configClass().equals(RestDeviceConfig.class) ||
+                    event.configClass().equals(RestProviderConfig.class)) &&
                     (event.type() == CONFIG_ADDED ||
                             event.type() == CONFIG_UPDATED);
         }

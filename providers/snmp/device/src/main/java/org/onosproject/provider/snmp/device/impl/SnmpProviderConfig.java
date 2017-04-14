@@ -27,7 +27,9 @@ import java.util.Set;
 
 /**
  * Configuration decoder for SNMP provider.
+ * @deprecated 1.10.0 Kingfisher
  */
+@Deprecated
 @Beta
 public class SnmpProviderConfig extends Config<ApplicationId> {
 
