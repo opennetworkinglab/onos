@@ -366,8 +366,8 @@ class IntentInstaller {
                         } else if (uIntent instanceof FlowRuleIntent && installIntent instanceof FlowRuleIntent) {
                             //FIXME we can further optimize this by doing the filtering on a flow-by-flow basis
                             //      (direction can be implied from intent state)
-                            return ((FlowRuleIntent) uIntent).flowRules()
-                                    .containsAll(((FlowRuleIntent) installIntent).flowRules());
+                            return !flowRuleIntentChanged(((FlowRuleIntent) uIntent),
+                                                          ((FlowRuleIntent) installIntent));
                         } else {
                             return false;
                         }
@@ -396,6 +396,30 @@ class IntentInstaller {
                 prepareIntents(uninstallIntents, Direction.REMOVE);
                 prepareIntents(installIntents, Direction.ADD);
             }
+        }
+
+        /**
+         * Determines whether there is any flow rule changed
+         * (i.e., different set of flow rules or different treatments)
+         * between FlowRuleIntents to be uninstalled and to be installed.
+         *
+         * @param uninstallIntent FlowRuleIntent to uninstall
+         * @param installIntent FlowRuleIntent to install
+         * @return true if flow rules which to be uninstalled
+         * contains all flow rules which to be installed.
+         */
+        private boolean flowRuleIntentChanged(FlowRuleIntent uninstallIntent,
+                                              FlowRuleIntent installIntent) {
+            Collection<FlowRule> flowRulesToUninstall = uninstallIntent.flowRules();
+            Collection<FlowRule> flowRulesToInstall = installIntent.flowRules();
+
+            // Check if any flow rule changed
+            for (FlowRule flowRuleToInstall : flowRulesToInstall) {
+                if (flowRulesToUninstall.stream().noneMatch(flowRuleToInstall::exactMatch)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
