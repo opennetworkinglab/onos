@@ -105,11 +105,11 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
                 pp.addProp("LSR ID", lsrId);
             }
 
-            if (abrStatus.equals(true) && asbrStatus.equals(true)) {
+            if (Boolean.valueOf(abrStatus).equals(true) && Boolean.valueOf(asbrStatus).equals(true)) {
                 pp.addProp("Position", ABR_ASBR);
-            } else if (abrStatus.equals(true)) {
+            } else if (Boolean.valueOf(abrStatus).equals(true)) {
                 pp.addProp("Position", ABR);
-            } else if (asbrStatus.equals(true)) {
+            } else if (Boolean.valueOf(asbrStatus).equals(true)) {
                 pp.addProp("Position", ASBR);
             } else {
                 pp.addProp("Position", INNER);
