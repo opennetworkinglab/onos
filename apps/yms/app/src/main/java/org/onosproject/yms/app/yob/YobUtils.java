@@ -235,6 +235,7 @@ public final class YobUtils {
             interfaceClass = regClass.getClassLoader().loadClass(qualName);
         } catch (ClassNotFoundException e) {
             log.info(E_FAIL_TO_LOAD_CLASS, qualName);
+            return;
         }
 
         Class<?>[] innerClasses = interfaceClass.getClasses();
