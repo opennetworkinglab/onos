@@ -128,6 +128,7 @@ public class MQServiceImpl implements MQService {
             body = bytesOf(MQUtil.json((LinkEvent) event));
         } else {
             log.error("Invalid event: '{}'", event);
+            return;
         }
         processAndPublishMessage(body);
     }
