@@ -151,28 +151,6 @@
                     return o ? sus.cat7().getColor(id, 0, ts.theme()) :
                         dColTheme[ts.theme()][otag];
                 },
-                addLabelElements: function (label) {
-                    var rect = this.el.append('rect')
-                        .attr('class', 'node-container');
-                    var glythRect = this.el.append('rect')
-                        .attr('class', 'icon-rect')
-                        .attr('y', -halfDevIcon)
-                        .attr('x', -halfDevIcon)
-                        .attr('width', devIconDim)
-                        .attr('height', devIconDim)
-                        .style('fill', this.devGlyphColor.bind(this));
-
-                    var text = this.el.append('text').text(label)
-                        .attr('text-anchor', 'left')
-                        .attr('y', '0.3em')
-                        .attr('x', halfDevIcon + labelPad + textPad);
-
-                    return {
-                        rect: rect,
-                        glythRect: glythRect,
-                        text: text
-                    };
-                },
                 labelBox: function (dim, labelWidth) {
                     var _textPad = (textPad * 2) - labelPad;
 
@@ -250,14 +228,56 @@
                         multipler = devIconDimMax / (dim * zoomService.scale());
                     }
 
-                    this.el.selectAll('*')
+                    this.el.select('.node-content')
                         .style('transform', 'scale(' + multipler + ')');
+                },
+                addLabelElements: function (label) {
+
+                    var labelG = this.el.select('.node-content')
+                        .append('g')
+                        .attr('class', 'label');
+
+                    var rect = labelG.append('rect')
+                        .attr('class', 'node-container');
+
+                    var text = labelG.append('text').text(label)
+                        .attr('text-anchor', 'left')
+                        .attr('y', '0.3em')
+                        .attr('x', halfDevIcon + labelPad + textPad);
+
+                    return {
+                        rect: rect,
+                        text: text
+                    };
+                },
+                addIconElements: function (el) {
+
+                    var glyphId = this.icon(this.get('type')),
+                        glyph;
+
+                    var iconG = el.append('g')
+                        .attr('class', 'icon')
+
+                    iconG.append('rect')
+                        .attr('class', 'icon-rect')
+                        .attr('y', -halfDevIcon)
+                        .attr('x', -halfDevIcon)
+                        .attr('width', devIconDim)
+                        .attr('height', devIconDim)
+                        .style('fill', this.devGlyphColor.bind(this));
+
+                    // Icon
+                    glyph = is.addDeviceIcon(iconG, glyphId, devIconDim);
+                    glyph.attr(this.iconBox(devIconDim, 0));
+                    glyph.style('fill', dUseTheme[ts.theme()]);
                 },
                 render: function () {
                     var node = this.el,
-                        glyphId = this.icon(this.get('type')),
                         label = this.trimLabel(this.label()),
-                        glyph, labelWidth;
+                        labelWidth;
+
+                    var nodeG = node.append('g')
+                        .attr('class', 'node-content');
 
                     // Label
                     var labelElements = this.addLabelElements(label);
@@ -265,10 +285,7 @@
                     labelElements.rect
                         .attr(this.labelBox(devIconDim, labelWidth));
 
-                    // Icon
-                    glyph = is.addDeviceIcon(node, glyphId, devIconDim);
-                    glyph.attr(this.iconBox(devIconDim, 0));
-                    glyph.style('fill', dUseTheme[ts.theme()]);
+                    this.addIconElements(nodeG);
 
                     node.attr('transform',
                         sus.translate(-halfDevIcon, -halfDevIcon));
