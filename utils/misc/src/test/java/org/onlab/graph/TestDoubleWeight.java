@@ -81,4 +81,9 @@ public class TestDoubleWeight implements Weight {
     public boolean isNegative() {
         return value < 0;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 }
