@@ -69,7 +69,11 @@ public class BandwidthManager implements BandwidthMgmtService {
             return unResvBw.iterator().next().doubleValue()
                     - localReservedBw.doubleValue();
         }
-        return unResvBw.iterator().next().doubleValue();
+        if (unResvBw != null) {
+            return unResvBw.iterator().next().doubleValue();
+        } else {
+            return null;
+        }
     }
 
     @Override
