@@ -211,9 +211,9 @@ public class DefaultTl1Controller implements Tl1Controller {
         Channel channel = device.channel();
         if (channel != null) {
             channel.close();
+            msgMap.remove(channel);
         }
 
-        msgMap.remove(channel);
         device.disconnect();
         tl1Listeners.forEach(l -> l.deviceDisconnected(deviceId));
     }
