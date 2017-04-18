@@ -47,4 +47,6 @@ public interface DomainService {
      * @return null or the domain id of a device
      */
     DomainId getDomain(DeviceId deviceId);
+
 }
+

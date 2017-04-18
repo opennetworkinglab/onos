@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the domain manager.
+ * Implementation of the domain management.
  */
 package org.onosproject.net.domain.impl;
