@@ -24,7 +24,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -149,8 +148,8 @@ public class OpenstackRoutingSnatHandler {
 
     private void initializeUnusedPortNumSet() {
         for (int i = TP_PORT_MINIMUM_NUM; i < TP_PORT_MAXIMUM_NUM; i++) {
-            if (!allocatedPortNumMap.containsKey(Integer.valueOf(i))) {
-                unUsedPortNumSet.add(Integer.valueOf(i));
+            if (!allocatedPortNumMap.containsKey(i)) {
+                unUsedPortNumSet.add(i);
             }
         }
 
@@ -168,24 +167,23 @@ public class OpenstackRoutingSnatHandler {
         IPv4 iPacket = (IPv4) eth.getPayload();
         InboundPacket packetIn = context.inPacket();
 
-        int patPort = getPortNum(eth.getSourceMAC(),
-                iPacket.getDestinationAddress());
+        int patPort = getPortNum();
+        if (patPort == 0) {
+            log.error("There's no unused port for PAT. Drop this packet");
+            return;
+        }
 
         InstancePort srcInstPort = instancePortService.instancePort(eth.getSourceMAC());
         if (srcInstPort == null) {
-            log.trace(ERR_PACKETIN + "source host(MAC:{}) does not exist",
+            log.error(ERR_PACKETIN + "source host(MAC:{}) does not exist",
                     eth.getSourceMAC());
             return;
         }
+
         IpAddress srcIp = IpAddress.valueOf(iPacket.getSourceAddress());
         Subnet srcSubnet = getSourceSubnet(srcInstPort, srcIp);
         IpAddress externalGatewayIp = getExternalIp(srcSubnet);
         if (externalGatewayIp == null) {
-            return;
-        }
-        if (patPort == 0) {
-            log.error("There's no unused port for external ip {}... Drop this packet",
-                    getExternalIp(srcSubnet));
             return;
         }
 
@@ -420,29 +418,27 @@ public class OpenstackRoutingSnatHandler {
                 ByteBuffer.wrap(ethPacketIn.serialize())));
     }
 
-    private int getPortNum(MacAddress sourceMac, int destinationAddress) {
+    private int getPortNum() {
         if (unUsedPortNumSet.isEmpty()) {
             clearPortNumMap();
         }
 
         int portNum = findUnusedPortNum();
-
         if (portNum != 0) {
-            unUsedPortNumSet.remove(Integer.valueOf(portNum));
-            allocatedPortNumMap
-                    .put(Integer.valueOf(portNum), Long.valueOf(System.currentTimeMillis()));
+            unUsedPortNumSet.remove(portNum);
+            allocatedPortNumMap.put(portNum, System.currentTimeMillis());
         }
 
         return portNum;
     }
 
     private int findUnusedPortNum() {
-        return unUsedPortNumSet.stream().findAny().orElse(Integer.valueOf(0)).intValue();
+        return unUsedPortNumSet.stream().findAny().orElse(0);
     }
 
     private void clearPortNumMap() {
         allocatedPortNumMap.entrySet().forEach(e -> {
-            if (System.currentTimeMillis() - e.getValue().value().longValue() > TIME_OUT_SNAT_PORT_MS) {
+            if (System.currentTimeMillis() - e.getValue().value() > TIME_OUT_SNAT_PORT_MS) {
                 allocatedPortNumMap.remove(e.getKey());
                 unUsedPortNumSet.add(e.getKey());
             }

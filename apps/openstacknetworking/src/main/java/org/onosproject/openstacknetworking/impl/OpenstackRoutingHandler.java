@@ -516,7 +516,7 @@ public class OpenstackRoutingHandler {
                 case COMPLETE:
                 case INCOMPLETE:
                     eventExecutor.execute(() -> {
-                        log.info("COMPLETE node {} detected", osNode.hostname());
+                        log.info("Reconfigure routers for {}", osNode.hostname());
                         reconfigureRouters();
                     });
                     break;
