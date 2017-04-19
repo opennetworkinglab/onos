@@ -6,6 +6,11 @@ ONOS Web UI - User Documentation
 This section provides a reverse-chronological summary of changes 
 to the GUI for each release.
 
+([Wiki Page][wiki]) 
+
+[wiki]: https://wiki.onosproject.org/display/ONOS/GUI+Release+Notes
+
+
 ----
 #### Kingfisher -- 1.10.0 -- May 2017
 + (to be listed)

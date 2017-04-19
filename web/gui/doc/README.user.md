@@ -3,9 +3,11 @@ ONOS Web UI - User Documentation
 
 #### Note to Reader
 
-This document provides a brief overview of the _User Documentation_ for 
-the _ONOS Web UI_. For more detailed documentation (including screenshots), 
-please see [The ONOS Web GUI][owg] on the ONOS wiki. 
+This document provides an overview of the _User Documentation_ for 
+the _ONOS Web UI_. 
+ 
+([Wiki Page][wiki], including screenshots) 
+
  
 Further content (subsections) may be found in files named `README.user.*.md`
 
@@ -13,7 +15,7 @@ Placeholders for screenshots / images are marked thusly:
 
 ![sample image placeholder][pic]
 
-[owg]: https://wiki.onosproject.org/display/ONOS/The+ONOS+Web+GUI
+[wiki]: https://wiki.onosproject.org/display/ONOS/The+ONOS+Web+GUI
 [pic]: picture-icon.png 
 
 
