@@ -26,9 +26,9 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.config.DynamicConfigEvent;
 import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
-import org.onosproject.config.ResourceIdParser;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
+import org.onosproject.config.ResourceIdParser;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -54,14 +54,16 @@ import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
-import static org.onosproject.config.DynamicConfigEvent.Type.NODE_UPDATED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
+import static org.onosproject.config.DynamicConfigEvent.Type.NODE_UPDATED;
 import static org.onosproject.config.DynamicConfigEvent.Type.UNKNOWN_OPRN;
 
 /**
@@ -95,6 +97,7 @@ public class DistributedDynamicConfigStore
                 .register(LeafListKey.class)
                 .register(ListKey.class)
                 .register(KeyLeaf.class)
+                .register(BigInteger.class)
                 .register(java.util.LinkedHashMap.class);
         keystore = storageService.<DataNode.Type>documentTreeBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
@@ -144,7 +147,7 @@ public class DistributedDynamicConfigStore
     private void parseNode(String path, DataNode node) {
         if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
             throw new FailedException("Requested node already present in the" +
-                    " store, please use an update method");
+                                              " store, please use an update method");
         }
         if (node.type() == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
             addLeaf(path, (LeafNode) node);
@@ -152,7 +155,7 @@ public class DistributedDynamicConfigStore
             path = ResourceIdParser.appendLeafList(path, (LeafListKey) node.key());
             if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
-                        " store, please use an update method");
+                                                  " store, please use an update method");
             }
             addLeaf(path, (LeafNode) node);
         } else if (node.type() == DataNode.Type.SINGLE_INSTANCE_NODE) {
@@ -161,7 +164,7 @@ public class DistributedDynamicConfigStore
             path = ResourceIdParser.appendKeyList(path, (ListKey) node.key());
             if (completeVersioned(keystore.get(DocumentPath.from(path))) != null) {
                 throw new FailedException("Requested node already present in the" +
-                        " store, please use an update method");
+                                                  " store, please use an update method");
             }
             traverseInner(path, (InnerNode) node);
         } else {
@@ -173,7 +176,7 @@ public class DistributedDynamicConfigStore
         addKey(path, node.type());
         Map<NodeKey, DataNode> entries = node.childNodes();
         if (entries.size() == 0) {
-            throw new FailedException("Inner node cannot have empty children map");
+            return;
         }
         entries.forEach((k, v) -> {
             String tempPath;
@@ -220,7 +223,7 @@ public class DistributedDynamicConfigStore
         type = completeVersioned(ret);
         if (type == null) {
             throw new FailedException("Requested node or some of the parents" +
-                    "are not present in the requested path");
+                                              "are not present in the requested path");
         }
         DataNode retVal = null;
         if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
@@ -249,7 +252,7 @@ public class DistributedDynamicConfigStore
                 //String tempPath = ResourceIdParser.appendKeyLeaf(spath, keyLeaf);
                 //LeafNode lfnd = readLeaf(tempPath);
                 superBldr.addKeyLeaf(keyLeaf.leafSchema().name(),
-                        keyLeaf.leafSchema().namespace(), String.valueOf(keyLeaf.leafValue()));
+                                     keyLeaf.leafSchema().namespace(), String.valueOf(keyLeaf.leafValue()));
             }
             readInner(superBldr, spath);
             retVal = superBldr.build();
@@ -395,7 +398,7 @@ public class DistributedDynamicConfigStore
         type = completeVersioned(ret);
         if (type == null) {
             throw new FailedException("Cannot delete, Requested node or some of the parents" +
-                    "are not present in the requested path");
+                                              "are not present in the requested path");
         }
         DataNode retVal = null;
         if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
