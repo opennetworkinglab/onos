@@ -514,8 +514,14 @@ public class DistributedVirtualNetworkStore
         if (virtualLinkSet == null) {
             virtualLinkSet = new HashSet<>();
         }
+
         // validate that the link does not already exist in this network
-        checkState(getLink(networkId, src, dst) == null, "The virtual link already exists");
+        checkState(getLink(networkId, src, dst) == null,
+                "The virtual link already exists");
+        checkState(getLink(networkId, src, null) == null,
+                "The source connection point has been used by another link");
+        checkState(getLink(networkId, null, dst) == null,
+                "The destination connection point has been used by another link");
 
         VirtualLink virtualLink = DefaultVirtualLink.builder()
                 .networkId(networkId)
@@ -536,8 +542,14 @@ public class DistributedVirtualNetworkStore
         Set<VirtualLink> virtualLinkSet = networkIdVirtualLinkSetMap.get(virtualLink.networkId());
         if (virtualLinkSet == null) {
             virtualLinkSet = new HashSet<>();
+            networkIdVirtualLinkSetMap.put(virtualLink.networkId(), virtualLinkSet);
+            log.warn("The updated virtual link {} has not been added", virtualLink);
+            return;
         }
-        virtualLinkSet.remove(virtualLink);
+        if (!virtualLinkSet.remove(virtualLink)) {
+            log.warn("The updated virtual link {} does not exist", virtualLink);
+            return;
+        }
 
         VirtualLink newVirtualLink = DefaultVirtualLink.builder()
                 .networkId(virtualLink.networkId())
@@ -557,6 +569,7 @@ public class DistributedVirtualNetworkStore
 
         final VirtualLink virtualLink = getLink(networkId, src, dst);
         if (virtualLink == null) {
+            log.warn("The removed virtual link between {} and {} does not exist", src, dst);
             return null;
         }
         Set<VirtualLink> virtualLinkSet = new HashSet<>();
@@ -742,7 +755,13 @@ public class DistributedVirtualNetworkStore
 
         VirtualLink virtualLink = null;
         for (VirtualLink link : virtualLinkSet) {
-            if (link.src().equals(src) && link.dst().equals(dst)) {
+            if (src == null && link.dst().equals(dst)) {
+                virtualLink = link;
+                break;
+            } else if (dst == null && link.src().equals(src)) {
+                virtualLink = link;
+                break;
+            } else if (link.src().equals(src) && link.dst().equals(dst)) {
                 virtualLink = link;
                 break;
             }

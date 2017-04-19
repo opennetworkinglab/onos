@@ -347,7 +347,7 @@ public class DefaultVirtualFlowRuleProviderTest {
 
         @Override
         public Set<VirtualLink> getVirtualLinks(NetworkId networkId) {
-            return null;
+            return new HashSet<>();
         }
 
         @Override
