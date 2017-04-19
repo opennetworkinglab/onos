@@ -27,6 +27,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.mapping.MappingAdminService;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingEvent;
+import org.onosproject.mapping.MappingKey;
 import org.onosproject.mapping.MappingListener;
 import org.onosproject.mapping.MappingProvider;
 import org.onosproject.mapping.MappingProviderRegistry;
@@ -35,6 +36,7 @@ import org.onosproject.mapping.MappingService;
 import org.onosproject.mapping.MappingStore;
 import org.onosproject.mapping.MappingStore.Type;
 import org.onosproject.mapping.MappingStoreDelegate;
+import org.onosproject.mapping.MappingValue;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -134,6 +136,21 @@ public class MappingManager
     }
 
     /**
+     * Obtains a mapping value associated a mapping key.
+     *
+     * @param mappingKey a given mapping key
+     * @return a mapping value
+     */
+    private MappingValue getMappingValueByMappingKey(MappingKey mappingKey) {
+        for (MappingEntry entry : store.getAllMappingEntries(Type.MAP_DATABASE)) {
+            if (entry.key().equals(mappingKey)) {
+                return entry.value();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Store delegate.
      */
     private class InternalStoreDelegate implements MappingStoreDelegate {
@@ -162,6 +179,11 @@ public class MappingManager
         @Override
         public void mappingAdded(MappingEntry mappingEntry, Type type) {
             storeMappingEntry(type, mappingEntry);
+        }
+
+        @Override
+        public MappingValue mappingQueried(MappingKey mappingKey) {
+            return getMappingValueByMappingKey(mappingKey);
         }
     }
 }

@@ -28,4 +28,9 @@ public class MappingProviderServiceAdapter implements MappingProviderService {
     public void mappingAdded(MappingEntry mappingEntry, MappingStore.Type type) {
 
     }
+
+    @Override
+    public MappingValue mappingQueried(MappingKey mappingKey) {
+        return null;
+    }
 }

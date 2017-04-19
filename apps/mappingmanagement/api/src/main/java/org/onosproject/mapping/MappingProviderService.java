@@ -30,4 +30,12 @@ public interface MappingProviderService extends ProviderService<MappingProvider>
      * @param type         indicates that where this map entry should be stored
      */
     void mappingAdded(MappingEntry mappingEntry, MappingStore.Type type);
+
+    /**
+     * Signals that a new mapping query has been issued.
+     *
+     * @param mappingKey a mapping key that is used for query a mapping value
+     * @return a mapping value associated with a given mapping key
+     */
+    MappingValue mappingQueried(MappingKey mappingKey);
 }

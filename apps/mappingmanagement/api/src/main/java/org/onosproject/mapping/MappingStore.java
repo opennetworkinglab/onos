@@ -48,6 +48,14 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
     int getMappingCount(Type type);
 
     /**
+     * Obtains all mapping entries from the specified store.
+     *
+     * @param type store type
+     * @return the mapping entries
+     */
+    Iterable<MappingEntry> getAllMappingEntries(Type type);
+
+    /**
      * Obtains the stored mapping from the specified store.
      *
      * @param type    store type

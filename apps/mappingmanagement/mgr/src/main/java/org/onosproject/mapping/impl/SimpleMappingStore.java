@@ -16,6 +16,7 @@
 package org.onosproject.mapping.impl;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -87,28 +88,29 @@ public class SimpleMappingStore
     public int getMappingCount(Type type) {
         int sum = 0;
 
-        ConcurrentMap<DeviceId, ConcurrentMap<MappingId,
-                List<StoredMappingEntry>>> store = Maps.newConcurrentMap();
-
-        switch (type) {
-            case MAP_DATABASE:
-                store = mapDbStore;
-                break;
-            case MAP_CACHE:
-                store = mapCacheStore;
-                break;
-            default:
-                log.error(UNRECOGNIZED_STORE_MSG, type);
-                break;
-        }
-
-        for (ConcurrentMap<MappingId, List<StoredMappingEntry>> mapDb : store.values()) {
+        for (ConcurrentMap<MappingId, List<StoredMappingEntry>> mapDb :
+                getMappingStore(type).values()) {
             for (List<StoredMappingEntry> mes : mapDb.values()) {
                 sum += mes.size();
             }
         }
 
         return sum;
+    }
+
+    @Override
+    public Iterable<MappingEntry> getAllMappingEntries(Type type) {
+
+        List<MappingEntry> entries = Lists.newArrayList();
+
+        for (ConcurrentMap<MappingId, List<StoredMappingEntry>> mapDb :
+                getMappingStore(type).values()) {
+            for (List<StoredMappingEntry> mes : mapDb.values()) {
+                entries.addAll(mes);
+            }
+        }
+
+        return entries;
     }
 
     /**
