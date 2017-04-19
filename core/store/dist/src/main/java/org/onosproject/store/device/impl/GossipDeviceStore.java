@@ -398,7 +398,7 @@ public class GossipDeviceStore
             if (oldDevice == null) {
                 // REGISTER
                 if (!deltaDesc.value().isDefaultAvailable()) {
-                    return registerDevice(providerId, newDevice);
+                    return registerDevice(providerId, newDevice, deltaDesc.timestamp());
                 }
                 // ADD
                 return createDevice(providerId, newDevice, deltaDesc.timestamp());
@@ -467,7 +467,7 @@ public class GossipDeviceStore
         return event;
     }
 
-    private DeviceEvent registerDevice(ProviderId providerId, Device newDevice) {
+    private DeviceEvent registerDevice(ProviderId providerId, Device newDevice, Timestamp newTimestamp) {
         // update composed device cache
         Device oldDevice = devices.putIfAbsent(newDevice.id(), newDevice);
         verify(oldDevice == null,
@@ -475,7 +475,7 @@ public class GossipDeviceStore
                providerId, oldDevice, newDevice);
 
         if (!providerId.isAncillary()) {
-            markOffline(newDevice.id());
+            markOffline(newDevice.id(), newTimestamp);
         }
 
         return new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, newDevice, null);
@@ -483,7 +483,10 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent markOffline(DeviceId deviceId) {
-        final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
+        return markOffline(deviceId, deviceClockService.getTimestamp(deviceId));
+    }
+
+    private DeviceEvent markOffline(DeviceId deviceId, Timestamp timestamp) {
         final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
         if (event != null) {
             log.debug("Notifying peers of a device offline topology event for deviceId: {} {}",
