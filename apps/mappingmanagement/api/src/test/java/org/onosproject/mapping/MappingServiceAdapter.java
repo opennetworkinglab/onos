@@ -45,7 +45,7 @@ public class MappingServiceAdapter implements MappingService {
     }
 
     @Override
-    public Iterable<MappingEntry> getMappingEntriesByAddId(Type type, ApplicationId appId) {
+    public Iterable<MappingEntry> getMappingEntriesByAppId(Type type, ApplicationId appId) {
         return null;
     }
 }

@@ -97,7 +97,7 @@ public class MappingManager
     }
 
     @Override
-    public Iterable<MappingEntry> getMappingEntriesByAddId(Type type, ApplicationId appId) {
+    public Iterable<MappingEntry> getMappingEntriesByAppId(Type type, ApplicationId appId) {
 
         Set<MappingEntry> mappingEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
@@ -120,7 +120,7 @@ public class MappingManager
     @Override
     public void removeMappingEntriesByAppId(Type type, ApplicationId appId) {
         removeMappingEntries(type, Iterables.toArray(
-                    getMappingEntriesByAddId(type, appId), MappingEntry.class));
+                    getMappingEntriesByAppId(type, appId), MappingEntry.class));
     }
 
     @Override

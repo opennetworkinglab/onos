@@ -51,5 +51,5 @@ public interface MappingService
      * @param appId application identifier
      * @return collection of mapping entries
      */
-    Iterable<MappingEntry> getMappingEntriesByAddId(Type type, ApplicationId appId);
+    Iterable<MappingEntry> getMappingEntriesByAppId(Type type, ApplicationId appId);
 }

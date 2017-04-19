@@ -261,7 +261,7 @@ public class MappingManagerTest {
 
         assertTrue("should have two mappings",
                 Lists.newLinkedList(
-                        service.getMappingEntriesByAddId(MAP_DATABASE, appId)).size() == 2);
+                        service.getMappingEntriesByAppId(MAP_DATABASE, appId)).size() == 2);
     }
 
     /**
@@ -276,7 +276,7 @@ public class MappingManagerTest {
 
         assertTrue("should not have any mappings",
                 Lists.newLinkedList(
-                        service.getMappingEntriesByAddId(MAP_DATABASE, appId)).size() == 0);
+                        service.getMappingEntriesByAppId(MAP_DATABASE, appId)).size() == 0);
     }
 
     private static class TestDeviceService extends DeviceServiceAdapter {
