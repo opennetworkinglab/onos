@@ -403,7 +403,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
         PrepareResult prepareResult = prepare(commit);
         if (prepareResult == PrepareResult.OK) {
 
-            commitInternal(commit.operation().transactionLog().transactionId());
+            commitInternal(commit.operation().transactionLog().transactionId()/*, commit.index()*/);
         }
         return prepareResult;
     }
