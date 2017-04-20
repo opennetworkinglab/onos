@@ -83,6 +83,11 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> getOrDefault(K key, V defaultValue) {
+        return delegateMap.getOrDefault(key, defaultValue);
+    }
+
+    @Override
     public CompletableFuture<Versioned<V>> computeIf(K key,
             Predicate<? super V> condition,
             BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
