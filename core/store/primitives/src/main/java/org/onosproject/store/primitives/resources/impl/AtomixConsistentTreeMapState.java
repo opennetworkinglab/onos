@@ -20,12 +20,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.atomix.copycat.server.Commit;
-import io.atomix.copycat.server.Snapshottable;
 import io.atomix.copycat.server.StateMachineExecutor;
 import io.atomix.copycat.server.session.ServerSession;
 import io.atomix.copycat.server.session.SessionListener;
-import io.atomix.copycat.server.storage.snapshot.SnapshotReader;
-import io.atomix.copycat.server.storage.snapshot.SnapshotWriter;
 import io.atomix.resource.ResourceStateMachine;
 import org.onlab.util.Match;
 import org.onosproject.store.service.MapEvent;
@@ -40,7 +37,6 @@ import java.util.NavigableMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,13 +73,12 @@ import static org.onosproject.store.primitives.resources.impl.MapEntryUpdateResu
  * State machine corresponding to {@link AtomixConsistentTreeMap} backed by a
  * {@link TreeMap}.
  */
-public class AtomixConsistentTreeMapState extends ResourceStateMachine implements SessionListener, Snapshottable {
+public class AtomixConsistentTreeMapState extends ResourceStateMachine implements SessionListener {
 
     private final Map<Long, Commit<? extends Listen>> listeners =
             Maps.newHashMap();
     private TreeMap<String, TreeMapEntryValue> tree = Maps.newTreeMap();
     private final Set<String> preparedKeys = Sets.newHashSet();
-    private AtomicLong versionCounter = new AtomicLong(0);
 
     private Function<Commit<SubMap>, NavigableMap<String, TreeMapEntryValue>> subMapFunction = this::subMap;
     private Function<Commit<FirstKey>, String> firstKeyFunction = this::firstKey;
@@ -111,16 +106,6 @@ public class AtomixConsistentTreeMapState extends ResourceStateMachine implement
 
     public AtomixConsistentTreeMapState(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public void snapshot(SnapshotWriter writer) {
-        writer.writeLong(versionCounter.get());
-    }
-
-    @Override
-    public void install(SnapshotReader reader) {
-        versionCounter = new AtomicLong(reader.readLong());
     }
 
     @Override
@@ -255,7 +240,7 @@ public class AtomixConsistentTreeMapState extends ResourceStateMachine implement
         }
 
         byte[] newValue = commit.operation().value();
-        long newVersion = versionCounter.incrementAndGet();
+        long newVersion = commit.index();
         Versioned<byte[]> newTreeValue = newValue == null ? null
                 : new Versioned<byte[]>(newValue, newVersion);
 
