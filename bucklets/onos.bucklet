@@ -129,7 +129,7 @@ def osgi_jar(
     debug = False,
     import_packages = '*',
     dynamicimport_packages = '',
-    export_packages = '*',
+    export_packages = '!.,!*.impl.*,!*.internal.*,*',
     package_name_root = 'org.onosproject',
     include_resources = {},
     web_context = NONE,
