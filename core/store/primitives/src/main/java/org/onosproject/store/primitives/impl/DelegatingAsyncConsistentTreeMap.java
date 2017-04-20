@@ -160,6 +160,11 @@ public class DelegatingAsyncConsistentTreeMap<V>
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> getOrDefault(String key, V defaultValue) {
+        return delegateMap.getOrDefault(key, defaultValue);
+    }
+
+    @Override
     public CompletableFuture<Versioned<V>> computeIf(
             String key,
             Predicate<? super V> condition,

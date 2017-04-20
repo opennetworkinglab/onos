@@ -176,6 +176,11 @@ public class DefaultConsistentTreeMap<V>
     }
 
     @Override
+    public Versioned<V> getOrDefault(String key, V defaultValue) {
+        return complete(treeMap.getOrDefault(key, defaultValue));
+    }
+
+    @Override
     public Versioned<V> computeIfAbsent(String key,
                                         Function<? super String,
                                                 ? extends V> mappingFunction) {

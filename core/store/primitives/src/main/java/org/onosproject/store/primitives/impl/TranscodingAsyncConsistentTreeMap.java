@@ -66,6 +66,7 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
         this.versionedValueTransform = v -> v == null ? null :
                 v.map(valueDecoder);
     }
+
     @Override
     public CompletableFuture<String> firstKey() {
         return backingMap.firstKey();
@@ -223,6 +224,11 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     @Override
     public CompletableFuture<Versioned<V1>> get(String key) {
         return backingMap.get(key).thenApply(versionedValueTransform);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V1>> getOrDefault(String key, V1 defaultValue) {
+        return backingMap.getOrDefault(key, valueEncoder.apply(defaultValue)).thenApply(versionedValueTransform);
     }
 
     @Override

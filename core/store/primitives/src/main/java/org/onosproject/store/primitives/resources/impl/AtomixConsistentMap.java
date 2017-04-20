@@ -42,6 +42,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.ContainsValue;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.EntrySet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Get;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.GetOrDefault;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.IsEmpty;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.KeySet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Listen;
@@ -125,6 +126,11 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String key) {
         return client.submit(new Get(key));
+    }
+
+    @Override
+    public CompletableFuture<Versioned<byte[]>> getOrDefault(String key, byte[] defaultValue) {
+        return client.submit(new GetOrDefault(key, defaultValue));
     }
 
     @Override
