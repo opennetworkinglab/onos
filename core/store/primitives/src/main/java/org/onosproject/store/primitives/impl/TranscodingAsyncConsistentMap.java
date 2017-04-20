@@ -109,6 +109,16 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
     }
 
     @Override
+    public CompletableFuture<Versioned<V1>> getOrDefault(K1 key, V1 defaultValue) {
+        try {
+            return backingMap.getOrDefault(keyEncoder.apply(key), valueEncoder.apply(defaultValue))
+                    .thenApply(versionedValueTransform);
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
     public CompletableFuture<Versioned<V1>> computeIf(K1 key,
             Predicate<? super V1> condition,
             BiFunction<? super K1, ? super V1, ? extends V1> remappingFunction) {

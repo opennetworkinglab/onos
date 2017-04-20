@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -89,115 +90,122 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase {
         //test size
         map.size().thenAccept(result -> assertEquals(0, (int) result)).join();
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
+
         //test contains key
         allKeys.forEach(key -> map.containsKey(key).
                 thenAccept(result -> assertFalse(result)).join());
+
         //test contains value
         allValues.forEach(value -> map.containsValue(value)
                 .thenAccept(result -> assertFalse(result)).join());
+
         //test get
         allKeys.forEach(key -> map.get(key).
                 thenAccept(result -> assertNull(result)).join());
 
+        //test getOrDefault
+        allKeys.forEach(key -> map.getOrDefault(key, null).thenAccept(result -> {
+            assertEquals(0, result.version());
+            assertNull(result.value());
+        }).join());
+
+        allKeys.forEach(key -> map.getOrDefault(key, "bar".getBytes()).thenAccept(result -> {
+            assertEquals(0, result.version());
+            assertArrayEquals("bar".getBytes(), result.value());
+        }).join());
+
         //populate and redo prior three tests
-        allKeys.forEach(key -> map.put(key, allValues
-                .get(allKeys.indexOf(key))).thenAccept(
-                result -> assertNull(result)).join());
+        allKeys.forEach(key -> map.put(key, allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertNull(result)).join());
+
         //test contains key
-        allKeys.forEach(key -> map.containsKey(key).
-                thenAccept(result -> assertTrue(result)).join());
+        allKeys.forEach(key -> map.containsKey(key)
+                .thenAccept(result -> assertTrue(result)).join());
+
         //test contains value
         allValues.forEach(value -> map.containsValue(value)
                 .thenAccept(result -> assertTrue(result)).join());
+
         //test get
-        allKeys.forEach(key -> map.get(key).
-                thenAccept(
-                        result -> assertArrayEquals(
-                                allValues.get(allKeys.indexOf(key)),
-                                result.value())).join());
+        allKeys.forEach(key -> map.get(key).thenAccept(result -> {
+            assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value());
+        }).join());
+
+        allKeys.forEach(key -> map.getOrDefault(key, null).thenAccept(result -> {
+            assertNotEquals(0, result.version());
+            assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value());
+        }).join());
+
         //test all compute methods in this section
-        allKeys.forEach(key -> map.computeIfAbsent(
-                key, v ->allValues.get(allKeys.indexOf(key)
-                )).thenAccept(result ->
-                                assertArrayEquals(
-                                        allValues.get(allKeys.indexOf(key)),
-                                        result.value())).join());
+        allKeys.forEach(key -> map.computeIfAbsent(key, v -> allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> {
+                    assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value());
+                }).join());
+
         map.size().thenAccept(result -> assertEquals(4, (int) result)).join();
         map.isEmpty().thenAccept(result -> assertFalse(result)).join();
+
         allKeys.forEach(key -> map.computeIfPresent(key, (k, v) -> null).
                 thenAccept(result -> assertNull(result)).join());
+
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
-        allKeys.forEach(key -> map.compute(key, (k, v) ->
-                            allValues.get(allKeys.indexOf(key))).
-                            thenAccept(result -> assertArrayEquals(
-                                    allValues.get(allKeys.indexOf(key)),
-                                    result.value())).join());
+
+        allKeys.forEach(key -> map.compute(key, (k, v) -> allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value())).join());
+
         map.size().thenAccept(result -> assertEquals(4, (int) result)).join();
         map.isEmpty().thenAccept(result -> assertFalse(result)).join();
+
         allKeys.forEach(key -> map.computeIf(key,
-                                         (k) -> allKeys.indexOf(key) < 2,
-                                         (k, v) -> null).thenAccept(result -> {
-            if (allKeys.indexOf(key) < 2) {
-                assertNull(result);
-            } else {
-                assertArrayEquals(allValues.get(allKeys.indexOf(key)),
-                                  result.value());
-            }
-        }).join());
-        map.size().thenAccept(result -> assertEquals(2, (int) result)).join();
-        map.isEmpty().thenAccept(result -> assertFalse(result)).join();
-        //test simple put
-        allKeys.forEach(
-                key -> map.put(key, allValues.get(allKeys.indexOf(key)))
-                .thenAccept(result -> {
+                (k) -> allKeys.indexOf(key) < 2, (k, v) -> null).thenAccept(result -> {
                     if (allKeys.indexOf(key) < 2) {
                         assertNull(result);
                     } else {
-                        assertArrayEquals(
-                                allValues.get(allKeys.indexOf(key)),
-                                result.value());
+                        assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value());
                     }
-                }).join());
+        }).join());
+
+        map.size().thenAccept(result -> assertEquals(2, (int) result)).join();
+        map.isEmpty().thenAccept(result -> assertFalse(result)).join();
+
+        //test simple put
+        allKeys.forEach(key -> map.put(key, allValues.get(allKeys.indexOf(key))).thenAccept(result -> {
+            if (allKeys.indexOf(key) < 2) {
+                assertNull(result);
+            } else {
+                assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value());
+            }
+        }).join());
+
         map.size().thenAccept(result -> assertEquals(4, (int) result)).join();
         map.isEmpty().thenAccept(result -> assertFalse(result)).join();
+
         //test put and get for version retrieval
-        allKeys.forEach(
-                key -> map.putAndGet(key, allValues.get(allKeys.indexOf(key))).
-            thenAccept(firstResult -> {
-                map.putAndGet(key, allValues.get(allKeys.indexOf(key))).
-                    thenAccept(secondResult -> {
-                    assertArrayEquals(allValues.get(allKeys.indexOf(key)),
-                                      firstResult.value());
-                    assertArrayEquals(allValues.get(allKeys.indexOf(key)),
-                                      secondResult.value());
-                    assertTrue((firstResult.version() + 1) ==
-                                       secondResult.version());
-                });
-            }).join());
+        allKeys.forEach(key -> map.putAndGet(key, allValues.get(allKeys.indexOf(key))).thenAccept(firstResult -> {
+            map.putAndGet(key, allValues.get(allKeys.indexOf(key))).thenAccept(secondResult -> {
+                assertArrayEquals(allValues.get(allKeys.indexOf(key)), firstResult.value());
+                assertArrayEquals(allValues.get(allKeys.indexOf(key)), secondResult.value());
+                assertTrue((firstResult.version() + 1) == secondResult.version());
+            });
+        }).join());
+
         //test removal
         allKeys.forEach(key -> map.remove(key).thenAccept(
                 result -> assertArrayEquals(
                         allValues.get(allKeys.indexOf(key)), result.value()))
                 .join());
         map.isEmpty().thenAccept(result -> assertTrue(result));
+
         //repopulating, this is not mainly for testing
-        allKeys.forEach(key -> map.put(
-                key, allValues.get(allKeys.indexOf(key)))
-                .thenAccept(result -> {
-                        assertNull(result);
-                }).join());
+        allKeys.forEach(key -> map.put(key, allValues.get(allKeys.indexOf(key))).thenAccept(result -> {
+            assertNull(result);
+        }).join());
 
         //Test various collections of keys, values and entries
-        map.keySet().thenAccept(
-                keys -> assertTrue(
-                        stringArrayCollectionIsEqual(keys, allKeys)))
-                .join();
-        map.values().thenAccept(
-                values -> assertTrue(
-                        byteArrayCollectionIsEqual(values.stream().map(
-                                v -> v.value()).collect(
-                                Collectors.toSet()), allValues)))
-                .join();
+        map.keySet().thenAccept(keys -> assertTrue(stringArrayCollectionIsEqual(keys, allKeys))).join();
+        map.values().thenAccept(values -> assertTrue(
+                byteArrayCollectionIsEqual(values.stream().map(v -> v.value())
+                        .collect(Collectors.toSet()), allValues))).join();
         map.entrySet().thenAccept(entrySet -> {
             entrySet.forEach(entry -> {
                 assertTrue(allKeys.contains(entry.getKey()));
@@ -209,72 +217,49 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase {
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
 
         //test conditional put
-        allKeys.forEach(
-                key -> map.putIfAbsent(
-                        key, allValues.get(allKeys.indexOf(key))).
-                        thenAccept(result -> assertNull(result)).join());
-        allKeys.forEach(
-                key -> map.putIfAbsent(
-                        key, null).
-                        thenAccept(result ->
-                                   assertArrayEquals(result.value(),
-                                        allValues.get(allKeys.indexOf(key))))
-                        .join());
+        allKeys.forEach(key -> map.putIfAbsent(key, allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertNull(result)).join());
+        allKeys.forEach(key -> map.putIfAbsent(key, null).thenAccept(result ->
+                assertArrayEquals(result.value(), allValues.get(allKeys.indexOf(key)))
+        ).join());
+
         // test alternate removes that specify value or version
-        allKeys.forEach(
-                key -> map.remove(key, spareValue).thenAccept(
-                        result -> assertFalse(result)).join());
-        allKeys.forEach(
-                key -> map.remove(key, allValues.get(allKeys.indexOf(key)))
-                        .thenAccept(result -> assertTrue(result)).join());
+        allKeys.forEach(key -> map.remove(key, spareValue).thenAccept(result -> assertFalse(result)).join());
+        allKeys.forEach(key -> map.remove(key, allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertTrue(result)).join());
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
         List<Long> versions = Lists.newArrayList();
 
         //repopulating set for version based removal
-        allKeys.forEach(
-                key -> map.putAndGet(key, allValues.get(allKeys.indexOf(key)))
+        allKeys.forEach(key -> map.putAndGet(key, allValues.get(allKeys.indexOf(key)))
                 .thenAccept(result -> versions.add(result.version())).join());
-        allKeys.forEach(
-                key -> map.remove(key, versions.get(0)).thenAccept(
-                        result -> {
-                            assertTrue(result);
-                            versions.remove(0);
-                        }).join());
+        allKeys.forEach(key -> map.remove(key, versions.get(0)).thenAccept(result -> {
+            assertTrue(result);
+            versions.remove(0);
+        }).join());
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
+
         //Testing all replace both simple (k, v), and complex that consider
         // previous mapping or version.
-        allKeys.forEach(
-                key -> map.put(key, allValues.get(allKeys.indexOf(key)))
+        allKeys.forEach(key -> map.put(key, allValues.get(allKeys.indexOf(key)))
                 .thenAccept(result -> assertNull(result)).join());
-        allKeys.forEach(key -> map.replace(
-                key, allValues.get(3 - allKeys.indexOf(key)))
-                .thenAccept(result -> assertArrayEquals(
-                        allValues.get(allKeys.indexOf(key)), result.value()))
+        allKeys.forEach(key -> map.replace(key, allValues.get(3 - allKeys.indexOf(key)))
+                .thenAccept(result -> assertArrayEquals(allValues.get(allKeys.indexOf(key)), result.value()))
                 .join());
-        allKeys.forEach(key -> map.replace(key,
-                                           spareValue,
-                                           allValues.get(allKeys.indexOf(key)))
-                .thenAccept(result -> assertFalse(result))
-                .join());
-        allKeys.forEach(key -> map.replace(
-                key, allValues.get(3 - allKeys.indexOf(key)),
-                allValues.get(allKeys.indexOf(key)))
-                .thenAccept(result -> assertTrue(result)).join());
+        allKeys.forEach(key -> map.replace(key, spareValue, allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertFalse(result)).join());
+        allKeys.forEach(key -> map.replace(key, allValues.get(3 - allKeys.indexOf(key)),
+                allValues.get(allKeys.indexOf(key))).thenAccept(result -> assertTrue(result)).join());
         map.clear().join();
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
         versions.clear();
+
         //populate for version based replacement
-        allKeys.forEach(
-                key -> map.putAndGet(
-                        key, allValues.get(3 - allKeys.indexOf(key)))
-                        .thenAccept(result ->
-                            versions.add(result.version())).join());
-        allKeys.forEach(key -> map.replace(
-                key, 0, allValues.get(allKeys.indexOf(key)))
-                .thenAccept(result -> assertFalse(result))
-                .join());
-        allKeys.forEach(key -> map.replace(
-                key, versions.get(0), allValues.get(allKeys.indexOf(key)))
+        allKeys.forEach(key -> map.putAndGet(key, allValues.get(3 - allKeys.indexOf(key)))
+                .thenAccept(result -> versions.add(result.version())).join());
+        allKeys.forEach(key -> map.replace(key, 0, allValues.get(allKeys.indexOf(key)))
+                .thenAccept(result -> assertFalse(result)).join());
+        allKeys.forEach(key -> map.replace(key, versions.get(0), allValues.get(allKeys.indexOf(key)))
                 .thenAccept(result -> {
                     assertTrue(result);
                     versions.remove(0);

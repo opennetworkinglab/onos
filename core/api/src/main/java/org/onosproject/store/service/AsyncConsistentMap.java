@@ -110,6 +110,17 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
     CompletableFuture<Versioned<V>> get(K key);
 
     /**
+     * Returns the value (and version) to which the specified key is mapped, or the provided
+     * default value if this map contains no mapping for the key.
+     *
+     * @param key the key whose associated value (and version) is to be returned
+     * @param defaultValue the default value to return if the key is not set
+     * @return a future value (and version) to which the specified key is mapped, or null if
+     * this map contains no mapping for the key
+     */
+    CompletableFuture<Versioned<V>> getOrDefault(K key, V defaultValue);
+
+    /**
      * If the specified key is not already associated with a value (or is mapped to null),
      * attempts to compute its value using the given mapping function and enters it into
      * this map unless null.

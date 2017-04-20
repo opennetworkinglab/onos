@@ -454,6 +454,43 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
+     * Get or default query.
+     */
+    @SuppressWarnings("serial")
+    public static class GetOrDefault extends KeyQuery<Versioned<byte[]>> {
+        private byte[] defaultValue;
+
+        public GetOrDefault() {
+        }
+
+        public GetOrDefault(String key, byte[] defaultValue) {
+            super(key);
+            this.defaultValue = defaultValue;
+        }
+
+        /**
+         * Returns the default value.
+         *
+         * @return the default value
+         */
+        public byte[] defaultValue() {
+            return defaultValue;
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(defaultValue, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            defaultValue = serializer.readObject(buffer);
+        }
+    }
+
+    /**
      * Is empty query.
      */
     @SuppressWarnings("serial")
@@ -546,6 +583,7 @@ public final class AtomixConsistentMapCommands {
             registry.register(ContainsKey.class, -761);
             registry.register(ContainsValue.class, -762);
             registry.register(Get.class, -763);
+            registry.register(GetOrDefault.class, -778);
             registry.register(EntrySet.class, -764);
             registry.register(Values.class, -765);
             registry.register(KeySet.class, -766);

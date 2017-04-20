@@ -94,9 +94,15 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
                             Match.ifValue(true),
                             false);
     }
+
     @Override
     public CompletableFuture<Versioned<V>> get(K key) {
         return getMap(key).get(key);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> getOrDefault(K key, V defaultValue) {
+        return getMap(key).getOrDefault(key, defaultValue);
     }
 
     @Override

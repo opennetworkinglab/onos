@@ -64,6 +64,11 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
+    public Versioned<V> getOrDefault(K key, V defaultValue) {
+        return null;
+    }
+
+    @Override
     public Versioned<V> computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
         return null;
     }

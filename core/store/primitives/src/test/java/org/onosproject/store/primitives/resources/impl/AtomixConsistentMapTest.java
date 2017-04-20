@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -117,6 +118,16 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
             assertTrue(result);
         }).join();
 
+        map.getOrDefault("nothing", null).thenAccept(result -> {
+            assertEquals(0, result.version());
+            assertNull(result.value());
+        }).join();
+
+        map.getOrDefault("foo", "bar".getBytes()).thenAccept(result -> {
+            assertEquals(0, result.version());
+            assertArrayEquals("bar".getBytes(), result.value());
+        }).join();
+
         map.put("foo", rawFooValue).thenAccept(result -> {
             assertNull(result);
         }).join();
@@ -162,6 +173,11 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
 
         map.get("foo").thenAccept(result -> {
             assertTrue(Arrays.equals(Versioned.valueOrElse(result, null), rawFooValue));
+        }).join();
+
+        map.getOrDefault("foo", "bar".getBytes()).thenAccept(result -> {
+            assertNotEquals(0, result.version());
+            assertArrayEquals(rawFooValue, result.value());
         }).join();
 
         map.remove("foo").thenAccept(result -> {

@@ -56,6 +56,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTr
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FirstEntry;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorKey;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.GetOrDefault;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.HigherKey;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.IsEmpty;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.KeySet;
@@ -128,6 +129,11 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
     @Override
     public CompletableFuture<Versioned<byte[]>> get(String key) {
         return client.submit(new Get(key));
+    }
+
+    @Override
+    public CompletableFuture<Versioned<byte[]>> getOrDefault(String key, byte[] defaultValue) {
+        return client.submit(new GetOrDefault(key, defaultValue));
     }
 
     @Override

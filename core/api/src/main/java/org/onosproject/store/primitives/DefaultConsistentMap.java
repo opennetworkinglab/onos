@@ -86,6 +86,11 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     }
 
     @Override
+    public Versioned<V> getOrDefault(K key, V defaultValue) {
+        return complete(asyncMap.getOrDefault(key, defaultValue));
+    }
+
+    @Override
     public Versioned<V> computeIfAbsent(K key,
             Function<? super K, ? extends V> mappingFunction) {
         return computeIf(key, Objects::isNull, (k, v) -> mappingFunction.apply(k));

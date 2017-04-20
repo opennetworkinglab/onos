@@ -55,6 +55,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTr
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorEntry;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorKey;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.Get;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.GetOrDefault;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.HigherEntry;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.HigherKey;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.IsEmpty;
@@ -133,6 +134,7 @@ public class AtomixConsistentTreeMapState extends ResourceStateMachine implement
         executor.register(ContainsValue.class, this::containsValue);
         executor.register(EntrySet.class, this::entrySet);
         executor.register(Get.class, this::get);
+        executor.register(GetOrDefault.class, this::getOrDefault);
         executor.register(IsEmpty.class, this::isEmpty);
         executor.register(KeySet.class, this::keySet);
         executor.register(Size.class, this::size);
@@ -188,6 +190,15 @@ public class AtomixConsistentTreeMapState extends ResourceStateMachine implement
     protected Versioned<byte[]> get(Commit<? extends Get> commit) {
         try {
             return toVersioned(tree.get(commit.operation().key()));
+        } finally {
+            commit.close();
+        }
+    }
+
+    protected Versioned<byte[]> getOrDefault(Commit<? extends GetOrDefault> commit) {
+        try {
+            Versioned<byte[]> value = toVersioned(tree.get(commit.operation().key()));
+            return value != null ? value : new Versioned<>(commit.operation().defaultValue(), 0);
         } finally {
             commit.close();
         }
