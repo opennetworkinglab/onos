@@ -313,6 +313,7 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
                         .getVirtualPorts(networkId, sendThrough);
 
                 Set<VirtualPort> outPorts = vPorts.stream()
+                        .filter(vp -> !vp.number().isLogical())
                         .filter(vp -> vp.number() !=
                                 context.inPacket().receivedFrom().port())
                         .collect(Collectors.toSet());
