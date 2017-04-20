@@ -29,7 +29,6 @@ import org.onosproject.store.service.TransactionException;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkState;
-// CHECKSTYLE:ON
 
 /**
  * Manages a transaction within the context of a single primitive.
