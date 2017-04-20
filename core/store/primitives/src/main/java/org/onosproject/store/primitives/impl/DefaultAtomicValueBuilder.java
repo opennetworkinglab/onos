@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import org.onosproject.store.service.AsyncAtomicValue;
@@ -34,6 +35,12 @@ public class DefaultAtomicValueBuilder<V> extends AtomicValueBuilder<V> {
 
     public DefaultAtomicValueBuilder(Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier) {
         mapBuilder = mapBuilderSupplier.get();
+    }
+
+    @Override
+    public AtomicValueBuilder<V> withExecutorSupplier(Supplier<Executor> executorSupplier) {
+        mapBuilder.withExecutorSupplier(executorSupplier);
+        return this;
     }
 
     @Override

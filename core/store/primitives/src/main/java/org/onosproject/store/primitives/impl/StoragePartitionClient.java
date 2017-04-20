@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import io.atomix.AtomixClient;
 import io.atomix.catalyst.transport.Transport;
@@ -31,6 +30,7 @@ import io.atomix.resource.ResourceRegistry;
 import io.atomix.resource.ResourceType;
 import io.atomix.variables.DistributedLong;
 import org.onlab.util.HexString;
+import org.onlab.util.SerialExecutor;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.resources.impl.AtomixAtomicCounterMap;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMap;
@@ -59,8 +59,10 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -74,10 +76,11 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private final StoragePartition partition;
     private final Transport transport;
     private final io.atomix.catalyst.serializer.Serializer serializer;
+    private final Executor sharedExecutor;
     private AtomixClient client;
     private ResourceClient resourceClient;
     private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
-    private final Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
+    private final com.google.common.base.Supplier<AsyncConsistentMap<String, byte[]>> onosAtomicValuesMap =
             Suppliers.memoize(() -> newAsyncConsistentMap(ATOMIC_VALUES_CONSISTENT_MAP_NAME,
                                                           Serializer.using(KryoNamespaces.BASIC)));
     Function<State, Status> mapper = state -> {
@@ -95,10 +98,12 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
 
     public StoragePartitionClient(StoragePartition partition,
             io.atomix.catalyst.serializer.Serializer serializer,
-            Transport transport) {
+            Transport transport,
+            Executor sharedExecutor) {
         this.partition = partition;
         this.serializer = serializer;
         this.transport = transport;
+        this.sharedExecutor = sharedExecutor;
     }
 
     @Override
@@ -125,14 +130,26 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
         return client != null ? client.close() : CompletableFuture.completedFuture(null);
     }
 
+    /**
+     * Returns the executor provided by the given supplier or a serial executor if the supplier is {@code null}.
+     *
+     * @param executorSupplier the user-provided executor supplier
+     * @return the executor
+     */
+    private Executor defaultExecutor(Supplier<Executor> executorSupplier) {
+        return executorSupplier != null ? executorSupplier.get() : new SerialExecutor(sharedExecutor);
+    }
+
     @Override
-    public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(String name, Serializer serializer) {
+    public <K, V> AsyncConsistentMap<K, V> newAsyncConsistentMap(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
         AtomixConsistentMap atomixConsistentMap = client.getResource(name, AtomixConsistentMap.class).join();
         Consumer<State> statusListener = state -> {
             atomixConsistentMap.statusChangeListeners()
                                .forEach(listener -> listener.accept(mapper.apply(state)));
         };
         resourceClient.client().onStateChange(statusListener);
+
         AsyncConsistentMap<String, byte[]> rawMap =
                 new DelegatingAsyncConsistentMap<String, byte[]>(atomixConsistentMap) {
                     @Override
@@ -140,17 +157,20 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         return name;
                     }
                 };
-        AsyncConsistentMap<K, V> transcodedMap = DistributedPrimitives.<K, V, String, byte[]>newTranscodingMap(rawMap,
+
+        // We have to ensure serialization is done on the Copycat threads since Kryo is not thread safe.
+        AsyncConsistentMap<K, V> transcodedMap = DistributedPrimitives.newTranscodingMap(rawMap,
             key -> HexString.toHexString(serializer.encode(key)),
             string -> serializer.decode(HexString.fromHexString(string)),
             value -> value == null ? null : serializer.encode(value),
             bytes -> serializer.decode(bytes));
 
-        return transcodedMap;
+        return new ExecutingAsyncConsistentMap<>(transcodedMap, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(String name, Serializer serializer) {
+    public <V> AsyncConsistentTreeMap<V> newAsyncConsistentTreeMap(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
         AtomixConsistentTreeMap atomixConsistentTreeMap =
                 client.getResource(name, AtomixConsistentTreeMap.class).join();
         Consumer<State> statusListener = state -> {
@@ -158,6 +178,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                     .forEach(listener -> listener.accept(mapper.apply(state)));
         };
         resourceClient.client().onStateChange(statusListener);
+
         AsyncConsistentTreeMap<byte[]> rawMap =
                 new DelegatingAsyncConsistentTreeMap<byte[]>(atomixConsistentTreeMap) {
                     @Override
@@ -165,17 +186,19 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         return name;
                     }
                 };
+
         AsyncConsistentTreeMap<V> transcodedMap =
                 DistributedPrimitives.<V, byte[]>newTranscodingTreeMap(
                     rawMap,
                     value -> value == null ? null : serializer.encode(value),
                     bytes -> serializer.decode(bytes));
-        return transcodedMap;
+
+        return new ExecutingAsyncConsistentTreeMap<>(transcodedMap, defaultExecutor(executorSupplier));
     }
 
     @Override
     public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(
-            String name, Serializer serializer) {
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
         AtomixConsistentSetMultimap atomixConsistentSetMultimap =
                 client.getResource(name, AtomixConsistentSetMultimap.class)
                         .join();
@@ -184,6 +207,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                     .forEach(listener -> listener.accept(mapper.apply(state)));
         };
         resourceClient.client().onStateChange(statusListener);
+
         AsyncConsistentMultimap<String, byte[]> rawMap =
                 new DelegatingAsyncConsistentMultimap<String, byte[]>(
                         atomixConsistentSetMultimap) {
@@ -192,6 +216,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         return super.name();
                     }
                 };
+
         AsyncConsistentMultimap<K, V> transcodedMap =
                 DistributedPrimitives.newTranscodingMultimap(
                         rawMap,
@@ -199,53 +224,64 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         string -> serializer.decode(HexString.fromHexString(string)),
                         value -> serializer.encode(value),
                         bytes -> serializer.decode(bytes));
-        return transcodedMap;
 
+        return new ExecutingAsyncConsistentMultimap<>(transcodedMap, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public <E> AsyncDistributedSet<E> newAsyncDistributedSet(String name, Serializer serializer) {
-        return DistributedPrimitives.newSetFromMap(this.<E, Boolean>newAsyncConsistentMap(name, serializer));
+    public <E> AsyncDistributedSet<E> newAsyncDistributedSet(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
+        return DistributedPrimitives.newSetFromMap(newAsyncConsistentMap(name, serializer, executorSupplier));
     }
 
     @Override
-    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(String name, Serializer serializer) {
+    public <K> AsyncAtomicCounterMap<K> newAsyncAtomicCounterMap(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
         AtomixAtomicCounterMap atomixAtomicCounterMap =
                 client.getResource(name, AtomixAtomicCounterMap.class)
                         .join();
+
         AsyncAtomicCounterMap<K> transcodedMap =
                 DistributedPrimitives.<K, String>newTranscodingAtomicCounterMap(
                        atomixAtomicCounterMap,
                         key -> HexString.toHexString(serializer.encode(key)),
                         string -> serializer.decode(HexString.fromHexString(string)));
-        return transcodedMap;
+
+        return new ExecutingAsyncAtomicCounterMap<>(transcodedMap, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public AsyncAtomicCounter newAsyncCounter(String name) {
+    public AsyncAtomicCounter newAsyncCounter(String name, Supplier<Executor> executorSupplier) {
         DistributedLong distributedLong = client.getLong(name).join();
-        return new AtomixCounter(name, distributedLong);
+        AsyncAtomicCounter asyncCounter = new AtomixCounter(name, distributedLong);
+        return new ExecutingAsyncAtomicCounter(asyncCounter, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public <V> AsyncAtomicValue<V> newAsyncAtomicValue(String name, Serializer serializer) {
-       return new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
+    public <V> AsyncAtomicValue<V> newAsyncAtomicValue(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
+       AsyncAtomicValue<V> asyncValue = new DefaultAsyncAtomicValue<>(name, serializer, onosAtomicValuesMap.get());
+       return new ExecutingAsyncAtomicValue<>(asyncValue, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer) {
-        AtomixWorkQueue workQueue = client.getResource(name, AtomixWorkQueue.class).join();
-        return new DefaultDistributedWorkQueue<>(workQueue, serializer);
+    public <E> WorkQueue<E> newWorkQueue(String name, Serializer serializer, Supplier<Executor> executorSupplier) {
+        AtomixWorkQueue atomixWorkQueue = client.getResource(name, AtomixWorkQueue.class).join();
+        WorkQueue<E> workQueue = new DefaultDistributedWorkQueue<>(atomixWorkQueue, serializer);
+        return new ExecutingWorkQueue<>(workQueue, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(String name, Serializer serializer) {
+    public <V> AsyncDocumentTree<V> newAsyncDocumentTree(
+            String name, Serializer serializer, Supplier<Executor> executorSupplier) {
         AtomixDocumentTree atomixDocumentTree = client.getResource(name, AtomixDocumentTree.class).join();
-        return new DefaultDistributedDocumentTree<>(name, atomixDocumentTree, serializer);
+        AsyncDocumentTree<V> asyncDocumentTree = new DefaultDistributedDocumentTree<>(
+                name, atomixDocumentTree, serializer);
+        return new ExecutingAsyncDocumentTree<>(asyncDocumentTree, defaultExecutor(executorSupplier));
     }
 
     @Override
-    public AsyncLeaderElector newAsyncLeaderElector(String name) {
+    public AsyncLeaderElector newAsyncLeaderElector(String name, Supplier<Executor> executorSupplier) {
         AtomixLeaderElector leaderElector = client.getResource(name, AtomixLeaderElector.class)
                                                   .thenCompose(AtomixLeaderElector::setupCache)
                                                   .join();
@@ -254,7 +290,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                          .forEach(listener -> listener.accept(mapper.apply(state)));
         };
         resourceClient.client().onStateChange(statusListener);
-        return leaderElector;
+        return new ExecutingAsyncLeaderElector(leaderElector, defaultExecutor(executorSupplier));
     }
 
     @Override
