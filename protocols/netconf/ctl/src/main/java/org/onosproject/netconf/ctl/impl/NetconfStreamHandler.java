@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;

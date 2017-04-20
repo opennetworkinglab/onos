@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;

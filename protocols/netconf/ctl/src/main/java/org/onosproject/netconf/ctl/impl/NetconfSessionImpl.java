@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import com.google.common.annotations.Beta;
 import ch.ethz.ssh2.Connection;
@@ -22,6 +22,7 @@ import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.channel.Channel;
 import com.google.common.base.Preconditions;
 import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
@@ -180,7 +181,7 @@ public class NetconfSessionImpl implements NetconfSession {
                                                     sshSession.getStderr(), deviceInfo,
                                                     new NetconfSessionDelegateImpl(),
                                                     replies);
-            this.addDeviceOutputListener(new NetconfDeviceOutputEventListenerImpl(deviceInfo));
+            this.addDeviceOutputListener(new FilteringNetconfDeviceOutputEventListener(deviceInfo));
             sendHello();
         } catch (IOException e) {
             log.error("Failed to create ch.ethz.ssh2.Session session {} ", e.getMessage());
@@ -284,6 +285,7 @@ public class NetconfSessionImpl implements NetconfSession {
 
     }
 
+    @Override
     public void checkAndReestablish() throws NetconfException {
         if (sshSession.getState() != Channel.STATE_OPEN) {
             try {

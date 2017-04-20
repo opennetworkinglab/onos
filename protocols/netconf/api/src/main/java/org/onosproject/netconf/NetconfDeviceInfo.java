@@ -41,6 +41,7 @@ public class NetconfDeviceInfo {
     private int port;
     private char[] key;
     //File keyFile @deprecated 1.9.0
+    @Deprecated
     private File keyFile;
     private DeviceId deviceId;
 
@@ -121,7 +122,7 @@ public class NetconfDeviceInfo {
     /**
      * Exposes the port of the controller.
      *
-     * @return int port address
+     * @return port number
      */
     public int port() {
         return port;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -35,7 +35,7 @@ import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
-import org.onosproject.netconf.ctl.NetconfStreamThread.NetconfMessageState;
+import org.onosproject.netconf.ctl.impl.NetconfStreamThread.NetconfMessageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,10 +94,12 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
             return shutdownExecutor;
         }
 
+        @Override
         public Command create() {
             return new NetconfSshdTestSubsystem(getExecutorService(), isShutdownOnExit());
         }
 
+        @Override
         public String getName() {
             return NAME;
         }

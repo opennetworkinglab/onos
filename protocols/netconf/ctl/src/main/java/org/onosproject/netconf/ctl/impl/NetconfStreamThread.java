@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

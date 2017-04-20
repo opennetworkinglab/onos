@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.key.DeviceKey;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.netconf.ctl;
+package org.onosproject.netconf.ctl.impl;
 
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
@@ -39,6 +39,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
     protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
     private NetconfSession netconfSession;
 
+    // will block until hello RPC handshake completes
     /**
      * Creates a new default NETCONF device with the information provided.
      * The device gets created only if no exception is thrown while connecting to

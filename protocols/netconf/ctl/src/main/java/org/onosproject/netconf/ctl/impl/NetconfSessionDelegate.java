@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
+package org.onosproject.netconf.ctl.impl;
+
+import org.onosproject.netconf.NetconfDeviceOutputEvent;
+
 /**
- * NETCONF controller implementations.
+ * Entity associated with a NetconfSessionImpl and capable of receiving notifications of
+ * events about the session.
  */
-@java.lang.Deprecated
-package org.onosproject.netconf.ctl;
+public interface NetconfSessionDelegate {
+
+        /**
+         * Notifies the delegate via the specified event.
+         *
+         * @param event store generated event
+         */
+        void notify(NetconfDeviceOutputEvent event);
+}

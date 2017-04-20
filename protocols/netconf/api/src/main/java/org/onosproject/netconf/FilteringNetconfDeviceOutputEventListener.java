@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.netconf;
 
-package org.onosproject.netconf.ctl;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
-import org.onosproject.netconf.NetconfDeviceInfo;
-import org.onosproject.netconf.NetconfDeviceOutputEvent;
-import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Example of a listener for events that happen a Netconf session established
- * for a particular NETCONF device.
- *
- * @deprecated in 1.10.0 use {@link FilteringNetconfDeviceOutputEventListener}
+ * Listener to listen for event about specific Device.
  */
-@Deprecated
-public class NetconfDeviceOutputEventListenerImpl implements NetconfDeviceOutputEventListener {
+public class FilteringNetconfDeviceOutputEventListener
+        implements NetconfDeviceOutputEventListener {
 
     private static final Logger log =
-            LoggerFactory.getLogger(NetconfDeviceOutputEventListenerImpl.class);
+            LoggerFactory.getLogger(FilteringNetconfDeviceOutputEventListener.class);
 
-    private NetconfDeviceInfo deviceInfo;
+    private final NetconfDeviceInfo deviceInfo;
 
-    public NetconfDeviceOutputEventListenerImpl(NetconfDeviceInfo deviceInfo) {
-        this.deviceInfo = deviceInfo;
+    public FilteringNetconfDeviceOutputEventListener(NetconfDeviceInfo deviceInfo) {
+        this.deviceInfo = checkNotNull(deviceInfo);
     }
 
     @Override
