@@ -33,7 +33,7 @@ public class DefaultAtomicCounterMapBuilder<K> extends AtomicCounterMapBuilder<K
 
     @Override
     public AsyncAtomicCounterMap<K> buildAsyncMap() {
-        return primitiveCreator.newAsyncAtomicCounterMap(name(), serializer());
+        return primitiveCreator.newAsyncAtomicCounterMap(name(), serializer(), executorSupplier());
     }
 
     @Override

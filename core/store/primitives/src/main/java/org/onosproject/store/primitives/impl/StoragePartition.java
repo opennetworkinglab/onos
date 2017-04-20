@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,7 @@ public class StoragePartition implements Managed<StoragePartition> {
 
     private final AtomicBoolean isOpened = new AtomicBoolean(false);
     private final Serializer serializer;
+    private final Executor sharedExecutor;
     private final MessagingService messagingService;
     private final ClusterService clusterService;
     private final File logFolder;
@@ -63,12 +65,14 @@ public class StoragePartition implements Managed<StoragePartition> {
             MessagingService messagingService,
             ClusterService clusterService,
             Serializer serializer,
+            Executor sharedExecutor,
             File logFolder) {
         this.partition = partition;
         this.messagingService = messagingService;
         this.clusterService = clusterService;
         this.localNodeId = clusterService.getLocalNode().id();
         this.serializer = serializer;
+        this.sharedExecutor = sharedExecutor;
         this.logFolder = logFolder;
     }
 
@@ -156,7 +160,8 @@ public class StoragePartition implements Managed<StoragePartition> {
     private CompletableFuture<StoragePartitionClient> openClient() {
         client = new StoragePartitionClient(this,
                 serializer,
-                new CopycatTransport(partition.getId(), messagingService));
+                new CopycatTransport(partition.getId(), messagingService),
+                sharedExecutor);
         return client.open().thenApply(v -> client);
     }
 
