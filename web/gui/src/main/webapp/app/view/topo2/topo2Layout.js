@@ -80,13 +80,16 @@
         [
             '$log', '$timeout', 'WebSocketService', 'SvgUtilService', 'Topo2RegionService',
             'Topo2ViewService', 'Topo2SelectService', 'Topo2ZoomService',
-            'Topo2ViewController',
+            'Topo2ViewController', 'Topo2RegionNavigationService',
             function ($log, $timeout, wss, sus, t2rs, t2vs, t2ss, t2zs,
-                      ViewController) {
+                      ViewController, t2rns) {
 
                 var Layout = ViewController.extend({
                     init: function (svg, forceG, uplink, dim, zoomer, opts) {
                         instance = this;
+
+                        var navToRegion = this.navigateToRegionHandler.bind(this);
+                        t2rns.addListener('region:navigation-start', navToRegion);
 
                         this.svg = svg;
 
@@ -318,7 +321,10 @@
                             .transition()
                             .delay(500)
                             .duration(500)
-                            .style('opacity', 1);
+                            .style('opacity', 1)
+                            .each('end', function () {
+                                t2rns.navigateToRegionComplete();
+                            });
                     },
                     transitionUpRegion: function () {
                         this.prevForce.transition()
@@ -331,7 +337,14 @@
                             .transition()
                             .delay(500)
                             .duration(500)
-                            .style('opacity', 1);
+                            .style('opacity', 1)
+                            .each('end', function () {
+                                t2rns.navigateToRegionComplete();
+                            });;
+                    },
+                    navigateToRegionHandler: function () {
+                        this.createForceElements();
+                        this.transitionDownRegion();
                     }
                 });
 

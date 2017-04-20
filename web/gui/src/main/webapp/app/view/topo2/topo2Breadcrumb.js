@@ -23,7 +23,7 @@
 
     'use strict';
 
-    var $log, $loc, wss;
+    var $log, $loc, wss, t2rns;
 
     // Internal
     var breadcrumbContainer,
@@ -48,29 +48,18 @@
     }
 
     function navigateToRegion(data, index) {
-
         if (index === breadcrumbs.length - 1) {
             return;
         }
 
         // Remove breadcrumbs after index;
         breadcrumbs.splice(index + 1);
-
-        // TODO: This is duplicated code - See Topo2SubRegion:navigateToRegion()
-        wss.sendEvent('topo2navRegion', {
-            rid: data.id
-        });
-
-        $loc.search('regionId', data.id);
-
-        layout.createForceElements();
-        layout.transitionDownRegion();
+        t2rns.navigateToRegion(data.id);
 
         render();
     }
 
     function render() {
-
         var selection = breadcrumbContainer.selectAll('.breadcrumb')
             .data(breadcrumbs);
 
@@ -91,7 +80,6 @@
     }
 
     function hide() {
-
         var view = d3.select('body');
         view.classed('breadcrumb--hidden', true);
 
@@ -115,11 +103,13 @@
     angular.module('ovTopo2')
     .factory('Topo2BreadcrumbService', [
         '$log', '$location', 'WebSocketService',
-        function (_$log_, _$loc_, _wss_) {
+        'Topo2RegionNavigationService',
+        function (_$log_, _$loc_, _wss_, _t2rns_) {
 
             $log = _$log_;
             $loc = _$loc_;
             wss = _wss_;
+            t2rns = _t2rns_;
 
             return {
                 init: init,

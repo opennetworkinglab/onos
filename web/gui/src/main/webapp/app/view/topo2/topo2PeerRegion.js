@@ -41,9 +41,9 @@
     angular.module('ovTopo2')
         .factory('Topo2PeerRegionService', [
             'WebSocketService', 'Topo2Collection', 'Topo2NodeModel',
-            'Topo2SubRegionPanelService',
+            'Topo2SubRegionPanelService', 'Topo2RegionNavigationService',
 
-            function (wss, _c_, NodeModel, t2srp) {
+            function (wss, _c_, NodeModel, t2srp, t2rns) {
 
                 Collection = _c_;
 
@@ -73,17 +73,8 @@
                         return remappedDeviceTypes[type] || type || 'm_cloud';
                     },
                     navigateToRegion: function () {
-
                         if (d3.event.defaultPrevented) return;
-
-                        wss.sendEvent('topo2navRegion', {
-                            rid: this.get('id')
-                        });
-
-                        var layout = this.collection.region.layout;
-                        layout.createForceElements();
-                        layout.transitionDownRegion();
-
+                        t2rns.navigateToRegion(this.get('id'));
                         t2srp.hide();
                     }
                 });
