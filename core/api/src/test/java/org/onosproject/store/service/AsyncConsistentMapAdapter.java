@@ -56,6 +56,11 @@ public class AsyncConsistentMapAdapter<K, V> implements AsyncConsistentMap<K, V>
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> getOrDefault(K key, V defaultValue) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<Versioned<V>>
     computeIf(K key, Predicate<? super V> condition,
               BiFunction<? super K, ? super V, ? extends V> remappingFunction) {

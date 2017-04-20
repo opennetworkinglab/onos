@@ -277,7 +277,7 @@ public final class AtomixConsistentTreeMapCommands {
     }
 
     /**
-     * Get query command.
+     * Get query.
      */
     @SuppressWarnings("serial")
     public static class Get extends KeyQuery<Versioned<byte[]>> {
@@ -286,6 +286,43 @@ public final class AtomixConsistentTreeMapCommands {
 
         public Get(String key) {
             super(key);
+        }
+    }
+
+    /**
+     * Get or default query.
+     */
+    @SuppressWarnings("serial")
+    public static class GetOrDefault extends KeyQuery<Versioned<byte[]>> {
+        private byte[] defaultValue;
+
+        public GetOrDefault() {
+        }
+
+        public GetOrDefault(String key, byte[] defaultValue) {
+            super(key);
+            this.defaultValue = defaultValue;
+        }
+
+        /**
+         * Returns the default value.
+         *
+         * @return the default value
+         */
+        public byte[] defaultValue() {
+            return defaultValue;
+        }
+
+        @Override
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(defaultValue, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            defaultValue = serializer.readObject(buffer);
         }
     }
 
@@ -630,6 +667,7 @@ public final class AtomixConsistentTreeMapCommands {
             registry.register(ContainsKey.class, -1161);
             registry.register(ContainsValue.class, -1162);
             registry.register(Get.class, -1163);
+            registry.register(GetOrDefault.class, -1192);
             registry.register(EntrySet.class, -1164);
             registry.register(Values.class, -1165);
             registry.register(KeySet.class, -1166);

@@ -47,6 +47,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.ContainsValue;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.EntrySet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Get;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.GetOrDefault;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.IsEmpty;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.KeySet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Listen;
@@ -101,6 +102,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
         executor.register(ContainsValue.class, this::containsValue);
         executor.register(EntrySet.class, this::entrySet);
         executor.register(Get.class, this::get);
+        executor.register(GetOrDefault.class, this::getOrDefault);
         executor.register(IsEmpty.class, this::isEmpty);
         executor.register(KeySet.class, this::keySet);
         executor.register(Size.class, this::size);
@@ -159,13 +161,27 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     /**
      * Handles a get commit.
      *
-     * @param commit
-     *            get commit
+     * @param commit get commit
      * @return value mapped to key
      */
     protected Versioned<byte[]> get(Commit<? extends Get> commit) {
         try {
             return toVersioned(mapEntries.get(commit.operation().key()));
+        } finally {
+            commit.close();
+        }
+    }
+
+    /**
+     * Handles a get or default commit.
+     *
+     * @param commit get or default commit
+     * @return value mapped to key
+     */
+    protected Versioned<byte[]> getOrDefault(Commit<? extends GetOrDefault> commit) {
+        try {
+            Versioned<byte[]> value = toVersioned(mapEntries.get(commit.operation().key()));
+            return value != null ? value : new Versioned<>(commit.operation().defaultValue(), 0);
         } finally {
             commit.close();
         }
