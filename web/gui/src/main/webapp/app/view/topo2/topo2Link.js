@@ -212,7 +212,8 @@
                 this.setScale();
             },
             amt: function (numLinks, index) {
-                var gap = 6;
+                var bbox = this.get('source').el.node().getBBox(),
+                    gap = bbox.width / 4;
                 return (index - ((numLinks - 1) / 2)) * gap;
             },
             defaultPosition: function () {
@@ -250,6 +251,11 @@
                 if (this.get('enhanced')) {
                     this.updatePortPosition();
                 }
+
+                if (this.el) {
+                    this.el.attr(this.get('position'));
+                }
+
             },
             updatePortPosition: function () {
                 var sourcePos = this.locatePortLabel(1),
@@ -333,6 +339,8 @@
                     .selectAll('.portLabel')
                     .selectAll('*')
                     .style('transform', 'scale(' + labelScale + ')');
+
+                this.setPosition();
 
             },
             update: function () {

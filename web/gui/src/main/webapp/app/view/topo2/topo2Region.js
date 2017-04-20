@@ -112,33 +112,34 @@
                         deviceConnections = {};
 
                     _.each(this.regionData.links, function (link) {
-                        var devA = _this.removePort(link.epA),
-                            devB = _this.removePort(link.epB),
-                            key = devA + '~' + devB;
 
-                        if (!deviceConnections[key]) {
-                            deviceConnections[key] = [];
-                        }
+                        var epA = _this.removePort(link.epA),
+                            epB = _this.removePort(link.epB),
+                            key = epA + '~' + epB,
+                            collection = deviceConnections[key] || [],
+                            dup = _.find(collection, link);
 
                         // TODO: Investigate why region contains dup links?!?!
                         // FIXME: This shouldn't be needed - The backend is sending dups
                         //        and this is preventing the client thinking its a multilink
-                        if (deviceConnections[key].indexOf(link) > -1) {
-                            deviceConnections[key].push(link);
+                        if (!dup) {
+                            collection.push(link);
                         }
+
+                        deviceConnections[key] = collection;
                     });
 
-                    _.each(deviceConnections, function (connection) {
-                        if (connection.length > 1) {
-                            _.orderBy(connection, ['portA']);
-                            _.each(connection, function (link, index) {
+                    _.forIn(deviceConnections, function (collection) {
+                        if (collection.length > 1) {
+                            _.each(collection, function (link, index) {
                                 link.multiline = {
-                                    deviceLinks: connection.length,
+                                    deviceLinks: collection.length,
                                     index: index
-                                };
-                            })
+                                }
+                            });
                         }
-                    });
+                    })
+
                 },
                 isRootRegion: function () {
                     return this.model.get('id') === ROOT;
