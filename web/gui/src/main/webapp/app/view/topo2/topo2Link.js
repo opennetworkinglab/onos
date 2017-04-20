@@ -209,6 +209,7 @@
             unenhance: function () {
                 this.set('enhanced', false);
                 d3.select('.topo2-portLabels').selectAll('.portLabel').remove();
+                this.setScale();
             },
             amt: function (numLinks, index) {
                 var gap = 6;
@@ -283,7 +284,6 @@
                 }
             },
             locatePortLabel: function (src) {
-
                 var offset = 32 / (labelDim * t2zs.scale()),
                     sourceX = this.get('position').x1,
                     sourceY = this.get('position').y1,
@@ -300,7 +300,7 @@
 
                 var dx = farX - nearX,
                     dy = farY - nearY,
-                    k = ((20 * t2zs.scale()) * offset) / dist(dx, dy);
+                    k = (32 * offset) / dist(dx, dy);
 
                 return { x: k * dx + nearX, y: k * dy + nearY };
             },
@@ -322,7 +322,9 @@
 
                 if (!this.el) return;
 
-                var width = linkScale(widthRatio) / t2zs.scale();
+                var linkWidthRatio = this.get('enhanced') ? 3.5 : widthRatio;
+
+                var width = linkScale(linkWidthRatio) / t2zs.scale();
                 this.el.attr('stroke-width', width + 'px');
 
                 var labelScale = labelDim / (labelDim * t2zs.scale());

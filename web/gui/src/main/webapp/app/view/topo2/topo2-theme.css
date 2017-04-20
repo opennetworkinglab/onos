@@ -283,7 +283,6 @@
 
 #ov-topo2 svg .link.selected,
 #ov-topo2 svg .link.enhanced {
-    stroke-width: 3.5;
     stroke: #009fdb;
 }
 

@@ -120,7 +120,12 @@
                             deviceConnections[key] = [];
                         }
 
-                        deviceConnections[key].push(link);
+                        // TODO: Investigate why region contains dup links?!?!
+                        // FIXME: This shouldn't be needed - The backend is sending dups
+                        //        and this is preventing the client thinking its a multilink
+                        if (deviceConnections[key].indexOf(link) > -1) {
+                            deviceConnections[key].push(link);
+                        }
                     });
 
                     _.each(deviceConnections, function (connection) {
