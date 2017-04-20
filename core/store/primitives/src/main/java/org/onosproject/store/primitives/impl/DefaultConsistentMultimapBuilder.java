@@ -36,8 +36,7 @@ public class DefaultConsistentMultimapBuilder<K, V>
 
     @Override
     public AsyncConsistentMultimap<K, V> buildMultimap() {
-        return primitiveCreator.newAsyncConsistentSetMultimap(
-                name(), serializer());
+        return primitiveCreator.newAsyncConsistentSetMultimap(name(), serializer(), executorSupplier());
     }
 
     @Override

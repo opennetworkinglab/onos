@@ -16,6 +16,7 @@
 
 package org.onosproject.store.primitives.impl;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.File;
@@ -23,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -81,6 +84,9 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     private final Map<PartitionId, StoragePartition> partitions = Maps.newConcurrentMap();
     private final AtomicReference<ClusterMetadata> currentClusterMetadata = new AtomicReference<>();
     private final InternalClusterMetadataListener metadataListener = new InternalClusterMetadataListener();
+    private final ExecutorService sharedPrimitiveExecutor = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors(),
+            groupedThreads("onos/primitives", "primitive-events", log));
 
     @Activate
     public void activate() {
@@ -93,6 +99,7 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                                messagingService,
                                clusterService,
                                CatalystSerializers.getSerializer(),
+                               sharedPrimitiveExecutor,
                                new File(System.getProperty("karaf.data") + "/partitions/" + partition.getId()))));
 
         CompletableFuture<Void> openFuture = CompletableFuture.allOf(partitions.values()

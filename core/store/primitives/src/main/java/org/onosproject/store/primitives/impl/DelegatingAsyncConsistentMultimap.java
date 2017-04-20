@@ -16,18 +16,14 @@
 
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import com.google.common.collect.Multiset;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.Versioned;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * {@code AsyncConsistentMultimap} that merely delegates control to
@@ -37,18 +33,14 @@ import java.util.function.Consumer;
  * @param <V> value type
  */
 public class DelegatingAsyncConsistentMultimap<K, V>
-        implements AsyncConsistentMultimap<K, V> {
+        extends DelegatingDistributedPrimitive implements AsyncConsistentMultimap<K, V> {
 
     private final AsyncConsistentMultimap<K, V> delegateMap;
 
     public DelegatingAsyncConsistentMultimap(
             AsyncConsistentMultimap<K, V> delegateMap) {
-        this.delegateMap = Preconditions.checkNotNull(delegateMap);
-    }
-
-    @Override
-    public String name() {
-        return delegateMap.name();
+        super(delegateMap);
+        this.delegateMap = delegateMap;
     }
 
     @Override
@@ -143,42 +135,5 @@ public class DelegatingAsyncConsistentMultimap<K, V>
     @Override
     public CompletableFuture<Map<K, Collection<V>>> asMap() {
         return delegateMap.asMap();
-    }
-
-    @Override
-    public void addStatusChangeListener(Consumer<Status> listener) {
-        delegateMap.addStatusChangeListener(listener);
-    }
-
-    @Override
-    public void removeStatusChangeListener(Consumer<Status> listener) {
-        delegateMap.removeStatusChangeListener(listener);
-    }
-
-    @Override
-    public Collection<Consumer<Status>> statusChangeListeners() {
-        return delegateMap.statusChangeListeners();
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("delegateMap", delegateMap)
-                .toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(delegateMap);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof DelegatingAsyncConsistentMultimap) {
-            DelegatingAsyncConsistentMultimap<K, V> that =
-                    (DelegatingAsyncConsistentMultimap) other;
-            return this.delegateMap.equals(that.delegateMap);
-        }
-        return false;
     }
 }

@@ -39,6 +39,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -626,6 +627,32 @@ public abstract class Tools {
         CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(t);
         return future;
+    }
+
+    /**
+     * Returns a future that's completed using the given {@link Executor} once the given {@code future} is completed.
+     * <p>
+     * {@link CompletableFuture}'s async methods cannot be relied upon to complete futures on an executor thread. If a
+     * future is completed synchronously, {@code CompletableFuture} async methods will often complete the future on the
+     * current thread, ignoring the provided {@code Executor}. This method ensures a more reliable and consistent thread
+     * model by ensuring that futures are always completed using the provided {@code Executor}.
+     *
+     * @param future the future to convert into an asynchronous future
+     * @param executor the executor with which to complete the returned future
+     * @param <T> future value type
+     * @return a new completable future to be completed using the provided {@code executor} once the provided
+     * {@code future} is complete
+     */
+    public static <T> CompletableFuture<T> asyncFuture(CompletableFuture<T> future, Executor executor) {
+        CompletableFuture<T> newFuture = new CompletableFuture<T>();
+        future.whenComplete((result, error) -> executor.execute(() -> {
+            if (future.isCompletedExceptionally()) {
+                newFuture.completeExceptionally(error);
+            } else {
+                newFuture.complete(result);
+            }
+        }));
+        return newFuture;
     }
 
     /**

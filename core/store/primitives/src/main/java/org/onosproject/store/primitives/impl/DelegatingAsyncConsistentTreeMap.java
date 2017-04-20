@@ -16,14 +16,6 @@
 
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.store.primitives.MapUpdate;
-import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.service.AsyncConsistentTreeMap;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.TransactionLog;
-import org.onosproject.store.service.Version;
-import org.onosproject.store.service.Versioned;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -35,6 +27,14 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import org.onosproject.store.primitives.MapUpdate;
+import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
+import org.onosproject.store.service.Versioned;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -42,11 +42,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * of {@link AsyncConsistentTreeMap}.
  */
 public class DelegatingAsyncConsistentTreeMap<V>
-        implements AsyncConsistentTreeMap<V> {
+        extends DelegatingDistributedPrimitive implements AsyncConsistentTreeMap<V> {
 
     private final AsyncConsistentTreeMap<V> delegateMap;
 
     DelegatingAsyncConsistentTreeMap(AsyncConsistentTreeMap<V> delegateMap) {
+        super(delegateMap);
         this.delegateMap = checkNotNull(delegateMap,
                                         "delegate map cannot be null");
     }
@@ -134,11 +135,6 @@ public class DelegatingAsyncConsistentTreeMap<V>
             boolean inclusiveLower) {
         return delegateMap.subMap(upperKey, lowerKey,
                                   inclusiveUpper, inclusiveLower);
-    }
-
-    @Override
-    public String name() {
-        return delegateMap.name();
     }
 
     @Override
@@ -293,5 +289,4 @@ public class DelegatingAsyncConsistentTreeMap<V>
     public int hashCode() {
         return Objects.hash(delegateMap);
     }
-
 }
