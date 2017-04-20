@@ -538,12 +538,18 @@ public class IntentsListCommand extends AbstractShellCommand {
         } else if (intent instanceof OpticalCircuitIntent) {
             OpticalCircuitIntent ci = (OpticalCircuitIntent) intent;
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("signal type=%s", ci.getSignalType()));
+            builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
         } else if (intent instanceof OpticalConnectivityIntent) {
             OpticalConnectivityIntent ci = (OpticalConnectivityIntent) intent;
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("signal type=%s", ci.getSignalType()));
+            builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
         } else if (intent instanceof OpticalOduIntent) {
             OpticalOduIntent ci = (OpticalOduIntent) intent;
             builder.append('\n').append(format("src=%s, dst=%s", ci.getSrc(), ci.getDst()));
+            builder.append('\n').append(format("signal type=%s", ci.getSignalType()));
+            builder.append('\n').append(format("bidirectional=%s", ci.isBidirectional()));
         }
 
         List<Intent> installable = service.getInstallableIntents(intent.key());
