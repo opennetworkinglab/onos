@@ -41,7 +41,7 @@ public class MeterRemoveCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String uri = null;
 
-    @Argument(index = 1, name = "meterId", description = "Meter ID",
+    @Argument(index = 1, name = "meterId", description = "Meter ID hexadecimal value",
             required = true, multiValued = false)
     private String meterIdstr = null;
 
@@ -53,7 +53,7 @@ public class MeterRemoveCommand extends AbstractShellCommand {
         CoreService coreService = get(CoreService.class);
 
         DeviceId deviceId = DeviceId.deviceId(uri);
-        MeterId meterId = MeterId.meterId(Long.parseLong(meterIdstr));
+        MeterId meterId = MeterId.meterId(Long.parseLong(meterIdstr, 16));
 
         Band b = new DefaultBand(Band.Type.DROP, 0L, 0L, (short) 0);
 
