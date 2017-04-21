@@ -86,12 +86,10 @@
         <dependency>
             <groupId>info.ganglia.gmetric4j</groupId>
             <artifactId>gmetric4j</artifactId>
-            <version>1.0.10</version>
         </dependency>
         <dependency>
             <groupId>org.acplt.remotetea</groupId>
             <artifactId>remotetea-oncrpc</artifactId>
-            <version>1.1.3</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -111,4 +109,18 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>info.ganglia.gmetric4j</groupId>
+                <artifactId>gmetric4j</artifactId>
+                <version>1.0.10</version>
+            </dependency>
+            <dependency>
+                 <groupId>org.acplt.remotetea</groupId>
+                 <artifactId>remotetea-oncrpc</artifactId>
+                 <version>1.1.3</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
