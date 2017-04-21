@@ -33,7 +33,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.PUT)
             .build();
 
@@ -42,7 +41,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.REMOVE)
             .build();
 
@@ -51,7 +49,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.REMOVE_IF_VALUE_MATCH)
             .build();
 
@@ -60,7 +57,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
             .build();
 
@@ -69,7 +65,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.PUT_IF_VALUE_MATCH)
             .build();
 
@@ -78,7 +73,6 @@ public class MapUpdateTest {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withMapName("5")
             .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
             .build();
 
@@ -91,7 +85,6 @@ public class MapUpdateTest {
         assertThat(stats1.value(), is("2".getBytes()));
         assertThat(stats1.currentVersion(), is(3L));
         assertThat(stats1.key(), is("4"));
-        assertThat(stats1.mapName(), is("5"));
         assertThat(stats1.type(), is(MapUpdate.Type.PUT));
     }
 

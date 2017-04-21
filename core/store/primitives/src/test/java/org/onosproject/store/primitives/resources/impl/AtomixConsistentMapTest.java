@@ -26,7 +26,7 @@ import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Arrays;
@@ -366,7 +366,8 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
                 .withValue(value1)
                 .build();
 
-        MapTransaction<String, byte[]> tx = new MapTransaction<>(TransactionId.from("tx1"), Arrays.asList(update1));
+        TransactionLog<MapUpdate<String, byte[]>> tx =
+                new TransactionLog<>(TransactionId.from("tx1"), Arrays.asList(update1));
 
         map.prepare(tx).thenAccept(result -> {
             assertEquals(true, result);
@@ -416,7 +417,7 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
                 .withCurrentVersion(currFooVersion)
                 .build();
 
-        tx = new MapTransaction<>(TransactionId.from("tx2"), Arrays.asList(remove1));
+        tx = new TransactionLog<>(TransactionId.from("tx2"), Arrays.asList(remove1));
 
         map.prepare(tx).thenAccept(result -> {
             assertTrue("prepare should succeed", result);
@@ -459,7 +460,8 @@ public class AtomixConsistentMapTest extends AtomixTestBase {
                 .withKey("foo")
                 .withValue(value1)
                 .build();
-        MapTransaction<String, byte[]> tx = new MapTransaction<>(TransactionId.from("tx1"), Arrays.asList(update1));
+        TransactionLog<MapUpdate<String, byte[]>> tx =
+                new TransactionLog<>(TransactionId.from("tx1"), Arrays.asList(update1));
         map.prepare(tx).thenAccept(result -> {
             assertEquals(true, result);
         }).join();

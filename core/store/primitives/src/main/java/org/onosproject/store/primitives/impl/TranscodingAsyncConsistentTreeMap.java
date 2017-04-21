@@ -18,11 +18,13 @@ package org.onosproject.store.primitives.impl;
 
 import com.google.common.collect.Maps;
 import org.onlab.util.Tools;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
@@ -361,27 +363,30 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(
-            MapTransaction<String, V1> transaction) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<String, V1>> transactionLog) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<String, V1>> transactionLog) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");    }
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");    }
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
 
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(
-            MapTransaction<String, V1> transaction) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");    }
     private class InternalBackingMapEventListener
             implements MapEventListener<String, V2> {
 

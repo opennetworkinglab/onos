@@ -23,40 +23,38 @@ import java.util.concurrent.CompletableFuture;
 public interface TransactionParticipant {
 
     /**
-     * Returns if this participant has updates that need to be committed.
-     * @return {@code true} if yes; {@code false} otherwise
+     * Returns a boolean indicating whether the participant has pending updates.
+     *
+     * @return indicates whether the participant has pending updates
      */
-    default boolean hasPendingUpdates() {
-        return totalUpdates() > 0;
-    }
-
-    /**
-     * Returns the number of updates that need to committed for this participant.
-     * @return update count.
-     */
-    int totalUpdates();
-
-    /**
-     * Executes the prepare and commit steps in a single go.
-     * @return {@code true} is successful i.e updates are committed; {@code false} otherwise
-     */
-    CompletableFuture<Boolean> prepareAndCommit();
+    boolean hasPendingUpdates();
 
     /**
      * Executes the prepare phase.
+     *
      * @return {@code true} is successful; {@code false} otherwise
      */
     CompletableFuture<Boolean> prepare();
 
     /**
      * Attempts to execute the commit phase for previously prepared transaction.
+     *
      * @return future that is completed when the operation completes
      */
     CompletableFuture<Void> commit();
 
     /**
+     * Executes the prepare and commit phases atomically.
+     *
+     * @return {@code true} is successful; {@code false} otherwise
+     */
+    CompletableFuture<Boolean> prepareAndCommit();
+
+    /**
      * Attempts to execute the rollback phase for previously prepared transaction.
+     *
      * @return future that is completed when the operation completes
      */
     CompletableFuture<Void> rollback();
+
 }
