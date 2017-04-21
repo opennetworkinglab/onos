@@ -19,6 +19,7 @@ package org.onosproject.store.primitives;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.onlab.util.ByteArraySizeHashPrinter;
@@ -42,6 +43,7 @@ public final class MapUpdate<K, V> {
          * Insert/Update entry without any checks.
          */
         PUT,
+
         /**
          * Insert an entry iff there is no existing entry for that key.
          */
@@ -73,21 +75,11 @@ public final class MapUpdate<K, V> {
         REMOVE_IF_VALUE_MATCH,
     }
 
-    private String mapName;
     private Type type;
     private K key;
     private V value;
     private V currentValue;
     private long currentVersion = -1;
-
-    /**
-     * Returns the name of the map.
-     *
-     * @return map name
-     */
-    public String mapName() {
-        return mapName;
-    }
 
     /**
      * Returns the type of update operation.
@@ -140,7 +132,6 @@ public final class MapUpdate<K, V> {
      */
     public <S, T> MapUpdate<S, T> map(Function<K, S> keyMapper, Function<V, T> valueMapper) {
         return MapUpdate.<S, T>newBuilder()
-                .withMapName(mapName)
                 .withType(type)
                 .withKey(keyMapper.apply(key))
                 .withValue(value == null ? null : valueMapper.apply(value))
@@ -150,9 +141,26 @@ public final class MapUpdate<K, V> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(type, key, value, currentValue, currentVersion);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof MapUpdate) {
+            MapUpdate that = (MapUpdate) object;
+            return this.type == that.type
+                    && Objects.equals(this.key, that.key)
+                    && Objects.equals(this.value, that.value)
+                    && Objects.equals(this.currentValue, that.currentValue)
+                    && Objects.equals(this.currentVersion, that.currentVersion);
+        }
+        return false;
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-            .add("mapName", mapName)
             .add("type", type)
             .add("key", key)
             .add("value", value instanceof byte[] ? new ByteArraySizeHashPrinter((byte[]) value) : value)
@@ -185,11 +193,6 @@ public final class MapUpdate<K, V> {
         public MapUpdate<K, V> build() {
             validateInputs();
             return update;
-        }
-
-        public Builder<K, V> withMapName(String name) {
-            update.mapName = checkNotNull(name, "name cannot be null");
-            return this;
         }
 
         public Builder<K, V> withType(Type type) {

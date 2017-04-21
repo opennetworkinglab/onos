@@ -29,11 +29,13 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.onlab.util.Tools;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.Maps;
@@ -266,9 +268,27 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(MapTransaction<K1, V1> transaction) {
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
         try {
-            return backingMap.prepare(transaction.map(keyEncoder, valueEncoder));
+            return backingMap.begin(transactionId);
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<K1, V1>> transactionLog) {
+        try {
+            return backingMap.prepare(transactionLog.map(record -> record.map(keyEncoder, valueEncoder)));
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<K1, V1>> transactionLog) {
+        try {
+            return backingMap.prepareAndCommit(transactionLog.map(record -> record.map(keyEncoder, valueEncoder)));
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }
@@ -276,18 +296,17 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        return backingMap.commit(transactionId);
+        try {
+            return backingMap.commit(transactionId);
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return backingMap.rollback(transactionId);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K1, V1> transaction) {
         try {
-            return backingMap.prepareAndCommit(transaction.map(keyEncoder, valueEncoder));
+            return backingMap.rollback(transactionId);
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }

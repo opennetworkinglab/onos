@@ -30,8 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.MoreObjects;
@@ -202,39 +203,49 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
+     * Transaction begin query.
+     */
+    public static class TransactionBegin extends MapQuery<Long> {
+        @Override
+        public ConsistencyLevel consistency() {
+            return ConsistencyLevel.LINEARIZABLE;
+        }
+    }
+
+    /**
      * Map prepare command.
      */
     @SuppressWarnings("serial")
     public static class TransactionPrepare extends MapCommand<PrepareResult> {
-        private MapTransaction<String, byte[]> mapTransaction;
+        private TransactionLog<MapUpdate<String, byte[]>> transactionLog;
 
         public TransactionPrepare() {
         }
 
-        public TransactionPrepare(MapTransaction<String, byte[]> mapTransaction) {
-            this.mapTransaction = mapTransaction;
+        public TransactionPrepare(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+            this.transactionLog = transactionLog;
         }
 
-        public MapTransaction<String, byte[]> transaction() {
-            return mapTransaction;
+        public TransactionLog<MapUpdate<String, byte[]>> transactionLog() {
+            return transactionLog;
         }
 
         @Override
         public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
             super.writeObject(buffer, serializer);
-            serializer.writeObject(mapTransaction, buffer);
+            serializer.writeObject(transactionLog, buffer);
         }
 
         @Override
         public void readObject(BufferInput<?> buffer, Serializer serializer) {
             super.readObject(buffer, serializer);
-            mapTransaction = serializer.readObject(buffer);
+            transactionLog = serializer.readObject(buffer);
         }
 
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
-                    .add("mapTransaction", mapTransaction)
+                    .add("transactionLog", transactionLog)
                     .toString();
         }
     }
@@ -247,8 +258,8 @@ public final class AtomixConsistentMapCommands {
         public TransactionPrepareAndCommit() {
         }
 
-        public TransactionPrepareAndCommit(MapTransaction<String, byte[]> mapTransaction) {
-            super(mapTransaction);
+        public TransactionPrepareAndCommit(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+            super(transactionLog);
         }
 
         @Override
@@ -592,6 +603,7 @@ public final class AtomixConsistentMapCommands {
             registry.register(Size.class, -769);
             registry.register(Listen.class, -770);
             registry.register(Unlisten.class, -771);
+            registry.register(TransactionBegin.class, -777);
             registry.register(TransactionPrepare.class, -772);
             registry.register(TransactionCommit.class, -773);
             registry.register(TransactionRollback.class, -774);

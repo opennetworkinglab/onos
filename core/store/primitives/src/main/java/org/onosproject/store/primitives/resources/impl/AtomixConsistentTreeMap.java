@@ -21,6 +21,7 @@ import io.atomix.copycat.client.CopycatClient;
 import io.atomix.resource.AbstractResource;
 import io.atomix.resource.ResourceTypeInfo;
 import org.onlab.util.Match;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FirstKey;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCommands.FloorEntry;
@@ -30,7 +31,8 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMapCo
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
@@ -368,40 +370,38 @@ public class AtomixConsistentTreeMap extends AbstractResource<AtomixConsistentTr
 
     @Override
     public CompletableFuture<NavigableSet<String>> navigableKeySet() {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 
     @Override
     public CompletableFuture<NavigableMap<String, byte[]>> subMap(
             String upperKey, String lowerKey, boolean inclusiveUpper,
             boolean inclusiveLower) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");    }
-
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<String,
-            byte[]> transaction) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(MapTransaction<String, byte[]>
-                                                          transaction) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        throw new UnsupportedOperationException("This operation is not yet " +
-                                                        "supported.");
+        throw new UnsupportedOperationException("This operation is not yet supported.");
     }
 }
