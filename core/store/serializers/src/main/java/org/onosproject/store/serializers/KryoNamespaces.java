@@ -220,7 +220,7 @@ import org.onosproject.store.Timestamp;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.Task;
 import org.onosproject.store.service.Versioned;
@@ -528,7 +528,7 @@ public final class KryoNamespaces {
             .register(ExtensionSelectorType.class)
             .register(ExtensionTreatmentType.class)
             .register(TransactionId.class)
-            .register(MapTransaction.class)
+            .register(TransactionLog.class)
             .register(MapUpdate.class)
             .register(MapUpdate.Type.class)
             .register(Versioned.class)

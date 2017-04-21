@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -37,12 +36,12 @@ import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -200,54 +199,28 @@ public class PartitionedAsyncConsistentMap<K, V> implements AsyncConsistentMap<K
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction) {
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        throw new UnsupportedOperationException();
+    }
 
-        Map<AsyncConsistentMap<K, V>, List<MapUpdate<K, V>>> updatesGroupedByMap = Maps.newIdentityHashMap();
-        transaction.updates().forEach(update -> {
-            AsyncConsistentMap<K, V> map = getMap(update.key());
-            updatesGroupedByMap.computeIfAbsent(map, k -> Lists.newLinkedList()).add(update);
-        });
-        Map<AsyncConsistentMap<K, V>, MapTransaction<K, V>> transactionsByMap =
-                Maps.transformValues(updatesGroupedByMap,
-                                     list -> new MapTransaction<>(transaction.transactionId(), list));
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<K, V>> transactionLog) {
+        throw new UnsupportedOperationException();
+    }
 
-        return Tools.allOf(transactionsByMap.entrySet()
-                         .stream()
-                         .map(e -> e.getKey().prepare(e.getValue()))
-                         .collect(Collectors.toList()))
-                    .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<K, V>> transactionLog) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        return CompletableFuture.allOf(getMaps().stream()
-                                                .map(e -> e.commit(transactionId))
-                                                .toArray(CompletableFuture[]::new));
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return CompletableFuture.allOf(getMaps().stream()
-                .map(e -> e.rollback(transactionId))
-                .toArray(CompletableFuture[]::new));
-    }
-
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
-        Map<AsyncConsistentMap<K, V>, List<MapUpdate<K, V>>> updatesGroupedByMap = Maps.newIdentityHashMap();
-        transaction.updates().forEach(update -> {
-            AsyncConsistentMap<K, V> map = getMap(update.key());
-            updatesGroupedByMap.computeIfAbsent(map, k -> Lists.newLinkedList()).add(update);
-        });
-        Map<AsyncConsistentMap<K, V>, MapTransaction<K, V>> transactionsByMap =
-                Maps.transformValues(updatesGroupedByMap,
-                                     list -> new MapTransaction<>(transaction.transactionId(), list));
-
-        return Tools.allOf(transactionsByMap.entrySet()
-                                            .stream()
-                                            .map(e -> e.getKey().prepareAndCommit(e.getValue()))
-                                            .collect(Collectors.toList()))
-                    .thenApply(list -> list.stream().reduce(Boolean::logicalAnd).orElse(true));
+        throw new UnsupportedOperationException();
     }
 
     @Override

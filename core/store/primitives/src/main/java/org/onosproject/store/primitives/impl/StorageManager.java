@@ -42,7 +42,6 @@ import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicValue;
-import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
@@ -69,7 +68,6 @@ import org.onosproject.store.service.WorkQueueStats;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 
 /**
  * Implementation for {@code StorageService} and {@code StorageAdminService}.
@@ -98,8 +96,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     private final Supplier<TransactionId> transactionIdGenerator =
             () -> TransactionId.from(UUID.randomUUID().toString());
     private DistributedPrimitiveCreator federatedPrimitiveCreator;
-    private AsyncConsistentMap<TransactionId, Transaction.State> transactions;
-    private TransactionCoordinator transactionCoordinator;
+    private TransactionManager transactionManager;
 
     @Activate
     public void activate() {
@@ -108,13 +105,7 @@ public class StorageManager implements StorageService, StorageAdminService {
             .filter(id -> !id.equals(PartitionId.from(0)))
             .forEach(id -> partitionMap.put(id, partitionService.getDistributedPrimitiveCreator(id)));
         federatedPrimitiveCreator = new FederatedDistributedPrimitiveCreator(partitionMap);
-        transactions = this.<TransactionId, Transaction.State>consistentMapBuilder()
-                    .withName("onos-transactions")
-                    .withSerializer(Serializer.using(KryoNamespaces.API,
-                            Transaction.class,
-                            Transaction.State.class))
-                    .buildAsyncMap();
-        transactionCoordinator = new TransactionCoordinator(transactions);
+        transactionManager = new TransactionManager(this, partitionService);
         log.info("Started");
     }
 
@@ -187,9 +178,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultTransactionContextBuilder(transactionIdGenerator.get(),
-                federatedPrimitiveCreator,
-                transactionCoordinator);
+        return new DefaultTransactionContextBuilder(transactionIdGenerator.get(), transactionManager);
     }
 
     @Override
@@ -259,7 +248,7 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Override
     public Collection<TransactionId> getPendingTransactions() {
-        return Futures.getUnchecked(transactions.keySet());
+        return transactionManager.getPendingTransactions();
     }
 
     private List<MapInfo> listMapInfo(DistributedPrimitiveCreator creator) {

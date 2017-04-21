@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,26 @@
 package org.onosproject.store.service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
-
-import org.onosproject.store.primitives.MapUpdate;
-import org.onosproject.store.primitives.TransactionId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.onosproject.store.primitives.TransactionId;
 
 /**
- * Collection of map updates to be committed atomically.
+ * Collection of transaction updates to be applied atomically.
  *
- * @param <K> key type
- * @param <V> value type
+ * @param <T> log record type
  */
-public class MapTransaction<K, V> {
-
+public class TransactionLog<T> {
     private final TransactionId transactionId;
-    private final List<MapUpdate<K, V>> updates;
+    private final List<T> records;
 
-    public MapTransaction(TransactionId transactionId, List<MapUpdate<K, V>> updates) {
+    public TransactionLog(TransactionId transactionId, List<T> records) {
         this.transactionId = transactionId;
-        this.updates = ImmutableList.copyOf(updates);
+        this.records = ImmutableList.copyOf(records);
     }
 
     /**
@@ -51,33 +48,46 @@ public class MapTransaction<K, V> {
     }
 
     /**
-     * Returns the list of map updates.
+     * Returns the list of transaction log records.
      *
-     * @return map updates
+     * @return a list of transaction log records
      */
-    public List<MapUpdate<K, V>> updates() {
-        return updates;
+    public List<T> records() {
+        return records;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof TransactionLog) {
+            TransactionLog that = (TransactionLog) object;
+            return this.transactionId.equals(that.transactionId)
+                    && this.records.equals(that.records);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transactionId, records);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("transactionId", transactionId)
-                .add("updates", updates)
+                .add("records", records)
                 .toString();
     }
 
     /**
      * Maps this instance to another {@code MapTransaction} with different key and value types.
      *
-     * @param keyMapper function for mapping key types
-     * @param valueMapper function for mapping value types
+     * @param mapper function for mapping record types
      * @return newly typed instance
      *
-     * @param <S> key type of returned instance
-     * @param <T> value type of returned instance
+     * @param <U> record type of returned instance
      */
-    public <S, T> MapTransaction<S, T> map(Function<K, S> keyMapper, Function<V, T> valueMapper) {
-        return new MapTransaction<>(transactionId, Lists.transform(updates, u -> u.map(keyMapper, valueMapper)));
+    public <U> TransactionLog<U> map(Function<T, U> mapper) {
+        return new TransactionLog<>(transactionId, Lists.transform(records, mapper::apply));
     }
 }

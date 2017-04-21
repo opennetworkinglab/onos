@@ -24,6 +24,7 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 
 /**
@@ -143,7 +144,17 @@ public class AsyncConsistentMapAdapter<K, V> implements AsyncConsistentMap<K, V>
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction) {
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<K, V>> transactionLog) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<K, V>> transactionLog) {
         return null;
     }
 
@@ -154,11 +165,6 @@ public class AsyncConsistentMapAdapter<K, V> implements AsyncConsistentMap<K, V>
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
         return null;
     }
 }

@@ -52,6 +52,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.KeySet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Listen;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Size;
+import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionBegin;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionCommit;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepare;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.TransactionPrepareAndCommit;
@@ -60,7 +61,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapComman
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.UpdateAndGet;
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapCommands.Values;
 import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
@@ -110,6 +111,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
         // Commands
         executor.register(UpdateAndGet.class, this::updateAndGet);
         executor.register(AtomixConsistentMapCommands.Clear.class, this::clear);
+        executor.register(TransactionBegin.class, this::begin);
         executor.register(TransactionPrepare.class, this::prepare);
         executor.register(TransactionCommit.class, this::commit);
         executor.register(TransactionRollback.class, this::rollback);
@@ -374,6 +376,20 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     }
 
     /**
+     * Handles a begin commit.
+     *
+     * @param commit transaction begin commit
+     * @return transaction state version
+     */
+    protected long begin(Commit<? extends TransactionBegin> commit) {
+        try {
+            return commit.index();
+        } finally {
+            commit.close();
+        }
+    }
+
+    /**
      * Handles an prepare and commit commit.
      *
      * @param commit transaction prepare and commit commit
@@ -382,7 +398,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     protected PrepareResult prepareAndCommit(Commit<? extends TransactionPrepareAndCommit> commit) {
         PrepareResult prepareResult = prepare(commit);
         if (prepareResult == PrepareResult.OK) {
-            commitInternal(commit.operation().transaction().transactionId(), commit.index());
+            commitInternal(commit.operation().transactionLog().transactionId(), commit.index());
         }
         return prepareResult;
     }
@@ -396,8 +412,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     protected PrepareResult prepare(Commit<? extends TransactionPrepare> commit) {
         boolean ok = false;
         try {
-            MapTransaction<String, byte[]> transaction = commit.operation().transaction();
-            for (MapUpdate<String, byte[]> update : transaction.updates()) {
+            TransactionLog<MapUpdate<String, byte[]>> transaction = commit.operation().transactionLog();
+            for (MapUpdate<String, byte[]> update : transaction.records()) {
                 String key = update.key();
                 if (preparedKeys.contains(key)) {
                     return PrepareResult.CONCURRENT_TRANSACTION;
@@ -416,7 +432,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
             // No violations detected. Add to pendingTransactions and mark
             // modified keys as locked for updates.
             pendingTransactions.put(transaction.transactionId(), commit);
-            transaction.updates().forEach(u -> preparedKeys.add(u.key()));
+            transaction.records().forEach(u -> preparedKeys.add(u.key()));
             ok = true;
             return PrepareResult.OK;
         } catch (Exception e) {
@@ -453,16 +469,16 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
         if (prepareCommit == null) {
             return CommitResult.UNKNOWN_TRANSACTION_ID;
         }
-        MapTransaction<String, byte[]> transaction = prepareCommit.operation().transaction();
+        TransactionLog<MapUpdate<String, byte[]>> transaction = prepareCommit.operation().transactionLog();
         long totalReferencesToCommit = transaction
-                .updates()
+                .records()
                 .stream()
                 .filter(update -> update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
                 .count();
         CountDownCompleter<Commit<? extends TransactionPrepare>> completer =
                 new CountDownCompleter<>(prepareCommit, totalReferencesToCommit, Commit::close);
         List<MapEvent<String, byte[]>> eventsToPublish = Lists.newArrayList();
-        for (MapUpdate<String, byte[]> update : transaction.updates()) {
+        for (MapUpdate<String, byte[]> update : transaction.records()) {
             String key = update.key();
             checkState(preparedKeys.remove(key), "key is not prepared");
             MapEntryValue previousValue = mapEntries.remove(key);
@@ -496,8 +512,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
                 return RollbackResult.UNKNOWN_TRANSACTION_ID;
             } else {
                 prepareCommit.operation()
-                             .transaction()
-                             .updates()
+                             .transactionLog()
+                             .records()
                              .forEach(u -> preparedKeys.remove(u.key()));
                 prepareCommit.close();
                 return RollbackResult.OK;
@@ -648,7 +664,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
 
         @Override
         public byte[] value() {
-            MapTransaction<String, byte[]> transaction = completer.object().operation().transaction();
+            TransactionLog<MapUpdate<String, byte[]>> transaction = completer.object().operation().transactionLog();
             return valueForKey(key, transaction);
         }
 
@@ -662,8 +678,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
             completer.countDown();
         }
 
-        private byte[] valueForKey(String key, MapTransaction<String, byte[]> transaction) {
-            MapUpdate<String, byte[]>  update = transaction.updates()
+        private byte[] valueForKey(String key, TransactionLog<MapUpdate<String, byte[]>> transaction) {
+            MapUpdate<String, byte[]>  update = transaction.records()
                                                            .stream()
                                                            .filter(u -> u.key().equals(key))
                                                            .findFirst()

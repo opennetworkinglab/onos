@@ -29,10 +29,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.MapTransaction;
+import org.onosproject.store.service.TransactionLog;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 import com.google.common.base.MoreObjects;
@@ -170,8 +172,18 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     }
 
     @Override
-    public CompletableFuture<Boolean> prepare(MapTransaction<K, V> transaction) {
-        return delegateMap.prepare(transaction);
+    public CompletableFuture<Version> begin(TransactionId transactionId) {
+        return delegateMap.begin(transactionId);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<K, V>> transactionLog) {
+        return delegateMap.prepare(transactionLog);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<K, V>> transactionLog) {
+        return delegateMap.prepareAndCommit(transactionLog);
     }
 
     @Override
@@ -182,11 +194,6 @@ public class DelegatingAsyncConsistentMap<K, V> implements AsyncConsistentMap<K,
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         return delegateMap.rollback(transactionId);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> prepareAndCommit(MapTransaction<K, V> transaction) {
-        return delegateMap.prepareAndCommit(transaction);
     }
 
     @Override
