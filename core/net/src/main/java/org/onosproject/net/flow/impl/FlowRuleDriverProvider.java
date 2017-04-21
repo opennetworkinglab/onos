@@ -193,6 +193,11 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         }
     }
 
+    // potentially positive device event
+    private static final Set<DeviceEvent.Type> POSITIVE_DEVICE_EVENT =
+            Sets.immutableEnumSet(DEVICE_ADDED,
+                                  DEVICE_AVAILABILITY_CHANGED);
+
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
@@ -200,15 +205,20 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
             executor.execute(() -> handleEvent(event));
         }
 
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            Device device = event.subject();
+            return POSITIVE_DEVICE_EVENT.contains(event.type()) &&
+                   device.is(FlowRuleProgrammable.class);
+        }
+
         private void handleEvent(DeviceEvent event) {
             Device device = event.subject();
-            boolean isRelevant = mastershipService.isLocalMaster(device.id())
-                    && device.is(FlowRuleProgrammable.class)
-                    && (event.type() == DEVICE_ADDED ||
-                        event.type() == DEVICE_UPDATED ||
-                        (event.type() == DEVICE_AVAILABILITY_CHANGED && deviceService.isAvailable(device.id())));
+            boolean isRelevant = mastershipService.isLocalMaster(device.id()) &&
+                    deviceService.isAvailable(device.id());
+
             if (isRelevant) {
-                pollDeviceFlowEntries(event.subject());
+                pollDeviceFlowEntries(device);
             }
         }
     }
