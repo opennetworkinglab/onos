@@ -291,7 +291,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         Device device = deviceService.getDevice(deviceId);
         String ip;
         int port;
-        Socket socket = null;
         if (device != null) {
             ip = device.annotations().value(IPADDRESS);
             port = Integer.parseInt(device.annotations().value(PORT));
@@ -310,22 +309,12 @@ public class NetconfDeviceProvider extends AbstractProvider
             }
         }
         //test connection to device opening a socket to it.
-        try {
-            socket = new Socket(ip, port);
+        try (Socket socket = new Socket(ip, port)) {
             log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected(), !socket.isClosed());
             return socket.isConnected() && !socket.isClosed();
         } catch (IOException e) {
             log.info("Device {} is not reachable", deviceId);
             return false;
-        } finally {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    log.debug("Test Socket failed {} ", deviceId);
-                    return false;
-                }
-            }
         }
     }
 
