@@ -348,7 +348,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         PortCriterion portCriterion = null;
         EthCriterion ethCriterion = null;
         VlanIdCriterion vidCriterion = null;
-        Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
+        Collection<IPCriterion> ips = new ArrayList<>();
         if (!filt.key().equals(Criteria.dummy()) &&
                 filt.key().type() == Criterion.Type.IN_PORT) {
             portCriterion = (PortCriterion) filt.key();
@@ -613,7 +613,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
-        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        List<PortNumber> portnums = new ArrayList<>();
         if (portCriterion.port() == PortNumber.ALL) {
             for (Port port : deviceService.getPorts(deviceId)) {
                 if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
@@ -624,7 +624,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             portnums.add(portCriterion.port());
         }
 
-        List<FlowRule> rules = new ArrayList<FlowRule>();
+        List<FlowRule> rules = new ArrayList<>();
         for (PortNumber pnum : portnums) {
             OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
             // for unicast IP packets
@@ -1328,7 +1328,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         List<Deque<GroupKey>> gkeys = appKryo.deserialize(nextGroup.data());
         for (Deque<GroupKey> gkd : gkeys) {
             Group lastGroup = null;
-            StringBuffer gchain = new StringBuffer();
+            StringBuilder gchain = new StringBuilder();
             for (GroupKey gk : gkd) {
                 Group g = groupService.getGroup(deviceId, gk);
                 if (g == null) {
@@ -1340,7 +1340,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 lastGroup = g;
             }
             // add port information for last group in group-chain
-            List<Instruction> lastGroupIns = new ArrayList<Instruction>();
+            List<Instruction> lastGroupIns = new ArrayList<>();
             if (lastGroup != null && !lastGroup.buckets().buckets().isEmpty()) {
                 lastGroupIns = lastGroup.buckets().buckets().get(0)
                                     .treatment().allInstructions();

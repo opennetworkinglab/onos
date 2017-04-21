@@ -585,7 +585,7 @@ public class Ethernet extends BasePacket {
     @Override
     public String toString() {
 
-        final StringBuffer sb = new StringBuffer("\n");
+        final StringBuilder sb = new StringBuilder("\n");
 
         final IPacket pkt = this.getPayload();
 

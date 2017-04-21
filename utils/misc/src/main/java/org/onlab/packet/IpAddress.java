@@ -537,7 +537,7 @@ public class IpAddress implements Comparable<IpAddress> {
      */
     private String ipv6ToStringHelper() {
         //Populate a buffer with the string of the full address with leading zeros stripped
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append(String.format("%x:%x:%x:%x:%x:%x:%x:%x",
                 (((octets[0] & BIT_MASK) << 8) | (octets[1] & BIT_MASK)),
                 (((octets[2] & BIT_MASK) << 8) | (octets[3] & BIT_MASK)),

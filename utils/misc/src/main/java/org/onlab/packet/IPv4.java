@@ -511,7 +511,7 @@ s     */
      * @return string form of ip address
      */
     public static String fromIPv4Address(final int ipAddress) {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         int result = 0;
         for (int i = 0; i < 4; ++i) {
             result = ipAddress >> (3 - i) * 8 & 0xff;
@@ -537,7 +537,7 @@ s     */
         if (ipAddresses == null) {
             return "null";
         }
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("[");
         for (final Integer ip : ipAddresses) {
             sb.append(IPv4.fromIPv4Address(ip));
