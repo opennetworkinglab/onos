@@ -17,6 +17,7 @@ package org.onosproject.pcerest;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.TestProperties;
 
 /**
  * Base class for pce rest api tests.  Performs common configuration operations.
@@ -28,5 +29,6 @@ public class PceResourceTest extends JerseyTest {
      */
     public PceResourceTest() {
         super(ResourceConfig.forApplicationClass(PceWebApplication.class));
+        set(TestProperties.CONTAINER_PORT, 0);
     }
 }
