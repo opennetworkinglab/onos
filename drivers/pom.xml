@@ -49,6 +49,7 @@
         <module>lisp</module>
         <module>flowspec</module>
         <module>microsemi</module>
+        <module>oplink</module>
     </modules>
 
     <!--<properties>
