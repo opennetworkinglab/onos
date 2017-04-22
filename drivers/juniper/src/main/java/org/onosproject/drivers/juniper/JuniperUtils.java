@@ -16,17 +16,18 @@
 
 package org.onosproject.drivers.juniper;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.Port.Type;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -35,19 +36,21 @@ import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
 import org.slf4j.Logger;
 
+import com.google.common.base.Strings;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Integer.parseInt;
-import static org.onosproject.net.DefaultAnnotations.Builder;
 import static org.onosproject.net.Device.Type.ROUTER;
-import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.slf4j.LoggerFactory.getLogger;
 
+// Ref: Junos YANG:
+//   https://github.com/Juniper/yang
 /**
  * Utility class for Netconf XML for Juniper.
  * Tested with MX240 junos 14.2
@@ -77,21 +80,14 @@ public final class JuniperUtils {
     private static final String SER_NUM = "serial-number";
     private static final String IF_INFO = "interface-information";
     private static final String IF_PHY = "physical-interface";
+
     private static final String IF_TYPE = "if-type";
     private static final String SPEED = "speed";
-    private static final String ETH = "Ethernet";
-    private static final String MBPS = "mbps";
     private static final String NAME = "name";
-    private static final String IF_LO_ENCAP = "logical-interface.encapsulation";
-    private static final String IF_LO_NAME = "logical-interface.name";
-    private static final String IF_LO_ADD =
-            "logical-interface.address-family.interface-address.ifa-local";
-    private static final String LO_INDEX = "local-index";
-    private static final String STATUS = "admin-status";
+
+    // seems to be unique index within device
     private static final String SNMP_INDEX = "snmp-index";
-    private static final String IF_LO_INDEX = "logical-interface.local-index";
-    private static final String IF_LO_STATUS =
-            "logical-interface.if-config-flags.iff-up";
+
     private static final String LLDP_LO_PORT = "lldp-local-port-id";
     private static final String LLDP_REM_CHASS = "lldp-remote-chassis-id";
     private static final String LLDP_REM_PORT = "lldp-remote-port-id";
@@ -102,6 +98,50 @@ public final class JuniperUtils {
 
     private static final String JUNIPER = "JUNIPER";
     private static final String UNKNOWN = "UNKNOWN";
+
+    /**
+     * Annotation key for interface type.
+     */
+    static final String AK_IF_TYPE = "ifType";
+
+    /**
+     * Annotation key for Logical link-layer encapsulation.
+     */
+    static final String AK_ENCAPSULATION = "encapsulation";
+
+    /**
+     * Annotation key for interface description.
+     */
+    static final String AK_DESCRIPTION = "description";
+
+    /**
+     * Annotation key for interface admin status. "up"/"down"
+     */
+    static final String AK_ADMIN_STATUS = "adminStatus";
+
+    /**
+     * Annotation key for interface operational status. "up"/"down"
+     */
+    static final String AK_OPER_STATUS = "operStatus";
+
+    /**
+     * Annotation key for logical-interfaces parent physical interface name.
+     */
+    static final String AK_PHYSICAL_PORT_NAME = "physicalPortName";
+
+
+    private static final String NUMERIC_SPEED_REGEXP = "(\\d+)([GM])bps";
+
+    /**
+     * {@value #NUMERIC_SPEED_REGEXP} as {@link Pattern}.
+     * Case insensitive
+     */
+    private static final Pattern SPEED_PATTERN =
+            Pattern.compile(NUMERIC_SPEED_REGEXP, Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Default port speed {@value} Mbps.
+     */
     private static final long DEFAULT_PORT_SPEED = 1000;
 
 
@@ -164,104 +204,187 @@ public final class JuniperUtils {
     public static List<PortDescription> parseJuniperPorts(HierarchicalConfiguration cfg) {
         //This methods ignores some internal ports
 
-        List<PortDescription> portDescriptions = Lists.newArrayList();
+        List<PortDescription> portDescriptions = new ArrayList<>();
         List<HierarchicalConfiguration> subtrees =
                 cfg.configurationsAt(IF_INFO);
         for (HierarchicalConfiguration interfInfo : subtrees) {
             List<HierarchicalConfiguration> interfaceTree =
                     interfInfo.configurationsAt(IF_PHY);
-            for (HierarchicalConfiguration interf : interfaceTree) {
-                if (interf != null) {
-                    if (interf.getString(IF_TYPE) != null &&
-                            interf.getString(SPEED) != null) {
-                        if (interf.getString(IF_TYPE).contains(ETH) &&
-                                interf.getString(SPEED).contains(MBPS)) {
-                            portDescriptions.add(parseDefaultPort(interf));
-                        } else {
-                            log.debug("Ignoring default port candidate {}",
-                                      interf.getString(NAME));
-                        }
-                    } else if (interf.getString(IF_LO_ENCAP) != null &&
-                            !interf.getString(NAME).contains("pfe") &&
-                            interf.getString(IF_LO_ENCAP).contains("ENET2")) {
-                        portDescriptions.add(parseLogicalPort(interf));
-                    } else if (interf.getString(NAME).contains("lo")) {
-                        portDescriptions.add(parseLoopback(interf));
-                    } else {
-                        log.debug("Ignoring unknown port {}",
-                                  interf.getString(NAME));
-                    }
+            for (HierarchicalConfiguration phyIntf : interfaceTree) {
+                if (phyIntf == null) {
+                    continue;
                 }
+                // parse physical Interface
+                parsePhysicalInterface(portDescriptions, phyIntf);
             }
         }
         return portDescriptions;
     }
 
-    private static PortDescription parseLoopback(HierarchicalConfiguration cfg) {
-        String name = cfg.getString(IF_LO_NAME).trim();
-        PortNumber portNumber = portNumber(name.replace("lo0.", ""));
-
-        Builder annotationsBuilder = DefaultAnnotations.builder()
-                .set(AnnotationKeys.PORT_NAME, name);
-        String ip = cfg.getString(IF_LO_ADD);
-        if (ip != null) {
-            annotationsBuilder.set("ip", ip);
+    /**
+     * Parses {@literal physical-interface} tree.
+     *
+     * @param portDescriptions list to populate Ports found parsing configuration
+     * @param phyIntf physical-interface
+     */
+    private static void parsePhysicalInterface(List<PortDescription> portDescriptions,
+                                               HierarchicalConfiguration phyIntf) {
+        Builder annotations = DefaultAnnotations.builder();
+        PortNumber portNumber = portNumber(phyIntf.getString(SNMP_INDEX));
+        String phyPortName = phyIntf.getString(NAME);
+        if (portNumber == null) {
+            log.debug("Skipping physical-interface {}, no PortNumer",
+                      phyPortName);
+            log.trace("  {}", phyIntf);
+            return;
         }
 
-        return new DefaultPortDescription(portNumber,
-                                          true,
-                                          COPPER,
-                                          DEFAULT_PORT_SPEED,
-                                          annotationsBuilder.build());
-    }
+        setIfNonNull(annotations,
+                     AnnotationKeys.PORT_NAME,
+                     phyPortName);
 
-    private static DefaultPortDescription parseDefaultPort(HierarchicalConfiguration cfg) {
-        PortNumber portNumber = portNumber(cfg.getString(LO_INDEX));
-        boolean enabled = "up".equals(cfg.getString(STATUS));
-        int speed = parseInt(cfg.getString(SPEED).replaceAll(MBPS, ""));
+        setIfNonNull(annotations,
+                     AnnotationKeys.PORT_MAC,
+                     phyIntf.getString("current-physical-address"));
 
+        setIfNonNull(annotations,
+                     AK_IF_TYPE,
+                     phyIntf.getString(IF_TYPE));
 
-        Builder annotationsBuilder = DefaultAnnotations.builder()
-                .set(AnnotationKeys.PORT_NAME, cfg.getString(NAME).trim());
-        setIpIfPresent(cfg, annotationsBuilder);
+        setIfNonNull(annotations,
+                     AK_DESCRIPTION,
+                     phyIntf.getString("description"));
 
-        return new DefaultPortDescription(portNumber,
-                                          enabled,
-                                          COPPER,
-                                          speed,
-                                          annotationsBuilder.build());
-    }
+        boolean opUp = phyIntf.getString(AK_OPER_STATUS, "down").equals("up");
+        annotations.set("oper-status", toUpDown(opUp));
 
-    private static DefaultPortDescription parseLogicalPort(HierarchicalConfiguration cfg) {
+        boolean admUp = phyIntf.getString(AK_ADMIN_STATUS, "down").equals("up");
+        annotations.set("admin-status", toUpDown(admUp));
 
-        String name = cfg.getString(NAME).trim();
-        String index = cfg.getString(SNMP_INDEX).trim();
-        Builder annotationsBuilder = DefaultAnnotations.builder()
-                .set(AnnotationKeys.PORT_NAME, name)
-                .set("index", index);
-        setIpIfPresent(cfg, annotationsBuilder);
+        long portSpeed = toMbps(phyIntf.getString(SPEED));
 
-        PortNumber portNumber = PortNumber.portNumber(index);
+        portDescriptions.add(new DefaultPortDescription(portNumber,
+                                                        admUp & opUp,
+                                                        Type.COPPER,
+                                                        portSpeed,
+                                                        annotations.build()));
 
-        boolean enabled = false;
-        if (cfg.getString(IF_LO_STATUS) != null) {
-            enabled = true;
+        // parse each logical Interface
+        for (HierarchicalConfiguration logIntf : phyIntf.configurationsAt("logical-interface")) {
+            if (logIntf == null) {
+                continue;
+            }
+            PortNumber lPortNumber = safePortNumber(logIntf.getString(SNMP_INDEX));
+            if (lPortNumber == null) {
+                log.debug("Skipping logical-interface {} under {}, no PortNumer",
+                          logIntf.getString(NAME), phyPortName);
+                log.trace("  {}", logIntf);
+                continue;
+            }
+
+            Builder lannotations = DefaultAnnotations.builder();
+            setIfNonNull(lannotations,
+                         AnnotationKeys.PORT_NAME,
+                         logIntf.getString(NAME));
+            setIfNonNull(lannotations,
+                         AK_PHYSICAL_PORT_NAME,
+                         phyPortName);
+
+            String afName = logIntf.getString("address-family.address-family-name");
+            String address = logIntf.getString("address-family.interface-address.ifa-local");
+            if (afName != null && address != null) {
+                // e.g., inet : IPV4, inet6 : IPV6
+                setIfNonNull(lannotations, afName, address);
+            }
+
+            // preserving former behavior
+            setIfNonNull(lannotations,
+                         "ip",
+                         logIntf.getString("address-family.interface-address.ifa-local"));
+
+            setIfNonNull(lannotations,
+                         AK_ENCAPSULATION, logIntf.getString("encapsulation"));
+
+            // TODO confirm if this is correct.
+            // Looking at sample data,
+            // it seemed all logical loop-back interfaces were down
+            boolean lEnabled = logIntf.getString("if-config-flags.iff-up") != null;
+
+            portDescriptions.add(new DefaultPortDescription(lPortNumber,
+                                                            admUp & opUp & lEnabled,
+                                                            Type.COPPER,
+                                                            portSpeed,
+                                                            lannotations.build()));
         }
-        //FIXME: port speed should be exposed
-        return new DefaultPortDescription(
-                portNumber,
-                enabled,
-                COPPER,
-                DEFAULT_PORT_SPEED,
-                annotationsBuilder.build());
     }
 
-    private static void setIpIfPresent(HierarchicalConfiguration cfg,
-                                       Builder annotationsBuilder) {
-        String ip = cfg.getString(IF_LO_ADD);
-        if (ip != null) {
-            annotationsBuilder.set("ip", ip);
+    /**
+     * Port status as "up"/"down".
+     *
+     * @param portStatus port status
+     * @return "up" if {@code portStats} is {@literal true}, "down" otherwise
+     */
+    static String toUpDown(boolean portStatus) {
+        return portStatus ? "up" : "down";
+    }
+
+    /**
+     * Translate interface {@literal speed} value as Mbps value.
+     *
+     * Note: {@literal Unlimited} and unrecognizable string will be treated as
+     *  {@value #DEFAULT_PORT_SPEED} Mbps.
+     *
+     * @param speed in String
+     * @return Mbps
+     */
+    static long toMbps(String speed) {
+        String s = Strings.nullToEmpty(speed).trim().toLowerCase();
+        Matcher matcher = SPEED_PATTERN.matcher(s);
+        if (matcher.matches()) {
+            // numeric
+            int n = Integer.parseInt(matcher.group(1));
+            String unit = matcher.group(2);
+            if ("m".equalsIgnoreCase(unit)) {
+                // Mbps
+                return n;
+            } else {
+                // assume Gbps
+                return 1000 * n;
+            }
         }
+        log.trace("Treating unknown speed value {} as default", speed);
+        // Unlimited or unrecognizable
+        return DEFAULT_PORT_SPEED;
+    }
+
+    /**
+     * Sets annotation entry if {@literal value} was not {@literal null}.
+     *
+     * @param builder Annotation Builder
+     * @param key Annotation key
+     * @param value Annotation value (can be {@literal null})
+     */
+    static void setIfNonNull(Builder builder, String key, String value) {
+        if (value != null) {
+            builder.set(key, value.trim());
+        }
+    }
+
+    /**
+     * Creates PortNumber instance from String.
+     *
+     * Instead for throwing Exception, it will return null on format error.
+     *
+     * @param s port number as string
+     * @return PortNumber instance or null on error
+     */
+    static PortNumber safePortNumber(String s) {
+        try {
+            return portNumber(s);
+        } catch (RuntimeException e) {
+            log.trace("Failed parsing PortNumber {}", s, e);
+        }
+        return null;
     }
 
     /**
