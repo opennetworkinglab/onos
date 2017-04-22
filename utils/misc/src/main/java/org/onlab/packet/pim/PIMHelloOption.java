@@ -19,6 +19,7 @@ import org.onlab.packet.DeserializationException;
 
 import java.nio.ByteBuffer;
 import java.text.MessageFormat;
+import java.util.Arrays;
 
 import static org.onlab.packet.PacketUtils.checkBufferLength;
 import static org.onlab.packet.PacketUtils.checkInput;
@@ -224,7 +225,7 @@ public class PIMHelloOption {
 
     public String toString() {
         return MessageFormat.format("Type: {0}, len: {1} value: {2}", this.optType, this.optLength,
-                (this.optValue == null) ? "null" : this.optValue.toString());
+                Arrays.toString(this.optValue));
     }
 
 }
