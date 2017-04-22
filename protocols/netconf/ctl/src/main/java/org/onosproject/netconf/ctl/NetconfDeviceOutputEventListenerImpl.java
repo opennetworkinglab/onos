@@ -16,7 +16,6 @@
 
 package org.onosproject.netconf.ctl;
 
-import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * Example of a listener for events that happen a Netconf session established
  * for a particular NETCONF device.
  *
- * @deprecated in 1.10.0 use {@link FilteringNetconfDeviceOutputEventListener}
+ * @deprecated in 1.10.0 use FilteringNetconfDeviceOutputEventListener
  */
 @Deprecated
 public class NetconfDeviceOutputEventListenerImpl implements NetconfDeviceOutputEventListener {
