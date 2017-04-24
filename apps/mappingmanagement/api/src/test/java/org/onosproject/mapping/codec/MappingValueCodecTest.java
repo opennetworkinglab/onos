@@ -94,7 +94,7 @@ public class MappingValueCodecTest {
      * Tests encoding of a mapping value object.
      */
     @Test
-    public void testMapingValueEncode() {
+    public void testMappingValueEncode() {
         MappingInstruction unicastWeight = MappingInstructions.unicastWeight(UNICAST_WEIGHT);
         MappingInstruction unicastPriority = MappingInstructions.unicastPriority(UNICAST_PRIORITY);
         MappingInstruction multicastWeight = MappingInstructions.multicastWeight(MULTICAST_WEIGHT);

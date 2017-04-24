@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.mapping.actions.MappingAction;
 import org.onosproject.mapping.addresses.MappingAddress;
+import org.onosproject.mapping.codec.MappingEntryCodec;
 import org.onosproject.mapping.instructions.MappingInstruction;
 import org.onosproject.mapping.codec.MappingActionCodec;
 import org.onosproject.mapping.codec.MappingAddressCodec;
@@ -53,6 +54,7 @@ public class MappingCodecRegistrator {
         codecService.registerCodec(MappingTreatment.class, new MappingTreatmentCodec());
         codecService.registerCodec(MappingKey.class, new MappingKeyCodec());
         codecService.registerCodec(MappingValue.class, new MappingValueCodec());
+        codecService.registerCodec(MappingEntry.class, new MappingEntryCodec());
 
         log.info("Started");
     }
@@ -65,6 +67,7 @@ public class MappingCodecRegistrator {
         codecService.unregisterCodec(MappingTreatment.class);
         codecService.unregisterCodec(MappingKey.class);
         codecService.unregisterCodec(MappingValue.class);
+        codecService.unregisterCodec(MappingEntry.class);
 
         log.info("Stopped");
     }
