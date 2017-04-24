@@ -15,11 +15,15 @@
  */
 package org.onosproject.mapping.cli;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.mapping.Mapping;
+import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingKey;
 import org.onosproject.mapping.MappingTreatment;
 import org.onosproject.mapping.MappingValue;
@@ -45,6 +49,7 @@ public class MappingsListCommand extends AbstractShellCommand {
 
     private static final String SUMMARY_FORMAT = "deviceId=%s, mappingCount=%d";
     private static final String MAPPING_ID_FORMAT = "  id=%s";
+    private static final String MAPPING_STATE_FORMAT = "  state=%s";
     private static final String MAPPING_KEY_FORMAT = "  key=%s";
     private static final String MAPPING_VALUE_FORMAT = "  value=";
     private static final String MAPPING_ACTION_FORMAT = "    action=%s";
@@ -52,6 +57,7 @@ public class MappingsListCommand extends AbstractShellCommand {
     private static final String MAPPING_TREATMENT_LONG_FORMAT =
             "      address=%s, instructions=%s";
     private static final String MAPPING_TREATMENT_SHORT_FORMAT = "      %s";
+    private static final String JSON_FORMAT = "%s";
 
     @Argument(index = 0, name = "type",
             description = "Shows mappings with specified type",
@@ -69,7 +75,7 @@ public class MappingsListCommand extends AbstractShellCommand {
 
     private MappingService mappingService =
             AbstractShellCommand.get(MappingService.class);
-    private List<Mapping> mappings;
+    private List<MappingEntry> mappings;
 
     @Override
     protected void execute() {
@@ -85,16 +91,20 @@ public class MappingsListCommand extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
         Iterable<Device> devices = deviceService.getDevices();
 
-        if (deviceId != null) {
-            mappings = newArrayList(mappingService.getMappingEntries(typeEnum,
-                    DeviceId.deviceId(deviceId)));
-            printMappings(DeviceId.deviceId(deviceId), mappings);
-
+        if (outputJson()) {
+            print(JSON_FORMAT, json(typeEnum, devices));
         } else {
+            if (deviceId != null) {
+                mappings = newArrayList(mappingService.getMappingEntries(typeEnum,
+                        DeviceId.deviceId(deviceId)));
+                printMappings(DeviceId.deviceId(deviceId), mappings);
 
-            for (Device d : devices) {
-                mappings = newArrayList(mappingService.getMappingEntries(typeEnum, d.id()));
-                printMappings(d.id(), mappings);
+            } else {
+
+                for (Device d : devices) {
+                    mappings = newArrayList(mappingService.getMappingEntries(typeEnum, d.id()));
+                    printMappings(d.id(), mappings);
+                }
             }
         }
     }
@@ -105,12 +115,13 @@ public class MappingsListCommand extends AbstractShellCommand {
      * @param deviceId device identifier
      * @param mappings a collection of mapping
      */
-    private void printMappings(DeviceId deviceId, List<Mapping> mappings) {
+    private void printMappings(DeviceId deviceId, List<MappingEntry> mappings) {
 
         print(SUMMARY_FORMAT, deviceId, mappings.size());
 
-        for (Mapping m : mappings) {
+        for (MappingEntry m : mappings) {
             print(MAPPING_ID_FORMAT, Long.toHexString(m.id().value()));
+            print(MAPPING_STATE_FORMAT, m.state().name());
             print(MAPPING_KEY_FORMAT, printMappingKey(m.key()));
             printMappingValue(m.value());
         }
@@ -170,5 +181,42 @@ public class MappingsListCommand extends AbstractShellCommand {
                         treatment.instructions());
             }
         }
+    }
+
+    /**
+     * Generates JSON object with the mappings of the given device.
+     *
+     * @param mapper   object mapper
+     * @param device   device
+     * @param mappings a collection of mappings
+     * @return JSON object
+     */
+    private ObjectNode json(ObjectMapper mapper, Device device, List<MappingEntry> mappings) {
+        ObjectNode result = mapper.createObjectNode();
+        ArrayNode array = mapper.createArrayNode();
+
+        mappings.forEach(mapping -> array.add(jsonForEntity(mapping, MappingEntry.class)));
+
+        result.put("device", device.id().toString())
+                .put("mappingCount", mappings.size())
+                .set("mappings", array);
+        return result;
+    }
+
+    /**
+     * Generates JSON object with the mappings of all devices.
+     *
+     * @param type    mapping store type
+     * @param devices a collection of devices
+     * @return JSON object
+     */
+    private JsonNode json(MappingStore.Type type, Iterable<Device> devices) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        for (Device device : devices) {
+            result.add(json(mapper, device,
+                    newArrayList(mappingService.getMappingEntries(type, device.id()))));
+        }
+        return result;
     }
 }
