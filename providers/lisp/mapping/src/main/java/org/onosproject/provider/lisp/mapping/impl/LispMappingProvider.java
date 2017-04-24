@@ -26,6 +26,7 @@ import org.onosproject.lisp.ctl.LispRouterId;
 import org.onosproject.lisp.ctl.LispRouterListener;
 import org.onosproject.lisp.msg.protocols.LispMapNotify;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
+import org.onosproject.lisp.msg.protocols.LispMapRegister;
 import org.onosproject.lisp.msg.protocols.LispMapReply;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.mapping.MappingEntry;
@@ -131,13 +132,33 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
 
         @Override
         public void handleIncomingMessage(LispRouterId routerId, LispMessage msg) {
+            if (providerService == null) {
+                log.warn("provider service has not been initialized");
+                return;
+            }
 
+            DeviceId deviceId = DeviceId.deviceId(routerId.toString());
+            switch (msg.getType()) {
+
+                case LISP_MAP_REQUEST:
+                    log.warn("LISP mapping query feature will be added when " +
+                             "provider service supports it.");
+                    break;
+
+                case LISP_MAP_REGISTER:
+                    LispMapRegister register = (LispMapRegister) msg;
+                    processMappings(deviceId, register.getMapRecords(), MAP_DATABASE);
+                    break;
+
+                default:
+                    log.warn("Unhandled message type: {}", msg.getType());
+            }
         }
 
         @Override
         public void handleOutgoingMessage(LispRouterId routerId, LispMessage msg) {
             if (providerService == null) {
-                // We are shutting down, nothing to be done
+                log.warn("provider service has not been initialized");
                 return;
             }
 
