@@ -38,6 +38,11 @@ public class MappingServiceAdapter implements MappingService {
         return 0;
     }
 
+    @Override
+    public Iterable<MappingEntry> getAllMappingEntries(Type type) {
+        return null;
+    }
+
 
     @Override
     public Iterable<MappingEntry> getMappingEntries(Type type, DeviceId deviceId) {

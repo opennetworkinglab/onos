@@ -35,6 +35,15 @@ public interface MappingService
     int getMappingCount(Type type);
 
     /**
+     * Obtains the collection of mapping entries of all devices.
+     * This will include mapping which may not yet have been applied to device.
+     *
+     * @param type      mapping store type
+     * @return collection of mapping entries
+     */
+    Iterable<MappingEntry> getAllMappingEntries(Type type);
+
+    /**
      * Obtains the collection of mapping entries applied on the specific device.
      * The will include mapping which may not yet have been applied to device.
      *

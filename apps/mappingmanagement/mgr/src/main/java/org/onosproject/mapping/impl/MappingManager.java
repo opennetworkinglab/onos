@@ -89,6 +89,11 @@ public class MappingManager
     }
 
     @Override
+    public Iterable<MappingEntry> getAllMappingEntries(Type type) {
+        return store.getAllMappingEntries(type);
+    }
+
+    @Override
     public void storeMappingEntry(Type type, MappingEntry entry) {
         store.storeMapping(type, entry);
     }

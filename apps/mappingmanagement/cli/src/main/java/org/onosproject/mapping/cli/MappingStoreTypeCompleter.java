@@ -15,14 +15,24 @@
  */
 package org.onosproject.mapping.cli;
 
-import org.onosproject.cli.AbstractShellCommand;
+import com.google.common.collect.ImmutableList;
+import org.onosproject.cli.AbstractChoicesCompleter;
+import org.onosproject.mapping.MappingStore.Type;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * A command for querying mapping information.
+ * Mapping store type completer.
  */
-public class MappingCommand extends AbstractShellCommand {
-    @Override
-    protected void execute() {
+public class MappingStoreTypeCompleter extends AbstractChoicesCompleter {
 
+    private static final List<Type> STORE_TYPES =
+            ImmutableList.of(Type.MAP_CACHE, Type.MAP_DATABASE);
+
+    @Override
+    protected List<String> choices() {
+        return STORE_TYPES.stream().map(type ->
+                type.toString().toLowerCase()).collect(Collectors.toList());
     }
 }
