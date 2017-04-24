@@ -57,9 +57,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DeviceConfiguration implements DeviceProperties {
 
     private static final String ERROR_CONFIG = "Configuration error.";
-    private static final String TOO_MANY_SUBNET = ERROR_CONFIG + " Too many subnets configured on {}";
     private static final String NO_SUBNET = "No subnet configured on {}";
-    private static final String MISCONFIGURED = "Subnets are not configured correctly for {}";
 
     private static final Logger log = LoggerFactory.getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
@@ -440,7 +438,7 @@ public class DeviceConfiguration implements DeviceProperties {
      * @param deviceId Device ID
      * @param port Port number
      * @return The subnets configured on given port or empty set if
-     *         the port is unconfigured, misconfigured or suppressed.
+     *         the port is unconfigured or suppressed.
      */
     public Set<IpPrefix> getPortSubnets(DeviceId deviceId, PortNumber port) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
@@ -458,14 +456,9 @@ public class DeviceConfiguration implements DeviceProperties {
         if (subnets.isEmpty()) {
             log.debug(NO_SUBNET, connectPoint);
             return Collections.emptySet();
-        } else if (subnets.size() > 2) {
-            log.warn(TOO_MANY_SUBNET, connectPoint);
-            return Collections.emptySet();
-        } else if (verifySubnets(subnets)) {
-            return subnets;
         }
-        log.warn(MISCONFIGURED, connectPoint);
-        return Collections.emptySet();
+
+        return subnets;
     }
 
     /**
@@ -496,30 +489,6 @@ public class DeviceConfiguration implements DeviceProperties {
                 .filter(IpPrefix::isIp6)
                 .map(IpPrefix::getIp6Prefix)
                 .findFirst().orElse(null);
-    }
-
-    /**
-     * Utility to verify the configuration of a given port.
-     *
-     * @param subnets the subnets set to verify
-     * @return true if the configured subnets are ok. False otherwise.
-     */
-    private boolean verifySubnets(Set<IpPrefix> subnets) {
-        Set<Ip4Prefix> ip4Prefices = subnets.stream()
-                .filter(IpPrefix::isIp4)
-                .map(IpPrefix::getIp4Prefix)
-                .collect(Collectors.toSet());
-        if (ip4Prefices.size() > 1) {
-            return false;
-        }
-        Set<Ip6Prefix> ip6Prefices = subnets.stream()
-                .filter(IpPrefix::isIp6)
-                .map(IpPrefix::getIp6Prefix)
-                .collect(Collectors.toSet());
-        if (ip6Prefices.size() > 1) {
-            return false;
-        }
-        return !(ip4Prefices.isEmpty() && ip6Prefices.isEmpty());
     }
 
     /**
