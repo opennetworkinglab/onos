@@ -42,6 +42,8 @@ import org.onosproject.provider.lisp.mapping.util.MappingEntryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.onosproject.mapping.MappingStore.Type.MAP_CACHE;
@@ -137,7 +139,7 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                 return;
             }
 
-            DeviceId deviceId = DeviceId.deviceId(routerId.toString());
+            DeviceId deviceId = getDeviceId(routerId.toString());
             switch (msg.getType()) {
 
                 case LISP_MAP_REQUEST:
@@ -162,7 +164,7 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                 return;
             }
 
-            DeviceId deviceId = DeviceId.deviceId(routerId.toString());
+            DeviceId deviceId = getDeviceId(routerId.toString());
             switch (msg.getType()) {
 
                 case LISP_MAP_REPLY:
@@ -195,6 +197,21 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                         new MappingEntryBuilder(deviceId, r, deviceService).build();
                 providerService.mappingAdded(me, type);
             });
+        }
+    }
+
+    /**
+     * Obtains the DeviceId contains IP address of LISP router.
+     *
+     * @param ip IP address
+     * @return DeviceId device identifier
+     */
+    private DeviceId getDeviceId(String ip) {
+        try {
+            return DeviceId.deviceId(new URI(SCHEME_NAME, ip, null));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to build deviceID for device "
+                    + ip, e);
         }
     }
 }

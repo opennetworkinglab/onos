@@ -52,7 +52,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.onosproject.mapping.addresses.ExtensionMappingAddressType.ExtensionMappingAddressTypes.*;
 
@@ -112,12 +111,8 @@ public class MappingEntryBuilder {
     public MappingEntry build() {
         Mapping.Builder builder;
 
-        // we assign leastSignificantBits of UUID as the mapping identifier for now
-        // id generation scheme can be changed later
-        UUID uuid = UUID.randomUUID();
-
         builder = DefaultMapping.builder()
-                .withId(uuid.getLeastSignificantBits())
+                .withId(buildKey().hashCode())
                 .forDevice(deviceId)
                 .withKey(buildKey())
                 .withValue(buildValue());
