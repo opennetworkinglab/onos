@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
@@ -207,10 +207,10 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
      * @return a list of flow rules to install
      */
     private List<FlowRule> processPwFilter(PortCriterion portCriterion,
-                                             VlanIdCriterion innerVlanIdCriterion,
-                                             VlanIdCriterion outerVlanIdCriterion,
-                                             long tunnelId,
-                                             ApplicationId applicationId) {
+                                           VlanIdCriterion innerVlanIdCriterion,
+                                           VlanIdCriterion outerVlanIdCriterion,
+                                           long tunnelId,
+                                           ApplicationId applicationId) {
         // As first we create the flow rule for the vlan 1 table.
         FlowRule vlan1FlowRule;
         int mplsLogicalPort = ((int) portCriterion.port().toLong());

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -91,13 +91,13 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
 
 /**
  * Driver for Broadcom's OF-DPA v2.0 TTP.
- *
  */
 public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
@@ -142,12 +142,12 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected ApplicationId driverId;
     protected DeviceService deviceService;
     protected static KryoNamespace appKryo = new KryoNamespace.Builder()
-        .register(KryoNamespaces.API)
-        .register(GroupKey.class)
-        .register(DefaultGroupKey.class)
-        .register(Ofdpa2GroupHandler.OfdpaNextGroup.class)
-        .register(ArrayDeque.class)
-        .build("Ofdpa2Pipeline");
+            .register(KryoNamespaces.API)
+            .register(GroupKey.class)
+            .register(DefaultGroupKey.class)
+            .register(OfdpaNextGroup.class)
+            .register(ArrayDeque.class)
+            .build("Ofdpa2Pipeline");
 
     protected Ofdpa2GroupHandler groupHandler;
 
@@ -493,9 +493,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return list of FlowRule for port-vlan filters
      */
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
-                                                         VlanIdCriterion vidCriterion,
-                                                         VlanId assignedVlan,
-                                                         ApplicationId applicationId) {
+                                                 VlanIdCriterion vidCriterion,
+                                                 VlanId assignedVlan,
+                                                 ApplicationId applicationId) {
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -706,7 +706,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
-            ApplicationId applicationId) {
+                                                     ApplicationId applicationId) {
         ImmutableList.Builder<FlowRule> builder = ImmutableList.builder();
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -741,7 +741,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected List<FlowRule> processMcastEthDstFilter(EthCriterion ethCriterion,
-            ApplicationId applicationId) {
+                                                      ApplicationId applicationId) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.Lists;
 import org.onlab.packet.VlanId;
@@ -44,7 +44,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.*;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType.TTL_OUT;
 import static org.onosproject.net.group.GroupDescription.Type.INDIRECT;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -93,8 +93,8 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             return;
         }
         // We update the chain with the last two groups;
-        gkeyChain.addFirst(groupInfo.getInnerMostGroupDesc().appCookie());
-        gkeyChain.addFirst(groupInfo.getNextGroupDesc().appCookie());
+        gkeyChain.addFirst(groupInfo.innerMostGroupDesc().appCookie());
+        gkeyChain.addFirst(groupInfo.nextGroupDesc().appCookie());
         // We retrieve also all mpls instructions.
         List<List<Instruction>> mplsInstructionSets = Lists.newArrayList();
         List<Instruction> mplsInstructionSet = Lists.newArrayList();
@@ -119,7 +119,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
             return;
         }
-        int nextGid = groupInfo.getNextGroupDesc().givenGroupId();
+        int nextGid = groupInfo.nextGroupDesc().givenGroupId();
         int index;
         // We create the mpls tunnel label groups.
         // In this case we need to use also the
@@ -129,7 +129,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             index = getNextAvailableIndex();
             groupDescription = createMplsTunnelLabelGroup(
                     nextGid,
-                    MPLS_TUNNEL_LABEL_2,
+                    OfdpaMplsGroupSubType.MPLS_TUNNEL_LABEL_2,
                     index,
                     mplsInstructionSets.get(2),
                     nextObjective.appId()
@@ -138,9 +138,9 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
                     Ofdpa2Pipeline.appKryo.serialize(index)
             );
             // We update the chain.
-            groupChainElem = new GroupChainElem(groupDescription, 1, false);
+            groupChainElem = new GroupChainElem(groupDescription, 1, false, deviceId);
             updatePendingGroups(
-                    groupInfo.getNextGroupDesc().appCookie(),
+                    groupInfo.nextGroupDesc().appCookie(),
                     groupChainElem
             );
             gkeyChain.addFirst(groupKey);
@@ -148,7 +148,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             // l2 vpn group before to send the inner most
             // group. We update the nextGid.
             nextGid = groupDescription.givenGroupId();
-            groupInfo = new GroupInfo(groupInfo.getInnerMostGroupDesc(), groupDescription);
+            groupInfo = new GroupInfo(groupInfo.innerMostGroupDesc(), groupDescription);
 
             log.debug("Trying Label 2 Group: device:{} gid:{} gkey:{} nextId:{}",
                       deviceId, Integer.toHexString(nextGid),
@@ -158,7 +158,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         index = getNextAvailableIndex();
         groupDescription = createMplsTunnelLabelGroup(
                 nextGid,
-                MPLS_TUNNEL_LABEL_1,
+                OfdpaMplsGroupSubType.MPLS_TUNNEL_LABEL_1,
                 index,
                 mplsInstructionSets.get(1),
                 nextObjective.appId()
@@ -166,16 +166,16 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         groupKey = new DefaultGroupKey(
                 Ofdpa2Pipeline.appKryo.serialize(index)
         );
-        groupChainElem = new GroupChainElem(groupDescription, 1, false);
+        groupChainElem = new GroupChainElem(groupDescription, 1, false, deviceId);
         updatePendingGroups(
-                groupInfo.getNextGroupDesc().appCookie(),
+                groupInfo.nextGroupDesc().appCookie(),
                 groupChainElem
         );
         gkeyChain.addFirst(groupKey);
         // We have to create the l2 vpn group before
         // to send the inner most group.
         nextGid = groupDescription.givenGroupId();
-        groupInfo = new GroupInfo(groupInfo.getInnerMostGroupDesc(), groupDescription);
+        groupInfo = new GroupInfo(groupInfo.innerMostGroupDesc(), groupDescription);
 
         log.debug("Trying Label 1 Group: device:{} gid:{} gkey:{} nextId:{}",
                   deviceId, Integer.toHexString(nextGid),
@@ -191,9 +191,9 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         groupKey = new DefaultGroupKey(
                 Ofdpa2Pipeline.appKryo.serialize(index)
         );
-        groupChainElem = new GroupChainElem(groupDescription, 1, false);
+        groupChainElem = new GroupChainElem(groupDescription, 1, false, deviceId);
         updatePendingGroups(
-                groupInfo.getNextGroupDesc().appCookie(),
+                groupInfo.nextGroupDesc().appCookie(),
                 groupChainElem
         );
         gkeyChain.addFirst(groupKey);
@@ -208,8 +208,8 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
                   groupKey, nextObjective.id());
         // Finally we send the innermost group.
         log.debug("Sending innermost group {} in group chain on device {} ",
-                  Integer.toHexString(groupInfo.getInnerMostGroupDesc().givenGroupId()), deviceId);
-        groupService.addGroup(groupInfo.getInnerMostGroupDesc());
+                  Integer.toHexString(groupInfo.innerMostGroupDesc().givenGroupId()), deviceId);
+        groupService.addGroup(groupInfo.innerMostGroupDesc());
     }
 
     /**
@@ -223,10 +223,10 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
      * @return the group description
      */
     private GroupDescription createMplsTunnelLabelGroup(int nextGroupId,
-                                                          OfdpaMplsGroupSubType subtype,
-                                                          int index,
-                                                          List<Instruction> instructions,
-                                                          ApplicationId applicationId) {
+                                                        OfdpaMplsGroupSubType subtype,
+                                                        int index,
+                                                        List<Instruction> instructions,
+                                                        ApplicationId applicationId) {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         // We add all the instructions.
         instructions.forEach(treatment::add);
@@ -259,9 +259,9 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
      * @return the group description
      */
     private GroupDescription createMplsL2VpnGroup(int nextGroupId,
-                                                    int index,
-                                                    List<Instruction> instructions,
-                                                    ApplicationId applicationId) {
+                                                  int index,
+                                                  List<Instruction> instructions,
+                                                  ApplicationId applicationId) {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         // We add the extensions and the instructions.
         treatment.extension(new Ofdpa3PushL2Header(), deviceId);
@@ -273,7 +273,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         GroupBucket groupBucket = DefaultGroupBucket
                 .createIndirectGroupBucket(treatment.build());
         // Finally we build the group description.
-        int groupId = makeMplsLabelGroupId(L2_VPN, index);
+        int groupId = makeMplsLabelGroupId(OfdpaMplsGroupSubType.L2_VPN, index);
         GroupKey groupKey = new DefaultGroupKey(
                 Ofdpa2Pipeline.appKryo.serialize(index)
         );
@@ -296,8 +296,8 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
      * @param mplsTreatment the mpls treatment builder
      */
     private void createL2L3AndMplsTreatments(TrafficTreatment treatment,
-                                               TrafficTreatment.Builder l2L3Treatment,
-                                               TrafficTreatment.Builder mplsTreatment) {
+                                             TrafficTreatment.Builder l2L3Treatment,
+                                             TrafficTreatment.Builder mplsTreatment) {
 
         for (Instruction ins : treatment.allInstructions()) {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -43,8 +43,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.OfdpaMplsGroupSubType.MPLS_ECMP;
-import static org.onosproject.driver.pipeline.Ofdpa2Pipeline.isNotMplsBos;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -55,8 +54,8 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
 
     @Override
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
-                                      ApplicationId appId, boolean mpls,
-                                      TrafficSelector meta) {
+                                        ApplicationId appId, boolean mpls,
+                                        TrafficSelector meta) {
         // for the l2interface group, get vlan and port info
         // for the outer group, get the src/dst mac, and vlan info
         TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
@@ -189,7 +188,10 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
         }
 
         // store l2groupkey with the groupChainElem for the outer-group that depends on it
-        GroupChainElem gce = new GroupChainElem(outerGrpDesc, 1, false);
+        GroupChainElem gce = new GroupChainElem(outerGrpDesc,
+                                                1,
+                                                false,
+                                                deviceId);
         updatePendingGroups(l2groupkey, gce);
 
         // create group description for the inner l2interfacegroup
@@ -210,11 +212,6 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
         return new GroupInfo(l2groupDescription, outerGrpDesc);
     }
 
-    @Override
-    public boolean verifyHashedNextObjective(NextObjective nextObjective) {
-        return true;
-    }
-
     /**
      * In OFDPA2 we do not support the MPLS-ECMP, while we do in
      * CPQD implementation.
@@ -227,7 +224,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
         // the transport of a VPWS. The necessary info are contained in the
         // meta selector. In particular we are looking for the case of BoS==False;
         TrafficSelector metaSelector = nextObjective.meta();
-        if (metaSelector != null && isNotMplsBos(metaSelector)) {
+        if (metaSelector != null && Ofdpa2Pipeline.isNotMplsBos(metaSelector)) {
             // storage for all group keys in the chain of groups created
             List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
             List<GroupInfo> unsentGroups = new ArrayList<>();
@@ -237,13 +234,13 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             for (GroupInfo gi : unsentGroups) {
                 // create ECMP bucket to point to the outer group
                 TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
-                ttb.group(new GroupId(gi.getNextGroupDesc().givenGroupId()));
+                ttb.group(new GroupId(gi.nextGroupDesc().givenGroupId()));
                 GroupBucket sbucket = DefaultGroupBucket
                         .createSelectGroupBucket(ttb.build());
                 mplsEcmpGroupBuckets.add(sbucket);
             }
             int mplsEcmpIndex = getNextAvailableIndex();
-            int mplsEcmpGroupId = makeMplsForwardingGroupId(MPLS_ECMP, mplsEcmpIndex);
+            int mplsEcmpGroupId = makeMplsForwardingGroupId(OfdpaMplsGroupSubType.MPLS_ECMP, mplsEcmpIndex);
             GroupKey mplsEmpGroupKey = new DefaultGroupKey(
                     Ofdpa2Pipeline.appKryo.serialize(mplsEcmpIndex)
             );
@@ -257,7 +254,8 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             );
             GroupChainElem mplsEcmpGce = new GroupChainElem(mplsEcmpGroupDesc,
                                                             mplsEcmpGroupBuckets.size(),
-                                                            false);
+                                                            false,
+                                                            deviceId);
 
             // create objects for local and distributed storage
             allGroupKeys.forEach(gkeyChain -> gkeyChain.addFirst(mplsEmpGroupKey));
@@ -274,9 +272,9 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
             // finally we are ready to send the innermost groups
             for (GroupInfo gi : unsentGroups) {
                 log.debug("Sending innermost group {} in group chain on device {} ",
-                          Integer.toHexString(gi.getInnerMostGroupDesc().givenGroupId()), deviceId);
-                updatePendingGroups(gi.getNextGroupDesc().appCookie(), mplsEcmpGce);
-                groupService.addGroup(gi.getInnerMostGroupDesc());
+                          Integer.toHexString(gi.innerMostGroupDesc().givenGroupId()), deviceId);
+                updatePendingGroups(gi.nextGroupDesc().appCookie(), mplsEcmpGce);
+                groupService.addGroup(gi.innerMostGroupDesc());
             }
             return;
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import org.onosproject.net.behaviour.PipelinerContext;
 

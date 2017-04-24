@@ -14,24 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline;
-
 /**
- * Group handler that emulates Broadcom OF-DPA TTP on OVS.
+ * Pipelines for OF-DPA.
  */
-public class OvsOfdpa2GroupHandler extends CpqdOfdpa2GroupHandler {
-    @Override
-    protected boolean supportCopyTtl() {
-        return false;
-    }
-
-    @Override
-    protected boolean supportSetMplsBos() {
-        return false;
-    }
-
-    @Override
-    protected boolean requireVlanPopBeforeMplsPush() {
-        return true;
-    }
-}
+package org.onosproject.driver.pipeline.ofdpa;

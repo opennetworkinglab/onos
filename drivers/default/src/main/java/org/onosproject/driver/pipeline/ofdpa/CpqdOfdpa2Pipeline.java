@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.driver.pipeline;
+package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -71,7 +71,7 @@ import java.util.Objects;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
-import static org.onosproject.driver.pipeline.Ofdpa2GroupHandler.FOUR_BIT_MASK;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -193,8 +193,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
             // NOTE: Emulating OFDPA behavior by popping off internal assigned
             //       VLAN before sending to controller
             if (supportPuntGroup() && vidCriterion.vlanId() == VlanId.NONE) {
-                GroupKey groupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(
-                        POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK)));
+                GroupKey groupKey = popVlanPuntGroupKey();
                 Group group = groupService.getGroup(deviceId, groupKey);
                 if (group != null) {
                     rules.add(buildPuntTableRule(pnum, assignedVlan));
@@ -416,7 +415,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     @Override
     protected List<FlowRule> processEthDstOnlyFilter(EthCriterion ethCriterion,
-            ApplicationId applicationId) {
+                                                     ApplicationId applicationId) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
@@ -812,8 +811,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * the copy of packet on the data plane is not affected by the pop vlan action.
      */
     private void initPopVlanPuntGroup() {
-        GroupKey groupKey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(
-                POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK)));
+        GroupKey groupKey = popVlanPuntGroupKey();
         TrafficTreatment bucketTreatment = DefaultTrafficTreatment.builder()
                 .popVlan().punt().build();
         GroupBucket bucket =
@@ -829,5 +827,16 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         groupService.addGroup(groupDesc);
 
         log.info("Initialized pop vlan punt group on {}", deviceId);
+    }
+
+    /**
+     * Generates group key for a static indirect group that pop vlan and punt to
+     * controller.
+     *
+     * @return the group key of the indirect table
+     */
+    private GroupKey popVlanPuntGroupKey() {
+        int hash = POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK);
+        return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
     }
 }
