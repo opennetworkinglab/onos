@@ -214,13 +214,14 @@ public class SimpleVirtualFlowRuleStore
         }
 
         SettableFuture<CompletedBatchOperation> r = SettableFuture.create();
-        final int batchId = localBatchIdGen.incrementAndGet();
+        final int futureId = localBatchIdGen.incrementAndGet();
 
-        pendingFutures.put(batchId, r);
+        pendingFutures.put(futureId, r);
 
         toAdd.addAll(toRemove);
         notifyDelegate(networkId, FlowRuleBatchEvent.requested(
-                new FlowRuleBatchRequest(batchId, Sets.newHashSet(toAdd)), batchOperation.deviceId()));
+                new FlowRuleBatchRequest(batchOperation.id(),
+                                         Sets.newHashSet(toAdd)), batchOperation.deviceId()));
 
     }
 

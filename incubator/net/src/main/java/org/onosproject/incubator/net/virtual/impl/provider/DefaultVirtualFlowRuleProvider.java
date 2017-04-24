@@ -18,6 +18,8 @@ package org.onosproject.incubator.net.virtual.impl.provider;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
@@ -47,6 +49,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.BatchOperationEntry;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -58,6 +61,8 @@ import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
+import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -127,7 +132,6 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
         super(new ProviderId("vnet-flow", "org.onosproject.virtual.vnet-flow"));
     }
 
-
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_ID_STR);
@@ -177,32 +181,56 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
         checkNotNull(batch);
 
         for (FlowRuleBatchEntry fop : batch.getOperations()) {
+            FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+
             switch (fop.operator()) {
                 case ADD:
-                    devirtualize(networkId, fop.target())
-                            .forEach(f -> flowRuleService.applyFlowRules(f));
+                    devirtualize(networkId, fop.target()).forEach(builder::add);
                     break;
                 case REMOVE:
-                    devirtualize(networkId, fop.target())
-                            .forEach(f -> flowRuleService.removeFlowRules(f));
+                    devirtualize(networkId, fop.target()).forEach(builder::remove);
                     break;
                 case MODIFY:
+                    devirtualize(networkId, fop.target()).forEach(builder::modify);
                     break;
                 default:
                     break;
             }
+
+            flowRuleService.apply(builder.build(new FlowRuleOperationsContext() {
+                @Override
+                public void onSuccess(FlowRuleOperations ops) {
+                    CompletedBatchOperation status =
+                            new CompletedBatchOperation(true,
+                                                        Sets.newConcurrentHashSet(),
+                                                        batch.deviceId());
+
+                    VirtualFlowRuleProviderService providerService =
+                            (VirtualFlowRuleProviderService) providerRegistryService
+                                    .getProviderService(networkId,
+                                                        VirtualFlowRuleProvider.class);
+                    providerService.batchOperationCompleted(batch.id(), status);
+                }
+
+                @Override
+                public void onError(FlowRuleOperations ops) {
+                    Set<FlowRule> failures = ImmutableSet.copyOf(
+                            Lists.transform(batch.getOperations(),
+                                            BatchOperationEntry::target));
+
+                    CompletedBatchOperation status =
+                            new CompletedBatchOperation(false,
+                                                        failures,
+                                                        batch.deviceId());
+
+                    VirtualFlowRuleProviderService providerService =
+                            (VirtualFlowRuleProviderService) providerRegistryService
+                                    .getProviderService(networkId,
+                                                        VirtualFlowRuleProvider.class);
+                    providerService.batchOperationCompleted(batch.id(), status);
+                }
+            }));
         }
-
-        //FIXME: check the success of the all batch operations
-        CompletedBatchOperation status =
-                new CompletedBatchOperation(true, Sets.newConcurrentHashSet(),
-                                            batch.deviceId());
-
-        VirtualFlowRuleProviderService providerService =
-                (VirtualFlowRuleProviderService) providerRegistryService
-                        .getProviderService(networkId,
-                                            VirtualFlowRuleProvider.class);
-        providerService.batchOperationCompleted(batch.id(), status);
     }
 
     public void setEmbeddingAlgorithm(InternalRoutingAlgorithm
@@ -243,7 +271,6 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
                                                 flowEntry.life(),
                                                 flowEntry.packets(),
                                                 flowEntry.bytes());
-
         return vEntry;
     }
 
