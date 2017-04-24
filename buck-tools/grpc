@@ -1,0 +1,27 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Generates the gRPC java artifacts from protobuf models.
+# -----------------------------------------------------------------------------
+out=$1
+shift
+proto_paths=$1
+shift
+protoc=$1
+shift
+plugin=$1
+shift
+
+#set -x
+
+dir=$(dirname $out)
+mkdir -p $dir
+
+$protoc \
+    --plugin=protoc-gen-grpc-java=$plugin \
+    --grpc-java_out=$dir \
+    --java_out=$dir \
+    $proto_paths \
+    $*
+
+cd $dir
+jar -cf $out *

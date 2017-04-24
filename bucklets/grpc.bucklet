@@ -1,0 +1,122 @@
+include_defs('//onos.defs')
+include_defs('//bucklets/onos.bucklet')
+
+
+PROTOC_VERSION = '3.2.0'
+GRPC_PLUGIN_VERSION = '1.3.0'
+
+PROTOC_EXECUTABLE_BASE_URL = "https://repo1.maven.org/maven2/com/google/protobuf/protoc"
+GRPC_PLUGIN_BASE_URL = "https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java"
+
+PROTOC_SHA1S = {
+    "protoc-3.3.0-osx-x86_64.exe":"3070e439f9557bb72fb04df631f29d7556c9029c",
+    "protoc-3.3.0-linux-x86_64.exe":"e6a95fc7477c602cc402ed976d3edbd82c841879",
+    "protoc-3.2.0-linux-x86_64.exe":"086893ffdc1023e503ccd0ee522ca1e6046b12a7",
+    "protoc-3.2.0-osx-x86_64.exe":"87f532ef51bb314d2c5d2ba7842b39cbbdb60323"
+}
+
+GRPC_JAVA_SHA1S = {
+    "protoc-gen-grpc-java-1.3.0-linux-x86_64.exe":"44a0fa3e6074852ea84f93d258233b3f4f6d9e53",
+    "protoc-gen-grpc-java-1.3.0-osx-x86_64.exe":"61a1b81b9f0af7d0900c314a4201972b52fb5f12"
+}
+
+#Returns the string for the OS and architecture of the system of the form 'OS-ARCH'
+def get_system_arch():
+    import platform
+    os = platform.system().lower()
+    arch = platform.machine()
+    if os == "darwin":
+        os = "osx"
+    return "%s-%s" % ( os, arch)
+
+def fetch_protoc_binary(
+        protoc_version = PROTOC_VERSION
+    ):
+    file_name = "protoc-%s-%s.exe" % (protoc_version, get_system_arch())
+    if file_name not in PROTOC_SHA1S:
+        raise Exception('Cannot download %s, architecture not supported' % file_name)
+    remote_file(
+        name = 'fetch-protoc-binary-' + protoc_version,
+        out = 'protoc-binary',
+        url = PROTOC_EXECUTABLE_BASE_URL + '/' + protoc_version + '/' + file_name,
+        sha1 = PROTOC_SHA1S[file_name],
+    )
+    genrule(
+        name = 'prepare-protoc-executable-' + protoc_version,
+        srcs = [ ':fetch-protoc-binary-' + protoc_version ],
+        bash = 'cp $(location :fetch-protoc-binary-' + protoc_version +') $OUT && chmod +x $OUT',
+        executable = True,
+        visibility = [ "PUBLIC" ],
+        out = 'protoc.exe',
+    )
+
+def fetch_grpc_plugin_binary(
+        grpc_plugin_version = GRPC_PLUGIN_VERSION
+):
+    file_name = "protoc-gen-grpc-java-%s-%s.exe" % (grpc_plugin_version, get_system_arch())
+    if file_name not in GRPC_JAVA_SHA1S:
+        raise Exception('Cannot download %s, architecture not supported' % file_name)
+    remote_file(
+        name = 'fetch-grpc-plugin-binary-' + grpc_plugin_version,
+        out = 'grpc-plugin-binary',
+        url = GRPC_PLUGIN_BASE_URL + '/' + grpc_plugin_version + '/' + file_name,
+        sha1 = GRPC_JAVA_SHA1S[file_name],
+    )
+    genrule(
+        name = 'prepare-grpc-plugin-executable-' + grpc_plugin_version,
+        srcs = [ ':fetch-grpc-plugin-binary-' + grpc_plugin_version ],
+        bash = 'cp $(location :fetch-grpc-plugin-binary-' + grpc_plugin_version + ') $OUT && chmod +x $OUT',
+        executable = True,
+        visibility = [ "PUBLIC" ],
+        out = 'grpc-plugin.exe',
+    )
+
+def _get_name():
+    base_path = get_base_path()
+    return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
+
+def grpc_jar(
+    name = None,
+    deps = [],
+    #NOTE: if targeting a directory also built with maven this path MUST end in
+        # /proto because maven plugin interprets imports relative to the proto
+        # directory and BUCK interprets imports relative to the last directory
+        # listed in the first listed proto_path which contains the specified
+        # file
+    proto_paths = [],
+    proto_match_patterns = [ "**/proto/**/*.proto" ],
+    protoc_version = PROTOC_VERSION,
+    plugin_version = GRPC_PLUGIN_VERSION,
+    **kwargs
+    ):
+
+    #Get the correct name for the protoc compilation call
+    if name is None:
+        name = _get_name()
+
+    #Create the string for the proto_path arguments (order matters, similar to classpath)
+    if len(proto_paths) != 0:
+        proto_paths_string = "-I=" + reduce(lambda a,b:  a +" -I=" + b, proto_paths)
+    else:
+        proto_paths_string = ""
+    protoc = name + '-protoc'
+
+    genrule(
+        name = protoc,
+        srcs = glob(proto_match_patterns),
+        out = 'grpc.src.zip',
+        cmd = '$(location //buck-tools:grpc) $OUT '
+              + '\"' + proto_paths_string + '\" '
+              + '$(location //incubator/protobuf-dependencies:prepare-protoc-executable-'+ protoc_version + ') '
+              + '$(location //incubator/grpc-dependencies:prepare-grpc-plugin-executable-' + plugin_version + ') '
+              + '$SRCS',
+    )
+
+    osgi_jar_with_tests(
+        name = name,
+        srcs = [ ':' + protoc ],
+        deps = deps + [ ':' + protoc ],
+        do_javadocs = False,
+        do_checkstyle = False,
+        **kwargs
+    )

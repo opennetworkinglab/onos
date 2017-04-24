@@ -52,3 +52,9 @@ export_file(
   src = 'yang-schema',
   visibility = [ 'PUBLIC' ],
 )
+
+export_file(
+  name = 'grpc',
+  src = 'grpc',
+  visibility = [ 'PUBLIC' ],
+)

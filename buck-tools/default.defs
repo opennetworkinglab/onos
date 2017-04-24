@@ -4,6 +4,7 @@ include_defs('//bucklets/onos.bucklet')
 include_defs('//bucklets/onos_app.bucklet')
 include_defs('//bucklets/yang.bucklet')
 include_defs('//bucklets/remote_jar.bucklet')
+include_defs('//bucklets/grpc.bucklet')
 
 BASE_DEPS = [
     '//lib:junit',

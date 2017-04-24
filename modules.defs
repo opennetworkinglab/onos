@@ -9,6 +9,7 @@ UTILS = [
 API = [
     '//core/api:onos-api',
     '//incubator/api:onos-incubator-api',
+    '//incubator/protobuf:onos-incubator-grpc',
 ]
 
 CORE = UTILS + API + [

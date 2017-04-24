@@ -1,7 +1,7 @@
 syntax = "proto3";
 option java_package = "org.onosproject.grpc.net.link";
 
-import "Link.proto";
+import "models/Link.proto";
 
 package Link;
 

@@ -1,0 +1,25 @@
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    ':onos-incubator-grpc',
+    '//lib:protobuf-java-3.2.0',
+]
+
+GRPC_DEPS = [
+    '//lib:GRPC_1.3',
+    '//lib:protobuf-java-3.2.0',
+    '//lib:guava'
+]
+
+grpc_jar(
+    name = 'onos-incubator-grpc',
+    deps = GRPC_DEPS,
+    proto_paths = ["$ONOS_ROOT/incubator/protobuf/src/main/proto"]
+)
+
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS,
+    visibility = ['PUBLIC'],
+)
+
+

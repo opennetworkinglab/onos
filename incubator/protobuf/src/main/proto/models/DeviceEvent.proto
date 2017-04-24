@@ -2,8 +2,8 @@ syntax = "proto3";
 option java_package = "org.onosproject.grpc.net";
 
 
-import "Device.proto";
-import "Port.proto";
+import "models/Device.proto";
+import "models/Port.proto";
 
 package DeviceEvent;
 
