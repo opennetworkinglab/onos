@@ -36,6 +36,7 @@
         <module>intent-perf</module>
         <module>messaging-perf</module>
         <module>flow-perf</module>
+        <module>transaction-perf</module>
         <module>demo</module>
         <module>distributed-primitives</module>
         <module>netcfg-monitor</module>
