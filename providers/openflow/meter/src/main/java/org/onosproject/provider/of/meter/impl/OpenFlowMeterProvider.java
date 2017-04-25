@@ -183,6 +183,19 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
         performOperation(sw, meterOp);
 
+        if (meterOp.type().equals(MeterOperation.Type.REMOVE)) {
+            forceMeterStats(deviceId);
+        }
+
+    }
+
+    private void forceMeterStats(DeviceId deviceId) {
+        Dpid dpid = Dpid.dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+
+        MeterStatsCollector once = new MeterStatsCollector(sw, 1);
+        once.sendMeterStatistic();
+
     }
 
     private void performOperation(OpenFlowSwitch sw, MeterOperation op) {

@@ -73,7 +73,7 @@ public class MeterStatsCollector implements TimerTask {
         }
     }
 
-    private void sendMeterStatistic() {
+    public void sendMeterStatistic() {
         if (log.isTraceEnabled()) {
             log.trace("sendMeterStatistics {}:{}", sw.getStringId(), sw.getRole());
         }
