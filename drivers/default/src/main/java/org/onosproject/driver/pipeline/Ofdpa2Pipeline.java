@@ -84,8 +84,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -153,8 +151,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     protected Ofdpa2GroupHandler groupHandler;
 
-    protected Set<IPCriterion> sentIpFilters = Collections.newSetFromMap(
-                                               new ConcurrentHashMap<>());
     // flows installations to be retried
     protected ScheduledExecutorService executorService
         = newScheduledThreadPool(5, groupedThreads("OfdpaPipeliner", "retry-%d", log));
@@ -332,10 +328,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     //////////////////////////////////////
 
     /**
-     * As per OFDPA 2.0 TTP, filtering of VLAN ids, MAC addresses (for routing)
-     * and IP addresses configured on switch ports happen in different tables.
-     * Note that IP filtering rules need to be added to the ACL table, as there
-     * is no mechanism to send to controller via IP table.
+     * As per OFDPA 2.0 TTP, filtering of VLAN ids and MAC addresses (for routing)
+     * configured on switch ports happen in different tables.
      *
      * @param filt      the filtering objective
      * @param install   indicates whether to add or remove the objective
@@ -345,10 +339,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                  boolean install, ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
-        PortCriterion portCriterion = null;
+        PortCriterion portCriterion;
         EthCriterion ethCriterion = null;
         VlanIdCriterion vidCriterion = null;
-        Collection<IPCriterion> ips = new ArrayList<>();
         if (!filt.key().equals(Criteria.dummy()) &&
                 filt.key().type() == Criterion.Type.IN_PORT) {
             portCriterion = (PortCriterion) filt.key();
@@ -363,17 +356,18 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         for (Criterion criterion : filt.conditions()) {
-            if (criterion.type() == Criterion.Type.ETH_DST ||
-                    criterion.type() == Criterion.Type.ETH_DST_MASKED) {
-                ethCriterion = (EthCriterion) criterion;
-            } else if (criterion.type() == Criterion.Type.VLAN_VID) {
-                vidCriterion = (VlanIdCriterion) criterion;
-            } else if (criterion.type() == Criterion.Type.IPV4_DST) {
-                ips.add((IPCriterion) criterion);
-            } else {
-                log.error("Unsupported filter {}", criterion);
-                fail(filt, ObjectiveError.UNSUPPORTED);
-                return;
+            switch (criterion.type()) {
+                case ETH_DST:
+                case ETH_DST_MASKED:
+                    ethCriterion = (EthCriterion) criterion;
+                    break;
+                case VLAN_VID:
+                    vidCriterion = (VlanIdCriterion) criterion;
+                    break;
+                default:
+                    log.warn("Unsupported filter {}", criterion);
+                    fail(filt, ObjectiveError.UNSUPPORTED);
+                    return;
             }
         }
 
