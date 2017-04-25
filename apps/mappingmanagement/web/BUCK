@@ -1,21 +1,21 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
     '//apps/mappingmanagement/api:onos-apps-mappingmanagement-api',
 ]
 
 TEST_DEPS = [
-    '//lib:TEST_ADAPTERS',
-    '//lib:jersey-test-framework-core',
-    '//lib:jersey-test-framework-jetty',
-    '//utils/osgi:onlab-osgi-tests',
+    '//lib:TEST_REST',
     '//web/api:onos-rest-tests',
-    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/mappingmanagement',
+    api_title = 'Mapping Management App API',
+    api_version = '1.0',
+    api_description = 'REST API for ONOS Mapping Management App',
+    api_package = 'org.onosproject.mapping.web',
 )

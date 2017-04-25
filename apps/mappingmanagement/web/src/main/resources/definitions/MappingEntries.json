@@ -1,0 +1,143 @@
+{
+  "type": "object",
+  "title": "mappings",
+  "required": [
+    "mappings"
+  ],
+  "properties": {
+    "mappings": {
+      "type": "array",
+      "xml": {
+        "name": "mappings",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "mapping",
+        "required": [
+          "id",
+          "state",
+          "deviceId",
+          "key",
+          "value"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "12103425214920339"
+          },
+          "state": {
+            "type": "string",
+            "example": "ADDED"
+          },
+          "deviceId": {
+            "type": "string",
+            "example": "lisp:1.2.3.4"
+          },
+          "key": {
+            "type": "object",
+            "title": "key",
+            "required": [
+              "address"
+            ],
+            "properties": {
+              "address": {
+                "type": "object",
+                "title": "address",
+                "required": [
+                  "addrType",
+                  "typeValue"
+                ],
+                "properties": {
+                  "addrType": {
+                    "type": "string",
+                    "example": "IPV4"
+                  },
+                  "typeValue": {
+                    "type": "string",
+                    "example": "1.2.3.4"
+                  }
+                }
+              }
+            }
+          },
+          "value": {
+            "type": "object",
+            "title": "value",
+            "required": [
+              "action",
+              "treatments"
+            ],
+            "properties": {
+              "action": {
+                "type": "string",
+                "example": "FORWARD"
+              },
+              "treatments": {
+                "type": "array",
+                "xml": {
+                  "name": "treatments",
+                  "wrapped": true
+                },
+                "items": {
+                  "type": "object",
+                  "title": "treatment",
+                  "required": [
+                    "address",
+                    "instructions"
+                  ],
+                  "properties": {
+                    "address": {
+                      "type": "object",
+                      "title": "address",
+                      "required": [
+                        "addrType",
+                        "typeValue"
+                      ],
+                      "properties": {
+                        "addrType": {
+                          "type": "string",
+                          "example": "IPV4"
+                        },
+                        "typeValue": {
+                          "type": "string",
+                          "example": "1.2.3.4"
+                        }
+                      }
+                    },
+                    "instructions": {
+                      "type": "array",
+                      "xml": {
+                        "name": "instructions",
+                        "wrapped": true
+                      },
+                      "items": {
+                        "type": "object",
+                        "title": "instruction",
+                        "required": [
+                          "instType",
+                          "value"
+                        ],
+                        "properties": {
+                          "instType": {
+                            "type": "string",
+                            "example": "WEIGHT"
+                          },
+                          "value": {
+                            "type": "int32",
+                            "format": "int32",
+                            "example": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -15,24 +15,16 @@
  */
 package org.onosproject.mapping.web;
 
-import org.onosproject.rest.AbstractWebResource;
+import org.onlab.rest.AbstractWebApplication;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import java.util.Set;
 
 /**
- * LISP mapping REST API implementation.
+ * Mapping management REST APIs web application.
  */
-@Path("mappings")
-public class MappingWebResource extends AbstractWebResource {
-
-    // FIXME: dummy method for generating swagger.json file
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getMappings() {
-        return null;
+public class MappingsWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(MappingsWebResource.class);
     }
 }

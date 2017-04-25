@@ -31,7 +31,7 @@
     <properties>
         <web.context>/onos/v1/mm</web.context>
         <api.version>1.0.0</api.version>
-        <api.title>ONOS LISP Mapping Management Application REST API</api.title>
+        <api.title>ONOS Mapping Management Application REST API</api.title>
         <api.description>
             APIs for interacting with the LISP Mapping Management application.
         </api.description>
@@ -78,7 +78,6 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
-
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-rest</artifactId>
@@ -86,10 +85,14 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.test-framework</groupId>
             <artifactId>jersey-test-framework-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+            <artifactId>jersey-test-framework-provider-jetty</artifactId>
             <scope>test</scope>
         </dependency>
 
