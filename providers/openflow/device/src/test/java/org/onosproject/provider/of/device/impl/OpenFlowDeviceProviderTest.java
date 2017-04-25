@@ -60,6 +60,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
 import static org.onosproject.net.Device.Type.SWITCH;
@@ -315,6 +316,11 @@ public class OpenFlowDeviceProviderTest {
 
         @Override
         public void write(Dpid dpid, OFMessage msg) {
+        }
+
+        @Override
+        public CompletableFuture<OFMessage> writeResponse(Dpid dpid, OFMessage msg) {
+            return null;
         }
 
         @Override

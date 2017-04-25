@@ -17,6 +17,8 @@ package org.onosproject.openflow.controller;
 
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Test adapter for the OpenFlow controller interface.
  */
@@ -79,6 +81,11 @@ public class OpenflowControllerAdapter implements OpenFlowController {
 
     @Override
     public void write(Dpid dpid, OFMessage msg) {
+    }
+
+    @Override
+    public CompletableFuture<OFMessage> writeResponse(Dpid dpid, OFMessage msg) {
+        return null;
     }
 
     @Override

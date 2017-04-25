@@ -77,6 +77,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -144,6 +145,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected ConcurrentMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
             new ConcurrentHashMap<>();
     protected ConcurrentMap<Dpid, OpenFlowSwitch> activeEqualSwitches =
+            new ConcurrentHashMap<>();
+
+    // Key: dpid, value: map with key: long (XID), value: completable future
+    protected ConcurrentMap<Dpid, ConcurrentMap<Long, CompletableFuture<OFMessage>>> responses =
             new ConcurrentHashMap<>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
@@ -285,6 +290,19 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
+    public CompletableFuture<OFMessage> writeResponse(Dpid dpid, OFMessage msg) {
+        write(dpid, msg);
+
+        ConcurrentMap<Long, CompletableFuture<OFMessage>> xids =
+                responses.computeIfAbsent(dpid, k -> new ConcurrentHashMap());
+
+        CompletableFuture<OFMessage> future = new CompletableFuture();
+        xids.put(msg.getXid(), future);
+
+        return future;
+    }
+
+    @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
         Collection<OFFlowStatsEntry> flowStats;
         Collection<OFTableStatsEntry> tableStats;
@@ -293,6 +311,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         Collection<OFPortStatsEntry> portStats;
 
         OpenFlowSwitch sw = this.getSwitch(dpid);
+
+        // Check if someone is waiting for this message
+        ConcurrentMap<Long, CompletableFuture<OFMessage>> xids = responses.get(dpid);
+        if (xids != null && xids.containsKey(msg.getXid())) {
+            xids.remove(msg.getXid()).complete(msg);
+        }
 
         switch (msg.getType()) {
         case PORT_STATUS:

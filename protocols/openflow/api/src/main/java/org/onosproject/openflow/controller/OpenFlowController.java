@@ -17,6 +17,8 @@ package org.onosproject.openflow.controller;
 
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Abstraction of an OpenFlow controller. Serves as a one stop
  * shop for obtaining OpenFlow devices and (un)register listeners
@@ -126,6 +128,15 @@ public interface OpenFlowController {
      * @param msg the message to send
      */
     void write(Dpid dpid, OFMessage msg);
+
+    /**
+     * Send a message to a particular switch and return the future response.
+     *
+     * @param dpid the switch to send to
+     * @param msg the message to send
+     * @return future for response message
+     */
+    CompletableFuture<OFMessage> writeResponse(Dpid dpid, OFMessage msg);
 
     /**
      * Process a message and notify the appropriate listeners.
