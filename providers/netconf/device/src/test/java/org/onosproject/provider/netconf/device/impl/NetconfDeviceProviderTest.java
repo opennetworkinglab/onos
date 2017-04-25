@@ -122,13 +122,13 @@ public class NetconfDeviceProviderTest {
     private final NetconfProviderConfig netconfProviderConfig = new MockNetconfProviderConfig();
     private static final String NETCONF_DEVICE_ID_STRING = "netconf:1.1.1.1:830";
     private static final String NETCONF_DEVICE_ID_STRING_OLD = "netconf:1.1.1.2:1";
-    private static final String NETCONF_DEVICE_ID_STRING_IPv6 = "netconf:2001:0db8:0000:0000:0000:ff00:0042:8329:830";
+    private static final String NETCONF_DEVICE_ID_STRING_IPV6 = "netconf:2001:0db8:0000:0000:0000:ff00:0042:8329:830";
     private static final String IP_STRING = "1.1.1.1";
     private static final String IP_STRING_OLD = "1.1.1.2";
-    private static final String IP_STRING_IPv6 = "2001:0db8:0000:0000:0000:ff00:0042:8329";
+    private static final String IP_STRING_IPV6 = "2001:0db8:0000:0000:0000:ff00:0042:8329";
     private static final IpAddress IP = IpAddress.valueOf(IP_STRING);
     private static final IpAddress IP_OLD = IpAddress.valueOf(IP_STRING_OLD);
-    private static final IpAddress IP_v6 = IpAddress.valueOf(IP_STRING_IPv6);
+    private static final IpAddress IP_V6 = IpAddress.valueOf(IP_STRING_IPV6);
     private static final int PORT = 830;
     private static final String TEST = "test";
     private static final int DELAY_DISCOVERY = 500;
@@ -174,7 +174,7 @@ public class NetconfDeviceProviderTest {
         available = false;
         firstRequest = true;
         DeviceId subject = DeviceId.deviceId(NETCONF_DEVICE_ID_STRING);
-        DeviceId subjectIpv6 = DeviceId.deviceId(NETCONF_DEVICE_ID_STRING_IPv6);
+        DeviceId subjectIpv6 = DeviceId.deviceId(NETCONF_DEVICE_ID_STRING_IPV6);
         String key = "netconf";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);
@@ -234,7 +234,7 @@ public class NetconfDeviceProviderTest {
     @Test
     public void configurationDeviceIdIpv6() {
         assertTrue("Configuration should be valid", netconfDeviceConfigEmptyIpv6.isValid());
-        assertThat(netconfDeviceConfigEmptyIpv6.ip(), is(IP_v6));
+        assertThat(netconfDeviceConfigEmptyIpv6.ip(), is(IP_V6));
         assertThat(netconfDeviceConfigEmptyIpv6.port(), is(PORT));
         assertThat(netconfDeviceConfigEmptyIpv6.username(), is(StringUtils.EMPTY));
         assertThat(netconfDeviceConfigEmptyIpv6.password(), is(StringUtils.EMPTY));
