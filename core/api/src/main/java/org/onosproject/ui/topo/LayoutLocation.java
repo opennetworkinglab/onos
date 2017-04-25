@@ -17,6 +17,12 @@
 
 package org.onosproject.ui.topo;
 
+import com.google.common.base.Strings;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -25,6 +31,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class LayoutLocation {
     private static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
+    private static final String COMMA = ",";
+    private static final String TILDE = "~";
+    private static final String EMPTY = "";
+
+    private static final String E_BAD_COMPACT = "Badly formatted compact form: ";
+    private static final String E_EMPTY_ID = "id must be non-empty";
+    private static final String E_BAD_DOUBLE = "unparsable double";
+
 
     /**
      * Designates the type of location; either geographic or logical grid.
@@ -44,7 +58,6 @@ public final class LayoutLocation {
         this.longOrX = longOrX;
         this.locType = locType;
     }
-
 
     private boolean doubleIsZero(double value) {
         return value >= -ZERO_THRESHOLD && value <= ZERO_THRESHOLD;
@@ -70,6 +83,16 @@ public final class LayoutLocation {
     }
 
     /**
+     * Returns the location type (geo or grid), which indicates how the data
+     * is to be interpreted.
+     *
+     * @return location type
+     */
+    public Type locType() {
+        return locType;
+    }
+
+    /**
      * Returns the latitude (geo) or y-coord (grid) data value.
      *
      * @return geo latitude or grid y-coord
@@ -87,25 +110,109 @@ public final class LayoutLocation {
         return longOrX;
     }
 
-    /**
-     * Returns the location type (geo or grid), which indicates how the data
-     * is to be interpreted.
-     *
-     * @return location type
-     */
-    public Type locType() {
-        return locType;
-    }
-
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("id", id)
+                .add("loc-type", locType)
                 .add("lat/Y", latOrY)
                 .add("long/X", longOrX)
-                .add("loc-type", locType)
                 .toString();
     }
+
+    /**
+     * Produces a compact string representation of this instance.
+     *
+     * @return compact string rep
+     */
+    public String toCompactListString() {
+        return id + COMMA + locType + COMMA + latOrY + COMMA + longOrX;
+    }
+
+    /**
+     * Produces a layout location instance from a compact string representation.
+     *
+     * @param s the compact string
+     * @return a corresponding instance
+     */
+    public static LayoutLocation fromCompactString(String s) {
+        String[] tokens = s.split(COMMA);
+        if (tokens.length != 4) {
+            throw new IllegalArgumentException(E_BAD_COMPACT + s);
+        }
+        String id = tokens[0];
+        String type = tokens[1];
+        String latY = tokens[2];
+        String longX = tokens[3];
+
+        if (Strings.isNullOrEmpty(id)) {
+            throw new IllegalArgumentException(E_BAD_COMPACT + E_EMPTY_ID);
+        }
+
+        double latOrY;
+        double longOrX;
+        try {
+            latOrY = Double.parseDouble(latY);
+            longOrX = Double.parseDouble(longX);
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException(E_BAD_COMPACT + E_BAD_DOUBLE);
+        }
+
+        return LayoutLocation.layoutLocation(id, type, latOrY, longOrX);
+    }
+
+    /**
+     * Produces a compact encoding of a list of layout locations.
+     *
+     * @param locs array of layout location instances
+     * @return string encoding
+     */
+    public static String toCompactListString(LayoutLocation... locs) {
+        if (locs == null || locs.length == 0) {
+            return EMPTY;
+        }
+        List<LayoutLocation> lls = Arrays.asList(locs);
+        return toCompactListString(lls);
+    }
+
+    /**
+     * Produces a compact encoding of a list of layout locations.
+     *
+     * @param locs list of layout location instances
+     * @return string encoding
+     */
+    public static String toCompactListString(List<LayoutLocation> locs) {
+        // note: locs may be empty
+        if (locs == null || locs.isEmpty()) {
+            return EMPTY;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (LayoutLocation ll : locs) {
+            sb.append(ll.toCompactListString()).append(TILDE);
+        }
+        final int len = sb.length();
+        sb.replace(len - 1, len, "");
+        return sb.toString();
+    }
+
+    /**
+     * Returns a list of layout locations from a compact string representation.
+     *
+     * @param compactList string representation
+     * @return corresponding list of layout locations
+     */
+    public static List<LayoutLocation> fromCompactListString(String compactList) {
+        List<LayoutLocation> locs = new ArrayList<>();
+        if (!Strings.isNullOrEmpty(compactList)) {
+            String[] items = compactList.split(TILDE);
+            for (String s : items) {
+                locs.add(fromCompactString(s));
+            }
+        }
+        return locs;
+    }
+
 
     /**
      * Creates an instance of a layout location.

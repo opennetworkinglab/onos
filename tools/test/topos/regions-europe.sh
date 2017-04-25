@@ -16,7 +16,7 @@ onos ${host} null-simulation start custom
 
 
 ## unfortunately, it takes a time for the sim to start up
-#  this is not ideal...
+#  this is not ideal... but we'll live with it for now
 
 echo
 echo "Sleeping while sim starts up... (${sleepfor} seconds)..."
@@ -111,7 +111,6 @@ null-create-link direct London Leeds
 null-create-link direct Leeds Warrington
 
 # -- UK Peers
-## TODO: figure out why this data isn't getting put into runtime config?!
 region-add-peer-loc rUK rES 50.4060  -3.3860
 region-add-peer-loc rUK rFR 50.4060  -1.8482
 region-add-peer-loc rUK rIT 50.4060  -0.1361

@@ -931,8 +931,7 @@ public class DeviceManager
             }
         }
 
-        // checks if the specified device is allowed by the BasicDeviceConfig
-        // and if not, removes it
+        // removes the specified device if it exists
         private void kickOutBadDevice(DeviceId deviceId) {
             Device badDevice = getDevice(deviceId);
             if (badDevice != null) {

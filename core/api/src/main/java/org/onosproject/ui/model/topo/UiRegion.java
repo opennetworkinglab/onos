@@ -123,7 +123,7 @@ public class UiRegion extends UiNode {
      * @return true if root region
      */
     public boolean isRoot() {
-        return id().equals(parent);
+        return parent == null;
     }
 
     /**
@@ -181,7 +181,7 @@ public class UiRegion extends UiNode {
      * @return the backing region instance
      */
     public Region backingRegion() {
-        return topology.services.region().getRegion(regionId);
+        return isRoot() ? null : topology.services.region().getRegion(regionId);
     }
 
     /**

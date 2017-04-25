@@ -229,7 +229,7 @@ public class UiTopoSession implements UiModelListener {
         // now add the devices that reside in the parent region
         if (!layout.isRoot()) {
             UiTopoLayout parentLayout = layoutService.getLayout(layout.parent());
-            getRegion(parentLayout).devices().forEach(peers::add);
+            peers.addAll(getRegion(parentLayout).devices());
         }
 
         // TODO: Finally, filter out regions / devices that are not connected

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
@@ -55,6 +56,7 @@ import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.topo.LayoutLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +74,7 @@ import static org.onosproject.net.AnnotationKeys.GRID_Y;
 import static org.onosproject.net.AnnotationKeys.LATITUDE;
 import static org.onosproject.net.AnnotationKeys.LONGITUDE;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
+import static org.onosproject.ui.topo.LayoutLocation.fromCompactListString;
 
 /**
  * Facility for creating JSON messages to send to the topology view in the
@@ -98,6 +101,7 @@ public class Topo2Jsonifier {
 
     private static final String GEO = "geo";
     private static final String GRID = "grid";
+    private static final String PEER_LOCATIONS = "peerLocations";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -342,6 +346,10 @@ public class Topo2Jsonifier {
         payload.set("hosts", jsonGrouped(ridStr, splitHosts));
         payload.set("layerOrder", jsonStrings(layerTags));
 
+        if (!region.isRoot()) {
+            addPeerLocations(payload, region.backingRegion());
+        }
+
         return payload;
     }
 
@@ -497,6 +505,24 @@ public class Topo2Jsonifier {
         }
     }
 
+    private void addPeerLocations(ObjectNode node, Region r) {
+        String compact = r.annotations().value(PEER_LOCATIONS);
+        if (!Strings.isNullOrEmpty(compact)) {
+            List<LayoutLocation> locs = fromCompactListString(compact);
+
+            ObjectNode o = objectNode();
+            for (LayoutLocation ll : locs) {
+                ObjectNode lnode = objectNode()
+                    .put("locType", ll.locType().toString())
+                    .put("latOrY", ll.latOrY())
+                    .put("longOrX", ll.longOrX());
+                o.set(ll.id(), lnode);
+            }
+
+            node.set(PEER_LOCATIONS, o);
+        }
+    }
+
     private void addIps(ObjectNode node, Host h) {
         Set<IpAddress> ips = h.ipAddresses();
 
@@ -578,7 +604,7 @@ public class Topo2Jsonifier {
                 .put("nHosts", region.hostCount());
         // TODO: device and host counts should take into account any nested
         //       subregions. i.e. should be the sum of all devices/hosts in
-        //       all descendent subregions.
+        //       all descendant subregions.
 
         Region r = region.backingRegion();
         // this is location data, as injected via network configuration script
