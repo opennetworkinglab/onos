@@ -122,10 +122,10 @@ osgi_feature_group(
 
 remote_jar (
   name = 'aopalliance-repackaged',
-  out = 'aopalliance-repackaged-2.5.0-b30.jar',
-  url = 'mvn:org.glassfish.hk2.external:aopalliance-repackaged:jar:2.5.0-b30',
-  sha1 = '4e882c90e9ba801803991b4000e6d9ad216ac261',
-  maven_coords = 'org.glassfish.hk2.external:aopalliance-repackaged:2.5.0-b30',
+  out = 'aopalliance-repackaged-2.5.0-b32.jar',
+  url = 'mvn:org.glassfish.hk2.external:aopalliance-repackaged:jar:2.5.0-b32',
+  sha1 = '6af37c3f8ec6f9e9653ec837eb508da28ce443cd',
+  maven_coords = 'org.glassfish.hk2.external:aopalliance-repackaged:2.5.0-b32',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -338,19 +338,19 @@ remote_jar (
 
 remote_jar (
   name = 'hk2-api',
-  out = 'hk2-api-2.5.0-b30.jar',
-  url = 'mvn:org.glassfish.hk2:hk2-api:jar:2.5.0-b30',
-  sha1 = '5c6688a6bafcd2098bef4ca45226d5355b816647',
-  maven_coords = 'org.glassfish.hk2:hk2-api:2.5.0-b30',
+  out = 'hk2-api-2.5.0-b32.jar',
+  url = 'mvn:org.glassfish.hk2:hk2-api:jar:2.5.0-b32',
+  sha1 = '6a576c9653832ce610b80a2f389374ef19d96171',
+  maven_coords = 'org.glassfish.hk2:hk2-api:2.5.0-b32',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'hk2-locator',
-  out = 'hk2-locator-2.5.0-b30.jar',
-  url = 'mvn:org.glassfish.hk2:hk2-locator:jar:2.5.0-b30',
-  sha1 = '82056cbbd258647bbc6b80debe4e6b7121c61be9',
-  maven_coords = 'org.glassfish.hk2:hk2-locator:2.5.0-b30',
+  out = 'hk2-locator-2.5.0-b32.jar',
+  url = 'mvn:org.glassfish.hk2:hk2-locator:jar:2.5.0-b32',
+  sha1 = '195474f8ad0a8d130e9ea949a771bcf1215fc33b',
+  maven_coords = 'org.glassfish.hk2:hk2-locator:2.5.0-b32',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -365,10 +365,10 @@ remote_jar (
 
 remote_jar (
   name = 'hk2-utils',
-  out = 'hk2-utils-2.5.0-b30.jar',
-  url = 'mvn:org.glassfish.hk2:hk2-utils:jar:2.5.0-b30',
-  sha1 = 'b17fc7d8082ac00e59cd96fda9cff21f24cc367c',
-  maven_coords = 'org.glassfish.hk2:hk2-utils:2.5.0-b30',
+  out = 'hk2-utils-2.5.0-b32.jar',
+  url = 'mvn:org.glassfish.hk2:hk2-utils:jar:2.5.0-b32',
+  sha1 = '5108a926988c4ceda7f1e681dddfe3101454a002',
+  maven_coords = 'org.glassfish.hk2:hk2-utils:2.5.0-b32',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -464,10 +464,10 @@ remote_jar (
 
 remote_jar (
   name = 'javax.inject',
-  out = 'javax.inject-2.5.0-b30.jar',
-  url = 'mvn:org.glassfish.hk2.external:javax.inject:jar:2.5.0-b30',
-  sha1 = '054b36144fd2fb684f9cee73d96060bb82e4d363',
-  maven_coords = 'org.glassfish.hk2.external:javax.inject:2.5.0-b30',
+  out = 'javax.inject-2.5.0-b32.jar',
+  url = 'mvn:org.glassfish.hk2.external:javax.inject:jar:2.5.0-b32',
+  sha1 = 'b2fa50c8186a38728c35fe6a9da57ce4cc806923',
+  maven_coords = 'org.glassfish.hk2.external:javax.inject:2.5.0-b32',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -482,91 +482,91 @@ remote_jar (
 
 remote_jar (
   name = 'jersey-client',
-  out = 'jersey-client-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.core:jersey-client:jar:2.25',
-  sha1 = '416a00562f25d7efdba015e5c21876d19163edd0',
-  maven_coords = 'org.glassfish.jersey.core:jersey-client:2.25',
+  out = 'jersey-client-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.core:jersey-client:jar:2.25.1',
+  sha1 = '4d563b1f93352ee9fad597e9e1daf2c6159993c6',
+  maven_coords = 'org.glassfish.jersey.core:jersey-client:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-common',
-  out = 'jersey-common-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.core:jersey-common:jar:2.25',
-  sha1 = 'b38e1a1af6ad75dd9037a767764b0d41801f1c9f',
-  maven_coords = 'org.glassfish.jersey.core:jersey-common:2.25',
+  out = 'jersey-common-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.core:jersey-common:jar:2.25.1',
+  sha1 = '2438ce68d4907046095ab54aa83a6092951b4bbb',
+  maven_coords = 'org.glassfish.jersey.core:jersey-common:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-container-jetty-http',
-  out = 'jersey-container-jetty-http-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:jar:2.25',
-  sha1 = '7b199d4684de57839d7d9abc7cba8710b9ea9356',
-  maven_coords = 'org.glassfish.jersey.containers:jersey-container-jetty-http:2.25',
+  out = 'jersey-container-jetty-http-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.containers:jersey-container-jetty-http:jar:2.25.1',
+  sha1 = 'f880be688b57ef6d1fa317317da4adef687bfba5',
+  maven_coords = 'org.glassfish.jersey.containers:jersey-container-jetty-http:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-container-servlet',
-  out = 'jersey-container-servlet-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.containers:jersey-container-servlet:jar:2.25',
-  sha1 = '0a3162855a184793c3c934ed9ee0170ebeb82cc9',
-  maven_coords = 'org.glassfish.jersey.containers:jersey-container-servlet:2.25',
+  out = 'jersey-container-servlet-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.containers:jersey-container-servlet:jar:2.25.1',
+  sha1 = 'cf5f7a76fcea38158b890ab7a0142d4db709a882',
+  maven_coords = 'org.glassfish.jersey.containers:jersey-container-servlet:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-container-servlet-core',
-  out = 'jersey-container-servlet-core-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.25',
-  sha1 = '42708aca357418bb51528b20181cdfe0241c3ecb',
-  maven_coords = 'org.glassfish.jersey.containers:jersey-container-servlet-core:2.25',
+  out = 'jersey-container-servlet-core-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.25.1',
+  sha1 = '400e30bb035a0cdf3c554530224141ce659a0d1e',
+  maven_coords = 'org.glassfish.jersey.containers:jersey-container-servlet-core:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-guava',
-  out = 'jersey-guava-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.bundles.repackaged:jersey-guava:jar:2.25',
-  sha1 = '4439bddb870b210e40ca2e953813930be424dc0c',
-  maven_coords = 'org.glassfish.jersey.bundles.repackaged:jersey-guava:2.25',
+  out = 'jersey-guava-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.bundles.repackaged:jersey-guava:jar:2.25.1',
+  sha1 = 'a2bb4f8208e134cf2cf71dfb8824e42942f7bd06',
+  maven_coords = 'org.glassfish.jersey.bundles.repackaged:jersey-guava:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-media-multipart',
-  out = 'jersey-media-multipart-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.media:jersey-media-multipart:jar:2.25',
-  sha1 = 'c16881a7522dc8e2636bf5024d183919c16a7f75',
-  maven_coords = 'org.glassfish.jersey.media:jersey-media-multipart:2.25',
+  out = 'jersey-media-multipart-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.media:jersey-media-multipart:jar:2.25.1',
+  sha1 = '1d2db0078ee1b740c4e7ec7413d328a8a7e1c480',
+  maven_coords = 'org.glassfish.jersey.media:jersey-media-multipart:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-server',
-  out = 'jersey-server-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.core:jersey-server:jar:2.25',
-  sha1 = '0874ca16134872781b8c6a2adfe3bb2af80bc378',
-  maven_coords = 'org.glassfish.jersey.core:jersey-server:2.25',
+  out = 'jersey-server-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.core:jersey-server:jar:2.25.1',
+  sha1 = '276e2ee0fd1cdabf99357fce560c5baab675b1a2',
+  maven_coords = 'org.glassfish.jersey.core:jersey-server:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-test-framework-core',
-  out = 'jersey-test-framework-core-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:2.25',
-  sha1 = 'c83b9dda2c2148b189b087eb79aae0017635e8b4',
-  maven_coords = 'org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:NON-OSGI:2.25',
+  out = 'jersey-test-framework-core-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:2.25.1',
+  sha1 = '9368dc18933a8b9f2526c86ab310b02781969aa3',
+  maven_coords = 'org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:NON-OSGI:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'jersey-test-framework-jetty',
-  out = 'jersey-test-framework-provider-jetty-2.25.jar',
-  url = 'mvn:org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:jar:2.25',
-  sha1 = '50946d9535fb3905bab771c0ba04d28018ffd578',
-  maven_coords = 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:jar:NON-OSGI:2.25',
+  out = 'jersey-test-framework-provider-jetty-2.25.1.jar',
+  url = 'mvn:org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:jar:2.25.1',
+  sha1 = 'f774ab891c8c7c697fd7f613d51a37e7b7c73366',
+  maven_coords = 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jetty:jar:NON-OSGI:2.25.1',
   visibility = [ 'PUBLIC' ],
 )
 
