@@ -17,6 +17,8 @@ package org.onosproject.drivers.lumentum;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.Pair;
+import org.onosproject.driver.optical.flowrule.CrossConnectCache;
+import org.onosproject.driver.optical.flowrule.CrossConnectFlowRule;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;

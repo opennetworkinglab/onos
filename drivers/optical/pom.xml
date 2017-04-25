@@ -59,6 +59,7 @@
             <groupId>org.onosproject</groupId>
             <artifactId>openflowj</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-of-api</artifactId>

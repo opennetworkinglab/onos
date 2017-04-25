@@ -47,7 +47,7 @@ public class LincOELambdaQuery extends AbstractHandlerBehaviour implements Lambd
      * OMS ports expose 80 fixed grid lambdas of 50GHz width,
      * centered around the ITU-T center frequency 193.1 THz.
      */
-    private static final Set<OchSignal> OMS_LAMDAS = IntStream.range(0, LAMBDA_COUNT)
+    private static final Set<OchSignal> OMS_LAMBDAS = IntStream.range(0, LAMBDA_COUNT)
             .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
             .collect(GuavaCollectors.toImmutableSet());
 
@@ -63,6 +63,6 @@ public class LincOELambdaQuery extends AbstractHandlerBehaviour implements Lambd
             return ImmutableSet.of();
         }
 
-        return OMS_LAMDAS;
+        return OMS_LAMBDAS;
     }
 }

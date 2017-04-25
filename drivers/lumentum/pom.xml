@@ -49,7 +49,6 @@
             <artifactId>onos-optical-model</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.snmp4j</artifactId>
@@ -68,6 +67,11 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-tl1-ctl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers-optical</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

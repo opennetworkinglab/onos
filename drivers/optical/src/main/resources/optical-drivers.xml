@@ -33,10 +33,8 @@
                    impl="org.onosproject.driver.optical.handshaker.CalientFiberSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.CalientLambdaQuery"/>
-
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-
     </driver>
 
     <driver name="eci" extends="default"
@@ -70,12 +68,10 @@
 
     <driver name="oplk_ops" extends="default"
             manufacturer="Oplink a Molex company" hwVersion="protection-switch" swVersion="of-agent-1.0">
-
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-            impl="org.onosproject.driver.optical.handshaker.OplinkSwitchHandshaker"/>
+                   impl="org.onosproject.driver.optical.handshaker.OplinkSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour"
                    impl="org.onosproject.driver.optical.protection.OplinkSwitchProtection"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
@@ -86,10 +82,8 @@
 
     <driver name="oplk-edfa" extends="default"
             manufacturer="Oplink a Molex company" hwVersion="edfa" swVersion="of-agent-1.0">
-
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.optical.handshaker.OplinkEdfaHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
@@ -102,31 +96,23 @@
     <driver name="polatis-config" manufacturer="Polatis" hwVersion="N-VST-48x48-HU1-DMHNV-805" swVersion="6.6.1.7">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.driver.optical.config.PolatisDeviceDiscovery"/>
-
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-
+                   impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
-
     </driver>
 
     <driver name="optical-config" manufacturer="config" hwVersion="config" swVersion="config">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
-
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.driver.optical.config.ConfigOpticalDeviceDiscovery"/>
-
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-            impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-
+                   impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.optical.query.ConfigLambdaQuery"/>
-
     </driver>
 
 </drivers>

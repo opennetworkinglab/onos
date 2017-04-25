@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.lumentum;
+package org.onosproject.driver.optical.flowrule;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.net.flow.FlowId;
@@ -21,7 +21,7 @@ import org.onosproject.net.flow.FlowId;
 /**
  * Simple interface to cache flow ID and priority of cross connect flows.
  */
-interface CrossConnectCache {
+public interface CrossConnectCache {
     /**
      * Returns the flow ID and priority corresponding to the flow hash.
      *

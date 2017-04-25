@@ -57,6 +57,42 @@ public final class Frequency implements RichComparable<Frequency> {
     }
 
     /**
+     * Return the value this instance represents as KHz.
+     *
+     * @return frequency in kHz
+     */
+    public double asKHz() {
+        return (double) frequency / KHZ;
+    }
+
+    /**
+     * Return the value this instance represents as MHz.
+     *
+     * @return frequency in MHz
+     */
+    public double asMHz() {
+        return (double) frequency / MHZ;
+    }
+
+    /**
+     * Return the value this instance represents as GHz.
+     *
+     * @return frequency in GHz
+     */
+    public double asGHz() {
+        return (double) frequency / GHZ;
+    }
+
+    /**
+     * Return the value this instance represents as THz.
+     *
+     * @return frequency in THz
+     */
+    public double asTHz() {
+        return (double) frequency / THZ;
+    }
+
+    /**
      * Returns an instance representing the specified value in Hz.
      *
      * @param value frequency in Hz
