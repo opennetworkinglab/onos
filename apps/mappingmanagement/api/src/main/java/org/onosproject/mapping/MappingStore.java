@@ -80,7 +80,7 @@ public interface MappingStore extends Store<MappingEvent, MappingStoreDelegate> 
      * @param type    store type
      * @param mapping the mapping to add
      */
-    void storeMapping(Type type, Mapping mapping);
+    void storeMapping(Type type, MappingEntry mapping);
 
     /**
      * Marks a mapping for deletion. Actual deletion will occur when the

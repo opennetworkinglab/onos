@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.mapping.DefaultMappingEntry;
 import org.onosproject.mapping.Mapping;
 import org.onosproject.mapping.MappingEntry;
+import org.onosproject.mapping.MappingEntry.MappingEntryState;
 import org.onosproject.mapping.MappingEvent;
 import org.onosproject.mapping.MappingId;
 import org.onosproject.mapping.MappingStore;
@@ -213,14 +214,15 @@ public class SimpleMappingStore
     }
 
     @Override
-    public void storeMapping(Type type, Mapping mapping) {
+    public void storeMapping(Type type, MappingEntry mapping) {
 
         List<StoredMappingEntry> entries =
                 getMappingEntriesInternal(type, mapping.deviceId(), mapping.id());
 
         synchronized (entries) {
             if (!entries.contains(mapping)) {
-                StoredMappingEntry entry = new DefaultMappingEntry(mapping);
+                StoredMappingEntry entry =
+                        new DefaultMappingEntry(mapping, mapping.state());
                 entries.add(entry);
             }
         }
@@ -252,7 +254,7 @@ public class SimpleMappingStore
             for (StoredMappingEntry stored : entries) {
                 if (stored.equals(entry)) {
                     if (stored.state() == PENDING_ADD) {
-                        stored.setState(MappingEntry.MappingEntryState.ADDED);
+                        stored.setState(MappingEntryState.ADDED);
                         return new MappingEvent(MAPPING_ADDED, entry);
                     }
                     return new MappingEvent(MAPPING_UPDATED, entry);

@@ -191,7 +191,7 @@ public class DistributedMappingStore
     }
 
     @Override
-    public void storeMapping(Type type, Mapping mapping) {
+    public void storeMapping(Type type, MappingEntry mapping) {
 
         getStore(type).put(mapping.id(), mapping);
     }

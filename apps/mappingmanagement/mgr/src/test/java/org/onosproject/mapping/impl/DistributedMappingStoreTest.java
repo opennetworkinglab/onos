@@ -22,10 +22,12 @@ import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.mapping.DefaultMapping;
+import org.onosproject.mapping.DefaultMappingEntry;
 import org.onosproject.mapping.DefaultMappingKey;
 import org.onosproject.mapping.DefaultMappingTreatment;
 import org.onosproject.mapping.DefaultMappingValue;
 import org.onosproject.mapping.Mapping;
+import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingKey;
 import org.onosproject.mapping.MappingTreatment;
 import org.onosproject.mapping.MappingValue;
@@ -59,8 +61,8 @@ public class DistributedMappingStoreTest {
     private static final String IP_ADDRESS = "1.2.3.4/24";
 
     private DistributedMappingStore mappingStore;
-    private Mapping mapping1;
-    private Mapping mapping2;
+    private MappingEntry mapping1;
+    private MappingEntry mapping2;
 
     private Device device1;
     private Device device2;
@@ -103,19 +105,22 @@ public class DistributedMappingStoreTest {
                 "foo.inc", "0", "0", "0", null,
                 DefaultAnnotations.builder().build());
 
-        mapping1 = DefaultMapping.builder()
+        Mapping originalMapping1 = DefaultMapping.builder()
                 .forDevice(DEVICE_ID_1)
                 .withId(1000L)
                 .withKey(key)
                 .withValue(value)
                 .build();
 
-        mapping2 = DefaultMapping.builder()
+        Mapping originalMapping2 = DefaultMapping.builder()
                 .forDevice(DEVICE_ID_2)
                 .withId(2000L)
                 .withKey(key)
                 .withValue(value)
                 .build();
+
+        mapping1 = new DefaultMappingEntry(originalMapping1);
+        mapping2 = new DefaultMappingEntry(originalMapping2);
 
         mappingStore.activate();
     }
