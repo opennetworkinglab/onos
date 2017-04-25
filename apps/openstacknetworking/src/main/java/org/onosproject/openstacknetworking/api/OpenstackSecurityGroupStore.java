@@ -18,7 +18,8 @@ package org.onosproject.openstacknetworking.api;
 
 import org.onosproject.store.Store;
 import org.openstack4j.model.network.SecurityGroup;
-import org.openstack4j.model.network.SecurityGroupRule;
+
+import java.util.Set;
 
 /**
  * Manages inventory of OpenStack security group states; not intended for direct use.
@@ -36,11 +37,9 @@ public interface OpenstackSecurityGroupStore
     /**
      * Updates the security group with the security group ID with the security group object.
      *
-     * @param sgId security group ID
      * @param sg new SecurityGroup object
-     * @return old SecurityGroup object
      */
-    SecurityGroup updateSecurityGroup(String sgId, SecurityGroup sg);
+    void updateSecurityGroup(SecurityGroup sg);
 
     /**
      * Removes the security group with the security group ID.
@@ -51,21 +50,6 @@ public interface OpenstackSecurityGroupStore
     SecurityGroup removeSecurityGroup(String sgId);
 
     /**
-     * Creates a security group rule.
-     *
-     * @param sgRule security group rule
-     */
-    void createSecurityGroupRule(SecurityGroupRule sgRule);
-
-    /**
-     * Removes the security group rule with the security group rule ID.
-     *
-     * @param sgRuleId security group rule ID to remove
-     * @return SecurityGroupRule object removed
-     */
-    SecurityGroupRule removeSecurityGroupRule(String sgRuleId);
-
-    /**
      * Returns the security group with the security group ID.
      *
      * @param sgId security group ID
@@ -74,11 +58,14 @@ public interface OpenstackSecurityGroupStore
     SecurityGroup securityGroup(String sgId);
 
     /**
-     * Returns the security group rule with the security group ID.
+     * Returns all security groups.
      *
-     * @param sgRuleId security group rule ID
-     * @return Security Group Rule
+     * @return set of security groups
      */
-    SecurityGroupRule securityGroupRule(String sgRuleId);
+    Set<SecurityGroup> securityGroups();
 
+    /**
+     * Clears the security group store.
+     */
+    void clear();
 }

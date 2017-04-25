@@ -30,6 +30,13 @@ public interface OpenstackSecurityGroupAdminService {
     void createSecurityGroup(SecurityGroup sg);
 
     /**
+     * Updates the security group.
+     *
+     * @param sg security group
+     */
+    void updateSecurityGroup(SecurityGroup sg);
+
+    /**
      * Removes the security group.
      *
      * @param sgId security group ID
@@ -49,4 +56,9 @@ public interface OpenstackSecurityGroupAdminService {
      * @param sgRuleId security group rule ID
      */
     void removeSecurityGroupRule(String sgRuleId);
+
+    /**
+     * Removes the existing security groups.
+     */
+    void clear();
 }

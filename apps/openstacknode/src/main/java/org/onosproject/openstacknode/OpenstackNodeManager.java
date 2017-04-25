@@ -438,10 +438,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     }
 
     private void setNodeState(OpenstackNode node, NodeState newState) {
-        if (node.state() != newState) {
-            log.debug("Changed {} state: {}", node.hostname(), newState);
-            nodeStore.put(node.hostname(), OpenstackNode.getUpdatedNode(node, newState));
-        }
+        nodeStore.put(node.hostname(), OpenstackNode.getUpdatedNode(node, newState));
     }
 
     private NodeState nodeState(OpenstackNode node) {

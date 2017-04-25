@@ -38,15 +38,16 @@ import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provides implementation of administering and interfaceing Openstack security
+ * Provides implementation of administering and interfacing OpenStack security
  * groups.
- *
  */
 @Service
 @Component(immediate = true)
@@ -57,8 +58,7 @@ public class OpenstackSecurityGroupManager
     protected final Logger log = getLogger(getClass());
 
     private static final String MSG_SG = "OpenStack security group %s %s";
-    private static final String MSG_SG_RULE = "OpenStack security group %s %s";
-
+    private static final String MSG_SG_RULE = "OpenStack security group rule %s %s";
 
     private static final String MSG_CREATED = "created";
     private static final String MSG_REMOVED = "removed";
@@ -67,6 +67,8 @@ public class OpenstackSecurityGroupManager
     private static final String ERR_NULL_SG_ID = "OpenStack security group ID cannot be null";
     private static final String ERR_NULL_SG_RULE = "OpenStack security group rule cannot be null";
     private static final String ERR_NULL_SG_RULE_ID = "OpenStack security group rule ID cannot be null";
+    private static final String ERR_NOT_FOUND = "not found";
+    private static final String ERR_DUPLICATE = "already exist";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -99,6 +101,14 @@ public class OpenstackSecurityGroupManager
     }
 
     @Override
+    public void updateSecurityGroup(SecurityGroup sg) {
+        checkNotNull(sg, ERR_NULL_SG);
+        checkArgument(!Strings.isNullOrEmpty(sg.getId()), ERR_NULL_SG_ID);
+
+        osSecurityGroupStore.updateSecurityGroup(sg);
+    }
+
+    @Override
     public void removeSecurityGroup(String sgId) {
         checkNotNull(sgId, ERR_NULL_SG_ID);
 
@@ -110,28 +120,66 @@ public class OpenstackSecurityGroupManager
     public void createSecurityGroupRule(SecurityGroupRule sgRule) {
         checkNotNull(sgRule, ERR_NULL_SG_RULE);
         checkArgument(!Strings.isNullOrEmpty(sgRule.getId()), ERR_NULL_SG_RULE_ID);
+        checkArgument(!Strings.isNullOrEmpty(sgRule.getSecurityGroupId()), ERR_NULL_SG_ID);
 
-        synchronized (osSecurityGroupStore) {
+        synchronized (this) {
             SecurityGroup sg = securityGroup(sgRule.getSecurityGroupId());
-            List sgRules = sg.getRules();
-            sgRules.add(sgRule);
-            SecurityGroup newSg = new NeutronSecurityGroup.SecurityGroupConcreteBuilder().from(sg).build();
-            SecurityGroup oldSg = osSecurityGroupStore.updateSecurityGroup(sgRule.getSecurityGroupId(), newSg);
-            if (oldSg == null) {
-                log.warn("Failed to add the security group rule {} to security group", sgRule.getId());
+            if (sg == null) {
+                final String error = String.format(MSG_SG, sgRule.getSecurityGroupId(), ERR_NOT_FOUND);
+                throw new IllegalStateException(error);
+            }
+            if (sg.getRules().stream().anyMatch(rule -> Objects.equals(rule.getId(), sgRule.getId()))) {
+                final String error = String.format(MSG_SG_RULE,
+                        sgRule.getSecurityGroupId(), ERR_DUPLICATE);
+                throw new IllegalStateException(error);
             }
 
-            osSecurityGroupStore.createSecurityGroupRule(sgRule);
-            log.info(String.format(MSG_SG_RULE, sgRule.getId(), MSG_CREATED));
+            // FIXME we cannot add element to extend list
+            List updatedSgRules = sg.getRules();
+            updatedSgRules.add(sgRule);
+            SecurityGroup updatedSg = NeutronSecurityGroup.builder().from(sg).build();
+            osSecurityGroupStore.updateSecurityGroup(updatedSg);
         }
+
+        log.info(String.format(MSG_SG_RULE, sgRule.getId(), MSG_CREATED));
     }
 
     @Override
     public void removeSecurityGroupRule(String sgRuleId) {
-        checkNotNull(sgRuleId, ERR_NULL_SG_RULE_ID);
+        checkArgument(!Strings.isNullOrEmpty(sgRuleId), ERR_NULL_SG_RULE_ID);
 
-        osSecurityGroupStore.removeSecurityGroupRule(sgRuleId);
+        synchronized (this) {
+            SecurityGroupRule sgRule = securityGroupRule(sgRuleId);
+            if (sgRule == null) {
+                final String error = String.format(MSG_SG_RULE, sgRuleId, ERR_NOT_FOUND);
+                throw new IllegalStateException(error);
+            }
+
+            SecurityGroup sg = securityGroup(sgRule.getSecurityGroupId());
+            if (sg == null) {
+                final String error = String.format(MSG_SG, sgRule.getSecurityGroupId(), ERR_NOT_FOUND);
+                throw new IllegalStateException(error);
+            }
+
+            if (sg.getRules().stream().noneMatch(rule -> Objects.equals(rule.getId(), sgRule.getId()))) {
+                final String error = String.format(MSG_SG_RULE,
+                        sgRule.getSecurityGroupId(), ERR_NOT_FOUND);
+                throw new IllegalStateException(error);
+            }
+
+            // FIXME we cannot handle the element of extend list as a specific class object
+            List updatedSgRules = sg.getRules();
+            updatedSgRules.removeIf(r -> ((SecurityGroupRule) r).getId().equals(sgRuleId));
+            SecurityGroup updatedSg = NeutronSecurityGroup.builder().from(sg).build();
+            osSecurityGroupStore.updateSecurityGroup(updatedSg);
+        }
+
         log.info(String.format(MSG_SG_RULE, sgRuleId, MSG_REMOVED));
+    }
+
+    @Override
+    public Set<SecurityGroup> securityGroups() {
+        return osSecurityGroupStore.securityGroups();
     }
 
     @Override
@@ -141,9 +189,15 @@ public class OpenstackSecurityGroupManager
     }
 
     @Override
-    public SecurityGroupRule securityGroupRule(String sgRuleId) {
-        checkArgument(!Strings.isNullOrEmpty(sgRuleId), ERR_NULL_SG_RULE_ID);
-        return osSecurityGroupStore.securityGroupRule(sgRuleId);
+    public void clear() {
+        osSecurityGroupStore.clear();
+    }
+
+    private SecurityGroupRule securityGroupRule(String sgRuleId) {
+        return osSecurityGroupStore.securityGroups().stream()
+                .flatMap(sg -> sg.getRules().stream())
+                .filter(sgRule -> Objects.equals(sgRule.getId(), sgRuleId))
+                .findFirst().orElse(null);
     }
 
     private class InternalSecurityGroupStoreDelegate implements OpenstackSecurityGroupStoreDelegate {

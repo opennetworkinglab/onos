@@ -63,10 +63,12 @@ public class OpenstackSecurityGroupEvent
      * SecurityGroupEvent constructor.
      *
      * @param type SecurityGroupEvent type
+     * @param sg security group
      * @param sgRule SecurityGroup object
      */
-    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type, SecurityGroupRule sgRule) {
-        super(type, null);
+    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type, SecurityGroup sg,
+                                       SecurityGroupRule sgRule) {
+        super(type, sg);
         this.sgRule = sgRule;
     }
 

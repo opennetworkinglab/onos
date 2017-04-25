@@ -24,6 +24,8 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
 import org.openstack4j.model.identity.Access;
@@ -67,6 +69,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String password = null;
 
+    private static final String SECURITY_GROUP_FORMAT = "%-40s%-20s";
     private static final String NETWORK_FORMAT = "%-40s%-20s%-20s%-8s";
     private static final String SUBNET_FORMAT = "%-40s%-20s%-20s";
     private static final String PORT_FORMAT = "%-40s%-20s%-20s%-8s";
@@ -78,6 +81,8 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
+        OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
+        OpenstackSecurityGroupService osSgService = get(OpenstackSecurityGroupService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
@@ -101,7 +106,18 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
         OSClient osClient = OSFactory.clientFromAccess(osAccess);
 
-        print("Synchronizing OpenStack networks...");
+        print("Synchronizing OpenStack security groups");
+        print(SECURITY_GROUP_FORMAT, "ID", "Name");
+        osClient.networking().securitygroup().list().forEach(osSg -> {
+            if (osSgService.securityGroup(osSg.getId()) != null) {
+                osSgAdminService.updateSecurityGroup(osSg);
+            } else {
+                osSgAdminService.createSecurityGroup(osSg);
+            }
+            print(SECURITY_GROUP_FORMAT, osSg.getId(), osSg.getName());
+        });
+
+        print("\nSynchronizing OpenStack networks");
         print(NETWORK_FORMAT, "ID", "Name", "VNI", "Subnets");
         osClient.networking().network().list().forEach(osNet -> {
             if (osNetService.network(osNet.getId()) != null) {
@@ -112,7 +128,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             printNetwork(osNet);
         });
 
-        print("\nSynchronizing OpenStack subnets...");
+        print("\nSynchronizing OpenStack subnets");
         print(SUBNET_FORMAT, "ID", "Network", "CIDR");
         osClient.networking().subnet().list().forEach(osSubnet -> {
             if (osNetService.subnet(osSubnet.getId()) != null) {
@@ -123,7 +139,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             printSubnet(osSubnet, osNetService);
         });
 
-        print("\nSynchronizing OpenStack ports...");
+        print("\nSynchronizing OpenStack ports");
         print(PORT_FORMAT, "ID", "Network", "MAC", "Fixed IPs");
         osClient.networking().port().list().forEach(osPort -> {
             if (osNetService.port(osPort.getId()) != null) {
@@ -134,7 +150,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             printPort(osPort, osNetService);
         });
 
-        print("\nSynchronizing OpenStack routers...");
+        print("\nSynchronizing OpenStack routers");
         print(ROUTER_FORMAT, "ID", "Name", "External", "Internal");
         osClient.networking().router().list().forEach(osRouter -> {
             if (osRouterService.router(osRouter.getId()) != null) {
@@ -153,7 +169,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             printRouter(osRouter, osNetService);
         });
 
-        print("\nSynchronizing OpenStack floating IPs...");
+        print("\nSynchronizing OpenStack floating IPs");
         print(FLOATING_IP_FORMAT, "ID", "Floating IP", "Fixed IP");
         osClient.networking().floatingip().list().forEach(osFloating -> {
             if (osRouterService.floatingIp(osFloating.getId()) != null) {

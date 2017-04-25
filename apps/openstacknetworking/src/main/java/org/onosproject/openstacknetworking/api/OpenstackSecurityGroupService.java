@@ -17,14 +17,21 @@ package org.onosproject.openstacknetworking.api;
 
 import org.onosproject.event.ListenerService;
 import org.openstack4j.model.network.SecurityGroup;
-import org.openstack4j.model.network.SecurityGroupRule;
+
+import java.util.Set;
 
 /**
  * Service for interfacing OpenStack SecurityGroup events and SecurityGroup store.
- *
  */
 public interface OpenstackSecurityGroupService
         extends ListenerService<OpenstackSecurityGroupEvent, OpenstackSecurityGroupListener> {
+
+    /**
+     * Returns all security groups.
+     *
+     * @return set of security group
+     */
+    Set<SecurityGroup> securityGroups();
 
     /**
      * Returns the security group for the sgId.
@@ -33,13 +40,4 @@ public interface OpenstackSecurityGroupService
      * @return security group
      */
     SecurityGroup securityGroup(String sgId);
-
-    /**
-     * Returns the security group rule for the sgRuleId given.
-     *
-     * @param sgRuleId security group rule Id
-     * @return security group rule
-     */
-    SecurityGroupRule securityGroupRule(String sgRuleId);
-
 }

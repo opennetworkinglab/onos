@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,12 +42,15 @@ import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
 import org.slf4j.Logger;
 
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -83,11 +87,8 @@ public class DistributedSecurityGroupStore
 
     private final MapEventListener<String, SecurityGroup> securityGroupMapListener =
             new OpenstackSecurityGroupMapListener();
-    private final MapEventListener<String, SecurityGroupRule> securityGroupRuleMapListener =
-            new OpenstackSecurityGroupRuleMapListener();
 
     private ConsistentMap<String, SecurityGroup> osSecurityGroupStore;
-    private ConsistentMap<String, SecurityGroupRule> osSecurityGroupRuleStore;
 
     @Activate
     protected void activate() {
@@ -100,20 +101,12 @@ public class DistributedSecurityGroupStore
                 .build();
         osSecurityGroupStore.addListener(securityGroupMapListener);
 
-        osSecurityGroupRuleStore = storageService.<String, SecurityGroupRule>consistentMapBuilder()
-                .withSerializer(Serializer.using(SERIALIZER_SECURITY_GROUP))
-                .withName("openstack-securitygrouprulestore")
-                .withApplicationId(appId)
-                .build();
-        osSecurityGroupRuleStore.addListener(securityGroupRuleMapListener);
-
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         osSecurityGroupStore.removeListener(securityGroupMapListener);
-        osSecurityGroupRuleStore.removeListener(securityGroupRuleMapListener);
         eventExecutor.shutdown();
 
         log.info("Stopped");
@@ -129,9 +122,12 @@ public class DistributedSecurityGroupStore
     }
 
     @Override
-    public SecurityGroup updateSecurityGroup(String sgId, SecurityGroup newSg) {
-        Versioned<SecurityGroup> sg = osSecurityGroupStore.replace(sgId, newSg);
-        return sg == null ? null : sg.value();
+    public void updateSecurityGroup(SecurityGroup sg) {
+        osSecurityGroupStore.compute(sg.getId(), (id, existing) -> {
+            final String error = sg.getName() + ERR_NOT_FOUND;
+            checkArgument(existing != null, error);
+            return sg;
+        });
     }
 
     @Override
@@ -141,30 +137,22 @@ public class DistributedSecurityGroupStore
     }
 
     @Override
-    public void createSecurityGroupRule(SecurityGroupRule sgRule) {
-        osSecurityGroupRuleStore.compute(sgRule.getId(), (id, existing) -> {
-            final String error = sgRule.getId() + ERR_DUPLICATE;
-            checkArgument(existing == null, error);
-            return sgRule;
-        });
-    }
-
-    @Override
-    public SecurityGroupRule removeSecurityGroupRule(String sgRuleId) {
-        Versioned<SecurityGroupRule> sgRule = osSecurityGroupRuleStore.remove(sgRuleId);
-        return sgRule == null ? null : sgRule.value();
-    }
-
-    @Override
     public SecurityGroup securityGroup(String sgId) {
         Versioned<SecurityGroup> osSg = osSecurityGroupStore.get(sgId);
         return osSg == null ? null : osSg.value();
     }
 
     @Override
-    public SecurityGroupRule securityGroupRule(String sgRuleId) {
-        Versioned<SecurityGroupRule> osSgRule = osSecurityGroupRuleStore.get(sgRuleId);
-        return osSgRule == null ? null : osSgRule.value();
+    public Set<SecurityGroup> securityGroups() {
+        Set<SecurityGroup> osSgs = osSecurityGroupStore.values().stream()
+                .map(Versioned::value)
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(osSgs);
+    }
+
+    @Override
+    public void clear() {
+        osSecurityGroupStore.clear();
     }
 
     private class OpenstackSecurityGroupMapListener implements MapEventListener<String, SecurityGroup> {
@@ -173,47 +161,43 @@ public class DistributedSecurityGroupStore
         public void event(MapEvent<String, SecurityGroup> event) {
             switch (event.type()) {
                 case INSERT:
-                    log.debug("Openstack Security Group created {}", event.newValue());
+                    log.debug("OpenStack security group created {}", event.newValue());
                     eventExecutor.execute(() ->
                             notifyDelegate(new OpenstackSecurityGroupEvent(
-                                    OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_CREATED,
-                                    securityGroup(event.newValue().value().getId()))));
+                                    OPENSTACK_SECURITY_GROUP_CREATED,
+                                    event.newValue().value())));
                     break;
-
+                case UPDATE:
+                    log.debug("OpenStack security group updated {}", event.newValue());
+                    eventExecutor.execute(() -> processUpdate(
+                            event.oldValue().value(),
+                            event.newValue().value()));
+                    break;
                 case REMOVE:
-                    log.debug("Openstack Security Group removed {}", event.newValue());
+                    log.debug("OpenStack security group removed {}", event.newValue());
                     eventExecutor.execute(() ->
                             notifyDelegate(new OpenstackSecurityGroupEvent(
-                                    OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_REMOVED,
+                                    OPENSTACK_SECURITY_GROUP_REMOVED,
                                     event.oldValue().value())));
                     break;
                 default:
             }
         }
-    }
 
-    private class OpenstackSecurityGroupRuleMapListener implements MapEventListener<String, SecurityGroupRule> {
+        private void processUpdate(SecurityGroup oldSg, SecurityGroup newSg) {
+            Set<String> oldSgRuleIds = oldSg.getRules().stream()
+                    .map(SecurityGroupRule::getId).collect(Collectors.toSet());
+            Set<String> newSgRuleIds = newSg.getRules().stream()
+                    .map(SecurityGroupRule::getId).collect(Collectors.toSet());
 
-        @Override
-        public void event(MapEvent<String, SecurityGroupRule> event) {
-            switch (event.type()) {
-                case INSERT:
-                    log.debug("Openstack Security Group Rule created {}", event.newValue());
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new OpenstackSecurityGroupEvent(
-                                    OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_RULE_CREATED,
-                                    securityGroupRule(event.newValue().value().getId()))));
-                    break;
-
-                case REMOVE:
-                    log.debug("Openstack Security Group Rule removed {}", event.oldValue());
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new OpenstackSecurityGroupEvent(
-                                    OpenstackSecurityGroupEvent.Type.OPENSTACK_SECURITY_GROUP_RULE_REMOVED,
-                                    event.oldValue().value())));
-                    break;
-                default:
-            }
+            oldSg.getRules().stream().filter(sgRule -> !newSgRuleIds.contains(sgRule.getId()))
+                    .forEach(sgRule -> notifyDelegate(new OpenstackSecurityGroupEvent(
+                            OPENSTACK_SECURITY_GROUP_RULE_REMOVED, newSg, sgRule)
+                    ));
+            newSg.getRules().stream().filter(sgRule -> !oldSgRuleIds.contains(sgRule.getId()))
+                    .forEach(sgRule -> notifyDelegate(new OpenstackSecurityGroupEvent(
+                            OPENSTACK_SECURITY_GROUP_RULE_CREATED, newSg, sgRule)
+                    ));
         }
     }
 }

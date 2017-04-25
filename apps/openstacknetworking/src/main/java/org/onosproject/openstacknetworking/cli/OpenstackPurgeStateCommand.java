@@ -19,6 +19,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 
 /**
  * Purges all existing network states.
@@ -29,7 +30,8 @@ public class OpenstackPurgeStateCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        get(OpenstackNetworkAdminService.class).clear();
         get(OpenstackRouterAdminService.class).clear();
+        get(OpenstackNetworkAdminService.class).clear();
+        get(OpenstackSecurityGroupAdminService.class).clear();
     }
 }

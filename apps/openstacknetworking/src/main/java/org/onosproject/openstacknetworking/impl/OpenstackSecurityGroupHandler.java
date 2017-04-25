@@ -53,7 +53,6 @@ import org.openstack4j.model.network.SecurityGroupRule;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -84,7 +83,7 @@ public class OpenstackSecurityGroupHandler {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackNetworkService openstackService;
+    protected OpenstackNetworkService osNetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackSecurityGroupService securityGroupService;
@@ -113,7 +112,7 @@ public class OpenstackSecurityGroupHandler {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         instancePortService.addListener(instancePortListener);
         securityGroupService.addListener(securityGroupListener);
-        openstackService.addListener(portListener);
+        osNetService.addListener(portListener);
 
         log.info("Started");
     }
@@ -122,7 +121,7 @@ public class OpenstackSecurityGroupHandler {
     protected void deactivate() {
         instancePortService.removeListener(instancePortListener);
         securityGroupService.removeListener(securityGroupListener);
-        openstackService.removeListener(portListener);
+        osNetService.removeListener(portListener);
         eventExecutor.shutdown();
 
         log.info("Stopped");
@@ -130,13 +129,14 @@ public class OpenstackSecurityGroupHandler {
 
     private void setSecurityGroupRules(InstancePort instPort, Port port, boolean install) {
         port.getSecurityGroups().forEach(sgId -> {
-            log.debug("security group rule ID : " + sgId.toString());
             SecurityGroup sg = securityGroupService.securityGroup(sgId);
             if (sg == null) {
                 log.error("Security Group Not Found : {}", sgId);
                 return;
             }
             sg.getRules().forEach(sgRule -> updateSecurityGroupRule(instPort, port, sgRule, install));
+            final String action = install ? "Installed " : "Removed ";
+            log.debug(action + "security group rule ID : " + sgId);
         });
     }
 
@@ -185,7 +185,7 @@ public class OpenstackSecurityGroupHandler {
     private Set<InstancePort> getRemoteInstPorts(String tenantId, String sgId) {
         Set<InstancePort> remoteInstPorts;
 
-        remoteInstPorts = openstackService.ports().stream()
+        remoteInstPorts = osNetService.ports().stream()
                 .filter(port -> port.getTenantId().equals(tenantId))
                 .filter(port -> port.getSecurityGroups().contains(sgId))
                 .map(port -> instancePortService.instancePort(port.getId()))
@@ -307,32 +307,28 @@ public class OpenstackSecurityGroupHandler {
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
+                    log.debug("Instance port detected MAC:{} IP:{}",
+                            instPort.macAddress(),
+                            instPort.ipAddress());
                     eventExecutor.execute(() -> {
-                        log.info("Instance port detected MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortDetected(event.subject(), openstackService.port(event.subject().portId()));
+                        setSecurityGroupRules(instPort,
+                                osNetService.port(event.subject().portId()),
+                                true);
                     });
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
+                    log.debug("Instance port vanished MAC:{} IP:{}",
+                            instPort.macAddress(),
+                            instPort.ipAddress());
                     eventExecutor.execute(() -> {
-                        log.info("Instance port vanished MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortRemoved(event.subject(), openstackService.port(event.subject().portId()));
+                        setSecurityGroupRules(instPort,
+                                osNetService.port(event.subject().portId()),
+                                false);
                     });
                     break;
                 default:
                     break;
             }
-        }
-
-        private void instPortDetected(InstancePort instPort, Port port) {
-            setSecurityGroupRules(instPort, port, true);
-        }
-
-        private void instPortRemoved(InstancePort instPort, Port port) {
-            setSecurityGroupRules(instPort, port, false);
         }
     }
 
@@ -340,47 +336,48 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackNetworkEvent event) {
-            Port osPort = event.port();
-            if (osPort == null) {
+            if (event.port() == null || !Strings.isNullOrEmpty(event.port().getId())) {
                 return false;
             }
-            return !Strings.isNullOrEmpty(osPort.getId());
+            if (event.securityGroupId() == null ||
+                    securityGroupService.securityGroup(event.securityGroupId()) == null) {
+                return false;
+            }
+            if (instancePortService.instancePort(event.port().getId()) == null) {
+                return false;
+            }
+            return true;
         }
 
         @Override
         public void event(OpenstackNetworkEvent event) {
+            Port osPort = event.port();
+            InstancePort instPort = instancePortService.instancePort(osPort.getId());
+            SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
+
             switch (event.type()) {
-                case OPENSTACK_SECURITY_GROUP_ADDED_TO_PORT:
-                    securityGroupAddedToPort(event.securityGroupRuleIds(), event.port());
+                case OPENSTACK_PORT_SECURITY_GROUP_ADDED:
+                    eventExecutor.execute(() -> {
+                        osSg.getRules().forEach(sgRule -> {
+                            updateSecurityGroupRule(instPort, osPort, sgRule, true);
+                        });
+                        log.info("Added security group {} to port {}",
+                                event.securityGroupId(), event.port().getId());
+                    });
                     break;
-                case OPENSTACK_SECURITY_GROUP_REMOVED_FROM_PORT:
-                    securityGroupRemovedFromPort(event.securityGroupRuleIds(), event.port());
+                case OPENSTACK_PORT_SECURITY_GROUP_REMOVED:
+                    eventExecutor.execute(() -> {
+                        osSg.getRules().forEach(sgRule -> {
+                            updateSecurityGroupRule(instPort, osPort, sgRule, false);
+                        });
+                        log.info("Removed security group {} from port {}",
+                                event.securityGroupId(), event.port().getId());
+                    });
                     break;
                 default:
+                    // do nothing for the other events
                     break;
             }
-        }
-
-        private void securityGroupAddedToPort(Collection<String> sgToAdd, Port osPort) {
-            sgToAdd.forEach(sg -> {
-                InstancePort instPort = instancePortService.instancePort(osPort.getId());
-                if (instPort != null) {
-                    securityGroupService.securityGroup(sg).getRules().stream()
-                            .forEach(sgRule -> updateSecurityGroupRule(instancePortService.instancePort(
-                                    osPort.getId()), osPort, sgRule, true));
-                }
-            });
-        }
-
-        private void securityGroupRemovedFromPort(Collection<String> sgToRemove, Port osPort) {
-            sgToRemove.forEach(sg -> {
-                InstancePort instPort = instancePortService.instancePort(osPort.getId());
-                if (instPort != null) {
-                    securityGroupService.securityGroup(sg).getRules().stream()
-                            .forEach(sgRule -> updateSecurityGroupRule(instancePortService.instancePort(
-                                    osPort.getId()), osPort, sgRule, false));
-                }
-            });
         }
     }
 
@@ -389,46 +386,53 @@ public class OpenstackSecurityGroupHandler {
         @Override
         public void event(OpenstackSecurityGroupEvent event) {
             switch (event.type()) {
-                case OPENSTACK_SECURITY_GROUP_CREATED:
-                case OPENSTACK_SECURITY_GROUP_REMOVED:
-                    break;
                 case OPENSTACK_SECURITY_GROUP_RULE_CREATED:
                     SecurityGroupRule securityGroupRuleToAdd = event.securityGroupRule();
                     eventExecutor.execute(() -> {
-                        log.info("Security group rule detected: ID {}",
-                                securityGroupRuleToAdd.getId());
                         securityGroupRuleAdded(securityGroupRuleToAdd);
+                        log.info("Applied new security group rule {} to ports",
+                                securityGroupRuleToAdd.getId());
                     });
                     break;
 
                 case OPENSTACK_SECURITY_GROUP_RULE_REMOVED:
                     SecurityGroupRule securityGroupRuleToRemove = event.securityGroupRule();
                     eventExecutor.execute(() -> {
-                        log.info("security gorup rule removed: ID {}",
-                                securityGroupRuleToRemove.getId());
                         securityGroupRuleRemoved(securityGroupRuleToRemove);
+                        log.info("Removed security group rule {} from ports",
+                                securityGroupRuleToRemove.getId());
                     });
                     break;
+                case OPENSTACK_SECURITY_GROUP_CREATED:
+                case OPENSTACK_SECURITY_GROUP_REMOVED:
                 default:
+                    // do nothing
+                    break;
             }
         }
 
         private void securityGroupRuleAdded(SecurityGroupRule sgRule) {
-            log.debug("securityGroupRuleAdded : {}" + sgRule);
-
-            openstackService.ports().stream()
+            osNetService.ports().stream()
                     .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
-                    .forEach(port -> updateSecurityGroupRule(instancePortService.instancePort(port.getId()),
-                            port, sgRule, true));
+                    .forEach(port -> {
+                        updateSecurityGroupRule(
+                                instancePortService.instancePort(port.getId()),
+                                port, sgRule, true);
+                        log.debug("Applied security group rule {} to port {}",
+                                sgRule.getId(), port.getId());
+                    });
         }
 
         private void securityGroupRuleRemoved(SecurityGroupRule sgRule) {
-            log.debug("securityGroupRuleRemoved : {}" + sgRule);
-
-            openstackService.ports().stream()
+            osNetService.ports().stream()
                     .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
-                    .forEach(port -> updateSecurityGroupRule(instancePortService.instancePort(port.getId()),
-                            port, sgRule, false));
+                    .forEach(port -> {
+                        updateSecurityGroupRule(
+                                instancePortService.instancePort(port.getId()),
+                                port, sgRule, false);
+                        log.debug("Removed security group rule {} from port {}",
+                                sgRule.getId(), port.getId());
+                    });
         }
     }
 }
