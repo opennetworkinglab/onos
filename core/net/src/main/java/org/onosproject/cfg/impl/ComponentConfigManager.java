@@ -168,6 +168,7 @@ public class ComponentConfigManager implements ComponentConfigService {
                       COMPONENT_MISSING, componentName);
         checkArgument(properties.get(componentName).containsKey(name),
                       PROPERTY_MISSING, name, componentName);
+        checkValidity(componentName, name, value);
         store.setProperty(componentName, name, value);
     }
 
@@ -178,7 +179,7 @@ public class ComponentConfigManager implements ComponentConfigService {
 
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
-
+        checkValidity(componentName, name, value);
         store.setProperty(componentName, name, value);
     }
 
@@ -281,6 +282,48 @@ public class ComponentConfigManager implements ComponentConfigService {
         }
     }
 
+    // Checks whether the value of the specified configuration property is a valid one or not.
+    private void checkValidity(String componentName, String name, String newValue) {
+        Map<String, ConfigProperty> map = properties.get(componentName);
+        if (map == null) {
+            return;
+        }
+        ConfigProperty prop = map.get(name);
+        ConfigProperty.Type type = prop.type();
+        try {
+            switch (type) {
+                case INTEGER:
+                    Integer.parseInt(newValue);
+                    break;
+                case LONG:
+                    Long.parseLong(newValue);
+                    break;
+                case FLOAT:
+                    Float.parseFloat(newValue);
+                    break;
+                case DOUBLE:
+                    Double.parseDouble(newValue);
+                    break;
+                case BOOLEAN:
+                    if (!((newValue != null) && (newValue.equalsIgnoreCase("true") ||
+                                newValue.equalsIgnoreCase("false")))) {
+                        throw new IllegalArgumentException("Invalid " + type + " value");
+                    }
+                    break;
+                case STRING:
+                case BYTE:
+                    //do nothing
+                    break;
+                default:
+                    log.warn("Not a valid config property type");
+                    break;
+
+            }
+        } catch (NumberFormatException e) {
+                throw new NumberFormatException("Invalid " + type + " value");
+        }
+    }
+
     // Loads existing property values that may have been set.
     private void loadExistingValues(String componentName) {
         try {
@@ -292,8 +335,14 @@ public class ComponentConfigManager implements ComponentConfigService {
                 while (it.hasMoreElements()) {
                     String name = it.nextElement();
                     ConfigProperty p = map.get(name);
-                    if (p != null) {
-                        map.put(name, ConfigProperty.setProperty(p, (String) props.get(name)));
+                    try {
+                        if (p != null) {
+                            checkValidity(componentName, name, (String) props.get(name));
+                            map.put(name, ConfigProperty.setProperty(p, (String) props.get(name)));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Default values will be applied " +
+                                "since presetted value is not a valid " + p.type());
                     }
                 }
             }

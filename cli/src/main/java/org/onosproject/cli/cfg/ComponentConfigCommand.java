@@ -72,20 +72,24 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         service = get(ComponentConfigService.class);
-        if (isNullOrEmpty(command)) {
-            listComponents();
-        } else if (command.equals(GET) && isNullOrEmpty(component)) {
-            listAllComponentsProperties();
-        } else if (command.equals(GET) && isNullOrEmpty(name)) {
-            listComponentProperties(component);
-        } else if (command.equals(GET)) {
-            listComponentProperty(component, name);
-        } else if (command.equals(SET) && isNullOrEmpty(value)) {
-            service.unsetProperty(component, name);
-        } else if (command.equals(SET)) {
-            service.setProperty(component, name, value);
-        } else {
-            error("Illegal usage");
+        try {
+            if (isNullOrEmpty(command)) {
+                listComponents();
+            } else if (command.equals(GET) && isNullOrEmpty(component)) {
+                listAllComponentsProperties();
+            } else if (command.equals(GET) && isNullOrEmpty(name)) {
+                listComponentProperties(component);
+            } else if (command.equals(GET)) {
+                listComponentProperty(component, name);
+            } else if (command.equals(SET) && isNullOrEmpty(value)) {
+                service.unsetProperty(component, name);
+            } else if (command.equals(SET)) {
+                service.setProperty(component, name, value);
+            } else {
+                error("Illegal usage");
+            }
+        } catch (IllegalArgumentException e) {
+            error(e.getMessage());
         }
     }
 
