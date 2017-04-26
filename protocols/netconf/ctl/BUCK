@@ -1,7 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:ganymed-ssh2',
-    '//protocols/netconf/api:onos-protocols-netconf-api'
+    '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
 ]
 
 TEST_DEPS = [

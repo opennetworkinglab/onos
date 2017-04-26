@@ -13,49 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cli.net;
+package org.onosproject.netconf.cli.impl;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.ConfigGetter;
+import org.onosproject.net.behaviour.ConfigSetter;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Command that gets the configuration of the specified type from the specified
- * device. If configuration cannot be retrieved it prints an error string.
+ * Command that sets the configuration included in the specified file to the
+ * specified device. It prints the response of the device.
  *
  * This is a temporary development tool for use until yang integration is complete.
  * This uses a not properly specified behavior. DO NOT USE AS AN EXAMPLE.
- *
- * @deprecated in 1.10.0
  */
+//Temporary Developer tool, NOT TO BE USED in production or as example for
+// future commands.
+//FIXME Remove dependency to ConfigSetter.
 
-//FIXME this should eventually be removed.
-@Deprecated
-@Command(scope = "onos", name = "device-configuration",
-        description = "[Deprecated]Gets the configuration of the specified type from the" +
-                "specified device.")
-public class DeviceConfigGetterCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "netconf-rpc-test",
+        description = "Debug tool to send NETCONF RPC request")
+public class NetconfRpcTestCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
-    String uri = null;
-    @Argument(index = 1, name = "cfgType", description = "Configuration type",
+    private String uri = null;
+
+    @Argument(index = 1, name = "cfgFile", description = "File path to RPC XML",
             required = true, multiValued = false)
-    String cfgType = null;
+    private String cfgFile = null;
+
     private DeviceId deviceId;
 
     @Override
     protected void execute() {
-        print("[WARN] This command was marked deprecated in 1.10.0");
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
-        ConfigGetter config = h.behaviour(ConfigGetter.class);
-        print(config.getConfiguration(cfgType));
+        ConfigSetter config = h.behaviour(ConfigSetter.class);
+        checkNotNull(cfgFile, "Configuration file cannot be null");
+        print(config.setConfiguration(cfgFile));
     }
 
 }

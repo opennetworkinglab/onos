@@ -29,10 +29,12 @@ import org.onosproject.net.driver.DriverService;
  *
  * This is a temporary development tool for use until yang integration is complete.
  * This uses a not properly specified behavior. DO NOT USE AS AN EXAMPLE.
+ *
+ * @deprecated in 1.10.0
  */
-
+@Deprecated
 @Command(scope = "onos", name = "device-ports",
-        description = "Gets the ports of the specified device.")
+        description = "[Deprecated]Gets the ports of the specified device.")
 public class DevicePortGetterCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
@@ -42,6 +44,7 @@ public class DevicePortGetterCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
+        print("[WARN] This command was marked deprecated in 1.10.0");
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

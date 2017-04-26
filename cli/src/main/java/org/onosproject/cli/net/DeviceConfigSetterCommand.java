@@ -31,13 +31,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * This is a temporary development tool for use until yang integration is complete.
  * This uses a not properly specified behavior. DO NOT USE AS AN EXAMPLE.
+ *
+ * @deprecated in 1.10.0
  */
 //Temporary Developer tool, NOT TO BE USED in production or as example for
 // future commands.
 //FIXME this should eventually be removed.
-
+@Deprecated
 @Command(scope = "onos", name = "device-setconfiguration",
-        description = "Sets the configuration of the specified file to the " +
+        description = "[Deprecated]Sets the configuration of the specified file to the " +
                 "specified device.")
 public class DeviceConfigSetterCommand extends AbstractShellCommand {
 
@@ -51,6 +53,7 @@ public class DeviceConfigSetterCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
+        print("[WARN] This command was marked deprecated in 1.10.0");
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
