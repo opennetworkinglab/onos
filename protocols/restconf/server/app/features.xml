@@ -18,9 +18,6 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-restconf-server-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-restconf-server-restconfmanager/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-restconf-server-rpp/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-restconf-server-utils/${project.version}</bundle>
     </feature>
 </features>

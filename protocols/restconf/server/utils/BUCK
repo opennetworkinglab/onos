@@ -1,9 +1,0 @@
-COMPILE_DEPS = [
- '//lib:CORE_DEPS',
- '//apps/yms/api:onos-apps-yms-api',
- '//apps/yms/app:onos-apps-yms-app',
-]
-
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-)

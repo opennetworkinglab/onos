@@ -1,8 +1,5 @@
 BUNDLES = [
-    '//protocols/restconf/server/api:onos-protocols-restconf-server-api',
-    '//protocols/restconf/server/restconfmgr:onos-protocols-restconf-server-restconfmgr',
     '//protocols/restconf/server/rpp:onos-protocols-restconf-server-rpp',
-    '//protocols/restconf/server/utils:onos-protocols-restconf-server-utils',
 ]
 
 onos_app (

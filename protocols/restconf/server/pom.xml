@@ -30,12 +30,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>api</module>
-        <module>restconfmgr</module>
         <module>rpp</module>
         <module>app</module>
-        <module>utils</module>
     </modules>
 
-    <description>RESTCONF Server Module</description>
+    <description>RESTCONF Server-side Protocol Module</description>
 </project>
