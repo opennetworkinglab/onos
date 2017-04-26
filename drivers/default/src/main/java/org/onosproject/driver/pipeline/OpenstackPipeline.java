@@ -35,6 +35,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
@@ -281,6 +282,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
         IPCriterion ipDst = (IPCriterion) fo.selector().getCriterion(Criterion.Type.IPV4_DST);
         TunnelIdCriterion tunnelId =
                 (TunnelIdCriterion) fo.selector().getCriterion(Criterion.Type.TUNNEL_ID);
+        VlanIdCriterion vlanId = (VlanIdCriterion) fo.selector().getCriterion(Criterion.Type.VLAN_VID);
         PortCriterion inPort = (PortCriterion) fo.selector().getCriterion(Criterion.Type.IN_PORT);
         Optional<Instruction> output = fo.treatment().immediate().stream()
                 .filter(i -> i.type() == Instruction.Type.OUTPUT).findAny();
@@ -291,6 +293,7 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
         if (inPort != null) {
             return SRC_VNI_TABLE;
         } else if ((tunnelId != null && ipSrc != null && ipDst != null) ||
+                (vlanId != null && ipSrc != null && ipDst != null) ||
                 (ipSrc != null && group.isPresent())) {
             return ROUTING_TABLE;
         } else if (output.isPresent() || (ipDst != null && group.isPresent())) {
