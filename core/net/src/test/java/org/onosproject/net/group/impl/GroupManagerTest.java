@@ -37,7 +37,9 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DefaultDriver;
+import org.onosproject.net.driver.DriverRegistry;
 import org.onosproject.net.driver.impl.DriverManager;
+import org.onosproject.net.driver.impl.DriverRegistryManager;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroup;
@@ -112,11 +114,12 @@ public class GroupManagerTest {
         mgr.activate(null);
         mgr.addListener(listener);
 
-        driverService = new TestDriverManager();
-        driverService.addDriver(new DefaultDriver("foo", ImmutableList.of(), "", "", "",
-                                                  ImmutableMap.of(GroupProgrammable.class,
-                                                                  TestGroupProgrammable.class),
-                                                  ImmutableMap.of()));
+        DriverRegistryManager driverRegistry = new DriverRegistryManager();
+        driverService = new TestDriverManager(driverRegistry);
+        driverRegistry.addDriver(new DefaultDriver("foo", ImmutableList.of(), "", "", "",
+                                                   ImmutableMap.of(GroupProgrammable.class,
+                                                                   TestGroupProgrammable.class),
+                                                   ImmutableMap.of()));
 
         internalProvider = new TestGroupProvider(PID);
         provider = internalProvider;
@@ -747,7 +750,8 @@ public class GroupManagerTest {
     }
 
     private class TestDriverManager extends DriverManager {
-        TestDriverManager() {
+        TestDriverManager(DriverRegistry registry) {
+            this.registry = registry;
             this.deviceService = mgr.deviceService;
             activate();
         }
@@ -773,7 +777,7 @@ public class GroupManagerTest {
 
         assertEquals(lastDeviceIdProgrammable, expectedDeviceId);
         assertTrue(groupOperations.containsAll(expectedGroupOps) &&
-                   expectedGroupOps.containsAll(groupOperations));
+                           expectedGroupOps.containsAll(groupOperations));
 
         groupOperations.clear();
         lastDeviceIdProgrammable = null;

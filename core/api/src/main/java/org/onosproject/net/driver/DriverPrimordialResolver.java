@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,20 @@
 package org.onosproject.net.driver;
 
 /**
- * Service representing availability of default drivers.
- *
- * @deprecated in Kingfisher release (1.10)
+ * Entity capable of resolving a driver using the primordial information of
+ * the manufacturer, hardware name/version and software version.
  */
-@Deprecated
-public interface DefaultDriverProviderService {
+public interface DriverPrimordialResolver {
+
+    /**
+     * Returns the driver that matches the specified primordial device
+     * discovery information.
+     *
+     * @param mfr device manufacturer
+     * @param hw  device hardware name/version
+     * @param sw  device software version
+     * @return driver or null of no matching one is found
+     */
+    Driver getDriver(String mfr, String hw, String sw);
+
 }

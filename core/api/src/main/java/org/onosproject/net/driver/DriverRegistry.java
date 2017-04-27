@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.net.driver;
 
+import java.util.Set;
+
 /**
- * Service representing availability of default drivers.
- *
- * @deprecated in Kingfisher release (1.10)
+ * Service for obtaining drivers and driver behaviour implementations.
  */
-@Deprecated
-public interface DefaultDriverProviderService {
+public interface DriverRegistry extends DriverPrimordialResolver, DriverResolver {
+
+    /**
+     * Returns the overall set of drivers being provided.
+     *
+     * @return provided drivers
+     */
+    Set<Driver> getDrivers();
+
 }

@@ -63,10 +63,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the meter service APIs.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = true)
 @Service
-public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, MeterListener,
-        MeterProvider, MeterProviderService>
+public class MeterManager
+        extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
 
     private static final String METERCOUNTERIDENTIFIER = "meter-id-counter-%s";
@@ -89,7 +89,6 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Activate
     public void activate() {
-
         store.setDelegate(delegate);
         eventDispatcher.addSink(MeterEvent.class, listenerRegistry);
 
@@ -113,6 +112,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     @Deactivate
     public void deactivate() {
         store.unsetDelegate(delegate);
+        eventDispatcher.removeSink(MeterEvent.class);
         log.info("Stopped");
     }
 

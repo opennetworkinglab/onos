@@ -31,7 +31,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
@@ -106,10 +105,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
-
-    // References exists merely for sequencing purpose to assure drivers are loaded
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DefaultDriverProviderService defaultDriverProviderService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;

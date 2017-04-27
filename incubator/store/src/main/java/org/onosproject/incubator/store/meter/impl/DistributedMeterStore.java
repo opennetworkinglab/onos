@@ -96,9 +96,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Activate
     public void activate() {
-
         local = clusterService.getLocalNode().id();
-
 
         meters = storageService.<MeterKey, MeterData>consistentMapBuilder()
                     .withName(METERSTORE)
@@ -129,7 +127,6 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Deactivate
     public void deactivate() {
-
         meters.removeListener(mapListener);
         log.info("Stopped");
     }

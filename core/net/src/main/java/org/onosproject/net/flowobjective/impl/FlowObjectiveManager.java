@@ -38,7 +38,6 @@ import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -116,12 +115,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
-
-    // Note: This must remain an optional dependency to allow re-install of default drivers.
-    // Note: For now disabled until we can move to OPTIONAL_UNARY dependency
-    // @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY, policy = ReferencePolicy.DYNAMIC)
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DefaultDriverProviderService defaultDriverService;
 
     private final FlowObjectiveStoreDelegate delegate = new InternalStoreDelegate();
 

@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * Service for obtaining drivers and driver behaviour implementations.
  */
-public interface DriverService extends DriverResolver {
+public interface DriverService extends DriverRegistry {
 
     /**
      * Returns the overall set of drivers being provided.
@@ -38,17 +38,6 @@ public interface DriverService extends DriverResolver {
      * @return provided drivers
      */
     Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour);
-
-    /**
-     * Returns the driver that matches the specified primordial device
-     * discovery information.
-     *
-     * @param mfr device manufacturer
-     * @param hw  device hardware name/version
-     * @param sw  device software version
-     * @return driver or null of no matching one is found
-     */
-    Driver getDriver(String mfr, String hw, String sw);
 
     /**
      * Returns the driver for the specified device. If the device carries

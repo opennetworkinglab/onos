@@ -96,17 +96,14 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
 
     /**
      * Creates a provider with the supplied identifier.
-     *
      */
     public DefaultVirtualPacketProvider() {
-        super(new ProviderId("virtual-packet",
-                             "org.onosproject.virtual.virtual-packet"));
+        super(new ProviderId("virtual-packet", "org.onosproject.virtual.virtual-packet"));
     }
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication(
-                "org.onosproject.virtual.virtual-packet");
+        appId = coreService.registerApplication("org.onosproject.virtual.virtual-packet");
         providerRegistryService.registerProvider(this);
 
         contextMap = Maps.newConcurrentMap();
@@ -119,6 +116,7 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
         if (processor != null) {
             packetService.removeProcessor(processor);
         }
+        providerRegistryService.unregisterProvider(this);
         log.info("Stopped");
     }
 
@@ -136,7 +134,6 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Override
     public void startPacketHandling(NetworkId networkId) {
         requestsSet.add(networkId);
-
         if (processor == null) {
             processor = new InternalPacketProcessor();
             packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
@@ -146,7 +143,6 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Override
     public void stopPacketHandling(NetworkId networkId) {
         requestsSet.remove(networkId);
-
         if (requestsSet.isEmpty()) {
             packetService.removeProcessor(processor);
             processor = null;

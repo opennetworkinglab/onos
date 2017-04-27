@@ -22,7 +22,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverAdminService;
+import org.onosproject.net.driver.DriverService;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +46,7 @@ public class DriversListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        DriverAdminService service = get(DriverAdminService.class);
+        DriverService service = get(DriverService.class);
 
         if (driverName != null) {
             printDriver(service.getDriver(driverName), true);
