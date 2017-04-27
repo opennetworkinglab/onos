@@ -146,15 +146,14 @@ public class DistributedHostStore
 
     private boolean shouldUpdate(DefaultHost existingHost,
                                  ProviderId providerId,
-                                 HostId hostId,
                                  HostDescription hostDescription,
                                  boolean replaceIPs) {
         if (existingHost == null) {
             return true;
         }
 
-        // Avoid overriding configured hosts
-        if (existingHost.configured()) {
+        // Avoid overriding configured host with learnt host
+        if (existingHost.configured() && !hostDescription.configured()) {
             return false;
         }
 
@@ -192,7 +191,7 @@ public class DistributedHostStore
                                         HostDescription hostDescription,
                                         boolean replaceIPs) {
         hostsConsistentMap.computeIf(hostId,
-                       existingHost -> shouldUpdate(existingHost, providerId, hostId,
+                       existingHost -> shouldUpdate(existingHost, providerId,
                                                     hostDescription, replaceIPs),
                        (id, existingHost) -> {
                            HostLocation location = hostDescription.location();
