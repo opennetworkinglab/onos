@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
 
 /**
@@ -37,13 +38,19 @@ public class DefaultTransactionalMapParticipant<K, V> extends TransactionalMapPa
 
     @Override
     protected V read(K key) {
-        Versioned<V> value = readCache.computeIfAbsent(key, backingMap::get);
-        return value != null ? value.value() : null;
+        Versioned<V> value = backingMap.getOrDefault(key, null);
+        readCache.put(key, value);
+        return value.value();
     }
 
     @Override
-    protected Stream<MapUpdate<K, V>> records() {
-        return Stream.concat(deleteStream(), writeStream());
+    public boolean hasPendingUpdates() {
+        return !writeCache.isEmpty() || !deleteSet.isEmpty();
+    }
+
+    @Override
+    protected Stream<MapUpdate<K, V>> records(Version lockVersion) {
+        return Stream.concat(deleteStream(), writeStream(lockVersion));
     }
 
     /**
@@ -52,34 +59,26 @@ public class DefaultTransactionalMapParticipant<K, V> extends TransactionalMapPa
     private Stream<MapUpdate<K, V>> deleteStream() {
         return deleteSet.stream()
                 .map(key -> Pair.of(key, readCache.get(key)))
-                .filter(e -> e.getValue() != null)
                 .map(e -> MapUpdate.<K, V>newBuilder()
                         .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
                         .withKey(e.getKey())
-                        .withCurrentVersion(e.getValue().version())
+                        .withVersion(e.getValue().version())
                         .build());
     }
 
     /**
      * Returns a transaction record stream for updated keys.
      */
-    private Stream<MapUpdate<K, V>> writeStream() {
-        return writeCache.entrySet().stream().map(entry -> {
-            Versioned<V> original = readCache.get(entry.getKey());
-            if (original == null) {
-                return MapUpdate.<K, V>newBuilder()
-                        .withType(MapUpdate.Type.PUT_IF_ABSENT)
-                        .withKey(entry.getKey())
-                        .withValue(entry.getValue())
-                        .build();
-            } else {
-                return MapUpdate.<K, V>newBuilder()
-                        .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
-                        .withKey(entry.getKey())
-                        .withCurrentVersion(original.version())
-                        .withValue(entry.getValue())
-                        .build();
-            }
-        });
+    private Stream<MapUpdate<K, V>> writeStream(Version lockVersion) {
+        return writeCache.entrySet().stream()
+                .map(entry -> {
+                    Versioned<V> original = readCache.get(entry.getKey());
+                    return MapUpdate.<K, V>newBuilder()
+                            .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
+                            .withKey(entry.getKey())
+                            .withValue(entry.getValue())
+                            .withVersion(Math.max(original.version(), lockVersion.value()))
+                            .build();
+                });
     }
 }

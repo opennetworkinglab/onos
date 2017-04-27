@@ -79,7 +79,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     private final Map<Long, Commit<? extends Listen>> listeners = new HashMap<>();
     private final Map<String, MapEntryValue> mapEntries = new HashMap<>();
     private final Set<String> preparedKeys = Sets.newHashSet();
-    private final Map<TransactionId, Commit<? extends TransactionPrepare>> pendingTransactions = Maps.newHashMap();
+    private final Map<TransactionId, TransactionScope> activeTransactions = Maps.newHashMap();
+    private long currentVersion;
 
     public AtomixConsistentMapState(Properties properties) {
         super(properties);
@@ -137,7 +138,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected boolean containsKey(Commit<? extends ContainsKey> commit) {
         try {
-            return toVersioned(mapEntries.get(commit.operation().key())) != null;
+            MapEntryValue value = mapEntries.get(commit.operation().key());
+            return value != null && value.type() != MapEntryValue.Type.TOMBSTONE;
         } finally {
             commit.close();
         }
@@ -151,9 +153,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected boolean containsValue(Commit<? extends ContainsValue> commit) {
         try {
-            Match<byte[]> valueMatch = Match
-                    .ifValue(commit.operation().value());
+            Match<byte[]> valueMatch = Match.ifValue(commit.operation().value());
             return mapEntries.values().stream()
+                    .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
                     .anyMatch(value -> valueMatch.matches(value.value()));
         } finally {
             commit.close();
@@ -182,8 +184,14 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected Versioned<byte[]> getOrDefault(Commit<? extends GetOrDefault> commit) {
         try {
-            Versioned<byte[]> value = toVersioned(mapEntries.get(commit.operation().key()));
-            return value != null ? value : new Versioned<>(commit.operation().defaultValue(), 0);
+            MapEntryValue value = mapEntries.get(commit.operation().key());
+            if (value == null) {
+                return new Versioned<>(commit.operation().defaultValue(), 0);
+            } else if (value.type() == MapEntryValue.Type.TOMBSTONE) {
+                return new Versioned<>(commit.operation().defaultValue(), value.version);
+            } else {
+                return new Versioned<>(value.value(), value.version);
+            }
         } finally {
             commit.close();
         }
@@ -197,7 +205,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected int size(Commit<? extends Size> commit) {
         try {
-            return mapEntries.size();
+            return (int) mapEntries.values().stream()
+                    .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
+                    .count();
         } finally {
             commit.close();
         }
@@ -211,7 +221,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected boolean isEmpty(Commit<? extends IsEmpty> commit) {
         try {
-            return mapEntries.isEmpty();
+            return mapEntries.values().stream()
+                    .noneMatch(value -> value.type() != MapEntryValue.Type.TOMBSTONE);
         } finally {
             commit.close();
         }
@@ -225,7 +236,10 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected Set<String> keySet(Commit<? extends KeySet> commit) {
         try {
-            return mapEntries.keySet().stream().collect(Collectors.toSet());
+            return mapEntries.entrySet().stream()
+                    .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet());
         } finally {
             commit.close();
         }
@@ -239,7 +253,10 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected Collection<Versioned<byte[]>> values(Commit<? extends Values> commit) {
         try {
-            return mapEntries.values().stream().map(this::toVersioned).collect(Collectors.toList());
+            return mapEntries.entrySet().stream()
+                    .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+                    .map(entry -> toVersioned(entry.getValue()))
+                    .collect(Collectors.toList());
         } finally {
             commit.close();
         }
@@ -254,11 +271,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected Set<Map.Entry<String, Versioned<byte[]>>> entrySet(Commit<? extends EntrySet> commit) {
         try {
-            return mapEntries
-                    .entrySet()
-                    .stream()
-                    .map(e -> Maps.immutableEntry(e.getKey(),
-                            toVersioned(e.getValue())))
+            return mapEntries.entrySet().stream()
+                    .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+                    .map(e -> Maps.immutableEntry(e.getKey(), toVersioned(e.getValue())))
                     .collect(Collectors.toSet());
         } finally {
             commit.close();
@@ -285,21 +300,34 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
             }
 
             byte[] newValue = commit.operation().value();
-            long newVersion = commit.index();
+            currentVersion = commit.index();
             Versioned<byte[]> newMapValue = newValue == null ? null
-                    : new Versioned<>(newValue, newVersion);
+                    : new Versioned<>(newValue, currentVersion);
 
             MapEvent.Type updateType = newValue == null ? REMOVE
                     : oldCommitValue == null ? INSERT : UPDATE;
+
+            // If a value existed in the map, remove and discard the value to ensure disk can be freed.
             if (updateType == REMOVE || updateType == UPDATE) {
                 mapEntries.remove(key);
                 oldCommitValue.discard();
             }
+
+            // If this is an insert/update commit, add the commit to the map entries.
             if (updateType == INSERT || updateType == UPDATE) {
-                mapEntries.put(key, new NonTransactionalCommit(newVersion, commit));
+                mapEntries.put(key, new NonTransactionalCommit(commit));
+            } else if (!activeTransactions.isEmpty()) {
+                // If this is a delete but transactions are currently running, ensure tombstones are retained
+                // for version checks.
+                TombstoneCommit tombstone = new TombstoneCommit(
+                        commit.index(),
+                        new CountDownCompleter<>(commit, 1, Commit::close));
+                mapEntries.put(key, tombstone);
             } else {
+                // If no transactions are in progress, we can safely delete the key from memory.
                 commit.close();
             }
+
             publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
             return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
                     newMapValue);
@@ -383,7 +411,9 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected long begin(Commit<? extends TransactionBegin> commit) {
         try {
-            return commit.index();
+            long version = commit.index();
+            activeTransactions.put(commit.operation().transactionId(), new TransactionScope(version));
+            return version;
         } finally {
             commit.close();
         }
@@ -397,10 +427,18 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected PrepareResult prepareAndCommit(Commit<? extends TransactionPrepareAndCommit> commit) {
         PrepareResult prepareResult = prepare(commit);
+        TransactionScope transactionScope =
+                activeTransactions.remove(commit.operation().transactionLog().transactionId());
+        this.currentVersion = commit.index();
         if (prepareResult == PrepareResult.OK) {
-            commitInternal(commit.operation().transactionLog().transactionId(), commit.index());
+            transactionScope = transactionScope.prepared(commit);
+            commit(transactionScope);
+        } else {
+            transactionScope.close();
         }
+        discardTombstones();
         return prepareResult;
+
     }
 
     /**
@@ -411,30 +449,72 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected PrepareResult prepare(Commit<? extends TransactionPrepare> commit) {
         boolean ok = false;
+
         try {
-            TransactionLog<MapUpdate<String, byte[]>> transaction = commit.operation().transactionLog();
-            for (MapUpdate<String, byte[]> update : transaction.records()) {
-                String key = update.key();
+            TransactionLog<MapUpdate<String, byte[]>> transactionLog = commit.operation().transactionLog();
+
+            // Iterate through records in the transaction log and perform isolation checks.
+            for (MapUpdate<String, byte[]> record : transactionLog.records()) {
+                String key = record.key();
+
+                // If the record is a VERSION_MATCH then check that the record's version matches the current
+                // version of the state machine.
+                if (record.type() == MapUpdate.Type.VERSION_MATCH && key == null) {
+                    if (record.version() > currentVersion) {
+                        return PrepareResult.OPTIMISTIC_LOCK_FAILURE;
+                    } else {
+                        continue;
+                    }
+                }
+
+                // If the prepared keys already contains the key contained within the record, that indicates a
+                // conflict with a concurrent transaction.
                 if (preparedKeys.contains(key)) {
                     return PrepareResult.CONCURRENT_TRANSACTION;
                 }
+
+                // Read the existing value from the map.
                 MapEntryValue existingValue = mapEntries.get(key);
+
+                // Note: if the existing value is null, that means the key has not changed during the transaction,
+                // otherwise a tombstone would have been retained.
                 if (existingValue == null) {
-                    if (update.type() != MapUpdate.Type.PUT_IF_ABSENT) {
+                    // If the value is null, ensure the version is equal to the transaction version.
+                    if (record.version() != transactionLog.version()) {
                         return PrepareResult.OPTIMISTIC_LOCK_FAILURE;
                     }
                 } else {
-                    if (existingValue.version() != update.currentVersion()) {
+                    // If the value is non-null, compare the current version with the record version.
+                    if (existingValue.version() > record.version()) {
                         return PrepareResult.OPTIMISTIC_LOCK_FAILURE;
                     }
                 }
             }
-            // No violations detected. Add to pendingTransactions and mark
-            // modified keys as locked for updates.
-            pendingTransactions.put(transaction.transactionId(), commit);
-            transaction.records().forEach(u -> preparedKeys.add(u.key()));
+
+            // No violations detected. Mark modified keys locked for transactions.
+            transactionLog.records().forEach(record -> {
+                if (record.type() != MapUpdate.Type.VERSION_MATCH) {
+                    preparedKeys.add(record.key());
+                }
+            });
+
             ok = true;
-            return PrepareResult.OK;
+
+            // Update the transaction scope. If the transaction scope is not set on this node, that indicates the
+            // coordinator is communicating with another node. Transactions assume that the client is communicating
+            // with a single leader in order to limit the overhead of retaining tombstones.
+            TransactionScope transactionScope = activeTransactions.get(transactionLog.transactionId());
+            if (transactionScope == null) {
+                activeTransactions.put(
+                        transactionLog.transactionId(),
+                        new TransactionScope(transactionLog.version(), commit));
+                return PrepareResult.PARTIAL_FAILURE;
+            } else {
+                activeTransactions.put(
+                        transactionLog.transactionId(),
+                        transactionScope.prepared(commit));
+                return PrepareResult.OK;
+            }
         } catch (Exception e) {
             log.warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
@@ -453,43 +533,72 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected CommitResult commit(Commit<? extends TransactionCommit> commit) {
         TransactionId transactionId = commit.operation().transactionId();
+        TransactionScope transactionScope = activeTransactions.remove(transactionId);
+        if (transactionScope == null) {
+            return CommitResult.UNKNOWN_TRANSACTION_ID;
+        }
+
         try {
-            return commitInternal(transactionId, commit.index());
+            this.currentVersion = commit.index();
+            return commit(transactionScope.committed(commit));
         } catch (Exception e) {
             log.warn("Failure applying {}", commit, e);
             throw Throwables.propagate(e);
         } finally {
-            commit.close();
+            discardTombstones();
         }
     }
 
-    private CommitResult commitInternal(TransactionId transactionId, long version) {
-        Commit<? extends TransactionPrepare> prepareCommit = pendingTransactions
-                .remove(transactionId);
-        if (prepareCommit == null) {
-            return CommitResult.UNKNOWN_TRANSACTION_ID;
-        }
-        TransactionLog<MapUpdate<String, byte[]>> transaction = prepareCommit.operation().transactionLog();
-        long totalReferencesToCommit = transaction
-                .records()
-                .stream()
-                .filter(update -> update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
+    /**
+     * Applies committed operations to the state machine.
+     */
+    private CommitResult commit(TransactionScope transactionScope) {
+        TransactionLog<MapUpdate<String, byte[]>> transactionLog = transactionScope.transactionLog();
+        boolean retainTombstones = !activeTransactions.isEmpty();
+
+        // Count the total number of keys that will be set by this transaction. This is necessary to do reference
+        // counting for garbage collection.
+        long totalReferencesToCommit = transactionLog.records().stream()
+                // No keys are set for version checks. For deletes, references are only retained of tombstones
+                // need to be retained for concurrent transactions.
+                .filter(record -> record.type() != MapUpdate.Type.VERSION_MATCH && record.type() != MapUpdate.Type.LOCK
+                        && (record.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH || retainTombstones))
                 .count();
-        CountDownCompleter<Commit<? extends TransactionPrepare>> completer =
-                new CountDownCompleter<>(prepareCommit, totalReferencesToCommit, Commit::close);
+
+        // Create a count down completer that counts references to the transaction commit for garbage collection.
+        CountDownCompleter<TransactionScope> completer = new CountDownCompleter<>(
+                transactionScope, totalReferencesToCommit, TransactionScope::close);
+
         List<MapEvent<String, byte[]>> eventsToPublish = Lists.newArrayList();
-        for (MapUpdate<String, byte[]> update : transaction.records()) {
-            String key = update.key();
+        for (MapUpdate<String, byte[]> record : transactionLog.records()) {
+            if (record.type() == MapUpdate.Type.VERSION_MATCH) {
+                continue;
+            }
+
+            String key = record.key();
             checkState(preparedKeys.remove(key), "key is not prepared");
+
+            if (record.type() == MapUpdate.Type.LOCK) {
+                continue;
+            }
+
             MapEntryValue previousValue = mapEntries.remove(key);
             MapEntryValue newValue = null;
-            if (update.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH) {
-                newValue = new TransactionalCommit(key, version, completer);
+
+            // If the record is not a delete, create a transactional commit.
+            if (record.type() != MapUpdate.Type.REMOVE_IF_VERSION_MATCH) {
+                newValue = new TransactionalCommit(currentVersion, record.value(), completer);
+            } else if (retainTombstones) {
+                // For deletes, if tombstones need to be retained then create and store a tombstone commit.
+                newValue = new TombstoneCommit(currentVersion, completer);
             }
+
             eventsToPublish.add(new MapEvent<>("", key, toVersioned(newValue), toVersioned(previousValue)));
+
             if (newValue != null) {
                 mapEntries.put(key, newValue);
             }
+
             if (previousValue != null) {
                 previousValue.discard();
             }
@@ -506,20 +615,57 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     protected RollbackResult rollback(Commit<? extends TransactionRollback> commit) {
         TransactionId transactionId = commit.operation().transactionId();
-        try {
-            Commit<? extends TransactionPrepare> prepareCommit = pendingTransactions.remove(transactionId);
-            if (prepareCommit == null) {
-                return RollbackResult.UNKNOWN_TRANSACTION_ID;
-            } else {
-                prepareCommit.operation()
-                             .transactionLog()
-                             .records()
-                             .forEach(u -> preparedKeys.remove(u.key()));
-                prepareCommit.close();
-                return RollbackResult.OK;
-            }
-        } finally {
+        TransactionScope transactionScope = activeTransactions.remove(transactionId);
+        if (transactionScope == null) {
+            return RollbackResult.UNKNOWN_TRANSACTION_ID;
+        } else if (!transactionScope.isPrepared()) {
+            discardTombstones();
+            transactionScope.close();
             commit.close();
+            return RollbackResult.OK;
+        } else {
+            try {
+                transactionScope.transactionLog().records()
+                        .forEach(record -> {
+                            if (record.type() != MapUpdate.Type.VERSION_MATCH) {
+                                preparedKeys.remove(record.key());
+                            }
+                        });
+                return RollbackResult.OK;
+            } finally {
+                discardTombstones();
+                transactionScope.close();
+                commit.close();
+            }
+        }
+
+    }
+
+    /**
+     * Discards tombstones no longer needed by active transactions.
+     */
+    private void discardTombstones() {
+        if (activeTransactions.isEmpty()) {
+            Iterator<Map.Entry<String, MapEntryValue>> iterator = mapEntries.entrySet().iterator();
+            while (iterator.hasNext()) {
+                MapEntryValue value = iterator.next().getValue();
+                if (value.type() == MapEntryValue.Type.TOMBSTONE) {
+                    iterator.remove();
+                    value.discard();
+                }
+            }
+        } else {
+            long lowWaterMark = activeTransactions.values().stream()
+                    .mapToLong(TransactionScope::version)
+                    .min().getAsLong();
+            Iterator<Map.Entry<String, MapEntryValue>> iterator = mapEntries.entrySet().iterator();
+            while (iterator.hasNext()) {
+                MapEntryValue value = iterator.next().getValue();
+                if (value.type() == MapEntryValue.Type.TOMBSTONE && value.version < lowWaterMark) {
+                    iterator.remove();
+                    value.discard();
+                }
+            }
         }
     }
 
@@ -553,7 +699,8 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      * @return versioned instance
      */
     private Versioned<byte[]> toVersioned(MapEntryValue value) {
-        return value == null ? null : new Versioned<>(value.value(), value.version());
+        return value != null && value.type() != MapEntryValue.Type.TOMBSTONE
+                ? new Versioned<>(value.value(), value.version()) : null;
     }
 
     /**
@@ -594,52 +741,73 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
     /**
      * Interface implemented by map values.
      */
-    private interface MapEntryValue {
+    private abstract static class MapEntryValue {
+        protected final Type type;
+        protected final long version;
+
+        MapEntryValue(Type type, long version) {
+            this.type = type;
+            this.version = version;
+        }
+
         /**
-         * Returns the raw {@code byte[]}.
+         * Returns the value type.
          *
-         * @return raw value
+         * @return the value type
          */
-        byte[] value();
+        Type type() {
+            return type;
+        }
 
         /**
          * Returns the version of the value.
          *
          * @return version
          */
-        long version();
+        long version() {
+            return version;
+        }
+
+        /**
+         * Returns the raw {@code byte[]}.
+         *
+         * @return raw value
+         */
+        abstract byte[] value();
 
         /**
          * Discards the value by invoke appropriate clean up actions.
          */
-        void discard();
+        abstract void discard();
+
+        /**
+         * Value type.
+         */
+        enum Type {
+            VALUE,
+            TOMBSTONE,
+        }
     }
 
     /**
      * A {@code MapEntryValue} that is derived from a non-transactional update
      * i.e. via any standard map update operation.
      */
-    private class NonTransactionalCommit implements MapEntryValue {
-        private final long version;
+    private static class NonTransactionalCommit extends MapEntryValue {
         private final Commit<? extends UpdateAndGet> commit;
 
-        public NonTransactionalCommit(long version, Commit<? extends UpdateAndGet> commit) {
-            this.version = version;
+        NonTransactionalCommit(Commit<? extends UpdateAndGet> commit) {
+            super(Type.VALUE, commit.index());
             this.commit = commit;
         }
 
         @Override
-        public byte[] value() {
+        byte[] value() {
             return commit.operation().value();
         }
 
         @Override
-        public long version() {
-            return version;
-        }
-
-        @Override
-        public void discard() {
+        void discard() {
             commit.close();
         }
     }
@@ -648,43 +816,135 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      * A {@code MapEntryValue} that is derived from updates submitted via a
      * transaction.
      */
-    private class TransactionalCommit implements MapEntryValue {
-        private final String key;
+    private static class TransactionalCommit extends MapEntryValue {
+        private final byte[] value;
+        private final CountDownCompleter<?> completer;
+
+        TransactionalCommit(long version, byte[] value, CountDownCompleter<?> completer) {
+            super(Type.VALUE, version);
+            this.value = value;
+            this.completer = completer;
+        }
+
+        @Override
+        byte[] value() {
+            return value;
+        }
+
+        @Override
+        void discard() {
+            completer.countDown();
+        }
+    }
+
+    /**
+     * A {@code MapEntryValue} that represents a deleted entry.
+     */
+    private static class TombstoneCommit extends MapEntryValue {
+        private final CountDownCompleter<?> completer;
+
+        public TombstoneCommit(long version, CountDownCompleter<?> completer) {
+            super(Type.TOMBSTONE, version);
+            this.completer = completer;
+        }
+
+        @Override
+        byte[] value() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        void discard() {
+            completer.countDown();
+        }
+    }
+
+    /**
+     * Map transaction scope.
+     */
+    private static final class TransactionScope {
         private final long version;
-        private final CountDownCompleter<Commit<? extends TransactionPrepare>> completer;
+        private final Commit<? extends TransactionPrepare> prepareCommit;
+        private final Commit<? extends TransactionCommit> commitCommit;
 
-        public TransactionalCommit(
-                String key,
+        private TransactionScope(long version) {
+            this(version, null, null);
+        }
+
+        private TransactionScope(
                 long version,
-                CountDownCompleter<Commit<? extends TransactionPrepare>> commit) {
-            this.key = key;
+                Commit<? extends TransactionPrepare> prepareCommit) {
+            this(version, prepareCommit, null);
+        }
+
+        private TransactionScope(
+                long version,
+                Commit<? extends TransactionPrepare> prepareCommit,
+                Commit<? extends TransactionCommit> commitCommit) {
             this.version = version;
-            this.completer = commit;
+            this.prepareCommit = prepareCommit;
+            this.commitCommit = commitCommit;
         }
 
-        @Override
-        public byte[] value() {
-            TransactionLog<MapUpdate<String, byte[]>> transaction = completer.object().operation().transactionLog();
-            return valueForKey(key, transaction);
-        }
-
-        @Override
-        public long version() {
+        /**
+         * Returns the transaction version.
+         *
+         * @return the transaction version
+         */
+        long version() {
             return version;
         }
 
-        @Override
-        public void discard() {
-            completer.countDown();
+        /**
+         * Returns whether this is a prepared transaction scope.
+         *
+         * @return whether this is a prepared transaction scope
+         */
+        boolean isPrepared() {
+            return prepareCommit != null;
         }
 
-        private byte[] valueForKey(String key, TransactionLog<MapUpdate<String, byte[]>> transaction) {
-            MapUpdate<String, byte[]>  update = transaction.records()
-                                                           .stream()
-                                                           .filter(u -> u.key().equals(key))
-                                                           .findFirst()
-                                                           .orElse(null);
-            return update == null ? null : update.value();
+        /**
+         * Returns the transaction commit log.
+         *
+         * @return the transaction commit log
+         */
+        TransactionLog<MapUpdate<String, byte[]>> transactionLog() {
+            checkState(isPrepared());
+            return prepareCommit.operation().transactionLog();
+        }
+
+        /**
+         * Returns a new transaction scope with a prepare commit.
+         *
+         * @param commit the prepare commit
+         * @return new transaction scope updated with the prepare commit
+         */
+        TransactionScope prepared(Commit<? extends TransactionPrepare> commit) {
+            return new TransactionScope(version, commit);
+        }
+
+        /**
+         * Returns a new transaction scope with a commit commit.
+         *
+         * @param commit the commit commit ;-)
+         * @return new transaction scope updated with the commit commit
+         */
+        TransactionScope committed(Commit<? extends TransactionCommit> commit) {
+            checkState(isPrepared());
+            return new TransactionScope(version, prepareCommit, commit);
+        }
+
+        /**
+         * Closes the transaction and all associated commits.
+         */
+        void close() {
+            if (prepareCommit != null) {
+                prepareCommit.close();
+            }
+            if (commitCommit != null) {
+                commitCommit.close();
+            }
         }
     }
 }

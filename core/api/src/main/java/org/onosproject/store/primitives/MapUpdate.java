@@ -31,7 +31,6 @@ import com.google.common.base.MoreObjects;
  *
  * @param <K> map key type
  * @param <V> map value type
- *
  */
 public final class MapUpdate<K, V> {
 
@@ -39,47 +38,38 @@ public final class MapUpdate<K, V> {
      * Type of database update operation.
      */
     public enum Type {
-        /**
-         * Insert/Update entry without any checks.
-         */
-        PUT,
 
         /**
-         * Insert an entry iff there is no existing entry for that key.
+         * Acquires a read lock on a key.
+         * <p>
+         * This record type will check to ensure that the lock version matches the current version for the key
+         * in the map and acquire a read lock on the key for the duration of the transaction.
          */
-        PUT_IF_ABSENT,
+        LOCK,
 
         /**
-         * Update entry if the current version matches specified version.
+         * Checks the version of a key without locking the key.
+         * <p>
+         * This record type will perform a simple version check during the prepare phase of the two-phase commit
+         * protocol to ensure that the key has not changed during a transaction.
+         */
+        VERSION_MATCH,
+
+        /**
+         * Updates an entry if the current version matches specified version.
          */
         PUT_IF_VERSION_MATCH,
 
         /**
-         * Update entry if the current value matches specified value.
-         */
-        PUT_IF_VALUE_MATCH,
-
-        /**
-         * Remove entry without any checks.
-         */
-        REMOVE,
-
-        /**
-         * Remove entry if the current version matches specified version.
+         * Removes an entry if the current version matches specified version.
          */
         REMOVE_IF_VERSION_MATCH,
-
-        /**
-         * Remove entry if the current value matches specified value.
-         */
-        REMOVE_IF_VALUE_MATCH,
     }
 
     private Type type;
     private K key;
     private V value;
-    private V currentValue;
-    private long currentVersion = -1;
+    private long version = -1;
 
     /**
      * Returns the type of update operation.
@@ -106,19 +96,11 @@ public final class MapUpdate<K, V> {
     }
 
     /**
-     * Returns the expected current value for the key.
-     * @return current value in database.
-     */
-    public V currentValue() {
-        return currentValue;
-    }
-
-    /**
      * Returns the expected current version in the database for the key.
      * @return expected version.
      */
-    public long currentVersion() {
-        return currentVersion;
+    public long version() {
+        return version;
     }
 
     /**
@@ -135,14 +117,13 @@ public final class MapUpdate<K, V> {
                 .withType(type)
                 .withKey(keyMapper.apply(key))
                 .withValue(value == null ? null : valueMapper.apply(value))
-                .withCurrentValue(currentValue == null ? null : valueMapper.apply(currentValue))
-                .withCurrentVersion(currentVersion)
+                .withVersion(version)
                 .build();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, key, value, currentValue, currentVersion);
+        return Objects.hash(type, key, value, version);
     }
 
     @Override
@@ -152,8 +133,7 @@ public final class MapUpdate<K, V> {
             return this.type == that.type
                     && Objects.equals(this.key, that.key)
                     && Objects.equals(this.value, that.value)
-                    && Objects.equals(this.currentValue, that.currentValue)
-                    && Objects.equals(this.currentVersion, that.currentVersion);
+                    && Objects.equals(this.version, that.version);
         }
         return false;
     }
@@ -164,8 +144,7 @@ public final class MapUpdate<K, V> {
             .add("type", type)
             .add("key", key)
             .add("value", value instanceof byte[] ? new ByteArraySizeHashPrinter((byte[]) value) : value)
-            .add("currentValue", currentValue)
-            .add("currentVersion", currentVersion)
+            .add("version", version)
             .toString();
     }
 
@@ -205,48 +184,38 @@ public final class MapUpdate<K, V> {
             return this;
         }
 
-        public Builder<K, V> withCurrentValue(V value) {
-            update.currentValue = value;
-            return this;
-        }
-
         public Builder<K, V> withValue(V value) {
             update.value = value;
             return this;
         }
 
-        public Builder<K, V> withCurrentVersion(long version) {
-            update.currentVersion = version;
+        public Builder<K, V> withVersion(long version) {
+            update.version = version;
             return this;
         }
 
         private void validateInputs() {
             checkNotNull(update.type, "type must be specified");
-            checkNotNull(update.key, "key must be specified");
             switch (update.type) {
-            case PUT:
-            case PUT_IF_ABSENT:
-                checkNotNull(update.value, "value must be specified.");
-                break;
-            case PUT_IF_VERSION_MATCH:
-                checkNotNull(update.value, "value must be specified.");
-                checkState(update.currentVersion >= 0, "current version must be specified");
-                break;
-            case PUT_IF_VALUE_MATCH:
-                checkNotNull(update.value, "value must be specified.");
-                checkNotNull(update.currentValue, "currentValue must be specified.");
-                break;
-            case REMOVE:
-                break;
-            case REMOVE_IF_VERSION_MATCH:
-                checkState(update.currentVersion >= 0, "current version must be specified");
-                break;
-            case REMOVE_IF_VALUE_MATCH:
-                checkNotNull(update.currentValue, "currentValue must be specified.");
-                break;
-            default:
-                throw new IllegalStateException("Unknown operation type");
+                case VERSION_MATCH:
+                    break;
+                case LOCK:
+                    checkNotNull(update.key, "key must be specified");
+                    checkState(update.version >= 0, "version must be specified");
+                    break;
+                case PUT_IF_VERSION_MATCH:
+                    checkNotNull(update.key, "key must be specified");
+                    checkNotNull(update.value, "value must be specified.");
+                    checkState(update.version >= 0, "version must be specified");
+                    break;
+                case REMOVE_IF_VERSION_MATCH:
+                    checkNotNull(update.key, "key must be specified");
+                    checkState(update.version >= 0, "version must be specified");
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown operation type");
             }
+
         }
     }
 }

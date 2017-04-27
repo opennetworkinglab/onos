@@ -109,6 +109,7 @@ public class Transaction<T> {
     protected final Transactional<T> transactionalObject;
     private final AtomicBoolean open = new AtomicBoolean();
     private volatile State state = State.ACTIVE;
+    private volatile Version lock;
 
     public Transaction(TransactionId transactionId, Transactional<T> transactionalObject) {
         this.transactionId = transactionId;
@@ -191,7 +192,10 @@ public class Transaction<T> {
      */
     public CompletableFuture<Version> begin() {
         open();
-        return transactionalObject.begin(transactionId);
+        return transactionalObject.begin(transactionId).thenApply(lock -> {
+            this.lock = lock;
+            return lock;
+        });
     }
 
     /**
@@ -208,8 +212,10 @@ public class Transaction<T> {
     public CompletableFuture<Boolean> prepare(List<T> updates) {
         checkOpen();
         checkActive();
+        Version lock = this.lock;
+        checkState(lock != null, TX_INACTIVE_ERROR);
         setState(State.PREPARING);
-        return transactionalObject.prepare(new TransactionLog<T>(transactionId, updates))
+        return transactionalObject.prepare(new TransactionLog<T>(transactionId, lock.value(), updates))
                 .thenApply(succeeded -> {
                     setState(State.PREPARED);
                     return succeeded;
@@ -228,8 +234,10 @@ public class Transaction<T> {
     public CompletableFuture<Boolean> prepareAndCommit(List<T> updates) {
         checkOpen();
         checkActive();
+        Version lock = this.lock;
+        checkState(lock != null, TX_INACTIVE_ERROR);
         setState(State.PREPARING);
-        return transactionalObject.prepareAndCommit(new TransactionLog<T>(transactionId, updates))
+        return transactionalObject.prepareAndCommit(new TransactionLog<T>(transactionId, lock.value(), updates))
                 .thenApply(succeeded -> {
                     setState(State.COMMITTED);
                     return succeeded;

@@ -74,7 +74,7 @@ public class TransactionTest {
 
         expect(asyncMap.begin(transactionId))
                 .andReturn(CompletableFuture.completedFuture(new Version(1)));
-        expect(asyncMap.prepare(new TransactionLog<>(transactionId, updates)))
+        expect(asyncMap.prepare(new TransactionLog<>(transactionId, 1, updates)))
                 .andReturn(CompletableFuture.completedFuture(true));
         expect(asyncMap.commit(transactionId))
                 .andReturn(CompletableFuture.completedFuture(null));
@@ -117,7 +117,7 @@ public class TransactionTest {
 
         expect(asyncMap.begin(transactionId))
                 .andReturn(CompletableFuture.completedFuture(new Version(1)));
-        expect(asyncMap.prepare(new TransactionLog<>(transactionId, updates)))
+        expect(asyncMap.prepare(new TransactionLog<>(transactionId, 1, updates)))
                 .andReturn(CompletableFuture.completedFuture(true));
         replay(asyncMap);
 
@@ -160,16 +160,16 @@ public class TransactionTest {
                 .andReturn(CompletableFuture.completedFuture(new Version(1)));
 
         expect(participants.get(PartitionId.from(1)).transaction.transactionalObject.prepare(
-                new TransactionLog<>(transactionId, Arrays.asList(
+                new TransactionLog<>(transactionId, 1, Arrays.asList(
                         MapUpdate.<String, String>newBuilder()
                                 .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
                                 .withKey("foo")
-                                .withCurrentVersion(1)
+                                .withVersion(1)
                                 .build(),
                         MapUpdate.<String, String>newBuilder()
                                 .withType(MapUpdate.Type.REMOVE_IF_VERSION_MATCH)
                                 .withKey("baz")
-                                .withCurrentVersion(2)
+                                .withVersion(2)
                                 .build()
                 )))).andReturn(CompletableFuture.completedFuture(true));
 
@@ -181,11 +181,12 @@ public class TransactionTest {
                 .andReturn(CompletableFuture.completedFuture(new Version(1)));
 
         expect(participants.get(PartitionId.from(3)).transaction.transactionalObject.prepare(
-                new TransactionLog<>(transactionId, Arrays.asList(
+                new TransactionLog<>(transactionId, 1, Arrays.asList(
                         MapUpdate.<String, String>newBuilder()
-                                .withType(MapUpdate.Type.PUT_IF_ABSENT)
+                                .withType(MapUpdate.Type.PUT_IF_VERSION_MATCH)
                                 .withKey("bar")
                                 .withValue("baz")
+                                .withVersion(1)
                                 .build()
                 )))).andReturn(CompletableFuture.completedFuture(true));
 
