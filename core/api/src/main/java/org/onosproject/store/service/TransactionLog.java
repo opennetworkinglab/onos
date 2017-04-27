@@ -31,10 +31,12 @@ import org.onosproject.store.primitives.TransactionId;
  */
 public class TransactionLog<T> {
     private final TransactionId transactionId;
+    private final long version;
     private final List<T> records;
 
-    public TransactionLog(TransactionId transactionId, List<T> records) {
+    public TransactionLog(TransactionId transactionId, long version, List<T> records) {
         this.transactionId = transactionId;
+        this.version = version;
         this.records = ImmutableList.copyOf(records);
     }
 
@@ -45,6 +47,15 @@ public class TransactionLog<T> {
      */
     public TransactionId transactionId() {
         return transactionId;
+    }
+
+    /**
+     * Returns the transaction lock version.
+     *
+     * @return the transaction lock version
+     */
+    public long version() {
+        return version;
     }
 
     /**
@@ -75,6 +86,7 @@ public class TransactionLog<T> {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("transactionId", transactionId)
+                .add("version", version)
                 .add("records", records)
                 .toString();
     }
@@ -88,6 +100,6 @@ public class TransactionLog<T> {
      * @param <U> record type of returned instance
      */
     public <U> TransactionLog<U> map(Function<T, U> mapper) {
-        return new TransactionLog<>(transactionId, Lists.transform(records, mapper::apply));
+        return new TransactionLog<>(transactionId, version, Lists.transform(records, mapper::apply));
     }
 }
