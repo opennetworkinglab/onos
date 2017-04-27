@@ -16,10 +16,10 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
@@ -62,6 +62,7 @@ public class OpenstackRouterManagerTest {
         osRouterStore = new DistributedOpenstackRouterStore();
         TestUtils.setField(osRouterStore, "coreService", new TestCoreService());
         TestUtils.setField(osRouterStore, "storageService", new TestStorageService());
+        TestUtils.setField(osRouterStore, "eventExecutor", MoreExecutors.newDirectExecutorService());
         osRouterStore.activate();
 
         target = new OpenstackRouterManager();
@@ -270,14 +271,12 @@ public class OpenstackRouterManagerTest {
     }
 
     private void validateEvents(Enum... types) {
-        TestTools.assertAfter(100, () -> {
-            int i = 0;
-            assertEquals("Number of events did not match", types.length, testListener.events.size());
-            for (Event event : testListener.events) {
-                assertEquals("Incorrect event received", types[i], event.type());
-                i++;
-            }
-            testListener.events.clear();
-        });
+        int i = 0;
+        assertEquals("Number of events did not match", types.length, testListener.events.size());
+        for (Event event : testListener.events) {
+            assertEquals("Incorrect event received", types[i], event.type());
+            i++;
+        }
+        testListener.events.clear();
     }
 }

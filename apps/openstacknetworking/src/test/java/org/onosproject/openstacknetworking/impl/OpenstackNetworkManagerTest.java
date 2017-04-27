@@ -16,10 +16,10 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
@@ -97,6 +97,7 @@ public class OpenstackNetworkManagerTest {
         osNetworkStore = new DistributedOpenstackNetworkStore();
         TestUtils.setField(osNetworkStore, "coreService", new TestCoreService());
         TestUtils.setField(osNetworkStore, "storageService", new TestStorageService());
+        TestUtils.setField(osNetworkStore, "eventExecutor", MoreExecutors.newDirectExecutorService());
         osNetworkStore.activate();
 
         target = new OpenstackNetworkManager();
@@ -469,8 +470,7 @@ public class OpenstackNetworkManagerTest {
         assertEquals("Number of port did not match", 1, target.ports().size());
         assertEquals("Port did not match", null, target.port(PORT_ID).getName());
 
-        final Port updated = NeutronPort.builder()
-                .from(PORT_COPY)
+        final Port updated = PORT_COPY.toBuilder()
                 .name(UPDATED_NAME)
                 .build();
         target.updatePort(updated);
@@ -580,14 +580,12 @@ public class OpenstackNetworkManagerTest {
     }
 
     private void validateEvents(Enum... types) {
-        TestTools.assertAfter(100, () -> {
-            int i = 0;
-            assertEquals("Number of events did not match", types.length, testListener.events.size());
-            for (Event event : testListener.events) {
-                assertEquals("Incorrect event received", types[i], event.type());
-                i++;
-            }
-            testListener.events.clear();
-        });
+        int i = 0;
+        assertEquals("Number of events did not match", types.length, testListener.events.size());
+        for (Event event : testListener.events) {
+            assertEquals("Incorrect event received", types[i], event.type());
+            i++;
+        }
+        testListener.events.clear();
     }
 }
