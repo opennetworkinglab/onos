@@ -15,6 +15,11 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.base.MoreObjects;
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
@@ -24,18 +29,11 @@ import io.atomix.catalyst.serializer.SerializerRegistry;
 import io.atomix.catalyst.util.Assert;
 import io.atomix.copycat.Command;
 import io.atomix.copycat.Query;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
 import org.onlab.util.Match;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Versioned;
-
-import com.google.common.base.MoreObjects;
 
 /**
  * {@link AtomixConsistentMap} resource state machine operations.
@@ -203,12 +201,32 @@ public final class AtomixConsistentMapCommands {
     }
 
     /**
-     * Transaction begin query.
+     * Transaction begin command.
      */
-    public static class TransactionBegin extends MapQuery<Long> {
+    public static class TransactionBegin extends MapCommand<Long> {
+        private TransactionId transactionId;
+
+        public TransactionBegin() {
+        }
+
+        public TransactionBegin(TransactionId transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public TransactionId transactionId() {
+            return transactionId;
+        }
+
         @Override
-        public ConsistencyLevel consistency() {
-            return ConsistencyLevel.LINEARIZABLE;
+        public void writeObject(BufferOutput<?> buffer, Serializer serializer) {
+            super.writeObject(buffer, serializer);
+            serializer.writeObject(transactionId, buffer);
+        }
+
+        @Override
+        public void readObject(BufferInput<?> buffer, Serializer serializer) {
+            super.readObject(buffer, serializer);
+            transactionId = serializer.readObject(buffer);
         }
     }
 
@@ -264,7 +282,7 @@ public final class AtomixConsistentMapCommands {
 
         @Override
         public CompactionMode compaction() {
-            return CompactionMode.QUORUM;
+            return CompactionMode.TOMBSTONE;
         }
     }
 

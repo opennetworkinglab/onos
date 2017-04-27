@@ -298,7 +298,7 @@ public class AtomixConsistentMap extends AbstractResource<AtomixConsistentMap>
 
     @Override
     public CompletableFuture<Version> begin(TransactionId transactionId) {
-        return client.submit(new TransactionBegin()).thenApply(Version::new);
+        return client.submit(new TransactionBegin(transactionId)).thenApply(Version::new);
     }
 
     @Override
