@@ -47,6 +47,7 @@ public final class UiExtension {
     private final List<UiView> viewList;
     private final UiMessageHandlerFactory messageHandlerFactory;
     private final UiTopoOverlayFactory topoOverlayFactory;
+    private final UiTopo2OverlayFactory topo2OverlayFactory;
     private final UiTopoMapFactory topoMapFactory;
 
     private boolean isValid = true;
@@ -55,12 +56,14 @@ public final class UiExtension {
     private UiExtension(ClassLoader cl, String path, List<UiView> views,
                         UiMessageHandlerFactory mhFactory,
                         UiTopoOverlayFactory toFactory,
+                        UiTopo2OverlayFactory to2Factory,
                         UiTopoMapFactory tmFactory) {
         classLoader = cl;
         resourcePath = path;
         viewList = views;
         messageHandlerFactory = mhFactory;
         topoOverlayFactory = toFactory;
+        topo2OverlayFactory = to2Factory;
         topoMapFactory = tmFactory;
     }
 
@@ -122,6 +125,15 @@ public final class UiExtension {
     }
 
     /**
+     * Returns the topology-2 overlay factory, if one was defined.
+     *
+     * @return topology-2 overlay factory
+     */
+    public UiTopo2OverlayFactory topo2OverlayFactory() {
+        return topo2OverlayFactory;
+    }
+
+    /**
      * Returns the topology map factory, if one was defined.
      *
      * @return topology map factory
@@ -152,6 +164,7 @@ public final class UiExtension {
         private List<UiView> viewList = new ArrayList<>();
         private UiMessageHandlerFactory messageHandlerFactory = null;
         private UiTopoOverlayFactory topoOverlayFactory = null;
+        private UiTopo2OverlayFactory topo2OverlayFactory = null;
         private UiTopoMapFactory topoMapFactory = null;
 
         /**
@@ -205,6 +218,17 @@ public final class UiExtension {
         }
 
         /**
+         * Sets the topology-2 overlay factory for this extension.
+         *
+         * @param to2Factory topology-2 overlay factory
+         * @return self, for chaining
+         */
+        public Builder topo2OverlayFactory(UiTopo2OverlayFactory to2Factory) {
+            topo2OverlayFactory = to2Factory;
+            return this;
+        }
+
+        /**
          * Sets the topology map factory for this extension.
          *
          * @param tmFactory topology map factory
@@ -222,8 +246,8 @@ public final class UiExtension {
          */
         public UiExtension build() {
             return new UiExtension(classLoader, resourcePath, viewList,
-                                    messageHandlerFactory, topoOverlayFactory,
-                                    topoMapFactory);
+                                   messageHandlerFactory, topoOverlayFactory,
+                                   topo2OverlayFactory, topoMapFactory);
         }
     }
 }

@@ -16,12 +16,14 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.UiTopo2Overlay;
 import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiNode;
@@ -67,10 +69,12 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private static final String CURRENT_LAYOUT = "topo2CurrentLayout";
     private static final String CURRENT_REGION = "topo2CurrentRegion";
     private static final String PEER_REGIONS = "topo2PeerRegions";
+    private static final String OVERLAYS = "topo2Overlays";
 
 
     private UiTopoSession topoSession;
     private Topo2Jsonifier t2json;
+    private Topo2OverlayCache overlay2Cache;
 
 
     @Override
@@ -81,6 +85,17 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         topoSession = ((UiWebSocket) connection).topoSession();
         t2json = new Topo2Jsonifier(directory, connection.userName());
     }
+
+    /**
+     * Sets a reference to the overlay cache for interacting with registered
+     * overlays.
+     *
+     * @param overlay2Cache the overlay cache
+     */
+    public void setOverlayCache(Topo2OverlayCache overlay2Cache) {
+        this.overlay2Cache = overlay2Cache;
+    }
+
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
@@ -113,6 +128,25 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         peersPayload.set("peers", t2json.closedNodes(rid, peers));
         return peersPayload;
     }
+
+    private ObjectNode mkOverlaysMessage() {
+        ArrayNode a = arrayNode();
+        for (UiTopo2Overlay ov : overlay2Cache.list()) {
+            a.add(json(ov));
+        }
+        ObjectNode payload = objectNode();
+        payload.set("overlays", a);
+        return payload;
+    }
+
+    private ObjectNode json(UiTopo2Overlay ov) {
+        return objectNode()
+                .put("id", ov.id())
+                .put("name", ov.name())
+                .put("gid", ov.glyphId());
+    }
+
+    // ==================================================================
 
 
     private final class Topo2Start extends RequestHandler {
@@ -152,6 +186,9 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
             // these are the regions/devices that are siblings to this region
             sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
+
+            // these are the registered overlays
+            sendMessage(OVERLAYS, mkOverlaysMessage());
         }
     }
 
