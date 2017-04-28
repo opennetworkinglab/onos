@@ -98,7 +98,7 @@ public class SnmpDeviceProviderTest {
     private final InputStream jsonStream = SnmpDeviceProviderTest.class
             .getResourceAsStream("/device.json");
     private final ObjectMapper mapper = new ObjectMapper();
-    private final String KEY = "snmp";
+    private static final String KEY = "snmp";
 
 
     @Before
