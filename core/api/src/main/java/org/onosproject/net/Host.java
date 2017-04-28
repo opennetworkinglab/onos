@@ -59,9 +59,16 @@ public interface Host extends Element {
      * Returns the most recent host location where the host attaches to the
      * network edge.
      *
-     * @return host location
+     * @return the most recent host location
      */
     HostLocation location();
+
+    /**
+     * Returns all host locations where the host attaches to the network edge.
+     *
+     * @return all host locations
+     */
+    Set<HostLocation> locations();
 
     /**
      * Returns true if configured by NetworkConfiguration.
@@ -73,4 +80,3 @@ public interface Host extends Element {
     // TODO: explore capturing list of recent locations to aid in mobility
 
 }
-

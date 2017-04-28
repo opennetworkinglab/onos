@@ -6,8 +6,10 @@
     "1.1.1.1",
     "2.2.2.2"
   ],
-  "location": {
-    "elementId": "of:d1",
-    "port": "1"
-  }
+  "locations": [
+    {
+      "elementId": "of:d1",
+      "port": "1"
+    }
+  ]
 }

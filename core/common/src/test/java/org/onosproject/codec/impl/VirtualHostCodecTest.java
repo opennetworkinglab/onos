@@ -81,9 +81,9 @@ public class VirtualHostCodecTest {
                    is(TEST_MAC_ADDRESS));
         assertThat(node.get(VirtualHostCodec.VLAN).asInt(),
                    is((int) TEST_VLAN_ID));
-        assertThat(node.get(VirtualHostCodec.HOST_LOCATION).get("elementId").asText(),
+        assertThat(node.get(VirtualHostCodec.HOST_LOCATION).get(0).get("elementId").asText(),
                    is(location.deviceId().toString()));
-        assertThat(node.get(VirtualHostCodec.HOST_LOCATION).get("port").asLong(),
+        assertThat(node.get(VirtualHostCodec.HOST_LOCATION).get(0).get("port").asLong(),
                    is(location.port().toLong()));
 
         JsonNode jsonIps = node.get(VirtualHostCodec.IP_ADDRESSES);

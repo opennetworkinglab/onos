@@ -64,4 +64,8 @@ public class HostLocation extends ConnectPoint {
         return time;
     }
 
+    @Override
+    public String toString() {
+        return deviceId() + "/" + port();
+    }
 }

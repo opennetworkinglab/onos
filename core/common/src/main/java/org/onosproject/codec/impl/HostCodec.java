@@ -47,7 +47,12 @@ public final class HostCodec extends AnnotatedCodec<Host> {
             jsonIpAddresses.add(ipAddress.toString());
         }
         result.set("ipAddresses", jsonIpAddresses);
-        result.set("location", locationCodec.encode(host.location(), context));
+
+        final ArrayNode jsonLocations = result.putArray("locations");
+        for (final HostLocation location : host.locations()) {
+            jsonLocations.add(locationCodec.encode(location, context));
+        }
+        result.set("locations", jsonLocations);
 
         return annotate(result, host, context);
     }

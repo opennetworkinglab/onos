@@ -53,7 +53,7 @@ public class NodeSelectionTest {
 
     private static class FakeHost extends DefaultHost {
         FakeHost(HostId id) {
-            super(null, id, null, null, null, ImmutableSet.of());
+            super(null, id, null, null, ImmutableSet.of(), ImmutableSet.of(), false);
         }
     }
 

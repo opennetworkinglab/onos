@@ -68,7 +68,7 @@ public class HostsWebResource extends AbstractWebResource {
     @Context
     private UriInfo uriInfo;
     private static final String HOST_NOT_FOUND = "Host is not found";
-    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "location", "ipAddresses"};
+    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "locations", "ipAddresses"};
 
     /**
      * Get all end-station hosts.
@@ -219,15 +219,21 @@ public class HostsWebResource extends AbstractWebResource {
         private HostId parseHost(JsonNode node) {
             MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
             VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
-            JsonNode locationNode = node.get("location");
-            String deviceAndPort = locationNode.get("elementId").asText() + "/" +
-                    locationNode.get("port").asText();
-            HostLocation hostLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
 
-            Iterator<JsonNode> ipStrings = node.get("ipAddresses").elements();
+            Iterator<JsonNode> locationNodes = node.get("locations").elements();
+            Set<HostLocation> locations = new HashSet<>();
+            while (locationNodes.hasNext()) {
+                JsonNode locationNode = locationNodes.next();
+                String deviceAndPort = locationNode.get("elementId").asText() + "/" +
+                        locationNode.get("port").asText();
+                HostLocation hostLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
+                locations.add(hostLocation);
+            }
+
+            Iterator<JsonNode> ipNodes = node.get("ipAddresses").elements();
             Set<IpAddress> ips = new HashSet<>();
-            while (ipStrings.hasNext()) {
-                ips.add(IpAddress.valueOf(ipStrings.next().asText()));
+            while (ipNodes.hasNext()) {
+                ips.add(IpAddress.valueOf(ipNodes.next().asText()));
             }
 
             // try to remove elements from json node after reading them
@@ -235,7 +241,7 @@ public class HostsWebResource extends AbstractWebResource {
             // Update host inventory
 
             HostId hostId = HostId.hostId(mac, vlanId);
-            DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips, true, annotations);
+            DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, locations, ips, true, annotations);
             hostProviderService.hostDetected(hostId, desc, false);
             return hostId;
         }

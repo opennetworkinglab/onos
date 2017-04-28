@@ -38,21 +38,24 @@
         "example": "127.0.0.1"
       }
     },
-    "location": {
-      "type": "object",
-      "title": "location",
-      "required": [
-        "elementId",
-        "port"
-      ],
-      "properties": {
-        "elementId": {
-          "type": "string",
-          "example": "of:0000000000000002"
-        },
-        "port": {
-          "type": "string",
-          "example": "3"
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "location",
+        "required": [
+          "elementId",
+          "port"
+        ],
+        "properties": {
+          "elementId": {
+            "type": "string",
+            "example": "of:0000000000000002"
+          },
+          "port": {
+            "type": "string",
+            "example": "3"
+          }
         }
       }
     }

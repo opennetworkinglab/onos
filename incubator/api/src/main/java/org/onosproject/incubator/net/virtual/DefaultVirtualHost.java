@@ -25,6 +25,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.provider.ProviderId;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
@@ -52,7 +53,22 @@ public final class DefaultVirtualHost extends DefaultHost implements VirtualHost
      */
     public DefaultVirtualHost(NetworkId networkId, HostId id, MacAddress mac,
                               VlanId vlan, HostLocation location, Set<IpAddress> ips) {
-        super(PID, id, mac, vlan, location, ips, DefaultAnnotations.builder().build());
+        this(networkId, id, mac, vlan, Collections.singleton(location), ips);
+    }
+
+    /**
+     * Creates a virtual host attributed to the specified provider.
+     *
+     * @param networkId network identifier
+     * @param id        host identifier
+     * @param mac       host MAC address
+     * @param vlan      host VLAN identifier
+     * @param locations host locations
+     * @param ips       host IP addresses
+     */
+    public DefaultVirtualHost(NetworkId networkId, HostId id, MacAddress mac,
+                              VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips) {
+        super(PID, id, mac, vlan, locations, ips, false, DefaultAnnotations.builder().build());
         this.networkId = networkId;
     }
 

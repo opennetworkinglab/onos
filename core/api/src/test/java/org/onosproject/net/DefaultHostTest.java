@@ -16,12 +16,19 @@
 package org.onosproject.net;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.testing.EqualsTester;
+import java.util.Set;
 import org.junit.Test;
 
-import com.google.common.testing.EqualsTester;
-
-public class DefaultHostTest extends  TestDeviceParams {
+public class DefaultHostTest extends TestDeviceParams {
+    private static final Set<HostLocation> LOCATIONS = ImmutableSet.of(LOC1, LOC2, LOC3);
+    private static final Host SINGLE_HOMED_HOST =
+            new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1, IPSET1);
+    private static final Host MULTI_HOMED_HOST =
+            new DefaultHost(PID, HID1, MAC1, VLAN1, LOCATIONS, IPSET1, false);
 
     @Test
     public void testEquality() {
@@ -39,13 +46,27 @@ public class DefaultHostTest extends  TestDeviceParams {
 
     @Test
     public void basics() {
-        Host host = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1, IPSET1);
-        assertEquals("incorrect provider", PID, host.providerId());
-        assertEquals("incorrect id", HID1, host.id());
-        assertEquals("incorrect type", MAC1, host.mac());
-        assertEquals("incorrect VLAN", VLAN1, host.vlan());
-        assertEquals("incorrect location", LOC1, host.location());
-        assertEquals("incorrect IP's", IPSET1, host.ipAddresses());
+        assertEquals("incorrect provider", PID, SINGLE_HOMED_HOST.providerId());
+        assertEquals("incorrect id", HID1, SINGLE_HOMED_HOST.id());
+        assertEquals("incorrect type", MAC1, SINGLE_HOMED_HOST.mac());
+        assertEquals("incorrect VLAN", VLAN1, SINGLE_HOMED_HOST.vlan());
+        assertEquals("incorrect location", LOC1, SINGLE_HOMED_HOST.location());
+        assertEquals("incorrect IPs", IPSET1, SINGLE_HOMED_HOST.ipAddresses());
+    }
+
+    @Test
+    public void testLocation() {
+        assertEquals("Latest location should be LOC3", LOC3, MULTI_HOMED_HOST.location());
+    }
+
+    @Test
+    public void testLocations() {
+        Set<HostLocation> locations = MULTI_HOMED_HOST.locations();
+
+        assertEquals("There should be 3 locations", locations.size(), 3);
+        assertTrue("Host location contains 1st location", locations.contains(LOC1));
+        assertTrue("Host location contains 2nd location", locations.contains(LOC2));
+        assertTrue("Host location contains 3rd location", locations.contains(LOC3));
     }
 
 }

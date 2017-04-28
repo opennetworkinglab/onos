@@ -43,11 +43,18 @@ public interface HostDescription extends Description {
     VlanId vlan();
 
     /**
-     * Returns the location of the host on the network edge.
+     * Returns the most recent location of the host on the network edge.
      *
-     * @return the network location
+     * @return the most recent host location
      */
     HostLocation location();
+
+    /**
+     * Returns all locations of the host on the network edge.
+     *
+     * @return all host locations
+     */
+    Set<HostLocation> locations();
 
     /**
      * Returns the IP address associated with this host's MAC.

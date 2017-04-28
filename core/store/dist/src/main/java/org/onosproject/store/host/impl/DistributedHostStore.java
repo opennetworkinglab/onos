@@ -160,7 +160,7 @@ public class DistributedHostStore
         if (!Objects.equals(existingHost.providerId(), providerId) ||
                 !Objects.equals(existingHost.mac(), hostDescription.hwAddress()) ||
                 !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||
-                !Objects.equals(existingHost.location(), hostDescription.location())) {
+                !Objects.equals(existingHost.locations(), hostDescription.locations())) {
             return true;
         }
 
@@ -194,7 +194,6 @@ public class DistributedHostStore
                        existingHost -> shouldUpdate(existingHost, providerId,
                                                     hostDescription, replaceIPs),
                        (id, existingHost) -> {
-                           HostLocation location = hostDescription.location();
 
                            final Set<IpAddress> addresses;
                            if (existingHost == null || replaceIPs) {
@@ -219,7 +218,7 @@ public class DistributedHostStore
                                                   hostId,
                                                   hostDescription.hwAddress(),
                                                   hostDescription.vlan(),
-                                                  location,
+                                                  hostDescription.locations(),
                                                   addresses,
                                                   configured,
                                                   annotations);
@@ -253,8 +252,9 @@ public class DistributedHostStore
                             hostId,
                             existingHost.mac(),
                             existingHost.vlan(),
-                            existingHost.location(),
+                            existingHost.locations(),
                             ImmutableSet.copyOf(addresses),
+                            existingHost.configured(),
                             existingHost.annotations());
                 } else {
                     return existingHost;
@@ -299,7 +299,7 @@ public class DistributedHostStore
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
         Set<Host> filtered = hosts.entrySet().stream()
-                .filter(entry -> entry.getValue().location().equals(connectPoint))
+                .filter(entry -> entry.getValue().locations().contains(connectPoint))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(filtered);
@@ -308,7 +308,8 @@ public class DistributedHostStore
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         Set<Host> filtered = hosts.entrySet().stream()
-                .filter(entry -> entry.getValue().location().deviceId().equals(deviceId))
+                .filter(entry -> entry.getValue().locations().stream()
+                        .map(HostLocation::deviceId).anyMatch(dpid -> dpid.equals(deviceId)))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(filtered);
@@ -382,7 +383,7 @@ public class DistributedHostStore
                 case UPDATE:
                     updateHostsByIp(host);
                     DefaultHost prevHost = checkNotNull(event.oldValue().value());
-                    if (!Objects.equals(prevHost.location(), host.location())) {
+                    if (!Objects.equals(prevHost.locations(), host.locations())) {
                         notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
                     } else if (!Objects.equals(prevHost, host)) {
                         notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
