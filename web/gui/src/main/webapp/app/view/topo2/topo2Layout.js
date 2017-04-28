@@ -145,7 +145,8 @@
                             function () {}, // click event is no longer handled in the drag service
                             this.atDragEnd,
                             this.dragEnabled.bind(this),
-                            clickEnabled
+                            clickEnabled,
+                            t2zs
                         );
 
                         this.update();

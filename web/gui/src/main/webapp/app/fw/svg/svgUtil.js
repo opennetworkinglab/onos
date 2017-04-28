@@ -30,7 +30,7 @@
 
     // TODO: change 'force' ref to be 'force.alpha' ref.
     function createDragBehavior(force, selectCb, atDragEnd,
-                                dragEnabled, clickEnabled) {
+                                dragEnabled, clickEnabled, zs) {
         var draggedThreshold = d3.scale.linear()
             .domain([0, 0.1])
             .range([5, 20])
@@ -70,9 +70,11 @@
         }
 
         function dragged(d) {
-            var threshold = draggedThreshold(force.alpha()),
+            var scale = zs ? zs.scale() : 1,
+                threshold = draggedThreshold(force.alpha()) / scale,
                 dx = d.oldX - d.px,
                 dy = d.oldY - d.py;
+
             if (Math.abs(dx) >= threshold || Math.abs(dy) >= threshold) {
                 d.dragged = true;
             }
@@ -83,8 +85,6 @@
             .origin(function(d) { return d; })
             .on('dragstart', function(d) {
                 if (clickEnabled() || dragEnabled()) {
-                    d3.event.sourceEvent.stopPropagation();
-
                     d.oldX = d.x;
                     d.oldY = d.y;
                     d.dragged = false;
@@ -104,7 +104,7 @@
                 }
             })
             .on('dragend', function(d) {
-                d3.event.sourceEvent.preventDefault();
+                d3.event.sourceEvent.stopPropagation();
 
                 if (d.dragStarted) {
                     d.dragStarted = false;
