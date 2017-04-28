@@ -22,7 +22,7 @@
     var t2os = 'Topo2OverlayService: ';
 
     // injected refs
-    var $log, $timeout, fs, gs, wss, api;
+    var $log, $timeout, fs, gs, wss, t2kcs, api;
 
     // internal state
     var overlays = {},
@@ -123,6 +123,16 @@
         api = _api_;
     }
 
+    function setOverlay(ovid) {
+        var ov = overlays[ovid];
+        if (!ov) {
+            $log.error('setOverlay: no such overlay ID: ' + ovid);
+        } else {
+            current = ov;
+            t2kcs.bindCommands(current.keyBindings);
+        }
+    }
+
     function showHighlights(data) {
         function doHighlight() {
             _showHighlights(data);
@@ -152,17 +162,20 @@
     angular.module('ovTopo2')
     .factory('Topo2OverlayService', [
         '$log', '$timeout', 'FnService', 'GlyphService', 'WebSocketService',
+        'Topo2KeyCommandService',
 
-        function (_$log_, _$timeout_, _fs_, _gs_, _wss_) {
+        function (_$log_, _$timeout_, _fs_, _gs_, _wss_, _t2kcs_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
             gs = _gs_;
             wss = _wss_;
+            t2kcs = _t2kcs_;
 
             return {
                 register: register,
                 setApi: setApi,
+                setOverlay: setOverlay,
 
                 hooks: {
                     escape: escapeHook,

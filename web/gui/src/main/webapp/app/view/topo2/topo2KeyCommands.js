@@ -40,7 +40,7 @@
 
             _keyListener: t2tbs.keyListener.bind(t2tbs)
         }
-    };
+    }
 
     function init(_t2fs_, _t2tbs_) {
         t2fs = _t2fs_;
@@ -48,9 +48,26 @@
         bindCommands();
     }
 
-    function bindCommands() {
+    function bindCommands(additional) {
 
-        ks.keyBindings(actionMap());
+        var am = actionMap(),
+            add = fs.isO(additional);
+
+        if (add) {
+            _.each(add, function (value, key) {
+                // filter out meta properties (e.g. _keyOrder)
+                if (!(key.startsWith('_'))) {
+                    // don't allow re-definition of existing key bindings
+                    if (am[key]) {
+                        $log.warn('keybind: ' + key + ' already exists');
+                    } else {
+                        am[key] = [value.cb, value.tt];
+                    }
+                }
+            });
+        }
+
+        ks.keyBindings(am);
 
         ks.gestureNotes([
             ['click', 'Select the item and show details'],

@@ -296,6 +296,10 @@ public class UiWebSocket
             overlayCache.destroy();
             overlayCache = null;
         }
+        if (overlay2Cache != null) {
+            overlay2Cache.destroy();
+            overlay2Cache = null;
+        }
     }
 
     // Sends initial information (username and cluster member information)

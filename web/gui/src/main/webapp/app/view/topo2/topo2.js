@@ -101,7 +101,7 @@
         'Topo2BreadcrumbService', 'Topo2KeyCommandService', 'Topo2MapService',
         'Topo2MapConfigService', 'Topo2ZoomService', 'Topo2SpriteLayerService',
         'Topo2SummaryPanelService', 'Topo2DeviceDetailsPanel', 'Topo2ToolbarService',
-        'Topo2NoDevicesConnectedService',
+        'Topo2NoDevicesConnectedService', 'Topo2OverlayService',
 
         function (
             _$scope_, _$log_, _$loc_,
@@ -111,7 +111,7 @@
             _t2es_, _t2fs_, _t2is_,
             _t2bcs_, _t2kcs_, _t2ms_,
             _t2mcs_, _t2zs_, t2sls,
-            summaryPanel, detailsPanel, t2tbs, t2ndcs
+            summaryPanel, detailsPanel, t2tbs, t2ndcs, t2os
         ) {
             var params = _$loc_.search(),
                 dim,
@@ -197,6 +197,9 @@
             // === ORIGINAL CODE ===
             // restoreConfigFromPrefs();
             // ttbs.setDefaultOverlay(prefsState.ovid);
+
+            // ++ TEMPORARY HARD-CODE TRAFFIC OVERLAY ++
+            t2os.setOverlay('traffic-2-overlay');
 
             summaryPanel.init(detailsPanel);
             detailsPanel.init(summaryPanel);

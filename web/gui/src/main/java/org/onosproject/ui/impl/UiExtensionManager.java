@@ -56,6 +56,7 @@ import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
+import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.Traffic2Overlay;
 import org.slf4j.Logger;
@@ -151,6 +152,7 @@ public class UiExtensionManager
                         new UserPreferencesMessageHandler(),
                         new TopologyViewMessageHandler(),
                         new Topo2ViewMessageHandler(),
+                        new Topo2TrafficMessageHandler(),
                         new MapSelectorMessageHandler(),
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),

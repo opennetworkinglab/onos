@@ -52,7 +52,7 @@
     }
 
     function showAllTraffic() {
-        $log.debug('Topo2Traffic: Show All Traffic');
+        $log.debug('Topo2Traffic: Show All Traffic:', allTrafficTypes[allIndex]);
 
         mode = 'allFlowPort';
         wss.sendEvent('topo2RequestAllTraffic', {
