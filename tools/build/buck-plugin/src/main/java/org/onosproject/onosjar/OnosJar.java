@@ -32,7 +32,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -42,6 +48,25 @@ import java.util.regex.Pattern;
  */
 public class OnosJar extends DefaultJavaLibrary
         implements MavenPublishable{
+
+    // Inject the SHA of this rule's jar into the rule key
+    private static String RULE_VERSION;
+    static {
+        URL pluginJarLocation = OnosJar.class.getProtectionDomain().getCodeSource().getLocation();
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA");
+            DigestInputStream dis = new DigestInputStream(pluginJarLocation.openStream(), md);
+            // Consume the InputStream...
+            while (dis.read() != -1);
+            RULE_VERSION = String.format("%032x", new BigInteger(1, md.digest()));
+        } catch (NoSuchAlgorithmException | IOException e) {
+            System.err.println("Failed to compute hash for OnosJar rule");
+            RULE_VERSION = "nil";
+            //TODO consider bailing here instead
+        }
+    }
+    @AddToRuleKey
+    private final String ruleVersion = RULE_VERSION;
 
     @AddToRuleKey
     final Optional<String> webContext;
