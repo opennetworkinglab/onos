@@ -301,7 +301,9 @@ public final class EncodeInstructionCodecHelper {
                 final Instructions.SetQueueInstruction setQueueInstruction =
                         (Instructions.SetQueueInstruction) instruction;
                 result.put(InstructionCodec.QUEUE_ID, setQueueInstruction.queueId());
-                result.put(InstructionCodec.PORT, setQueueInstruction.port().toString());
+                if (setQueueInstruction.port() != null) {
+                    result.put(InstructionCodec.PORT, setQueueInstruction.port().toString());
+                }
                 break;
 
             case L0MODIFICATION:
