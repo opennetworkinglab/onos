@@ -68,6 +68,19 @@
         }
     }
 
+    function adjustmentScale(min, max) {
+        var _scale = 1,
+            size = (min + max) / 2;
+
+        if (size * scale() < max) {
+            _scale = min / (size * scale());
+        } else if (size * scale() > max) {
+            _scale = min / (size * scale());
+        }
+
+        return _scale;
+    }
+
     function scale() {
         return zoomer.scale();
     }
@@ -92,6 +105,7 @@
                 removeZoomEventListener: removeZoomEventListener,
 
                 scale: scale,
+                adjustmentScale: adjustmentScale,
                 panAndZoom: panAndZoom
             };
         }]);
