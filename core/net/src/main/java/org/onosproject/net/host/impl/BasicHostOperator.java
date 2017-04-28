@@ -16,7 +16,6 @@
 package org.onosproject.net.host.impl;
 
 import org.onlab.packet.IpAddress;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
@@ -27,6 +26,7 @@ import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,10 +53,12 @@ public final class BasicHostOperator extends BasicElementOperator {
             return descr;
         }
 
-        HostLocation location = descr.location();
-        ConnectPoint cfgLocation = cfg.location();
-        if (cfgLocation != null) {
-            location = new HostLocation(cfgLocation, System.currentTimeMillis());
+        Set<HostLocation> locations = descr.locations();
+        Set<HostLocation> cfgLocations = cfg.locations();
+        if (cfgLocations != null) {
+            locations = cfgLocations.stream()
+                    .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
+                    .collect(Collectors.toSet());
         }
 
         Set<IpAddress> ipAddresses = descr.ipAddress();
@@ -67,7 +69,7 @@ public final class BasicHostOperator extends BasicElementOperator {
 
         SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultHostDescription(descr.hwAddress(), descr.vlan(),
-                                          location, ipAddresses,
+                                          locations, ipAddresses,
                                           descr.configured(), sa);
     }
 

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,15 +30,15 @@ import java.util.Set;
 public final class BasicHostConfig extends BasicElementConfig<HostId> {
 
     private static final String IPS = "ips";
-    private static final String LOCATION = "location";
+    private static final String LOCATIONS = "locations";
 
     @Override
     public boolean isValid() {
         // Location and IP addresses can be absent, but if present must be valid.
-        this.location();
+        this.locations();
         this.ipAddresses();
         return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
-                GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATION);
+                GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
     }
 
     /**
@@ -46,19 +47,27 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
      * @return location of the host or null if not set
      * @throws IllegalArgumentException if not specified with correct format
      */
-    public ConnectPoint location() {
-        String location = get(LOCATION, null);
-        return location != null ? ConnectPoint.deviceConnectPoint(location) : null;
+    public Set<HostLocation> locations() {
+        HashSet<HostLocation> locations = new HashSet<>();
+        if (object.has(LOCATIONS)) {
+            ArrayNode locationNodes = (ArrayNode) object.path(LOCATIONS);
+            locationNodes.forEach(n -> {
+                ConnectPoint cp = ConnectPoint.deviceConnectPoint((n.asText()));
+                locations.add(new HostLocation(cp, 0));
+            });
+            return locations;
+        }
+        return null;
     }
 
     /**
      * Sets the location of the host.
      *
-     * @param location location of the host or null to unset
+     * @param locations location of the host or null to unset
      * @return the config of the host
      */
-    public BasicHostConfig setLocation(String location) {
-        return (BasicHostConfig) setOrClear(LOCATION, location);
+    public BasicHostConfig setLocations(Set<HostLocation> locations) {
+        return (BasicHostConfig) setOrClear(LOCATIONS, locations);
     }
 
     /**

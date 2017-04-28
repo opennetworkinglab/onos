@@ -26,7 +26,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -43,7 +42,10 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Host provider that uses network config service to discover hosts.
@@ -106,14 +108,14 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      *
      * @param mac MAC address of the host
      * @param vlan VLAN ID of the host
-     * @param hloc Location of the host
+     * @param locations Location of the host
      * @param ips Set of IP addresses of the host
      */
-    protected void addHost(MacAddress mac, VlanId vlan, HostLocation hloc, Set<IpAddress> ips) {
+    protected void addHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips) {
         HostId hid = HostId.hostId(mac, vlan);
         HostDescription desc = (ips != null) ?
-                new DefaultHostDescription(mac, vlan, hloc, ips, true) :
-                new DefaultHostDescription(mac, vlan, hloc, true);
+                new DefaultHostDescription(mac, vlan, locations, ips, true) :
+                new DefaultHostDescription(mac, vlan, locations, Collections.emptySet(), true);
         providerService.hostDetected(hid, desc, false);
     }
 
@@ -123,12 +125,12 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      *
      * @param mac MAC address of the host
      * @param vlan VLAN ID of the host
-     * @param hloc Location of the host
+     * @param locations Location of the host
      * @param ips Set of IP addresses of the host
      */
-    protected void updateHost(MacAddress mac, VlanId vlan, HostLocation hloc, Set<IpAddress> ips) {
+    protected void updateHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips) {
         HostId hid = HostId.hostId(mac, vlan);
-        HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ips, true);
+        HostDescription desc = new DefaultHostDescription(mac, vlan, locations, ips, true);
         providerService.hostDetected(hid, desc, true);
     }
 
@@ -150,9 +152,10 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
             BasicHostConfig hostConfig =
                     networkConfigRegistry.getConfig(hostId, BasicHostConfig.class);
             Set<IpAddress> ipAddresses = hostConfig.ipAddresses();
-            ConnectPoint location = hostConfig.location();
-            HostLocation hloc = new HostLocation(location, System.currentTimeMillis());
-            addHost(mac, vlan, hloc, ipAddresses);
+            Set<HostLocation> locations = hostConfig.locations().stream()
+                    .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
+                    .collect(Collectors.toSet());
+            addHost(mac, vlan, locations, ipAddresses);
         });
     }
 
@@ -172,21 +175,22 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
             BasicHostConfig hostConfig =
                     networkConfigRegistry.getConfig(hostId, BasicHostConfig.class);
             Set<IpAddress> ipAddresses = null;
-            HostLocation hloc = null;
+            Set<HostLocation> locations = null;
 
             // Note: There will be no config presented in the CONFIG_REMOVE case
             if (hostConfig != null) {
                 ipAddresses = hostConfig.ipAddresses();
-                ConnectPoint location = hostConfig.location();
-                hloc = new HostLocation(location, System.currentTimeMillis());
+                locations = hostConfig.locations().stream()
+                        .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
+                        .collect(Collectors.toSet());
             }
 
             switch (event.type()) {
                 case CONFIG_ADDED:
-                    addHost(mac, vlan, hloc, ipAddresses);
+                    addHost(mac, vlan, locations, ipAddresses);
                     break;
                 case CONFIG_UPDATED:
-                    updateHost(mac, vlan, hloc, ipAddresses);
+                    updateHost(mac, vlan, locations, ipAddresses);
                     break;
                 case CONFIG_REMOVED:
                     removeHost(mac, vlan);
