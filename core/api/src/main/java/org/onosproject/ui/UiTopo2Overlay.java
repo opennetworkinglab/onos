@@ -23,35 +23,27 @@ import org.slf4j.LoggerFactory;
 /**
  * Represents a user interface topology-2 view overlay.
  * <p>
- * This base class does little more than provide a logger, an identifier,
- * name, and glyph ID.
- * Subclasses will probably want to override some or all of the base methods
+ * This base class does little more than provide a logger and an identifier.
+ * <p>
+ * Subclasses will want to override some or all of the base methods
  * to do useful things during the life-cycle of the (topo-2) overlay.
  */
 public class UiTopo2Overlay {
 
-    private static final String DEFAULT_GLYPH_ID = "m_topo";
-
-    /**
-     * Logger for this overlay.
-     */
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private final String id;
-    private final String name;
 
     private boolean isActive = false;
 
     /**
-     * Creates a new user interface topology view overlay descriptor, with
-     * the given identifier and (human readable) name.
+     * Creates a new user interface topology view overlay descriptor with
+     * the given identifier.
      *
      * @param id overlay identifier
-     * @param name overlay name
      */
-    public UiTopo2Overlay(String id, String name) {
+    public UiTopo2Overlay(String id) {
         this.id = id;
-        this.name = name;
     }
 
     /**
@@ -63,29 +55,16 @@ public class UiTopo2Overlay {
         return id;
     }
 
-    /**
-     * Returns the name for this overlay.
-     *
-     * @return the name
-     */
-    public String name() {
-        return name;
-    }
-
-    /**
-     * Returns the glyph identifier to use in the toolbar.
-     * This implementation returns a default value. Subclasses may override
-     * this to provide the identity of a custom glyph.
-     *
-     * @return glyph ID
-     */
-    public String glyphId() {
-        return DEFAULT_GLYPH_ID;
+    @Override
+    public String toString() {
+        return "UiTopo2Overlay{id=\"" + id +
+                "\", class=\"" + getClass().getSimpleName() + "\"}";
     }
 
     /**
      * Callback invoked to initialize this overlay, soon after creation.
      * This default implementation does nothing.
+     * Subclasses may choose to override this to set some initial state.
      */
     public void init() {
     }

@@ -135,12 +135,7 @@ public class Topo2OverlayCache {
     // overlay instance representing "no overlay selected"
     private static class NullOverlay extends UiTopo2Overlay {
         NullOverlay() {
-            super(EMPTY, NO_OVERLAY);
-        }
-
-        @Override
-        public String glyphId() {
-            return UNKNOWN;
+            super(EMPTY);
         }
     }
 }

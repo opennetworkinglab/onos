@@ -50,12 +50,14 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiPreferencesService;
+import org.onosproject.ui.UiTopo2OverlayFactory;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
+import org.onosproject.ui.impl.topo.Traffic2Overlay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,6 +174,11 @@ public class UiExtensionManager
                         new ProtectedIntentOverlay()
                 );
 
+        UiTopo2OverlayFactory topo2OverlayFactory =
+                () -> ImmutableList.of(
+                        new Traffic2Overlay()
+                );
+
         UiTopoMapFactory topoMapFactory =
                 () -> ImmutableList.of(
                         new UiTopoMap("australia", "Australia", "*australia", 1.0),
@@ -194,6 +201,7 @@ public class UiExtensionManager
         return new UiExtension.Builder(CL, coreViews)
                 .messageHandlerFactory(messageHandlerFactory)
                 .topoOverlayFactory(topoOverlayFactory)
+                .topo2OverlayFactory(topo2OverlayFactory)
                 .topoMapFactory(topoMapFactory)
                 .resourcePath(CORE)
                 .build();
@@ -202,11 +210,11 @@ public class UiExtensionManager
     @Activate
     public void activate() {
         Serializer serializer = Serializer.using(KryoNamespaces.API,
-                ObjectNode.class, ArrayNode.class,
-                JsonNodeFactory.class, LinkedHashMap.class,
-                TextNode.class, BooleanNode.class,
-                LongNode.class, DoubleNode.class, ShortNode.class,
-                IntNode.class, NullNode.class);
+                     ObjectNode.class, ArrayNode.class,
+                     JsonNodeFactory.class, LinkedHashMap.class,
+                     TextNode.class, BooleanNode.class,
+                     LongNode.class, DoubleNode.class, ShortNode.class,
+                     IntNode.class, NullNode.class);
 
         prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)

@@ -16,14 +16,12 @@
 
 package org.onosproject.ui.impl.topo;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.UiTopo2Overlay;
 import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiNode;
@@ -129,23 +127,6 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         return peersPayload;
     }
 
-    private ObjectNode mkOverlaysMessage() {
-        ArrayNode a = arrayNode();
-        for (UiTopo2Overlay ov : overlay2Cache.list()) {
-            a.add(json(ov));
-        }
-        ObjectNode payload = objectNode();
-        payload.set("overlays", a);
-        return payload;
-    }
-
-    private ObjectNode json(UiTopo2Overlay ov) {
-        return objectNode()
-                .put("id", ov.id())
-                .put("name", ov.name())
-                .put("gid", ov.glyphId());
-    }
-
     // ==================================================================
 
 
@@ -186,9 +167,6 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
 
             // these are the regions/devices that are siblings to this region
             sendMessage(PEER_REGIONS, mkPeersMessage(currentLayout));
-
-            // these are the registered overlays
-            sendMessage(OVERLAYS, mkOverlaysMessage());
         }
     }
 

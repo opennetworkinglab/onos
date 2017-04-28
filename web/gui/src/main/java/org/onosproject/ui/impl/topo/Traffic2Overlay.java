@@ -15,39 +15,32 @@
  *
  */
 
-package org.onosproject.drivermatrix;
+package org.onosproject.ui.impl.topo;
 
 import org.onosproject.ui.UiTopo2Overlay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A test implementation of UiTopo2Overlay.
+ * Traffic overlay for topology 2 view.
  */
-public class TesterTopo2Overlay extends UiTopo2Overlay {
+public class Traffic2Overlay extends UiTopo2Overlay {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // NOTE: this must match the ID defined in dmatrixTopo2v.js
-    private static final String OVERLAY_ID = "dmatrix-test-overlay";
-    private static final String NAME = "Test D-Matrix Overlay";
+    // NOTE: this must match the ID defined in topo2TrafficOverlay.js
+    private static final String OVERLAY_ID = "traffic-2-overlay";
 
     /**
-     * Constructs the overlay.
+     * Creates a traffic overlay instance.
      */
-    public TesterTopo2Overlay() {
-        super(OVERLAY_ID, NAME);
-        log.debug("+++ CREATE +++ TesterTopo2Overlay");
-    }
-
-    @Override
-    public String glyphId() {
-        return "thatsNoMoon";
+    public Traffic2Overlay() {
+        super(OVERLAY_ID);
     }
 
     @Override
     public void highlightingCallback() {
-        // TODO: figure out what API to use to set highlights....
-
+        log.debug("highlightingCallback() invoked");
+        // TODO: implement
     }
 }

@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
-import org.onosproject.ui.UiTopo2OverlayFactory;
 import org.onosproject.ui.UiView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,22 +56,11 @@ public class DriverViewComponent {
                     new DriverViewMessageHandler()
             );
 
-    // ++++ ====================================================== ++++
-    // ++++ Temporary code for testing the topology-2 overlay code ++++
-
-    private final UiTopo2OverlayFactory t2ovFactory =
-            () -> ImmutableList.of(
-                    new TesterTopo2Overlay()
-            );
-
-    // ++++ ====================================================== ++++
-
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
                     .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
-                    .topo2OverlayFactory(t2ovFactory)   // +++ TEMP +++
                     .build();
 
     @Activate
