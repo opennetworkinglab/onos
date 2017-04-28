@@ -57,7 +57,18 @@
                 loc = {};
 
             if (t2bgs.getBackgroundType() === 'geo') {
+
+                var loc = node.get('location'),
+                    type = loc.locType || loc.type;
+
+                node.set({ location: {
+                    type: type.toLowerCase(),
+                    lat: loc.latOrY || loc.lat,
+                    lng: loc.longOrX || loc.lng
+                }});
+
                 setLongLat(node);
+
                 return true;
             } else {
                 loc.gridX = -20;

@@ -84,6 +84,7 @@
                     });
 
                     this.sortMultiLinks();
+                    this.assignPeerLocations();
 
                     this.model.set({ subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this) });
                     this.model.set({ devices: t2ds.createDeviceCollection(this.regionData.devices, this) });
@@ -106,6 +107,16 @@
                 removePort: function (key) {
                     var regex = new RegExp('^[^/]*');
                     return regex.exec(key)[0];
+                },
+                assignPeerLocations: function () {
+                    var _this = this;
+                    _.each(this.regionData.peerLocations, function (location, id) {
+                        _.each(_this.peers, function (peer) {
+                            if (peer.id === id) {
+                                peer.location = location;
+                            }
+                        })
+                    });
                 },
                 sortMultiLinks: function () {
                     var _this = this,
