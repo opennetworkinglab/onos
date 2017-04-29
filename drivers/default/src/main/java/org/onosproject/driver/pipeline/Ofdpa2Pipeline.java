@@ -199,6 +199,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return true;
     }
 
+    /**
+     * Determines whether in-port should be matched on in TMAC table rules.
+     *
+     * @return true if match on in-port should be programmed
+     */
+    protected boolean matchInPortTmacTable() {
+        return true;
+    }
+
     //////////////////////////////////////
     //  Flow Objectives
     //////////////////////////////////////
@@ -624,7 +633,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // for unicast IP packets
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            selector.matchInPort(pnum);
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);
             } else {
@@ -645,7 +656,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             //for MPLS packets
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
-            selector.matchInPort(pnum);
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);
             } else {
@@ -668,7 +681,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
              */
             selector = DefaultTrafficSelector.builder();
             treatment = DefaultTrafficTreatment.builder();
-            selector.matchInPort(pnum);
+            if (matchInPortTmacTable()) {
+                selector.matchInPort(pnum);
+            }
             if (requireVlanExtensions()) {
                 selector.extension(ofdpaMatchVlanVid, deviceId);
             } else {

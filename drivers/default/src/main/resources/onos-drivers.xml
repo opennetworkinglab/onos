@@ -88,8 +88,8 @@
                    impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
     </driver>
 
-    <!--  Driver for OFDPA 3.0 EA0.
-       ~  TODO: version number in 3.0 EA0 is still 2.0. Update to 3.0 when OFDPA releases.
+    <!--  Driver for OFDPA 3.0 EA*.
+       ~  TODO: version number from switch is still 2.0. Update when 3.0 is GA.
       -->
     <driver name="ofdpa3" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA 2.0" swVersion="OF-DPA 2.0">
@@ -103,6 +103,15 @@
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.Ofdpa3ExtensionSelectorInterpreter" />
+    </driver>
+
+    <!--  Driver for OFDPA 3.0 EA* for Qumran based switches.
+       ~  Note: driver needs to be configured using onos-netcfg.
+      -->
+    <driver name="qmx-ofdpa3" extends="ofdpa3"
+            manufacturer="Broadcom Corp." hwVersion="Qmx" swVersion="Qmx">
+            <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.Ofdpa3QmxPipeline"/>
     </driver>
 
     <driver name="znyx-ofdpa" extends="default"
