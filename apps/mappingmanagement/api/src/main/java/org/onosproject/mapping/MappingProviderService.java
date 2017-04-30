@@ -33,6 +33,7 @@ public interface MappingProviderService extends ProviderService<MappingProvider>
 
     /**
      * Signals that a new mapping query has been issued.
+     * If no mapping is found, simply returns null.
      *
      * @param mappingKey a mapping key that is used for query a mapping value
      * @return a mapping value associated with a given mapping key
