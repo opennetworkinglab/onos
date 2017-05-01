@@ -17,6 +17,8 @@ package org.onosproject.mapping;
 
 import org.onosproject.net.provider.ProviderService;
 
+import java.util.List;
+
 /**
  * Service through which mapping providers can inject mapping information into
  * the core.
@@ -39,4 +41,13 @@ public interface MappingProviderService extends ProviderService<MappingProvider>
      * @return a mapping value associated with a given mapping key
      */
     MappingValue mappingQueried(MappingKey mappingKey);
+
+    /**
+     * Signals that a new batch mapping query has been issued.
+     * If no mapping is found, simply returns empty list.
+     *
+     * @param mappingKeys a collection of mapping keys
+     * @return a collection of mapping values associated with give mapping keys
+     */
+    List<MappingValue> mappingQueried(List<MappingKey> mappingKeys);
 }

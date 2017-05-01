@@ -152,7 +152,9 @@ public class LispMappingProvider extends AbstractProvider implements MappingProv
                     List<MappingKey> keys = Lists.newArrayList();
                     records.forEach(r -> keys.add(new MappingKeyBuilder(deviceService,
                             deviceId, r.getPrefix()).build()));
-                    keys.forEach(key -> providerService.mappingQueried(key));
+                    // TODO: returned mapping values will be converted to
+                    // protocol specifics and wrapped into a mapping record
+                    providerService.mappingQueried(keys);
                     break;
 
                 case LISP_MAP_REGISTER:
