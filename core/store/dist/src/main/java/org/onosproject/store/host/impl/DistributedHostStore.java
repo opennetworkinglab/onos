@@ -266,6 +266,29 @@ public class DistributedHostStore
     }
 
     @Override
+    public void removeLocation(HostId hostId, HostLocation location) {
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                checkState(Objects.equals(hostId.mac(), existingHost.mac()),
+                        "Existing and new MAC addresses differ.");
+                checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
+                        "Existing and new VLANs differ.");
+
+                Set<HostLocation> locations = new HashSet<>(existingHost.locations());
+                locations.remove(location);
+
+                // Remove entire host if we are removing the last location
+                return locations.isEmpty() ? null :
+                        new DefaultHost(existingHost.providerId(),
+                                hostId, existingHost.mac(), existingHost.vlan(),
+                                locations, existingHost.ipAddresses(),
+                                existingHost.configured(), existingHost.annotations());
+            }
+            return null;
+        });
+    }
+
+    @Override
     public int getHostCount() {
         return hosts.size();
     }

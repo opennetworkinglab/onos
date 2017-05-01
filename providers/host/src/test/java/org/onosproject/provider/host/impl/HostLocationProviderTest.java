@@ -256,12 +256,12 @@ public class HostLocationProviderTest {
         Device device = new DefaultDevice(ProviderId.NONE, deviceId(DEV1), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_REMOVED, device));
-        assertEquals("incorrect remove count", 2, providerService.removeCount);
+        assertEquals("incorrect remove count", 2, providerService.locationRemoveCount);
 
         device = new DefaultDevice(ProviderId.NONE, deviceId(DEV4), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_REMOVED, device));
-        assertEquals("incorrect remove count", 3, providerService.removeCount);
+        assertEquals("incorrect remove count", 3, providerService.locationRemoveCount);
     }
 
     @Test
@@ -273,12 +273,12 @@ public class HostLocationProviderTest {
         Device device = new DefaultDevice(ProviderId.NONE, deviceId(DEV1), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device));
-        assertEquals("incorrect remove count", 2, providerService.removeCount);
+        assertEquals("incorrect remove count", 2, providerService.locationRemoveCount);
 
         device = new DefaultDevice(ProviderId.NONE, deviceId(DEV4), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device));
-        assertEquals("incorrect remove count", 3, providerService.removeCount);
+        assertEquals("incorrect remove count", 3, providerService.locationRemoveCount);
     }
 
     @Test
@@ -291,13 +291,13 @@ public class HostLocationProviderTest {
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(PORT_UPDATED, device,
                 new DefaultPort(device, portNumber(INPORT), false)));
-        assertEquals("incorrect remove count", 1, providerService.removeCount);
+        assertEquals("incorrect remove count", 1, providerService.locationRemoveCount);
 
         device = new DefaultDevice(ProviderId.NONE, deviceId(DEV4), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
         deviceService.listener.event(new DeviceEvent(PORT_UPDATED, device,
                 new DefaultPort(device, portNumber(INPORT), false)));
-        assertEquals("incorrect remove count", 2, providerService.removeCount);
+        assertEquals("incorrect remove count", 2, providerService.locationRemoveCount);
     }
 
     /**
@@ -483,11 +483,15 @@ public class HostLocationProviderTest {
             implements HostProviderService {
 
         List<HostDescription> descriptions = Lists.newArrayList();
-        int removeCount;
+        int hostRemoveCount;
+        int ipRemoveCount;
+        int locationRemoveCount;
 
         public void clear() {
             descriptions.clear();
-            removeCount = 0;
+            hostRemoveCount = 0;
+            ipRemoveCount = 0;
+            locationRemoveCount = 0;
         }
 
         protected TestHostProviderService(HostProvider provider) {
@@ -501,11 +505,17 @@ public class HostLocationProviderTest {
 
         @Override
         public void hostVanished(HostId hostId) {
-            removeCount++;
+            hostRemoveCount++;
         }
 
         @Override
         public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+            ipRemoveCount++;
+        }
+
+        @Override
+        public void removeLocationFromHost(HostId hostId, HostLocation location) {
+            locationRemoveCount++;
         }
 
     }

@@ -34,6 +34,7 @@ import org.onosproject.dhcp.DhcpStore;
 import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -357,6 +358,10 @@ public class DhcpManagerTest {
 
         }
 
+        @Override
+        public void removeLocationFromHost(HostId hostId, HostLocation location) {
+
+        }
     }
 
     /**

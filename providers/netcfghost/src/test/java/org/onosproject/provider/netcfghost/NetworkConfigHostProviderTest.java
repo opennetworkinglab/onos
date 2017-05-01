@@ -121,7 +121,12 @@ public class NetworkConfigHostProviderTest {
 
         @Override
         public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
-            // Note: This method is never used.
+
+        }
+
+        @Override
+        public void removeLocationFromHost(HostId hostId, HostLocation location) {
+
         }
 
         public void clear() {

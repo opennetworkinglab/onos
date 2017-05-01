@@ -46,6 +46,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -77,7 +78,6 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Dictionary;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -365,9 +365,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         packetService.emit(outboundPacket);
     }
 
-    /*
-     * This method is using source ip as 0.0.0.0 , to receive the reply even from the sub net hosts.
-     */
+    // This method is using source ip as 0.0.0.0 , to receive the reply even from the sub net hosts.
     private Ethernet buildArpRequest(IpAddress targetIp, Host host) {
 
         ARP arp = new ARP();
@@ -393,36 +391,19 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     private class InternalHostProvider implements PacketProcessor {
         /**
-         * Updates host location only.
+         * Create or update host information.
+         * Will not update IP if IP is null, all zero or self-assigned.
          *
          * @param hid  host ID
          * @param mac  source Mac address
          * @param vlan VLAN ID
          * @param hloc host location
+         * @param ip   source IP address or null if not updating
          */
-        private void updateLocation(HostId hid, MacAddress mac,
-                                    VlanId vlan, HostLocation hloc) {
-            HostDescription desc = new DefaultHostDescription(mac, vlan, hloc);
-            try {
-                providerService.hostDetected(hid, desc, false);
-            } catch (IllegalStateException e) {
-                log.debug("Host {} suppressed", hid);
-            }
-        }
-
-        /**
-         * Updates host location and IP address.
-         *
-         * @param hid  host ID
-         * @param mac  source Mac address
-         * @param vlan VLAN ID
-         * @param hloc host location
-         * @param ip   source IP address
-         */
-        private void updateLocationIP(HostId hid, MacAddress mac,
-                                      VlanId vlan, HostLocation hloc,
-                                      IpAddress ip) {
-            HostDescription desc = ip.isZero() || ip.isSelfAssigned() ?
+        private void createOrUpdateHost(HostId hid, MacAddress mac,
+                                        VlanId vlan, HostLocation hloc,
+                                        IpAddress ip) {
+            HostDescription desc = ip == null || ip.isZero() || ip.isSelfAssigned() ?
                     new DefaultHostDescription(mac, vlan, hloc) :
                     new DefaultHostDescription(mac, vlan, hloc, ip);
             try {
@@ -433,20 +414,20 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         }
 
         /**
-         * Updates host IP address for an existing host.
+         * Updates IP address for an existing host.
          *
          * @param hid host ID
          * @param ip IP address
          */
-        private void updateIp(HostId hid, IpAddress ip) {
+        private void updateHostIp(HostId hid, IpAddress ip) {
             Host host = hostService.getHost(hid);
             if (host == null) {
                 log.debug("Fail to update IP for {}. Host does not exist");
                 return;
             }
 
-            HostDescription desc =
-                    new DefaultHostDescription(hid.mac(), hid.vlanId(), host.location(), ip);
+            HostDescription desc = new DefaultHostDescription(hid.mac(), hid.vlanId(),
+                    host.location(), ip);
             try {
                 providerService.hostDetected(hid, desc, false);
             } catch (IllegalStateException e) {
@@ -492,7 +473,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 ARP arp = (ARP) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET,
                                                  arp.getSenderProtocolAddress());
-                updateLocationIP(hid, srcMac, vlan, hloc, ip);
+                createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
 
             // IPv4: update location only
             // DHCP ACK: additionally update IP of DHCP client
@@ -512,12 +493,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                 MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
                                 VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
                                 HostId hostId = HostId.hostId(hostMac, hostVlan);
-                                updateIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
+                                updateHostIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
                             }
                         }
                     }
                 }
-                updateLocation(hid, srcMac, vlan, hloc);
+                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
 
             //
             // NeighborAdvertisement and NeighborSolicitation: possible
@@ -552,7 +533,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                             return;
                         }
                         // NeighborSolicitation, NeighborAdvertisement
-                        updateLocationIP(hid, srcMac, vlan, hloc, ip);
+                        createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
                         return;
                     }
                 }
@@ -563,7 +544,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 }
 
                 // normal IPv6 packets
-                updateLocation(hid, srcMac, vlan, hloc);
+                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
             }
         }
     }
@@ -581,9 +562,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 case DEVICE_ADDED:
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    if (hostRemovalEnabled &&
-                            !deviceService.isAvailable(device.id())) {
-                        removeHosts(hostService.getConnectedHosts(device.id()));
+                    if (hostRemovalEnabled && !deviceService.isAvailable(device.id())) {
+                        processDeviceDown(device.id());
                     }
                     break;
                 case DEVICE_SUSPENDED:
@@ -592,16 +572,14 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     break;
                 case DEVICE_REMOVED:
                     if (hostRemovalEnabled) {
-                        removeHosts(hostService.getConnectedHosts(device.id()));
+                        processDeviceDown(device.id());
                     }
                     break;
                 case PORT_ADDED:
                     break;
                 case PORT_UPDATED:
-                    if (hostRemovalEnabled) {
-                        ConnectPoint point =
-                                new ConnectPoint(device.id(), event.port().number());
-                        removeHosts(hostService.getConnectedHosts(point));
+                    if (hostRemovalEnabled && !event.port().isEnabled()) {
+                        processPortDown(new ConnectPoint(device.id(), event.port().number()));
                     }
                     break;
                 case PORT_REMOVED:
@@ -613,11 +591,28 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         }
     }
 
-    // Signals host vanish for all specified hosts.
-    private void removeHosts(Set<Host> hosts) {
-        for (Host host : hosts) {
-            providerService.hostVanished(host.id());
-        }
+    /**
+     * When a device goes down, update the location of affected hosts.
+     *
+     * @param deviceId the device that goes down
+     */
+    private void processDeviceDown(DeviceId deviceId) {
+        hostService.getConnectedHosts(deviceId).forEach(affectedHost -> affectedHost.locations().stream()
+                .filter(hostLocation -> hostLocation.deviceId().equals(deviceId))
+                .forEach(affectedLocation ->
+                        providerService.removeLocationFromHost(affectedHost.id(), affectedLocation))
+        );
+    }
+
+    /**
+     * When a port goes down, update the location of affected hosts.
+     *
+     * @param connectPoint the port that goes down
+     */
+    private void processPortDown(ConnectPoint connectPoint) {
+        hostService.getConnectedHosts(connectPoint).forEach(affectedHost ->
+                providerService.removeLocationFromHost(affectedHost.id(), new HostLocation(connectPoint, 0L))
+        );
     }
 
 }

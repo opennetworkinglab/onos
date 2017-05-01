@@ -30,16 +30,18 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.edge.EdgePortService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicHostConfig;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
@@ -51,7 +53,6 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -413,8 +414,8 @@ public class HostManager
             checkValidity();
             Host host = store.getHost(hostId);
 
-            // Disallow removing inexistent host or host provided by others
-            if (host == null || !host.providerId().equals(provider().id())) {
+            if (!allowedToChange(hostId)) {
+                log.info("Request to remove {} is ignored due to provider mismatch", hostId);
                 return;
             }
 
@@ -430,7 +431,34 @@ public class HostManager
         public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
+
+            if (!allowedToChange(hostId)) {
+                log.info("Request to remove {} from {} is ignored due to provider mismatch",
+                        ipAddress, hostId);
+                return;
+            }
+
             store.removeIp(hostId, ipAddress);
+        }
+
+        @Override
+        public void removeLocationFromHost(HostId hostId, HostLocation location) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+
+            if (!allowedToChange(hostId)) {
+                log.info("Request to remove {} from {} is ignored due to provider mismatch",
+                        location, hostId);
+                return;
+            }
+
+            store.removeLocation(hostId, location);
+        }
+
+        private boolean allowedToChange(HostId hostId) {
+            // Disallow removing inexistent host or host provided by others
+            Host host = store.getHost(hostId);
+            return host != null && host.providerId().equals(provider().id());
         }
     }
 

@@ -17,6 +17,7 @@ package org.onosproject.net.host;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.provider.ProviderService;
 
 /**
@@ -49,4 +50,11 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      */
     void removeIpFromHost(HostId hostId, IpAddress ipAddress);
 
+    /**
+     * Notifies the core when a location is no longer associated with a host.
+     *
+     * @param hostId id of the host
+     * @param location location of host that vanished
+     */
+    void removeLocationFromHost(HostId hostId, HostLocation location);
 }

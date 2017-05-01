@@ -22,6 +22,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
 
@@ -62,6 +63,14 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @return remove event or null if host was not found
      */
     HostEvent removeIp(HostId hostId, IpAddress ipAddress);
+
+    /**
+     * Removes the specified location from the host entry.
+     *
+     * @param hostId host identification
+     * @param location location to be removed
+     */
+    void removeLocation(HostId hostId, HostLocation location);
 
     /**
      * Returns the number of hosts in the store.

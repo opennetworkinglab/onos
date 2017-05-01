@@ -167,7 +167,13 @@ public class SimpleHostStore
 
     @Override
     public HostEvent removeIp(HostId hostId, IpAddress ipAddress) {
+        // TODO implement this
         return null;
+    }
+
+    @Override
+    public void removeLocation(HostId hostId, HostLocation location) {
+        hosts.get(hostId).locations().remove(location);
     }
 
     @Override
