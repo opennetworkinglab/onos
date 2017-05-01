@@ -36,3 +36,4 @@
 \./tools/build/buck-plugin/BUCK
 \./core/store/primitives/resources/impl/AtomixLeaderElectorCommands.java
 \./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixLeaderElectorCommands.java
+\./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixAtomicCounterMapCommands.java
