@@ -26,7 +26,7 @@ public final class OpticalAnnotations {
     private OpticalAnnotations() {}
 
     /**
-     * Annotation key for mininum frequency in Hz.
+     * Annotation key for minimum frequency in Hz.
      * Value is expected to be an integer.
      */
     public static final String MIN_FREQ_HZ = "minFrequency";
@@ -45,19 +45,19 @@ public final class OpticalAnnotations {
 
     /**
      * Annotation key for optical port's target power.
-     * Value is expected to be an integer.
+     * Value is expected to be an integer in 0.01 dBm unit.
      */
     public static final String TARGET_POWER = "targetPower";
 
     /**
      * Annotation key for optical port's current receiving power.
-     * Value is expected to be an integer.
+     * Value is expected to be an integer in 0.01 dBm unit.
      */
     public static final String CURRENT_POWER = "currentPower";
 
     /**
      * Annotation key for bidirectional optical port's transmitting power.
-     * Value is expected to be an integer.
+     * Value is expected to be an integer in 0.01 dBm unit.
      */
     public static final String OUTPUT_POWER = "ouputPower";
 
