@@ -10,12 +10,16 @@ COMPILE_DEPS = [
     '//lib:netty-codec',
     '//lib:netty-handler',
     '//lib:openflowj-3.0',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
     '//core/common:onos-core-common-tests',
+    '//lib:TEST_REST',
+    '//lib:jersey-server',
 ]
 
 EXCLUDED_BUNDLES = [
@@ -25,6 +29,7 @@ EXCLUDED_BUNDLES = [
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    web_context = '/onos/v1/ofagent',
 )
 
 onos_app (
