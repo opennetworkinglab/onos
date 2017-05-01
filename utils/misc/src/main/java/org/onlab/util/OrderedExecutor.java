@@ -19,17 +19,17 @@ import java.util.LinkedList;
 import java.util.concurrent.Executor;
 
 /**
- * Executor that executes tasks in serial on a shared thread pool.
+ * Executor that executes tasks in order on a shared thread pool.
  * <p>
- * The serial executor behaves semantically like a single-threaded executor, but multiplexes tasks on a shared thread
- * pool, ensuring blocked threads in the shared thread pool don't block individual serial executors.
+ * The ordered executor behaves semantically like a single-threaded executor, but multiplexes tasks on a shared thread
+ * pool, ensuring blocked threads in the shared thread pool don't block individual ordered executors.
  */
-public class SerialExecutor implements Executor {
+public class OrderedExecutor implements Executor {
     private final Executor parent;
     private final LinkedList<Runnable> tasks = new LinkedList<>();
     private boolean running;
 
-    public SerialExecutor(Executor parent) {
+    public OrderedExecutor(Executor parent) {
         this.parent = parent;
     }
 

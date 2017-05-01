@@ -23,13 +23,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Serial executor test.
+ * Ordered executor test.
  */
-public class SerialExecutorTest {
+public class OrderedExecutorTest {
 
     @Test
     public void testSerialExecution() throws Throwable {
-        Executor executor = new SerialExecutor(SharedExecutors.getPoolThreadExecutor());
+        Executor executor = new OrderedExecutor(SharedExecutors.getPoolThreadExecutor());
         CountDownLatch latch = new CountDownLatch(2);
         executor.execute(latch::countDown);
         executor.execute(latch::countDown);

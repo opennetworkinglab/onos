@@ -22,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import com.google.common.collect.Multiset;
-import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.Versioned;
 
@@ -33,101 +32,100 @@ import org.onosproject.store.service.Versioned;
 public class ExecutingAsyncConsistentMultimap<K, V>
         extends ExecutingDistributedPrimitive implements AsyncConsistentMultimap<K, V> {
     private final AsyncConsistentMultimap<K, V> delegateMap;
-    private final Executor executor;
 
-    public ExecutingAsyncConsistentMultimap(AsyncConsistentMultimap<K, V> delegateMap, Executor executor) {
-        super(delegateMap, executor);
+    public ExecutingAsyncConsistentMultimap(
+            AsyncConsistentMultimap<K, V> delegateMap, Executor orderedExecutor, Executor threadPoolExecutor) {
+        super(delegateMap, orderedExecutor, threadPoolExecutor);
         this.delegateMap = delegateMap;
-        this.executor = executor;
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return Tools.asyncFuture(delegateMap.size(), executor);
+        return asyncFuture(delegateMap.size());
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return Tools.asyncFuture(delegateMap.isEmpty(), executor);
+        return asyncFuture(delegateMap.isEmpty());
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(K key) {
-        return Tools.asyncFuture(delegateMap.containsKey(key), executor);
+        return asyncFuture(delegateMap.containsKey(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(V value) {
-        return Tools.asyncFuture(delegateMap.containsValue(value), executor);
+        return asyncFuture(delegateMap.containsValue(value));
     }
 
     @Override
     public CompletableFuture<Boolean> containsEntry(K key, V value) {
-        return Tools.asyncFuture(delegateMap.containsEntry(key, value), executor);
+        return asyncFuture(delegateMap.containsEntry(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> put(K key, V value) {
-        return Tools.asyncFuture(delegateMap.put(key, value), executor);
+        return asyncFuture(delegateMap.put(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
-        return Tools.asyncFuture(delegateMap.remove(key, value), executor);
+        return asyncFuture(delegateMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> removeAll(K key, Collection<? extends V> values) {
-        return Tools.asyncFuture(delegateMap.removeAll(key, values), executor);
+        return asyncFuture(delegateMap.removeAll(key, values));
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> removeAll(K key) {
-        return Tools.asyncFuture(delegateMap.removeAll(key), executor);
+        return asyncFuture(delegateMap.removeAll(key));
     }
 
     @Override
     public CompletableFuture<Boolean> putAll(K key, Collection<? extends V> values) {
-        return Tools.asyncFuture(delegateMap.putAll(key, values), executor);
+        return asyncFuture(delegateMap.putAll(key, values));
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> replaceValues(K key, Collection<V> values) {
-        return Tools.asyncFuture(delegateMap.replaceValues(key, values), executor);
+        return asyncFuture(delegateMap.replaceValues(key, values));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return Tools.asyncFuture(delegateMap.clear(), executor);
+        return asyncFuture(delegateMap.clear());
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> get(K key) {
-        return Tools.asyncFuture(delegateMap.get(key), executor);
+        return asyncFuture(delegateMap.get(key));
     }
 
     @Override
     public CompletableFuture<Set<K>> keySet() {
-        return Tools.asyncFuture(delegateMap.keySet(), executor);
+        return asyncFuture(delegateMap.keySet());
     }
 
     @Override
     public CompletableFuture<Multiset<K>> keys() {
-        return Tools.asyncFuture(delegateMap.keys(), executor);
+        return asyncFuture(delegateMap.keys());
     }
 
     @Override
     public CompletableFuture<Multiset<V>> values() {
-        return Tools.asyncFuture(delegateMap.values(), executor);
+        return asyncFuture(delegateMap.values());
     }
 
     @Override
     public CompletableFuture<Collection<Map.Entry<K, V>>> entries() {
-        return Tools.asyncFuture(delegateMap.entries(), executor);
+        return asyncFuture(delegateMap.entries());
     }
 
     @Override
     public CompletableFuture<Map<K, Collection<V>>> asMap() {
-        return Tools.asyncFuture(delegateMap.asMap(), executor);
+        return asyncFuture(delegateMap.asMap());
     }
 }

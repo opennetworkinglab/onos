@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.Task;
 import org.onosproject.store.service.WorkQueue;
@@ -32,44 +31,40 @@ import org.onosproject.store.service.WorkQueueStats;
  */
 public class ExecutingWorkQueue<E> extends ExecutingDistributedPrimitive implements WorkQueue<E> {
     private final WorkQueue<E> delegateQueue;
-    private final Executor executor;
 
-    public ExecutingWorkQueue(WorkQueue<E> delegateQueue, Executor executor) {
-        super(delegateQueue, executor);
+    public ExecutingWorkQueue(WorkQueue<E> delegateQueue, Executor orderedExecutor, Executor threadPoolExecutor) {
+        super(delegateQueue, orderedExecutor, threadPoolExecutor);
         this.delegateQueue = delegateQueue;
-        this.executor = executor;
     }
 
     @Override
     public CompletableFuture<Void> addMultiple(Collection<E> items) {
-        return Tools.asyncFuture(delegateQueue.addMultiple(items), executor);
+        return asyncFuture(delegateQueue.addMultiple(items));
     }
 
     @Override
     public CompletableFuture<Collection<Task<E>>> take(int maxItems) {
-        return Tools.asyncFuture(delegateQueue.take(maxItems), executor);
+        return asyncFuture(delegateQueue.take(maxItems));
     }
 
     @Override
     public CompletableFuture<Void> complete(Collection<String> taskIds) {
-        return Tools.asyncFuture(delegateQueue.complete(taskIds), executor);
+        return asyncFuture(delegateQueue.complete(taskIds));
     }
 
     @Override
     public CompletableFuture<Void> registerTaskProcessor(
             Consumer<E> taskProcessor, int parallelism, Executor executor) {
-        return Tools.asyncFuture(
-                delegateQueue.registerTaskProcessor(taskProcessor, parallelism, executor),
-                this.executor);
+        return asyncFuture(delegateQueue.registerTaskProcessor(taskProcessor, parallelism, executor));
     }
 
     @Override
     public CompletableFuture<Void> stopProcessing() {
-        return Tools.asyncFuture(delegateQueue.stopProcessing(), executor);
+        return asyncFuture(delegateQueue.stopProcessing());
     }
 
     @Override
     public CompletableFuture<WorkQueueStats> stats() {
-        return Tools.asyncFuture(delegateQueue.stats(), executor);
+        return asyncFuture(delegateQueue.stats());
     }
 }

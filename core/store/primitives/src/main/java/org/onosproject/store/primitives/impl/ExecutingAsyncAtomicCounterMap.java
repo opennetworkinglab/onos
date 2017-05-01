@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
 
 /**
@@ -28,86 +27,85 @@ import org.onosproject.store.service.AsyncAtomicCounterMap;
 public class ExecutingAsyncAtomicCounterMap<K>
         extends ExecutingDistributedPrimitive implements AsyncAtomicCounterMap<K> {
     private final AsyncAtomicCounterMap<K> delegateMap;
-    private final Executor executor;
 
-    public ExecutingAsyncAtomicCounterMap(AsyncAtomicCounterMap<K> delegateMap, Executor executor) {
-        super(delegateMap, executor);
+    public ExecutingAsyncAtomicCounterMap(
+            AsyncAtomicCounterMap<K> delegateMap, Executor orderedExecutor, Executor threadPoolExecutor) {
+        super(delegateMap, orderedExecutor, threadPoolExecutor);
         this.delegateMap = delegateMap;
-        this.executor = executor;
     }
 
     @Override
     public CompletableFuture<Long> incrementAndGet(K key) {
-        return Tools.asyncFuture(delegateMap.incrementAndGet(key), executor);
+        return asyncFuture(delegateMap.incrementAndGet(key));
     }
 
     @Override
     public CompletableFuture<Long> decrementAndGet(K key) {
-        return Tools.asyncFuture(delegateMap.decrementAndGet(key), executor);
+        return asyncFuture(delegateMap.decrementAndGet(key));
     }
 
     @Override
     public CompletableFuture<Long> getAndIncrement(K key) {
-        return Tools.asyncFuture(delegateMap.getAndIncrement(key), executor);
+        return asyncFuture(delegateMap.getAndIncrement(key));
     }
 
     @Override
     public CompletableFuture<Long> getAndDecrement(K key) {
-        return Tools.asyncFuture(delegateMap.getAndDecrement(key), executor);
+        return asyncFuture(delegateMap.getAndDecrement(key));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(K key, long delta) {
-        return Tools.asyncFuture(delegateMap.addAndGet(key, delta), executor);
+        return asyncFuture(delegateMap.addAndGet(key, delta));
     }
 
     @Override
     public CompletableFuture<Long> getAndAdd(K key, long delta) {
-        return Tools.asyncFuture(delegateMap.getAndAdd(key, delta), executor);
+        return asyncFuture(delegateMap.getAndAdd(key, delta));
     }
 
     @Override
     public CompletableFuture<Long> get(K key) {
-        return Tools.asyncFuture(delegateMap.get(key), executor);
+        return asyncFuture(delegateMap.get(key));
     }
 
     @Override
     public CompletableFuture<Long> put(K key, long newValue) {
-        return Tools.asyncFuture(delegateMap.put(key, newValue), executor);
+        return asyncFuture(delegateMap.put(key, newValue));
     }
 
     @Override
     public CompletableFuture<Long> putIfAbsent(K key, long newValue) {
-        return Tools.asyncFuture(delegateMap.putIfAbsent(key, newValue), executor);
+        return asyncFuture(delegateMap.putIfAbsent(key, newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long expectedOldValue, long newValue) {
-        return Tools.asyncFuture(delegateMap.replace(key, expectedOldValue, newValue), executor);
+        return asyncFuture(delegateMap.replace(key, expectedOldValue, newValue));
     }
 
     @Override
     public CompletableFuture<Long> remove(K key) {
-        return Tools.asyncFuture(delegateMap.remove(key), executor);
+        return asyncFuture(delegateMap.remove(key));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long value) {
-        return Tools.asyncFuture(delegateMap.remove(key, value), executor);
+        return asyncFuture(delegateMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return Tools.asyncFuture(delegateMap.size(), executor);
+        return asyncFuture(delegateMap.size());
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return Tools.asyncFuture(delegateMap.isEmpty(), executor);
+        return asyncFuture(delegateMap.isEmpty());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return Tools.asyncFuture(delegateMap.clear(), executor);
+        return asyncFuture(delegateMap.clear());
     }
 }

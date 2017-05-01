@@ -18,7 +18,6 @@ package org.onosproject.store.primitives.impl;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncAtomicCounter;
 
 /**
@@ -27,46 +26,45 @@ import org.onosproject.store.service.AsyncAtomicCounter;
  */
 public class ExecutingAsyncAtomicCounter extends ExecutingDistributedPrimitive implements AsyncAtomicCounter {
     private final AsyncAtomicCounter delegateCounter;
-    private final Executor executor;
 
-    public ExecutingAsyncAtomicCounter(AsyncAtomicCounter delegateCounter, Executor executor) {
-        super(delegateCounter, executor);
+    public ExecutingAsyncAtomicCounter(
+            AsyncAtomicCounter delegateCounter, Executor orderedExecutor, Executor threadPoolExecutor) {
+        super(delegateCounter, orderedExecutor, threadPoolExecutor);
         this.delegateCounter = delegateCounter;
-        this.executor = executor;
     }
 
     @Override
     public CompletableFuture<Long> incrementAndGet() {
-        return Tools.asyncFuture(delegateCounter.incrementAndGet(), executor);
+        return asyncFuture(delegateCounter.incrementAndGet());
     }
 
     @Override
     public CompletableFuture<Long> getAndIncrement() {
-        return Tools.asyncFuture(delegateCounter.getAndIncrement(), executor);
+        return asyncFuture(delegateCounter.getAndIncrement());
     }
 
     @Override
     public CompletableFuture<Long> getAndAdd(long delta) {
-        return Tools.asyncFuture(delegateCounter.getAndAdd(delta), executor);
+        return asyncFuture(delegateCounter.getAndAdd(delta));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(long delta) {
-        return Tools.asyncFuture(delegateCounter.addAndGet(delta), executor);
+        return asyncFuture(delegateCounter.addAndGet(delta));
     }
 
     @Override
     public CompletableFuture<Long> get() {
-        return Tools.asyncFuture(delegateCounter.get(), executor);
+        return asyncFuture(delegateCounter.get());
     }
 
     @Override
     public CompletableFuture<Void> set(long value) {
-        return Tools.asyncFuture(delegateCounter.set(value), executor);
+        return asyncFuture(delegateCounter.set(value));
     }
 
     @Override
     public CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue) {
-        return Tools.asyncFuture(delegateCounter.compareAndSet(expectedValue, updateValue), executor);
+        return asyncFuture(delegateCounter.compareAndSet(expectedValue, updateValue));
     }
 }
