@@ -32,24 +32,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class ExecutingDistributedPrimitive
         extends DelegatingDistributedPrimitive {
     private final DistributedPrimitive primitive;
-    private final Executor executor;
+    private final Executor orderedExecutor;
+    private final Executor threadPoolExecutor;
     private final Map<Consumer<Status>, Consumer<Status>> listenerMap = Maps.newConcurrentMap();
 
-    protected ExecutingDistributedPrimitive(DistributedPrimitive primitive, Executor executor) {
+    protected ExecutingDistributedPrimitive(
+            DistributedPrimitive primitive, Executor orderedExecutor, Executor threadPoolExecutor) {
         super(primitive);
         this.primitive = primitive;
-        this.executor = checkNotNull(executor);
+        this.orderedExecutor = checkNotNull(orderedExecutor);
+        this.threadPoolExecutor = checkNotNull(threadPoolExecutor);
+    }
+
+    /**
+     * Creates a future to be completed asynchronously on the provided ordered and thread pool executors.
+     *
+     * @param future the future to be completed asynchronously
+     * @param <T> future result type
+     * @return a new {@link CompletableFuture} to be completed asynchronously using the primitive thread model
+     */
+    protected <T> CompletableFuture<T> asyncFuture(CompletableFuture<T> future) {
+        return Tools.orderedFuture(future, orderedExecutor, threadPoolExecutor);
     }
 
     @Override
     public CompletableFuture<Void> destroy() {
-        return Tools.asyncFuture(primitive.destroy(), executor);
+        return asyncFuture(primitive.destroy());
     }
 
     @Override
     public void addStatusChangeListener(Consumer<DistributedPrimitive.Status> listener) {
         Consumer<DistributedPrimitive.Status> wrappedListener =
-                status -> executor.execute(() -> listener.accept(status));
+                status -> orderedExecutor.execute(() -> listener.accept(status));
         listenerMap.put(listener, wrappedListener);
         primitive.addStatusChangeListener(wrappedListener);
     }

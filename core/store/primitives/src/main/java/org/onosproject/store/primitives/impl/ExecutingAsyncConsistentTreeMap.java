@@ -25,7 +25,6 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
@@ -41,229 +40,228 @@ import org.onosproject.store.service.Versioned;
 public class ExecutingAsyncConsistentTreeMap<V>
         extends ExecutingDistributedPrimitive implements AsyncConsistentTreeMap<V> {
     private final AsyncConsistentTreeMap<V> delegateMap;
-    private final Executor executor;
 
-    public ExecutingAsyncConsistentTreeMap(AsyncConsistentTreeMap<V> delegateMap, Executor executor) {
-        super(delegateMap, executor);
+    public ExecutingAsyncConsistentTreeMap(
+            AsyncConsistentTreeMap<V> delegateMap, Executor orderedExecutor, Executor threadPoolExecutor) {
+        super(delegateMap, orderedExecutor, threadPoolExecutor);
         this.delegateMap = delegateMap;
-        this.executor = executor;
     }
 
     @Override
     public CompletableFuture<String> firstKey() {
-        return Tools.asyncFuture(delegateMap.firstKey(), executor);
+        return asyncFuture(delegateMap.firstKey());
     }
 
     @Override
     public CompletableFuture<String> lastKey() {
-        return Tools.asyncFuture(delegateMap.lastKey(), executor);
+        return asyncFuture(delegateMap.lastKey());
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> ceilingEntry(String key) {
-        return Tools.asyncFuture(delegateMap.ceilingEntry(key), executor);
+        return asyncFuture(delegateMap.ceilingEntry(key));
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> floorEntry(String key) {
-        return Tools.asyncFuture(delegateMap.floorEntry(key), executor);
+        return asyncFuture(delegateMap.floorEntry(key));
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> higherEntry(String key) {
-        return Tools.asyncFuture(delegateMap.higherEntry(key), executor);
+        return asyncFuture(delegateMap.higherEntry(key));
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> lowerEntry(String key) {
-        return Tools.asyncFuture(delegateMap.lowerEntry(key), executor);
+        return asyncFuture(delegateMap.lowerEntry(key));
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> firstEntry() {
-        return Tools.asyncFuture(delegateMap.firstEntry(), executor);
+        return asyncFuture(delegateMap.firstEntry());
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return Tools.asyncFuture(delegateMap.size(), executor);
+        return asyncFuture(delegateMap.size());
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> lastEntry() {
-        return Tools.asyncFuture(delegateMap.lastEntry(), executor);
+        return asyncFuture(delegateMap.lastEntry());
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> pollFirstEntry() {
-        return Tools.asyncFuture(delegateMap.pollFirstEntry(), executor);
+        return asyncFuture(delegateMap.pollFirstEntry());
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(String key) {
-        return Tools.asyncFuture(delegateMap.containsKey(key), executor);
+        return asyncFuture(delegateMap.containsKey(key));
     }
 
     @Override
     public CompletableFuture<Map.Entry<String, Versioned<V>>> pollLastEntry() {
-        return Tools.asyncFuture(delegateMap.pollLastEntry(), executor);
+        return asyncFuture(delegateMap.pollLastEntry());
     }
 
     @Override
     public CompletableFuture<String> lowerKey(String key) {
-        return Tools.asyncFuture(delegateMap.lowerKey(key), executor);
+        return asyncFuture(delegateMap.lowerKey(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(V value) {
-        return Tools.asyncFuture(delegateMap.containsValue(value), executor);
+        return asyncFuture(delegateMap.containsValue(value));
     }
 
     @Override
     public CompletableFuture<String> floorKey(String key) {
-        return Tools.asyncFuture(delegateMap.floorKey(key), executor);
+        return asyncFuture(delegateMap.floorKey(key));
     }
 
     @Override
     public CompletableFuture<String> ceilingKey(String key) {
-        return Tools.asyncFuture(delegateMap.ceilingKey(key), executor);
+        return asyncFuture(delegateMap.ceilingKey(key));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> get(String key) {
-        return Tools.asyncFuture(delegateMap.get(key), executor);
+        return asyncFuture(delegateMap.get(key));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> getOrDefault(String key, V defaultValue) {
-        return Tools.asyncFuture(delegateMap.getOrDefault(key, defaultValue), executor);
+        return asyncFuture(delegateMap.getOrDefault(key, defaultValue));
     }
 
     @Override
     public CompletableFuture<String> higherKey(String key) {
-        return Tools.asyncFuture(delegateMap.higherKey(key), executor);
+        return asyncFuture(delegateMap.higherKey(key));
     }
 
     @Override
     public CompletableFuture<NavigableSet<String>> navigableKeySet() {
-        return Tools.asyncFuture(delegateMap.navigableKeySet(), executor);
+        return asyncFuture(delegateMap.navigableKeySet());
     }
 
     @Override
     public CompletableFuture<NavigableMap<String, V>> subMap(
             String upperKey, String lowerKey, boolean inclusiveUpper, boolean inclusiveLower) {
-        return Tools.asyncFuture(delegateMap.subMap(upperKey, lowerKey, inclusiveUpper, inclusiveLower), executor);
+        return asyncFuture(delegateMap.subMap(upperKey, lowerKey, inclusiveUpper, inclusiveLower));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> computeIf(
             String key, Predicate<? super V> condition,
             BiFunction<? super String, ? super V, ? extends V> remappingFunction) {
-        return Tools.asyncFuture(delegateMap.computeIf(key, condition, remappingFunction), executor);
+        return asyncFuture(delegateMap.computeIf(key, condition, remappingFunction));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(String key, V value) {
-        return Tools.asyncFuture(delegateMap.put(key, value), executor);
+        return asyncFuture(delegateMap.put(key, value));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(String key, V value) {
-        return Tools.asyncFuture(delegateMap.putAndGet(key, value), executor);
+        return asyncFuture(delegateMap.putAndGet(key, value));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(String key) {
-        return Tools.asyncFuture(delegateMap.remove(key), executor);
+        return asyncFuture(delegateMap.remove(key));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return Tools.asyncFuture(delegateMap.clear(), executor);
+        return asyncFuture(delegateMap.clear());
     }
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return Tools.asyncFuture(delegateMap.keySet(), executor);
+        return asyncFuture(delegateMap.keySet());
     }
 
     @Override
     public CompletableFuture<Collection<Versioned<V>>> values() {
-        return Tools.asyncFuture(delegateMap.values(), executor);
+        return asyncFuture(delegateMap.values());
     }
 
     @Override
     public CompletableFuture<Set<Map.Entry<String, Versioned<V>>>> entrySet() {
-        return Tools.asyncFuture(delegateMap.entrySet(), executor);
+        return asyncFuture(delegateMap.entrySet());
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putIfAbsent(String key, V value) {
-        return Tools.asyncFuture(delegateMap.putIfAbsent(key, value), executor);
+        return asyncFuture(delegateMap.putIfAbsent(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, V value) {
-        return Tools.asyncFuture(delegateMap.remove(key, value), executor);
+        return asyncFuture(delegateMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, long version) {
-        return Tools.asyncFuture(delegateMap.remove(key, version), executor);
+        return asyncFuture(delegateMap.remove(key, version));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> replace(String key, V value) {
-        return Tools.asyncFuture(delegateMap.replace(key, value), executor);
+        return asyncFuture(delegateMap.replace(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String key, V oldValue, V newValue) {
-        return Tools.asyncFuture(delegateMap.replace(key, oldValue, newValue), executor);
+        return asyncFuture(delegateMap.replace(key, oldValue, newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String key, long oldVersion, V newValue) {
-        return Tools.asyncFuture(delegateMap.replace(key, oldVersion, newValue), executor);
+        return asyncFuture(delegateMap.replace(key, oldVersion, newValue));
     }
 
     @Override
     public CompletableFuture<Version> begin(TransactionId transactionId) {
-        return Tools.asyncFuture(delegateMap.begin(transactionId), executor);
+        return asyncFuture(delegateMap.begin(transactionId));
     }
 
     @Override
     public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<String, V>> transactionLog) {
-        return Tools.asyncFuture(delegateMap.prepare(transactionLog), executor);
+        return asyncFuture(delegateMap.prepare(transactionLog));
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
-        return Tools.asyncFuture(delegateMap.commit(transactionId), executor);
+        return asyncFuture(delegateMap.commit(transactionId));
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
-        return Tools.asyncFuture(delegateMap.rollback(transactionId), executor);
+        return asyncFuture(delegateMap.rollback(transactionId));
     }
 
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<String, V>> transactionLog) {
-        return Tools.asyncFuture(delegateMap.prepareAndCommit(transactionLog), executor);
+        return asyncFuture(delegateMap.prepareAndCommit(transactionLog));
     }
 
     @Override
     public CompletableFuture<Void> addListener(MapEventListener<String, V> listener) {
-        return addListener(listener, executor);
+        return addListener(listener);
     }
 
     @Override
     public CompletableFuture<Void> addListener(MapEventListener<String, V> listener, Executor executor) {
-        return Tools.asyncFuture(delegateMap.addListener(listener, executor), this.executor);
+        return asyncFuture(delegateMap.addListener(listener, executor));
     }
 
     @Override
     public CompletableFuture<Void> removeListener(MapEventListener<String, V> listener) {
-        return Tools.asyncFuture(delegateMap.removeListener(listener), executor);
+        return asyncFuture(delegateMap.removeListener(listener));
     }
 }
