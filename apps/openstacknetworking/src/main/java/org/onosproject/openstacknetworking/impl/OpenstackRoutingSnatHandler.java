@@ -86,7 +86,7 @@ public class OpenstackRoutingSnatHandler {
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
     private static final int TIME_OUT_SNAT_RULE = 120;
     private static final long TIME_OUT_SNAT_PORT_MS = 120 * 1000;
-    private static final int TP_PORT_MINIMUM_NUM = 1024;
+    private static final int TP_PORT_MINIMUM_NUM = 65000;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
 
     private static final KryoNamespace.Builder NUMBER_SERIALIZER = KryoNamespace.newBuilder()
