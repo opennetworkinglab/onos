@@ -24,6 +24,7 @@ import ch.ethz.ssh2.channel.Channel;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.onosproject.netconf.NetconfSessionFactory;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,6 +105,12 @@ public class NetconfSessionImpl implements NetconfSession {
 
     private static final String SESSION_ID_REGEX = "<session-id>\\s*(.*?)\\s*</session-id>";
     private static final Pattern SESSION_ID_REGEX_PATTERN = Pattern.compile(SESSION_ID_REGEX);
+    private static final String HASH = "#";
+    private static final String LF = "\n";
+    private static final String LESS_THAN = "<";
+    private static final String MSGLEN_REGEX_PATTERN = "\n#\\d+\n";
+    private static final String NETCONF_10_CAPABILITY = "urn:ietf:params:netconf:base:1.0";
+    protected static final String NETCONF_11_CAPABILITY = "urn:ietf:params:netconf:base:1.1";
 
     private String sessionID;
     private final AtomicInteger messageIdInteger = new AtomicInteger(1);
@@ -111,7 +119,7 @@ public class NetconfSessionImpl implements NetconfSession {
     private Session sshSession;
     private boolean connectionActive;
     private Iterable<String> onosCapabilities =
-            Collections.singletonList("urn:ietf:params:netconf:base:1.0");
+            ImmutableList.of(NETCONF_10_CAPABILITY, NETCONF_11_CAPABILITY);
 
     /* NOTE: the "serverHelloResponseOld" is deprecated in 1.10.0 and should eventually be removed */
     @Deprecated
@@ -139,6 +147,18 @@ public class NetconfSessionImpl implements NetconfSession {
         startConnection();
     }
 
+    public NetconfSessionImpl(NetconfDeviceInfo deviceInfo, List<String> capabilities) throws NetconfException {
+        this.deviceInfo = deviceInfo;
+        this.netconfConnection = null;
+        this.sshSession = null;
+        connectionActive = false;
+        replies = new ConcurrentHashMap<>();
+        errorReplies = new ArrayList<>();
+        setOnosCapabilities(capabilities);
+        startConnection();
+
+    }
+
     private void startConnection() throws NetconfException {
         if (!connectionActive) {
             netconfConnection = new Connection(deviceInfo.ip().toString(), deviceInfo.port());
@@ -153,34 +173,34 @@ public class NetconfSessionImpl implements NetconfSession {
             try {
                 if (deviceInfo.getKeyFile() != null && deviceInfo.getKeyFile().canRead()) {
                     log.debug("Authenticating with key file to device {} with username {}",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
+                            deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPublicKey(
                             deviceInfo.name(), deviceInfo.getKeyFile(),
                             deviceInfo.password().equals("") ? null : deviceInfo.password());
                 } else if (deviceInfo.getKey() != null) {
                     log.debug("Authenticating with key to device {} with username {}",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
+                            deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPublicKey(
                             deviceInfo.name(), deviceInfo.getKey(),
                             deviceInfo.password().equals("") ? null : deviceInfo.password());
                 } else {
                     log.debug("Authenticating to device {} with username {} with password",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
+                            deviceInfo.getDeviceId(), deviceInfo.name());
                     isAuthenticated = netconfConnection.authenticateWithPassword(
                             deviceInfo.name(), deviceInfo.password());
                 }
             } catch (IOException e) {
                 log.error("Authentication connection to device {} failed",
-                          deviceInfo.getDeviceId(), e);
+                        deviceInfo.getDeviceId(), e);
                 throw new NetconfException("Authentication connection to device " +
-                                                   deviceInfo.getDeviceId() + " failed", e);
+                        deviceInfo.getDeviceId() + " failed", e);
             }
 
             connectionActive = true;
             Preconditions.checkArgument(isAuthenticated,
-                                        "Authentication to device %s with username " +
-                                                "%s failed",
-                                        deviceInfo.getDeviceId(), deviceInfo.name());
+                    "Authentication to device %s with username " +
+                            "%s failed",
+                    deviceInfo.getDeviceId(), deviceInfo.name());
             startSshSession();
         }
     }
@@ -190,15 +210,15 @@ public class NetconfSessionImpl implements NetconfSession {
             sshSession = netconfConnection.openSession();
             sshSession.startSubSystem("netconf");
             streamHandler = new NetconfStreamThread(sshSession.getStdout(), sshSession.getStdin(),
-                                                    sshSession.getStderr(), deviceInfo,
-                                                    new NetconfSessionDelegateImpl(),
-                                                    replies);
+                    sshSession.getStderr(), deviceInfo,
+                    new NetconfSessionDelegateImpl(),
+                    replies);
             this.addDeviceOutputListener(new FilteringNetconfDeviceOutputEventListener(deviceInfo));
             sendHello();
         } catch (IOException e) {
             log.error("Failed to create ch.ethz.ssh2.Session session {} ", e.getMessage());
             throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
-                                               deviceInfo, e);
+                    deviceInfo, e);
         }
     }
 
@@ -211,18 +231,18 @@ public class NetconfSessionImpl implements NetconfSession {
             openNewSession = true;
 
         } else if (subscriptionConnected &&
-                   notificationFilterSchema != null &&
-                   !Objects.equal(filterSchema, notificationFilterSchema)) {
+                notificationFilterSchema != null &&
+                !Objects.equal(filterSchema, notificationFilterSchema)) {
             // interleave supported and existing filter is NOT "no filtering"
             // and was requested with different filtering schema
             log.info("Cannot use existing session for subscription {} ({})",
-                     deviceInfo, filterSchema);
+                    deviceInfo, filterSchema);
             openNewSession = true;
         }
 
         if (openNewSession) {
             log.info("Creating notification session to {} with filter {}",
-                     deviceInfo, filterSchema);
+                    deviceInfo, filterSchema);
             NetconfSession child = new NotificationSession(deviceInfo);
 
             child.addDeviceOutputListener(new NotificationForwarder());
@@ -236,7 +256,7 @@ public class NetconfSessionImpl implements NetconfSession {
         String reply = sendRequest(createSubscriptionString(filterSchema));
         if (!checkReply(reply)) {
             throw new NetconfException("Subscription not successful with device "
-                                               + deviceInfo + " with reply " + reply);
+                    + deviceInfo + " with reply " + reply);
         }
         subscriptionConnected = true;
     }
@@ -300,7 +320,7 @@ public class NetconfSessionImpl implements NetconfSession {
             sessionID = sessionIDMatcher.group(1);
         } else {
             throw new NetconfException("Missing SessionID in server hello " +
-                                               "reponse.");
+                    "reponse.");
         }
 
     }
@@ -347,11 +367,41 @@ public class NetconfSessionImpl implements NetconfSession {
         }
     }
 
+    /**
+     * Validate and format message according to chunked framing mechanism.
+     *
+     * @param request to format
+     * @return formated message
+     */
+    private static String validateChunkedMessage(String request) {
+        if (request.endsWith(ENDPATTERN)) {
+            request = request.substring(0, request.length() - ENDPATTERN.length());
+        }
+        if (!request.startsWith(LF + HASH)) {
+            request = LF + HASH + request.length() + LF + request + LF + HASH + HASH + LF;
+        }
+        return request;
+    }
+
+    /**
+     * Validate and format netconf message.
+     *
+     * @param request to format
+     * @return formated message
+     */
+    private String validateNetconfMessage(String request) {
+        if (deviceCapabilities.contains(NETCONF_11_CAPABILITY)) {
+            request = validateChunkedMessage(request);
+        } else {
+            if (!request.contains(ENDPATTERN)) {
+                request = request + NEW_LINE + ENDPATTERN;
+            }
+        }
+        return  request;
+    }
+
     @Override
     public String requestSync(String request) throws NetconfException {
-        if (!request.contains(ENDPATTERN)) {
-            request = request + NEW_LINE + ENDPATTERN;
-        }
         String reply = sendRequest(request);
         checkReply(reply);
         return reply;
@@ -368,6 +418,7 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     private String sendRequest(String request) throws NetconfException {
+        request = validateNetconfMessage(request);
         return sendRequest(request, false);
     }
 
@@ -377,8 +428,8 @@ public class NetconfSessionImpl implements NetconfSession {
         if (!isHello) {
             messageId = messageIdInteger.getAndIncrement();
         }
-        request = formatRequestMessageId(request, messageId);
         request = formatXmlHeader(request);
+        request = formatRequestMessageId(request, messageId);
         CompletableFuture<String> futureReply = request(request, messageId);
         int replyTimeout = NetconfControllerImpl.netconfReplyTimeout;
         String rp;
@@ -415,11 +466,30 @@ public class NetconfSessionImpl implements NetconfSession {
         if (request.contains(MESSAGE_ID_STRING)) {
             //FIXME if application provides his own counting of messages this fails that count
             request = request.replaceFirst(MESSAGE_ID_STRING + EQUAL + NUMBER_BETWEEN_QUOTES_MATCHER,
-                                           MESSAGE_ID_STRING + EQUAL + "\"" + messageId + "\"");
+                    MESSAGE_ID_STRING + EQUAL + "\"" + messageId + "\"");
         } else if (!request.contains(MESSAGE_ID_STRING) && !request.contains(HELLO)) {
             //FIXME find out a better way to enforce the presence of message-id
             request = request.replaceFirst(END_OF_RPC_OPEN_TAG, "\" " + MESSAGE_ID_STRING + EQUAL + "\""
                     + messageId + "\"" + ">");
+        }
+        request = updateRequestLength(request);
+        return request;
+    }
+
+    private String updateRequestLength(String request) {
+        if (request.contains(LF + HASH + HASH + LF)) {
+            int oldLen = Integer.parseInt(request.split(HASH)[1].split(LF)[0]);
+            String rpcWithEnding = request.substring(request.indexOf(LESS_THAN));
+            String firstBlock = request.split(MSGLEN_REGEX_PATTERN)[1].split(LF + HASH + HASH + LF)[0];
+            int newLen = 0;
+            try {
+                newLen = firstBlock.getBytes("UTF-8").length;
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            if (oldLen != newLen) {
+                return LF + HASH + newLen + LF + rpcWithEnding;
+            }
         }
         return request;
     }
@@ -427,7 +497,11 @@ public class NetconfSessionImpl implements NetconfSession {
     private String formatXmlHeader(String request) {
         if (!request.contains(XML_HEADER)) {
             //FIXME if application provieds his own XML header of different type there is a clash
-            request = XML_HEADER + "\n" + request;
+            if (request.startsWith(LF + HASH)) {
+                request = request.split("<")[0] + XML_HEADER + request.substring(request.split("<")[0].length());
+            } else {
+                request = XML_HEADER + "\n" + request;
+            }
         }
         return request;
     }
@@ -517,7 +591,9 @@ public class NetconfSessionImpl implements NetconfSession {
 
     @Override
     public boolean editConfig(String newConfiguration) throws NetconfException {
-        newConfiguration = newConfiguration + ENDPATTERN;
+        if (!newConfiguration.endsWith(ENDPATTERN)) {
+            newConfiguration = newConfiguration + ENDPATTERN;
+        }
         return checkReply(sendRequest(newConfiguration));
     }
 
@@ -565,14 +641,14 @@ public class NetconfSessionImpl implements NetconfSession {
                               String newConfiguration)
             throws NetconfException {
         return bareCopyConfig(netconfTargetConfig.asXml(),
-                              normalizeCopyConfigParam(newConfiguration));
+                normalizeCopyConfigParam(newConfiguration));
     }
 
     @Override
     public boolean copyConfig(String netconfTargetConfig,
                               String newConfiguration) throws NetconfException {
         return bareCopyConfig(normalizeCopyConfigParam(netconfTargetConfig),
-                              normalizeCopyConfigParam(newConfiguration));
+                normalizeCopyConfigParam(newConfiguration));
     }
 
     /**
@@ -620,7 +696,7 @@ public class NetconfSessionImpl implements NetconfSession {
     public boolean deleteConfig(DatastoreId netconfTargetConfig) throws NetconfException {
         if (netconfTargetConfig.equals(DatastoreId.RUNNING)) {
             log.warn("Target configuration for delete operation can't be \"running\"",
-                     netconfTargetConfig);
+                    netconfTargetConfig);
             return false;
         }
         StringBuilder rpc = new StringBuilder(XML_HEADER);
@@ -804,11 +880,11 @@ public class NetconfSessionImpl implements NetconfSession {
         public void notify(NetconfDeviceOutputEvent event) {
             Optional<Integer> messageId = event.getMessageID();
             log.debug("messageID {}, waiting replies messageIDs {}", messageId,
-                      replies.keySet());
+                    replies.keySet());
             if (!messageId.isPresent()) {
                 errorReplies.add(event.getMessagePayload());
                 log.error("Device {} sent error reply {}",
-                          event.getDeviceInfo(), event.getMessagePayload());
+                        event.getDeviceInfo(), event.getMessagePayload());
                 return;
             }
             CompletableFuture<String> completedReply =
