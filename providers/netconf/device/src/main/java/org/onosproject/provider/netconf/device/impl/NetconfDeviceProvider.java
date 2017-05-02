@@ -257,7 +257,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Override
     public void triggerProbe(DeviceId deviceId) {
         // TODO: This will be implemented later.
-        log.info("Triggering probe on device {}", deviceId);
+        log.debug("Should be triggering probe on device {}", deviceId);
     }
 
     @Override
@@ -424,8 +424,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                                                      portStatistics);
             }
         } else {
-            log.warn("No port statistics getter behaviour for device {}",
-                     device.id());
+            log.debug("No port statistics getter behaviour for device {}",
+                      device.id());
         }
     }
 

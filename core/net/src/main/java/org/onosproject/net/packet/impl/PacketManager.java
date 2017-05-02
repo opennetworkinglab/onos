@@ -16,6 +16,7 @@
 package org.onosproject.net.packet.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -61,6 +62,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -257,6 +259,11 @@ public class PacketManager
     }
 
     /**
+     * Set of DeviceId scheme which supports packet requests.
+     */
+    private static final Set<String> SUPPORTED = ImmutableSet.of("of");
+
+    /**
      * Pushes a packet request flow rule to all devices.
      *
      * @param request the packet request
@@ -264,7 +271,10 @@ public class PacketManager
     private void pushToAllDevices(PacketRequest request) {
         log.debug("Pushing packet request {} to all devices", request);
         for (Device device : deviceService.getDevices()) {
-            pushRule(device, request);
+            // TODO properly test capability via driver, defining behaviour
+            if (SUPPORTED.contains(device.id().uri().getScheme())) {
+                pushRule(device, request);
+            }
         }
     }
 
