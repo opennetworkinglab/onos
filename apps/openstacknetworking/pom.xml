@@ -111,7 +111,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-openstacknode</artifactId>
+            <artifactId>onos-apps-openstacknode</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
