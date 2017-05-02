@@ -38,9 +38,12 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
+import org.onosproject.net.intent.IntentInstallCoordinator;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentExtensionService;
+import org.onosproject.net.intent.IntentOperationContext;
+import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -87,7 +90,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class IntentManager
         extends AbstractListenerManager<IntentEvent, IntentListener>
-        implements IntentService, IntentExtensionService {
+        implements IntentService, IntentExtensionService, IntentInstallCoordinator {
 
     private static final Logger log = getLogger(IntentManager.class);
 
@@ -141,17 +144,17 @@ public class IntentManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private NetworkConfigService networkConfigService;
 
-
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
 
-    private final IntentInstaller intentInstaller = new IntentInstaller();
     private final CompilerRegistry compilerRegistry = new CompilerRegistry();
+    private final InstallerRegistry installerRegistry = new InstallerRegistry();
     private final InternalIntentProcessor processor = new InternalIntentProcessor();
     private final IntentStoreDelegate delegate = new InternalStoreDelegate();
     private final IntentStoreDelegate testOnlyDelegate = new TestOnlyIntentStoreDelegate();
     private final TopologyChangeDelegate topoDelegate = new InternalTopoChangeDelegate();
     private final IntentBatchDelegate batchDelegate = new InternalBatchDelegate();
+    private InstallCoordinator installCoordinator;
     private IdGenerator idGenerator;
 
     private final IntentAccumulator accumulator = new IntentAccumulator(batchDelegate);
@@ -159,9 +162,6 @@ public class IntentManager
     @Activate
     public void activate() {
         configService.registerProperties(getClass());
-
-        intentInstaller.init(store, trackerService, flowRuleService, flowObjectiveService,
-                             networkConfigService, domainIntentService);
         if (skipReleaseResourcesOnWithdrawal) {
             store.setDelegate(testOnlyDelegate);
         } else {
@@ -174,12 +174,12 @@ public class IntentManager
         idGenerator = coreService.getIdGenerator("intent-ids");
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
+        installCoordinator = new InstallCoordinator(installerRegistry, store);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        intentInstaller.init(null, null, null, null, null, null);
         if (skipReleaseResourcesOnWithdrawal) {
             store.unsetDelegate(testOnlyDelegate);
         } else {
@@ -337,9 +337,40 @@ public class IntentManager
     }
 
     @Override
+    public <T extends Intent> void registerInstaller(Class<T> cls, IntentInstaller<T> installer) {
+        installerRegistry.registerInstaller(cls, installer);
+    }
+
+    @Override
+    public <T extends Intent> void unregisterInstaller(Class<T> cls) {
+        installerRegistry.unregisterInstaller(cls);
+    }
+
+    @Override
+    public Map<Class<? extends Intent>, IntentInstaller<? extends Intent>> getInstallers() {
+        return installerRegistry.getInstallers();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Intent> IntentInstaller<T> getInstaller(Class<T> cls) {
+        return (IntentInstaller<T>) installerRegistry.getInstallers().get(cls);
+    }
+
+    @Override
     public Iterable<Intent> getPending() {
         checkPermission(INTENT_READ);
         return store.getPending();
+    }
+
+    @Override
+    public void intentInstallSuccess(IntentOperationContext context) {
+        installCoordinator.success(context);
+    }
+
+    @Override
+    public void intentInstallFailed(IntentOperationContext context) {
+        installCoordinator.failed(context);
     }
 
     // Store delegate to re-post events emitted from the store.
@@ -536,7 +567,7 @@ public class IntentManager
 
         @Override
         public void apply(Optional<IntentData> toUninstall, Optional<IntentData> toInstall) {
-            intentInstaller.apply(toUninstall, toInstall);
+            installCoordinator.installIntents(toUninstall, toInstall);
         }
     }
 

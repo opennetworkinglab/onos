@@ -33,6 +33,9 @@ import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.impl.TestCoreManager;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.flow.FlowRuleOperations;
+import org.onosproject.net.flow.FlowRuleOperationsContext;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompilationException;
@@ -42,7 +45,10 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentEvent.Type;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.intent.IntentInstallCoordinator;
+import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
@@ -93,8 +99,11 @@ public class IntentManagerTest {
 
     protected IntentService service;
     protected IntentExtensionService extensionService;
+    protected IntentInstallCoordinator intentInstallCoordinator;
     protected TestListener listener = new TestListener();
     protected TestIntentCompiler compiler = new TestIntentCompiler();
+    protected TestIntentInstaller installer;
+    protected TestIntentTracker trackerService = new TestIntentTracker();
 
     private static class TestListener implements IntentListener {
         final Multimap<IntentEvent.Type, IntentEvent> events = HashMultimap.create();
@@ -217,6 +226,56 @@ public class IntentManagerTest {
         }
     }
 
+    public static class TestIntentInstaller implements IntentInstaller<MockInstallableIntent> {
+
+        protected IntentExtensionService intentExtensionService;
+        protected ObjectiveTrackerService trackerService;
+        protected IntentInstallCoordinator intentInstallCoordinator;
+        protected FlowRuleService flowRuleService;
+
+        public TestIntentInstaller(IntentExtensionService intentExtensionService,
+                                   ObjectiveTrackerService trackerService,
+                                   IntentInstallCoordinator intentInstallCoordinator,
+                                   FlowRuleService flowRuleService) {
+            this.intentExtensionService = intentExtensionService;
+            this.trackerService = trackerService;
+            this.intentInstallCoordinator = intentInstallCoordinator;
+            this.flowRuleService = flowRuleService;
+        }
+
+        @Override
+        public void apply(IntentOperationContext<MockInstallableIntent> context) {
+            List<MockInstallableIntent> uninstallIntents = context.intentsToUninstall();
+            List<MockInstallableIntent> installIntents = context.intentsToInstall();
+
+            FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+
+            uninstallIntents.stream()
+                    .map(FlowRuleIntent::flowRules)
+                    .flatMap(Collection::stream)
+                    .forEach(builder::remove);
+
+            installIntents.stream()
+                    .map(FlowRuleIntent::flowRules)
+                    .flatMap(Collection::stream)
+                    .forEach(builder::add);
+
+            FlowRuleOperationsContext ctx = new FlowRuleOperationsContext() {
+                @Override
+                public void onSuccess(FlowRuleOperations ops) {
+                    intentInstallCoordinator.intentInstallSuccess(context);
+                }
+
+                @Override
+                public void onError(FlowRuleOperations ops) {
+                    intentInstallCoordinator.intentInstallFailed(context);
+                }
+            };
+
+            flowRuleService.apply(builder.build(ctx));
+        }
+    }
+
     private static EntryForIntentMatcher hasIntentWithId(IntentId id) {
         return new EntryForIntentMatcher(id);
     }
@@ -227,16 +286,23 @@ public class IntentManagerTest {
         flowRuleService = new MockFlowRuleService();
         manager.store = new SimpleIntentStore();
         injectEventDispatcher(manager, new TestEventDispatcher());
-        manager.trackerService = new TestIntentTracker();
+        manager.trackerService = trackerService;
         manager.flowRuleService = flowRuleService;
         manager.coreService = new TestCoreManager();
         manager.configService = mock(ComponentConfigService.class);
         service = manager;
         extensionService = manager;
+        intentInstallCoordinator = manager;
+
 
         manager.activate();
         service.addListener(listener);
         extensionService.registerCompiler(MockIntent.class, compiler);
+
+        installer = new TestIntentInstaller(extensionService, trackerService,
+                                            intentInstallCoordinator, flowRuleService);
+
+        extensionService.registerInstaller(MockInstallableIntent.class, installer);
 
         assertTrue("store should be empty",
                    Sets.newHashSet(service.getIntents()).isEmpty());
@@ -269,6 +335,7 @@ public class IntentManagerTest {
     @After
     public void tearDown() {
         extensionService.unregisterCompiler(MockIntent.class);
+        extensionService.unregisterInstaller(MockInstallableIntent.class);
         service.removeListener(listener);
         manager.deactivate();
         // TODO null the other refs?
