@@ -64,14 +64,14 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String MIN_FREQ = "minFreq";
     private static final String MAX_FREQ = "maxFreq";
     private static final String GRID = "grid";
-    private static final String INPUT_POWER_RANGE = "inputPowerRange";
+    private static final String POWER_RANGE = "powerRange";
     private static final String CURRENT_POWER = "currentPower";
     private static final String TARGET_POWER = "targetPower";
     private static final String HAS_TARGET_POWER = "hasTargetPower";
     private static final String SERVICE_STATE = "serviceState";
 
     private static final String[] COLUMN_IDS = {
-            ID, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, INPUT_POWER_RANGE,
+            ID, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
             CURRENT_POWER, SERVICE_STATE, TARGET_POWER, HAS_TARGET_POWER
     };
 
@@ -134,7 +134,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .cell(MIN_FREQ, RoadmUtil.asTHz(minFreq))
                     .cell(MAX_FREQ, RoadmUtil.asTHz(maxFreq))
                     .cell(GRID, RoadmUtil.asGHz(channelSpacing))
-                    .cell(INPUT_POWER_RANGE, getInputPowerRange(deviceId, portNum))
+                    .cell(POWER_RANGE, getPowerRange(deviceId, portNum))
                     .cell(CURRENT_POWER, getCurrentPower(deviceId, portNum))
                     .cell(SERVICE_STATE, getPortServiceState(deviceId, portNum))
                     .cell(TARGET_POWER, getTargetPower(deviceId, portNum))
@@ -163,10 +163,15 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             channelSpacing = minOch.channelSpacing().frequency();
         }
 
-        // Returns the input power range as a string, N/A if the port is not an
-        // input port
-        private String getInputPowerRange(DeviceId deviceId, PortNumber portNumber) {
+        // Returns the power range as a string, N/A if the power range not exists.
+        // The power range would be input power range or target power range determined by port property.
+        // If the port is RX direction then acquire the input power range from driver.
+        // Otherwise there will be a TX direction port, thus acquire the target power range.
+        private String getPowerRange(DeviceId deviceId, PortNumber portNumber) {
             Range<Long> range = roadmService.inputPortPowerRange(deviceId, portNumber);
+            if (range == null) {
+                range = roadmService.targetPortPowerRange(deviceId, portNumber);
+            }
             return RoadmUtil.objectToString(range, RoadmUtil.NA);
         }
 

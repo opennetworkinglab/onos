@@ -30,11 +30,7 @@ public final class RoadmUtil {
     public static final String MESSAGE = "message";
     public static final String NA = "N/A";
     public static final String UNKNOWN = "Unknown";
-    public static final String NONE = "(none)";
     public static final String NO_ROWS_MESSAGE = "No items found";
-
-    public static final long GHZ = 1_000_000_000L;
-    public static final long THZ = 1_000_000_000_000L;
 
     private RoadmUtil() {
     }
@@ -46,7 +42,7 @@ public final class RoadmUtil {
      * @return GHz in string format
      */
     public static String asGHz(Frequency value) {
-        return value == null ? UNKNOWN : String.valueOf((double) value.asHz() / GHZ);
+        return value == null ? UNKNOWN : String.valueOf(value.asGHz());
     }
 
     /**
@@ -56,7 +52,7 @@ public final class RoadmUtil {
      * @return THz in string format
      */
     public static String asTHz(Frequency value) {
-        return value == null ? UNKNOWN : String.valueOf((double) value.asHz() / THZ);
+        return value == null ? UNKNOWN : String.valueOf(value.asTHz());
     }
 
     /**

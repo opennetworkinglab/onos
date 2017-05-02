@@ -37,7 +37,7 @@
                     <td colId="minFreq" sortable>Min Freq <span class="units">(THz)</span> </td>
                     <td colId="maxFreq" sortable>Max Freq <span class="units">(THz)</span> </td>
                     <td colId="grid" sortable>Grid <span class="units">(GHz)</span> </td>
-                    <td colId="portMac" sortable>Input Power Range </td>
+                    <td colId="powerRange" sortable>Power Range </td>
                     <td colId="currentPower">Current Power <span class="units">(0.01dBm)</span> </td>
                     <td colId="serviceState" ng-show="showServiceState">Protection Status </td>
                     <td colId="targetPower" col-width="200px" ng-show="showTargetPower">Target Power <span class="units">(0.01dBm)</span> </td>
@@ -62,7 +62,7 @@
                     <td>{{item.minFreq}}</td>
                     <td>{{item.maxFreq}}</td>
                     <td>{{item.grid}}</td>
-                    <td>{{item.inputPowerRange}}</td>
+                    <td>{{item.powerRange}}</td>
                     <td>{{item.currentPower}}</td>
                     <td ng-show="showServiceState">{{item.serviceState}}</td>
                     <td ng-show="showTargetPower" class="editable" roadm-power="item" roadm-set-power="setPortPower(port, targetVal, cb)"></td>
