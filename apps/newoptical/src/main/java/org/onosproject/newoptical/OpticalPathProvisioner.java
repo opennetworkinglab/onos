@@ -243,6 +243,7 @@ public class OpticalPathProvisioner
             .collect(GuavaCollectors.toImmutableList());
     }
 
+    @Override
     public Set<Key> listIntents(OpticalConnectivityId id) {
         return linkPathMap.entrySet().stream()
             .filter(ent -> id.equals(ent.getValue().value().id()))
@@ -724,15 +725,15 @@ public class OpticalPathProvisioner
         public void event(IntentEvent event) {
             switch (event.type()) {
                 case INSTALLED:
-                    log.info("Intent {} installed.", event.subject());
+                    log.debug("Intent {} installed.", event.subject());
                     updateCrossConnectLink(event.subject());
                     break;
                 case WITHDRAWN:
-                    log.info("Intent {} withdrawn.", event.subject());
+                    log.debug("Intent {} withdrawn.", event.subject());
                     removeCrossConnectLinks(event.subject());
                     break;
                 case FAILED:
-                    log.info("Intent {} failed.", event.subject());
+                    log.debug("Intent {} failed.", event.subject());
                     // TODO If it was one of it's own optical Intent,
                     // update link state
                     // TODO If it was packet P2P Intent, call setupConnectivity
