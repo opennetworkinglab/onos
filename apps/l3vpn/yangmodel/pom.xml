@@ -30,4 +30,63 @@
     <packaging>bundle</packaging>
 
     <description>IETF L3VPN YANG models</description>
+
+    <properties>
+        <yang-tool-version>1.12.0-b7</yang-tool-version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-datamodel</artifactId>
+            <version>1.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-yang-model</artifactId>
+            <version>${yang-tool-version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+           <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-yang-compiler-maven-plugin</artifactId>
+                <version>${yang-tool-version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>yang2java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources combine.children="append">
+                                <source>${project.build.directory}/generated-sources/</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+
+    </build>
 </project>

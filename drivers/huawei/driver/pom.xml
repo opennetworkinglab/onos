@@ -18,18 +18,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
     <parent>
         <groupId>org.onosproject</groupId>
@@ -39,7 +27,7 @@
     </parent>
 
     <artifactId>onos-drivers-huawei-driver</artifactId>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
 
     <description>Huawei driver implementation</description>
     <properties>
@@ -74,12 +62,12 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-netconf-api</artifactId>
-            <version>1.10.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-yang</artifactId>
-            <version>1.10.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
