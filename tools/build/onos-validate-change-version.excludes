@@ -10,6 +10,7 @@
 \./bucklets/maven_jar\.bucklet
 \./tools/build/libgen
 \./utils/osgiwrap/
+\./tools/dev/bin/
 \./tools/build/onos-validate-change-version
 \./tools/build/onos-change-version
 \./tools/build/onos-release
