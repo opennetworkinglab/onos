@@ -134,8 +134,14 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         ImmutableList<FlowRule> rulesToAdd = toAdd.build();
         ImmutableList<FlowRule> rulesToRemove = toRemove.build();
 
-        Collection<FlowRule> added = applyFlowRules(batch.deviceId(), rulesToAdd);
-        Collection<FlowRule> removed = removeFlowRules(batch.deviceId(), rulesToRemove);
+        Collection<FlowRule> added = ImmutableList.of();
+        if (!rulesToAdd.isEmpty()) {
+            added = applyFlowRules(batch.deviceId(), rulesToAdd);
+        }
+        Collection<FlowRule> removed = ImmutableList.of();
+        if (!rulesToRemove.isEmpty()) {
+            removed = removeFlowRules(batch.deviceId(), rulesToRemove);
+        }
 
         Set<FlowRule> failedRules = Sets.union(Sets.difference(copyOf(rulesToAdd), copyOf(added)),
                                                Sets.difference(copyOf(rulesToRemove), copyOf(removed)));
