@@ -54,6 +54,7 @@ import org.onosproject.mapping.codec.MappingKeyCodec;
 import org.onosproject.mapping.codec.MappingTreatmentCodec;
 import org.onosproject.mapping.codec.MappingValueCodec;
 import org.onosproject.mapping.instructions.MappingInstruction;
+import org.onosproject.mapping.web.api.MappingsWebApplication;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;

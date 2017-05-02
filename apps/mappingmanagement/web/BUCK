@@ -17,5 +17,5 @@ osgi_jar_with_tests (
     api_title = 'Mapping Management App API',
     api_version = '1.0',
     api_description = 'REST API for ONOS Mapping Management App',
-    api_package = 'org.onosproject.mapping.web',
+    api_package = 'org.onosproject.mapping.web.api',
 )

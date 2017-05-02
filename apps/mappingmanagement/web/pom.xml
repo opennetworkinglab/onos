@@ -35,7 +35,7 @@
         <api.description>
             APIs for interacting with the LISP Mapping Management application.
         </api.description>
-        <api.package>org.onosproject.mapping.web</api.package>
+        <api.package>org.onosproject.mapping.web.api</api.package>
     </properties>
 
     <dependencies>

@@ -13,18 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mapping.web;
 
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
-
-/**
- * Mapping management REST APIs web application.
+/*
+ ONOS GUI -- Mapping Management View Module
  */
-public class MappingsWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(MappingsWebResource.class);
-    }
-}
+(function () {
+    'use strict';
+
+    // injected references
+    var $log, $scope, $location;
+
+    angular.module('ovMapping', [])
+        .controller('OvMappingCtrl',
+        ['$log', '$scope', '$location',
+
+        function (_$log_, _$scope_, _$location_) {
+            var params;
+            $log = _$log_;
+            $scope = _$scope_;
+            $location = _$location_;
+
+            $log.log('OvMappingCtrl has been created');
+        }]);
+}());
