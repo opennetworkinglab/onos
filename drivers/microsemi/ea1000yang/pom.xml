@@ -17,7 +17,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.10.0-SNAPSHOT</onos.version>
+        <onos.version>${project.version}</onos.version>
         <onos.app.name>org.onosproject.drivers.microsemi.yang</onos.app.name>
         <onos.app.title>Microsemi Device Drivers YANG</onos.app.title>
         <onos.app.origin>Microsemi, Inc.</onos.app.origin>

@@ -50,6 +50,7 @@
         <module>flowspec</module>
         <module>microsemi</module>
         <module>oplink</module>
+        <module>huawei</module>
     </modules>
 
     <!--<properties>
