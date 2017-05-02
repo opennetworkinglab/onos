@@ -26,6 +26,9 @@ import org.onosproject.routing.fpm.protocol.FpmHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -38,6 +41,7 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     private final FpmListener fpmListener;
 
     private Channel channel;
+    private FpmPeer us;
 
     /**
      * Class constructor.
@@ -52,7 +56,7 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
         FpmHeader fpmMessage = (FpmHeader) e.getMessage();
-        fpmListener.fpmMessage(fpmMessage);
+        fpmListener.fpmMessage(us, fpmMessage);
     }
 
     @Override
@@ -68,7 +72,15 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     @Override
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        if (!fpmListener.peerConnected(ctx.getChannel().getRemoteAddress())) {
+        SocketAddress socketAddress = ctx.getChannel().getRemoteAddress();
+
+        if (!(socketAddress instanceof InetSocketAddress)) {
+            throw new IllegalStateException("Address type is not InetSocketAddress");
+        }
+
+        us = FpmPeer.fromSocketAddress((InetSocketAddress) socketAddress);
+
+        if (!fpmListener.peerConnected(us)) {
             log.error("Received new FPM connection while already connected");
             ctx.getChannel().close();
             return;
@@ -94,7 +106,9 @@ public class FpmSessionHandler extends SimpleChannelHandler {
     }
 
     private void handleDisconnect() {
-        fpmListener.peerDisconnected(channel.getRemoteAddress());
+        if (us != null) {
+            fpmListener.peerDisconnected(us);
+        }
         channel = null;
     }
 }

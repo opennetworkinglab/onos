@@ -16,13 +16,17 @@
 
 package org.onosproject.routing.fpm;
 
-import java.net.SocketAddress;
 import java.util.Map;
 
 /**
- * Created by jono on 2/2/16.
+ * Provides information about the FPM route receiver module.
  */
 public interface FpmInfoService {
 
-    Map<SocketAddress, Long> peers();
+    /**
+     * Returns the FPM peers that are currently connected.
+     *
+     * @return a map of FPM peer to connection time.
+     */
+    Map<FpmPeer, Long> peers();
 }

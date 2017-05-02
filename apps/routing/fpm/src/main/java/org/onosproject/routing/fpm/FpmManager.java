@@ -16,7 +16,6 @@
 
 package org.onosproject.routing.fpm;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -54,7 +53,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Dictionary;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,9 +82,9 @@ public class FpmManager implements FpmInfoService {
     private Channel serverChannel;
     private ChannelGroup allChannels = new DefaultChannelGroup();
 
-    private Map<SocketAddress, Long> peers = new ConcurrentHashMap<>();
+    private Map<FpmPeer, Long> peers = new ConcurrentHashMap<>();
 
-    private Map<IpPrefix, Route> fpmRoutes = new ConcurrentHashMap<>();
+    private Map<FpmPeer, Map<IpPrefix, Route>> fpmRoutes = new ConcurrentHashMap<>();
 
     @Property(name = "clearRoutes", boolValue = true,
             label = "Whether to clear routes when the FPM connection goes down")
@@ -171,11 +169,11 @@ public class FpmManager implements FpmInfoService {
         }
 
         if (clearRoutes) {
-            clearRoutes();
+            peers.keySet().forEach(this::clearRoutes);
         }
     }
 
-    private void fpmMessage(FpmHeader fpmMessage) {
+    private void fpmMessage(FpmPeer peer, FpmHeader fpmMessage) {
         Netlink netlink = fpmMessage.netlink();
         RtNetlink rtNetlink = netlink.rtNetlink();
 
@@ -221,12 +219,17 @@ public class FpmManager implements FpmInfoService {
             }
             route = new Route(Route.Source.FPM, prefix, gateway);
 
-            fpmRoutes.put(prefix, route);
 
+            Route oldRoute = fpmRoutes.get(peer).put(prefix, route);
+
+            if (oldRoute != null) {
+                log.trace("Swapping {} with {}", oldRoute, route);
+                withdraws.add(oldRoute);
+            }
             updates.add(route);
             break;
         case RTM_DELROUTE:
-            Route existing = fpmRoutes.remove(prefix);
+            Route existing = fpmRoutes.get(peer).remove(prefix);
             if (existing == null) {
                 log.warn("Got delete for non-existent prefix");
                 return;
@@ -246,41 +249,45 @@ public class FpmManager implements FpmInfoService {
     }
 
 
-    private void clearRoutes() {
-        log.info("Clearing all routes");
-        routeService.withdraw(ImmutableList.copyOf(fpmRoutes.values()));
+    private void clearRoutes(FpmPeer peer) {
+        log.info("Clearing all routes for peer {}", peer);
+        Map<IpPrefix, Route> routes = fpmRoutes.remove(peer);
+        if (routes != null) {
+            routeService.withdraw(routes.values());
+        }
     }
 
     @Override
-    public Map<SocketAddress, Long> peers() {
+    public Map<FpmPeer, Long> peers() {
         return ImmutableMap.copyOf(peers);
     }
 
     private class InternalFpmListener implements FpmListener {
         @Override
-        public void fpmMessage(FpmHeader fpmMessage) {
-            FpmManager.this.fpmMessage(fpmMessage);
+        public void fpmMessage(FpmPeer peer, FpmHeader fpmMessage) {
+            FpmManager.this.fpmMessage(peer, fpmMessage);
         }
 
         @Override
-        public boolean peerConnected(SocketAddress address) {
-            if (peers.keySet().contains(address)) {
+        public boolean peerConnected(FpmPeer peer) {
+            if (peers.keySet().contains(peer)) {
                 return false;
             }
 
-            peers.put(address, System.currentTimeMillis());
+            peers.put(peer, System.currentTimeMillis());
+            fpmRoutes.computeIfAbsent(peer, p -> new ConcurrentHashMap<>());
             return true;
         }
 
         @Override
-        public void peerDisconnected(SocketAddress address) {
-            log.info("FPM connection to {} went down", address);
+        public void peerDisconnected(FpmPeer peer) {
+            log.info("FPM connection to {} went down", peer);
 
             if (clearRoutes) {
-                clearRoutes();
+                clearRoutes(peer);
             }
 
-            peers.remove(address);
+            peers.remove(peer);
         }
     }
 

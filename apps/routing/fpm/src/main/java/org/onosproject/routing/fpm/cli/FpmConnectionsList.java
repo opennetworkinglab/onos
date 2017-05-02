@@ -21,8 +21,6 @@ import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routing.fpm.FpmInfoService;
 
-import java.net.InetSocketAddress;
-
 /**
  * Displays the current FPM connections.
  */
@@ -36,14 +34,8 @@ public class FpmConnectionsList extends AbstractShellCommand {
     protected void execute() {
         FpmInfoService fpmInfo = AbstractShellCommand.get(FpmInfoService.class);
 
-        fpmInfo.peers().forEach((socketAddress, timestamp) -> {
-            if (socketAddress instanceof InetSocketAddress) {
-                InetSocketAddress inet = (InetSocketAddress) socketAddress;
-
-                print(FORMAT, inet.getHostString(), inet.getPort(), Tools.timeAgo(timestamp));
-            } else {
-                print("Unknown data format");
-            }
+        fpmInfo.peers().forEach((peer, timestamp) -> {
+            print(FORMAT, peer.address(), peer.port(), Tools.timeAgo(timestamp));
         });
     }
 }
