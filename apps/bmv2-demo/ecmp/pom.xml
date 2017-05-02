@@ -23,7 +23,7 @@
     <parent>
         <artifactId>onos-app-bmv2-demo</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.8.5-SNAPSHOT</version>
+        <version>1.8.5-rc2</version>
     </parent>
 
     <artifactId>onos-app-bmv2-demo-ecmp</artifactId>
