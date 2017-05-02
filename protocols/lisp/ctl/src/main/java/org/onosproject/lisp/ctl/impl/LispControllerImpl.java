@@ -87,6 +87,11 @@ public class LispControllerImpl implements LispController {
                     "default value is 1")
     private int lispAuthKeyId = DEFAULT_LISP_AUTH_KEY_ID;
 
+    @Property(name = "enableSmr", boolValue = false,
+            label = "Enable to send SMR(Solicit Map Request) by map server; " +
+                    "By default SMR is not activated")
+    private boolean enableSmr = false;
+
     ExecutorService executorMessages =
             newFixedThreadPool(4, groupedThreads("onos/lisp", "event-stats-%d", log));
 
@@ -169,6 +174,16 @@ public class LispControllerImpl implements LispController {
             log.info("Configured. LISP authentication method is configured to {}", lispAuthKeyId);
         }
         authConfig.updateLispAuthKeyId(lispAuthKeyId);
+
+        Boolean enableSmr = Tools.isPropertyEnabled(properties, "enableSmr");
+        if (enableSmr == null) {
+            log.info("Enable SMR is not configured, " +
+                    "using current value of {}", this.enableSmr);
+        } else {
+            this.enableSmr = enableSmr;
+            log.info("Configured. Sending SMR through map server is {}",
+                    this.enableSmr ? "enabled" : "disabled");
+        }
     }
 
     @Override

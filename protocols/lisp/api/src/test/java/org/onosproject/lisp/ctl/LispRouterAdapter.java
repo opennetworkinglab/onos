@@ -15,10 +15,14 @@
  */
 package org.onosproject.lisp.ctl;
 
+import com.google.common.collect.ImmutableList;
 import io.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.net.Device;
+
+import java.util.List;
 
 /**
  * Test adapter for the LISP router interface.
@@ -80,6 +84,16 @@ public class LispRouterAdapter implements LispRouter {
     @Override
     public void setSubscribed(boolean subscribed) {
         this.subscribed = subscribed;
+    }
+
+    @Override
+    public List<LispEidRecord> getEidRecords() {
+        return ImmutableList.of();
+    }
+
+    @Override
+    public void setEidRecords(List<LispEidRecord> records) {
+
     }
 
     @Override

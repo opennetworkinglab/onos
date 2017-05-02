@@ -120,6 +120,20 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
                 if (msg instanceof LispEncapsulatedControl) {
                     LispMessage innerMsg = extractLispMessage((LispEncapsulatedControl) msg);
                     if (innerMsg instanceof LispMapRequest) {
+
+                        IpAddress xtrAddress = valueOf(innerMsg.getSender().getAddress());
+
+                        router = routerFactory.getRouterInstance(xtrAddress);
+
+                        if (!router.isConnected()) {
+                            router.setChannel(ctx.channel());
+                            router.connectRouter();
+                        }
+
+                        router.setEidRecords(((LispMapRequest) innerMsg).getEids());
+                        router.setSubscribed(true);
+                        router.handleMessage(innerMsg);
+
                         LispMapResolver mapResolver = LispMapResolver.getInstance();
                         List<LispMessage> lispMessages =
                                 mapResolver.processMapRequest(msg);
@@ -136,8 +150,12 @@ public class LispChannelHandler extends ChannelInboundHandlerAdapter {
                     LispMapRegister register = (LispMapRegister) msg;
                     IpAddress xtrAddress = valueOf(register.getSender().getAddress());
                     router = routerFactory.getRouterInstance(xtrAddress);
-                    router.setChannel(ctx.channel());
-                    router.connectRouter();
+
+                    if (!router.isConnected()) {
+                        router.setChannel(ctx.channel());
+                        router.connectRouter();
+                    }
+
                     router.handleMessage(register);
 
                     LispMapServer mapServer = LispMapServer.getInstance();

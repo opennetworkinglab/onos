@@ -17,8 +17,11 @@ package org.onosproject.lisp.ctl;
 
 import io.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
+import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.onosproject.net.Device;
+
+import java.util.List;
 
 /**
  * Represents to provider facing side of a router.
@@ -103,6 +106,20 @@ public interface LispRouter {
      * @param subscribed whether the router is subscribed
      */
     void setSubscribed(boolean subscribed);
+
+    /**
+     * Obtains a collection of EID records that associated with this router.
+     *
+     * @return a collection EID records that associated with this router
+     */
+    List<LispEidRecord> getEidRecords();
+
+    /**
+     * Associates the EID records to this router.
+     *
+     * @param records a collection of EID records
+     */
+    void setEidRecords(List<LispEidRecord> records);
 
     /**
      * Sets the LISP agent to be used. This method can only be invoked once.
