@@ -36,8 +36,28 @@ public interface AlarmService extends ListenerService<AlarmEvent, AlarmListener>
      * @param isAcknowledged new acknowledged state
      * @param assignedUser   new assigned user, null clear
      * @return updated alarm (including any recent device-derived changes)
+     * @deprecated 1.10.0 Kingfisher
      */
+    @Deprecated
     Alarm updateBookkeepingFields(AlarmId id, boolean isAcknowledged, String assignedUser);
+
+    /**
+     * Update book-keeping (ie administrative) fields for the alarm matching the specified identifier.
+     *
+     * @param id             alarm identifier
+     * @param clear          ture if the alarm has to be cleared
+     * @param isAcknowledged new acknowledged state
+     * @param assignedUser   new assigned user, null clear
+     * @return updated alarm (including any recent device-derived changes)
+     */
+    Alarm updateBookkeepingFields(AlarmId id, boolean clear, boolean isAcknowledged, String assignedUser);
+
+    /**
+     * Remove an alarm from ONOS.
+     *
+     * @param id alarm
+     */
+    void remove(AlarmId id);
 
     /**
      * Returns summary of alarms on a given device.

@@ -17,48 +17,64 @@ package org.onosproject.incubator.net.faultmanagement.alarm;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
+import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Alarm identifier suitable as an external key.
  * <p>
  * This class is immutable.</p>
  */
 @Beta
-public final class AlarmId extends Identifier<Long> {
-
-    public static final AlarmId NONE = new AlarmId();
+public final class AlarmId extends Identifier<String> {
 
     /**
      * Instantiates a new Alarm id.
      *
-     * @param id the id
+     * @param id               the device id
+     * @param uniqueIdentifier the unique identifier of the Alarm on that device
      */
-    private AlarmId(long id) {
-        super(id);
-        checkArgument(id != 0L, "id must be non-zero");
-    }
-
-    private AlarmId() {
-        super(0L);
-    }
-
-    /**
-     * Creates an alarm identifier from the specified long representation.
-     *
-     * @param value long value
-     * @return intent identifier
-     */
-    public static AlarmId alarmId(long value) {
-        return new AlarmId(value);
+    private AlarmId(DeviceId id, String uniqueIdentifier) {
+        super(id.toString() + ":" + uniqueIdentifier);
+        checkNotNull(id, "device id must not be null");
+        checkNotNull(uniqueIdentifier, "unique identifier must not be null");
+        checkArgument(!uniqueIdentifier.isEmpty(), "unique identifier must not be empty");
     }
 
     /**
-     * Returns the backing integer index.
+     * Instantiates a new Alarm id, primarly meant for lookup.
      *
-     * @return backing integer index
+     * @param globallyUniqueIdentifier the globally unique identifier of the Alarm,
+     *                                 device Id + local unique identifier on the device
      */
-    public long fingerprint() {
-        return identifier;
+    private AlarmId(String globallyUniqueIdentifier) {
+        super(globallyUniqueIdentifier);
+        checkArgument(!globallyUniqueIdentifier.isEmpty(), "unique identifier must not be empty");
     }
+
+    /**
+     * Creates an alarm identifier from the specified device id and
+     * unique identifier provided representation.
+     *
+     * @param id               device id
+     * @param uniqueIdentifier per device unique identifier of the alarm
+     * @return alarm identifier
+     */
+    public static AlarmId alarmId(DeviceId id, String uniqueIdentifier) {
+        return new AlarmId(id, uniqueIdentifier);
+    }
+
+    /**
+     * Creates an alarm identifier from the specified globally unique identifier.
+     *
+     * @param globallyUniqueIdentifier the globally unique identifier of the Alarm,
+     *                                 device Id + local unique identifier on the device
+     * @return alarm identifier
+     */
+    public static AlarmId alarmId(String globallyUniqueIdentifier) {
+        return new AlarmId(globallyUniqueIdentifier);
+    }
+
 }

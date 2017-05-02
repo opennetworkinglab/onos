@@ -16,14 +16,13 @@
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
 import com.google.common.testing.EqualsTester;
-import static org.hamcrest.Matchers.containsString;
 import org.junit.Test;
+import org.onosproject.net.DeviceId;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
@@ -31,9 +30,16 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
  */
 public class AlarmIdTest {
 
-    private static final long ID_A = 1L;
-    private static final long ID_B = 2L;
-    private static final long ID_Z = 987654321L;
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("foo:bar");
+    private static final String UNIQUE_ID_1 = "unique_id_1";
+    private static final AlarmId ID_A = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+
+    private static final String UNIQUE_ID_2 = "unique_id_2";
+
+    private static final String UNIQUE_ID_3 = "unique_id_3";
+    private static final AlarmId ID_Z = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_3);
+
+    private static final String ID_STRING = "foo:bar:unique_id_3";
 
     /**
      * Tests the immutability of {@link AlarmId}.
@@ -48,8 +54,8 @@ public class AlarmIdTest {
      */
     @Test
     public void testEquality() {
-        final AlarmId id1 = AlarmId.alarmId(ID_A);
-        final AlarmId id2 = AlarmId.alarmId(ID_A);
+        final AlarmId id1 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+        final AlarmId id2 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
 
         assertThat(id1, is(id2));
     }
@@ -59,16 +65,16 @@ public class AlarmIdTest {
      */
     @Test
     public void testNonEquality() {
-        final AlarmId id1 = AlarmId.alarmId(ID_A);
-        final AlarmId id2 = AlarmId.alarmId(ID_B);
+        final AlarmId id1 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+        final AlarmId id2 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_2);
 
         assertThat(id1, is(not(id2)));
     }
 
     @Test
     public void valueOf() {
-        final AlarmId id = AlarmId.alarmId(0xdeadbeefL);
-        assertEquals("incorrect valueOf", id, AlarmId.alarmId(0xdeadbeefL));
+        final AlarmId id = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+        assertEquals("incorrect valueOf", id, ID_A);
     }
 
     /**
@@ -76,9 +82,9 @@ public class AlarmIdTest {
      */
     @Test
     public void testEquals() {
-        final AlarmId id1 = AlarmId.alarmId(11111L);
-        final AlarmId sameAsId1 = AlarmId.alarmId(11111L);
-        final AlarmId id2 = AlarmId.alarmId(22222L);
+        final AlarmId id1 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+        final AlarmId sameAsId1 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+        final AlarmId id2 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_2);
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
@@ -91,18 +97,11 @@ public class AlarmIdTest {
      */
     @Test
     public void testConstruction() {
-        final AlarmId id1 = AlarmId.alarmId(ID_Z);
-        assertEquals(id1.fingerprint(), ID_Z);
+        final AlarmId id1 = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_3);
+        assertEquals(id1.toString(), ID_Z.toString());
 
-        // No default constructor so no need to test it !
-        assertEquals(0L, AlarmId.NONE.fingerprint());
-        try {
-            final AlarmId bad = AlarmId.alarmId(0L);
-            fail("0 is a Reserved value but we created " + bad);
-        } catch (IllegalArgumentException ex) {
-            assertThat(ex.getMessage(),
-                    containsString("id must be non-zero"));
-        }
+        final AlarmId idString = AlarmId.alarmId(ID_STRING);
+        assertEquals(id1, idString);
 
     }
 }

@@ -31,9 +31,14 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmListener;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.Collections;
@@ -46,6 +51,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel.CLEARED;
 import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel.CRITICAL;
+import static org.onosproject.net.NetTestTools.PID;
 
 /**
  * Alarm manager test suite.
@@ -53,17 +59,28 @@ import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.Severity
 public class AlarmManagerTest {
 
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("foo:bar");
-    private static final DefaultAlarm ALARM_A = new DefaultAlarm.Builder(
+    private static final String UNIQUE_ID_1 = "unique_id_1";
+    private static final String UNIQUE_ID_2 = "unique_id_2";
+    private static final AlarmId A_ID = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+    private static final AlarmId B_ID = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_2);
+    private static final DefaultAlarm ALARM_A = new DefaultAlarm.Builder(A_ID,
             DEVICE_ID, "aaa", Alarm.SeverityLevel.CRITICAL, 0).build();
+
+    private static final DefaultAlarm ALARM_A_CLEARED = new DefaultAlarm.Builder(ALARM_A)
+            .clear().build();
 
     private static final DefaultAlarm ALARM_A_WITHSRC = new DefaultAlarm.Builder(
             ALARM_A).forSource(AlarmEntityId.alarmEntityId("port:foo")).build();
 
-    private static final DefaultAlarm ALARM_B = new DefaultAlarm.Builder(
+    private static final DefaultAlarm ALARM_B = new DefaultAlarm.Builder(B_ID,
             DEVICE_ID, "bbb", Alarm.SeverityLevel.CRITICAL, 0).build();
+
 
     private AlarmManager manager;
     private DistributedAlarmStore alarmStore;
+    private AlarmProviderService providerService;
+    private TestProvider provider;
+    protected AlarmProviderRegistry registry;
     protected TestListener listener = new TestListener();
 
     @Rule
@@ -75,15 +92,18 @@ public class AlarmManagerTest {
         TestUtils.setField(alarmStore, "storageService", new TestStorageService());
         alarmStore.activate();
         manager = new AlarmManager();
+        registry = manager;
         manager.addListener(listener);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.store = alarmStore;
         manager.activate();
+        provider = new TestProvider();
+        providerService = registry.register(provider);
     }
 
     @Test
     public void deactivate() throws Exception {
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of(ALARM_B, ALARM_A));
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(ALARM_B, ALARM_A));
         verifyGettingSetsOfAlarms(manager, 2, 2);
         alarmStore.deactivate();
         manager.removeListener(listener);
@@ -110,29 +130,30 @@ public class AlarmManagerTest {
         manager.getAlarm(null);
 
         exception.expect(ItemNotFoundException.class);
-        manager.getAlarm(AlarmId.alarmId(1));
+        manager.getAlarm(AlarmId.alarmId(DEVICE_ID, "unique_3"));
     }
 
     @Test
     public void testAlarmUpdates() throws InterruptedException {
 
         assertTrue("No alarms should be present", manager.getAlarms().isEmpty());
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of());
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of());
         assertTrue("No alarms should be present", manager.getAlarms().isEmpty());
         Map<Alarm.SeverityLevel, Long> zeroAlarms = new CountsMapBuilder().create();
         assertEquals("No alarms count should be present", zeroAlarms, manager.getAlarmCounts());
         assertEquals("No alarms count should be present", zeroAlarms, manager.getAlarmCounts(DEVICE_ID));
 
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of(ALARM_B, ALARM_A));
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(ALARM_B, ALARM_A));
         verifyGettingSetsOfAlarms(manager, 2, 2);
         validateEvents(AlarmEvent.Type.CREATED, AlarmEvent.Type.CREATED);
         Map<Alarm.SeverityLevel, Long> critical2 = new CountsMapBuilder().with(CRITICAL, 2L).create();
         assertEquals("A critical should be present", critical2, manager.getAlarmCounts());
         assertEquals("A critical should be present", critical2, manager.getAlarmCounts(DEVICE_ID));
 
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of(ALARM_A));
+        Alarm updated = manager.updateBookkeepingFields(ALARM_A.id(), true, false, null);
+//        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(ALARM_A));
         verifyGettingSetsOfAlarms(manager, 2, 1);
-        validateEvents(AlarmEvent.Type.CREATED);
+        validateEvents(AlarmEvent.Type.UPDATED);
         Map<Alarm.SeverityLevel, Long> critical1cleared1 =
                 new CountsMapBuilder().with(CRITICAL, 1L).with(CLEARED, 1L).create();
         assertEquals("A critical should be present and cleared", critical1cleared1,
@@ -141,7 +162,7 @@ public class AlarmManagerTest {
                      manager.getAlarmCounts(DEVICE_ID));
 
         // No change map when same alarms sent
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of(ALARM_A));
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(updated));
         verifyGettingSetsOfAlarms(manager, 2, 1);
         validateEvents();
         assertEquals("Map should not be changed for same alarm", critical1cleared1,
@@ -149,18 +170,19 @@ public class AlarmManagerTest {
         assertEquals("Map should not be changed for same alarm", critical1cleared1,
                      manager.getAlarmCounts(DEVICE_ID));
 
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of(ALARM_A, ALARM_A_WITHSRC));
-        verifyGettingSetsOfAlarms(manager, 3, 2);
-        validateEvents(AlarmEvent.Type.CREATED);
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of(updated, ALARM_A_WITHSRC));
+        verifyGettingSetsOfAlarms(manager, 2, 2);
+        validateEvents(AlarmEvent.Type.UPDATED);
         Map<Alarm.SeverityLevel, Long> critical2cleared1 =
-                new CountsMapBuilder().with(CRITICAL, 2L).with(CLEARED, 1L).create();
+                new CountsMapBuilder().with(CRITICAL, 2L).create();
         assertEquals("A critical should be present", critical2cleared1, manager.getAlarmCounts());
         assertEquals("A critical should be present", critical2cleared1, manager.getAlarmCounts(DEVICE_ID));
 
-        manager.updateAlarms(DEVICE_ID, ImmutableSet.of());
-        verifyGettingSetsOfAlarms(manager, 3, 0);
-        validateEvents(AlarmEvent.Type.CREATED, AlarmEvent.Type.CREATED);
-        assertEquals(new CountsMapBuilder().with(CLEARED, 3L).create(), manager.getAlarmCounts(DEVICE_ID));
+        providerService.updateAlarmList(DEVICE_ID, ImmutableSet.of());
+        verifyGettingSetsOfAlarms(manager, 2, 2);
+        validateEvents();
+        assertEquals(new CountsMapBuilder().with(CRITICAL, 2L).create(),
+                     manager.getAlarmCounts(DEVICE_ID));
 
         assertEquals("The counts should be empty for unknown devices", zeroAlarms,
                      manager.getAlarmCounts(DeviceId.NONE));
@@ -206,6 +228,19 @@ public class AlarmManagerTest {
         }
     }
 
+
+    private class TestProvider extends AbstractProvider implements AlarmProvider {
+        private DeviceId deviceReceived;
+        private MastershipRole roleReceived;
+
+        public TestProvider() {
+            super(PID);
+        }
+
+        @Override
+        public void triggerProbe(DeviceId deviceId) {
+        }
+    }
 
     /**
      * Test listener class to receive alarm events.

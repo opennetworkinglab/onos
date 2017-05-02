@@ -33,6 +33,10 @@ public class AlarmEvent extends AbstractEvent<AlarmEvent.Type, Alarm> {
          */
         CREATED,
         /**
+         * Individual alarm updated.
+         */
+        UPDATED,
+        /**
          * Alarm set updated for a given device.
          */
         REMOVED,

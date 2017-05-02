@@ -16,18 +16,17 @@
 package org.onosproject.faultmanagement.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -42,12 +41,12 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
         checkNotNull(alarm, "Alarm cannot be null");
 
         return context.mapper().createObjectNode()
-                .put("id", alarm.id().fingerprint())
+                .put("id", alarm.id().toString())
                 .put("deviceId", alarm.deviceId().toString())
                 .put("description", alarm.description())
                 .put("source",
-                        alarm.source() == null ? null
-                                : alarm.source().toString())
+                     alarm.source() == null ? null
+                             : alarm.source().toString())
                 .put("timeRaised", alarm.timeRaised())
                 .put("timeUpdated", alarm.timeUpdated())
                 .put("timeCleared", alarm.timeCleared())
@@ -66,7 +65,7 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
         }
 
         log.debug("id={}, full json={} ", json.get("id"), json);
-        Long id = json.get("id").asLong();
+        String id = json.get("id").asText();
 
         DeviceId deviceId = DeviceId.deviceId(json.get("deviceId").asText());
         String description = json.get("description").asText();
@@ -86,16 +85,15 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
         String assignedUser
                 = jsonAssignedUser == null || jsonAssignedUser.isNull() ? null : jsonAssignedUser.asText();
 
-        return new DefaultAlarm.Builder(
-                deviceId, description, severity, timeRaised).forSource(AlarmEntityId.NONE).
-                withId(AlarmId.alarmId(id)).
-                withTimeUpdated(timeUpdated).
-                withTimeCleared(timeCleared).
-                withServiceAffecting(serviceAffecting).
-                withAcknowledged(acknowledged).
-                withManuallyClearable(manuallyClearable).
-                withAssignedUser(assignedUser).
-                build();
+        return new DefaultAlarm.Builder(AlarmId.alarmId(deviceId, id),
+                deviceId, description, severity, timeRaised).forSource(AlarmEntityId.NONE)
+                .withTimeUpdated(timeUpdated)
+                .withTimeCleared(timeCleared)
+                .withServiceAffecting(serviceAffecting)
+                .withAcknowledged(acknowledged)
+                .withManuallyClearable(manuallyClearable)
+                .withAssignedUser(assignedUser)
+                .build();
 
     }
 }

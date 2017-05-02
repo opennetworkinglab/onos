@@ -53,11 +53,12 @@ public interface AlarmStore extends Store<AlarmEvent, AlarmStoreDelegate> {
     Collection<Alarm> getAlarms(DeviceId deviceId);
 
     /**
-     * Stores an alarm.
+     * Stores or updates an alarm.
      *
      * @param alarm alarm
      */
-    void setAlarm(Alarm alarm);
+
+    void createOrUpdateAlarm(Alarm alarm);
 
     /**
      * Removes an alarm.

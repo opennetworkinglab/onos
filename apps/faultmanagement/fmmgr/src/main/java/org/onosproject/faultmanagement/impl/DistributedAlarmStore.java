@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -109,13 +110,18 @@ public class DistributedAlarmStore
     public Collection<Alarm> getAlarms(DeviceId deviceId) {
         //FIXME: this is expensive, need refactoring when core maps provide different indexes.
         return ImmutableSet.copyOf(alarmsMap.values().stream()
-                .filter(alarm -> alarm.deviceId().equals(deviceId))
-                .collect(Collectors.toSet()));
+                                           .filter(alarm -> alarm.deviceId().equals(deviceId))
+                                           .collect(Collectors.toSet()));
     }
 
     @Override
-    public void setAlarm(Alarm alarm) {
-        alarms.put(alarm.id(), alarm);
+    public void createOrUpdateAlarm(Alarm alarm) {
+        Alarm existing = alarmsMap.get(alarm.id());
+        if (Objects.equals(existing, alarm)) {
+            log.info("Received identical alarm, no operation needed on {}", alarm.id());
+        } else {
+            alarms.put(alarm.id(), alarm);
+        }
     }
 
     @Override
@@ -136,7 +142,7 @@ public class DistributedAlarmStore
                     alarm = mapEvent.newValue().value();
                     break;
                 case UPDATE:
-                    type = AlarmEvent.Type.CREATED;
+                    type = AlarmEvent.Type.UPDATED;
                     alarm = mapEvent.newValue().value();
                     break;
                 case REMOVE:

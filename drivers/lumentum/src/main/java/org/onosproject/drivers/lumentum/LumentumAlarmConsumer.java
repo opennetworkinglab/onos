@@ -71,7 +71,7 @@ public class LumentumAlarmConsumer extends AbstractHandlerBehaviour implements A
                     alarms.add(new DefaultAlarm.Builder(deviceId, getMessage(alarmId),
                                                         getSeverity(alarmId),
                                                         System.currentTimeMillis())
-                                       .withId(AlarmId.alarmId(alarmId))
+                                       .withId(AlarmId.alarmId(deviceId, String.valueOf(alarmId)))
                                        .build());
                 }));
         return ImmutableList.copyOf(alarms);

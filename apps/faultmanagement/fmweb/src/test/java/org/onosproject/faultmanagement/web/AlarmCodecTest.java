@@ -17,36 +17,37 @@ package org.onosproject.faultmanagement.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.IOException;
-import java.io.InputStream;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-
 import org.junit.Test;
 import org.onosproject.codec.JsonCodec;
-import static org.onosproject.faultmanagement.web.AlarmJsonMatcher.matchesAlarm;
-import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEntityId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.net.DeviceId;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.onosproject.faultmanagement.web.AlarmJsonMatcher.matchesAlarm;
 
 public class AlarmCodecTest {
 
     private final AlarmCodecContext context = new AlarmCodecContext();
-    private static final AlarmId ALARM_ID = AlarmId.alarmId(44);
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("foo:bar");
+    private static final String UNIQUE_ID_1 = "unique_id_1";
+    private static final AlarmId ALARM_ID = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
 
     // Use this to check handling for miminal Alarm
-    private final Alarm alarmMinimumFields = new DefaultAlarm.Builder(
+    private final Alarm alarmMinimumFields = new DefaultAlarm.Builder(ALARM_ID,
             DeviceId.deviceId("of:2222000000000000"), "NE unreachable", Alarm.SeverityLevel.CLEARED, 1
-    ).withId(ALARM_ID).build();
+    ).build();
 
     // Use this to check handling for fully populated Alarm
-    private final Alarm alarmWithSource = new DefaultAlarm.Builder(
+    private final Alarm alarmWithSource = new DefaultAlarm.Builder(ALARM_ID,
             DeviceId.deviceId("of:2222000000000000"), "NE unreachable", Alarm.SeverityLevel.CLEARED, 1
-    ).withId(ALARM_ID).forSource(AlarmEntityId.alarmEntityId("port:1/2/3/4")).withTimeUpdated(2).withTimeCleared(3L).
+    ).forSource(AlarmEntityId.alarmEntityId("port:1/2/3/4")).withTimeUpdated(2).withTimeCleared(3L).
             withServiceAffecting(true).withAcknowledged(true).withManuallyClearable(true).
             withAssignedUser("the assigned user").build();
 
@@ -97,7 +98,8 @@ public class AlarmCodecTest {
     }
 
     private void assertCommon(Alarm alarm) {
-        assertThat(alarm.id(), is(AlarmId.alarmId(10L)));
+        assertThat(alarm.id(), is(AlarmId.alarmId(DeviceId.deviceId("of:123"),
+                                                  String.valueOf(10))));
         assertThat(alarm.description(), is("NE is not reachable"));
         assertThat(alarm.source(), is(AlarmEntityId.NONE));
         assertThat(alarm.timeRaised(), is(999L));
