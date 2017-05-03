@@ -27,7 +27,6 @@ import org.onosproject.store.cluster.messaging.Endpoint;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 
@@ -41,7 +40,6 @@ public class CopycatTransport implements Transport {
     private final PartitionId partitionId;
     private final MessagingService messagingService;
     private static final Map<Address, Endpoint> EP_LOOKUP_CACHE = Maps.newConcurrentMap();
-    private static final Map<Endpoint, Address> ADDRESS_LOOKUP_CACHE = Maps.newConcurrentMap();
 
     static final byte MESSAGE = 0x01;
     static final byte CONNECT = 0x02;
@@ -79,24 +77,6 @@ public class CopycatTransport implements Transport {
         return EP_LOOKUP_CACHE.computeIfAbsent(address, a -> {
             try {
                 return new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
-            } catch (UnknownHostException e) {
-                Throwables.propagate(e);
-                return null;
-            }
-        });
-    }
-
-    /**
-     * Maps {@link Endpoint endpoint} to {@link Address address}.
-     * @param endpoint end point
-     * @return address
-     */
-    static Address toAddress(Endpoint endpoint) {
-        return ADDRESS_LOOKUP_CACHE.computeIfAbsent(endpoint, ep -> {
-            try {
-                InetAddress host = InetAddress.getByAddress(endpoint.host().toOctets());
-                int port = endpoint.port();
-                return new Address(new InetSocketAddress(host, port));
             } catch (UnknownHostException e) {
                 Throwables.propagate(e);
                 return null;
