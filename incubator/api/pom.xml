@@ -43,6 +43,11 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-core</artifactId>
+            <version>1.2.0</version>
+        </dependency>
     </dependencies>
 
 </project>
