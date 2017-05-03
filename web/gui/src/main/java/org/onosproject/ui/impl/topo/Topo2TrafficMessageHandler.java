@@ -23,6 +23,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.impl.TrafficMonitorBase.Mode;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,13 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
     // === Outbound event identifiers
     private static final String HIGHLIGHTS = "topo2Highlights";
 
+    // field values
+    private static final String TRAFFIC_TYPE = "trafficType";
+    private static final String FLOW_STATS_BYTES = "flowStatsBytes";
+    private static final String PORT_STATS_BIT_SEC = "portStatsBitSec";
+    private static final String PORT_STATS_PKT_SEC = "portStatsPktSec";
 
+    // configuration parameters
     private static final long TRAFFIC_PERIOD = 5000;
 
 //    private UiTopoSession topoSession;
@@ -62,6 +69,8 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
 
         services = new ServicesBundle(directory);
 
+        traffic = new Traffic2Monitor(TRAFFIC_PERIOD, services, this);
+
         // get the topo session from the UiWebSocket
 //        topoSession = ((UiWebSocket) connection).topoSession();
 //        t2json = new Topo2Jsonifier(directory, connection.userName());
@@ -79,25 +88,27 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
     // ==================================================================
 
     private final class Topo2AllTraffic extends RequestHandler {
+
         private Topo2AllTraffic() {
             super(REQUEST_ALL_TRAFFIC);
         }
 
         @Override
         public void process(ObjectNode payload) {
-            String mode = string(payload, "trafficType");
-            log.debug("SHOW TRAFFIC: " + mode);
+            String mode = string(payload, TRAFFIC_TYPE);
+            log.debug("SHOW TRAFFIC: {}", mode);
+
             switch (mode) {
-                case "flowStatsBytes":
-                    // TODO: invoke traffic monitor for flow stats / bytes
+                case FLOW_STATS_BYTES:
+                    traffic.monitor(Mode.ALL_FLOW_TRAFFIC_BYTES);
                     break;
 
-                case "portStatsBitSec":
-                    // TODO: invoke traffic monitor for port stats / bps
+                case PORT_STATS_BIT_SEC:
+                    traffic.monitor(Mode.ALL_PORT_TRAFFIC_BIT_PS);
                     break;
 
-                case "portStatsPktSec":
-                    // TODO: invoke traffic monitor for port stats / pps
+                case PORT_STATS_PKT_SEC:
+                    traffic.monitor(Mode.ALL_PORT_TRAFFIC_PKT_PS);
                     break;
 
                 default:
@@ -115,7 +126,7 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             log.debug("CANCEL TRAFFIC");
-            // TODO: tell traffic monitor to quit monitoring traffic
+            traffic.stopMonitoring();
         }
     }
 }

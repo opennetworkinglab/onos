@@ -31,48 +31,56 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     private static final Logger log =
             LoggerFactory.getLogger(Traffic2Monitor.class);
 
+    private final Topo2TrafficMessageHandler msgHandler;
+
     /**
      * Constructs a traffic monitor.
      *
-     * @param trafficPeriod traffic task period in ms
+     * @param trafficPeriod  traffic task period in ms
      * @param servicesBundle bundle of services
+     * @param msgHandler     our message handler
      */
-    public Traffic2Monitor(long trafficPeriod, ServicesBundle servicesBundle) {
+    public Traffic2Monitor(long trafficPeriod, ServicesBundle servicesBundle,
+                           Topo2TrafficMessageHandler msgHandler) {
         super(trafficPeriod, servicesBundle);
+        this.msgHandler = msgHandler;
     }
 
     @Override
     protected void sendAllFlowTraffic() {
+        log.debug("TOPO-2-TRAFFIC: sendAllFlowTraffic");
         // TODO
     }
 
     @Override
     protected void sendAllPortTrafficBits() {
+        log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficBits");
         // TODO
     }
 
     @Override
     protected void sendAllPortTrafficPackets() {
+        log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficPackets");
         // TODO
-    }
-
-    @Override
-    protected void sendDeviceLinkFlows() {
-        // NOTE: currently this monitor holds no state - nothing to do
-    }
-
-    @Override
-    protected void sendSelectedIntentTraffic() {
-        // NOTE: currently this monitor holds no state - nothing to do
     }
 
     @Override
     protected void sendClearHighlights() {
+        log.debug("TOPO-2-TRAFFIC: sendClearHighlights");
         // TODO
+    }
+
+
+    // NOTE: currently this monitor holds no state - nothing to do for these...
+    @Override
+    protected void sendDeviceLinkFlows() {
+    }
+
+    @Override
+    protected void sendSelectedIntentTraffic() {
     }
 
     @Override
     protected void clearSelection() {
-        // NOTE: currently this monitor holds no state - nothing to do
     }
 }
