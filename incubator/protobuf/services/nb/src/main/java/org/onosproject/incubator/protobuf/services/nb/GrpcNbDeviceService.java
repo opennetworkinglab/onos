@@ -28,6 +28,7 @@ import org.onosproject.grpc.net.device.models.PortStatisticsProtoOuterClass.Port
 import org.onosproject.grpc.nb.net.device.DeviceServiceGrpc.DeviceServiceImplBase;
 import org.onosproject.grpc.net.models.PortProtoOuterClass.PortProto;
 import org.onosproject.grpc.net.device.models.DeviceEnumsProto;
+import org.onosproject.protobuf.api.GrpcServiceRegistry;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -47,25 +48,38 @@ import static org.onosproject.grpc.nb.net.device.DeviceServiceNb.*;
 @Component(immediate = true)
 public class GrpcNbDeviceService {
 
+    private static DeviceServiceNbServerInternal instance = null;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GrpcServiceRegistry registry;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     @Activate
     public void activate() {
         //TODO this should contact the registry service and register an instance
-        // of this service.
+        // of this service
+        registry.register(getInnerInstance());
     }
 
     @Deactivate
     public void deactivate() {
+        registry.unregister(getInnerInstance());
     }
 
-    private class DeviceServiceNbServerInternal extends DeviceServiceImplBase {
+    public DeviceServiceNbServerInternal getInnerInstance() {
+        if (instance == null) {
+            instance = new DeviceServiceNbServerInternal();
+        }
+        return instance;
+    }
 
-        public DeviceServiceNbServerInternal() {
+    private final class DeviceServiceNbServerInternal extends DeviceServiceImplBase {
+
+        private DeviceServiceNbServerInternal() {
             super();
         }
-
 
         @Override
         public void getDeviceCount(

@@ -41,6 +41,11 @@
             <artifactId>onos-incubator-protobuf-models</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-protobuf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 
