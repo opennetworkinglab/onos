@@ -40,7 +40,6 @@ import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
-import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
@@ -63,10 +62,7 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
@@ -112,9 +108,6 @@ public class VirtualNetworkManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private final InternalVirtualIntentListener intentListener =
-            new InternalVirtualIntentListener();
-
     private VirtualNetworkStoreDelegate delegate = this::post;
 
     private ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
@@ -147,7 +140,6 @@ public class VirtualNetworkManager
         eventDispatcher.addSink(VirtualEvent.class,
                                 VirtualListenerRegistryManager.getInstance());
         store.setDelegate(delegate);
-        intentService.addListener(intentListener);
         appId = coreService.registerApplication(VIRTUAL_NETWORK_APP_ID_STRING);
         log.info("Started");
     }
@@ -157,7 +149,6 @@ public class VirtualNetworkManager
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(VirtualNetworkEvent.class);
         eventDispatcher.removeSink(VirtualEvent.class);
-        intentService.removeListener(intentListener);
         log.info("Stopped");
     }
 
@@ -517,63 +508,11 @@ public class VirtualNetworkManager
         }
     }
 
-    /**
-     * Internal intent event listener.
-     */
-    private class InternalVirtualIntentListener implements IntentListener {
-
-        @Override
-        public void event(IntentEvent event) {
-
-            // Ignore intent events that are not relevant.
-            if (!isRelevant(event)) {
-                return;
-            }
-
-            VirtualNetworkIntent intent = (VirtualNetworkIntent) event.subject();
-
-            switch (event.type()) {
-                case INSTALL_REQ:
-                    store.addOrUpdateIntent(intent, IntentState.INSTALL_REQ);
-                    break;
-                case INSTALLED:
-                    store.addOrUpdateIntent(intent, IntentState.INSTALLED);
-                    break;
-                case WITHDRAW_REQ:
-                    store.addOrUpdateIntent(intent, IntentState.WITHDRAW_REQ);
-                    break;
-                case WITHDRAWN:
-                    store.addOrUpdateIntent(intent, IntentState.WITHDRAWN);
-                    break;
-                case FAILED:
-                    store.addOrUpdateIntent(intent, IntentState.FAILED);
-                    break;
-                case CORRUPT:
-                    store.addOrUpdateIntent(intent, IntentState.CORRUPT);
-                    break;
-                case PURGED:
-                    store.removeIntent(intent.key());
-                default:
-                    break;
-            }
-        }
-
-        @Override
-        public boolean isRelevant(IntentEvent event) {
-            if (event.subject() instanceof VirtualNetworkIntent) {
-                return true;
-            }
-            return false;
-        }
-    }
-
-
     @Override
     protected VirtualNetworkProviderService
     createProviderService(VirtualNetworkProvider provider) {
         return new InternalVirtualNetworkProviderService(provider);
     }
-
 
     /**
      * Service issued to registered virtual network providers so that they

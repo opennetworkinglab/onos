@@ -19,6 +19,7 @@ package org.onosproject.incubator.net.virtual.impl;
 import com.google.common.collect.Iterators;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkIntentStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
@@ -64,6 +65,7 @@ public class VirtualNetworkIntentManager
 
     protected IntentService intentService;
     protected VirtualNetworkStore store;
+    protected VirtualNetworkIntentStore intentStore;
     protected WorkPartitionService partitionService;
 
     /**
@@ -78,6 +80,7 @@ public class VirtualNetworkIntentManager
         super(virtualNetworkManager, networkId, IntentEvent.class);
 
         this.store = serviceDirectory.get(VirtualNetworkStore.class);
+        this.intentStore = serviceDirectory.get(VirtualNetworkIntentStore.class);
         this.intentService = serviceDirectory.get(IntentService.class);
         this.partitionService = serviceDirectory.get(WorkPartitionService.class);
     }
@@ -117,7 +120,7 @@ public class VirtualNetworkIntentManager
     private boolean validateConnectPoint(ConnectPoint connectPoint) {
         checkNotNull(connectPoint, CP_NULL);
         Port port = getPort(connectPoint.deviceId(), connectPoint.port());
-        return port == null ? false : true;
+        return port != null;
     }
 
     /**
@@ -179,12 +182,12 @@ public class VirtualNetworkIntentManager
     @Override
     public Intent getIntent(Key key) {
         checkNotNull(key, KEY_NULL);
-        return store.getIntent(key);
+        return intentStore.getIntent(networkId, key);
     }
 
     @Override
     public Iterable<Intent> getIntents() {
-        return store.getIntents();
+        return intentStore.getIntents(networkId);
     }
 
     @Override
@@ -194,7 +197,7 @@ public class VirtualNetworkIntentManager
 
     @Override
     public Iterable<IntentData> getIntentData() {
-        return store.getIntentData();
+        return intentStore.getIntentData(networkId, false, 0);
     }
 
     @Override
@@ -205,7 +208,7 @@ public class VirtualNetworkIntentManager
     @Override
     public IntentState getIntentState(Key intentKey) {
         checkNotNull(intentKey, KEY_NULL);
-        return Optional.ofNullable(store.getIntentData(intentKey))
+        return Optional.ofNullable(intentStore.getIntentData(networkId, intentKey))
                 .map(IntentData::state)
                 .orElse(null);
     }

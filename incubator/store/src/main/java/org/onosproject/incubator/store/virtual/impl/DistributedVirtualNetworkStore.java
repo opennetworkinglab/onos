@@ -55,8 +55,6 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -167,10 +165,6 @@ public class DistributedVirtualNetworkStore
     private ConsistentMap<NetworkId, Set<VirtualPort>> networkIdVirtualPortSetConsistentMap;
     private Map<NetworkId, Set<VirtualPort>> networkIdVirtualPortSetMap;
 
-    // Track intent key to intent data
-    private ConsistentMap<Key, IntentData> intentKeyIntentDataConsistentMap;
-    private Map<Key, IntentData> intentKeyIntentDataMap;
-
     // Track intent ID to TunnelIds
     private ConsistentMap<Key, Set<TunnelId>> intentKeyTunnelIdSetConsistentMap;
     private Map<Key, Set<TunnelId>> intentKeyTunnelIdSetMap;
@@ -192,7 +186,6 @@ public class DistributedVirtualNetworkStore
                            .register(DefaultVirtualPort.class)
                            .register(Device.class)
                            .register(TunnelId.class)
-                           .register(IntentData.class)
                            .register(VirtualNetworkIntent.class)
                            .register(WallClockTimestamp.class)
                            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
@@ -277,13 +270,6 @@ public class DistributedVirtualNetworkStore
                 .withRelaxedReadConsistency()
                 .build();
         intentKeyTunnelIdSetMap = intentKeyTunnelIdSetConsistentMap.asJavaMap();
-
-        intentKeyIntentDataConsistentMap = storageService.<Key, IntentData>consistentMapBuilder()
-                .withSerializer(SERIALIZER)
-                .withName("onos-intentKey-intentData")
-                .withRelaxedReadConsistency()
-                .build();
-        intentKeyIntentDataMap = intentKeyIntentDataConsistentMap.asJavaMap();
 
         log.info("Started");
     }
@@ -798,24 +784,6 @@ public class DistributedVirtualNetworkStore
     }
 
     @Override
-    public synchronized void addOrUpdateIntent(Intent intent, IntentState state) {
-        checkNotNull(intent, "Intent cannot be null");
-        IntentData intentData = removeIntent(intent.key());
-        if (intentData == null) {
-            intentData = new IntentData(intent, state, new WallClockTimestamp(System.currentTimeMillis()));
-        } else {
-            intentData = new IntentData(intent, state, intentData.version());
-        }
-        intentKeyIntentDataMap.put(intent.key(), intentData);
-    }
-
-    @Override
-    public IntentData removeIntent(Key intentKey) {
-        checkNotNull(intentKey, "Intent key cannot be null");
-        return intentKeyIntentDataMap.remove(intentKey);
-    }
-
-    @Override
     public void addTunnelId(Intent intent, TunnelId tunnelId) {
         // Add the tunnelId to the intent key set map
         Set<TunnelId> tunnelIdSet = intentKeyTunnelIdSetMap.remove(intent.key());
@@ -850,30 +818,6 @@ public class DistributedVirtualNetworkStore
                 }
             });
         }
-    }
-
-    @Override
-    public Set<Intent> getIntents() {
-        Set<Intent> intents = new HashSet<>();
-        intentKeyIntentDataMap.values().forEach(intentData -> intents.add(intentData.intent()));
-        return ImmutableSet.copyOf(intents);
-    }
-
-    @Override
-    public Intent getIntent(Key key) {
-        IntentData intentData = intentKeyIntentDataMap.get(key);
-        return intentData == null ? null : intentData.intent();
-    }
-
-    @Override
-    public Set<IntentData> getIntentData() {
-        return ImmutableSet.copyOf(intentKeyIntentDataMap.values());
-    }
-
-    @Override
-    public IntentData getIntentData(Key key) {
-        IntentData intentData = intentKeyIntentDataMap.get(key);
-        return intentData ==  null ? null : new IntentData(intentData);
     }
 
     /**
