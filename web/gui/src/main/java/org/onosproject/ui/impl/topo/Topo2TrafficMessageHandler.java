@@ -23,6 +23,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +43,24 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
     // === Outbound event identifiers
     private static final String HIGHLIGHTS = "topo2Highlights";
 
+
+    private static final long TRAFFIC_PERIOD = 5000;
+
 //    private UiTopoSession topoSession;
 //    private Topo2Jsonifier t2json;
+
+    protected ServicesBundle services;
+    private String version;
+
+
+    private Traffic2Monitor traffic;
+
 
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
+
+        services = new ServicesBundle(directory);
 
         // get the topo session from the UiWebSocket
 //        topoSession = ((UiWebSocket) connection).topoSession();

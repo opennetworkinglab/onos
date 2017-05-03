@@ -16,63 +16,83 @@
 
 package org.onosproject.ui.impl.topo.util;
 
+import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.incubator.net.PortStatisticsService;
+import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.mastership.MastershipAdminService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.StatisticService;
+import org.onosproject.net.topology.TopologyService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A bundle of services that the topology view requires to get its job done.
+ * A bundle of services that the topology view(s) require to get the job done.
  */
 public class ServicesBundle {
 
-    private final IntentService intentService;
-    private final DeviceService deviceService;
-    private final HostService hostService;
-    private final LinkService linkService;
-    private final FlowRuleService flowService;
-    private final StatisticService flowStatsService;
-    private final PortStatisticsService portStatsService;
+    private ClusterService clusterService;
+
+    private TopologyService topologyService;
+    private DeviceService deviceService;
+    private HostService hostService;
+    private LinkService linkService;
+    private TunnelService tunnelService;
+
+    private MastershipService mastershipService;
+    private MastershipAdminService mastershipAdminService;
+    private IntentService intentService;
+    private FlowRuleService flowService;
+    private StatisticService flowStatsService;
+    private PortStatisticsService portStatsService;
+
 
     /**
-     * Creates the services bundle.
+     * Creates the services bundle, from the given directly.
      *
-     * @param intentService     intent service reference
-     * @param deviceService     device service reference
-     * @param hostService       host service reference
-     * @param linkService       link service reference
-     * @param flowService       flow service reference
-     * @param flowStatsService  flow statistics service reference
-     * @param portStatsService  port statistics service reference
+     * @param directory service directory
      */
-    public ServicesBundle(IntentService intentService,
-                          DeviceService deviceService,
-                          HostService hostService,
-                          LinkService linkService,
-                          FlowRuleService flowService,
-                          StatisticService flowStatsService,
-                          PortStatisticsService portStatsService) {
-        this.intentService = checkNotNull(intentService);
-        this.deviceService = checkNotNull(deviceService);
-        this.hostService = checkNotNull(hostService);
-        this.linkService = checkNotNull(linkService);
-        this.flowService = checkNotNull(flowService);
-        this.flowStatsService = checkNotNull(flowStatsService);
-        this.portStatsService = checkNotNull(portStatsService);
+    public ServicesBundle(ServiceDirectory directory) {
+        checkNotNull(directory, "Directory cannot be null");
+
+        clusterService = directory.get(ClusterService.class);
+
+        topologyService = directory.get(TopologyService.class);
+        deviceService = directory.get(DeviceService.class);
+        hostService = directory.get(HostService.class);
+        linkService = directory.get(LinkService.class);
+        tunnelService = directory.get(TunnelService.class);
+
+        mastershipService = directory.get(MastershipService.class);
+        mastershipAdminService = directory.get(MastershipAdminService.class);
+        intentService = directory.get(IntentService.class);
+        flowService = directory.get(FlowRuleService.class);
+        flowStatsService = directory.get(StatisticService.class);
+        portStatsService = directory.get(PortStatisticsService.class);
     }
 
     /**
-     * Returns a reference to the intent service.
+     * Returns a reference to the cluster service.
      *
-     * @return intent service reference
+     * @return cluster service reference
      */
-    public IntentService intentService() {
-        return intentService;
+    public ClusterService cluster() {
+        return clusterService;
+    }
+
+    /**
+     * Returns a reference to the topology service.
+     *
+     * @return topology service reference
+     */
+    public TopologyService topology() {
+        return topologyService;
     }
 
     /**
@@ -80,7 +100,7 @@ public class ServicesBundle {
      *
      * @return device service reference
      */
-    public DeviceService deviceService() {
+    public DeviceService device() {
         return deviceService;
     }
 
@@ -89,7 +109,7 @@ public class ServicesBundle {
      *
      * @return host service reference
      */
-    public HostService hostService() {
+    public HostService host() {
         return hostService;
     }
 
@@ -98,8 +118,44 @@ public class ServicesBundle {
      *
      * @return link service reference
      */
-    public LinkService linkService() {
+    public LinkService link() {
         return linkService;
+    }
+
+    /**
+     * Returns a reference to the tunnel service.
+     *
+     * @return tunnel service reference
+     */
+    public TunnelService tunnel() {
+        return tunnelService;
+    }
+
+    /**
+     * Returns a reference to the mastership service.
+     *
+     * @return mastership service reference
+     */
+    public MastershipService mastership() {
+        return mastershipService;
+    }
+
+    /**
+     * Returns a reference to the mastership admin service.
+     *
+     * @return mastership admin service reference
+     */
+    public MastershipAdminService mastershipAdmin() {
+        return mastershipAdminService;
+    }
+
+    /**
+     * Returns a reference to the intent service.
+     *
+     * @return intent service reference
+     */
+    public IntentService intent() {
+        return intentService;
     }
 
     /**
@@ -107,7 +163,7 @@ public class ServicesBundle {
      *
      * @return flow service reference
      */
-    public FlowRuleService flowService() {
+    public FlowRuleService flow() {
         return flowService;
     }
 
@@ -116,7 +172,7 @@ public class ServicesBundle {
      *
      * @return flow statistics service reference
      */
-    public StatisticService flowStatsService() {
+    public StatisticService flowStats() {
         return flowStatsService;
     }
 
@@ -125,7 +181,7 @@ public class ServicesBundle {
      *
      * @return port statistics service reference
      */
-    public PortStatisticsService portStatsService() {
+    public PortStatisticsService portStats() {
         return portStatsService;
     }
 }

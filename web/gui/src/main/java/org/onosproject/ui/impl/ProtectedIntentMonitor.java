@@ -80,10 +80,12 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
 
 
     private static final Mod MOD_PROT_PRIMARY = new Mod(PROT_PRIMARY);
-    private static final Set<Mod> PROTECTED_MOD_PRIMARY_SET = ImmutableSet.of(MOD_PROT_PRIMARY);
+    private static final Set<Mod> PROTECTED_MOD_PRIMARY_SET =
+            ImmutableSet.of(MOD_PROT_PRIMARY);
 
     private static final Mod MOD_PROT_BACKUP = new Mod(PROT_BACKUP);
-    private static final Set<Mod> PROTECTED_MOD_BACKUP_SET = ImmutableSet.of(MOD_PROT_BACKUP);
+    private static final Set<Mod> PROTECTED_MOD_BACKUP_SET =
+            ImmutableSet.of(MOD_PROT_BACKUP);
 
 
     /**
@@ -95,7 +97,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
     }
 
     private final long trafficPeriod;
-    private final ServicesBundle servicesBundle;
+    private final ServicesBundle services;
     private final TopologyViewMessageHandler msgHandler;
 
     private final Timer timer = new Timer("topo-protected-intents");
@@ -108,16 +110,15 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
     /**
      * Constructs a protected intent monitor.
      *
-     * @param trafficPeriod  traffic task period in ms
-     * @param servicesBundle bundle of services
-     * @param msgHandler     our message handler
+     * @param trafficPeriod traffic task period in ms
+     * @param services      bundle of services
+     * @param msgHandler    our message handler
      */
-    public ProtectedIntentMonitor(long trafficPeriod, ServicesBundle servicesBundle,
+    public ProtectedIntentMonitor(long trafficPeriod, ServicesBundle services,
                                   TopologyViewMessageHandler msgHandler) {
         this.trafficPeriod = trafficPeriod;
-        this.servicesBundle = servicesBundle;
+        this.services = services;
         this.msgHandler = msgHandler;
-
     }
 
     // =======================================================================
@@ -200,7 +201,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
     private Highlights protectedIntentHighlights() {
         Highlights highlights = new Highlights();
         TrafficLinkMap linkMap = new TrafficLinkMap();
-        IntentService intentService = servicesBundle.intentService();
+        IntentService intentService = services.intent();
         if (selectedIntent != null) {
             List<Intent> installables = intentService.getInstallableIntents(selectedIntent.key());
 
@@ -224,12 +225,12 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                 Set<Link> backup = new LinkedHashSet<>();
 
                 Map<Boolean, List<FlowRuleIntent>> transits = installables.stream()
-                    .filter(FlowRuleIntent.class::isInstance)
-                    .map(FlowRuleIntent.class::cast)
-                    // only consider fwd links so that ants march in one direction
-                    // TODO: didn't help need further investigation.
-                    //.filter(i -> !i.resources().contains(marker("rev")))
-                    .collect(Collectors.groupingBy(this::isPrimary));
+                        .filter(FlowRuleIntent.class::isInstance)
+                        .map(FlowRuleIntent.class::cast)
+                        // only consider fwd links so that ants march in one direction
+                        // TODO: didn't help need further investigation.
+                        //.filter(i -> !i.resources().contains(marker("rev")))
+                        .collect(Collectors.groupingBy(this::isPrimary));
 
                 // walk primary
                 ConnectPoint primHead = ep1.description().paths().get(0).output().connectPoint();
@@ -284,8 +285,8 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
      */
     private Set<Link> protectedIntentMultiLayer(ConnectPoint head, ConnectPoint tail) {
         List<Link> links = new LinkedList<>();
-        LinkService linkService = servicesBundle.linkService();
-        IntentService intentService = servicesBundle.intentService();
+        LinkService linkService = services.link();
+        IntentService intentService = services.intent();
 
         // Ingress cross connect link
         links.addAll(
@@ -336,9 +337,9 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
     /**
      * Populate Links along the primary/backup path.
      *
-     * @param links link collection to populate [output]
-     * @param head head-end of primary/backup path
-     * @param tail tail-end of primary/backup path
+     * @param links   link collection to populate [output]
+     * @param head    head-end of primary/backup path
+     * @param tail    tail-end of primary/backup path
      * @param transit Intents if any
      */
     private void populateLinks(Set<Link> links,
@@ -359,11 +360,11 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                         .map(pn -> new ConnectPoint(fr.deviceId(), pn))
                         .orElse(null)
                 ).filter(Objects::nonNull)
-                .map(dst -> servicesBundle.linkService().getLink(head, dst))
+                .map(dst -> services.link().getLink(head, dst))
                 .filter(Objects::nonNull)
                 .findFirst()
                 // if there isn't one probably 1 hop to the tail
-                .orElse(servicesBundle.linkService().getLink(head, tail));
+                .orElse(services.link().getLink(head, tail));
 
         // add first link
         if (first != null) {
@@ -387,7 +388,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
                         .map(pn -> new ConnectPoint(fr.deviceId(), pn))
                         .orElse(null)
                 ).filter(Objects::nonNull)
-                .map(src -> servicesBundle.linkService().getLink(src, tail))
+                .map(src -> services.link().getLink(src, tail))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .ifPresent(links::add);
@@ -406,7 +407,7 @@ public class ProtectedIntentMonitor extends AbstractTopoMonitor {
 
     // returns true if the backup path is the one where the traffic is currently flowing
     private boolean usingBackup(Set<Link> primary) {
-        Set<Link> activeLinks = Sets.newHashSet(servicesBundle.linkService().getActiveLinks());
+        Set<Link> activeLinks = Sets.newHashSet(services.link().getActiveLinks());
         return primary.isEmpty() || !activeLinks.containsAll(primary);
     }
 

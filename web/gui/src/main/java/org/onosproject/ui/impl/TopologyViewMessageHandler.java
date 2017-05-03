@@ -29,7 +29,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
-import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.net.ConnectPoint;
@@ -62,7 +61,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
-import org.onosproject.ui.impl.TrafficMonitor.Mode;
+import org.onosproject.ui.impl.TrafficMonitorBase.Mode;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.PropertyPanel;
@@ -83,9 +82,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
-import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.ui.JsonUtils.envelope;
@@ -204,8 +201,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         appId = directory.get(CoreService.class).registerApplication(MY_APP_ID);
-        traffic = new TrafficMonitor(TRAFFIC_PERIOD, servicesBundle, this);
-        protectedIntentMonitor = new ProtectedIntentMonitor(TRAFFIC_PERIOD, servicesBundle, this);
+        traffic = new TrafficMonitor(TRAFFIC_PERIOD, services, this);
+        protectedIntentMonitor = new ProtectedIntentMonitor(TRAFFIC_PERIOD, services, this);
     }
 
     @Override
@@ -398,7 +395,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(ObjectNode payload) {
-            directory.get(MastershipAdminService.class).balanceRoles();
+            services.mastershipAdmin().balanceRoles();
         }
     }
 
@@ -424,7 +421,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                     .two(two)
                     .build();
 
-            intentService.submit(intent);
+            services.intent().submit(intent);
             if (overlayCache.isActive(TrafficOverlay.TRAFFIC_ID)) {
                 traffic.monitor(intent);
             }
@@ -446,17 +443,17 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
             long longKey = Long.decode(stringKey);
             key = Key.of(longKey, applicId);
-            intent = intentService.getIntent(key);
+            intent = services.intent().getIntent(key);
 
             if (intent == null) {
                 // Intent might using string key, not long key
                 key = Key.of(stringKey, applicId);
-                intent = intentService.getIntent(key);
+                intent = services.intent().getIntent(key);
             }
         } catch (NumberFormatException ex) {
             // string key
             key = Key.of(stringKey, applicId);
-            intent = intentService.getIntent(key);
+            intent = services.intent().getIntent(key);
         }
 
         log.debug("Attempting to select intent by key={}", key);
@@ -481,9 +478,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             } else {
                 log.debug("Withdrawing / Purging intent {}", intent.key());
                 if (isIntentToBePurged(payload)) {
-                    intentService.purge(intent);
+                    services.intent().purge(intent);
                 } else {
-                    intentService.withdraw(intent);
+                    services.intent().withdraw(intent);
                 }
             }
         }
@@ -501,7 +498,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 log.warn("Unable to find intent from payload {}", payload);
             } else {
                 log.debug("Resubmitting intent {}", intent.key());
-                intentService.submit(intent);
+                services.intent().submit(intent);
             }
         }
     }
@@ -516,7 +513,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             // TODO: add protection against device ids and non-existent hosts.
             Set<HostId> src = getHostIds((ArrayNode) payload.path(SRC));
             HostId dst = hostId(string(payload, DST));
-            Host dstHost = hostService.getHost(dst);
+            Host dstHost = services.host().getHost(dst);
 
             Set<ConnectPoint> ingressPoints = getHostLocations(src);
 
@@ -534,7 +531,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                             .egressPoint(dstHost.location())
                             .build();
 
-            intentService.submit(intent);
+            services.intent().submit(intent);
             if (overlayCache.isActive(TrafficOverlay.TRAFFIC_ID)) {
                 traffic.monitor(intent);
             }
@@ -586,6 +583,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    private NodeSelection makeNodeSelection(ObjectNode payload) {
+        return new NodeSelection(payload, services.device(), services.host(),
+                                 services.link());
+    }
+
+
     private final class ReqDevLinkFlows extends RequestHandler {
         private ReqDevLinkFlows() {
             super(REQ_DEV_LINK_FLOWS);
@@ -593,9 +596,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(ObjectNode payload) {
-            NodeSelection nodeSelection =
-                    new NodeSelection(payload, deviceService, hostService, linkService);
-            traffic.monitor(Mode.DEV_LINK_FLOWS, nodeSelection);
+            traffic.monitor(Mode.DEV_LINK_FLOWS, makeNodeSelection(payload));
         }
     }
 
@@ -606,9 +607,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(ObjectNode payload) {
-            NodeSelection nodeSelection =
-                    new NodeSelection(payload, deviceService, hostService, linkService);
-            traffic.monitor(Mode.RELATED_INTENTS, nodeSelection);
+            traffic.monitor(Mode.RELATED_INTENTS, makeNodeSelection(payload));
         }
     }
 
@@ -723,7 +722,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Sends all controller nodes to the client as node-added messages.
     private void sendAllInstances(String messageType) {
-        List<ControllerNode> nodes = new ArrayList<>(clusterService.getNodes());
+        List<ControllerNode> nodes = new ArrayList<>(services.cluster().getNodes());
         nodes.sort(NODE_COMPARATOR);
         for (ControllerNode node : nodes) {
             sendMessage(instanceMessage(new ClusterEvent(INSTANCE_ADDED, node),
@@ -734,13 +733,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // Sends all devices to the client as device-added messages.
     private void sendAllDevices() {
         // Send optical first, others later for layered rendering
-        for (Device device : deviceService.getDevices()) {
+        for (Device device : services.device().getDevices()) {
             if ((device.type() == Device.Type.ROADM) ||
                     (device.type() == Device.Type.OTN)) {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
-        for (Device device : deviceService.getDevices()) {
+        for (Device device : services.device().getDevices()) {
             if ((device.type() != Device.Type.ROADM) &&
                     (device.type() != Device.Type.OTN)) {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
@@ -751,12 +750,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // Sends all links to the client as link-added messages.
     private void sendAllLinks() {
         // Send optical first, others later for layered rendering
-        for (Link link : linkService.getLinks()) {
+        for (Link link : services.link().getLinks()) {
             if (link.type() == Link.Type.OPTICAL) {
                 sendMessage(composeLinkMessage(new LinkEvent(LINK_ADDED, link)));
             }
         }
-        for (Link link : linkService.getLinks()) {
+        for (Link link : services.link().getLinks()) {
             if (link.type() != Link.Type.OPTICAL) {
                 sendMessage(composeLinkMessage(new LinkEvent(LINK_ADDED, link)));
             }
@@ -789,7 +788,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Sends all hosts to the client as host-added messages.
     private void sendAllHosts() {
-        for (Host host : hostService.getHosts()) {
+        for (Host host : services.host().getHosts()) {
             sendMessage(hostMessage(new HostEvent(HOST_ADDED, host)));
         }
     }
@@ -803,7 +802,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     }
 
     private HostLocation getHostLocation(HostId hostId) {
-        return hostService.getHost(hostId).location();
+        return services.host().getHost(hostId).location();
     }
 
     // Produces a list of host ids from the specified JSON array.
@@ -838,26 +837,26 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // Adds all internal listeners.
     private synchronized void addListeners() {
         listenersRemoved = false;
-        clusterService.addListener(clusterListener);
-        mastershipService.addListener(mastershipListener);
-        deviceService.addListener(deviceListener);
-        linkService.addListener(linkListener);
-        hostService.addListener(hostListener);
-        intentService.addListener(intentListener);
-        flowService.addListener(flowListener);
+        services.cluster().addListener(clusterListener);
+        services.mastership().addListener(mastershipListener);
+        services.device().addListener(deviceListener);
+        services.link().addListener(linkListener);
+        services.host().addListener(hostListener);
+        services.intent().addListener(intentListener);
+        services.flow().addListener(flowListener);
     }
 
     // Removes all internal listeners.
     private synchronized void removeListeners() {
         if (!listenersRemoved) {
             listenersRemoved = true;
-            clusterService.removeListener(clusterListener);
-            mastershipService.removeListener(mastershipListener);
-            deviceService.removeListener(deviceListener);
-            linkService.removeListener(linkListener);
-            hostService.removeListener(hostListener);
-            intentService.removeListener(intentListener);
-            flowService.removeListener(flowListener);
+            services.cluster().removeListener(clusterListener);
+            services.mastership().removeListener(mastershipListener);
+            services.device().removeListener(deviceListener);
+            services.link().removeListener(linkListener);
+            services.host().removeListener(hostListener);
+            services.intent().removeListener(intentListener);
+            services.flow().removeListener(flowListener);
         }
     }
 
@@ -879,7 +878,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void event(MastershipEvent event) {
             msgSender.execute(() -> {
                 sendAllInstances(UPDATE_INSTANCE);
-                Device device = deviceService.getDevice(event.subject());
+                Device device = services.device().getDevice(event.subject());
                 if (device != null) {
                     sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));
                 }

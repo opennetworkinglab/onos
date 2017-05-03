@@ -22,15 +22,11 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.DefaultHashMap;
 import org.onosproject.cluster.ClusterEvent;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
-import org.onosproject.incubator.net.tunnel.TunnelService;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
@@ -45,18 +41,11 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -73,7 +62,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
@@ -120,25 +108,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final ProviderId PID =
             new ProviderId("core", "org.onosproject.core", true);
 
-    protected static final String SHOW_HIGHLIGHTS = "showHighlights";
-
-    protected ServiceDirectory directory;
-    protected ClusterService clusterService;
-    protected DeviceService deviceService;
-    protected LinkService linkService;
-    protected HostService hostService;
-    protected MastershipService mastershipService;
-    protected IntentService intentService;
-    protected FlowRuleService flowService;
-    protected StatisticService flowStatsService;
-    protected PortStatisticsService portStatsService;
-    protected TopologyService topologyService;
-    protected TunnelService tunnelService;
-
-    protected ServicesBundle servicesBundle;
-
-    private String version;
-
     // TODO: extract into an external & durable state; good enough for now and demo
     private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
 
@@ -151,27 +120,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return Collections.unmodifiableMap(metaUi);
     }
 
+
+    protected ServicesBundle services;
+
+    private String version;
+
+
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
-        this.directory = checkNotNull(directory, "Directory cannot be null");
-        clusterService = directory.get(ClusterService.class);
-        deviceService = directory.get(DeviceService.class);
-        linkService = directory.get(LinkService.class);
-        hostService = directory.get(HostService.class);
-        mastershipService = directory.get(MastershipService.class);
-        intentService = directory.get(IntentService.class);
-        flowService = directory.get(FlowRuleService.class);
-        flowStatsService = directory.get(StatisticService.class);
-        portStatsService = directory.get(PortStatisticsService.class);
-        topologyService = directory.get(TopologyService.class);
-        tunnelService = directory.get(TunnelService.class);
+        services = new ServicesBundle(directory);
+        setVersionString(directory);
+    }
 
-        servicesBundle = new ServicesBundle(intentService, deviceService,
-                                            hostService, linkService,
-                                            flowService,
-                                            flowStatsService, portStatsService);
-
+    // Creates a palatable version string to display on the summary panel
+    private void setVersionString(ServiceDirectory directory) {
         String ver = directory.get(CoreService.class).version().toString();
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
     }
@@ -220,13 +183,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces a cluster instance message to the client.
     protected ObjectNode instanceMessage(ClusterEvent event, String msgType) {
         ControllerNode node = event.subject();
-        int switchCount = mastershipService.getDevicesOf(node.id()).size();
+        int switchCount = services.mastership().getDevicesOf(node.id()).size();
         ObjectNode payload = objectNode()
                 .put("id", node.id().toString())
                 .put("ip", node.ip().toString())
-                .put("online", clusterService.getState(node.id()).isActive())
-                .put("ready", clusterService.getState(node.id()).isReady())
-                .put("uiAttached", node.equals(clusterService.getLocalNode()))
+                .put("online", services.cluster().getState(node.id()).isActive())
+                .put("ready", services.cluster().getState(node.id()).isReady())
+                .put("uiAttached", node.equals(services.cluster().getLocalNode()))
                 .put("switches", switchCount);
 
         ArrayNode labels = arrayNode();
@@ -251,7 +214,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         ObjectNode payload = objectNode()
                 .put("id", device.id().toString())
                 .put("type", devType)
-                .put("online", deviceService.isAvailable(device.id()))
+                .put("online", services.device().isAvailable(device.id()))
                 .put("master", master(device.id()));
 
         // Generate labels: id, chassis id, no-label, optional-name
@@ -331,7 +294,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Returns the name of the master node for the specified device id.
     private String master(DeviceId deviceId) {
-        NodeId master = mastershipService.getMasterFor(deviceId);
+        NodeId master = services.mastership().getMasterFor(deviceId);
         return master != null ? master.toString() : "";
     }
 
@@ -387,64 +350,62 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Returns property panel model for summary response.
     protected PropertyPanel summmaryMessage() {
-        Topology topology = topologyService.currentTopology();
+        Topology topology = services.topology().currentTopology();
 
         return new PropertyPanel("ONOS Summary", "node")
-            .addProp(Properties.VERSION, version)
-            .addSeparator()
-            .addProp(Properties.DEVICES, deviceService.getDeviceCount())
-            .addProp(Properties.LINKS, topology.linkCount())
-            .addProp(Properties.HOSTS, hostService.getHostCount())
-            .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
-            .addSeparator()
-            .addProp(Properties.INTENTS, intentService.getIntentCount())
-            .addProp(Properties.TUNNELS, tunnelService.tunnelCount())
-            .addProp(Properties.FLOWS, flowService.getFlowRuleCount());
+                .addProp(Properties.VERSION, version)
+                .addSeparator()
+                .addProp(Properties.DEVICES, services.device().getDeviceCount())
+                .addProp(Properties.LINKS, topology.linkCount())
+                .addProp(Properties.HOSTS, services.host().getHostCount())
+                .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
+                .addSeparator()
+                .addProp(Properties.INTENTS, services.intent().getIntentCount())
+                .addProp(Properties.TUNNELS, services.tunnel().tunnelCount())
+                .addProp(Properties.FLOWS, services.flow().getFlowRuleCount());
     }
 
     // Returns property panel model for device details response.
     protected PropertyPanel deviceDetails(DeviceId deviceId) {
-        Device device = deviceService.getDevice(deviceId);
+        Device device = services.device().getDevice(deviceId);
         Annotations annot = device.annotations();
         String name = annot.value(AnnotationKeys.NAME);
-        int portCount = deviceService.getPorts(deviceId).size();
+        int portCount = services.device().getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
         int tunnelCount = getTunnelCount(deviceId);
 
         String title = isNullOrEmpty(name) ? deviceId.toString() : name;
         String typeId = device.type().toString().toLowerCase();
 
-        PropertyPanel pp = new PropertyPanel(title, typeId)
-            .id(deviceId.toString())
+        return new PropertyPanel(title, typeId)
+                .id(deviceId.toString())
 
-            .addProp(Properties.URI, deviceId.toString())
-            .addProp(Properties.VENDOR, device.manufacturer())
-            .addProp(Properties.HW_VERSION, device.hwVersion())
-            .addProp(Properties.SW_VERSION, device.swVersion())
-            .addProp(Properties.SERIAL_NUMBER, device.serialNumber())
-            .addProp(Properties.PROTOCOL, annot.value(AnnotationKeys.PROTOCOL))
-            .addSeparator()
+                .addProp(Properties.URI, deviceId.toString())
+                .addProp(Properties.VENDOR, device.manufacturer())
+                .addProp(Properties.HW_VERSION, device.hwVersion())
+                .addProp(Properties.SW_VERSION, device.swVersion())
+                .addProp(Properties.SERIAL_NUMBER, device.serialNumber())
+                .addProp(Properties.PROTOCOL, annot.value(AnnotationKeys.PROTOCOL))
+                .addSeparator()
 
-            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
-            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE))
-            .addSeparator()
+                .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+                .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE))
+                .addSeparator()
 
-            .addProp(Properties.PORTS, portCount)
-            .addProp(Properties.FLOWS, flowCount)
-            .addProp(Properties.TUNNELS, tunnelCount)
+                .addProp(Properties.PORTS, portCount)
+                .addProp(Properties.FLOWS, flowCount)
+                .addProp(Properties.TUNNELS, tunnelCount)
 
-            .addButton(CoreButtons.SHOW_DEVICE_VIEW)
-            .addButton(CoreButtons.SHOW_FLOW_VIEW)
-            .addButton(CoreButtons.SHOW_PORT_VIEW)
-            .addButton(CoreButtons.SHOW_GROUP_VIEW)
-            .addButton(CoreButtons.SHOW_METER_VIEW);
-
-        return pp;
+                .addButton(CoreButtons.SHOW_DEVICE_VIEW)
+                .addButton(CoreButtons.SHOW_FLOW_VIEW)
+                .addButton(CoreButtons.SHOW_PORT_VIEW)
+                .addButton(CoreButtons.SHOW_GROUP_VIEW)
+                .addButton(CoreButtons.SHOW_METER_VIEW);
     }
 
     protected int getFlowCount(DeviceId deviceId) {
         int count = 0;
-        for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
+        for (FlowEntry flowEntry : services.flow().getFlowEntries(deviceId)) {
             count++;
         }
         return count;
@@ -452,7 +413,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     protected int getTunnelCount(DeviceId deviceId) {
         int count = 0;
-        Collection<Tunnel> tunnels = tunnelService.queryAllTunnels();
+        Collection<Tunnel> tunnels = services.tunnel().queryAllTunnels();
         for (Tunnel tunnel : tunnels) {
             //Only OpticalTunnelEndPoint has a device
             if (!(tunnel.src() instanceof OpticalTunnelEndPoint) ||
@@ -476,7 +437,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     // Returns host details response.
     protected PropertyPanel hostDetails(HostId hostId) {
-        Host host = hostService.getHost(hostId);
+        Host host = services.host().getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value(AnnotationKeys.TYPE);
         String name = annot.value(AnnotationKeys.NAME);
@@ -485,17 +446,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String title = isNullOrEmpty(name) ? hostId.toString() : name;
         String typeId = isNullOrEmpty(type) ? "endstation" : type;
 
-        PropertyPanel pp = new PropertyPanel(title, typeId)
-            .id(hostId.toString())
-            .addProp(Properties.MAC, host.mac())
-            .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")
-            .addProp(Properties.VLAN, "-1".equals(vlan) ? "none" : vlan)
-            .addSeparator()
-            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
-            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));
-
-        // Potentially add button descriptors here
-        return pp;
+        return new PropertyPanel(title, typeId)
+                .id(hostId.toString())
+                .addProp(Properties.MAC, host.mac())
+                .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")
+                .addProp(Properties.VLAN, "-1".equals(vlan) ? "none" : vlan)
+                .addSeparator()
+                .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+                .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));
     }
 
 }
