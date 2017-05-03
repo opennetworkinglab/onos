@@ -135,7 +135,7 @@ public class MappingsWebResourceTest extends ResourceTest {
      * Mock class for a mapping entry.
      */
     private static class MockMappingEntry implements MappingEntry {
-        final short UNIQUE_SHORT = 2;
+        static final short UNIQUE_SHORT = 2;
         final DeviceId deviceId;
         MappingKey key;
         MappingValue value;

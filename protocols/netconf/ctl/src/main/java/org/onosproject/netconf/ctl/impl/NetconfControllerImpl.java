@@ -307,8 +307,8 @@ public class NetconfControllerImpl implements NetconfController {
         }
     }
 
-    //Listener for closed session with devices, gets triggered whe devices goes down
-    // or sends the endpattern ]]>]]>
+    //Listener for closed session with devices, gets triggered when devices goes down
+    // or sends the end pattern ]]>]]>
     private class DeviceDownEventListener implements NetconfDeviceOutputEventListener {
 
         @Override
