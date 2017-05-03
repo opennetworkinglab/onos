@@ -21,10 +21,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
-import java.util.HashSet;
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Service for querying virtual network inventory.
@@ -96,22 +93,8 @@ public interface VirtualNetworkService
      * @param virtualDevice the virtual device
      * @return collection of the specified device's identifier
      */
-    default Set<DeviceId> getPhysicalDevices(NetworkId networkId,
-                                             VirtualDevice virtualDevice) {
-        checkNotNull(networkId, "Network ID cannot be null");
-        checkNotNull(virtualDevice, "Virtual device cannot be null");
-        Set<VirtualPort> virtualPortSet =
-                getVirtualPorts(networkId, virtualDevice.id());
-        Set<DeviceId> physicalDeviceSet = new HashSet<>();
-
-        virtualPortSet.forEach(virtualPort -> {
-            if (virtualPort.realizedBy() != null) {
-                physicalDeviceSet.add(virtualPort.realizedBy().deviceId());
-            }
-        });
-
-        return physicalDeviceSet;
-    }
+    Set<DeviceId> getPhysicalDevices(NetworkId networkId,
+                                             VirtualDevice virtualDevice);
 
     /**
      * Returns implementation of the specified service class for operating

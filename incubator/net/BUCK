@@ -8,6 +8,7 @@ COMPILE_DEPS = [
 ]
 
 TEST_DEPS = [
+    '//incubator/api:onos-incubator-api-tests',
     '//lib:TEST_REST',
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',

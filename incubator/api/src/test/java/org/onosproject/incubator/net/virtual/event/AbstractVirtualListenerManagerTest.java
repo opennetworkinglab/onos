@@ -22,22 +22,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.EventListener;
 import org.onosproject.event.EventSink;
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.TenantId;
-import org.onosproject.incubator.net.virtual.VirtualDevice;
-import org.onosproject.incubator.net.virtual.VirtualHost;
-import org.onosproject.incubator.net.virtual.VirtualLink;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
-import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
-import org.onosproject.incubator.net.virtual.VirtualPort;
-import org.onosproject.net.DeviceId;
+import org.onosproject.incubator.net.virtual.VirtualNetworkServiceAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -254,7 +246,7 @@ public class AbstractVirtualListenerManagerTest {
         }
     }
 
-    private class TestVirtualNetworkManager implements VirtualNetworkService {
+    private class TestVirtualNetworkManager extends VirtualNetworkServiceAdapter {
         TestServiceDirectory serviceDirectory = new TestServiceDirectory();
 
         public TestVirtualNetworkManager() {
@@ -262,53 +254,8 @@ public class AbstractVirtualListenerManagerTest {
         }
 
         @Override
-        public Set<VirtualNetwork> getVirtualNetworks(TenantId tenantId) {
-            return null;
-        }
-
-        @Override
-        public Set<VirtualDevice> getVirtualDevices(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public Set<VirtualHost> getVirtualHosts(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public Set<VirtualLink> getVirtualLinks(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public Set<VirtualPort> getVirtualPorts(NetworkId networkId, DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public <T> T get(NetworkId networkId, Class<T> serviceClass) {
-            return null;
-        }
-
-        @Override
         public ServiceDirectory getServiceDirectory() {
             return serviceDirectory;
-        }
-
-        @Override
-        public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public void addListener(VirtualNetworkListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(VirtualNetworkListener listener) {
-
         }
     }
 

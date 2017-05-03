@@ -20,10 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
@@ -34,11 +31,8 @@ import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
-import org.onosproject.incubator.net.virtual.VirtualHost;
-import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
-import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
-import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
+import org.onosproject.incubator.net.virtual.VirtualNetworkAdminServiceAdapter;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProviderService;
 import org.onosproject.incubator.net.virtual.provider.VirtualPacketProvider;
@@ -50,8 +44,6 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -263,7 +255,7 @@ public class DefaultVirtualPacketProviderTest {
     }
 
     private static class TestVirtualNetworkAdminService
-            implements VirtualNetworkAdminService {
+            extends VirtualNetworkAdminServiceAdapter {
 
         @Override
         public Set<VirtualNetwork> getVirtualNetworks(TenantId tenantId) {
@@ -276,44 +268,9 @@ public class DefaultVirtualPacketProviderTest {
         }
 
         @Override
-        public Set<VirtualHost> getVirtualHosts(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public Set<VirtualLink> getVirtualLinks(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
         public Set<VirtualPort> getVirtualPorts(NetworkId networkId,
                                                 DeviceId deviceId) {
             return ImmutableSet.of(VPORT1, VPORT2);
-        }
-
-        @Override
-        public <T> T get(NetworkId networkId, Class<T> serviceClass) {
-            return null;
-        }
-
-        @Override
-        public ServiceDirectory getServiceDirectory() {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getVirtualNetworkApplicationId(NetworkId networkId) {
-            return null;
-        }
-
-        @Override
-        public void registerTenantId(TenantId tenantId) {
-
-        }
-
-        @Override
-        public void unregisterTenantId(TenantId tenantId) {
-
         }
 
         @Override
@@ -321,88 +278,12 @@ public class DefaultVirtualPacketProviderTest {
             return ImmutableSet.of(TENANT_ID);
         }
 
-        @Override
-        public VirtualNetwork createVirtualNetwork(TenantId tenantId) {
-            return null;
-        }
-
-        @Override
-        public void removeVirtualNetwork(NetworkId networkId) {
-
-        }
-
-        @Override
-        public VirtualDevice createVirtualDevice(NetworkId networkId,
-                                                 DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public void removeVirtualDevice(NetworkId networkId, DeviceId deviceId) {
-
-        }
-
-        @Override
-        public VirtualHost createVirtualHost(NetworkId networkId, HostId hostId,
-                                             MacAddress mac, VlanId vlan,
-                                             HostLocation location,
-                                             Set<IpAddress> ips) {
-            return null;
-        }
-
-        @Override
-        public void removeVirtualHost(NetworkId networkId, HostId hostId) {
-
-        }
-
-        @Override
-        public VirtualLink createVirtualLink(NetworkId networkId,
-                                             ConnectPoint src, ConnectPoint dst) {
-            return null;
-        }
-
-        @Override
-        public void removeVirtualLink(NetworkId networkId,
-                                      ConnectPoint src, ConnectPoint dst) {
-
-        }
-
-        @Override
-        public VirtualPort createVirtualPort(NetworkId networkId,
-                                             DeviceId deviceId,
-                                             PortNumber portNumber,
-                                             ConnectPoint realizedBy) {
-            return null;
-        }
-
-        @Override
-        public void bindVirtualPort(NetworkId networkId,
-                                    DeviceId deviceId,
-                                    PortNumber portNumber,
-                                    ConnectPoint realizedBy) {
-
-        }
-
-        @Override
-        public void removeVirtualPort(NetworkId networkId, DeviceId deviceId,
-                                      PortNumber portNumber) {
-
-        }
-
-        @Override
-        public void addListener(VirtualNetworkListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(VirtualNetworkListener listener) {
-
-        }
     }
 
     private static class TestVirtualPacketProviderService
             extends AbstractVirtualProviderService<VirtualPacketProvider>
             implements VirtualPacketProviderService {
+
         static List<PacketContext> requestedContext = new LinkedList();
         static List<NetworkId> requestedNetworkId = new LinkedList();
 
@@ -411,11 +292,7 @@ public class DefaultVirtualPacketProviderTest {
             return null;
         }
 
-        public NetworkId getRequestedNetworkId(int index) {
-            return requestedNetworkId.get(index);
-        }
-
-        public PacketContext getRequestedPacketContext(int index) {
+        PacketContext getRequestedPacketContext(int index) {
             return requestedContext.get(index);
         }
 
@@ -439,15 +316,15 @@ public class DefaultVirtualPacketProviderTest {
             requestedPacket.add(packet);
         }
 
-        public OutboundPacket getRequestedPacket(int index) {
+        OutboundPacket getRequestedPacket(int index) {
             return requestedPacket.get(index);
         }
 
-        public int getRequestedPacketCount() {
+        int getRequestedPacketCount() {
             return requestedPacket.size();
         }
 
-        public void sendTestPacketContext(PacketContext context) {
+        void sendTestPacketContext(PacketContext context) {
             processor.process(context);
         }
     }

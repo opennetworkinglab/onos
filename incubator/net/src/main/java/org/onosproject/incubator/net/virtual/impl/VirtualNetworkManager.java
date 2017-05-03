@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.virtual.impl;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -359,6 +360,24 @@ public class VirtualNetworkManager
     public Set<VirtualPort> getVirtualPorts(NetworkId networkId, DeviceId deviceId) {
         checkNotNull(networkId, NETWORK_NULL);
         return store.getPorts(networkId, deviceId);
+    }
+
+    @Override
+    public Set<DeviceId> getPhysicalDevices(NetworkId networkId,
+                                             VirtualDevice virtualDevice) {
+        checkNotNull(networkId, "Network ID cannot be null");
+        checkNotNull(virtualDevice, "Virtual device cannot be null");
+        Set<VirtualPort> virtualPortSet =
+                getVirtualPorts(networkId, virtualDevice.id());
+        Set<DeviceId> physicalDeviceSet = Sets.newConcurrentHashSet();
+
+        virtualPortSet.forEach(virtualPort -> {
+            if (virtualPort.realizedBy() != null) {
+                physicalDeviceSet.add(virtualPort.realizedBy().deviceId());
+            }
+        });
+
+        return physicalDeviceSet;
     }
 
     private final Map<ServiceKey, VnetService> networkServices = Maps.newConcurrentMap();
