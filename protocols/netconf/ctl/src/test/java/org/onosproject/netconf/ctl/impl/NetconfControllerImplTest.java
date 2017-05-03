@@ -140,12 +140,13 @@ public class NetconfControllerImplTest {
         assertEquals("Incorrect NetConf connect timeout, should be default",
                      5, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf reply timeout, should be default",
-                5, ctrl.netconfReplyTimeout);
+                     5, ctrl.netconfReplyTimeout);
         ctrl.activate(null);
         assertEquals("Incorrect NetConf connect timeout, should be default",
                      5, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf reply timeout, should be default",
-                5, ctrl.netconfReplyTimeout);    }
+                     5, ctrl.netconfReplyTimeout);
+    }
 
     /**
      * Test modification of component configuration.
@@ -153,14 +154,15 @@ public class NetconfControllerImplTest {
     @Test
     public void testModified() {
         assertEquals("Incorrect NetConf connect timeout, should be default",
-                    5, ctrl.netconfConnectTimeout);
+                     5, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf session timeout, should be default",
                      5, ctrl.netconfReplyTimeout);
         ctrl.modified(context);
         assertEquals("Incorrect NetConf connect timeout, should be default",
-                    2, ctrl.netconfConnectTimeout);
+                     2, ctrl.netconfConnectTimeout);
         assertEquals("Incorrect NetConf session timeout",
                      1, ctrl.netconfReplyTimeout);
+        assertEquals("ethz-ssh2", ctrl.sshLibrary);
     }
 
     /**
@@ -398,6 +400,8 @@ public class NetconfControllerImplTest {
                 return "2";
             } else if (key.equals("netconfReplyTimeout")) {
                 return "1";
+            } else if (key.equals("sshLibrary")) {
+                return "ethz-ssh2";
             }
             return null;
         }

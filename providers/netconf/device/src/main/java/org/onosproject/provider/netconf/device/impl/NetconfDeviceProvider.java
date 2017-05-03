@@ -371,7 +371,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription) {
         Device device = deviceService.getDevice(deviceId);
         if (device == null) {
-            log.warn("Device {} has not been added to store, " +
+            log.debug("Device {} has not been added to store, " +
                              "since it's not reachable", deviceId);
         } else {
             boolean isReachable = isReachable(deviceId);

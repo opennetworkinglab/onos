@@ -3,6 +3,7 @@ BUNDLES = [
     '//providers/netconf/alarm:onos-providers-netconf-alarm',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
+    '//lib:sshd-core',
 ]
 
 EXCLUDED_BUNDLES = [

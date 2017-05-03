@@ -65,6 +65,9 @@ import static org.onlab.util.Tools.groupedThreads;
 @Component(immediate = true)
 @Service
 public class NetconfControllerImpl implements NetconfController {
+
+    private static final String ETHZ_SSH2 = "ethz-ssh2";
+
     private static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
     private static final String PROP_NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
     @Property(name = PROP_NETCONF_CONNECT_TIMEOUT, intValue = DEFAULT_CONNECT_TIMEOUT_SECONDS,
@@ -76,6 +79,12 @@ public class NetconfControllerImpl implements NetconfController {
     @Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
             label = "Time (in seconds) waiting for a NetConf reply")
     protected static int netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
+
+    private static final String SSH_LIBRARY = "sshLibrary";
+    private static final String APACHE_MINA = "apache_mina";
+    @Property(name = SSH_LIBRARY, value = APACHE_MINA,
+            label = "Ssh Llbrary instead of Apache Mina (i.e. ethz-ssh2")
+    protected static String sshLibrary = APACHE_MINA;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
@@ -98,7 +107,7 @@ public class NetconfControllerImpl implements NetconfController {
 
     protected final ExecutorService executor =
             Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
-                                                           "connection-reopen-%d", log));
+                                                         "connection-reopen-%d", log));
 
     @Activate
     public void activate(ComponentContext context) {
@@ -109,7 +118,12 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Deactivate
     public void deactivate() {
+        netconfDeviceMap.values().forEach(device -> {
+            device.getSession().removeDeviceOutputListener(downListener);
+            device.disconnect();
+        });
         cfgService.unregisterProperties(getClass(), false);
+        netconfDeviceListeners.clear();
         netconfDeviceMap.clear();
         log.info("Stopped");
     }
@@ -119,6 +133,7 @@ public class NetconfControllerImpl implements NetconfController {
         if (context == null) {
             netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
             netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
+            sshLibrary = APACHE_MINA;
             log.info("No component configuration");
             return;
         }
@@ -127,6 +142,7 @@ public class NetconfControllerImpl implements NetconfController {
 
         int newNetconfReplyTimeout;
         int newNetconfConnectTimeout;
+        String newSshLibrary;
         try {
             String s = get(properties, PROP_NETCONF_REPLY_TIMEOUT);
             newNetconfReplyTimeout = isNullOrEmpty(s) ?
@@ -135,6 +151,8 @@ public class NetconfControllerImpl implements NetconfController {
             s = get(properties, PROP_NETCONF_CONNECT_TIMEOUT);
             newNetconfConnectTimeout = isNullOrEmpty(s) ?
                     netconfConnectTimeout : Integer.parseInt(s.trim());
+
+            newSshLibrary = get(properties, SSH_LIBRARY);
 
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid value", e);
@@ -151,8 +169,11 @@ public class NetconfControllerImpl implements NetconfController {
 
         netconfReplyTimeout = newNetconfReplyTimeout;
         netconfConnectTimeout = newNetconfConnectTimeout;
-        log.info("Settings: {} = {}, {} = {}",
-                 PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout, PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout);
+        sshLibrary = newSshLibrary;
+        log.info("Settings: {} = {}, {} = {}, {} = {}",
+                 PROP_NETCONF_REPLY_TIMEOUT, netconfReplyTimeout,
+                 PROP_NETCONF_CONNECT_TIMEOUT, netconfConnectTimeout,
+                 SSH_LIBRARY, sshLibrary);
     }
 
     @Override
@@ -302,7 +323,12 @@ public class NetconfControllerImpl implements NetconfController {
     private class DefaultNetconfDeviceFactory implements NetconfDeviceFactory {
 
         @Override
-        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
+        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
+                throws NetconfException {
+            if (sshLibrary.equals(ETHZ_SSH2)) {
+                return new DefaultNetconfDevice(netconfDeviceInfo,
+                                                new NetconfSessionImpl.SshNetconfSessionFactory());
+            }
             return new DefaultNetconfDevice(netconfDeviceInfo);
         }
     }
@@ -320,8 +346,14 @@ public class NetconfControllerImpl implements NetconfController {
                 log.info("Trying to reestablish connection with device {}", did);
                 executor.execute(() -> {
                     try {
-                        netconfDeviceMap.get(did).getSession().checkAndReestablish();
-                        log.info("Connection with device {} was reestablished", did);
+                        NetconfDevice device = netconfDeviceMap.get(did);
+                        if (device != null) {
+                            device.getSession().checkAndReestablish();
+                            log.info("Connection with device {} was reestablished", did);
+                        } else {
+                            log.warn("The device {} is not in the system", did);
+                        }
+
                     } catch (NetconfException e) {
                         log.error("The SSH connection with device {} couldn't be " +
                                           "reestablished due to {}. " +

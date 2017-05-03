@@ -225,6 +225,6 @@
       "repo": "https://oss.sonatype.org/content/repositories/snapshots"
     },
     "plexus-utils": "mvn:org.codehaus.plexus:plexus-utils:3.0.24",
-    "sshd-core": "mvn:org.apache.sshd:sshd-core:0.14.0"
+    "sshd-core": "mvn:org.apache.sshd:sshd-core:1.4.0"
   }
 }

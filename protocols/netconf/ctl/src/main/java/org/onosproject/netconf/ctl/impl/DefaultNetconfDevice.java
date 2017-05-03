@@ -36,7 +36,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
 
     private NetconfDeviceInfo netconfDeviceInfo;
     private boolean deviceState = true;
-    protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
+    private final NetconfSessionFactory sessionFactory;
     private NetconfSession netconfSession;
 
     // will block until hello RPC handshake completes
@@ -51,6 +51,31 @@ public class DefaultNetconfDevice implements NetconfDevice {
     public DefaultNetconfDevice(NetconfDeviceInfo deviceInfo)
             throws NetconfException {
         netconfDeviceInfo = deviceInfo;
+        sessionFactory = new NetconfSessionMinaImpl.MinaSshNetconfSessionFactory();
+        try {
+            netconfSession = sessionFactory.createNetconfSession(deviceInfo);
+        } catch (IOException e) {
+            deviceState = false;
+            throw new NetconfException("Cannot create connection and session for device " +
+                                               deviceInfo, e);
+        }
+    }
+
+    // will block until hello RPC handshake completes
+    /**
+     * Creates a new default NETCONF device with the information provided.
+     * The device gets created only if no exception is thrown while connecting to
+     * it and establishing the NETCONF session.
+     *
+     * @param deviceInfo information about the device to be created.
+     * @param factory the factory used to create the session
+     * @throws NetconfException if there are problems in creating or establishing
+     * the underlying NETCONF connection and session.
+     */
+    public DefaultNetconfDevice(NetconfDeviceInfo deviceInfo, NetconfSessionFactory factory)
+            throws NetconfException {
+        netconfDeviceInfo = deviceInfo;
+        sessionFactory = factory;
         try {
             netconfSession = sessionFactory.createNetconfSession(deviceInfo);
         } catch (IOException e) {
@@ -85,12 +110,5 @@ public class DefaultNetconfDevice implements NetconfDevice {
         return netconfDeviceInfo;
     }
 
-    public class SshNetconfSessionFactory implements NetconfSessionFactory {
-
-        @Override
-        public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
-            return new NetconfSessionImpl(netconfDeviceInfo);
-        }
-    }
 
 }

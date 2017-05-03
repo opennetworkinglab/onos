@@ -22,14 +22,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.util.Buffer;
-import org.apache.sshd.common.util.ThreadUtils;
+import org.apache.sshd.common.util.threads.ThreadUtils;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
@@ -188,11 +189,12 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
                         deviceRequest = deviceRequest.replace(END_PATTERN, "");
                         Optional<Integer> messageId = NetconfStreamThread.getMsgId(deviceRequest);
                         log.info("Client Request on session {}. MsgId {}: {}",
-                                session.getId(), messageId, deviceRequest);
+                                session.getSessionId(), messageId, deviceRequest);
                         synchronized (outputStream) {
                             if (NetconfSessionImplTest.HELLO_REQ_PATTERN.matcher(deviceRequest).matches()) {
                                 String helloReply =
-                                        NetconfSessionImplTest.getTestHelloReply(Optional.of(session.getId()));
+                                        NetconfSessionImplTest.getTestHelloReply(Optional.of(ByteBuffer.wrap(
+                                                session.getSessionId()).asLongBuffer().get()));
                                 outputStream.write(helloReply + END_PATTERN);
                                 outputStream.flush();
                             } else if (NetconfSessionImplTest.EDIT_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
@@ -211,7 +213,8 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
                                 outputStream.flush();
                             } else {
                                 log.error("Unexpected NETCONF message structure on session {} : {}",
-                                        session.getId(), deviceRequest);
+                                          ByteBuffer.wrap(
+                                                  session.getSessionId()).asLongBuffer().get(), deviceRequest);
                             }
                         }
                         deviceRequestBuilder.setLength(0);

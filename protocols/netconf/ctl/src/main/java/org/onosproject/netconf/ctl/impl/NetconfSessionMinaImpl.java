@@ -17,26 +17,35 @@
 package org.onosproject.netconf.ctl.impl;
 
 import com.google.common.annotations.Beta;
-import ch.ethz.ssh2.Connection;
-import ch.ethz.ssh2.Session;
-import ch.ethz.ssh2.channel.Channel;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import org.onosproject.netconf.NetconfSessionFactory;
-import org.onosproject.netconf.TargetConfig;
-import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
+import com.google.common.collect.ImmutableSet;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.channel.ClientChannel;
+import org.apache.sshd.client.future.ConnectFuture;
+import org.apache.sshd.client.future.OpenFuture;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEvent.Type;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.onosproject.netconf.NetconfSessionFactory;
+import org.onosproject.netconf.TargetConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,17 +61,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of a NETCONF session to talk to a device.
  */
-public class NetconfSessionImpl implements NetconfSession {
+public class NetconfSessionMinaImpl implements NetconfSession {
 
     private static final Logger log = LoggerFactory
-            .getLogger(NetconfSessionImpl.class);
+            .getLogger(NetconfSessionMinaImpl.class);
 
     private static final String ENDPATTERN = "]]>]]>";
     private static final String MESSAGE_ID_STRING = "message-id";
@@ -103,13 +111,12 @@ public class NetconfSessionImpl implements NetconfSession {
 
     private static final String SESSION_ID_REGEX = "<session-id>\\s*(.*?)\\s*</session-id>";
     private static final Pattern SESSION_ID_REGEX_PATTERN = Pattern.compile(SESSION_ID_REGEX);
+    private static final String RSA = "RSA";
+    private static final String DSA = "DSA";
 
     private String sessionID;
     private final AtomicInteger messageIdInteger = new AtomicInteger(1);
-    private Connection netconfConnection;
     protected final NetconfDeviceInfo deviceInfo;
-    private Session sshSession;
-    private boolean connectionActive;
     private Iterable<String> onosCapabilities =
             Collections.singletonList("urn:ietf:params:netconf:base:1.0");
 
@@ -129,76 +136,98 @@ public class NetconfSessionImpl implements NetconfSession {
             new CopyOnWriteArrayList<>();
 
 
-    public NetconfSessionImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
+    private ClientChannel channel = null;
+    private ClientSession session = null;
+    private SshClient client = null;
+
+
+    public NetconfSessionMinaImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
-        this.netconfConnection = null;
-        this.sshSession = null;
-        connectionActive = false;
         replies = new ConcurrentHashMap<>();
         errorReplies = new ArrayList<>();
         startConnection();
     }
 
     private void startConnection() throws NetconfException {
-        if (!connectionActive) {
-            netconfConnection = new Connection(deviceInfo.ip().toString(), deviceInfo.port());
-            int connectTimeout = NetconfControllerImpl.netconfConnectTimeout;
-
-            try {
-                netconfConnection.connect(null, 1000 * connectTimeout, 1000 * connectTimeout);
-            } catch (IOException e) {
-                throw new NetconfException("Cannot open a connection with device " + deviceInfo, e);
-            }
-            boolean isAuthenticated;
-            try {
-                if (deviceInfo.getKeyFile() != null && deviceInfo.getKeyFile().canRead()) {
-                    log.debug("Authenticating with key file to device {} with username {}",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
-                    isAuthenticated = netconfConnection.authenticateWithPublicKey(
-                            deviceInfo.name(), deviceInfo.getKeyFile(),
-                            deviceInfo.password().equals("") ? null : deviceInfo.password());
-                } else if (deviceInfo.getKey() != null) {
-                    log.debug("Authenticating with key to device {} with username {}",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
-                    isAuthenticated = netconfConnection.authenticateWithPublicKey(
-                            deviceInfo.name(), deviceInfo.getKey(),
-                            deviceInfo.password().equals("") ? null : deviceInfo.password());
-                } else {
-                    log.debug("Authenticating to device {} with username {} with password",
-                              deviceInfo.getDeviceId(), deviceInfo.name());
-                    isAuthenticated = netconfConnection.authenticateWithPassword(
-                            deviceInfo.name(), deviceInfo.password());
-                }
-            } catch (IOException e) {
-                log.error("Authentication connection to device {} failed",
-                          deviceInfo.getDeviceId(), e);
-                throw new NetconfException("Authentication connection to device " +
-                                                   deviceInfo.getDeviceId() + " failed", e);
-            }
-
-            connectionActive = true;
-            Preconditions.checkArgument(isAuthenticated,
-                                        "Authentication to device %s with username " +
-                                                "%s failed",
-                                        deviceInfo.getDeviceId(), deviceInfo.name());
-            startSshSession();
+        try {
+            startClient();
+        } catch (IOException e) {
+            throw new NetconfException("Failed to establish SSH with device " + deviceInfo, e);
         }
     }
 
-    private void startSshSession() throws NetconfException {
-        try {
-            sshSession = netconfConnection.openSession();
-            sshSession.startSubSystem("netconf");
-            streamHandler = new NetconfStreamThread(sshSession.getStdout(), sshSession.getStdin(),
-                                                    sshSession.getStderr(), deviceInfo,
-                                                    new NetconfSessionDelegateImpl(),
-                                                    replies);
-            this.addDeviceOutputListener(new FilteringNetconfDeviceOutputEventListener(deviceInfo));
+    private void startClient() throws IOException {
+        client = SshClient.setUpDefaultClient();
+        client.start();
+        client.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
+        startSession();
+    }
+
+    private void startSession() throws IOException {
+        final ConnectFuture connectFuture;
+        connectFuture = client.connect(deviceInfo.name(),
+                                       deviceInfo.ip().toString(),
+                                       deviceInfo.port())
+                .verify(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS);
+        session = connectFuture.getSession();
+        //Using the device ssh key if possible
+        if (deviceInfo.getKey() != null) {
+            ByteBuffer buf = StandardCharsets.UTF_8.encode(CharBuffer.wrap(deviceInfo.getKey()));
+            byte[] byteKey = new byte[buf.limit()];
+            buf.get(byteKey);
+            PublicKey key;
+            try {
+                key = getPublicKey(byteKey, RSA);
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                try {
+                    key = getPublicKey(byteKey, DSA);
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException e1) {
+                    throw new NetconfException("Failed to authenticate session with device " +
+                                                       deviceInfo + "check key to be the " +
+                                                       "proper DSA or RSA key", e1);
+                }
+            }
+            //privateKye can set tu null because is not used by the method.
+            session.addPublicKeyIdentity(new KeyPair(key, null));
+        } else {
+            session.addPasswordIdentity(deviceInfo.password());
+        }
+        session.auth().verify(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS);
+        Set<ClientSession.ClientSessionEvent> event = session.waitFor(
+                ImmutableSet.of(ClientSession.ClientSessionEvent.WAIT_AUTH,
+                                ClientSession.ClientSessionEvent.CLOSED,
+                                ClientSession.ClientSessionEvent.AUTHED), 0);
+
+        if (!event.contains(ClientSession.ClientSessionEvent.AUTHED)) {
+            log.debug("Session closed {} {}", event, session.isClosed());
+            throw new NetconfException("Failed to authenticate session with device " +
+                                               deviceInfo + "check the user/pwd or key");
+        }
+        openChannel();
+    }
+
+    private PublicKey getPublicKey(byte[] keyBytes, String type)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+        X509EncodedKeySpec spec =
+                new X509EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance(type);
+        return kf.generatePublic(spec);
+    }
+
+    private void openChannel() throws IOException {
+        channel = session.createSubsystemChannel("netconf");
+        OpenFuture channelFuture = channel.open();
+        if (channelFuture.await(NetconfControllerImpl.netconfConnectTimeout, TimeUnit.SECONDS)) {
+            if (channelFuture.isOpened()) {
+                streamHandler = new NetconfStreamThread(channel.getInvertedOut(), channel.getInvertedIn(),
+                                                        channel.getInvertedErr(), deviceInfo,
+                                                        new NetconfSessionDelegateImpl(), replies);
+            } else {
+                throw new NetconfException("Failed to open channel with device " +
+                                                   deviceInfo);
+            }
             sendHello();
-        } catch (IOException e) {
-            log.error("Failed to create ch.ethz.ssh2.Session session {} ", e.getMessage());
-            throw new NetconfException("Failed to create ch.ethz.ssh2.Session session with device" +
-                                               deviceInfo, e);
         }
     }
 
@@ -211,8 +240,8 @@ public class NetconfSessionImpl implements NetconfSession {
             openNewSession = true;
 
         } else if (subscriptionConnected &&
-                   notificationFilterSchema != null &&
-                   !Objects.equal(filterSchema, notificationFilterSchema)) {
+                notificationFilterSchema != null &&
+                !Objects.equal(filterSchema, notificationFilterSchema)) {
             // interleave supported and existing filter is NOT "no filtering"
             // and was requested with different filtering schema
             log.info("Cannot use existing session for subscription {} ({})",
@@ -324,27 +353,34 @@ public class NetconfSessionImpl implements NetconfSession {
 
     @Override
     public void checkAndReestablish() throws NetconfException {
-        if (sshSession.getState() != Channel.STATE_OPEN) {
-            try {
-                log.debug("Trying to reopen the Sesion with {}", deviceInfo.getDeviceId());
-                startSshSession();
-            } catch (IOException | IllegalStateException e) {
-                log.debug("Trying to reopen the Connection with {}", deviceInfo.getDeviceId());
-                try {
-                    connectionActive = false;
-                    replies.clear();
-                    startConnection();
-                    if (subscriptionConnected) {
-                        log.debug("Restarting subscription with {}", deviceInfo.getDeviceId());
-                        subscriptionConnected = false;
-                        startSubscription(notificationFilterSchema);
-                    }
-                } catch (IOException e2) {
-                    log.error("No connection {} for device {}", netconfConnection, e.getMessage());
-                    throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
-                }
+        try {
+            if (client.isClosed()) {
+                log.debug("Trying to restart the whole SSH connection with {}", deviceInfo.getDeviceId());
+                cleanUp();
+                startConnection();
+            } else if (session.isClosed()) {
+                log.debug("Trying to restart the session with {}", session, deviceInfo.getDeviceId());
+                cleanUp();
+                startSession();
+            } else if (channel.isClosed()) {
+                log.debug("Trying to reopen the channel with {}", deviceInfo.getDeviceId());
+                cleanUp();
+                openChannel();
             }
+            if (subscriptionConnected) {
+                log.debug("Restarting subscription with {}", deviceInfo.getDeviceId());
+                subscriptionConnected = false;
+                startSubscription(notificationFilterSchema);
+            }
+        } catch (IOException e) {
+            log.error("Can't reopen connection for device {}", e.getMessage());
+            throw new NetconfException("Cannot re-open the connection with device" + deviceInfo, e);
         }
+    }
+
+    private void cleanUp() {
+        //makes sure everything is at a clean state.
+        replies.clear();
     }
 
     @Override
@@ -720,7 +756,7 @@ public class NetconfSessionImpl implements NetconfSession {
         return false;
     }
 
-    static class NotificationSession extends NetconfSessionImpl {
+    static class NotificationSession extends NetconfSessionMinaImpl {
 
         private String notificationFilter;
 
@@ -749,7 +785,7 @@ public class NetconfSessionImpl implements NetconfSession {
 
     /**
      * Listener attached to child session for notification streaming.
-     *
+     * <p>
      * Forwards all notification event from child session to primary session
      * listeners.
      */
@@ -792,11 +828,11 @@ public class NetconfSessionImpl implements NetconfSession {
         }
     }
 
-    public static class SshNetconfSessionFactory implements NetconfSessionFactory {
+    public static class MinaSshNetconfSessionFactory implements NetconfSessionFactory {
 
         @Override
         public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
-            return new NetconfSessionImpl(netconfDeviceInfo);
+            return new NetconfSessionMinaImpl(netconfDeviceInfo);
         }
     }
 }

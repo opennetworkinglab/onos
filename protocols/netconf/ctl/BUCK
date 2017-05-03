@@ -4,13 +4,13 @@ COMPILE_DEPS = [
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//cli:onos-cli',
     '//lib:org.apache.karaf.shell.console',
+    '//lib:sshd-core',
 ]
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//utils/osgi:onlab-osgi-tests',
     '//core/api:onos-api-tests',
-    '//lib:sshd-core'
 ]
 
 osgi_jar_with_tests (

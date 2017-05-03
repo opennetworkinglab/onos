@@ -203,7 +203,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                                      netconfDeviceInfo, deviceReply);
                             NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                                     NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED,
-                                    null, null, Optional.of(-1), netconfDeviceInfo);
+                                    null, null, Optional.of(-2), netconfDeviceInfo);
                             netconfDeviceEventListeners.forEach(
                                     listener -> listener.event(event));
                             this.interrupt();
@@ -256,7 +256,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
             return Optional.of(messageId);
         }
         if (reply.contains(HELLO)) {
-            return Optional.of(0);
+            return Optional.of(-1);
         }
         return Optional.empty();
     }

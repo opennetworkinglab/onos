@@ -15,14 +15,24 @@
  */
 package org.onosproject.netconf.ctl.impl;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertFalse;
-import static org.onosproject.netconf.TargetConfig.RUNNING;
-import static org.onosproject.netconf.TargetConfig.CANDIDATE;
+import com.google.common.collect.ImmutableList;
+import org.apache.sshd.common.NamedFactory;
+import org.apache.sshd.server.Command;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
+import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.apache.sshd.server.session.ServerSession;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.onlab.junit.TestTools;
+import org.onlab.packet.Ip4Address;
+import org.onosproject.netconf.NetconfDeviceInfo;
+import org.onosproject.netconf.NetconfException;
+import org.onosproject.netconf.NetconfSession;
+import org.onosproject.netconf.TargetConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
@@ -35,25 +45,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
 
-import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.auth.password.PasswordAuthenticator;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.onlab.junit.TestTools;
-import org.onlab.packet.Ip4Address;
-import org.onosproject.netconf.TargetConfig;
-import org.onosproject.netconf.NetconfDeviceInfo;
-import org.onosproject.netconf.NetconfException;
-import org.onosproject.netconf.NetconfSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableList;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.*;
+import static org.onosproject.netconf.TargetConfig.CANDIDATE;
+import static org.onosproject.netconf.TargetConfig.RUNNING;
 
 /**
  * Unit tests for NetconfSession.
@@ -61,7 +56,7 @@ import com.google.common.collect.ImmutableList;
  * Sets up an SSH Server with Apache SSHD and connects to it using 2 clients
  * Truly verifies that the NETCONF flows are compliant with a NETCONF server.
  */
-public class NetconfSessionImplTest {
+public class NetconfSessionMinaImplTest {
     private static final Logger log = LoggerFactory
             .getLogger(NetconfStreamThread.class);
 
@@ -132,13 +127,13 @@ public class NetconfSessionImplTest {
         NetconfDeviceInfo deviceInfo = new NetconfDeviceInfo(
                 TEST_USERNAME, TEST_PASSWORD, Ip4Address.valueOf(TEST_HOSTNAME), PORT_NUMBER);
 
-        session1 = new NetconfSessionImpl(deviceInfo);
+        session1 = new NetconfSessionMinaImpl(deviceInfo);
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session1.getSessionId());
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session1.getSessionId().equalsIgnoreCase("0"));
         assertThat(session1.getDeviceCapabilitiesSet(), containsInAnyOrder(DEFAULT_CAPABILITIES.toArray()));
 
-        session2 = new NetconfSessionImpl(deviceInfo);
+        session2 = new NetconfSessionMinaImpl(deviceInfo);
         log.info("Started NETCONF Session {} with test SSHD server in Unit Test", session2.getSessionId());
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("-1"));
         assertTrue("Incorrect sessionId", !session2.getSessionId().equalsIgnoreCase("0"));
