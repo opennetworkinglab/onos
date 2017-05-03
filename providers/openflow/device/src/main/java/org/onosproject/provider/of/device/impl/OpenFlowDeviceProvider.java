@@ -44,6 +44,7 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.Port;
+import org.onosproject.net.Port.Type;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.LambdaQuery;
@@ -101,6 +102,7 @@ import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
+import org.projectfloodlight.openflow.protocol.ver14.OFOpticalPortFeaturesSerializerVer14;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
@@ -588,11 +590,20 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 case FIBER_SWITCH:
                     opsw = (OpenFlowOpticalSwitch) sw;
                     opsw.getPortTypes().forEach(type -> {
-                        opsw.getPortsOf(type).forEach(
-                                op -> {
-                                    portDescs.add(buildPortDescription((OFCalientPortDescStatsEntry) op));
-                                }
-                        );
+                        opsw.getPortsOf(type).forEach(op -> {
+                            if (op instanceof OFPortDesc) {
+                                // ports using standard optical extension
+                                // TODO OFMessage -> PortDescription should
+                                // probably be a Behaviour
+                                portDescs.add(oms(buildPortDescription((OFPortDesc) op)));
+                            } else if (op instanceof OFCalientPortDescStatsEntry) {
+                                // calient extension
+                                portDescs.add(buildPortDescription((OFCalientPortDescStatsEntry) op));
+                            } else {
+                                LOG.warn("Unexpected FIBER_SWITCH port {} on {}",
+                                         op, sw.getStringId());
+                            }
+                        });
                     });
                     break;
                 default:
@@ -600,6 +611,41 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
 
             return portDescs;
+        }
+
+        /**
+         * Ensures returned PortDescription is an OMS port.
+         *
+         * @param descr input PortDescription
+         * @return OMS PortDescription
+         */
+        private PortDescription oms(PortDescription descr) {
+            // Hack until OFMessage -> PortDescription transformation
+            // becomes a Behaviour
+            if (descr.type() == Type.OMS) {
+                return descr;
+            }
+
+            Builder builder = DefaultAnnotations.builder();
+            builder.putAll(descr.annotations());
+
+            // set reasonable default when mandatory key is missing
+            if (Strings.isNullOrEmpty(descr.annotations().value(AK_MIN_FREQ_HZ))) {
+                builder.set(AK_MIN_FREQ_HZ, String.valueOf(Spectrum.O_BAND_MIN.asHz()));
+            }
+
+            if (Strings.isNullOrEmpty(descr.annotations().value(AK_MAX_FREQ_HZ))) {
+                builder.set(AK_MAX_FREQ_HZ, String.valueOf(Spectrum.O_BAND_MAX.asHz()));
+            }
+
+            if (Strings.isNullOrEmpty(descr.annotations().value(AK_GRID_HZ))) {
+                builder.set(AK_GRID_HZ, String.valueOf(Frequency.ofGHz(50).asHz()));
+            }
+
+            return DefaultPortDescription.builder(descr)
+                    .type(Type.OMS)
+                    .annotations(builder.build())
+                    .build();
         }
 
         private PortDescription buildOduCltPortDescription(OFPortDesc port) {
@@ -764,6 +810,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             return Long.toString(freqMhz * 1_000_000);
         }
 
+        private String lambdaToAnnotationHz(long lambda) {
+            // ref. OF1.5: wavelength (lambda) as nm * 100
+
+            long c = 299792458; // speed of light in m/s
+            // f = c / λ
+            // (m/s) * (nm/m) / (nm * 100) * 100
+            // annotations is in Hz
+            return Long.toString(c * 1_000_000_000 / lambda * 100);
+        }
+
         private PortDescription buildPortDescription14(OFPortDesc port) {
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
             boolean enabled =
@@ -793,10 +849,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (optical.isPresent()) {
                 // optical port
 
-                // FIXME is there a generic way to access OFOpticalPortFeaturesSerializerVer14
+                // FIXME is there a OF version neutral way to access
+                // OFOpticalPortFeaturesSerializerVer14
 
                 // wire value for OFOpticalPortFeatures.USE_FREQ
-                final long useFreq = 0x8;
+                long useFreq = OFOpticalPortFeaturesSerializerVer14.USE_FREQ_VAL;
                 if ((optical.get().getSupported() & useFreq) != 0) {
                     // unit is in Frequency Mhz
                     long rxMinFreq = optical.get().getRxMinFreqLmda();
@@ -823,8 +880,28 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
                 } else {
                     // unit is in Lambda nm * 100
-                    // TODO implement
-                    LOG.trace("Optical parameter specified in Lambda not supported yet", portNo);
+                    long rxMin = optical.get().getRxMinFreqLmda();
+                    long rxMax = optical.get().getRxMaxFreqLmda();
+                    long txMin = optical.get().getTxMinFreqLmda();
+                    long txMax = optical.get().getTxMaxFreqLmda();
+
+                    annotations.set(AK_RX_MIN_FREQ_HZ, lambdaToAnnotationHz(rxMin));
+                    annotations.set(AK_RX_MAX_FREQ_HZ, lambdaToAnnotationHz(rxMax));
+
+                    annotations.set(AK_TX_MIN_FREQ_HZ, lambdaToAnnotationHz(txMin));
+                    annotations.set(AK_TX_MAX_FREQ_HZ, lambdaToAnnotationHz(txMax));
+
+                    // FIXME pretty confident this is not going to happen
+                    // unless Device models Tx/Rx ports as separate port
+                    if (rxMin == txMin) {
+                        annotations.set(AK_MIN_FREQ_HZ,
+                                        lambdaToAnnotationHz(rxMin));
+                    }
+                    if (rxMax == txMax) {
+                        annotations.set(AK_MAX_FREQ_HZ,
+                                        lambdaToAnnotationHz(rxMax));
+                    }
+
                 }
                 // TODO parse other part of OFPortDescPropOptical
                 // Tx/Rx tunable, ...
@@ -968,7 +1045,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             // S160 data sheet
             // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch
             return omsPortDescription(portNo, enabled,
-                    Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(100), annotations);
+                    Spectrum.O_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(50), annotations);
         }
 
         private PortDescription buildPortDescription(OFPortStatus status) {
