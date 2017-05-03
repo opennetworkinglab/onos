@@ -43,6 +43,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingException;
 import org.onosproject.store.cluster.messaging.MessagingService;
 
 import static org.junit.Assert.assertEquals;
@@ -60,8 +61,8 @@ public class CopycatTransportTest {
     private Endpoint endpoint1 = new Endpoint(IpAddress.valueOf(IP_STRING), 5001);
     private Endpoint endpoint2 = new Endpoint(IpAddress.valueOf(IP_STRING), 5002);
 
-    private MessagingService service1;
-    private MessagingService service2;
+    private TestMessagingService clientService;
+    private TestMessagingService serverService;
 
     private Transport clientTransport;
     private ThreadContext clientContext;
@@ -74,13 +75,13 @@ public class CopycatTransportTest {
         Map<Endpoint, TestMessagingService> services = new ConcurrentHashMap<>();
 
         endpoint1 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5001));
-        service1 = new TestMessagingService(endpoint1, services);
-        clientTransport = new CopycatTransport(PartitionId.from(1), service1);
+        clientService = new TestMessagingService(endpoint1, services);
+        clientTransport = new CopycatTransport(PartitionId.from(1), clientService);
         clientContext = new SingleThreadContext("client-test-%d", CatalystSerializers.getSerializer());
 
         endpoint2 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5003));
-        service2 = new TestMessagingService(endpoint2, services);
-        serverTransport = new CopycatTransport(PartitionId.from(1), service2);
+        serverService = new TestMessagingService(endpoint2, services);
+        serverTransport = new CopycatTransport(PartitionId.from(1), serverService);
         serverContext = new SingleThreadContext("server-test-%d", CatalystSerializers.getSerializer());
     }
 
@@ -244,6 +245,41 @@ public class CopycatTransportTest {
     }
 
     /**
+     * Tests that a client connection is closed on exception.
+     */
+    @Test
+    public void testCopycatClientConnectionCloseOnException() throws Exception {
+        Client client = clientTransport.client();
+        Server server = serverTransport.server();
+
+        CountDownLatch listenLatch = new CountDownLatch(1);
+        CountDownLatch closeLatch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
+        serverContext.executor().execute(() -> {
+            server.listen(new Address(IP_STRING, endpoint2.port()), connection -> {
+                serverContext.checkThread();
+            }).thenRun(listenLatch::countDown);
+        });
+
+        listenLatch.await(5, TimeUnit.SECONDS);
+
+        clientContext.executor().execute(() -> {
+            client.connect(new Address(IP_STRING, endpoint2.port())).thenAccept(connection -> {
+                clientContext.checkThread();
+                serverService.handlers.clear();
+                connection.onClose(c -> latch.countDown());
+                connection.<ConnectRequest, ConnectResponse>sendAndReceive(ConnectRequest.builder()
+                        .withClientId(UUID.randomUUID().toString())
+                        .build())
+                        .thenAccept(response -> fail());
+            });
+        });
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals(0, latch.getCount());
+    }
+
+    /**
      * Tests closing the server side of a Copycat connection.
      */
     @Test
@@ -286,6 +322,49 @@ public class CopycatTransportTest {
     }
 
     /**
+     * Tests that a server connection is closed on exception.
+     */
+    @Test
+    public void testCopycatServerConnectionCloseOnException() throws Exception {
+        Client client = clientTransport.client();
+        Server server = serverTransport.server();
+
+        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch listenLatch = new CountDownLatch(1);
+        CountDownLatch connectLatch = new CountDownLatch(1);
+        serverContext.executor().execute(() -> {
+            server.listen(new Address(IP_STRING, endpoint2.port()), connection -> {
+                serverContext.checkThread();
+                serverContext.executor().execute(() -> {
+                    try {
+                        connectLatch.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                    clientService.handlers.clear();
+                    connection.onClose(c -> latch.countDown());
+                    connection.<ConnectRequest, ConnectResponse>sendAndReceive(ConnectRequest.builder()
+                            .withClientId("foo")
+                            .build())
+                            .thenAccept(response -> fail());
+                });
+            }).thenRun(listenLatch::countDown);
+        });
+
+        listenLatch.await(5, TimeUnit.SECONDS);
+
+        clientContext.executor().execute(() -> {
+            client.connect(new Address(IP_STRING, endpoint2.port())).thenAccept(connection -> {
+                clientContext.checkThread();
+                connectLatch.countDown();
+            });
+        });
+
+        latch.await(5, TimeUnit.SECONDS);
+        assertEquals(0, latch.getCount());
+    }
+
+    /**
      * Custom implementation of {@code MessagingService} used for testing. Really, this should
      * be mocked but suffices for now.
      */
@@ -304,7 +383,7 @@ public class CopycatTransportTest {
         private CompletableFuture<byte[]> handle(Endpoint ep, String type, byte[] message, Executor executor) {
             BiFunction<Endpoint, byte[], CompletableFuture<byte[]>> handler = handlers.get(type);
             if (handler == null) {
-                return Tools.exceptionalFuture(new IllegalStateException());
+                return Tools.exceptionalFuture(new MessagingException.NoRemoteHandler());
             }
             return handler.apply(ep, message).thenApplyAsync(r -> r, executor);
         }
