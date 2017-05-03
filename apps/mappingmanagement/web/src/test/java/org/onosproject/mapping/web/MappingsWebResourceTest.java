@@ -101,6 +101,7 @@ public class MappingsWebResourceTest extends ResourceTest {
     private static final int DIFF_VALUE = 99;
 
     private static final String ID = "id";
+    private static final String DATABASE = "database";
 
     private static final String PREFIX = "mappings";
 
@@ -412,7 +413,7 @@ public class MappingsWebResourceTest extends ResourceTest {
                 .andReturn(null).anyTimes();
         replay(mockMappingService);
         final WebTarget wt = target();
-        final String response = wt.path(PREFIX + "/db").request().get(String.class);
+        final String response = wt.path(PREFIX + "/" + DATABASE).request().get(String.class);
         assertThat(response, is("{\"mappings\":[]}"));
     }
 
@@ -426,7 +427,7 @@ public class MappingsWebResourceTest extends ResourceTest {
                 .andReturn(mappingEntries).once();
         replay(mockMappingService);
         final WebTarget wt = target();
-        final String response = wt.path(PREFIX + "/db").request().get(String.class);
+        final String response = wt.path(PREFIX + "/" + DATABASE).request().get(String.class);
         final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
@@ -453,7 +454,7 @@ public class MappingsWebResourceTest extends ResourceTest {
         replay(mockMappingService);
 
         final WebTarget wt = target();
-        final String response = wt.path(PREFIX + "/" + deviceId1 + "/db")
+        final String response = wt.path(PREFIX + "/" + deviceId1 + "/" + DATABASE)
                 .request().get(String.class);
         assertThat(response, is("{\"mappings\":[]}"));
     }
@@ -472,7 +473,7 @@ public class MappingsWebResourceTest extends ResourceTest {
         replay(mockMappingService);
 
         final WebTarget wt = target();
-        final String response = wt.path(PREFIX + "/" + deviceId2 + "/db")
+        final String response = wt.path(PREFIX + "/" + deviceId2 + "/" + DATABASE)
                 .request().get(String.class);
 
         final JsonObject result = Json.parse(response).asObject();

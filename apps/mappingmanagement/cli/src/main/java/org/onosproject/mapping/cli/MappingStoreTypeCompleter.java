@@ -16,6 +16,7 @@
 package org.onosproject.mapping.cli;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang3.StringUtils;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.mapping.MappingStore.Type;
 
@@ -29,10 +30,16 @@ public class MappingStoreTypeCompleter extends AbstractChoicesCompleter {
 
     private static final List<Type> STORE_TYPES =
             ImmutableList.of(Type.MAP_CACHE, Type.MAP_DATABASE);
+    private static final String MAP_PREFIX = "map_";
 
     @Override
     protected List<String> choices() {
         return STORE_TYPES.stream().map(type ->
-                type.toString().toLowerCase()).collect(Collectors.toList());
+                removeMapPrefix(type.toString().toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    private String removeMapPrefix(String type) {
+        return StringUtils.replaceAll(type, MAP_PREFIX, "");
     }
 }

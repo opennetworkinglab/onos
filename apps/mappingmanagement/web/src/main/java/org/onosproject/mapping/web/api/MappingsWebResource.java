@@ -44,7 +44,7 @@ public class MappingsWebResource extends AbstractWebResource {
     private static final String TYPE_ILLEGAL = "Mapping store type is not correct";
     private static final String MAPPINGS = "mappings";
 
-    private static final String DB = "db";
+    private static final String DB = "database";
     private static final String CACHE = "cache";
 
     private final MappingService mappingService = get(MappingService.class);
@@ -83,8 +83,9 @@ public class MappingsWebResource extends AbstractWebResource {
      * specified device.
      *
      * @param deviceId device identifier
-     * @param type mapping store type
+     * @param type     mapping store type
      * @return 200 OK with a collection of mappings of given device
+     *
      * @onos.rsModel MappingEntries
      */
     @GET

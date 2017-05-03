@@ -44,8 +44,8 @@ import static com.google.common.collect.Lists.newArrayList;
         description = "Lists mappings")
 public class MappingsListCommand extends AbstractShellCommand {
 
-    private static final String DB = "map_database";
-    private static final String CACHE = "map_cache";
+    private static final String DB = "database";
+    private static final String CACHE = "cache";
 
     private static final String SUMMARY_FORMAT = "deviceId=%s, mappingCount=%d";
     private static final String MAPPING_ID_FORMAT = "  id=%s";
@@ -58,6 +58,9 @@ public class MappingsListCommand extends AbstractShellCommand {
             "      address=%s, instructions=%s";
     private static final String MAPPING_TREATMENT_SHORT_FORMAT = "      %s";
     private static final String JSON_FORMAT = "%s";
+
+    private static final String TYPE_NOT_NULL = "Mapping store type should not be null";
+    private static final String TYPE_ILLEGAL = "Mapping store type is not correct";
 
     @Argument(index = 0, name = "type",
             description = "Shows mappings with specified type",
@@ -80,13 +83,7 @@ public class MappingsListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
 
-        MappingStore.Type typeEnum = null;
-
-        if (type.equals(DB)) {
-            typeEnum = MappingStore.Type.MAP_DATABASE;
-        } else if (type.equals(CACHE)) {
-            typeEnum = MappingStore.Type.MAP_CACHE;
-        }
+        MappingStore.Type typeEnum = getTypeEnum(type);
 
         DeviceService deviceService = get(DeviceService.class);
         Iterable<Device> devices = deviceService.getDevices();
@@ -180,6 +177,29 @@ public class MappingsListCommand extends AbstractShellCommand {
                 print(MAPPING_TREATMENT_LONG_FORMAT, treatment.address(),
                         treatment.instructions());
             }
+        }
+    }
+
+    /**
+     * Returns corresponding type enumeration based on the given
+     * string formatted type.
+     *
+     * @param type string formatted type
+     * @return type enumeration
+     */
+    private MappingStore.Type getTypeEnum(String type) {
+
+        if (type == null) {
+            throw new IllegalArgumentException(TYPE_NOT_NULL);
+        }
+
+        switch (type) {
+            case DB:
+                return MappingStore.Type.MAP_DATABASE;
+            case CACHE:
+                return MappingStore.Type.MAP_CACHE;
+            default:
+                throw new IllegalArgumentException(TYPE_ILLEGAL);
         }
     }
 
