@@ -19,7 +19,6 @@ package org.onosproject.incubator.net.virtual.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
@@ -55,6 +54,8 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.ProviderId;
@@ -68,8 +69,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class VirtualNetworkFlowObjectiveManagerTest
         extends VirtualNetworkTestUtil {
-
-    private static final int RETRY_MS = 250;
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
@@ -159,16 +158,17 @@ public class VirtualNetworkFlowObjectiveManagerTest
                         .withSelector(selector)
                         .withTreatment(treatment)
                         .makePermanent()
-                        .add();
+                        .add(new ObjectiveContext() {
+                            @Override
+                            public void onSuccess(Objective objective) {
+                                assertEquals("1 flowrule entry expected",
+                                             1, flowRuleStore.getFlowRuleCount(vnet1.id()));
+                                assertEquals("0 flowrule entry expected",
+                                             0, flowRuleStore.getFlowRuleCount(vnet2.id()));
+                            }
+                        });
 
         service1.forward(VDID1, forward);
-
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("1 flowrule entry expected",
-                             1, flowRuleStore.getFlowRuleCount(vnet1.id())));
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("0 flowrule entry expected",
-                             0, flowRuleStore.getFlowRuleCount(vnet2.id())));
     }
 
     /**
@@ -183,16 +183,17 @@ public class VirtualNetworkFlowObjectiveManagerTest
                 .addTreatment(treatment)
                 .withType(NextObjective.Type.BROADCAST)
                 .makePermanent()
-                .add();
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        assertEquals("1 next map entry expected",
+                                     1, service1.getNextMappings().size());
+                        assertEquals("0 next map entry expected",
+                                     0, service2.getNextMappings().size());
+                    }
+                });
 
         service1.next(VDID1, nextObjective);
-
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("1 next map entry expected",
-                             1, service1.getNextMappings().size()));
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("0 next map entry expected",
-                             0, service2.getNextMappings().size()));
     }
 
     /**
@@ -208,16 +209,20 @@ public class VirtualNetworkFlowObjectiveManagerTest
                         .makePermanent()
                         .deny()
                         .addCondition(Criteria.matchEthType(12))
-                        .add();
+                        .add(new ObjectiveContext() {
+                            @Override
+                            public void onSuccess(Objective objective) {
+                                assertEquals("1 flowrule entry expected",
+                                             1,
+                                             flowRuleStore.getFlowRuleCount(vnet1.id()));
+                                assertEquals("0 flowrule entry expected",
+                                             0,
+                                             flowRuleStore.getFlowRuleCount(vnet2.id()));
+
+                            }
+                        });
 
         service1.filter(VDID1, filter);
-
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("1 flowrule entry expected",
-                             1, flowRuleStore.getFlowRuleCount(vnet1.id())));
-        TestTools.assertAfter(RETRY_MS, () ->
-                assertEquals("0 flowrule entry expected",
-                             0, flowRuleStore.getFlowRuleCount(vnet2.id())));
     }
 
     //TODO: More test cases for filter, foward, and next
