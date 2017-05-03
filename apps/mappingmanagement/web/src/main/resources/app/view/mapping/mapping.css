@@ -18,25 +18,20 @@
  ONOS GUI -- Mapping Management -- CSS file
  */
 
-#ov-mapping {
-    padding: 20px;
-    position: relative;
-}
-.light #ov-mapping {
-    color: navy;
-}
-.dark #ov-mapping {
-    color: #88f;
+#ov-mapping h2 {
+    display: inline-block;
 }
 
-#ov-mapping .button-panel {
-    margin: 10px;
-    width: 200px;
+#ov-mapping div.ctrl-btns {
 }
 
-.light #ov-mapping .button-panel {
-    background-color: #ccf;
+#ov-mapping td {
+    text-align: center;
 }
-.dark #ov-mapping .button-panel {
-    background-color: #444;
+#ov-mapping td.right {
+    text-align: right;
+}
+#ov-mapping td.mappingValue {
+    text-align: left;
+    padding-left: 36px;
 }

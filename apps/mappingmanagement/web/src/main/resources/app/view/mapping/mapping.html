@@ -1,3 +1,77 @@
 <!-- partial HTML -->
 <div id="ov-mapping">
+    <div class="tabular-header">
+        <h2>
+            Mappings for Device {{devId || "(No device selected)"}}
+            ({{tableData.length}} total)
+        </h2>
+
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-size="42" icon-id="refresh"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+
+            <div class="separator"></div>
+
+            <span ng-if="brief">
+            <div class="active"
+                 icon icon-id="plus" icon-size="42"
+                 tooltip tt-msg="detailTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <span ng-if="!brief">
+            <div class="active"
+                 icon icon-id="minus" icon-size="42"
+                 tooltip tt-msg="briefTip"
+                 ng-click="briefToggle()"> </div>
+            </span>
+
+            <div class="separator"></div>
+
+            <div class="active"
+                 icon icon-id="deviceTable" icon-size="42"
+                 tooltip tt-msg="deviceTip"
+                 ng-click="nav('device')"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="id" col-width="180px" sortable>Mapping ID </td>
+                    <td colId="type" sortable>Type </td>
+                    <td colId="state" sortable>State </td>
+                    <td colId="mappingKey" sortable>Mapping Key </td>
+                    <td colId="mappingAction" sortable>Mapping Action </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table onos-flash-changes id-prop="id">
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="5">
+                        {{annots.no_rows_msg}}
+                    </td>
+                </tr>
+
+                <tr ng-repeat-start="mapping in tableData | filter:queryFilter track by $index"
+                    ng-click="selectCallback($event, mapping)"
+                    ng-class="{selected: mapping.id === selId}"
+                    ng-repeat-complete row-id="{{mapping.id}}">
+                    <td>{{mapping.id}}</td>
+                    <td>{{mapping.type}}</td>
+                    <td>{{mapping.state}}</td>
+                    <td>{{mapping.mappingKey}}</td>
+                    <td>{{mapping.mappingAction}}</td>
+                </tr>
+                <tr row-id="{{mapping.id}}" ng-repeat-end ng-hide="brief">
+                    <td class="mappingValue" colspan="5">{{mapping.mappingValue}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>

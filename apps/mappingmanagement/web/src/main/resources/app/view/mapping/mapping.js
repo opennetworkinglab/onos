@@ -21,17 +21,30 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location;
+    var $log, $scope, $location, tbs;
 
     angular.module('ovMapping', [])
         .controller('OvMappingCtrl',
-        ['$log', '$scope', '$location',
+        ['$log', '$scope', '$location', 'TableBuilderService',
 
-        function (_$log_, _$scope_, _$location_) {
+        function (_$log_, _$scope_, _$location_, _tbs_) {
             var params;
+
             $log = _$log_;
             $scope = _$scope_;
             $location = _$location_;
+            tbs = _tbs_;
+
+            params = $location.search();
+            if (params.hasOwnProperty('devId')) {
+                $scope.devId = params['devId'];
+            }
+
+            tbs.buildTable({
+                scope: $scope,
+                tag: 'mapping',
+                query: params
+             });
 
             $log.log('OvMappingCtrl has been created');
         }]);
