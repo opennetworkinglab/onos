@@ -50,7 +50,9 @@
         <module>lisp</module>
         <module>ospf</module>
         <module>link</module>
+        <!-- Currently does not build
         <module>ietfte</module>
+        -->
         <module>tl1</module>
     </modules>
 

@@ -36,24 +36,10 @@
     <description>RESTCONF Service Module main Application</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-restconf-server-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-restconf-server-restconfmanager</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-restconf-server-rpp</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-restconf-server-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

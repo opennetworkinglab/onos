@@ -82,13 +82,13 @@
         <module>tetunnel</module>
         <module>actn-mdsc</module>
         <module>config</module>
-        <module>restconf</module>
         <module>ofagent</module>
         <module>intentsync</module>
         <module>mappingmanagement</module>
         <module>yang</module>
         <module>network-troubleshoot</module>
         <module>l3vpn</module>
+        <module>restconf</module>
     </modules>
 
     <properties>
