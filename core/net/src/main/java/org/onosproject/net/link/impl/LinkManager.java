@@ -336,7 +336,7 @@ public class LinkManager
         @Override
         public void event(NetworkConfigEvent event) {
             LinkKey lk = (LinkKey) event.subject();
-            BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
+            BasicLinkConfig cfg = (BasicLinkConfig) event.config().get();
 
             log.debug("Detected link network config event {}", event.type());
 
