@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.ClusterMetadataServiceAdapter;
@@ -658,7 +659,7 @@ public class LldpLinkProviderTest {
 
             Ethernet ethPacket = new Ethernet();
             ethPacket.setEtherType(Ethernet.TYPE_LLDP);
-            ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_ONLAB);
+            ethPacket.setDestinationMACAddress(MacAddress.ONOS_LLDP);
             ethPacket.setPayload(lldp);
             ethPacket.setPad(true);
 

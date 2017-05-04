@@ -15,7 +15,10 @@
  */
 package org.onlab.packet;
 
+import com.google.common.collect.Sets;
+
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * The class representing MAC address.
@@ -24,8 +27,17 @@ public class MacAddress {
 
     /**
      * Dummy MAC address.
+     * We use the first MAC address in ONOS OUI range as a dummy MAC address.
      */
-    public static final MacAddress NONE = valueOf("a4:23:05:00:00:00");
+    public static final MacAddress NONE = MacAddress.ONOS;
+    /**
+     * First MAC address in ONOS OUI range.
+     */
+    public static final MacAddress ONOS = valueOf("a4:23:05:00:00:00");
+    /**
+     * ONOS LLDP MAC address with multicast bit set.
+     */
+    public static final MacAddress ONOS_LLDP = valueOf("a5:23:05:00:00:01");
     /**
      * All-zero MAC address.
      */
@@ -42,11 +54,13 @@ public class MacAddress {
      * IPv4 multicast MAC mask.
      */
     public static final MacAddress IPV4_MULTICAST_MASK = valueOf("ff:ff:ff:80:00:00");
-
-    private static final byte[] LL = new byte[]{
-            0x01, (byte) 0x80, (byte) 0xc2, 0x00, 0x00,
-            0x00, 0x0e, 0x03
-    };
+    /**
+     * A set of LLDP MAC addresses.
+     */
+    public static final Set<MacAddress> LLDP = Sets.newHashSet(
+            MacAddress.valueOf("01:80:c2:00:00:00"),
+            MacAddress.valueOf("01:80:c2:00:00:03"),
+            MacAddress.valueOf("01:80:c2:00:00:0e"));
 
     public static final int MAC_ADDRESS_LENGTH = 6;
     private byte[] address = new byte[MacAddress.MAC_ADDRESS_LENGTH];
@@ -183,11 +197,40 @@ public class MacAddress {
      * Returns true if this MAC address is link local.
      *
      * @return true if link local
+     * @deprecated in Kingfisher release. Link local is not a correct description for
+     *             this MAC address. Replaced with {@link #isLldp()}
      */
+    @Deprecated
     public boolean isLinkLocal() {
-        return LL[0] == address[0] && LL[1] == address[1] && LL[2] == address[2] &&
-                LL[3] == address[3] && LL[4] == address[4] &&
-                (LL[5] == address[5] || LL[6] == address[5] || LL[7] == address[5]);
+        return isLldp();
+    }
+
+    /**
+     * Returns true if this MAC address is used by link layer discovery protocol.
+     *
+     * @return true if this MAC is LLDP MAC.
+     */
+    public boolean isLldp() {
+        return LLDP.contains(this);
+    }
+
+    /**
+     * Returns true if the Organizationally Unique Identifier (OUI) of this MAC
+     * address matches ONOS OUI.
+     *
+     * @return true if the OUI of this MAC address matches ONOS OUI.
+     */
+    public boolean isOnos() {
+        return Arrays.equals(this.oui(), ONOS.oui());
+    }
+
+    /**
+     * Returns the Organizationally Unique Identifier (OUI) of this MAC address.
+     *
+     * @return the OUI of this MAC address.
+     */
+    public byte[] oui() {
+        return Arrays.copyOfRange(this.address, 0, 3);
     }
 
     @Override

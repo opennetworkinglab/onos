@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;
 import org.onosproject.net.ConnectPoint;
@@ -82,12 +83,12 @@ public class LinkDiscovery implements TimerTask {
 
         ethPacket = new Ethernet();
         ethPacket.setEtherType(Ethernet.TYPE_LLDP);
-        ethPacket.setDestinationMACAddress(ONOSLLDP.LLDP_ONLAB);
+        ethPacket.setDestinationMACAddress(MacAddress.ONOS_LLDP);
         ethPacket.setPad(true);
 
         bddpEth = new Ethernet();
         bddpEth.setEtherType(Ethernet.TYPE_BSN);
-        bddpEth.setDestinationMACAddress(ONOSLLDP.BDDP_MULTICAST);
+        bddpEth.setDestinationMACAddress(MacAddress.BROADCAST);
         bddpEth.setPad(true);
 
         isStopped = true;

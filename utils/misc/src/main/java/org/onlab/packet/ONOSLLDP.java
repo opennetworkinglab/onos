@@ -30,13 +30,31 @@ import static org.onlab.packet.LLDPOrganizationalTLV.SUBTYPE_LENGTH;
  *  ONOS LLDP containing organizational TLV for ONOS device discovery.
  */
 public class ONOSLLDP extends LLDP {
-
+    /**
+     * ONOS OUI.
+     *
+     * @deprecated in Kingfisher. Use MacAddress.ONOS.oui() instead.
+     */
+    @Deprecated
     public static final byte[] ONLAB_OUI = {(byte) 0xa4, 0x23, 0x05};
+
     public static final String DEFAULT_DEVICE = "INVALID";
     public static final String DEFAULT_NAME = "ONOS Discovery";
 
-    // ON.Lab OUI (a42305) with multicast bit set
+    /**
+     * ONOS LLDP multicast MAC address.
+     *
+     * @deprecated in Kingfisher. Use MacAddress.ONOS_LLDP instead.
+     */
+    @Deprecated
     public static final byte[] LLDP_ONLAB = {(byte) 0xa5, 0x23, 0x05, 0x00, 0x00, 0x01};
+
+    /**
+     * ONOS BDDP broadcast MAC address.
+     *
+     * @deprecated in Kingfisher. Use MacAddress.BROADCASAT instead.
+     */
+    @Deprecated
     public static final byte[] BDDP_MULTICAST = {(byte) 0xff, (byte) 0xff,
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
 
@@ -95,7 +113,7 @@ public class ONOSLLDP extends LLDP {
         nametlv.setLength((short) (name.length() + NAME_LENGTH));
         nametlv.setInfoString(name);
         nametlv.setSubType(NAME_SUBTYPE);
-        nametlv.setOUI(ONLAB_OUI);
+        nametlv.setOUI(MacAddress.ONOS.oui());
     }
 
     public void setDevice(String device) {
@@ -103,7 +121,7 @@ public class ONOSLLDP extends LLDP {
         devicetlv.setInfoString(device);
         devicetlv.setLength((short) (device.length() + DEVICE_LENGTH));
         devicetlv.setSubType(DEVICE_SUBTYPE);
-        devicetlv.setOUI(ONLAB_OUI);
+        devicetlv.setOUI(MacAddress.ONOS.oui());
     }
 
     public void setDomainInfo(String domainId) {
@@ -115,7 +133,7 @@ public class ONOSLLDP extends LLDP {
         domaintlv.setInfoString(domainId);
         domaintlv.setLength((short) (domainId.length() + DOMAIN_LENGTH));
         domaintlv.setSubType(DOMAIN_SUBTYPE);
-        domaintlv.setOUI(ONLAB_OUI);
+        domaintlv.setOUI(MacAddress.ONOS.oui());
     }
 
     public void setChassisId(final ChassisId chassisId) {

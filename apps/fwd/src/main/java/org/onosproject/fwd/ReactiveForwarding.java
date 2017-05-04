@@ -468,8 +468,8 @@ public class ReactiveForwarding {
 
             HostId id = HostId.hostId(ethPkt.getDestinationMAC());
 
-            // Do not process link-local addresses in any way.
-            if (id.mac().isLinkLocal()) {
+            // Do not process LLDP MAC address in any way.
+            if (id.mac().isLldp()) {
                 droppedPacket(macMetrics);
                 return;
             }
