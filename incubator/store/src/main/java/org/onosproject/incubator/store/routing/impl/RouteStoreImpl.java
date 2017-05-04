@@ -46,8 +46,6 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * An implementation of RouteStore that is backed by either LocalRouteStore or
  * DistributedRouteStore according to configuration.
@@ -70,19 +68,25 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     private final Logger log = LoggerFactory.getLogger(getClass());
     private RouteStore currentRouteStore;
 
+    private DistributedRouteStore distributedRouteStore;
+    private LocalRouteStore localRouteStore;
+
     @Activate
     public void activate(ComponentContext context) {
+        distributedRouteStore = new DistributedRouteStore(storageService);
+        distributedRouteStore.activate();
+        localRouteStore = new LocalRouteStore();
+        localRouteStore.activate();
+
         componentConfigService.registerProperties(getClass());
         modified(context);
     }
 
     @Deactivate
     public void deactivate() {
-        if (distributed) {
-            ((DistributedRouteStore) currentRouteStore).deactivate();
-        } else {
-            ((LocalRouteStore) currentRouteStore).deactivate();
-        }
+        localRouteStore.deactivate();
+        distributedRouteStore.deactivate();
+
         componentConfigService.unregisterProperties(getClass(), false);
     }
 
@@ -100,19 +104,9 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
         // NOTE: new route store will be empty
         if (currentRouteStore == null || expectDistributed != distributed) {
             if (expectDistributed) {
-                if (currentRouteStore != null) {
-                    ((LocalRouteStore) currentRouteStore).deactivate();
-                }
-                currentRouteStore = new DistributedRouteStore(storageService);
-                ((DistributedRouteStore) currentRouteStore).activate();
-                ((DistributedRouteStore) currentRouteStore).setDelegate(delegate);
+                currentRouteStore = distributedRouteStore;
             } else {
-                if (currentRouteStore != null) {
-                    ((DistributedRouteStore) currentRouteStore).deactivate();
-                }
-                currentRouteStore = new LocalRouteStore();
-                ((LocalRouteStore) currentRouteStore).activate();
-                ((LocalRouteStore) currentRouteStore).setDelegate(delegate);
+                currentRouteStore = localRouteStore;
             }
 
             this.distributed = expectDistributed;
@@ -123,22 +117,20 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
 
     @Override
     public void setDelegate(RouteStoreDelegate delegate) {
-        checkState(this.delegate == null || this.delegate == delegate,
-                "Store delegate already set");
-        this.delegate = delegate;
+        super.setDelegate(delegate);
 
-        // Set the delegate of underlying route store implementation
-        currentRouteStore.setDelegate(delegate);
+        // Set the delegate of underlying route store implementations
+        localRouteStore.setDelegate(delegate);
+        distributedRouteStore.setDelegate(delegate);
     }
 
     @Override
     public void unsetDelegate(RouteStoreDelegate delegate) {
-        if (this.delegate == delegate) {
-            this.delegate = null;
-        }
+        super.unsetDelegate(delegate);
 
-        // Unset the delegate of underlying route store implementation
-        currentRouteStore.unsetDelegate(delegate);
+        // Unset the delegate of underlying route store implementations
+        localRouteStore.unsetDelegate(delegate);
+        distributedRouteStore.unsetDelegate(delegate);
     }
 
     @Override
