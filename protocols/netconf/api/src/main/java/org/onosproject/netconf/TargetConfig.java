@@ -16,9 +16,12 @@
 
 package org.onosproject.netconf;
 
-// TODO Revisit if we this class should be Enum.
-// According to NETCONF RFC,
-// various additional configuration datastores may be defined by capabilities.
+/**
+ * @deprecated in 1.10.0 use TargetConfiguration instead
+ * According to NETCONF RFC,
+ * various additional configuration datastores may be defined by capabilities.
+ */
+@Deprecated
 public enum TargetConfig {
     RUNNING("running"),
     CANDIDATE("candidate"),
@@ -32,6 +35,23 @@ public enum TargetConfig {
 
     public static TargetConfig toTargetConfig(String targetConfig) {
         return valueOf(targetConfig.toUpperCase());
+    }
+
+    public static DatastoreId toDatastoreId(String cfg) {
+        return toDatastoreId(toTargetConfig(cfg));
+    }
+
+    public static DatastoreId toDatastoreId(TargetConfig cfg) {
+        switch (cfg) {
+        case CANDIDATE:
+            return DatastoreId.CANDIDATE;
+        case RUNNING:
+            return DatastoreId.RUNNING;
+        case STARTUP:
+            return DatastoreId.STARTUP;
+        default:
+            return DatastoreId.datastore(cfg.name);
+        }
     }
 
     @Override

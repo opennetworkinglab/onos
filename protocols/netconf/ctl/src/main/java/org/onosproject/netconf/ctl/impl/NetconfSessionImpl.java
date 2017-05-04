@@ -25,7 +25,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.onosproject.netconf.NetconfSessionFactory;
-import org.onosproject.netconf.TargetConfig;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
@@ -465,22 +465,13 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public String getConfig(TargetConfig netconfTargetConfig) throws NetconfException {
+    public String getConfig(DatastoreId netconfTargetConfig) throws NetconfException {
         return getConfig(netconfTargetConfig, null);
     }
 
     @Override
-    public String getConfig(String netconfTargetConfig) throws NetconfException {
-        return getConfig(TargetConfig.toTargetConfig(netconfTargetConfig));
-    }
-
-    @Override
-    public String getConfig(String netconfTargetConfig, String configurationFilterSchema) throws NetconfException {
-        return getConfig(TargetConfig.toTargetConfig(netconfTargetConfig), configurationFilterSchema);
-    }
-
-    @Override
-    public String getConfig(TargetConfig netconfTargetConfig, String configurationSchema) throws NetconfException {
+    public String getConfig(DatastoreId netconfTargetConfig,
+                            String configurationSchema) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc ");
         rpc.append(MESSAGE_ID_STRING);
@@ -512,13 +503,7 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean editConfig(String netconfTargetConfig, String mode, String newConfiguration)
-            throws NetconfException {
-        return editConfig(TargetConfig.toTargetConfig(netconfTargetConfig), mode, newConfiguration);
-    }
-
-    @Override
-    public boolean editConfig(TargetConfig netconfTargetConfig, String mode, String newConfiguration)
+    public boolean editConfig(DatastoreId netconfTargetConfig, String mode, String newConfiguration)
             throws NetconfException {
         newConfiguration = newConfiguration.trim();
         StringBuilder rpc = new StringBuilder(XML_HEADER);
@@ -550,27 +535,61 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean copyConfig(String netconfTargetConfig, String newConfiguration) throws NetconfException {
-        return copyConfig(TargetConfig.toTargetConfig(netconfTargetConfig), newConfiguration);
+    public boolean copyConfig(DatastoreId destination,
+                              DatastoreId source)
+            throws NetconfException {
+        return bareCopyConfig(destination.asXml(), source.asXml());
     }
 
     @Override
-    public boolean copyConfig(TargetConfig netconfTargetConfig, String newConfiguration)
+    public boolean copyConfig(DatastoreId netconfTargetConfig,
+                              String newConfiguration)
             throws NetconfException {
-        newConfiguration = newConfiguration.trim();
-        if (!newConfiguration.startsWith("<config>")) {
-            newConfiguration = "<config>" + newConfiguration
-                    + "</config>";
+        return bareCopyConfig(netconfTargetConfig.asXml(),
+                              normalizeCopyConfigParam(newConfiguration));
+    }
+
+    @Override
+    public boolean copyConfig(String netconfTargetConfig,
+                              String newConfiguration) throws NetconfException {
+        return bareCopyConfig(normalizeCopyConfigParam(netconfTargetConfig),
+                              normalizeCopyConfigParam(newConfiguration));
+    }
+
+    /**
+     * Normalize String parameter passed to copy-config API.
+     * <p>
+     * Provided for backward compatibility purpose
+     *
+     * @param input passed to copyConfig API
+     * @return XML likely to be suitable for copy-config source or target
+     */
+    private static CharSequence normalizeCopyConfigParam(String input) {
+        input = input.trim();
+        if (input.startsWith("<url")) {
+            return input;
+        } else if (!input.startsWith("<")) {
+            // assume it is a datastore name
+            return DatastoreId.datastore(input).asXml();
+        } else if (!input.startsWith("<config>")) {
+            return "<config>" + input + "</config>";
         }
+        return input;
+    }
+
+    private boolean bareCopyConfig(CharSequence target,
+                                   CharSequence source)
+            throws NetconfException {
+
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append(RPC_OPEN);
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append("<copy-config>");
         rpc.append("<target>");
-        rpc.append("<").append(netconfTargetConfig).append("/>");
+        rpc.append(target);
         rpc.append("</target>");
         rpc.append("<source>");
-        rpc.append(newConfiguration);
+        rpc.append(source);
         rpc.append("</source>");
         rpc.append("</copy-config>");
         rpc.append("</rpc>");
@@ -579,13 +598,8 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean deleteConfig(String netconfTargetConfig) throws NetconfException {
-        return deleteConfig(TargetConfig.toTargetConfig(netconfTargetConfig));
-    }
-
-    @Override
-    public boolean deleteConfig(TargetConfig netconfTargetConfig) throws NetconfException {
-        if (netconfTargetConfig.equals(TargetConfig.RUNNING)) {
+    public boolean deleteConfig(DatastoreId netconfTargetConfig) throws NetconfException {
+        if (netconfTargetConfig.equals(DatastoreId.RUNNING)) {
             log.warn("Target configuration for delete operation can't be \"running\"",
                      netconfTargetConfig);
             return false;
@@ -603,13 +617,13 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean lock(String configType) throws NetconfException {
+    public boolean lock(DatastoreId configType) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         rpc.append("<lock>");
         rpc.append("<target>");
         rpc.append("<");
-        rpc.append(configType);
+        rpc.append(configType.id());
         rpc.append("/>");
         rpc.append("</target>");
         rpc.append("</lock>");
@@ -620,13 +634,13 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public boolean unlock(String configType) throws NetconfException {
+    public boolean unlock(DatastoreId configType) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         rpc.append("<unlock>");
         rpc.append("<target>");
         rpc.append("<");
-        rpc.append(configType);
+        rpc.append(configType.id());
         rpc.append("/>");
         rpc.append("</target>");
         rpc.append("</unlock>");
@@ -634,16 +648,6 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append(ENDPATTERN);
         String unlockReply = sendRequest(rpc.toString());
         return checkReply(unlockReply);
-    }
-
-    @Override
-    public boolean lock() throws NetconfException {
-        return lock("running");
-    }
-
-    @Override
-    public boolean unlock() throws NetconfException {
-        return unlock("running");
     }
 
     @Override

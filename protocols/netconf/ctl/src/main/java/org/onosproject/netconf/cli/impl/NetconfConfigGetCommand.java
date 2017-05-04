@@ -16,6 +16,7 @@
 package org.onosproject.netconf.cli.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.netconf.DatastoreId.datastore;
 
 import java.io.IOException;
 
@@ -26,7 +27,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.TargetConfig;
 
 /**
  * Command that gets the configuration of the specified type from the specified
@@ -42,7 +42,7 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
     String uri = null;
 
     @Argument(index = 1, name = "cfgType",
-              description = "Configuration datastore name (RUNNING, etc.)",
+              description = "Configuration datastore name (running, etc.)",
               required = true, multiValued = false)
     String cfgType = null;
 
@@ -69,7 +69,7 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
         }
 
         try {
-            String res = session.getConfig(TargetConfig.toTargetConfig(cfgType));
+            String res = session.getConfig(datastore(cfgType.toLowerCase()));
             print("%s", res);
         } catch (IOException e) {
             log.error("Configuration could not be retrieved", e);
