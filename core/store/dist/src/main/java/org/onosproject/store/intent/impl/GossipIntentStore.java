@@ -295,13 +295,16 @@ public class GossipIntentStore
         // Remove the intent data from the pending map if the newData is more
         // recent or equal to the existing entry. No matter if it is an acceptable
         // update or not
-        pendingMap.compute(newData.key(), (key, existingValue) -> {
-            if (existingValue == null || !existingValue.version().isNewerThan(newData.version())) {
-                return null;
-            } else {
-                return existingValue;
-            }
-        });
+        Key key = newData.key();
+        IntentData existingValue = pendingMap.get(key);
+
+        if (existingValue == null) {
+            return;
+        }
+
+        if (!existingValue.version().isNewerThan(newData.version())) {
+            pendingMap.remove(key, existingValue);
+        }
     }
 
     private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
