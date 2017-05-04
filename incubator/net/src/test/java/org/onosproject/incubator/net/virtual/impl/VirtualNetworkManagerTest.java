@@ -189,6 +189,18 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
     }
 
     /**
+     * Tests removal of a virtual network twice.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void testRemoveVnetTwice() {
+        manager.registerTenantId(TenantId.tenantId(tenantIdValue1));
+        VirtualNetwork virtualNetwork =
+                manager.createVirtualNetwork(TenantId.tenantId(tenantIdValue1));
+        manager.removeVirtualNetwork(virtualNetwork.id());
+        manager.removeVirtualNetwork(virtualNetwork.id());
+    }
+
+    /**
      * Tests add and remove of virtual networks.
      */
     @Test
@@ -205,10 +217,6 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
             manager.removeVirtualNetwork(virtualNetwork.id());
             assertEquals("The expected virtual network size does not match",
                          --remaining, manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1)).size());
-            // attempt to remove the same virtual network again.
-            manager.removeVirtualNetwork(virtualNetwork.id());
-            assertEquals("The expected virtual network size does not match",
-                         remaining, manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1)).size());
         }
         virtualNetworks = manager.getVirtualNetworks(TenantId.tenantId(tenantIdValue1));
         assertTrue("The virtual network set should be empty.", virtualNetworks.isEmpty());

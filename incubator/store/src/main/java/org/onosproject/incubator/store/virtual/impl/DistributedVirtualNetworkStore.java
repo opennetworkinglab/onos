@@ -353,35 +353,35 @@ public class DistributedVirtualNetworkStore
     @Override
     public void removeNetwork(NetworkId networkId) {
         // Make sure that the virtual network exists before attempting to remove it.
-        if (networkExists(networkId)) {
-            //Remove all the devices of this network
-            Set<VirtualDevice> deviceSet = getDevices(networkId);
-            if (deviceSet != null) {
-                deviceSet.forEach(virtualDevice -> removeDevice(networkId, virtualDevice.id()));
-            }
-            //TODO update both maps in one transaction.
+        checkState(networkExists(networkId), "The network does not exist.");
 
-            VirtualNetwork virtualNetwork = networkIdVirtualNetworkMap.remove(networkId);
-            if (virtualNetwork == null) {
-                return;
-            }
-            TenantId tenantId = virtualNetwork.tenantId();
-
-            Set<NetworkId> networkIdSet = new HashSet<>();
-            tenantIdNetworkIdSetMap.get(tenantId).forEach(networkId1 -> {
-                if (networkId1.id().equals(networkId.id())) {
-                    networkIdSet.add(networkId1);
-                }
-            });
-
-            tenantIdNetworkIdSetMap.compute(virtualNetwork.tenantId(), (id, existingNetworkIds) -> {
-                if (existingNetworkIds == null || existingNetworkIds.isEmpty()) {
-                    return new HashSet<>();
-                } else {
-                    return new HashSet<>(Sets.difference(existingNetworkIds, networkIdSet));
-                }
-            });
+        //Remove all the devices of this network
+        Set<VirtualDevice> deviceSet = getDevices(networkId);
+        if (deviceSet != null) {
+            deviceSet.forEach(virtualDevice -> removeDevice(networkId, virtualDevice.id()));
         }
+        //TODO update both maps in one transaction.
+
+        VirtualNetwork virtualNetwork = networkIdVirtualNetworkMap.remove(networkId);
+        if (virtualNetwork == null) {
+            return;
+        }
+        TenantId tenantId = virtualNetwork.tenantId();
+
+        Set<NetworkId> networkIdSet = new HashSet<>();
+        tenantIdNetworkIdSetMap.get(tenantId).forEach(networkId1 -> {
+            if (networkId1.id().equals(networkId.id())) {
+                networkIdSet.add(networkId1);
+            }
+        });
+
+        tenantIdNetworkIdSetMap.compute(virtualNetwork.tenantId(), (id, existingNetworkIds) -> {
+            if (existingNetworkIds == null || existingNetworkIds.isEmpty()) {
+                return new HashSet<>();
+            } else {
+                return new HashSet<>(Sets.difference(existingNetworkIds, networkIdSet));
+            }
+        });
     }
 
     /**
@@ -394,6 +394,7 @@ public class DistributedVirtualNetworkStore
         checkNotNull(networkId, "The network identifier cannot be null.");
         return (networkIdVirtualNetworkMap.containsKey(networkId));
     }
+
 
     @Override
     public VirtualDevice addDevice(NetworkId networkId, DeviceId deviceId) {
