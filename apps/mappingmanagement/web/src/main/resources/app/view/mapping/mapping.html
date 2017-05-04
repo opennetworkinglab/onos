@@ -58,7 +58,7 @@
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="mapping in tableData | filter:queryFilter track by $index"
+                <tr ng-repeat="mapping in tableData | filter:queryFilter track by $index"
                     ng-click="selectCallback($event, mapping)"
                     ng-class="{selected: mapping.id === selId}"
                     ng-repeat-complete row-id="{{mapping.id}}">
@@ -68,10 +68,8 @@
                     <td>{{mapping.mappingKey}}</td>
                     <td>{{mapping.mappingAction}}</td>
                 </tr>
-                <tr row-id="{{mapping.id}}" ng-repeat-end ng-hide="brief">
-                    <td class="mappingValue" colspan="5">{{mapping.mappingValue}}</td>
-                </tr>
             </table>
         </div>
     </div>
+    <mapping-details-panel></mapping-details-panel>
 </div>

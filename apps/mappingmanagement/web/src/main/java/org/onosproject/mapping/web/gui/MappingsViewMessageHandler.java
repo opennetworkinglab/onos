@@ -15,14 +15,19 @@
  */
 package org.onosproject.mapping.web.gui;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingService;
 import org.onosproject.mapping.MappingTreatment;
-import org.onosproject.mapping.MappingValue;
 import org.onosproject.mapping.addresses.MappingAddress;
+import org.onosproject.mapping.instructions.MappingInstruction;
+import org.onosproject.mapping.instructions.MulticastMappingInstruction;
+import org.onosproject.mapping.instructions.MulticastMappingInstruction.MulticastType;
+import org.onosproject.mapping.instructions.UnicastMappingInstruction;
+import org.onosproject.mapping.instructions.UnicastMappingInstruction.UnicastType;
 import org.onosproject.net.DeviceId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -33,10 +38,11 @@ import org.onosproject.ui.table.cell.EnumFormatter;
 import org.onosproject.ui.table.cell.HexLongFormatter;
 
 import java.util.Collection;
-import java.util.List;
 
 import static org.onosproject.mapping.MappingStore.Type.MAP_CACHE;
 import static org.onosproject.mapping.MappingStore.Type.MAP_DATABASE;
+import static org.onosproject.mapping.instructions.MappingInstruction.Type.MULTICAST;
+import static org.onosproject.mapping.instructions.MappingInstruction.Type.UNICAST;
 
 /**
  * Message handler for mapping management view related messages.
@@ -47,7 +53,12 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
     private static final String MAPPING_DATA_RESP = "mappingDataResponse";
     private static final String MAPPINGS = "mappings";
 
+    private static final String MAPPING_DETAIL_REQ = "mappingDetailsRequest";
+    private static final String MAPPING_DETAIL_RESP = "mappingDetailsResponse";
+    private static final String DETAILS = "details";
+
     private static final String ID = "id";
+    private static final String MAPPING_ID = "mappingId";
     private static final String MAPPING_KEY = "mappingKey";
     private static final String MAPPING_VALUE = "mappingValue";
     private static final String MAPPING_ACTION = "mappingAction";
@@ -55,6 +66,13 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
     private static final String STATE = "state";
     private static final String DATABASE = "database";
     private static final String CACHE = "cache";
+    private static final String MAPPING_TREATMENTS = "mappingTreatments";
+
+    private static final String MAPPING_ADDRESS = "address";
+    private static final String UNICAST_WEIGHT = "unicastWeight";
+    private static final String UNICAST_PRIORITY = "unicastPriority";
+    private static final String MULTICAST_WEIGHT = "multicastWeight";
+    private static final String MULTICAST_PRIORITY = "multicastPriority";
 
     private static final String COMMA = ", ";
     private static final String OX = "0x";
@@ -68,7 +86,10 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new MappingMessageRequest());
+        return ImmutableSet.of(
+                new MappingMessageRequest(),
+                new DetailRequestHandler()
+        );
     }
 
     /**
@@ -99,7 +120,6 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
             tm.setFormatter(TYPE, EnumFormatter.INSTANCE);
             tm.setFormatter(STATE, EnumFormatter.INSTANCE);
             tm.setFormatter(MAPPING_KEY, new MappingKeyFormatter());
-            tm.setFormatter(MAPPING_VALUE, new MappingValueFormatter());
             return tm;
         }
 
@@ -126,8 +146,7 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
                     .cell(STATE, mapping.state())
                     .cell(TYPE, type)
                     .cell(MAPPING_ACTION, mapping.value().action())
-                    .cell(MAPPING_KEY, mapping)
-                    .cell(MAPPING_VALUE, mapping);
+                    .cell(MAPPING_KEY, mapping);
         }
     }
 
@@ -144,36 +163,120 @@ public class MappingsViewMessageHandler extends UiMessageHandler {
             if (address == null) {
                 return NULL_ADDRESS_MSG;
             }
-            StringBuilder sb = new StringBuilder("Mapping address: ");
-            sb.append(address.toString());
 
-            return sb.toString();
+            return address.toString();
         }
     }
 
     /**
-     * A formatter for formatting mapping value.
+     * Handler for detailed mapping message requests.
      */
-    private final class MappingValueFormatter implements CellFormatter {
+    private final class DetailRequestHandler extends RequestHandler {
 
-        @Override
-        public String format(Object value) {
-            MappingEntry mapping = (MappingEntry) value;
-            MappingValue mappingValue = mapping.value();
-            List<MappingTreatment> treatments = mappingValue.treatments();
-
-            StringBuilder sb = new StringBuilder("Treatments: ");
-            formatTreatments(sb, treatments);
-
-            return sb.toString();
+        private DetailRequestHandler() {
+            super(MAPPING_DETAIL_REQ);
         }
 
-        private void formatTreatments(StringBuilder sb,
-                                      List<MappingTreatment> treatments) {
-            if (!treatments.isEmpty()) {
-                for (MappingTreatment t : treatments) {
-                    sb.append(t).append(COMMA);
+        private MappingEntry findMappingById(String mappingId) {
+            MappingService ms = get(MappingService.class);
+            Iterable<MappingEntry> dbEntries = ms.getAllMappingEntries(MAP_DATABASE);
+            Iterable<MappingEntry> cacheEntries = ms.getAllMappingEntries(MAP_CACHE);
+
+            for (MappingEntry entry : dbEntries) {
+                if (entry.id().toString().equals(mappingId)) {
+                    return entry;
                 }
+            }
+
+            for (MappingEntry entry : cacheEntries) {
+                if (entry.id().toString().equals(mappingId)) {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Generates a node object of a given mapping treatment.
+         *
+         * @param treatment mapping treatment
+         * @return node object
+         */
+        private ObjectNode getTreatmentNode(MappingTreatment treatment) {
+            ObjectNode data = objectNode();
+
+            data.put(MAPPING_ADDRESS, treatment.address().toString());
+
+            for (MappingInstruction instruct : treatment.instructions()) {
+                if (instruct.type() == UNICAST) {
+                    UnicastMappingInstruction unicastInstruct =
+                            (UnicastMappingInstruction) instruct;
+                    if (unicastInstruct.subtype() == UnicastType.WEIGHT) {
+                        data.put(UNICAST_WEIGHT,
+                                ((UnicastMappingInstruction.WeightMappingInstruction)
+                                        unicastInstruct).weight());
+                    }
+                    if (unicastInstruct.subtype() == UnicastType.PRIORITY) {
+                        data.put(UNICAST_PRIORITY,
+                                ((UnicastMappingInstruction.PriorityMappingInstruction)
+                                        unicastInstruct).priority());
+                    }
+                }
+
+                if (instruct.type() == MULTICAST) {
+                    MulticastMappingInstruction multicastInstruct =
+                            (MulticastMappingInstruction) instruct;
+                    if (multicastInstruct.subtype() == MulticastType.WEIGHT) {
+                        data.put(MULTICAST_WEIGHT,
+                                ((MulticastMappingInstruction.WeightMappingInstruction)
+                                        multicastInstruct).weight());
+                    }
+                    if (multicastInstruct.subtype() == MulticastType.PRIORITY) {
+                        data.put(MULTICAST_PRIORITY,
+                                ((MulticastMappingInstruction.PriorityMappingInstruction)
+                                        multicastInstruct).priority());
+                    }
+                }
+
+                // TODO: extension address will be handled later
+            }
+
+            return data;
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            String mappingId = string(payload, MAPPING_ID);
+            String type = string(payload, TYPE);
+            String strippedFlowId = mappingId.replaceAll(OX, EMPTY);
+
+            MappingEntry mapping = findMappingById(strippedFlowId);
+            if (mapping != null) {
+                ArrayNode arrayNode = arrayNode();
+
+                for (MappingTreatment treatment : mapping.value().treatments()) {
+                    arrayNode.add(getTreatmentNode(treatment));
+                }
+
+                ObjectNode detailsNode = objectNode();
+                detailsNode.put(MAPPING_ID, mappingId);
+                detailsNode.put(STATE, mapping.state().name());
+                detailsNode.put(TYPE, type);
+                detailsNode.put(MAPPING_ACTION, mapping.value().action().toString());
+
+                ObjectNode keyNode = objectNode();
+                keyNode.put(MAPPING_ADDRESS, mapping.key().address().toString());
+
+                ObjectNode valueNode = objectNode();
+                valueNode.set(MAPPING_TREATMENTS, arrayNode);
+
+                detailsNode.set(MAPPING_KEY, keyNode);
+                detailsNode.set(MAPPING_VALUE, valueNode);
+
+                ObjectNode rootNode = objectNode();
+                rootNode.set(DETAILS, detailsNode);
+                sendMessage(MAPPING_DETAIL_RESP, rootNode);
             }
         }
     }

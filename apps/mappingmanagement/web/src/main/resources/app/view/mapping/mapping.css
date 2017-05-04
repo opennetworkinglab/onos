@@ -35,3 +35,55 @@
     text-align: left;
     padding-left: 36px;
 }
+
+/* More in generic panel.css */
+
+#mapping-details-panel.floatpanel {
+    z-index: 0;
+}
+
+#mapping-details-panel .container {
+    padding: 8px 12px;
+}
+
+#mapping-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#mapping-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#mapping-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
+
+#mapping-details-panel .top-content table {
+    font-size: 12pt;
+}
+
+#mapping-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#mapping-details-panel .bottom table {
+    border-spacing: 0;
+}
+
+#mapping-details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#mapping-details-panel .bottom th,
+#mapping-details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
