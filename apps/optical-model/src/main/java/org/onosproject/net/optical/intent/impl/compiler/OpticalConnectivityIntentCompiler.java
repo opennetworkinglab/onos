@@ -125,6 +125,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
         // If ports are not available, compilation fails
         if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
+            log.error("Ports for the intent are not available. Intent: {}", intent);
             throw new OpticalIntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
 
@@ -147,7 +148,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             OchSignal lambda = new OchSignal(Frequency.ofHz(Long.parseLong(staticLambda)),
                                              srcOchPort.lambda().channelSpacing(),
                                              srcOchPort.lambda().slotGranularity());
-            log.debug("Using staticalluy assigned lambda : {}", lambda);
+            log.debug("Using statically assigned lambda : {}", lambda);
 
             List<Resource> res = new ArrayList<>();
 
@@ -192,6 +193,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
             Path firstPath = paths.findAny().orElse(null);
             if (firstPath == null) {
+                log.error("Unable to find suitable lightpath for intent {}", intent);
                 throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
             }
             OchSignal lambda = srcOchPort.lambda();
@@ -220,6 +222,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             OchSignal ochSignal = OchSignal.toFixedGrid(found.get().getValue(), ChannelSpacing.CHL_50GHZ);
             return ImmutableList.of(createIntent(intent, found.get().getKey(), ochSignal));
         } else {
+            log.error("Unable to find suitable lightpath for intent {}", intent);
             throw new OpticalIntentCompilationException("Unable to find suitable lightpath for intent " + intent);
         }
     }

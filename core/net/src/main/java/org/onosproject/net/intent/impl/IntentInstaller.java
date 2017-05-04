@@ -137,6 +137,9 @@ class IntentInstaller {
                 log.debug("Completed withdrawing: {}", uninstallData.key());
                 switch (uninstallData.request()) {
                     case INSTALL_REQ:
+                        // illegal state?
+                        log.warn("{} was requested to withdraw during installation?",
+                                 uninstallData.intent());
                         uninstallData.setState(FAILED);
                         break;
                     case WITHDRAW_REQ:
