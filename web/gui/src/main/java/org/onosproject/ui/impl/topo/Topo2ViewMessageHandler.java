@@ -72,6 +72,7 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private UiTopoSession topoSession;
     private Topo2Jsonifier t2json;
     private Topo2OverlayCache overlay2Cache;
+    private Topo2TrafficMessageHandler trafficHandler;
 
 
     @Override
@@ -91,6 +92,15 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
      */
     public void setOverlayCache(Topo2OverlayCache overlay2Cache) {
         this.overlay2Cache = overlay2Cache;
+    }
+
+    /**
+     * Sets a reference to the traffic message handler.
+     *
+     * @param traffic the traffic message handler instance
+     */
+    public void setTrafficHandler(Topo2TrafficMessageHandler traffic) {
+        trafficHandler = traffic;
     }
 
 
@@ -202,12 +212,10 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
             // client view has gone away; so shut down server-side processing
 
             log.debug("topo2Stop: {}", payload);
-            // TODO: tell traffic monitor to stop monitoring...
-            //       this requires this handler to know about traffic handler!!
+            trafficHandler.ceaseAndDesist();
 
             // OLD CODE DID THE FOLLOWING...
 //            stopSummaryMonitoring();
-//            traffic.stopMonitoring();
         }
     }
 

@@ -85,6 +85,13 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
         );
     }
 
+    /**
+     * Shuts down the background traffic monitoring task.
+     */
+    void ceaseAndDesist() {
+        traffic.stopMonitoring();
+    }
+
     // ==================================================================
 
     private final class Topo2AllTraffic extends RequestHandler {

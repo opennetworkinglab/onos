@@ -25,6 +25,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.ui.GlyphConstants;
 import org.onosproject.ui.UiConnection;
+import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
@@ -33,6 +34,7 @@ import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.impl.topo.Topo2Jsonifier;
 import org.onosproject.ui.impl.topo.Topo2OverlayCache;
+import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
@@ -249,6 +251,8 @@ public class UiWebSocket
         overlayCache = new TopoOverlayCache();
         overlay2Cache = new Topo2OverlayCache();
 
+        Map<Class<?>, UiMessageHandler> handlerInstances = new HashMap<>();
+
         UiExtensionService service = directory.get(UiExtensionService.class);
         service.getExtensions().forEach(ext -> {
             UiMessageHandlerFactory factory = ext.messageHandlerFactory();
@@ -257,33 +261,55 @@ public class UiWebSocket
                     try {
                         handler.init(this, directory);
                         handler.messageTypes().forEach(type -> handlers.put(type, handler));
+                        handlerInstances.put(handler.getClass(), handler);
 
-                        // need to inject the overlay cache into topology message handler
-                        if (handler instanceof TopologyViewMessageHandler) {
-                            ((TopologyViewMessageHandler) handler).setOverlayCache(overlayCache);
-                        }
-
-                        if (handler instanceof Topo2ViewMessageHandler) {
-                            ((Topo2ViewMessageHandler) handler).setOverlayCache(overlay2Cache);
-                        }
                     } catch (Exception e) {
                         log.warn("Unable to setup handler {} due to", handler, e);
                     }
                 });
             }
 
-            UiTopoOverlayFactory overlayFactory = ext.topoOverlayFactory();
-            if (overlayFactory != null) {
-                overlayFactory.newOverlays().forEach(overlayCache::add);
-            }
-
-            UiTopo2OverlayFactory overlay2Factory = ext.topo2OverlayFactory();
-            if (overlay2Factory != null) {
-                overlay2Factory.newOverlays().forEach(overlay2Cache::add);
-            }
+            registerOverlays(ext);
         });
-        log.debug("#handlers = {}, #overlays = {}", handlers.size(),
-                  overlayCache.size());
+
+        handlerCrossConnects(handlerInstances);
+
+        log.debug("#handlers = {}, #overlays = {}", handlers.size(), overlayCache.size());
+    }
+
+    private void registerOverlays(UiExtension ext) {
+        UiTopoOverlayFactory overlayFactory = ext.topoOverlayFactory();
+        if (overlayFactory != null) {
+            overlayFactory.newOverlays().forEach(overlayCache::add);
+        }
+
+        UiTopo2OverlayFactory overlay2Factory = ext.topo2OverlayFactory();
+        if (overlay2Factory != null) {
+            overlay2Factory.newOverlays().forEach(overlay2Cache::add);
+        }
+    }
+
+    private void handlerCrossConnects(Map<Class<?>, UiMessageHandler> handlers) {
+        TopologyViewMessageHandler topomh = (TopologyViewMessageHandler)
+                handlers.get(TopologyViewMessageHandler.class);
+        if (topomh != null) {
+            topomh.setOverlayCache(overlayCache);
+        }
+
+        Topo2ViewMessageHandler topo2mh = (Topo2ViewMessageHandler)
+                handlers.get(Topo2ViewMessageHandler.class);
+        if (topo2mh != null) {
+            topo2mh.setOverlayCache(overlay2Cache);
+
+            // We also need a link to Topo2Traffic
+            Topo2TrafficMessageHandler topo2traffic = (Topo2TrafficMessageHandler)
+                    handlers.get(Topo2TrafficMessageHandler.class);
+            if (topo2traffic != null) {
+                topo2mh.setTrafficHandler(topo2traffic);
+            } else {
+                log.error("No topo2 traffic handler found");
+            }
+        }
     }
 
     // Destroys message handlers.
@@ -325,4 +351,3 @@ public class UiWebSocket
     }
 
 }
-
