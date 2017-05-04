@@ -417,8 +417,8 @@ public class ProtectedTransportIntentCompiler
 
             List<Resource> resources = concat(primaryResources, secondaryResources)
                                         .collect(Collectors.toList());
-            log.trace("Calling allocate({},{})", intent.id(), resources);
-            if (resourceService.allocate(intent.id(), resources).isEmpty()) {
+            log.trace("Calling allocate({},{})", intent.key(), resources);
+            if (resourceService.allocate(intent.key(), resources).isEmpty()) {
                 log.warn("Allocation failed, retrying");
                 continue;
             }

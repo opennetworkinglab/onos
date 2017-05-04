@@ -187,7 +187,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // Release of intent resources here is only a temporary solution for handling the
         // case of recompiling due to intent restoration (when intent state is FAILED).
         // TODO: try to release intent resources in IntentManager.
-        resourceService.release(intent.id());
+        resourceService.release(intent.key());
 
         // Check OduClt ports availability
         Resource srcPortResource = Resources.discrete(src.deviceId(), src.port()).resource();
@@ -269,7 +269,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
         }
 
-        if (resourceService.allocate(intent.id(), required).isEmpty()) {
+        if (resourceService.allocate(intent.key(), required).isEmpty()) {
             throw new OpticalIntentCompilationException("Unable to allocate resources for intent " + intent
                     + ": resources=" + required);
         }

@@ -237,6 +237,8 @@ public final class LabelAllocator {
                 ))
                 .collect(Collectors.toSet());
 
+        // FIXME resource allocated by IntentId will not be released
+        // when Intent is withdrawn. Behaviour changed by ONOS-5808
         List<ResourceAllocation> allocations = resourceService.allocate(id, ImmutableList.copyOf(resources));
 
         if (allocations.isEmpty()) {

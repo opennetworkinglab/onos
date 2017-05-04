@@ -131,7 +131,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
         // Release of intent resources here is only a temporary solution for handling the
         // case of recompiling due to intent restoration (when intent state is FAILED).
         // TODO: try to release intent resources in IntentManager.
-        resourceService.release(intent.id());
+        resourceService.release(intent.key());
 
         // Check OduClt ports availability
         Resource srcPortResource = Resources.discrete(src.deviceId(), src.port()).resource();
@@ -221,7 +221,7 @@ public class OpticalOduIntentCompiler implements IntentCompiler<OpticalOduIntent
 
     private void allocateResources(Intent intent, List<Resource> resources) {
         // reserve all of required resources
-        List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), resources);
+        List<ResourceAllocation> allocations = resourceService.allocate(intent.key(), resources);
         if (allocations.isEmpty()) {
             log.info("Resource allocation for {} failed (resource request: {})", intent, resources);
             throw new OpticalIntentCompilationException("Unable to allocate resources: " + resources);
