@@ -11,6 +11,7 @@ path = sys.argv[1]
 
 INDENT = 25
 SEP = ' | '
+MAX_LINE_LENGTH = 500
 
 DOMAINS = ('com', 'org', 'net', 'io', 'us')
 
@@ -40,7 +41,8 @@ def split_line(line):
         log = split[5].strip(' /')
         tsbuf = ''.join([' ' for i in range(INDENT - len(ts))])
         clsbuf = ''.join([' ' for i in range(INDENT - len(cls))])
-        return ts + tsbuf + SEP + cls + clsbuf + SEP + log
+        data = ts + tsbuf + SEP + cls + clsbuf + SEP + log
+        return data[:MAX_LINE_LENGTH] + '...\n' if len(data) > MAX_LINE_LENGTH else data
     return ''
 
 def split_log(infile, matcher, filemaker, matchmaker):
