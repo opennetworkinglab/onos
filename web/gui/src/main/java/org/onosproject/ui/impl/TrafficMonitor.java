@@ -19,7 +19,6 @@ package org.onosproject.ui.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.onosproject.incubator.net.PortStatisticsService.MetricType;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -41,7 +40,6 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.statistic.Load;
 import org.onosproject.ui.impl.topo.util.IntentSelection;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.impl.topo.util.TopoIntentFilter;
@@ -68,8 +66,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.incubator.net.PortStatisticsService.MetricType.BYTES;
-import static org.onosproject.incubator.net.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.RELATED_INTENTS;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.SELECTED_INTENT;
@@ -107,7 +103,7 @@ public class TrafficMonitor extends TrafficMonitorBase {
     // =======================================================================
     // === API ===
 
-    // monitor(Mode) is implemented in the super class
+    // monitor(Mode) is now implemented in the super class
 
     /**
      * Monitor for traffic data to be sent back to the web client, under
@@ -273,29 +269,8 @@ public class TrafficMonitor extends TrafficMonitorBase {
     // =======================================================================
     // === Generate messages in JSON object node format
 
-    private Highlights trafficSummary(StatsType type) {
-        Highlights highlights = new Highlights();
-
-        TrafficLinkMap linkMap = new TrafficLinkMap();
-        compileLinks(linkMap);
-        addEdgeLinks(linkMap);
-
-        for (TrafficLink tlink : linkMap.biLinks()) {
-            if (type == StatsType.FLOW_STATS) {
-                attachFlowLoad(tlink);
-            } else if (type == StatsType.PORT_STATS) {
-                attachPortLoad(tlink, BYTES);
-            } else if (type == StatsType.PORT_PACKET_STATS) {
-                attachPortLoad(tlink, PACKETS);
-            }
-
-            // we only want to report on links deemed to have traffic
-            if (tlink.hasTraffic()) {
-                highlights.add(tlink.highlight(type));
-            }
-        }
-        return highlights;
-    }
+    // NOTE: trafficSummary(StatsType) => Highlights
+    //        has been moved to the superclass
 
     // create highlights for links, showing flows for selected devices.
     private Highlights deviceLinkFlows() {
@@ -373,49 +348,6 @@ public class TrafficMonitor extends TrafficMonitorBase {
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    private void compileLinks(TrafficLinkMap linkMap) {
-        services.link().getLinks().forEach(linkMap::add);
-    }
-
-    private void addEdgeLinks(TrafficLinkMap linkMap) {
-        services.host().getHosts().forEach(host -> {
-            linkMap.add(createEdgeLink(host, true));
-            linkMap.add(createEdgeLink(host, false));
-        });
-    }
-
-    private Load getLinkFlowLoad(Link link) {
-        if (link != null && link.src().elementId() instanceof DeviceId) {
-            return services.flowStats().load(link);
-        }
-        return null;
-    }
-
-    private void attachFlowLoad(TrafficLink link) {
-        link.addLoad(getLinkFlowLoad(link.one()));
-        link.addLoad(getLinkFlowLoad(link.two()));
-    }
-
-    private void attachPortLoad(TrafficLink link, MetricType metricType) {
-        // For bi-directional traffic links, use
-        // the max link rate of either direction
-        // (we choose 'one' since we know that is never null)
-        Link one = link.one();
-        Load egressSrc = services.portStats().load(one.src(), metricType);
-        Load egressDst = services.portStats().load(one.dst(), metricType);
-        link.addLoad(maxLoad(egressSrc, egressDst), metricType == BYTES ? BPS_THRESHOLD : 0);
-    }
-
-    private Load maxLoad(Load a, Load b) {
-        if (a == null) {
-            return b;
-        }
-        if (b == null) {
-            return a;
-        }
-        return a.rate() > b.rate() ? a : b;
-    }
 
     // Counts all flow entries that egress on the links of the given device.
     private Map<Link, Integer> getLinkFlowCounts(DeviceId deviceId) {

@@ -40,11 +40,10 @@ import java.util.Set;
 
     The original topology view message handler was broken into two classes
     TopologyViewMessageHandler, and TopologyViewMessageHandlerBase.
-    We do not need to follow that model necessarily. Starting with a
-    single class, and breaking it apart later if necessary.
 
-    Need to figure out the connection between this message handler and the
-    new way of doing things with UiTopoSession...
+    We do not need to follow that model necessarily. Instead, we have this
+    class and Topo2Jsonifier, which takes UiModel objects and renders them
+    as JSON objects.
 
  */
 
@@ -201,12 +200,12 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
         @Override
         public void process(ObjectNode payload) {
             // client view has gone away; so shut down server-side processing
-            // TODO: implement...
 
             log.debug("topo2Stop: {}", payload);
+            // TODO: tell traffic monitor to stop monitoring...
+            //       this requires this handler to know about traffic handler!!
 
             // OLD CODE DID THE FOLLOWING...
-//            removeListeners();
 //            stopSummaryMonitoring();
 //            traffic.stopMonitoring();
         }

@@ -19,8 +19,12 @@ package org.onosproject.ui.impl.topo;
 
 import org.onosproject.ui.impl.TrafficMonitorBase;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.TrafficLink;
+import org.onosproject.ui.topo.Highlights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns in the
@@ -31,6 +35,7 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     private static final Logger log =
             LoggerFactory.getLogger(Traffic2Monitor.class);
 
+    // link back to our message handler (for outbound messages)
     private final Topo2TrafficMessageHandler msgHandler;
 
     /**
@@ -49,24 +54,32 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     @Override
     protected void sendAllFlowTraffic() {
         log.debug("TOPO-2-TRAFFIC: sendAllFlowTraffic");
+        Highlights h = trafficSummary(TrafficLink.StatsType.FLOW_STATS);
+
         // TODO
     }
 
     @Override
     protected void sendAllPortTrafficBits() {
         log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficBits");
+        Highlights h = trafficSummary(TrafficLink.StatsType.PORT_STATS);
+
         // TODO
     }
 
     @Override
     protected void sendAllPortTrafficPackets() {
         log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficPackets");
+        Highlights h = trafficSummary(TrafficLink.StatsType.PORT_PACKET_STATS);
+
         // TODO
     }
 
     @Override
     protected void sendClearHighlights() {
         log.debug("TOPO-2-TRAFFIC: sendClearHighlights");
+        Highlights h = new Highlights();
+
         // TODO
     }
 
@@ -82,5 +95,17 @@ public class Traffic2Monitor extends TrafficMonitorBase {
 
     @Override
     protected void clearSelection() {
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // -- link aggregation
+
+
+    @Override
+    protected Set<TrafficLink> doAggregation(Set<TrafficLink> linksWithTraffic) {
+        // TODO: figure out how to aggregate the link data...
+        log.debug("Need to aggregate {} links", linksWithTraffic.size());
+
+        return linksWithTraffic;
     }
 }
