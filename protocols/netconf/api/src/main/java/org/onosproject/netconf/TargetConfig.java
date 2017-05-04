@@ -16,6 +16,9 @@
 
 package org.onosproject.netconf;
 
+// TODO Revisit if we this class should be Enum.
+// According to NETCONF RFC,
+// various additional configuration datastores may be defined by capabilities.
 public enum TargetConfig {
     RUNNING("running"),
     CANDIDATE("candidate"),

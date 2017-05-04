@@ -15,24 +15,23 @@
  */
 package org.onosproject.netconf.cli.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.ConfigGetter;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.net.driver.DriverService;
+import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfDevice;
+import org.onosproject.netconf.NetconfSession;
+import org.onosproject.netconf.TargetConfig;
 
 /**
  * Command that gets the configuration of the specified type from the specified
  * device. If configuration cannot be retrieved it prints an error string.
- *
- * This is a temporary development tool for use until yang integration is complete.
- * This uses a not properly specified behavior. DO NOT USE AS AN EXAMPLE.
  */
-
-//FIXME Remove dependency to ConfigGetter.
-
 @Command(scope = "onos", name = "netconf-get-config",
         description = "Gets the configuration of the specified type from the" +
                 "specified device.")
@@ -52,11 +51,30 @@ public class NetconfConfigGetCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
-        DriverHandler h = service.createHandler(deviceId);
-        ConfigGetter config = h.behaviour(ConfigGetter.class);
-        print(config.getConfiguration(cfgType));
+
+        NetconfController controller = get(NetconfController.class);
+        checkNotNull(controller, "Netconf controller is null");
+
+        NetconfDevice device = controller.getDevicesMap().get(deviceId);
+        if (device == null) {
+            print("Netconf device object not found for %s", deviceId);
+            return;
+        }
+
+        NetconfSession session = device.getSession();
+        if (session == null) {
+            print("Netconf session not found for %s", deviceId);
+            return;
+        }
+
+        try {
+            String res = session.getConfig(TargetConfig.toTargetConfig(cfgType));
+            print("%s", res);
+        } catch (IOException e) {
+            log.error("Configuration could not be retrieved", e);
+            print("Error occured retrieving configuration");
+        }
     }
 
 }

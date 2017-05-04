@@ -52,7 +52,7 @@ public class NetconfSubscriptionTestCommand extends AbstractShellCommand {
 
         NetconfDevice netconfDevice = controller.getNetconfDevice(did);
         if (netconfDevice == null) {
-            print("%s not found or not connectoed to this node", did);
+            print("%s not found or not connected to this node", did);
             return;
         }
 
