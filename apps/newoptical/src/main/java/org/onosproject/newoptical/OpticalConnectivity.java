@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.util.Bandwidth;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 
@@ -29,13 +31,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Entity to store optical connectivity request and related information.
  */
 @Beta
 public class OpticalConnectivity {
+
+    private static final Logger log = LoggerFactory.getLogger(OpticalConnectivity.class);
 
     private final OpticalConnectivityId id;
     private final List<Link> links;
@@ -120,28 +122,57 @@ public class OpticalConnectivity {
             // move PacketLink from unestablished set to established set
             Optional<PacketLinkRealizedByOptical> link = this.unestablishedLinks.stream()
                     .filter(l -> l.isBetween(src, dst)).findAny();
-            checkState(link.isPresent());
 
-            newUnestablishedLinks = this.unestablishedLinks.stream()
-                    .filter(l -> !l.isBetween(src, dst))
-                    .collect(Collectors.toSet());
-            newEstablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
-                    .addAll(this.establishedLinks)
-                    .add(link.get())
-                    .build();
+            if (link.isPresent()) {
+
+                newUnestablishedLinks = this.unestablishedLinks.stream()
+                        .filter(l -> !l.isBetween(src, dst))
+                        .collect(Collectors.toSet());
+                newEstablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
+                        .addAll(this.establishedLinks)
+                        .add(link.get())
+                        .build();
+            } else {
+                // no-op:
+                newEstablishedLinks = ImmutableSet.copyOf(establishedLinks);
+                newUnestablishedLinks = ImmutableSet.copyOf(unestablishedLinks);
+
+                // sanity check
+                boolean alreadyThere = establishedLinks.stream()
+                    .filter(l -> l.isBetween(src, dst))
+                    .findAny().isPresent();
+                if (!alreadyThere) {
+                    log.warn("Attempted to change {}-{} to established, "
+                            + "which is not part of {}", src, dst, this);
+                }
+            }
         } else {
             // move PacketLink from established set to unestablished set
             Optional<PacketLinkRealizedByOptical> link = this.establishedLinks.stream()
                     .filter(l -> l.isBetween(src, dst)).findAny();
-            checkState(link.isPresent());
 
-            newEstablishedLinks = this.establishedLinks.stream()
-                    .filter(l -> !l.isBetween(src, dst))
-                    .collect(Collectors.toSet());
-            newUnestablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
-                    .addAll(this.unestablishedLinks)
-                    .add(link.get())
-                    .build();
+            if (link.isPresent()) {
+                newEstablishedLinks = this.establishedLinks.stream()
+                        .filter(l -> !l.isBetween(src, dst))
+                        .collect(Collectors.toSet());
+                newUnestablishedLinks = ImmutableSet.<PacketLinkRealizedByOptical>builder()
+                        .addAll(this.unestablishedLinks)
+                        .add(link.get())
+                        .build();
+            } else {
+                // no-op:
+                newEstablishedLinks = ImmutableSet.copyOf(establishedLinks);
+                newUnestablishedLinks = ImmutableSet.copyOf(unestablishedLinks);
+
+                // sanity check
+                boolean alreadyThere = unestablishedLinks.stream()
+                        .filter(l -> l.isBetween(src, dst))
+                        .findAny().isPresent();
+                if (!alreadyThere) {
+                    log.warn("Attempted to change {}-{} to unestablished, "
+                            + "which is not part of {}", src, dst, this);
+                }
+            }
         }
 
         return new OpticalConnectivity(this.id,

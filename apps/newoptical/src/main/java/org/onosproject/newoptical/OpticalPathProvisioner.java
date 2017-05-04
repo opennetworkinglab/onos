@@ -826,7 +826,7 @@ public class OpticalPathProvisioner
                     .findAny();
 
             if (!link.isPresent()) {
-                log.warn("Cross connect point {} has no cross connect link.", cp);
+                log.warn("Cross connect point {} has no cross connect link to release.", cp);
                 return;
             }
 
