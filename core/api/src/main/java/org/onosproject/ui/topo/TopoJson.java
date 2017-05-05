@@ -28,6 +28,7 @@ import static org.onosproject.ui.JsonUtils.envelope;
 public final class TopoJson {
     // package-private for unit test access
     static final String SHOW_HIGHLIGHTS = "showHighlights";
+    static final String TOPO2_HIGHLIGHTS = "topo2Highlights";
 
     static final String DEVICES = "devices";
     static final String HOSTS = "hosts";
@@ -73,6 +74,17 @@ public final class TopoJson {
      */
     public static ObjectNode highlightsMessage(Highlights highlights) {
         return envelope(SHOW_HIGHLIGHTS, json(highlights));
+    }
+
+    /**
+     * Returns a formatted message ready to send to the topology-2 view
+     * to render highlights.
+     *
+     * @param highlights highlights model to transform
+     * @return fully formatted "show highlights" message
+     */
+    public static ObjectNode topo2HighlightsMessage(Highlights highlights) {
+        return envelope(TOPO2_HIGHLIGHTS, json(highlights));
     }
 
     /**

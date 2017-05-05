@@ -54,33 +54,25 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     @Override
     protected void sendAllFlowTraffic() {
         log.debug("TOPO-2-TRAFFIC: sendAllFlowTraffic");
-        Highlights h = trafficSummary(TrafficLink.StatsType.FLOW_STATS);
-
-        // TODO
+        msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.FLOW_STATS));
     }
 
     @Override
     protected void sendAllPortTrafficBits() {
         log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficBits");
-        Highlights h = trafficSummary(TrafficLink.StatsType.PORT_STATS);
-
-        // TODO
+        msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.PORT_STATS));
     }
 
     @Override
     protected void sendAllPortTrafficPackets() {
         log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficPackets");
-        Highlights h = trafficSummary(TrafficLink.StatsType.PORT_PACKET_STATS);
-
-        // TODO
+        msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.PORT_PACKET_STATS));
     }
 
     @Override
     protected void sendClearHighlights() {
         log.debug("TOPO-2-TRAFFIC: sendClearHighlights");
-        Highlights h = new Highlights();
-
-        // TODO
+        msgHandler.sendHighlights(new Highlights());
     }
 
 

@@ -25,10 +25,13 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TrafficMonitorBase.Mode;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.topo.Highlights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+
+import static org.onosproject.ui.topo.TopoJson.topo2HighlightsMessage;
 
 /**
  * Server-side component to handle messages pertaining to topo-2 traffic.
@@ -90,6 +93,15 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
      */
     void ceaseAndDesist() {
         traffic.stopMonitoring();
+    }
+
+    /**
+     * Sends a highlights message back to the client.
+     *
+     * @param highlights the highlights for transmission
+     */
+    void sendHighlights(Highlights highlights) {
+        sendMessage(topo2HighlightsMessage(highlights));
     }
 
     // ==================================================================
