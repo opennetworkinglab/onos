@@ -79,13 +79,18 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
         byte[] messageTypeBytes = message.type().getBytes(Charsets.UTF_8);
 
         // write length of message type
-        out.writeInt(messageTypeBytes.length);
+        out.writeShort(messageTypeBytes.length);
 
         // write message type bytes
         out.writeBytes(messageTypeBytes);
 
         // write message status value
-        out.writeInt(message.status().id());
+        InternalMessage.Status status = message.status();
+        if (status == null) {
+            out.writeByte(-1);
+        } else {
+            out.writeByte(status.id());
+        }
 
         byte[] payload = message.payload();
 

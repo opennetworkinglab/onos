@@ -88,7 +88,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             senderPort = buffer.readInt();
             checkpoint(DecoderState.READ_MESSAGE_TYPE_LENGTH);
         case READ_MESSAGE_TYPE_LENGTH:
-            messageTypeLength = buffer.readInt();
+            messageTypeLength = buffer.readShort();
             checkpoint(DecoderState.READ_MESSAGE_TYPE);
         case READ_MESSAGE_TYPE:
             byte[] messageTypeBytes = new byte[messageTypeLength];
@@ -96,7 +96,12 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
             messageType = new String(messageTypeBytes, Charsets.UTF_8);
             checkpoint(DecoderState.READ_MESSAGE_STATUS);
         case READ_MESSAGE_STATUS:
-            status = Status.forId(buffer.readInt());
+            int statusId = buffer.readByte();
+            if (statusId == -1) {
+                status = null;
+            } else {
+                status = Status.forId(statusId);
+            }
             checkpoint(DecoderState.READ_CONTENT_LENGTH);
         case READ_CONTENT_LENGTH:
             contentLength = buffer.readInt();
