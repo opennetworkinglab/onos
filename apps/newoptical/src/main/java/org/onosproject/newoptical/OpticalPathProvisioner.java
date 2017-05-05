@@ -43,6 +43,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.config.NetworkConfigService;
@@ -843,14 +844,26 @@ public class OpticalPathProvisioner
             // inject expected link or durable link
             // if packet device cannot advertise packet link
             try {
+                // cannot call addConfig.
+                // it will create default BasicLinkConfig,
+                // which will end up advertising DIRECT links and
+                // DIRECT Link type cannot transition from DIRECT to INDIRECT
+                LinkKey lnkKey = linkKey(packetSrc, packetDst);
                 BasicLinkConfig lnkCfg = networkConfigService
-                        .addConfig(linkKey(packetSrc, packetDst),
-                                   BasicLinkConfig.class);
+                        .getConfig(lnkKey, BasicLinkConfig.class);
+                if (lnkCfg == null) {
+                    lnkCfg = new BasicLinkConfig(lnkKey);
+                }
                 lnkCfg.isAllowed(true);
                 lnkCfg.isDurable(true);
                 lnkCfg.type(Link.Type.INDIRECT);
                 lnkCfg.isBidirectional(false);
-                lnkCfg.apply();
+                // cannot call apply against manually created instance
+                //lnkCfg.apply();
+                networkConfigService.applyConfig(lnkKey,
+                                                 BasicLinkConfig.class,
+                                                 lnkCfg.node());
+
             } catch (Exception ex) {
                 log.error("Applying BasicLinkConfig failed", ex);
             }

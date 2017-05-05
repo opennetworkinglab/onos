@@ -16,8 +16,11 @@
 package org.onosproject.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.inject.DeviceInjectionConfig;
 
 import java.time.Duration;
 
@@ -27,6 +30,12 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
  * Basic configuration for network infrastructure link.
  */
 public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
+
+    /**
+     * Configuration key for {@link DeviceInjectionConfig}.
+     */
+    public static final String CONFIG_KEY = "basic";
+
 
     public static final String TYPE = "type";
     public static final String METRIC = "metric";
@@ -166,5 +175,28 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      */
     public BasicLinkConfig isBidirectional(Boolean isBidirectional) {
         return (BasicLinkConfig) setOrClear(IS_BIDIRECTIONAL, isBidirectional);
+    }
+
+    /**
+     * Create a {@link BasicLinkConfig} for specified Device.
+     * <p>
+     * Note: created instance is not bound to NetworkConfigService,
+     * cannot use {@link #apply()}. Must be passed to the service
+     * using NetworkConfigService#applyConfig
+     *
+     * @param linkKey subject of this Config
+     */
+    public BasicLinkConfig(LinkKey linkKey) {
+        ObjectMapper mapper = new ObjectMapper();
+        init(linkKey, CONFIG_KEY, mapper.createObjectNode(), mapper, null);
+    }
+
+    /**
+     * Create a {@link BasicLinkConfig} instance.
+     * <p>
+     * Note: created instance needs to be initialized by #init(..) before using.
+     */
+    public BasicLinkConfig() {
+        super();
     }
 }

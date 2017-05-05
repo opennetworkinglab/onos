@@ -92,7 +92,7 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
             },
             new ConfigFactory<LinkKey, BasicLinkConfig>(LINK_SUBJECT_FACTORY,
                     BasicLinkConfig.class,
-                    BASIC) {
+                    BasicLinkConfig.CONFIG_KEY) {
                 @Override
                 public BasicLinkConfig createConfig() {
                     return new BasicLinkConfig();
