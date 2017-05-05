@@ -109,15 +109,14 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
             //find destination port by interface index
             Optional<Port> remotePort = deviceService.getPorts(remoteDevice.id())
                     .stream().filter(port -> {
-                if (port.annotations().value("index") != null &&
-                        Integer.parseInt(port.annotations().value("index"))
+                if (port.number().toLong()
                                 == linkAbs.remotePortIndex) {
                     return true;
                 }
                 return false;
             }).findAny();
             if (!remotePort.isPresent()) {
-                log.warn("Port with index {} does not exist in device {}",
+                log.warn("Port number {} does not exist in device {}",
                          linkAbs.remotePortIndex, remoteDevice.id());
                 continue;
             }

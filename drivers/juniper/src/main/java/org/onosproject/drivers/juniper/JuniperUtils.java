@@ -432,7 +432,7 @@ public final class JuniperUtils {
                 String localPortName = neighbor.getString(LLDP_LO_PORT);
                 MacAddress mac = MacAddress.valueOf(
                         neighbor.getString(LLDP_REM_CHASS));
-                int remotePortIndex =
+                long remotePortIndex =
                         neighbor.getInt(LLDP_REM_PORT);
                 LinkAbstraction link = new LinkAbstraction(
                         localPortName,
@@ -450,9 +450,9 @@ public final class JuniperUtils {
     protected static final class LinkAbstraction {
         protected String localPortName;
         protected ChassisId remoteChassisId;
-        protected int remotePortIndex;
+        protected long remotePortIndex;
 
-        protected LinkAbstraction(String pName, long chassisId, int pIndex) {
+        protected LinkAbstraction(String pName, long chassisId, long pIndex) {
             this.localPortName = pName;
             this.remoteChassisId = new ChassisId(chassisId);
             this.remotePortIndex = pIndex;
