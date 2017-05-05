@@ -44,7 +44,12 @@ public final class LayoutLocation {
      * Designates the type of location; either geographic or logical grid.
      */
     public enum Type {
-        GEO, GRID
+        GEO, GRID;
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     private final String id;

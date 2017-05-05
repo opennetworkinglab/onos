@@ -28,6 +28,13 @@
     // Internal state;
     var nearDist = 15;
 
+    function setElCoord(el, coord) {
+        el.fix(true);
+        el.x = el.px = coord[0];
+        el.y = el.py = coord[1];
+        return true;
+    }
+
     function positionNode(node, forUpdate) {
 
         var meta = node.get('metaUi'),
@@ -40,7 +47,7 @@
         // If the node has metaUI data attached, it indicates that the user
         //  has dragged the node to a new position on the view; so we should
         //  respect that above any script-configured position...
-        // (NOTE: This is a slightly different to the original topology code)
+        // (NOTE: This is slightly different to the "classic" topology code)
 
         if (hasMeta) {
             node.fix(true);
@@ -53,33 +60,18 @@
         // LONG/LAT (or GRID) locations for regions/devices/hosts
 
         if (node.nodeType === 'peer-region') {
-            var coord = [0, 0],
-                loc = {};
-
             if (t2bgs.getBackgroundType() === 'geo') {
-
-                var loc = node.get('location'),
-                    type = loc.locType || loc.type;
-
-                node.set({ location: {
-                    type: type.toLowerCase(),
-                    lat: loc.latOrY || loc.lat,
-                    lng: loc.longOrX || loc.lng
-                }});
-
                 setLongLat(node);
-
                 return true;
-            } else {
-                loc.gridX = -20;
-                loc.gridY = 10 * node.index();
-                coord = coordFromXY(loc);
             }
 
-            node.px = node.x = coord[0];
-            node.py = node.y = coord[1];
+            // assumed to be grid
+            var loc = {
+                longOrX: -20,
+                latOrY: 10 * node.index()
+            };
 
-            node.fix(true);
+            setElCoord(node, coordFromXY(loc));
             return;
         }
 
@@ -130,45 +122,29 @@
     }
 
     function setLongLat(el) {
-        var loc = el.get('location'),
-            coord;
+        var loc = el.get('location');
 
-        if (loc && loc.type === 'geo') {
-
-            if (loc.lat === 0 && loc.lng === 0) {
-                return false;
-            }
-
-            coord = coordFromLngLat(loc);
-            el.fix(true);
-            el.x = el.px = coord[0];
-            el.y = el.py = coord[1];
-
-            return true;
+        // bail if no location set
+        if (!loc || (loc.latOrY === 0 && loc.longOrX === 0)) {
+            return false;
         }
 
-        if (loc && loc.type === 'grid') {
-
-            if (loc.gridX === 0 && loc.gridY === 0) {
-                return false;
-            }
-
-            coord = coordFromXY(loc);
-            el.fix(true);
-            el.x = el.px = coord[0];
-            el.y = el.py = coord[1];
-
-            return true;
+        if (loc.locType === 'geo') {
+            return setElCoord(el, coordFromLngLat(loc));
         }
+        if (loc.locType === 'grid') {
+            return setElCoord(el, coordFromXY(loc));
+        }
+
+        return false;
     }
 
     function coordFromLngLat(loc) {
         var p = t2mcs.projection();
-        return p ? p([loc.lng, loc.lat]) : [0, 0];
+        return p ? p([loc.longOrX, loc.latOrY]) : [0, 0];
     }
 
     function coordFromXY(loc) {
-
         var bgWidth = t2sls.getWidth() || 100,
             bgHeight = t2sls.getHeight() || 100;
 
@@ -176,8 +152,8 @@
             yOffset = (1000 - (bgHeight * scale)) / 2;
 
         // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
-        var x = scale * loc.gridX,
-            y = (scale * loc.gridY) + yOffset;
+        var x = scale * loc.longOrX,
+            y = (scale * loc.latOrY) + yOffset;
 
         return [x, y];
     }

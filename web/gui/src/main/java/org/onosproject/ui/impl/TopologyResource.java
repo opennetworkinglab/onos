@@ -93,8 +93,8 @@ public class TopologyResource extends BaseResource {
         // TODO: add handling of gridY/gridX if locType is "grid" (not "geo")
 
         try {
-            annot.put("latitude", memento.get("lat").asDouble())
-                    .put("longitude", memento.get("lng").asDouble());
+            annot.put("latitude", memento.get("latOrY").asDouble())
+                 .put("longitude", memento.get("longOrX").asDouble());
             array.add(node);
         } catch (Exception e) {
             log.debug("Skipping geo entry");

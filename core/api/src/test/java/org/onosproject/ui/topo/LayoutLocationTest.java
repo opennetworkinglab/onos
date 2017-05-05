@@ -38,8 +38,8 @@ public class LayoutLocationTest extends AbstractUiTest {
     private static final double PI = 3.142;
     private static final double ZERO = 0.0;
 
-    private static final String COMPACT_LL_1 = "foo,GEO,3.142,1.414";
-    private static final String COMPACT_LL_2 = "bar,GRID,1.414,3.142";
+    private static final String COMPACT_LL_1 = "foo,geo,3.142,1.414";
+    private static final String COMPACT_LL_2 = "bar,grid,1.414,3.142";
 
     private static final String COMPACT_LIST = COMPACT_LL_1 + "~" + COMPACT_LL_2;
 

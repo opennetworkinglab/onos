@@ -102,6 +102,10 @@ public class Topo2Jsonifier {
     private static final String GEO = "geo";
     private static final String GRID = "grid";
     private static final String PEER_LOCATIONS = "peerLocations";
+    private static final String LOCATION = "location";
+    private static final String LOC_TYPE = "locType";
+    private static final String LAT_OR_Y = "latOrY";
+    private static final String LONG_OR_X = "longOrX";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -478,29 +482,29 @@ public class Topo2Jsonifier {
     }
 
     private void addGeoGridLocation(ObjectNode node, Annotated a) {
-        List<String> lngLat = getAnnotValues(a, LONGITUDE, LATITUDE);
-        List<String> gridYX = getAnnotValues(a, GRID_Y, GRID_X);
+        List<String> latLongData = getAnnotValues(a, LATITUDE, LONGITUDE);
+        List<String> gridYXdata = getAnnotValues(a, GRID_Y, GRID_X);
 
-        if (lngLat != null) {
-            attachLocation(node, "geo", "lng", "lat", lngLat);
-        } else if (gridYX != null) {
-            attachLocation(node, "grid", "gridY", "gridX", gridYX);
+        if (latLongData != null) {
+            attachLocation(node, GEO, latLongData);
+        } else if (gridYXdata != null) {
+            attachLocation(node, GRID, gridYXdata);
         }
     }
 
     private void attachLocation(ObjectNode node, String locType,
-                                String keyA, String keyB, List<String> values) {
+                                List<String> values) {
         try {
-            double valA = Double.parseDouble(values.get(0));
-            double valB = Double.parseDouble(values.get(1));
+            double latOrY = Double.parseDouble(values.get(0));
+            double longOrX = Double.parseDouble(values.get(1));
             ObjectNode loc = objectNode()
-                    .put("type", locType)
-                    .put(keyA, valA)
-                    .put(keyB, valB);
-            node.set("location", loc);
+                    .put(LOC_TYPE, locType)
+                    .put(LAT_OR_Y, latOrY)
+                    .put(LONG_OR_X, longOrX);
+            node.set(LOCATION, loc);
 
         } catch (NumberFormatException e) {
-            log.warn("Invalid {} data: long/Y={}, lat/X={}",
+            log.warn("Invalid {} data: lat/Y={}, long/X={}",
                     locType, values.get(0), values.get(1));
         }
     }
@@ -513,9 +517,9 @@ public class Topo2Jsonifier {
             ObjectNode o = objectNode();
             for (LayoutLocation ll : locs) {
                 ObjectNode lnode = objectNode()
-                    .put("locType", ll.locType().toString())
-                    .put("latOrY", ll.latOrY())
-                    .put("longOrX", ll.longOrX());
+                    .put(LOC_TYPE, ll.locType().toString())
+                    .put(LAT_OR_Y, ll.latOrY())
+                    .put(LONG_OR_X, ll.longOrX());
                 o.set(ll.id(), lnode);
             }
 

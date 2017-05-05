@@ -319,21 +319,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             return;
         }
 
-        String slng = annotations.value(AnnotationKeys.LONGITUDE);
         String slat = annotations.value(AnnotationKeys.LATITUDE);
-        boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
+        String slng = annotations.value(AnnotationKeys.LONGITUDE);
         boolean validLat = slat != null && !slat.equals(NO_GEO_VALUE);
+        boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
         if (validLat && validLng) {
             try {
-                double lng = Double.parseDouble(slng);
                 double lat = Double.parseDouble(slat);
+                double lng = Double.parseDouble(slng);
                 ObjectNode loc = objectNode()
-                        .put("type", "geo")
-                        .put("lng", lng)
-                        .put("lat", lat);
+                        .put("locType", "geo")
+                        .put("latOrY", lat)
+                        .put("longOrX", lng);
                 payload.set("location", loc);
             } catch (NumberFormatException e) {
-                log.warn("Invalid geo data: longitude={}, latitude={}", slng, slat);
+                log.warn("Invalid geo data: latitude={}, longitude={}", slat, slng);
             }
         }
     }
