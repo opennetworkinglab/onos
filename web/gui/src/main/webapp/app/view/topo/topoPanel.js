@@ -174,6 +174,14 @@
     }
 
     function listProps(tbody, data) {
+
+        // Suppress Lat Long in details panel if null
+        if (data.props.Latitude === null ||
+            data.props.Longitude === null) {
+            var idx = data.propOrder.indexOf('Latitude');
+            data.propOrder.splice(idx, 3);
+        }
+
         data.propOrder.forEach(function (p) {
             if (p === '-') {
                 addSep(tbody);
