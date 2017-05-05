@@ -32,6 +32,10 @@
             <web-resource-name>Secured</web-resource-name>
             <url-pattern>/index.html</url-pattern>
         </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>Secured API</web-resource-name>
+            <url-pattern>/rs/applications/*</url-pattern>
+        </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
         </auth-constraint>
