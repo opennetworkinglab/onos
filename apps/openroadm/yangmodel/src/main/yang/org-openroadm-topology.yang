@@ -1,0 +1,91 @@
+module org-openroadm-topology {
+  namespace "http://org/openroadm/topology";
+  prefix org-openroadm-topology;
+
+  import org-openroadm-resource {
+    prefix org-openroadm-resource;
+  }
+
+  organization
+    "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of topology.
+       
+      Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+      AT&T Intellectual Property.  All other rights reserved.
+      
+      Redistribution and use in source and binary forms, with or without modification, 
+      are permitted provided that the following conditions are met:
+      
+      * Redistributions of source code must retain the above copyright notice, this 
+        list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright notice, 
+        this list of conditions and the following disclaimer in the documentation and/or 
+        other materials provided with the distribution.
+      * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+        contributors may be used to endorse or promote products derived from this software 
+        without specific prior written permission.
+      
+      THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+      IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+      NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+      OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+      WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+      ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+      POSSIBILITY OF SUCH DAMAGE";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping topology {
+    description
+      "Topology reports the individual hops along the service in the A to Z direction and Z to A directions.  This includes both ports internal to a device and those
+       at its edge that are available for externally connections. It includes both physical and logical ports.
+       Physical ports are ordered with the logical ports that run over them as follows:
+       a.\tOn ingress to a node/card, physical then logical
+       b.\tOn egress to a node/card, logical then physical";
+    list aToZ {
+      key "id";
+      leaf id {
+        description
+          "Unigue identifier for this topology component within this service";
+        type string;
+      }
+      uses hop;
+    }
+    list zToA {
+      key "id";
+      leaf id {
+        description
+          "Unigue identifier for this topology component within this service";
+        type string;
+      }
+      uses hop;
+    }
+  }
+
+  grouping hop {
+    leaf hop-type {
+      type enumeration {
+        enum "node-external" {
+          description
+            "The given resource is on the edge of the node, and used in relationships to resources outside of the node.";
+          value 1;
+        }
+        enum "node-internal" {
+          description
+            "The given resource is internally to the node";
+          value 2;
+        }
+      }
+    }
+    uses org-openroadm-resource:resource;
+  }
+}

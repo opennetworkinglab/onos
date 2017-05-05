@@ -1,0 +1,179 @@
+module org-openroadm-roadm {
+  namespace "http://org/openroadm/roadm";
+  prefix org-openroadm-roadm;
+
+  import org-openroadm-srg {
+    prefix org-openroadm-srg;
+  }
+  import org-openroadm-degree {
+    prefix org-openroadm-degree;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }
+  
+  organization
+    "OPEN ROADM MSA";
+  contact
+    "OpenROADM.org.";
+  description
+    "YANG definitions for network view of a ROADM
+         
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping open-roadm {
+    list nodes {
+      key "clli";
+      leaf clli {
+        type string;
+        description
+          "Location of CLLI where ROADM resides";
+      }
+      list ids {
+        key "node-number node-type";
+        leaf node-number {
+          type uint32;
+          description
+            "Number assigned to a ROADM node in a 
+             given office";
+        }
+        leaf node-id {
+          type string;
+          description
+            "Network-wide unique identifier for
+             a ROADM node";
+        }
+        leaf node-type {
+          type org-openroadm-common-types:node-types;
+          description
+            "Identifier for the node type";
+        }
+        leaf vendor {
+          type string;
+          description
+            "Identifier of the supplier
+             for the ROADM equipment";
+        }
+        leaf model {
+          type string;
+          description
+            "Identifier of the supplier's ROADM equipment";
+        }
+        leaf domain-subnetwork {
+          type string;
+          description
+            "Specific Domain-Subnetwork in which the ROADM node resides";
+        }
+        leaf ip {
+          type inet:ip-address;
+          description
+            "IP address assigned to the ROADM node";
+        }
+        leaf relay-rack {
+          type string;
+          description
+            "Frame Identification Code (FIC)";
+        }
+        leaf shelf {
+          type uint32;
+        }
+        leaf degree-supported {
+          type uint16;
+          description
+            "No. of degrees supported by the node";
+        }
+        leaf srg-supported {
+          type uint16;
+          description
+            "No. of SRGs supported by the node";
+        }
+        list connectivity-map {
+          key "logical-link-name";
+          leaf logical-link-name {
+            type string;
+          }
+          leaf logical-link-type{
+            type enumeration{
+              enum "Express-link"{
+                value 1;
+              }
+              enum "Add-link"{
+                value 2;
+              }
+              enum "Drop-link"{
+                value 3;
+              }
+            }
+          }
+          container source{
+            choice resource{
+              case degree{
+                leaf degree-number{
+                  type uint16;
+                }
+              }
+              case srg{
+                leaf srg-number{
+                  type uint16;
+                }
+              }
+            }
+          }
+          container destination{
+            choice resource{
+              case degree{
+                leaf degree-number{
+                  type uint16;
+                }
+              }
+              case srg{
+                leaf srg-number{
+                  type uint16;
+                }
+              }
+            }
+          }
+          description
+            "List of logical links to represent
+             1. Express traffic between ROADM degrees
+             2. Drop traffic from ROADM degrees and SRGs
+             3. Add traffic from SRGs to ROADM degrees";
+        }
+        uses org-openroadm-degree:roadm-degree;
+        uses org-openroadm-srg:shared-risk-group;
+      }
+    }
+  }
+}

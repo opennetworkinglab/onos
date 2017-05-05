@@ -1,0 +1,145 @@
+module org-openroadm-file-transfer {
+  namespace "http://org/openroadm/file-transfer";
+  prefix org-openroadm-file-txr;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  } 
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for file management related rpcs.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  rpc transfer {
+    description
+      "File transfer using FTP/SFTP";
+    input {
+      leaf action {
+        mandatory true;
+        description
+          "Type of action - download/upload.";
+        type enumeration {
+          enum "upload" {
+            description
+              "Specify the upload action. The server sends
+               the file identified by the local-file-path
+               to the remote-file-path.";
+          }
+          enum "download" {
+            description
+              "Specify the download action. The server retrieves
+               the file identified by the remote-file-path
+               to the local-file-path.";
+          }
+        }
+      }
+      leaf local-file-path {
+        type string;
+        mandatory true;
+        description
+          "Local file path.
+           Ex: /var/shared/example.txt";
+      }
+      leaf remote-file-path {
+        type inet:uri;
+        mandatory true;
+        description
+          "Remote file path. 
+           A URI for the remote file path.
+           
+           Format:sftp://user[:password]@host[:port]/path. 
+           Ex: sftp://test:verify@[2001:db8:0:1::10]:22/home/user/sample";
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+    }
+  }
+  rpc show-file {
+    description
+      "Show one or more files in the specified directory.";
+    input {
+      leaf filename {
+        type string {
+          length "1..255";
+        }
+        description
+          "Specify file(s) to be listed (* is allowed as wild-card). ";
+      }
+    }
+    output {
+      leaf status {
+        type enumeration {
+          enum "Successful" {
+            value 1;
+          }
+          enum "Failed" {
+            value 2;
+          }
+        }
+        mandatory true;
+        description
+          "Successful or Failed";
+      }
+      leaf-list status-message {
+        type string;
+        description
+          "Gives a more detailed reason for success / failure";
+      }
+    }
+  }
+  rpc delete-file {
+    description
+      "Delete one or more files in the specified directory.";
+    input {
+      leaf filename {
+        type string {
+          length "1..255";
+        }
+        mandatory true;
+        description
+          "Specify file(s) to be deleted (* is allowed as wild-card).";
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+    }
+  }
+}

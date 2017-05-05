@@ -1,0 +1,134 @@
+module org-openroadm-maintenance-testsignal {
+  namespace "http://org/openroadm/maintenance-testsignal";
+  prefix org-openroadm-maint-testsignal;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for maintenance testsignal.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping maint-testsignal {
+    container maint-testsignal {
+      leaf enabled {
+        type boolean;
+        default "false";
+        description
+          "testsignal enabled flag";
+      }
+      leaf testPattern {
+        when "../enabled = 'true'";
+        type enumeration {
+          enum "PRBS" {
+            value 0;
+            description
+              "Unframed, inverted PN-31 pattern or PRBS31 pattern per IEEE 802.3 clause 50.3.8.2 (inverted PN-31at line rate)";
+          }
+          enum "PRBS31" {
+            value 1;
+            description
+              "PRBS31 with standard mapping per G.709";
+          }
+          enum "PRBS23" {
+            value 2;
+            description
+              "SONET/SDH Framed,inverted PN-23 pattern.";
+          }
+          enum "PRZEROS" {
+            value 3;
+            description
+              "pseudo-random with zeros data pattern per IEEE 802.3 clause 49.2.8";
+          }
+          enum "IDLE" {
+            value 4;
+            description
+              "Scrambled IDLE test-pattern per IEEE 802.3ba";
+          }
+        }
+        description
+          "Set test signal pattern";
+      }
+      leaf type {
+        when "../enabled = 'true'";
+        type enumeration {
+          enum "fac" {
+            value 0;
+            description
+              "test signal in the facility direction";
+          }
+          enum "term" {
+            value 1;
+            description
+              "test signal in the terminal direction";
+          }
+        }
+        default "fac";
+        description
+          "Set test signal type (or direction).";
+      }
+      leaf bitErrors {
+        when "../enabled = 'true' and ../type = 'fac'";
+        type uint32 {
+          range "0..4294967295";
+        }
+        config false;
+        description
+          "bit errors for test signal in facility direction.";
+      }
+      leaf bitErrorsTerminal {
+        when "../enabled = 'true' and ../type = 'term'";
+        type uint32 {
+          range "0..4294967295";
+        }
+        config false;
+        description
+          "bit errors for test signal in terminal direction.";
+      }
+      leaf syncSeconds {
+        when "../enabled = 'true' and ../type = 'fac'";
+        type string;
+        config false;
+        description
+          "number of seconds the received facility test signal is in sync.";
+      }
+      leaf syncSecondsTerminal {
+        when "../enabled = 'true' and ../type = 'term'";
+        type string;
+        config false;
+        description
+          "number of seconds the received terminal test signal is in sync.";
+      }
+    }
+  }
+}

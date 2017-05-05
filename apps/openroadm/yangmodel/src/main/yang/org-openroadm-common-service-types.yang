@@ -1,0 +1,508 @@
+module org-openroadm-common-service-types {
+  namespace "http://org/openroadm/common/service/types";
+  prefix org-openroadm-common-service-types;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import org-openroadm-routing-constraints {
+    prefix org-openroadm-routing-constraints;
+  }
+  import org-openroadm-topology {
+    prefix org-openroadm-topology;
+  }
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }
+  import org-openroadm-resource-types {
+    prefix org-openroadm-resource-types;
+  }
+
+  organization
+    "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of common service types.
+       
+      Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+      AT&T Intellectual Property.  All other rights reserved.
+      
+      Redistribution and use in source and binary forms, with or without modification, 
+      are permitted provided that the following conditions are met:
+      
+      * Redistributions of source code must retain the above copyright notice, this 
+        list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright notice, 
+        this list of conditions and the following disclaimer in the documentation and/or 
+        other materials provided with the distribution.
+      * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+        contributors may be used to endorse or promote products derived from this software 
+        without specific prior written permission.
+      
+      THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+      IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+      NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+      OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+      WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+      ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+      POSSIBILITY OF SUCH DAMAGE";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping configuration-response-common {
+    container configuration-response-common {
+      leaf request-id {
+        type string;
+        mandatory true;
+      }
+      leaf response-code {
+        type string;
+        mandatory true;
+      }
+      leaf response-message {
+        type string;
+      }
+      leaf ack-final-indicator {
+        type string;
+        mandatory true;
+      }
+    }
+  }
+
+  grouping response-parameters {
+    container response-parameters {
+      uses org-openroadm-routing-constraints:routing-constraints;
+    }
+  }
+
+  grouping service-endpoint {
+    leaf service-format {
+      type service-format;
+      mandatory true;
+      description
+        "Format of the requested service: Ethernet, OTU, etc.";
+    }
+    leaf service-rate {
+      when "../service-format!='OMS'"{
+        description "service rate not applicable when service 
+        format is roadmline";
+      }
+      type uint32;
+      mandatory true;
+      description
+        "Rate of the requested service in GBps";
+    }
+    leaf clli {
+      type string;
+      mandatory true;
+      description
+        "CLLI";
+    }
+    uses org-openroadm-resource-types:device-id;
+    container site;
+    container tx-direction {
+      uses service-port;
+      uses service-lgx;
+      uses service-tail;
+    }
+    container rx-direction {
+      uses service-port;
+      uses service-lgx;
+      uses service-tail;
+    }
+    leaf optic-type {
+      type org-openroadm-common-types:optic-types;
+    }
+    container router {
+      description
+        "Needed for communication with DWDM pluggable";
+      leaf node-id {
+        type string;
+        description
+          "Node id. This is reported against the service, but may not get reflected in the service in the network.";
+      }
+      leaf ip-address {
+        type inet:ip-address;
+        description
+          "Router IP Address. This is reported against the service, but may not get reflected in the service in the network.";
+      }
+      leaf url {
+        type string;
+        description
+          "URL needed for communication with DWDM pluggable. This is reported against the service, but may not get reflected in the service in the network.";
+      }
+    }
+    leaf user-label {
+      type string;
+      mandatory false;
+      description
+        "Label for service endpoint, defined by the user";
+    }
+  }
+
+  typedef rpc-actions {
+    description "rpc-actions include all the rpc methods";
+    type enumeration {
+      enum service-create {
+        value "1";
+      }
+      enum service-feasibility-check {
+        value "2";
+      }
+      enum service-delete {
+        value "3";
+      }
+      enum equipment-notification {
+        value "4";
+      }
+      enum temp-service-create {
+        value "5";
+      }
+      enum temp-service-delete {
+        value "6";
+      }
+      enum service-roll {
+        value "7";
+      }
+      enum service-reconfigure {
+        value "8";
+      }
+      enum service-restoration {
+        value "9";
+      }
+      enum service-reversion {
+        value "10";
+      }
+      enum service-reroute {
+        value "11";
+      }
+      enum service-reroute-confirm {
+        value "12";
+      }
+      enum network-re-optimization {
+        value "13";
+      }
+    }
+  }
+
+  grouping sdnc-request-header {
+    container sdnc-request-header {
+      leaf request-id {
+        type string;
+      }
+      leaf rpc-action {
+        type rpc-actions;
+      }
+      leaf notification-url {
+        type string;
+      }
+      leaf request-system-id{
+        type string;
+      }
+    }
+  }
+
+  grouping service-port {
+    container port {
+      leaf port-device-name {
+        type string;
+      }
+      leaf port-type {
+        type string;
+      }
+      leaf port-name {
+        type string;
+      }
+      leaf port-rack {
+        type string;
+      }
+      leaf port-shelf {
+        type string;
+      }
+      leaf port-slot {
+        type string;
+      }
+      leaf port-sub-slot {
+        type string;
+      }
+    }
+  }
+
+  grouping service-lgx {
+    container lgx {
+      leaf lgx-device-name {
+        type string;
+      }
+      leaf lgx-port-name {
+        type string;
+      }
+      leaf lgx-port-rack {
+        type string;
+      }
+      leaf lgx-port-shelf {
+        type string;
+      }
+    }
+  }
+
+  grouping service-tail {
+    container tail {
+      container tail-roadm {
+        description
+          "ROADM on which the transponder is connected to (TID, IP Address,
+           or FQDN)";
+        uses org-openroadm-resource-types:device-id;
+      }
+      container xponder-port {
+        description
+          "Muxponder port used in tail, that will get used as a service endpoint.";
+        leaf circuit-pack-name {
+          type string;
+        }
+        leaf port-name {
+          type string;
+        }
+      }
+      leaf tail-roadm-port-aid {
+        type string;
+        description
+          "This will provide the transponder port needed to inter-city ROADM
+           connection";
+      }
+      leaf tail-roadm-port-rack-location {
+        type string;
+        description
+          "Transponder's location";
+      }
+    }
+  }
+
+  grouping service-information {
+    leaf due-date {
+      type yang:date-and-time;
+      description
+        "Date and time service to be turn up. If time is not specified for a given date, default to  midnight. Service turned up immediately if no due date is specified";
+    }
+    leaf end-date {
+      type yang:date-and-time;
+      description
+        "Date and time service to be removed";
+      mandatory false;
+    }
+    leaf nc-code {
+      type string;
+      description
+        "NC code applied to wavelength service only.This is reported against the service, but may not get reflected in the service in the network.";
+    }
+    leaf nci-code {
+      type string;
+      description
+        "NCI code applied to wavelength service only.This is reported against the service, but may not get reflected in the service in the network.";
+    }
+    leaf secondary-nci-code {
+      type string;
+      description
+        "NC code applied to wavelength service only.This is reported against the service, but may not get reflected in the service in the network.";
+    }
+    leaf customer {
+      type string;
+      description
+        "To be included in ticket information.This is reported against the service, but may not get reflected in the service in the network.";
+    }
+    leaf customer-contact {
+      type string;
+      description
+        "Customer contact information To be included in ticket information. This is reported against the service, but may not get reflected in the service in the network.";
+    }
+    leaf operator-contact {
+      type string;
+      description
+        "Operator contact information to be included in ticket information. This is reported against the service, but may not get reflected in the service in the network.";
+    }
+  }
+
+  grouping service {
+    leaf service-name {
+      type string;
+      description
+        "Identifier for the service to be created in
+         the ROADM network, e.g., CLFI, CLCI, etc.";
+      mandatory true;
+    }
+    leaf common-id {
+      type string;
+      description
+        "To be used by the ROADM controller to identify the routing 
+         constraints received from planning application (PED).";
+    }
+    uses sdnc-request-header;
+    leaf connection-type {
+      type connection-type;
+      mandatory true;
+      description
+        "Connection type";
+    }
+    leaf lifecycle-state {
+      type org-openroadm-common-types:lifecycle-state;
+      description
+        "Lifecycle State of service. Whether it is planned, deployed, in maintenance, etc.";
+    }
+    leaf administrative-state {
+      type org-openroadm-common-types:state;
+      description
+        "Administrative State: Intended state of service";
+    }
+    leaf operational-state {
+      type org-openroadm-common-types:state;
+      config false;
+      description
+        "Operational State: Actual state of service";
+    }
+    leaf condition {
+      type service-condition;
+      description
+        "Service Condition: Additional information about the state of the service. Only sent when applicable.";
+    }
+    container service-a-end {
+      uses service-endpoint;
+    }
+    container service-z-end {
+      uses service-endpoint;
+    }
+    uses org-openroadm-routing-constraints:routing-constraints;
+    uses service-information;
+    leaf latency {
+      type uint32;
+      description
+        "Latency on service";
+    }
+    leaf-list fiber-span-srlgs {
+      type string;
+      description
+        "Shared risk link group identifiers";
+    }
+    list equipment-srgs {
+      key "srg-number";
+      uses org-openroadm-resource-types:srg-number;
+    }
+    leaf-list supporting-service-name {
+      description
+        "The service name that this runs over top. If connection-type is service, then this is the related 
+         connection-type = infrastructure service, for example.";
+      type string;
+    }
+    container topology {
+      uses org-openroadm-topology:topology;
+    }
+  }
+
+  grouping service-notification-result {
+    leaf service-name {
+      type string;
+      description
+        "Identifier for the service e.g., CLFI, CLCI, etc.";
+      mandatory true;
+    }
+    leaf actual-date {
+      type yang:date-and-time;
+      description
+        "Actual date and time (if successful)";
+    }
+  }
+
+  typedef service-format {
+    type enumeration {
+      enum "Ethernet" {
+        value 1;
+      }
+      enum "OTU" {
+        value 2;
+      }
+      enum "OC" {
+        value 3;
+      }
+      enum "STM" {
+        value 4;
+      }
+      enum "OMS" {
+        value 5;
+      }
+      enum "ODU" {
+        value 6;
+      }
+      enum "OTM" {
+        value 7;
+      }
+    }
+  }
+
+  typedef service-notification-types {
+    type enumeration {
+      enum "service-create-result" {
+        value 1;
+      }
+      enum "service-reconfigure-result" {
+        value 2;
+      }
+      enum "service-delete-result" {
+        value 3;
+      }
+      enum "service-roll-result" {
+        value 4;
+      }
+      enum "service-revert-result" {
+        value 5;
+      }
+      enum "service-reroute-result" {
+        value 6;
+      }
+      enum "service-restoration-result" {
+        value 7;
+      }
+    }
+  }
+
+  typedef connection-type {
+    type enumeration {
+      enum "service" {
+        value 1;
+      }
+      enum "infrastructure" {
+        value 2;
+      }
+      enum "roadm-line" {
+        value 3;
+      }
+    }
+  }
+
+  typedef service-condition {
+    type enumeration {
+      enum "restored-temporarily" {
+        value 1;
+      }
+      enum "re-routed-temporarily" {
+        value 2;
+      }
+      enum "activated-for-service" {
+        value 3;
+      }
+      enum "activated-for-further-check" {
+        value 4;
+      }
+      enum "activated-for-troubleshooting-failure" {
+        value 5;
+      }
+    }
+  }
+}

@@ -1,0 +1,217 @@
+module org-openroadm-device-resource-types {
+  namespace "http://org/openroadm/de/device-resource-types";
+  prefix org-openroadm-device-resource-types;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of resource types.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping device-id {
+    description
+      "Device identifier. Unique within the Controller.";
+    leaf node-id {
+      description
+        "Node Id. Globally unique identifier for a device.";
+      type leafref {
+        path "/org-openroadm-device/info/node-id";
+      }
+      mandatory true;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping shelf-name {
+    leaf shelf-name {
+      description
+        "Shelf identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/shelves/shelf-name";
+      }
+      mandatory true;
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping physical-link-name {
+    leaf physical-link-name {
+      description
+        "Physical Link identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/physical-link/physical-link-name";
+      }
+      mandatory true;
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping internal-link-name {
+    uses org-openroadm-device:circuit-pack-name;
+    leaf internal-link-name {
+      description
+        "Internal Link identifier. Unique within the context of a circuit pack.";
+      type leafref {
+        path "/org-openroadm-device/internal-link/internal-link-name";
+      }
+      mandatory true;
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping connection-number {
+    leaf connection-number {
+      description
+        "Connection identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/connections/connection-number";
+      }
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping this-will-test-ids {
+    uses device-id;
+    container shelf {
+      uses shelf-name;
+    }
+    container circuit-pack {
+      uses org-openroadm-device:circuit-pack-name;
+    }
+    container port {
+      uses org-openroadm-device:port-name;
+    }
+    uses internal-link-name;
+    uses physical-link-name;
+    uses connection-number;
+    uses org-openroadm-device:srg-number;
+    uses org-openroadm-device:degree-number;
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping xponder-device-id {
+    description
+      "Xponder identifier. Unique within the Controller.";
+    leaf node-id {
+      description
+        "Xponder Id. Globally unique identifier for the device";
+      type leafref {
+        path "/org-openroadm-device/info/node-id";
+      }
+      mandatory true;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping xponder-number {
+    leaf xponder-number {
+      description
+        "Xponder identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/xponders/xponder-number";
+      }
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping xponder-shelf-name {
+    uses xponder-number;
+    leaf shelf-name {
+      description
+        "Shelf identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/xponders[xponder-number=current()/../xponder-number]/shelves/shelf-name";
+      }
+      mandatory true;
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping xponder-circuit-pack-name {
+    uses xponder-number;
+    leaf circuit-pack-name {
+      description
+        "Circuit Pack identifier. Unique within the context of a xponder.";
+      type leafref {
+        path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+      }
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping xponder-port-name {
+    uses xponder-circuit-pack-name;
+    leaf port-name {
+      description
+        "Port identifier. Unique within the context of a circuit-pack.";
+      type leafref {
+        path "/org-openroadm-device/circuit-packs[circuit-pack-name=current()/../circuit-pack-name]/ports/port-name";
+      }
+      config false;
+    }
+  }
+*/
+
+/* Currently not used; if used later, needs to move to org-openroadm-device.yang so leafref can be resolved.
+  grouping this-will-test-xponder-ids {
+    uses xponder-device-id;
+    container shelf {
+      uses xponder-shelf-name;
+    }
+    container circuit-pack {
+      uses xponder-circuit-pack-name;
+    }
+    container port {
+      uses xponder-port-name;
+    }
+  }
+*/
+}

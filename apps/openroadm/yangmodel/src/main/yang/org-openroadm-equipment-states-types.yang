@@ -1,0 +1,130 @@
+module org-openroadm-equipment-states-types {
+  namespace "http://org/openroadm/equipment/states/types";
+  prefix org-openroadm-equipment-states-types;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for types of states of equipment (slot/subslot).
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  typedef admin-states {
+    type enumeration {
+      enum "inService" {
+        value 1;
+      }
+      enum "outOfService" {
+        value 2;
+      }
+      enum "maintenance" {
+        value 3;
+      }
+    }
+  }
+
+  typedef states {
+    type enumeration {
+      enum "reserved-for-facility-planned" {
+        value 1;
+        description
+          "equipment is planned for use by a service";
+      }
+      enum "not-reserved-planned" {
+        value 2;
+        description
+          "equipment is planned by not reserved for any purpose";
+      }
+      enum "reserved-for-maintenance-planned" {
+        value 3;
+        description
+          "equipment is planned for use as a maintenance spare";
+      }
+      enum "reserved-for-facility-unvalidated" {
+        value 4;
+        description
+          "equipment is reserved for use by a service but not
+           validated against planned equipment";
+      }
+      enum "not-reserved-unvalidated" {
+        value 5;
+        description
+          "equipment is not reserved for any purpose and
+           not validated against planned equipment";
+      }
+      enum "unknown-unvalidated" {
+        value 6;
+        description
+          "unknown equipment not validated against planned equipment";
+      }
+      enum "reserved-for-maintenance-unvalidated" {
+        value 7;
+        description
+          "equipment is to be used for use as a maintenance spare
+           but not validated against planned equipment";
+      }
+      enum "reserved-for-facility-available" {
+        value 8;
+        description
+          "reserved for use by a service and available";
+      }
+      enum "not-reserved-available" {
+        value 9;
+        description
+          "not reserved for use by a service and available";
+      }
+      enum "reserved-for-maintenance-available" {
+        value 10;
+        description
+          "reserved as a maintenance spare and available";
+      }
+      enum "reserved-for-reversion-inuse" {
+        value 11;
+        description
+          "equipiment that is reserved as part of a home path
+           for a service that has been temporarily re-routed";
+      }
+      enum "not-reserved-inuse" {
+        value 12;
+        description
+          "equipment in use for a service";
+      }
+      enum "reserved-for-maintenance-inuse" {
+        value 13;
+        description
+          "maintenance spare equipment that is in use as a
+           maintenance spare";
+      }
+    }
+  }
+}

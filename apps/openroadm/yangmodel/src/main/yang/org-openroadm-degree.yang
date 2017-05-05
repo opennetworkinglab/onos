@@ -1,0 +1,146 @@
+module org-openroadm-degree {
+  namespace "http://org/openroadm/degree";
+  prefix org-openroadm-degree;
+
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }       
+  organization
+    "Open ROADM MSA";
+  contact
+    "OpenROADM.org.";
+  description
+    "YANG definitions for a Degree in Network Model
+     
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping roadm-degree {
+    list degrees {
+      key "degree-number";
+      leaf degree-number {
+        type uint16;
+        description
+          "Identifier for each direction/degree";
+      }
+      container external {
+        leaf clli {
+          type string;
+          description
+            "Location CLLI where ROADM resides";
+        }
+        leaf node-number{
+          type uint32;
+          description
+            "Number assigned to a ROADM node in a 
+             given office";
+        }
+        leaf node-id {
+          type string;
+          description
+            "Identifier of the ROADM";
+        }
+        leaf degree-number {
+          type uint16;
+          description
+            "Identifier for direction/degree in far-end ROADM";
+        }
+        leaf oms-clfi {
+          type string;
+          description
+            "Unique facility name given to the OMS tails";
+        }
+        leaf-list facility-routing-subpath {
+          type string;
+          description
+            "";
+        }
+        leaf max-wavelengths {
+          type uint32;
+          description
+            "Numeric value specifies the maximum # of wavelengths supported by the OMS";
+        }
+        leaf-list available-wavelengths {
+          type uint32;
+          description
+            "list of wavelengths that are supported by the degree";
+        }
+        leaf distance {
+          type decimal64 {
+            fraction-digits 1;
+          }
+          description
+            "Span distance measured in km.";
+          units "km";
+        }
+        leaf spanloss-base {
+          description
+            "Baseline ROADM span loss measured and accepted during degree turn-up.";
+          type org-openroadm-common-types:ratio-dB;
+        }
+        leaf spanloss-current {
+          description
+            "Current ROADM span loss captured by the controller.";
+          type org-openroadm-common-types:ratio-dB;
+        }
+        container oms-ttp-tx {
+          leaf-list wavelength-number {
+            type uint32;
+            description
+              "The wavelength # assigned by PCE to a  service/circuit";
+          }
+        }
+        container oms-ttp-rx {
+          leaf-list wavelength-number {
+            type uint32;
+            description
+              "The wavelength # assigned by PCE to a  service/circuit";
+          }
+        }
+      }
+      container ctp-tx {
+        leaf-list wavelength-number {
+          type uint32;
+          description
+            "The wavelength # assigned by PCE to a  service/circuit";
+        }
+      }
+      container ctp-rx {
+        leaf-list wavelength-number {
+          type uint32;
+          description
+            "The wavelength # assigned by PCE to a  service/circuit";
+        }
+      }
+    }
+  }
+}

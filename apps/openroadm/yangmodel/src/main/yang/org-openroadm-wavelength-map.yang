@@ -1,0 +1,71 @@
+module org-openroadm-wavelength-map {
+  namespace "http://org/openroadm/wavelength-map";
+  prefix org-openroadm-wavelength-map;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for mapping wavelength-number to center frequency and wavelength value.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping wavelength-map-g {
+    list wavelengths {
+      key "wavelength-number";
+      leaf wavelength-number {
+        type uint32;
+      }
+      config false;
+      leaf center-frequency {
+        type decimal64 {
+          fraction-digits 3;
+          range "191.350..196.100";
+        }
+        units "THz";
+        description
+          "Frequency of the transmit optical channel
+           Domain range:  191.350THz .. 196.100THz ";
+      }
+      leaf wavelength {
+        type decimal64 {
+          fraction-digits 2;
+          range "1528.77..1566.72";
+        }
+        units "nm";
+        description
+          "Lambda corresponding to transmit frequency
+           Domain range:  1528.72nm .. 1566.72nm ";
+      }
+    }
+  }
+}

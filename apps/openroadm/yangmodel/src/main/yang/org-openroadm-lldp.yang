@@ -1,0 +1,302 @@
+module org-openroadm-lldp {
+  namespace "http://org/openroadm/lldp";
+  prefix org-openroadm-lldp;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+  import org-openroadm-device {
+    prefix org-openroadm-device;
+  }
+  import iana-afn-safi {
+    prefix ianaaf;
+  }
+  import org-openroadm-resource-types {
+    prefix org-openroadm-resource-types;
+  }
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for lldp protocol.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+  grouping nbr-info-grp { 
+    description
+      "Display LLDP Neighbour ";
+
+    leaf remoteSysName {
+      type string;
+      description
+        "remote neighbour system name";
+    }
+    leaf remoteMgmtAddressSubType {
+      type ianaaf:address-family;
+      description
+        "remote neighbour Management Address Subtype Enumeration";
+    }
+    leaf remoteMgmtAddress {
+      type inet:ip-address;
+      description
+        "remote neighbour management address";
+    }
+    leaf remotePortIdSubType {
+      type enumeration {
+        enum "other" {
+          value 0;
+          description
+            "reserved";
+        }
+        enum "ifalias" {
+          value 1;
+          description
+            "Interface Alias (IfAlias - IETF RFC 2863) ";
+        }
+        enum "portcomponent" {
+          value 2;
+          description
+            "Port component (EntPhysicalAlias IETF RFC 4133)";
+        }
+        enum "macaddress" {
+          value 3;
+          description
+            "MAC address (IEEE Std 802) ";
+        }
+        enum "networkaddress" {
+          value 4;
+          description
+            "Network Address";
+        }
+        enum "ifname" {
+          value 5;
+          description
+            "Interface Name (ifName - IETF RFC 2863)";
+        }
+        enum "agentcircuitid" {
+          value 6;
+          description
+            "Agent Circuit Id (IETF RFC 3046)";
+        }
+        enum "local" {
+          value 7;
+          description
+            "Locally assigned";
+        }
+      }
+      description
+        "remote neighbour Port ID Subtype Enumeration";
+    }
+    leaf remotePortId {
+      type string;
+      description
+        "remote neighbour port Id";
+    }
+    leaf remoteChassisIdSubType {
+      type enumeration {
+        enum "reserved" {
+          value 0;
+          description
+            "reserved";
+        }
+        enum "chassiscomponent" {
+          value 1;
+          description
+            "Chassis component (EntPhysicalAlias IETF RFC 4133)";
+        }
+        enum "ifalias" {
+          value 2;
+          description
+            "Interface Alias (IfAlias - IETF RFC 2863) ";
+        }
+        enum "portcomponent" {
+          value 3;
+          description
+            "Port component (EntPhysicalAlias IETF RFC 4133)";
+        }
+        enum "macaddress" {
+          value 4;
+          description
+            "MAC address (IEEE Std 802) ";
+        }
+        enum "networkaddress" {
+          value 5;
+          description
+            "Network Address";
+        }
+        enum "ifname" {
+          value 6;
+          description
+            "Interface Name (ifName - IETF RFC 2863)";
+        }
+        enum "local" {
+          value 7;
+          description
+            "Locally assigned";
+        }
+      }
+      description
+        "Chassis ID Subtype Enumeration";
+    }    
+    leaf remoteChassisId {
+      type string;
+      description
+        "remote neighbour Chassis Id";
+    }                                         
+  }           
+
+  grouping lldp-container {
+    container lldp {
+      description
+        "LLDP configurable and retrievable";
+      container global-config {
+        description
+          "LLDP global configurations";
+        leaf adminStatus {
+          type enumeration {
+            enum "disable" {
+              value 0;
+              description
+                "Disable the LLDP feature per NE";
+            }
+            enum "enable" {
+              value 1;
+              description
+                "Enable the LLDP feature per NE";
+            }
+          }
+          description
+            "LLDP feature Enable/Disable per NE";
+          default "enable";
+        }
+        leaf msgTxInterval {
+          type uint16 {
+            range "5..32768";
+          }
+          description
+            "LLDP frame Retransmit Interval in seconds";
+          default "30";
+        }
+        leaf msgTxHoldMultiplier {
+          type uint8 {
+            range "2..10";
+          }
+          description
+            "TTL value for the TLVs transmitter over wire in seconds";
+          default "4";
+        }
+      }
+      list port-config {
+        description
+          "LLDP port configurations";
+        key "ifName";
+        leaf ifName {
+          type leafref {
+            path "/org-openroadm-device:org-openroadm-device/org-openroadm-device:interface/org-openroadm-device:name";
+          }
+          description
+            "Ethernet interface name where LLDP runs";
+        }
+        leaf adminStatus {
+          type enumeration {
+            enum "disable" {
+              value 0;
+              description
+                "Disables the LLDP frames transmit and receive on specific interface";
+            }
+            enum "txandrx" {
+              value 1;
+              description
+                "Enable Transmit and Receive LLDP frames on specific interface";
+            }
+          }
+          description
+            "LLDP enable per port basis";
+          default "txandrx";
+        }
+      }
+      container nbr-list {
+        description
+          "LLDP Oper data - Neighbour List information";
+        config false;
+        list if-name {
+          key "ifName";
+          leaf ifName {
+            type string;
+            description
+              "Ethernet interface name where LLDP runs";
+          }                               
+          uses nbr-info-grp;
+        }                             
+      }
+    }
+  }
+
+  augment "/org-openroadm-device:org-openroadm-device/org-openroadm-device:protocols" {
+    when "/org-openroadm-device:org-openroadm-device/org-openroadm-device:info/org-openroadm-device:node-type='rdm'";
+    uses lldp-container;
+  }
+
+  notification lldp-nbr-info-change {
+    description "LLDP: Neighbor Information Changed
+            remoteSysName
+            remoteSysMgmtAddressSubType
+            remoteSysMgmtAddress
+            remotePortIdSubType
+            remotePortId
+            remoteChassisIdSubType
+            remoteChassisId
+            All of the above attributes are sent in event";
+    leaf notification-type {
+      type org-openroadm-resource-types:resource-notification-type; 
+    }
+    leaf resource-type {
+      type org-openroadm-resource-types:resource-type-enum;
+      description  
+        "resource-type for this notification is interface";  
+    }
+    leaf resource {         
+      type string;
+      description  
+        "resource interface-name";  
+    }
+    container nbr-info {
+      uses nbr-info-grp;
+    }
+    leaf event-time {
+      type yang:date-and-time;
+    }
+  }                    
+}

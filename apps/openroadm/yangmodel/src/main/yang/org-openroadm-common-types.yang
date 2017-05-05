@@ -1,0 +1,282 @@
+module org-openroadm-common-types {
+  namespace "http://org/openroadm/common-types";
+  prefix org-openroadm-common-types;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of common types.
+       
+      Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+      AT&T Intellectual Property.  All other rights reserved.
+      
+      Redistribution and use in source and binary forms, with or without modification, 
+      are permitted provided that the following conditions are met:
+      
+      * Redistributions of source code must retain the above copyright notice, this 
+        list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright notice, 
+        this list of conditions and the following disclaimer in the documentation and/or 
+        other materials provided with the distribution.
+      * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+        contributors may be used to endorse or promote products derived from this software 
+        without specific prior written permission.
+      
+      THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+      IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+      NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+      OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+      WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+      ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+      POSSIBILITY OF SUCH DAMAGE";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping physical-location {
+    leaf rack {
+      type string;
+      mandatory false;
+    }
+    leaf shelf {
+      type string;
+      mandatory false;
+    }
+    leaf slot {
+      type string;
+      mandatory false;
+    }
+    leaf subSlot {
+      type string;
+      mandatory false;
+    }
+  }
+
+  typedef node-types {
+    type enumeration {
+      enum "rdm" {
+        value 1;
+      }
+      enum "xpdr" {
+        value 2;
+      }
+    }
+    description
+      "3 digit identifier for node type
+       1. rdm for ROADM
+       2. xpdr for Transponder, Regen";
+  }
+
+  typedef power-dBm {
+    description
+      "Power value in dBm.";
+    type decimal64 {
+      fraction-digits 2;
+    }
+    units "dBm";
+  }
+
+  typedef ratio-dB {
+    description
+      "Power ratio in dB.";
+    type decimal64 {
+      fraction-digits 3;
+    }
+    units "dB";
+  } 
+
+  typedef severity {
+    description
+      "Severity, based on X.733 perceived severity";
+    type enumeration {
+      enum "critical" {
+        value 1;
+      }
+      enum "major" {
+        value 2;
+      }
+      enum "minor" {
+        value 3;
+      }
+      enum "warning" {
+        value 4;
+      }
+      enum "clear" {
+        value 5;
+      }
+      enum "indeterminate" {
+        value 6;
+      }
+    }
+  }
+
+  typedef rpc-status {
+    description
+      "status of RPC ";
+    type enumeration {
+      enum "Successful" {
+        value 1;
+      }
+      enum "Failed" {
+        value 2;
+      }
+    }
+  }
+
+  grouping rpc-response-status {
+    leaf status {
+      type rpc-status;
+      mandatory true;
+      description
+        "Successful or Failed";
+    }
+    leaf status-message {
+      type string;
+      description
+        "Gives a more detailed reason for failure";
+    }
+  }
+
+  typedef lifecycle-state {
+    description
+      "Lifecycle state.";
+    type enumeration {
+      enum "deployed" {
+        value 1;
+      }
+      enum "planned" {
+        value 2;
+      }
+      enum "maintenance" {
+        value 3;
+      }
+      enum "deploying" {
+        value 4;
+      }
+      enum "undeploying" {
+        value 5;
+      }
+    }
+  }
+
+  typedef state {
+    description
+      "State that indicates whether the resource is able to provide fullfill its role - carry traffic, etc.";
+    type enumeration {
+      enum "inService" {
+        value 1;
+      }
+      enum "outOfService" {
+        value 2;
+      }
+      enum "degraded" {
+        value 3;
+      }
+    }
+  }
+
+  typedef optic-types {
+    type enumeration {
+      enum "gray" {
+        value 1;
+      }
+      enum "dwdm" {
+        value 2;
+      }
+    }
+  }
+  grouping equipment-type {
+    leaf type {
+      type equipment-type-enum;
+      mandatory true;
+      config false;
+    }
+    leaf extension {
+      description
+        "Populated with equipment type when enum value is set to vendorExtension";
+      type string;
+      mandatory false;
+      config false;
+    }
+  }
+
+  typedef equipment-type-enum {
+    type enumeration {
+      enum "other" {
+        value 1;
+      }
+      enum "powerSupply" {
+        value 2;
+      }
+      enum "shelfProcessor" {
+        value 3;
+      }
+      enum "crossConnect" {
+        value 4;
+      }
+      enum "fan" {
+        value 5;
+      }
+      enum "accessPanel" {
+        value 6;
+      }
+      enum "circuitPack" {
+        value 7;
+      }
+    }
+  }
+
+  typedef optical-control-mode {
+    description
+      "Optical Control Mode: identifies specific algorithm related to power management and general optical control.";
+    type enumeration {
+      enum "power" {
+        value 1;
+      }
+      enum "gainLoss" {
+        value 2;
+      }
+      enum "off" {
+        value 3;
+      }
+    }
+    reference "openroadm.org: Open ROADM MSA Specification.";
+  }
+
+  typedef direction {
+    type enumeration {
+      enum "tx" {
+        value 1;
+      }
+      enum "rx" {
+        value 2;
+      }
+      enum "bidirectional" {
+        value 3;
+      }
+    }
+  }
+
+  typedef pm-direction {
+    type enumeration {
+      enum "tx" {
+        value 1;
+      }
+      enum "rx" {
+        value 2;
+      }
+      enum "bidirectional" {
+        value 3;
+      }
+      enum "notApplicable" {
+        value 4;
+      }
+    }
+  }
+}

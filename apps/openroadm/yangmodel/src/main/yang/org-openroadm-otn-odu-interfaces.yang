@@ -1,0 +1,387 @@
+module org-openroadm-otn-odu-interfaces {
+  namespace "http://org/openroadm/otn-odu-interfaces";
+  prefix org-openroadm-otn-odu-interfaces;
+
+  import org-openroadm-device {
+    prefix org-openroadm-device;
+  }
+  import org-openroadm-interfaces {
+    prefix openROADM-if;
+  }
+  import org-openroadm-maintenance-testsignal {
+    prefix org-openroadm-maint-testsignal;
+  }
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for device facility otnodu interfaces.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.
+     
+     Also contains code components extracted from IETF Interfaces.  These code components
+     are copyrighted and licensed as follows:
+     
+     Copyright (c) 2016 IETF Trust and the persons identified as the document authors.
+     All rights reserved.
+     
+     This document is subject to BCP 78 and the IETF Trust’s Legal Provisions Relating
+     to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of
+     publication of this document. Please review these documents carefully, as they
+     describe your rights and restrictions with respect to this document. Code Components
+     extracted from this document must include Simplified BSD License text as described in
+     Section 4.e of the Trust Legal Provisions and are provided without warranty as
+     described in the Simplified BSD License.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  identity odu-rate-identity {
+    description
+      "A unique rate identification of the ODUk.";
+  }
+
+  identity ODU4 {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU4";
+  }
+
+  identity ODU3 {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU3";
+  }
+
+  identity ODU2 {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU2";
+  }
+
+  identity ODU2e {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU2e";
+  }
+
+  identity ODU1 {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU1";
+  }
+
+  identity ODU0 {
+    base odu-rate-identity;
+    description
+      "Identity for an ODU0";
+  }
+
+  identity ODUflex {
+    base odu-rate-identity;
+    description
+      "Identity for an ODUflex";
+  }
+
+  identity odtu-type-identity {
+    description
+      "A unique identification for the MSI odtu type.";
+  }
+
+  identity ODTU4.ts-Allocated {
+    base odtu-type-identity;
+    description
+      "OPU4 MSI - ODTU4.ts, TS is occupied/allocated";
+  }
+  
+  identity ODTU4.1 {
+    base odtu-type-identity;
+    description
+      "ODTU4.1 MSI type";
+  }
+  
+  identity ODTU4.2 {
+    base odtu-type-identity;
+    description
+      "ODTU4.2 MSI type";
+  }
+  
+  identity ODTU4.8 {
+    base odtu-type-identity;
+    description
+      "ODTU4.8 MSI type";
+  }
+  
+  identity ODTU4.31 {
+    base odtu-type-identity;
+    description
+      "ODTU4.31 MSI type";
+  }
+  
+  identity ODTU01 {
+    base odtu-type-identity;
+    description
+      "ODTU01 MSI type";
+  }
+
+  identity ODTU12 {
+    base odtu-type-identity;
+    description
+      "ODTU12 MSI type";
+  }
+
+  identity ODTU13 {
+    base odtu-type-identity;
+    description
+      "ODTU13 MSI type";
+  }
+
+  identity ODTU23 {
+    base odtu-type-identity;
+    description
+      "ODTU23 MSI type";
+  }
+
+  identity ODTU2.ts {
+    base odtu-type-identity;
+    description
+      "ODTU2.ts MSI type";
+  }
+
+  identity ODTU3.ts {
+    base odtu-type-identity;
+    description
+      "ODTU3.ts MSI type";
+  }
+
+  identity unallocated {
+    base odtu-type-identity;
+    description
+      "Unallocated MSI type";
+  }
+
+  grouping msi-entry {
+    leaf trib-slot {
+      type uint16;
+      description
+        "tributary slot (TS)";
+    }
+    leaf odtu-type {
+      type identityref {
+        base odtu-type-identity;
+      }
+      description
+        "ODTU type, part of the MSI (Multiplex Structure Identifier)";
+    }
+    leaf trib-port {
+      type uint8;
+      description
+        "Tributray Port Number (0-based), part of the MSI";
+    }
+    leaf trib-port-payload {
+      type string;
+      description
+        "interface name being mapped to trib-port";
+    }
+  }
+
+  grouping odu-attributes {
+    description
+      "ODU attributes";
+    leaf rate {
+      type identityref {
+        base odu-rate-identity;
+      }
+      description
+        "rate identity of the ODU. 'identityref' is used
+         to allow to extend for future higher rates";
+    }
+    leaf monitoring-mode {
+      type enumeration {
+        enum "not-terminated" {
+          description
+            "Not Terminated: no detection or generation.
+             Overhead is passed through the interface transparently in receive direction";
+        }
+        enum "terminated" {
+          description
+            "Terminated: detection and generation enabled.
+             Overhead is erased (replaced with all zeros) in receive direction";
+        }
+        enum "monitored" {
+          description
+            "Monitored: detection enabled.
+             Overhead is passed through the interface transparently in receive direction";
+        }
+      }
+      description
+        "Monitoring mode of the ODU Overhead";
+    }
+    leaf proactive-delay-measurement-enabled {
+      type boolean;
+      description
+        "enable/disable proactive Delay Measurement";
+    }
+    list tcm {
+      key "layer";
+      uses tcm-attributes;
+      max-elements "6";
+      description
+        "Tandem Connection Management";
+    }
+    uses opu;
+  }
+
+  grouping opu {
+    container opu {
+      when "../monitoring-mode = 'terminated' or ../monitoring-mode = 'monitored'";
+      description
+        "Optical Channel Payload Unit (OPU)";
+      leaf payload-type {
+        type string {
+          length "2";
+          pattern "[0-9a-fA-F]*";
+        }
+        description
+          "Payload Type";
+      }
+      leaf rx-payload-type {
+        type string {
+          length "2";
+          pattern "[0-9a-fA-F]*";
+        }
+        description
+          "Received Payload Type";
+      }
+      leaf exp-payload-type {
+        type string {
+          length "2";
+          pattern "[0-9a-fA-F]*";
+        }
+        description
+          "Expected Payload Type";
+      }
+      leaf payload-interface {
+        type string;
+        description
+          "Expected Payload of OPU. It designates client interface name";
+      }
+      container msi {
+        when "../payload-type = '20' or ../payload-type = '21'";
+        list tx-msi {
+          key "trib-slot";
+          uses msi-entry;
+          description
+            "Transmit MSI";
+        }
+        list rx-msi {
+          key "trib-slot";
+          uses msi-entry;
+          description
+            "Receive MSI";
+        }
+        list exp-msi {
+          key "trib-slot";
+          uses msi-entry;
+          description
+            "Expected MSI";
+        }
+      }
+    }
+  }
+
+  grouping tcm-attributes {
+    description
+      "Tandem Connection Monitoring (TCM) attributes";
+    leaf layer {
+      type uint8 {
+        range "1..6";
+      }
+      description
+        "TCM layer";
+    }
+    leaf monitoring-mode {
+      type enumeration {
+        enum "not-terminated" {
+          description
+            "Not Terminated: no detection or generation.
+             Overhead is passed through the interface transparently in receive direction 
+             unless extension is set for erase";
+        }
+        enum "terminated" {
+          description
+            "Terminated: detection and generation enabled.
+             Overhead is erased (replaced with all zeros) in receive direction, unless
+             extension is set to passthrough";
+        }
+        enum "monitored" {
+          description
+            "Monitored: detection enabled.
+             Overhead is passed through the interface transparently in receive direction 
+             unless extension is set for erase";
+        }
+      }
+      description
+        "Monitoring mode of the TCM layer";
+    }
+    leaf ltc-act-enabled {
+      type boolean;
+      description
+        "enable/disable alarm transfer on detection of Loss of Tandem Connection (LTC)";
+    }
+    leaf proactive-delay-measurement-enabled {
+      type boolean;
+      description
+        "enable/disable proactive Delay Measurement";
+    }
+  }
+
+  grouping odu-container {
+    container odu {
+      presence "Attribute Nodes for Optical Data Unit (ODU)";
+      description
+        "Optical Channel Data Unit (ODU)";
+      uses odu-attributes {
+        refine "opu/rx-payload-type" {
+          config false;
+        }
+        refine "opu/msi" {
+          config false;
+        }
+      }
+      uses org-openroadm-maint-testsignal:maint-testsignal;
+    }
+  }
+
+  augment "/org-openroadm-device:org-openroadm-device/org-openroadm-device:interface" {
+    when "org-openroadm-device:type = 'openROADM-if:otnOdu'";
+    uses odu-container;
+  }
+}

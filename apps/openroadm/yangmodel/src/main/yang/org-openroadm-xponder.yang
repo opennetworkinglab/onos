@@ -1,0 +1,221 @@
+module org-openroadm-xponder {
+  namespace "http://org/openroadm/xponder";
+  prefix org-openroadm-xponder;
+
+  import org-openroadm-equipment-states-types {
+    prefix org-openroadm-equipment-states-types;
+  }
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization
+    "OPEN ROADM MSA";
+  contact
+    "OpenROADM.org.";
+  description
+    "YANG definitions for xponder
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping xponder {
+    list xponders {
+      key "clli";
+      leaf clli {
+        type string;
+        description
+          "Location CLLI where the Xponder resides";
+      }
+      list ids {
+        key "node-number node-type";
+        leaf node-number {
+          type uint32;
+          description
+            "Number assigned to an Xponder base unit in a given
+             office, i.e., 1, 2..N";
+        }
+        leaf node-type {
+          type org-openroadm-common-types:node-types;
+        }
+        leaf node-id {
+          type string;
+          description
+            "Network-wide unique identifier for an Xponder";
+        }
+        leaf vendor {
+          type string;
+          description
+            "Identifier of the supplier for the xponder";
+        }
+        leaf customer-code {
+          type string;
+          description
+            "Owner of the xponder";
+        }
+        leaf domain-subnetwork {
+          type string;
+          description
+            "Specific Domain-Subnetwork in which the ROADM node resides";
+        }
+        leaf ip {
+          type inet:ip-address;
+          description
+            "IP address assigned to the ROADM node";
+        }
+        leaf relay-rack {
+          type string;
+          description
+            "Frame Identification Code (FIC)";
+        }
+        leaf shelf {
+          type uint32;
+        }
+        container input-connection {
+          leaf accumulated-bitrate {
+            type uint32;
+          }
+          list port {
+            key "port-name";
+            leaf port-name {
+              type string;
+            }
+            leaf customer-code {
+              type string;
+              description
+                "Owner of the input module";
+            }
+            leaf vendor {
+              type string;
+              description
+                "Supplier of the input module";
+            }
+            leaf local-lgx {
+              type string;
+            }
+            leaf bit-rate {
+              type uint32;
+            }
+            leaf signal-format {
+              type string;
+            }
+            leaf reach {
+              type string;
+            }
+            leaf optic {
+              type org-openroadm-common-types:optic-types;
+            }
+            leaf state {
+              type org-openroadm-equipment-states-types:states;
+              description
+                "A xponder can be in one of the following
+                 states";
+            }
+            leaf tail-client-equipment {
+              type string;
+            }
+            leaf tail-client-equipmentId {
+              type string;
+            }
+            leaf tail-clfi {
+              type string;
+            }
+          }
+        }
+        container output-connection {
+          leaf clli {
+            type string;
+          }
+          leaf node-number{
+            type uint32;
+          }
+          leaf node-id {
+            type string;
+            description
+              "ROADM node ID";
+          }
+          leaf accumulated-bitrate {
+            type uint32;
+          }
+          list port {
+            key "port-name";
+            leaf port-name {
+              type string;
+            }
+            leaf vendor {
+              type string;
+              description
+                "Supplier of the output module";
+            }
+            leaf srg-number {
+              type uint16;
+              description
+                "Output module is connected to";
+            }
+            leaf pp-number {
+              type uint16;
+            }
+            leaf wavelength-number{
+              type uint32;
+            }
+            leaf local-lgx {
+              type string;
+            }
+            leaf tail-clfi{
+              type string;
+            }
+            leaf bit-rate {
+              type uint32;
+            }
+            leaf signal-format {
+              type string;
+            }
+            leaf reach {
+              type string;
+            }
+            leaf optic {
+              type org-openroadm-common-types:optic-types;
+            }
+            leaf state {
+              type org-openroadm-equipment-states-types:states;
+              description
+                "A xponder can be in one of the following
+                 states";
+            }
+          }
+        }
+      }
+    }
+  }
+}

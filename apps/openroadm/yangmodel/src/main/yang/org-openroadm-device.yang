@@ -1,0 +1,1213 @@
+module org-openroadm-device {
+  namespace "http://org/openroadm/device";
+  prefix org-openroadm-device;
+
+  import ietf-yang-types {
+    prefix ietf-yang-types;
+  }
+  import ietf-inet-types {
+    prefix ietf-inet-types;
+  }
+  import ietf-netconf {
+    prefix ietf-nc;
+  }     
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }
+  import org-openroadm-resource-types {
+    prefix org-openroadm-resource-types;
+  }
+  import org-openroadm-wavelength-map {
+    prefix org-openroadm-wavelength-map;
+  }
+  import org-openroadm-physical-types {
+    prefix org-openroadm-physical-types;
+  }
+  import org-openroadm-user-mgmt {
+    prefix org-openroadm-user-mgmt;
+  }
+  import org-openroadm-port-types {
+    prefix org-openroadm-port-types;
+  }
+  import org-openroadm-interfaces {
+    prefix org-openroadm-interfaces;
+  }
+  import org-openroadm-swdl {
+    prefix org-openroadm-swdl;
+  }
+  import org-openroadm-equipment-states-types {
+    prefix org-openroadm-equipment-states-types;
+  }
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of ROADM device
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.
+
+     Also contains code components extracted from IETF netconf.  These code components 
+     are copyrighted and licensed as follows:
+     
+     Copyright (c) 2016 IETF Trust and the persons identified as the document authors. 
+     All rights reserved. 
+     
+     This document is subject to BCP 78 and the IETF Trust’s Legal Provisions Relating 
+     to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of 
+     publication of this document. Please review these documents carefully, as they 
+     describe your rights and restrictions with respect to this document. Code Components 
+     extracted from this document must include Simplified BSD License text as described in
+     Section 4.e of the Trust Legal Provisions and are provided without warranty as 
+     described in the Simplified BSD License.";
+
+  revision 2017-02-06 {
+    description
+      "Version 1.2.1 - removed pattern for current-datetime in info tree and rpc";
+  }
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  rpc get-connection-port-trail {
+    input {
+      leaf connection-number {
+        type string;
+        mandatory true;
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+      list ports {
+        uses org-openroadm-common-types:physical-location;
+        uses port-name {
+          refine "circuit-pack-name" {
+            mandatory true;
+          }
+          refine "port-name" {
+            mandatory true;
+          }
+        }
+      }
+    }
+  }
+  rpc disable-automatic-shutoff {
+    input {
+      leaf amp {
+        type leafref {
+          path "/org-openroadm-device/shelves/shelf-name";
+        }
+        mandatory true;
+        description
+          "The shelf where amp is located";
+      }
+      leaf degree-number {
+        type uint16;
+        mandatory true;
+      }
+      leaf support-timer {
+        type uint16 {
+          range "1..600";
+        }
+        default "20";
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+    }
+  }
+  rpc start-scan {
+    input {
+      leaf degree-number {
+        type uint16;
+        mandatory true;
+      }
+      leaf port-direction {
+        type org-openroadm-common-types:direction;
+      }
+      leaf distance {
+        type uint32;
+      }
+      leaf resolution {
+        type uint32;
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+    }
+  }
+
+  notification otdr-scan-result {
+    leaf status {
+      type enumeration {
+        enum "Completed" {
+          value 1;
+        }
+        enum "Failed" {
+          value 2;
+        }
+      }
+      mandatory true;
+      description
+        "Completed or Failed for the scan's final status";
+    }
+    leaf result-file {
+      type string;
+    }
+  }                      
+ 
+  rpc set-current-datetime {     
+    description
+      "Set the info/current-datetime leaf to the specified value.";
+    input {     
+     leaf current-datetime {
+        type ietf-yang-types:date-and-time; 
+        mandatory true;
+        description
+          "The current system date and time in UTC. Format: YYYY-MM-DDTHH:MM:SS";
+      }
+    }
+
+    output {
+      uses org-openroadm-common-types:rpc-response-status;
+    }
+  }                   
+
+  grouping device-common {
+    leaf node-id {
+      type string;
+      description
+        "Globally unique identifer for a device.";
+      default "openroadm";
+    }
+    leaf node-number {
+      type uint32;
+      description
+        "Number assigned to a ROADM node at a 
+         given office";
+    }
+    leaf node-type {
+      type org-openroadm-common-types:node-types;
+      description
+        "Identifier for node-type e.g Roadm, xponder";
+      config false;
+      mandatory true;
+    }
+    leaf clli {
+      type string;
+      description
+        "Common Language Location Identifier.";
+    }
+    uses org-openroadm-physical-types:node-info;
+    leaf ipAddress {
+      type ietf-inet-types:ip-address;
+      description
+        "IP Address of device";
+    }
+    leaf prefix-length {
+      type uint8 {
+        range "0..128";
+      }
+      description
+        "The length of the subnet prefix";
+    }
+    leaf defaultGateway {
+      type ietf-inet-types:ip-address;
+      description
+        "Default Gateway";
+    }
+    leaf source {
+      type enumeration {
+        enum "static" {
+          value 1;
+        }
+        enum "dhcp" {
+          value 2;
+        }
+      }
+      config false;
+    }
+    leaf current-ipAddress {
+      type ietf-inet-types:ip-address;
+      config false;
+      description
+        "Current IP Address of device";
+    }
+    leaf current-prefix-length {
+      type uint8 {
+        range "0..128";
+      }
+      config false;
+      description
+        "The current length of the subnet prefix";
+    }
+    leaf current-defaultGateway {
+      type ietf-inet-types:ip-address;
+      config false;
+      description
+        "Current Default Gateway";
+    }
+    leaf macAddress {
+      type ietf-yang-types:mac-address;
+      description
+        "MAC Address of device";
+      config false;
+    }
+    leaf softwareVersion {
+      type string;
+      config false;
+      description
+        "Software version";
+    }
+    leaf template {
+      type string;
+      description
+        "Template information used in the deployment.";
+    }
+    leaf current-datetime {
+      type ietf-yang-types:date-and-time; 
+      config false;
+      description
+        "The current system date and time in UTC. Format: YYYY-MM-DDTHH:MM:SS.mm+ ";
+    }        
+    container geoLocation {
+      description
+        "GPS location";
+      leaf latitude {
+        type decimal64 {
+          fraction-digits 16;
+          range "-90 .. 90";
+        }
+        description
+          "[From wikipedia] Latitude is an angle (defined below)
+           which ranges from 0° at the Equator to 90° (North or                
+           South) at the poles";
+      }
+      leaf longitude {
+        type decimal64 {
+          fraction-digits 16;
+          range "-180 .. 180";
+        }
+        description
+          "[From wikipedia] The longitude is measured as the 
+           angle east or west from the Prime Meridian, ranging
+           from 0° at the Prime Meridian to +180° eastward and
+           −180° westward.";
+      }
+    }
+  }
+
+  grouping slot-info {
+    description
+      "slots information. To be populated by NE during retrieval.";
+    leaf slot-name {
+      type string; 
+      description
+        "The name of this slot.";
+    }
+    leaf label {
+      type string;
+      description
+        "Faceplate label";
+    }
+    leaf provisioned-circuit-pack {
+      type leafref {
+        path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+      }
+      description
+        "The supported circuit-pack. It will be empty if no provision on this slot.";
+    }                
+  }         
+  grouping shelves {
+    list shelves {
+      key "shelf-name";
+      uses shelf;
+    }
+  }                            
+  grouping shelf {
+    leaf shelf-name {
+      description
+        "Unique identifier for this shelf within a device";
+      type string;
+    }
+    leaf shelf-type {
+      description
+        "The shelf type: describe the shelf with a unique string.";
+      type string;
+      mandatory true;
+    }
+    leaf rack {
+      description
+        "Reflect the shelf physical location data including floor, aisle, bay values.";
+      type string;
+    }
+    leaf shelf-position {
+      description
+        "Reflect the shelf vertical position within an equipment bay.";
+      type string;
+    }
+    leaf administrative-state {
+      description
+        "Admin State of the shelf";
+      type org-openroadm-equipment-states-types:admin-states;
+    }
+    uses org-openroadm-physical-types:common-info;
+    leaf equipment-state {
+      type org-openroadm-equipment-states-types:states;
+      description
+        "equipment state for the shelf, used to track the lifecycle state.";
+    }
+    leaf due-date {
+      type ietf-yang-types:date-and-time;
+      description
+        "due date for the shelf.";
+    }
+    list slots {         
+      description
+          "List of slots on this shelf. To be populated by NE during retrieval.";
+      key "slot-name";
+      config false;
+      uses slot-info;
+    }                       
+  }                                    
+
+  grouping circuit-packs {
+    list circuit-packs {
+      description
+        "List of circuit packs. This includes common equipment, like fans, power supplies, etc.";
+      key "circuit-pack-name";
+      leaf circuit-pack-type {
+        description
+          "Type of circuit-pack";
+        type string;
+        mandatory true;
+      }
+      leaf circuit-pack-product-code {
+        description
+          "Product Code for the circuit-pack";
+        type string;
+      }
+      uses circuit-pack;
+    }
+  }
+
+  grouping circuit-pack {
+    leaf circuit-pack-name {
+      description
+        "Unique identifier for this circuit-pack within a device";
+      type string;
+    }
+    leaf administrative-state {
+      description
+        "Administrative state of circuit-pack";
+      type org-openroadm-equipment-states-types:admin-states;
+    }
+    uses org-openroadm-physical-types:common-info;
+    container circuit-pack-category {
+      description
+        "General type of circuit-pack";
+      uses org-openroadm-common-types:equipment-type;
+      config false;
+    }
+    leaf equipment-state {
+      description
+        "Equipment state, which complements operational state.";
+      type org-openroadm-equipment-states-types:states;
+    }
+    leaf circuit-pack-mode {
+      description
+        "Circuit-pack mode allowed. e.g. NORMAL or REGEN";
+      type string;
+      default "NORMAL";
+    }
+    leaf shelf {
+      type leafref {
+        path "/org-openroadm-device/shelves/shelf-name";
+      }
+      mandatory true;
+    }
+    leaf slot {
+      type string;
+      mandatory true;
+    }
+    leaf subSlot {
+      type string;
+      mandatory false;
+    }
+    leaf due-date {
+      type ietf-yang-types:date-and-time;
+      description
+        "due date for this circuit-pack.";
+    }     
+    container parent-circuit-pack {
+      description
+        "In the case of circuit packs that contain other equipment (modules or pluggables), this captures the hierarchy of that equipment.  It is a vendor specific design decision if the ports for single-port pluggables are modeled as children of the parent circuit-pack, or as children of the pluggable circuit-pack contained in the parent circuit-pack.  For modules with multiple ports, it is recommended that ports be children of the module and not the carrier, to help in fault correlation and isolation in the case of a module failure.";
+      uses circuit-pack-name;
+      leaf cp-slot-name {
+        type string;
+        description
+          "Slot name on parent-circuit-pack.";
+      }            
+    }
+    list cp-slots {
+      description
+          "List of circuit-pack slots on this circuit-pack. To be populated by NE during retrieval.";
+      key "slot-name";
+      config false;
+      uses slot-info;
+    }                       
+    list ports {
+      key "port-name";
+      description
+        "List of ports on this circuit-pack.  For single port pluggables, the port may be modeled against the pluggable itself, or against the parent-circuit-pack.  For mulit-port pluggables, it is recommended that ports be modeled against the module itself.  Modeling ports as close to the equipment hierarchy as possible will help in fault correlation and isolation since common failures associated with supporting equipment can be used to help identify symptomatic failures on the contained ports.";
+      uses port;
+      container roadm-port {
+        when "../port-qual='roadm-external'";
+        uses org-openroadm-port-types:roadm-port;
+      }
+      container transponder-port {
+        when "../port-qual='xpdr-network' or ../port-qual='xpdr-client'";
+        uses org-openroadm-port-types:common-port;
+      }
+      container otdr-port {
+        when "../port-qual='otdr'";
+        description
+          "Settings for otdr port.";
+        leaf launch-cable-length {
+          type uint32;
+          default "30";
+          units "m";
+        }                    
+        leaf port-direction {
+          type org-openroadm-common-types:direction;
+        }    
+      }
+    }
+  }
+
+  grouping connection {
+    description
+      "Grouping used to define connections.";
+    leaf connection-number {
+      type string;
+    }
+    leaf wavelength-number {
+      type uint32;
+      mandatory true;
+      description
+        "wavelength-number, can be used to access wavelength-map
+         to get wavelength value in nm.";
+    }
+    leaf opticalControlMode {
+      description
+        "Whether connection is currently in power or gain/loss mode";
+      type org-openroadm-common-types:optical-control-mode;
+      reference "openroadm.org: Open ROADM MSA Specification.";
+      default "off";
+    }
+    leaf target-output-power {
+      type org-openroadm-common-types:power-dBm;
+      description
+        "The output target power for this connection. When set, the ROADM will work to ensure that current-output-power reaches this level.";
+    }
+    container source {
+      leaf src-if {
+        type leafref {
+          path "/org-openroadm-device/interface/name";
+        }
+        mandatory true;
+      }
+    }
+    container destination {
+      leaf dst-if {
+        type leafref {
+          path "/org-openroadm-device/interface/name";
+        }
+        mandatory true;
+      }
+    }
+  }
+
+  grouping degree {
+    leaf degree-number {
+      type uint16;
+      must "not( current() > /org-openroadm-device/info/max-degrees) and current() > 0" {
+        error-message "Degree not supported by device ";
+        description
+          "Validating if the degree is supported by device";
+      }
+    }
+    leaf max-wavelengths {
+      type uint16;
+      description
+        "maximum number of wavelengths";
+      config false;
+      mandatory true;
+    }
+    list circuit-packs {
+      key "index";
+      description
+        "list for Cards associated with a degree";
+      leaf index {
+        type uint32;
+      }
+      uses circuit-pack-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+      }
+    }
+    list connection-ports {
+      description
+        "Port associated with degree: One if bi-directional; two if uni-directional";
+      key "index";
+      leaf index {
+        type uint32;
+      }
+      uses port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+    container otdr-port {
+      description
+        "otdr port associated with degree.";
+      uses port-name;
+    }
+  }
+
+  grouping external-links {
+    description
+      "YANG definitions for external links.. 
+       - physical links between ROADMs and between the ROADMs and XPonders, which can be added and removed maually.";
+    list external-link {
+      key "external-link-name";
+      uses external-link;
+    }
+  }
+
+  grouping external-link {
+    leaf external-link-name {
+      type string;
+    }
+    container source {
+      uses org-openroadm-resource-types:device-id {
+        refine "node-id" {
+          mandatory true;
+        }
+      }
+      uses org-openroadm-resource-types:port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+    container destination {
+      uses org-openroadm-resource-types:device-id {
+        refine "node-id" {
+          mandatory true;
+        }
+      }
+      uses org-openroadm-resource-types:port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+  }
+
+  grouping internal-links {
+    list internal-link {
+      key "internal-link-name";
+      config false;
+      uses internal-link;
+    }
+  }
+
+  grouping internal-link {
+    leaf internal-link-name {
+      type string;
+    }
+    container source {
+      uses port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+    container destination {
+      uses port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+  }
+
+  grouping physical-links {
+    description
+      "YANG definitions for physical links.
+       - phyical links between cards within a ROADM, which are populated by the ROADM and cannot be added or removed manually. ";
+    list physical-link {
+      key "physical-link-name";
+      uses physical-link;
+    }
+  }
+
+  grouping physical-link {
+    leaf physical-link-name {
+      type string;
+    }
+    container source {
+      uses port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+    container destination {
+      uses port-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+        refine "port-name" {
+          mandatory true;
+        }
+      }
+    }
+  }
+
+  grouping srg {
+    leaf max-add-drop-ports {
+      type uint16;
+      config false;
+      mandatory true;
+    }
+    leaf srg-number {
+      type uint16;
+      must "not(current()>/org-openroadm-device/info/max-srgs) and current()>0" {
+        error-message "invalid SRG";
+        description
+          "Validating if the srg is supported by add/drop group";
+      }
+    }
+    leaf wavelengthDuplication {
+      description
+        "Whether the SRG can handle duplicate wavelengths and if so to what extent.";
+      config false;
+      mandatory true;
+      type enumeration {
+        enum "onePerSRG" {
+          description
+            "The SRG cannot handle wavelength duplication. Attempting to provision a connection on this SRG that uses the same wavelength as an existing service will result in failure.";
+          value 1;
+        }
+        enum "onePerDegree" {
+          description
+            "The SRG can handle wavelength duplication, but only one per degree. Attempting to provision a connection on this SRG that uses the same wavelength as an existing service will succeed, so long as the connections are not using the same degree.";
+          value 2;
+        }
+      }
+    }
+    list circuit-packs {
+      key "index";
+      description
+        "list for Cards associated with an add/drop group and srg";
+      leaf index {
+        type uint32;
+      }
+      uses circuit-pack-name {
+        refine "circuit-pack-name" {
+          mandatory true;
+        }
+      }
+    }
+  }
+
+  grouping degree-number {
+    leaf degree-number {
+      description
+        "Degree identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/degree/degree-number";
+      }
+    }
+  }
+
+  grouping circuit-pack-name {
+    leaf circuit-pack-name {
+      description
+        "Circuit-Pack identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+      }
+    }
+  }
+
+  grouping port-name {
+    uses circuit-pack-name;
+    leaf port-name {
+      description
+        "Port identifier. Unique within the context of a circuit-pack.";
+      type leafref {
+        path "/org-openroadm-device/circuit-packs[circuit-pack-name=current()/../circuit-pack-name]/ports/port-name";
+      }
+    }
+  }
+
+  grouping srg-number {
+    leaf srg-number {
+      description
+        "Shared Risk Group identifier. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/shared-risk-group/srg-number";
+      }
+    }
+  }
+
+  grouping supporting-port-name {
+    leaf supporting-circuit-pack-name {
+      description
+        "Identifier of the supporting circuit-pack.";
+      type leafref {
+        path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+      }
+      mandatory true;
+    }
+    leaf supporting-port {
+      description
+        "Identifier of the supporting port.";
+      mandatory true;
+      type leafref {
+        path "/org-openroadm-device/circuit-packs[circuit-pack-name=current()/../supporting-circuit-pack-name]/ports/port-name";
+      }
+    }
+  }
+
+  grouping interface-name {
+    leaf interface-name {
+      description
+        "Name of an interface. Unique within the context of a device.";
+      type leafref {
+        path "/org-openroadm-device/interface/name";
+      }
+      config false;
+    }
+  }
+
+  grouping interfaces-grp {
+    description
+      "OpenROADM Interface configuration parameters.";
+    list interface {
+      key "name";
+      description
+        "The list of configured interfaces on the device.";
+      leaf name {
+        type string;
+        description
+          "The name of the interface.";
+      }
+      leaf description {
+        type string;
+        description
+          "A textual description of the interface.";
+      }
+      leaf type {
+        type identityref {
+          base org-openroadm-interfaces:interface-type;
+        }
+        mandatory true;
+        description
+          "The type of the interface.";
+      }
+      leaf administrative-state {
+        type org-openroadm-equipment-states-types:admin-states;
+      }
+      leaf operational-state {
+        type org-openroadm-common-types:state;
+        config false;
+      }
+      leaf circuit-id {
+        type string {
+          length "0..45";
+        }
+        description
+          "circuit identifier/user label,
+           can be used in alarm correlation and/or connection management ";
+      }
+      leaf supporting-interface {
+        type leafref {
+          path "/org-openroadm-device/interface/name";
+        }
+      }
+      uses supporting-port-name;
+    }
+  }
+
+  grouping port {
+    description
+      "Grouping of attributes related to a port object.";
+    leaf port-name {
+      type string;
+      mandatory true;
+      description
+        "Identifier for a port, unique within a circuit pack";
+    }
+    leaf port-type {
+      type string;
+      description
+        "Type of the pluggable or fixed port.";
+    }
+    leaf port-qual {
+      type enumeration {
+        enum "roadm-internal" {
+          value 1;
+        }
+        enum "roadm-external" {
+          value 2;
+        }
+        enum "xpdr-network" {
+          value 3;
+        }
+        enum "xpdr-client" {
+          value 4;
+        }
+        enum "otdr" {
+          value 5;
+        }
+      }
+    }
+    leaf port-wavelength-type {
+      type org-openroadm-port-types:port-wavelength-types;
+      config false;
+      description
+        "Type of port - single, multiple-wavelength, etc.";
+    }
+    leaf port-direction {
+      type org-openroadm-common-types:direction;
+      config false;
+      mandatory true;
+      description
+        "Whether port is uni (tx/rx) or bi-directional and";
+    }
+    leaf label {
+      type string;
+      config false;
+      description
+        "Faceplate label";
+    }
+    leaf circuit-id{
+      type string{
+        length "0..45";
+      }
+      description
+          "circuit identifier/user label,
+           can be used in alarm correlation and/or connection management ";
+
+    }
+    leaf administrative-state {
+      type org-openroadm-equipment-states-types:admin-states;
+      description
+        "Administrative state of port. The value of this field independant of the state of its contained and containing resources.  Setting this a port to administratively down will impact both its operational state, as well the operational state of its contained resources.  If this port is an endpoint to a connection, internal-link, physical-link, etc, then administratevely disabling this port will impact the operational state of those items unless they are using some form of port-protection schema.";
+      default "outOfService";
+    }
+    leaf operational-state {
+      type org-openroadm-common-types:state;
+      config false;
+      mandatory true;
+      description
+        "Operational state of a port";
+    }
+    leaf-list supported-interface-capability {
+      description
+        "Interface types supported on this port";
+      config false;
+      type identityref {
+        base org-openroadm-port-types:supported-if-capability;
+      }
+    }
+    leaf logical-connection-point {
+      type string;
+      description
+        "delete or replace with list logical-ports or connections?";
+    }
+    container partner-port {
+      config false;
+      description
+        "For ports which are not identified as having a direction of bidirectional, this field is used to identify the port which corresponds to the reverse direction. A port pair should include a port for each direction (tx, rx) and report their mate as partner-port.";
+      uses port-name;
+    }
+    container parent-port {
+      config false;
+      description
+        "In the case of port hierarchy, this is the parent port, which is also modeled as port within this circuit-pack. This is used in the case of a port that supports a parallel connector that contains subports.  The parent-port of the subport will be the port that contains this subport.  This can be used to help isolate faults when a single fault on a parallel connector introduces symptomatic failures on the contained subports.";
+      uses port-name;
+    }
+    list interfaces {
+      config false;
+      description
+        "List of the interfaces this port supports.  This is a list of names of instances in the flat instance list";
+      uses interface-name;
+    }
+  }
+
+  uses org-openroadm-device-container;
+
+  grouping org-openroadm-device-container {
+    container org-openroadm-device {
+      container info {
+        uses device-common;
+        leaf max-degrees {
+          type uint16;
+          description
+            "Max. number of degrees supported by device";
+          config false;
+        }
+        leaf max-srgs {
+          type uint16;
+          description
+            "Max. number of SRGs in an add/drop group";
+          config false;
+        }
+      }
+      container users {
+        description
+          "Stores a list of users";
+        uses org-openroadm-user-mgmt:user-profile;
+      }
+      container pending-sw {
+        config false;
+        uses org-openroadm-swdl:sw-bank;
+      }
+      uses shelves;
+      uses circuit-packs;
+      uses interfaces-grp;
+      container protocols {
+        description
+          "Contains the supported protocols";
+      }
+      container wavelength-map {
+        description
+          "The wavelength-number and center frequency, wavelength mapping";
+        config false;
+        uses org-openroadm-wavelength-map:wavelength-map-g;
+      }
+      uses internal-links;
+      uses physical-links;
+      uses external-links;
+      list degree {
+        when "/org-openroadm-device/info/node-type='rdm'";
+        key "degree-number";
+        uses degree;
+      }
+      list shared-risk-group {
+        when "/org-openroadm-device/info/node-type='rdm'";
+        key "srg-number";
+        uses srg;
+      }
+      list roadm-connections {
+        when "/org-openroadm-device/info/node-type='rdm'";
+        key "connection-number";
+        uses connection;
+      }
+      list connection-map {
+        key "connection-map-number";
+        config false;
+        leaf connection-map-number {
+          description
+            "Unique identifier for this connection-map entry";
+          type uint32;
+        }
+        container source {
+          leaf circuit-pack-name {
+            type leafref {
+              path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+            }
+            mandatory true;
+          }
+          leaf port-name {
+            description
+              "Port identifier. Unique within the context of a circuit-pack.";
+            type leafref {
+              path "/org-openroadm-device/circuit-packs[circuit-pack-name=current()/../circuit-pack-name]/ports/port-name";
+            }
+            mandatory true;
+          }
+        }
+        list destination {
+          key "circuit-pack-name port-name";
+          min-elements 1;
+          leaf circuit-pack-name {
+            type leafref {
+              path "/org-openroadm-device/circuit-packs/circuit-pack-name";
+            }
+            mandatory true;
+          }
+          leaf port-name {
+            description
+              "Port identifier. Unique within the context of a circuit-pack.";
+            type leafref {
+              path "/org-openroadm-device/circuit-packs[circuit-pack-name=current()/../circuit-pack-name]/ports/port-name";
+            }
+            mandatory true;
+          }
+        }
+      }
+    }
+  }
+
+  grouping common-session-parms {
+    description
+      "Common session parameters to identify a
+       management session.";
+
+    leaf username {
+      type string;
+      mandatory true;
+      description
+        "Name of the user for the session.";
+    }
+
+    leaf session-id {
+      type ietf-nc:session-id-or-zero-type;
+      mandatory true;
+      description
+        "Identifier of the session.
+         A NETCONF session MUST be identified by a non-zero value.
+         A non-NETCONF session MAY be identified by the value zero.";
+    }
+
+    leaf source-host {
+      type ietf-inet-types:ip-address;
+      description
+        "Address of the remote host for the session.";
+    }
+  }
+  grouping changed-by-parms {
+    description
+      "Common parameters to identify the source
+       of a change event, such as a configuration
+       or capability change.";
+
+     container changed-by {
+       description
+         "Indicates the source of the change.
+          If caused by internal action, then the
+          empty leaf 'server' will be present.
+          If caused by a management session, then
+          the name, remote host address, and session ID
+          of the session that made the change will be reported.";
+       choice server-or-user {
+         leaf server {
+           type empty;
+           description
+             "If present, the change was caused
+              by the server.";
+         }
+
+         case by-user {
+           uses common-session-parms;
+         }
+       } // choice server-or-user
+     } // container changed-by-parms
+  }                                    
+  notification change-notification {
+    description
+      "The Notification that a resource has been added, modified or removed.
+       This notification can be triggered by changes in configuration and operational data.
+       It shall contain the changed field pointed by the xpath. 
+       Typically it is not intended for frequently changing volatile data e.g. PM, power levels";                                        
+
+    leaf change-time {
+      description "The time the change occurs.";
+      type ietf-yang-types:date-and-time;
+    }               
+    uses changed-by-parms;
+
+    leaf datastore {
+      type enumeration {
+        enum running {
+          description "The <running> datastore has changed.";
+        }
+        enum startup {
+          description "The <startup> datastore has changed";
+        }
+      }
+      default "running";
+      description
+        "Indicates which configuration datastore has changed.";
+    }
+    list edit {
+      description
+        "An edit (change) record SHOULD be present for each distinct
+         edit operation that the server has detected on
+         the target datastore.  This list MAY be omitted
+         if the detailed edit operations are not known.
+         The server MAY report entries in this list for
+         changes not made by a NETCONF session.";
+
+      leaf target {
+        type instance-identifier;
+        description
+            "Topmost node associated with the configuration or operationa change.
+             A server SHOULD set this object to the node within
+             the datastore that is being altered.  A server MAY
+             set this object to one of the ancestors of the actual
+             node that was changed, or omit this object, if the
+             exact node is not known.";
+      }
+      leaf operation {
+        type ietf-nc:edit-operation-type;
+        description
+          "Type of edit operation performed.
+         A server MUST set this object to the NETCONF edit
+         operation performed on the target datastore.";
+      }
+    } // list edit
+  } // notification change-notification
+}

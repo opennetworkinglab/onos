@@ -1,0 +1,26 @@
+APPS = [
+  'org.onosproject.yang',
+  'org.onosproject.yang-gui',
+  'org.onosproject.config',
+  'org.onosproject.restconf',
+  'org.onosproject.yms',
+  'org.onosproject.protocols.restconfserver',
+  'org.onosproject.netconf',
+  'org.onosproject.netconfsb',
+]
+
+BUNDLES = [
+  '//apps/openroadm/yangmodel:onos-apps-openroadm-yangmodel',
+  '//apps/openroadm/service:onos-apps-openroadm-service',
+  '//apps/openroadm/network:onos-apps-openroadm-network',
+]
+
+onos_app(
+  app_name = 'org.onosproject.openroadm',
+  title = 'Open ROADM App',
+  category = 'Utility',
+  url = 'http://onosproject.org',
+  included_bundles = BUNDLES,
+  description = 'Open ROADM Application',
+  required_apps = APPS,
+)

@@ -1,0 +1,77 @@
+module org-openroadm-de-operations {
+  namespace "http://org/openroadm/de/operations";
+  prefix org-openroadm-de-operations;
+
+  import org-openroadm-resource {
+    prefix org-openroadm-resource;
+  }
+
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }     
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of operations.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  rpc restart {
+    description
+      "Restart a resource with warm/cold option. If no resource is provided or only the device name is provded, then the device itself will be restarted.
+       Note that resources on the device will not be restartable";
+    input {
+      uses org-openroadm-resource:resource;
+      leaf option{
+        type enumeration{
+          enum "warm"{
+            value 1;
+          }
+          enum "cold"{
+            value 2;
+          }
+        }
+      }
+    }
+    output {
+      uses org-openroadm-common-types:rpc-response-status;      
+    }
+  }
+  notification restart-notification {
+    description
+      "This Notification is sent when a resource on a device has completed a restart. This is sent as a result of restarts triggered via the
+       restart RPC and other means.  The resource identified is the from the RPC request or the equivalment if the restart was triggered another way.";
+    uses org-openroadm-resource:resource;
+  }
+}

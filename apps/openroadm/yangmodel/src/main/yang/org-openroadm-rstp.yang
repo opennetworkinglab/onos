@@ -1,0 +1,310 @@
+module org-openroadm-rstp {
+  namespace "http://org/openroadm/rstp";
+  prefix org-openroadm-rstp;
+
+  import org-openroadm-device {
+    prefix org-openroadm-device;
+  }
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions for rstp protocol. 
+     
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  typedef bridge-id-type {
+    type string;
+    description
+      "Unique Bridge Identifier";
+  }
+
+  grouping rstp-common-bridge-config {
+    leaf bridge-priority {
+      description
+        "Bridge Priority Value";
+      type uint32 {
+        range "0..61440";
+      }
+      default "32768";
+    }
+    leaf shutdown {
+      description
+        "Bridge admin state";
+      type empty;
+    }
+    leaf hold-time {
+      description
+        "The time interval during which no more than two
+            BPDUs transmitted by this node in seconds - not used in rstp mode (in seconds)";
+      type uint32 {
+        range "1..10";
+      }
+      default "2";
+    }
+    leaf hello-time {
+      description
+        "The time between the transmission of BPDU's by this node on any
+            port, when role is rooti (in seconds)";
+      type uint32 {
+        range "1..10";
+      }
+      default "2";
+    }
+    leaf max-age {
+      description
+        "The value that all bridges use for MaxAge when this bridge
+            is acting as the root";
+      type uint32 {
+        range "6..40";
+      }
+      default "20";
+    }
+    leaf forward-delay {
+      description
+        "The port on the Switch spends this time in the listening
+            state while moving from the blocking state to the forwarding state (in seconds)";
+      type uint32 {
+        range "4..30";
+      }
+      default "15";
+    }
+    leaf transmit-hold-count {
+      description
+        "Maximum BPDU transmission rate";
+      type uint32 {
+        range "1..10";
+      }
+      default "2";
+    }
+  }
+
+  grouping rstp-root-bridge-attr {
+    leaf root-bridge-port {
+      description
+        "Port id of the root port";
+      type uint32;
+    }
+    leaf root-path-cost {
+      description
+        "The cost of the path to the root as
+               seen from this bridge";
+      type uint32;
+    }
+    leaf root-bridge-priority {
+      description
+        "Root Bridge Priority Value";
+      type uint32;
+    }
+    leaf root-bridge-id {
+      description
+        "Root Bridge identifier";
+      type bridge-id-type;
+    }
+    leaf root-hold-time {
+      description
+        "The time interval during which no more than two
+               BPDUs transmitted by this node in seconds at root node (in seconds)";
+      type uint32;
+    }
+    leaf root-hello-time {
+      description
+        "The time between the transmission of BPDU's used at root node (in seconds)";
+      type uint32;
+    }
+    leaf root-max-age {
+      description
+        "The value that all bridges use for MaxAge used at root node";
+      type uint32;
+    }
+    leaf root-forward-delay {
+      description
+        "The time in seconds spent on the listening state used at root node (in seconds)";
+      type uint32;
+    }
+  }
+
+  grouping rstp-bridge-port-state-attr {
+    list rstp-bridge-port-table {
+      max-elements "15";
+      description
+        "This table contains port-specific information for rstp state attributes";
+      key "ifname";
+      leaf ifname {
+        description
+          "Interface name of the port";
+        type string {
+          length "1..255";
+        }
+      }
+      leaf bridge-port-state {
+        description
+          "The port's current state";
+        type enumeration {
+          enum "discarding";
+          enum "blocked";
+          enum "learning";
+          enum "forwarding";
+          enum "unknown";
+        }
+      }
+      leaf bridge-port-role {
+        description
+          "The role payed by this port in the bridge";
+        type enumeration {
+          enum "designated";
+          enum "root";
+          enum "alternate";
+          enum "disabled";
+          enum "backup";
+          enum "unknown";
+        }
+      }
+      leaf bridge-port-id {
+        description
+          "Unique port id of this port";
+        type uint32;
+      }
+      leaf oper-edge-bridge-port {
+        description
+          "The operational value of the Edge Port parameter";
+        type empty;
+      }
+      leaf designated-bridge-port {
+        description
+          "Port id of the designated port";
+        type uint32;
+      }
+      leaf designated-bridgeid {
+        description
+          "The Bridge Identifier of the bridge that this port considers 
+           to be the Designated Bridge for this port's segment";
+        type bridge-id-type;
+      }
+    }
+  }
+
+  grouping rstp-bridge-port-attr {
+    list rstp-bridge-port-table {
+      max-elements "15";
+      description
+        "Table contains port-specific information for rstp config";
+      key "ifname";
+      leaf ifname {
+        description
+          "Interface name of the port";
+        type leafref {
+          path "/org-openroadm-device:org-openroadm-device/org-openroadm-device:interface/org-openroadm-device:name";
+        }
+      }
+      leaf cost {
+        description
+          "The contribution of this port to the path cost of
+                 paths towards the spanning tree root which include this port also";
+        type uint32 {
+          range "2000..200000";
+        }
+        default "20000";
+      }
+      leaf priority {
+        description
+          "The value of the priority field";
+        type uint32 {
+          range "0..240";
+        }
+      }
+    }
+  }
+
+  grouping rstp-container {
+    container rstp {
+      description
+        "Open ROADM RSTP top level";
+      list rstp-bridge-instance {
+        max-elements "1";
+        description
+          "rstp bridge instance, max instance = 1";
+        key "bridge-name";
+        leaf bridge-name {
+          description
+            "unique name of the bridge";
+          type string {
+            length "1..255";
+          }
+        }
+        container rstp-config {
+          description
+            "Collection of rstp configuration attributes";
+          uses rstp-common-bridge-config;
+          uses rstp-bridge-port-attr;
+        }
+        container rstp-state {
+          description
+            "Collection of rstp operational attributes";
+          config false;
+          container rstp-bridge-attr {
+            description
+              "Collection of operational rstp bridge attributes";
+            uses rstp-root-bridge-attr;
+            leaf bridge-id {
+              description
+                "Bridge identifier of the bridge";
+              type bridge-id-type;
+            }
+            leaf topo-change-count {
+              description
+                "The total number of topology changes";
+              type uint32;
+            }
+            leaf time-since-topo-change {
+              description
+                "Time since last topology changes occured (in seconds)";
+              type uint32;
+            }
+          }
+          container rstp-bridge-port-attr {
+            description
+              "Collection of operational rstp port related attributes";
+            uses rstp-bridge-port-state-attr;
+          }
+        }
+      }
+    }
+  }
+
+  augment "/org-openroadm-device:org-openroadm-device/org-openroadm-device:protocols" {
+    when "/org-openroadm-device:org-openroadm-device/org-openroadm-device:info/org-openroadm-device:node-type='rdm'";
+    uses rstp-container;
+  }
+}

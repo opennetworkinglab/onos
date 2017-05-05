@@ -1,0 +1,252 @@
+module org-openroadm-resource-types {
+  namespace "http://org/openroadm/resource/types";
+  prefix org-openroadm-resource-types;
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "YANG definitions of common resource types.
+       
+      Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+      AT&T Intellectual Property.  All other rights reserved.
+      
+      Redistribution and use in source and binary forms, with or without modification, 
+      are permitted provided that the following conditions are met:
+      
+      * Redistributions of source code must retain the above copyright notice, this 
+        list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright notice, 
+        this list of conditions and the following disclaimer in the documentation and/or 
+        other materials provided with the distribution.
+      * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+        contributors may be used to endorse or promote products derived from this software 
+        without specific prior written permission.
+      
+      THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+      AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+      WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+      IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+      INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+      NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+      OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+      WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+      ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+      POSSIBILITY OF SUCH DAMAGE";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping resource-type {
+    leaf type {
+      type resource-type-enum;
+      mandatory true;
+    }
+    leaf extension {
+      type string;
+      mandatory false;
+    }
+  }
+
+  typedef resource-type-enum {
+    type enumeration {
+      enum "other" {
+        value 1;
+        description
+          "Resource of type not found in list.";
+      }
+      enum "device" {
+        value 2;
+        description
+          "device - ROAMD, Xponder, etc";
+      }
+      enum "degree" {
+        value 3;
+        description
+          "degree";
+      }
+      enum "shared-risk-group" {
+        value 4;
+        description
+          "shared-risk-group";
+      }
+      enum "connection" {
+        value 5;
+        description
+          "connection";
+      }
+      enum "connection-map" {
+        value 6;
+        description
+          "connection-map";
+      }
+      enum "port" {
+        value 7;
+        description
+          "port";
+      }
+      enum "circuit-pack" {
+        value 8;
+        description
+          "circuit pack";
+      }
+      enum "internal-link" {
+        value 9;
+        description
+          "internal-link";
+      }
+      enum "physical-link" {
+        value 10;
+        description
+          "physical-link";
+      }
+      enum "interface" {
+        value 11;
+        description
+          "interface";
+      }
+      enum "shelf" {
+        value 12;
+        description
+          "shelf";
+      }
+      enum "service" {
+        value 13;
+        description
+          "service";
+      }
+    }
+  }
+
+  grouping device-id {
+    description
+      "Device identifier. Unique within the Controller.";
+    leaf node-id {
+      description
+        "Node Id is a globally unique identifier for a device. 
+         Same as leafref value in model, if applicable.";
+      type string;
+    }
+  }
+
+  grouping circuit-pack-name {
+    leaf circuit-pack-name {
+      description
+        "Circuit-Pack identifier. Unique within the context of a device.
+         Same as leafref value in model, if applicable.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  grouping port-name {
+    uses circuit-pack-name;
+    leaf port-name {
+      description
+        "Port identifier. Unique within the context of a circuit-pack. 
+         Same as leafref value in model, if applicable.";
+      type string;
+    }
+  }
+
+  grouping physical-link-name {
+    leaf physical-link-name {
+      description
+        "Physical Link identifier. Unique within the context of a device. 
+         Same as leafref value in model, if applicable.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  grouping internal-link-name {
+    leaf internal-link-name {
+      description
+        "Internal Link identifier. Unique within the context of a device. 
+         Same as leafref value in model, if applicable.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  grouping connection-number {
+    leaf connection-number {
+      description
+        "Connection identifier. Unique within the context of a device. 
+         Same as leafref value in model, if applicable.";
+      type string;
+    }
+  }
+
+  grouping degree-number {
+    leaf degree-number {
+      description
+        "Degree identifier. Unique within the context of a device. 
+         Same as leafref value in model, if applicable.";
+      type uint16;
+    }
+  }
+
+  grouping srg-number {
+    leaf srg-number {
+      description
+        "Shared Risk Group identifier. Unique within the context of a device. 
+         Same as leafref value in model, if applicable.";
+      type uint16;
+    }
+  }
+
+  grouping shelf-name {
+    leaf shelf-name {
+      description
+        "Shelf-id identifier. Unique within the context of a device.  
+         Same as leafref value in model, if applicable.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  grouping service-name {
+    leaf service-name {
+      description
+        "Service identifier. Unique within the context of a network.  
+         Same as leafref value in model, if applicable.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  grouping interface-name {
+    leaf interface-name {
+      description
+        "Interface identifier.";
+      type string;
+      mandatory true;
+    }
+  }
+
+  typedef resource-notification-type {
+    description
+      "Type of notification about a resource";
+    type enumeration {
+      enum "resourceCreation" {
+        value 1;
+        description
+          "A new instance of a resource has been created.";
+      }
+      enum "resourceModification" {
+        value 2;
+        description
+          "An exhisting instance of a resource has been modified. This shall be triggered by changes in configuration, state, status etc.
+           It shall not be triggered by changes in performance measurements, power and temperature readings or any other data that is highlyvolatile. ";
+      }
+      enum "resourceDeletion" {
+        value 3;
+        description
+          "An exhisting instance of a resource has been removed.";
+      }
+    }
+  }
+}

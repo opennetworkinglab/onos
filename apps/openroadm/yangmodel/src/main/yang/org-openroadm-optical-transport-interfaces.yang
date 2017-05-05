@@ -1,0 +1,144 @@
+module org-openroadm-optical-transport-interfaces {
+  namespace "http://org/openroadm/optical-transport-interfaces";
+  prefix org-openroadm-optical-transport-interfaces;
+
+  import org-openroadm-device {
+    prefix org-openroadm-device;
+  }
+  import org-openroadm-interfaces {
+    prefix openROADM-if;
+  }
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }       
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "This module contains YANG definitions
+     for the Optical Transport Interfaces.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.
+     
+     Also contains code components extracted from IETF Interfaces.  These code components
+     are copyrighted and licensed as follows:
+     
+     Copyright (c) 2016 IETF Trust and the persons identified as the document authors.
+     All rights reserved.
+     
+     This document is subject to BCP 78 and the IETF Trust’s Legal Provisions Relating
+     to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of
+     publication of this document. Please review these documents carefully, as they
+     describe your rights and restrictions with respect to this document. Code Components
+     extracted from this document must include Simplified BSD License text as described in
+     Section 4.e of the Trust Legal Provisions and are provided without warranty as
+     described in the Simplified BSD License.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping ots-attributes {
+    description
+      "Optical Transport Section (OTS) attributes";
+    leaf fiber-type {
+      type enumeration {
+        enum "smf" {
+          value 0;
+          description
+            "Single Mode Fiber";
+        }
+        enum "eleaf" {
+          value 1;
+          description
+            "ELEAF";
+        }
+        enum "oleaf" {
+          value 2;
+          description
+            "OLEAF";
+        }
+        enum "dsf" {
+          value 3;
+          description
+            "DSF";
+        }
+        enum "truewave" {
+          value 4;
+          description
+            "TRUEWAVE Reduced Slope";
+        }
+        enum "truewavec" {
+          value 5;
+          description
+            "TRUEWAVE Classic";
+        }
+        enum "nz-dsf" {
+          value 6;
+          description
+            "NZ-DSF";
+        }
+        enum "ull" {
+          value 7;
+          description
+            "Ultra Low Loss (ULL)";
+        }
+      }
+      default "smf";
+      description
+        "fiber type
+         Default    : SMF ";
+    }
+    leaf span-loss-receive {
+      description
+        "Span loss on the receiver side. Set by the controller and used by device to set AMP gain.";
+      type org-openroadm-common-types:ratio-dB;
+    }
+    leaf span-loss-transmit {
+      description
+        "Span loss on the transmitter side. Set by the controller and used by device to configure MSA compliant channel launch power";
+      type org-openroadm-common-types:ratio-dB;
+    }                                   
+  }
+
+  grouping ots-container {
+    container ots {
+      description
+        "Optical Transport Section (OTS):
+          Models the optical interfaces for an Optical White Box.
+          The network side is represented by the OTS/OMS.";
+      uses ots-attributes;
+    }
+  }
+
+  augment "/org-openroadm-device:org-openroadm-device/org-openroadm-device:interface" {
+    when "org-openroadm-device:type = 'openROADM-if:opticalTransport'";
+    uses ots-container;
+  }
+}

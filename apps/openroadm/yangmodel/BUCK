@@ -1,0 +1,8 @@
+yang_osgi_jar(
+  deps = YANG_TOOLS,
+  name = 'onos-apps-openroadm-yangmodel',
+  srcs = glob(['src/main/**/*.yang']),
+  visibility = [
+    'PUBLIC'
+  ],
+)

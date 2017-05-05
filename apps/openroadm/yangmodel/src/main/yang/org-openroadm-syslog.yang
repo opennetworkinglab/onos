@@ -1,0 +1,334 @@
+module org-openroadm-syslog {
+  namespace "http://org/openroadm/syslog";
+  prefix org-openroadm-syslog;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization "Open ROADM MSA";
+  contact
+    "OpenROADM.org";
+  description
+    "This module contains a collection of YANG definitions 
+     for Syslog configuration.
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.
+     
+     Also contains code components extracted from IETF Interfaces.  These code components
+     are copyrighted and licensed as follows:
+     
+     Copyright (c) 2016 IETF Trust and the persons identified as the document authors.
+     All rights reserved.
+     
+     This document is subject to BCP 78 and the IETF Trust’s Legal Provisions Relating
+     to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of
+     publication of this document. Please review these documents carefully, as they
+     describe your rights and restrictions with respect to this document. Code Components
+     extracted from this document must include Simplified BSD License text as described in
+     Section 4.e of the Trust Legal Provisions and are provided without warranty as
+     described in the Simplified BSD License.";
+  reference "RFC 5424: The Syslog Protocol";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  feature selector-sevop-config {
+    description
+      "This feature represents the ability to select messages 
+       using the additional operators equal to, or not equal to 
+       when comparing the Syslog message severity.";
+  }
+
+  feature selector-match-config {
+    description
+      "This feature represents the ability to select messages based
+       on a Posix 1003.2 regular expression pattern match.";
+  }
+
+  // copied from draft of ietf-ietf-syslog-types.yang
+  identity syslog-facility {
+    description
+      "The base identity to represent syslog facilities";
+  }
+
+  // copied from draft of ietf-ietf-syslog-types.yang;
+  // extended the enum set to include all and none
+  typedef severity {
+    type enumeration {
+      enum "emergency" {
+        value 0;
+        description
+          "Emergency Level Msg";
+      }
+      enum "alert" {
+        value 1;
+        description
+          "Alert Level Msg";
+      }
+      enum "critical" {
+        value 2;
+        description
+          "Critical Level Msg";
+      }
+      enum "error" {
+        value 3;
+        description
+          "Error Level Msg";
+      }
+      enum "warning" {
+        value 4;
+        description
+          "Warning Level Msg";
+      }
+      enum "notice" {
+        value 5;
+        description
+          "Notification Level Msg";
+      }
+      enum "info" {
+        value 6;
+        description
+          "Informational Level Msg";
+      }
+      enum "debug" {
+        value 7;
+        description
+          "Debugging Level Msg";
+      }
+      enum "all" {
+        value 8;
+        description
+          "This enum describes the case where all severities 
+           are selected.";
+      }
+      enum "none" {
+        value 9;
+        description
+          "This enum describes the case where no severities 
+           are selected.";
+      }
+    }
+    description
+      "The definitions for Syslog message severity as per RFC 5424.
+       Extended the RFC definition with enums for all and none";
+  }
+
+  grouping syslog-severity {
+    description
+      "This grouping defines the Syslog severity which is used to 
+       select log messages.";
+    leaf severity {
+      type severity;
+      mandatory true;
+      description
+        "This leaf specifies the Syslog message severity. When 
+         severity is specified, the default severity comparison 
+         is all messages of the specified severity and greater are 
+         selected. 'all' is a special case which means all severities
+         are selected. 'none' is a special case which means that
+         no selection should occur or disable this filter.";
+    }
+    leaf severity-operator {
+      when
+        "../severity != 'all' and
+                    ../severity != 'none'" {
+        description
+          "The severity-operator is not applicable for severity 'all' or 
+           severity 'none'";
+      }
+      if-feature selector-sevop-config;
+      type enumeration {
+        enum "equals-or-higher" {
+          description
+            "This enum specifies all messages of the specified 
+             severity and higher are logged according to the 
+             given log-action";
+        }
+        enum "equals" {
+          description
+            "This enum specifies all messages that are for 
+             the specified severity are logged according to the 
+             given log-action";
+        }
+        enum "not-equals" {
+          description
+            "This enum specifies all messages that are not for 
+             the specified severity are logged according to the 
+             given log-action";
+        }
+      }
+      default "equals-or-higher";
+      description
+        "This leaf describes the option to specify how the 
+         severity comparison is performed.";
+    }
+  }
+
+  grouping syslog-selector {
+    description
+      "This grouping defines a Syslog selector which is used to 
+       select log messages for the log-action (buffer, file, 
+       etc). Choose one of the following:
+         no-log-facility
+         log-facility [<facility> <severity>...]";
+    container log-selector {
+      description
+        "This container describes the log selector parameters 
+         for Syslog.";
+      choice selector-facility {
+        mandatory true;
+        description
+          "This choice describes the option to specify no 
+           facilities, or a specific facility which can be
+           all for all facilities.";
+        case no-log-facility {
+          description
+            "This case specifies no facilities will match when 
+             comparing the Syslog message facility. This is a 
+             method that can be used to effectively disable a 
+             particular log-action (buffer, file, etc).";
+          leaf no-facilities {
+            type empty;
+            description
+              "This leaf specifies that no facilities are selected 
+               for this log-action.";
+          }
+        }
+        case log-facility {
+          description
+            "This case specifies one or more specified facilities 
+             will match when comparing the Syslog message facility.";
+          list log-facility {
+            key "facility";
+            description
+              "This list describes a collection of Syslog 
+               facilities and severities.";
+            leaf facility {
+              type union {
+                type identityref {
+                  base syslog-facility;
+                }
+                type enumeration {
+                  enum "all" {
+                    description
+                      "This enum describes the case where all 
+                       facilities are requested.";
+                  }
+                }
+              }
+              description
+                "The leaf uniquely identifies a Syslog facility.";
+            }
+            uses syslog-severity;
+          }
+        }
+      }
+    }
+  }
+
+  container syslog {
+    description
+      "This container describes the configuration parameters for 
+       Syslog.";
+    container log-actions {
+      description
+        "This container describes the log-action parameters 
+         for Syslog.";
+      container remote {
+        description
+          "This container describes the configuration parameters for 
+           remote logging.";
+        list destination {
+          key "name";
+          description
+            "This list describes a collection of remote logging 
+             destinations.";
+          leaf name {
+            type string;
+            description
+              "An arbitrary name for the endpoint to connect to.";
+          }
+          choice transport {
+            mandatory true;
+            description
+              "This choice describes the transport option.";
+            case tcp {
+              container tcp {
+                description
+                  "This container describes the TCP transport
+                   options.";
+                reference "RFC 6587: Transmission of Syslog Messages over TCP";
+                leaf address {
+                  type inet:host;
+                  description
+                    "The leaf uniquely specifies the address of 
+                     the remote host. One of the following must 
+                     be specified: an ipv4 address, an ipv6 
+                     address, or a host name.";
+                }
+                leaf port {
+                  type inet:port-number;
+                  default "514";
+                  description
+                    "This leaf specifies the port number used to 
+                     deliver messages to the remote server.";
+                }
+              }
+            }
+            case udp {
+              container udp {
+                description
+                  "This container describes the UDP transport
+                   options.";
+                reference "RFC 5426: Transmission of Syslog Messages over UDP";
+                leaf address {
+                  type inet:host;
+                  description
+                    "The leaf uniquely specifies the address of 
+                     the remote host. One of the following must be 
+                     specified: an ipv4 address, an ipv6 address, 
+                     or a host name.";
+                }
+                leaf port {
+                  type inet:port-number;
+                  default "514";
+                  description
+                    "This leaf specifies the port number used to 
+                     deliver messages to the remote server.";
+                }
+              }
+            }
+          }
+          uses syslog-selector;
+        }
+      }
+    }
+  }
+}

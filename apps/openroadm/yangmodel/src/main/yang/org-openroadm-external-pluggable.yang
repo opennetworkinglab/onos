@@ -1,0 +1,138 @@
+module org-openroadm-external-pluggable {
+  namespace "http://org/openroadm/external/pluggable";
+  prefix org-openroadm-external-pluggable;
+
+  import org-openroadm-equipment-states-types {
+    prefix org-openroadm-equipment-states-types;
+  }
+  import org-openroadm-common-types {
+    prefix org-openroadm-common-types;
+  }
+
+  organization
+    "OPEN ROADM MSA";
+  contact
+    "OpenROADM.org.";
+  description
+    "YANG definitions for External Pluggable
+     
+     
+     Copyright of the Members of the Open ROADM MSA Agreement dated (c) 2016, 
+     AT&T Intellectual Property.  All other rights reserved.
+     
+     Redistribution and use in source and binary forms, with or without modification, 
+     are permitted provided that the following conditions are met:
+     
+     * Redistributions of source code must retain the above copyright notice, this 
+       list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice, 
+       this list of conditions and the following disclaimer in the documentation and/or 
+       other materials provided with the distribution.
+     * Neither the Members of the Open ROADM MSA Agreement nor the names of its 
+       contributors may be used to endorse or promote products derived from this software 
+       without specific prior written permission.
+     
+     THIS SOFTWARE IS PROVIDED BY THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT ''AS IS'' 
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+     IN NO EVENT THE MEMBERS OF THE OPEN ROADM MSA  AGREEMENT BE LIABLE FOR ANY DIRECT, 
+     INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+     NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE, DATA, 
+     OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+     WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+     POSSIBILITY OF SUCH DAMAGE.";
+
+  revision 2016-10-14 {
+    description
+      "Version 1.2";
+  }
+
+  grouping external-pluggable {
+    list pluggables {
+      key "clli";
+      leaf clli {
+        type string;
+        description
+          "Location CLLI where pluggable resides";
+      }
+      list ext-pluggables {
+        key "pluggable-number node-type";
+        leaf pluggable-number {
+          type uint32;
+          description
+            "Identifier of the pluggable in a given
+             office, i.e., 1, 2..N";
+        }
+        leaf node-type {
+          type org-openroadm-common-types:node-types;
+        }
+        leaf pluggable-id {
+          type string;
+          description
+            "Network-wide unique identifier for a pluggable";
+        }
+        leaf vendor {
+          type string;
+          description
+            "Identifier of the supplier for the pluggable";
+        }
+        leaf customer-code {
+          type string;
+          description
+            "Owner of the pluggable";
+        }
+        container external-connection {
+          leaf clli {
+            type string;
+            description
+              "Location of CLLI where ROADM resides";
+          }
+          leaf node-number{
+            type uint32;
+          }
+          leaf node-id {
+            type string;
+            description
+              "Identifier of a ROADM node";
+          }
+          leaf srg-number {
+            type uint16;
+          }
+          leaf pp-number {
+            type uint16;
+          }
+          leaf bit-rate {
+            type uint32;
+          }
+          leaf signal-format {
+            type string;
+          }
+          leaf reach {
+            type string;
+          }
+          leaf optic {
+            type org-openroadm-common-types:optic-types;
+          }
+          leaf state {
+            type org-openroadm-equipment-states-types:states;
+            description
+              "A xponder can be in one of the following
+               states";
+          }
+        }
+        container tail {
+          leaf client-equipment {
+            type string;
+          }
+          leaf client-equipmentId {
+            type string;
+          }
+          leaf clfi {
+            type string;
+          }
+        }
+      }
+    }
+  }
+}

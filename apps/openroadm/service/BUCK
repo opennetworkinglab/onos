@@ -1,0 +1,9 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//apps/openroadm/yangmodel:onos-apps-openroadm-yangmodel',
+  '//core/store/serializers:onos-core-serializers',
+] + YANG_TOOLS
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)
