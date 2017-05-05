@@ -220,6 +220,10 @@
             ks = _ks_;
             is = _is_;
             wss = _wss_;
+            $scope.deviceTip = 'Show device table';
+            $scope.briefTip = 'Switch to brief view';
+            $scope.detailTip = 'Switch to detailed view';
+            $scope.brief = true;
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {
@@ -248,6 +252,18 @@
 
              $scope.$on('$destroy', function () {
                  wss.unbindHandlers(handlers);
+             });
+
+             $scope.briefToggle = function () {
+                 $scope.brief = !$scope.brief;
+             };
+
+             Object.defineProperty($scope, "queryFilter", {
+                get: function() {
+                    var out = {};
+                    out[$scope.queryBy || "$"] = $scope.queryTxt;
+                    return out;
+                }
              });
 
             $log.log('OvMappingCtrl has been created');

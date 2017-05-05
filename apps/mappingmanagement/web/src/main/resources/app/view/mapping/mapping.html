@@ -33,7 +33,20 @@
             <div class="active"
                  icon icon-id="deviceTable" icon-size="42"
                  tooltip tt-msg="deviceTip"
-                 ng-click="nav('device')"></div>
+                 ng-click="nav('device')">
+            </div>
+        </div>
+
+        <div class="search">
+            <input type="text" ng-model="queryTxt" placeholder="Search"/>
+            <select ng-model="queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Mapping ID</option>
+                <option value="state">State</option>
+                <option value="type">Store Type</option>
+                <option value="mappingKey">Mapping Key</option>
+            </select>
         </div>
     </div>
 
