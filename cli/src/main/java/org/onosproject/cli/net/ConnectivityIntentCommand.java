@@ -37,6 +37,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
@@ -181,6 +182,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--hashed", description = "Hashed path selection",
             required = false, multiValued = false)
     private boolean hashedPathSelection = false;
+
+    @Option(name = "--domains", description = "Allow domain delegation",
+            required = false, multiValued = false)
+    private boolean domains = false;
 
     // Resource Group
     @Option(name = "-r", aliases = "--resourceGroup", description = "Resource Group Id",
@@ -399,6 +404,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Check for hashed path selection
         if (hashedPathSelection) {
             constraints.add(new HashedPathSelectionConstraint());
+        }
+
+        // Check for domain processing
+        if (domains) {
+            constraints.add(DomainConstraint.domain());
         }
         return constraints;
     }

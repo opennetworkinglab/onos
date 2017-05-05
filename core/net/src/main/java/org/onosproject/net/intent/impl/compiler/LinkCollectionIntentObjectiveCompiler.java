@@ -16,6 +16,7 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
@@ -31,6 +32,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -54,12 +56,12 @@ import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.impl.LabelAllocator;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.onosproject.net.domain.DomainId.LOCAL;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 
 /**
@@ -81,6 +83,9 @@ public class LinkCollectionIntentObjectiveCompiler
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DomainService domainService;
 
     private ApplicationId appId;
 
@@ -116,25 +121,36 @@ public class LinkCollectionIntentObjectiveCompiler
                                                        encapConstraint.get().encapType());
         }
 
+        ImmutableList.Builder<Intent> intentList = ImmutableList.builder();
+        if (this.isDomainProcessingEnabled(intent)) {
+            intentList.addAll(this.getDomainIntents(intent, domainService));
+        }
+
         List<Objective> objectives = new ArrayList<>();
         List<DeviceId> devices = new ArrayList<>();
-        for (DeviceId deviceId: outputPorts.keySet()) {
-            List<Objective> deviceObjectives =
-                    createRules(intent,
-                                deviceId,
-                                inputPorts.get(deviceId),
-                                outputPorts.get(deviceId),
-                                labels);
-            deviceObjectives.forEach(objective -> {
-                objectives.add(objective);
-                devices.add(deviceId);
-            });
+        for (DeviceId deviceId : outputPorts.keySet()) {
+            // add only objectives that are not inside of a domain
+            if (LOCAL.equals(domainService.getDomain(deviceId))) {
+                List<Objective> deviceObjectives =
+                        createRules(intent,
+                                    deviceId,
+                                    inputPorts.get(deviceId),
+                                    outputPorts.get(deviceId),
+                                    labels);
+                deviceObjectives.forEach(objective -> {
+                    objectives.add(objective);
+                    devices.add(deviceId);
+                });
+            }
         }
-        return Collections.singletonList(
-                new FlowObjectiveIntent(appId, intent.key(), devices,
-                                        objectives,
-                                        intent.resources(),
-                                        intent.resourceGroup()));
+        // if any objectives have been created
+        if (!objectives.isEmpty()) {
+            intentList.add(new FlowObjectiveIntent(appId, intent.key(), devices,
+                                                   objectives,
+                                                   intent.resources(),
+                                                   intent.resourceGroup()));
+        }
+        return intentList.build();
     }
 
     @Override

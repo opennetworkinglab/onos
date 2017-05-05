@@ -25,9 +25,11 @@ import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DefaultLink;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -50,7 +52,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -59,6 +64,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.PID;
+import static org.onosproject.net.domain.DomainId.LOCAL;
 
 public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkCollectionTest {
 
@@ -82,6 +88,11 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
         compiler.coreService = coreService;
         compiler.flowObjectiveService = flowObjectiveService;
 
+
+        domainService = createMock(DomainService.class);
+        expect(domainService.getDomain(anyObject(DeviceId.class))).andReturn(LOCAL).anyTimes();
+        compiler.domainService = domainService;
+
         Intent.bindIdGenerator(idGenerator);
 
         intentExtensionService = createMock(IntentExtensionService.class);
@@ -99,7 +110,7 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
         LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
-        replay(coreService, intentExtensionService);
+        replay(coreService, domainService, intentExtensionService);
 
     }
 

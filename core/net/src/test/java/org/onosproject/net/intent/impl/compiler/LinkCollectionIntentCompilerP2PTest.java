@@ -26,7 +26,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
@@ -43,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -50,9 +53,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.domain.DomainId.LOCAL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 
 /**
  * This set of tests are meant to test the proper compilation
@@ -67,6 +71,10 @@ public class LinkCollectionIntentCompilerP2PTest extends AbstractLinkCollectionT
         expect(coreService.registerApplication("org.onosproject.net.intent"))
                 .andReturn(appId);
         sut.coreService = coreService;
+
+        domainService = createMock(DomainService.class);
+        expect(domainService.getDomain(anyObject(DeviceId.class))).andReturn(LOCAL).anyTimes();
+        sut.domainService = domainService;
 
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
@@ -86,7 +94,7 @@ public class LinkCollectionIntentCompilerP2PTest extends AbstractLinkCollectionT
         LinkCollectionCompiler.optimizeInstructions = false;
         LinkCollectionCompiler.copyTtl = false;
 
-        replay(coreService, intentExtensionService);
+        replay(coreService, domainService, intentExtensionService);
     }
 
     @After

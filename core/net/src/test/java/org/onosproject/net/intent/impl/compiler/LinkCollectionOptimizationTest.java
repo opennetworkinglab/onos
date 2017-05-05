@@ -25,7 +25,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
@@ -42,13 +44,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.onlab.packet.EthType.EtherType.IPV4;
-import static org.onosproject.net.NetTestTools.*;
-import static org.onosproject.net.flow.criteria.Criterion.Type.*;
+import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.net.domain.DomainId.LOCAL;
+import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 
 /**
@@ -64,6 +71,10 @@ public class LinkCollectionOptimizationTest extends AbstractLinkCollectionTest {
         expect(coreService.registerApplication("org.onosproject.net.intent"))
                 .andReturn(appId);
         sut.coreService = coreService;
+
+        domainService = createMock(DomainService.class);
+        expect(domainService.getDomain(anyObject(DeviceId.class))).andReturn(LOCAL).anyTimes();
+        sut.domainService = domainService;
 
         Intent.unbindIdGenerator(idGenerator);
         Intent.bindIdGenerator(idGenerator);
@@ -86,7 +97,7 @@ public class LinkCollectionOptimizationTest extends AbstractLinkCollectionTest {
         LinkCollectionCompiler.optimizeInstructions = true;
         LinkCollectionCompiler.copyTtl = true;
 
-        replay(coreService, intentExtensionService);
+        replay(coreService, domainService, intentExtensionService);
     }
 
     @After

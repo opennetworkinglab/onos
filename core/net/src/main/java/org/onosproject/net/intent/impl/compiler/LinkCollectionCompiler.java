@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
@@ -33,6 +34,9 @@ import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.domain.DomainId;
+import org.onosproject.net.domain.DomainPointToPointIntent;
+import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -61,10 +65,14 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInst
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.resource.impl.LabelAllocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -72,6 +80,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.net.domain.DomainId.LOCAL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.*;
 
 /**
@@ -186,6 +195,8 @@ public abstract class LinkCollectionCompiler<T> {
      * Error message for unsupported instructions.
      */
     private static final String UNSUPPORTED_INSTRUCTION = "Unknown instruction type";
+
+    private static Logger log = LoggerFactory.getLogger(LinkCollectionCompiler.class);
 
     /**
      * Influence compiler behavior.
@@ -953,6 +964,138 @@ public abstract class LinkCollectionCompiler<T> {
         return intent.constraints().stream()
                 .filter(constraint -> constraint instanceof EncapsulationConstraint)
                 .map(x -> (EncapsulationConstraint) x).findAny();
+    }
+
+    /**
+     * Checks if domain processing is enabled for this intent by looking for the {@link DomainConstraint}.
+     *
+     * @param intent the intent to be checked
+     * @return is the processing of domains enabled
+     */
+    protected boolean isDomainProcessingEnabled(LinkCollectionIntent intent) {
+        return intent.constraints().contains(DomainConstraint.domain());
+    }
+
+    /**
+     * Creates the domain intents that the {@link LinkCollectionIntent} contains.
+     *
+     * @param intent        the link collection intent
+     * @param domainService the domain service
+     * @return the resulting list of domain intents
+     */
+    protected List<Intent> getDomainIntents(LinkCollectionIntent intent,
+                                            DomainService domainService) {
+        ImmutableList.Builder<Intent> intentList = ImmutableList.builder();
+        // domain handling is only applied for a single entry and exit point
+        // TODO: support multi point to multi point
+        if (intent.filteredIngressPoints().size() != 1 || intent
+                .filteredEgressPoints().size() != 1) {
+            log.warn("Multiple ingress or egress ports not supported!");
+            return intentList.build();
+        }
+        ImmutableList.Builder<Link> domainLinks = ImmutableList.builder();
+        // get the initial ingress connection point
+        FilteredConnectPoint ingress =
+                intent.filteredIngressPoints().iterator().next();
+        FilteredConnectPoint egress;
+        DeviceId currentDevice = ingress.connectPoint().deviceId();
+        // the current domain (or LOCAL)
+        DomainId currentDomain = domainService.getDomain(currentDevice);
+        // if we entered a domain store the domain ingress
+        FilteredConnectPoint domainIngress =
+                LOCAL.equals(currentDomain) ? null : ingress;
+        // loop until (hopefully) all links have been checked once
+        // this is necessary because a set is not sorted by default
+        for (int i = 0; i < intent.links().size(); i++) {
+            // find the next link
+            List<Link> nextLinks =
+                    getEgressLinks(intent.links(), currentDevice);
+            // no matching link exists
+            if (nextLinks.isEmpty()) {
+                throw new IntentCompilationException(
+                        "No matching link starting at " + ingress
+                                .connectPoint().deviceId());
+            }
+            // get the first link
+            Link nextLink = nextLinks.get(0);
+            ingress = new FilteredConnectPoint(nextLink.src());
+            egress = new FilteredConnectPoint(nextLink.dst());
+            // query the domain for the domain of the link's destination
+            DomainId dstDomain = domainService
+                    .getDomain(egress.connectPoint().deviceId());
+            if (!currentDomain.equals(dstDomain)) {
+                // we are leaving the current domain or LOCAL
+                log.debug("Domain transition from {} to {}.", currentDomain,
+                          dstDomain);
+                if (!LOCAL.equals(currentDomain)) {
+                    // add the domain intent to the intent list
+                    intentList.add(createDomainP2PIntent(intent, domainIngress,
+                                                         ingress,
+                                                         domainLinks.build()));
+                    // TODO: might end up with an unused builder
+                    // reset domain links builder
+                    domainLinks = ImmutableList.builder();
+                }
+                // update current domain (might be LOCAL)
+                currentDomain = dstDomain;
+                // update the domain's ingress
+                domainIngress = LOCAL.equals(currentDomain) ? null : egress;
+            } else {
+                if (!LOCAL.equals(currentDomain)) {
+                    // we are staying in the same domain, store the traversed link
+                    domainLinks.add(nextLink);
+                    log.debug("{} belongs to the same domain.",
+                              egress.connectPoint().deviceId());
+                }
+            }
+            currentDevice = egress.connectPoint().deviceId();
+        }
+        // get the egress point
+        egress = intent.filteredEgressPoints().iterator().next();
+        // still inside a domain?
+        if (!LOCAL.equals(currentDomain) &&
+                currentDomain.equals(domainService.getDomain(
+                        egress.connectPoint().deviceId()))) {
+            // add intent
+            intentList.add(createDomainP2PIntent(intent, domainIngress, egress,
+                                                 domainLinks.build()));
+        }
+
+        return intentList.build();
+    }
+
+    /**
+     * Create a domain point to point intent from the parameters.
+     *
+     * @param originalIntent the original intent to extract the app ID and key
+     * @param ingress the ingress connection point
+     * @param egress the egress connection point
+     * @param domainLinks the list of traversed links
+     * @return the domain point to point intent
+     */
+    private static DomainPointToPointIntent createDomainP2PIntent(
+            Intent originalIntent, FilteredConnectPoint ingress,
+            FilteredConnectPoint egress, List<Link> domainLinks) {
+        return DomainPointToPointIntent.builder()
+                .appId(originalIntent.appId())
+                .filteredIngressPoint(ingress)
+                .filteredEgressPoint(egress)
+                .key(originalIntent.key())
+                .links(domainLinks)
+                .build();
+    }
+
+    /**
+     * Get links originating from the source device ID.
+     *
+     * @param links  list of available links
+     * @param source the device ID of the source device
+     * @return the list of links with the given source
+     */
+    private List<Link> getEgressLinks(Set<Link> links, final DeviceId source) {
+        return links.stream()
+                .filter(link -> link.src().deviceId().equals(source))
+                .collect(Collectors.toList());
     }
 
 
