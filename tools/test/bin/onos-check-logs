@@ -49,16 +49,30 @@ else
     ssh $remote "
         [ "'`uname`'" != "'"Linux"'" ] && alias tac='tail -r'
         tac $LOG | tr -d '\000' | awk -v ignoreStoreExceptions=${ise:-0} '
-            BEGIN { off = 0; fail = 0; exclusion = 0; trace = \"\";}
+            BEGIN { off = 0; fail = 0; exclusion = 0; expected = 0; trace = \"\";}
             / org.apache.karaf.main.lock.SimpleFileLock lock/ {
                 exit fail;
+            }
+
+            # note: we are parsing log in reverse from the end
+            / EXPECTING_EXCEPTION_BEGIN/ {
+                print \$0;
+                expected = 0;
+            }
+
+            / EXPECTING_EXCEPTION_END/ {
+                print \$0;
+                expected = 1;
             }
 
             / ERROR / {
                 if (exception && !exclusion) {
                     print \$0;
                     exception = 0;
-                    fail = 1;
+
+                    if (!expected) {
+                        fail = 1;
+                    }
                 }
                 exclusion = 0;
             }
@@ -82,7 +96,9 @@ else
                     print trace;
                     print \$0;
                     exception = 1;
-                    fail = 1;
+                    if (!expected) {
+                        fail = 1;
+                    }
                     trace = \"\";
                 }
             }

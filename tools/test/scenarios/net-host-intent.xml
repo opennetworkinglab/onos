@@ -34,14 +34,21 @@
         <step name="Host-Intent.Validate-Intent-Installed-Still" requires="Host-Intent.Link-1-Down"
               exec="onos-check-intent ${OC1} h2h INSTALLED"/>
 
+        <import file="${ONOS_SCENARIOS}/log-mark.xml" namespace="Host-Intent"/>
+        <dependency name="Host-Intent.ExpectExceptionMarkBegin"
+                    requires="~Host-Intent.Validate-Intent-Installed-Still"/>
+
         <dependency name="Host-Intent.Link-2-Down"
-                    requires="~Host-Intent.Validate-Intent-Installed-Still" />
+                    requires="Host-Intent.ExpectExceptionMarkBegin" />
 
         <step name="Host-Intent.Validate-Intent-Failed" requires="Host-Intent.Link-2-Down"
               exec="onos-check-intent ${OC1} h2h FAILED"/>
 
+        <dependency name="Host-Intent.ExpectExceptionMarkEnd"
+                    requires="~Host-Intent.Validate-Intent-Failed"/>
+
         <dependency name="Host-Intent.Link-1-Up"
-                    requires="~Host-Intent.Validate-Intent-Failed" />
+                    requires="~Host-Intent.ExpectExceptionMarkEnd" />
 
         <step name="Host-Intent.Validate-Intent-Installed-Again" requires="Host-Intent.Link-1-Up"
               exec="onos-check-intent ${OC1} h2h INSTALLED"/>

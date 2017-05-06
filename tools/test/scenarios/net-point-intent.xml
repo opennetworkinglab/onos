@@ -33,6 +33,7 @@
               exec="onos-check-intent ${OC1} xy INSTALLED"/>
 
         <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="P2P-Intent"/>
+        <import file="${ONOS_SCENARIOS}/log-mark.xml" namespace="P2P-Intent"/>
         <dependency name="P2P-Intent.Net-Link-Down-Up"
                     requires="P2P-Intent.Validate-Intent-XY-Installed,
                               P2P-Intent.Validate-Intent-YX-Installed"/>
@@ -42,18 +43,24 @@
         <step name="P2P-Intent.Validate-Intent-YX-Installed-Still" requires="P2P-Intent.Link-1-Down"
               exec="onos-check-intent ${OC1} yx INSTALLED"/>
 
-        <dependency name="P2P-Intent.Link-2-Down"
+        <dependency name="P2P-Intent.ExpectExceptionMarkBegin"
                     requires="~P2P-Intent.Validate-Intent-XY-Installed-Still,
                               ~P2P-Intent.Validate-Intent-YX-Installed-Still"/>
+
+        <dependency name="P2P-Intent.Link-2-Down"
+                    requires="P2P-Intent.ExpectExceptionMarkBegin"/>
 
         <step name="P2P-Intent.Validate-Intent-XY-Failed" requires="P2P-Intent.Link-2-Down"
               exec="onos-check-intent ${OC1} xy FAILED"/>
         <step name="P2P-Intent.Validate-Intent-YX-Failed" requires="P2P-Intent.Link-2-Down"
               exec="onos-check-intent ${OC1} yx FAILED"/>
 
-        <dependency name="P2P-Intent.Link-1-Up"
+        <dependency name="P2P-Intent.ExpectExceptionMarkEnd"
                     requires="~P2P-Intent.Validate-Intent-XY-Failed,
-                              ~P2P-Intent.Validate-Intent-YX-Failed" />
+                              ~P2P-Intent.Validate-Intent-YX-Failed"/>
+
+        <dependency name="P2P-Intent.Link-1-Up"
+                    requires="~P2P-Intent.ExpectExceptionMarkEnd" />
 
         <step name="P2P-Intent.Validate-Intent-XY-Installed-Again" requires="P2P-Intent.Link-1-Up"
               exec="onos-check-intent ${OC1} xy INSTALLED"/>
