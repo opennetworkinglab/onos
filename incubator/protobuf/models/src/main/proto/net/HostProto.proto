@@ -3,6 +3,7 @@ option java_package = "org.onosproject.grpc.net.models";
 
 import "net/HostIdProto.proto";
 import "net/HostLocationProto.proto";
+import "net/ProviderIdProto.proto";
 
 package net;
 
@@ -13,5 +14,6 @@ message HostProto {
     net.HostLocationProto location = 3;
     repeated string ip_addresses = 4;
     bool configured = 5;
-    map<string, string> annotations = 6;
+    net.ProviderIdProto provider_id = 6;
+    map<string, string> annotations = 7;
 }

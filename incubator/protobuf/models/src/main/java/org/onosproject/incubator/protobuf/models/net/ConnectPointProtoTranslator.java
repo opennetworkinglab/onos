@@ -16,7 +16,7 @@
 package org.onosproject.incubator.protobuf.models.net;
 
 import org.onlab.packet.IpAddress;
-import org.onosproject.grpc.net.models.ConnectPointProtoOuterClass;
+import org.onosproject.grpc.net.models.ConnectPointProtoOuterClass.ConnectPointProto;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -40,7 +40,7 @@ public final class ConnectPointProtoTranslator {
      * @param connectPoint gRPC message
      * @return Optional of equivalent {@link org.onosproject.net.ConnectPoint} or empty if ElementId is not recognized
      */
-    public static Optional<ConnectPoint> translate(ConnectPointProtoOuterClass.ConnectPointProto connectPoint) {
+    public static Optional<ConnectPoint> translate(ConnectPointProto connectPoint) {
         switch (connectPoint.getElementIdCase()) {
             case DEVICE_ID:
                 return Optional.of(new ConnectPoint(DeviceId.deviceId(connectPoint.getDeviceId()),
@@ -65,20 +65,18 @@ public final class ConnectPointProtoTranslator {
      * @param connectPoint {@link org.onosproject.net.ConnectPoint}
      * @return gRPC ConnectPoint message
      */
-    public static ConnectPointProtoOuterClass.ConnectPointProto translate(ConnectPoint connectPoint) {
+    public static ConnectPointProto translate(ConnectPoint connectPoint) {
+
         if (connectPoint.elementId() instanceof DeviceId) {
-            return ConnectPointProtoOuterClass.ConnectPointProto.newBuilder()
-                    .setDeviceId(connectPoint.deviceId().toString())
+            return ConnectPointProto.newBuilder().setDeviceId(connectPoint.deviceId().toString())
                     .setPortNumber(connectPoint.port().toString())
                     .build();
         } else if (connectPoint.elementId() instanceof HostId) {
-            return ConnectPointProtoOuterClass.ConnectPointProto.newBuilder()
-                    .setHostId(connectPoint.hostId().toString())
+            return ConnectPointProto.newBuilder().setHostId(connectPoint.hostId().toString())
                     .setPortNumber(connectPoint.port().toString())
                     .build();
         } else if (connectPoint.ipElementId() instanceof IpElementId) {
-            return ConnectPointProtoOuterClass.ConnectPointProto.newBuilder()
-                    .setIpElementId(connectPoint.ipElementId().toString())
+            return ConnectPointProto.newBuilder().setIpElementId(connectPoint.ipElementId().toString())
                     .setPortNumber(connectPoint.port().toString())
                     .build();
         } else {
@@ -87,8 +85,6 @@ public final class ConnectPointProtoTranslator {
         }
     }
 
-
     // Utility class not intended for instantiation.
     private ConnectPointProtoTranslator() {}
 }
-
