@@ -984,7 +984,8 @@ public class Ofdpa2GroupHandler {
      * @param nextObjective the objective to process.
      */
     protected void processPwNextObjective(NextObjective nextObjective) {
-        log.warn("Pseudo wire extensions are not support for the OFDPA 2.0 {}", nextObjective.id());
+        log.warn("Pseudo wire extensions are not supported in OFDPA 2.0 {}",
+                 nextObjective.id());
     }
 
     //////////////////////////////////////
@@ -1049,6 +1050,9 @@ public class Ofdpa2GroupHandler {
             objectiveToAdd = builder.addToExisting(context);
         } else {
             // buckets to add are already there - nothing to do
+            log.debug("buckets already exist {} in next: {} ..ignoring bucket add",
+                      duplicateBuckets, nextObjective.id());
+            pass(nextObjective);
             return;
         }
 

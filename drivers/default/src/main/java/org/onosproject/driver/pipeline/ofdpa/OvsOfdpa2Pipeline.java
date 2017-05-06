@@ -20,11 +20,7 @@ import org.onosproject.net.behaviour.PipelinerContext;
 
 /**
  * Driver for software switch emulation of the OFDPA pipeline.
- * The software switch is the OVS OF 1.3 switch. Unfortunately the OVS switch
- * does not handle vlan tags and mpls labels simultaneously, which requires us
- * to do some workarounds in the driver. This driver is meant for the use of
- * the cpqd switch when MPLS is required. As a result this driver works only
- * on incoming untagged packets.
+ * The software switch is the OVS OF 1.3 switch (version 2.5 or later).
  */
 public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
 

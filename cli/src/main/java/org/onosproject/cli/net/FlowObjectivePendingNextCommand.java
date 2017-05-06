@@ -24,8 +24,8 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 
 /**
  * Returns a list of FlowObjective next-ids waiting to get created by device-drivers.
- * Also returns the forwarding objectives waiting on the pending next-objectives.
- * These lists are controller instance specific.
+ * Also returns the forwarding objectives and next objectives waiting on the pending
+ * next-objectives. These lists are controller instance specific.
  */
 @Command(scope = "onos", name = "obj-pending-nexts",
         description = "flow-objectives pending next-objectives")
@@ -37,7 +37,7 @@ public class FlowObjectivePendingNextCommand extends AbstractShellCommand {
     protected void execute() {
         try {
             FlowObjectiveService service = get(FlowObjectiveService.class);
-            printNexts(service.getPendingNexts());
+            printNexts(service.getPendingFlowObjectives());
         } catch (ServiceNotFoundException e) {
             print(FORMAT_MAPPING, "FlowObjectiveService unavailable");
         }

@@ -185,7 +185,7 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
     }
 
     @Override
-    public List<String> getPendingNexts() {
+    public List<String> getPendingFlowObjectives() {
         List<String> pendingNexts = new ArrayList<>();
         for (Integer nextId : pendingForwards.keySet()) {
             Set<PendingNext> pnext = pendingForwards.get(nextId);
@@ -199,6 +199,11 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
             pendingNexts.add(pend.toString());
         }
         return pendingNexts;
+    }
+
+    @Override
+    public List<String> getPendingNexts() {
+        return getPendingFlowObjectives();
     }
 
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
@@ -336,10 +341,12 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
 
     // Processing context for initializing pipeline driver behaviours.
     private class InnerPipelineContext implements PipelinerContext {
+        @Override
         public ServiceDirectory directory() {
             return serviceDirectory;
         }
 
+        @Override
         public FlowObjectiveStore store() {
             return flowObjectiveStore;
         }
@@ -625,4 +632,5 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
             }
         }
     }
+
 }

@@ -101,12 +101,24 @@ public interface FlowObjectiveService {
 
     /**
      * Retrieve all nextObjectives that are waiting to hear back from device
-     * drivers, and the forwarding-objectives that are waiting on the
-     * successful completion of the next-objectives. Consumed by the
+     * drivers, and the forwarding-objectives or next-objectives that are waiting
+     * on the successful completion of the original next-objectives. Consumed by the
      * "obj-pending-nexts" command on the CLI.
      *
      * @return a list of strings preformatted to provide information on the
      *          next-ids awaiting confirmation from the device-drivers.
      */
+    List<String> getPendingFlowObjectives();
+
+    /**
+     * Retrieve all nextObjectives that are waiting to hear back from device
+     * drivers, and the forwarding-objectives or next-objectives that are waiting
+     * on the successful completion of the original next-objectives.
+     *
+     * @return a list of strings preformatted by the device-drivers to provide
+     *         information on next-id to group-id mapping.
+     */
+    @Deprecated
     List<String> getPendingNexts();
+
 }

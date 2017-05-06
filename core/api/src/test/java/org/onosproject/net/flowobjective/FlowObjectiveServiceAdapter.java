@@ -62,6 +62,11 @@ public class FlowObjectiveServiceAdapter implements FlowObjectiveService {
     }
 
     @Override
+    public List<String> getPendingFlowObjectives() {
+        return ImmutableList.of();
+    }
+
+    @Override
     public List<String> getPendingNexts() {
         return ImmutableList.of();
     }

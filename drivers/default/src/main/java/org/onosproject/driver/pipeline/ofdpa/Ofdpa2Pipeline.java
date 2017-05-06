@@ -283,13 +283,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                          nextObjective.id(), deviceId);
                 return;
             }
-            log.debug("Processing NextObjective id{} in dev{} - add group",
+            log.debug("Processing NextObjective id {} in dev {} - add group",
                       nextObjective.id(), deviceId);
             groupHandler.addGroup(nextObjective);
             break;
         case ADD_TO_EXISTING:
             if (nextGroup != null) {
-                log.debug("Processing NextObjective id{} in dev{} - add bucket",
+                log.debug("Processing NextObjective id {} in dev {} - add bucket",
                           nextObjective.id(), deviceId);
                 groupHandler.addBucketToGroup(nextObjective, nextGroup);
             } else {
@@ -313,7 +313,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                          nextObjective.id(), deviceId);
                 return;
             }
-            log.debug("Processing NextObjective id{}  in dev{} - remove group",
+            log.debug("Processing NextObjective id {}  in dev {} - remove group",
                       nextObjective.id(), deviceId);
             groupHandler.removeGroup(nextObjective, nextGroup);
             break;
@@ -323,7 +323,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                          nextObjective.id(), deviceId);
                 return;
             }
-            log.debug("Processing NextObjective id{} in dev{} - remove bucket",
+            log.debug("Processing NextObjective id {} in dev {} - remove bucket",
                       nextObjective.id(), deviceId);
             groupHandler.removeBucketFromGroup(nextObjective, nextGroup);
             break;

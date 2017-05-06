@@ -432,8 +432,13 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
     }
 
     @Override
-    public List<String> getPendingNexts() {
+    public List<String> getPendingFlowObjectives() {
         // TODO Implementation deferred as this is an experimental component.
+        return ImmutableList.of();
+    }
+
+    @Override
+    public List<String> getPendingNexts() {
         return ImmutableList.of();
     }
 }
