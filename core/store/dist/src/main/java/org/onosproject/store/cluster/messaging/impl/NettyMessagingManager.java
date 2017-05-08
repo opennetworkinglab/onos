@@ -94,7 +94,7 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 @Service
 public class NettyMessagingManager implements MessagingService {
 
-    private static final int REPLY_TIME_OUT_MILLIS = 250;
+    private static final int REPLY_TIME_OUT_MILLIS = 500;
     private static final short MIN_KS_LENGTH = 6;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
