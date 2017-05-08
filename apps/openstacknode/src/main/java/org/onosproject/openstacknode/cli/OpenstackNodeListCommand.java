@@ -24,7 +24,6 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeService;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,25 +33,28 @@ import java.util.List;
         description = "Lists all nodes registered in OpenStack node service")
 public class OpenstackNodeListCommand extends AbstractShellCommand {
 
+    private static final String FORMAT = "%-20s%-15s%-24s%-24s%-20s%-20s%-15s%s";
+
     @Override
     protected void execute() {
         OpenstackNodeService nodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         List<OpenstackNode> nodes = nodeService.nodes();
-        Collections.sort(nodes, OpenstackNode.OPENSTACK_NODE_COMPARATOR);
+        nodes.sort(OpenstackNode.OPENSTACK_NODE_COMPARATOR);
 
         if (outputJson()) {
             print("%s", json(nodes));
         } else {
+            print(FORMAT, "Hostname", "Type", "Integration Bridge", "Router Bridge",
+                    "Management IP", "Data IP", "VLAN Intf", "State");
             for (OpenstackNode node : nodes) {
-                print("hostname=%s, type=%s, managementIp=%s, dataIp=%s, vlanPort=%s," +
-                        "intBridge=%s, routerBridge=%s init=%s",
+                print(FORMAT,
                         node.hostname(),
                         node.type(),
-                        node.managementIp(),
-                        node.dataIp(),
-                        node.vlanPort(),
                         node.intBridge(),
-                        node.routerBridge(),
+                        node.routerBridge().isPresent() ? node.routerBridge().get() : "",
+                        node.managementIp(),
+                        node.dataIp().isPresent() ? node.dataIp().get() : "",
+                        node.vlanPort().isPresent() ? node.vlanPort().get() : "",
                         node.state());
             }
             print("Total %s nodes", nodeService.nodes().size());
@@ -66,11 +68,11 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
             result.add(mapper.createObjectNode()
                     .put("hostname", node.hostname())
                     .put("type", node.type().name())
+                    .put("intBridge", node.intBridge().toString())
+                    .put("routerBridge", node.routerBridge().toString())
                     .put("managementIp", node.managementIp().toString())
                     .put("dataIp", node.dataIp().toString())
                     .put("vlanPort", node.vlanPort().toString())
-                    .put("intBridge", node.intBridge().toString())
-                    .put("routerBridge", node.routerBridge().toString())
                     .put("state", node.state().name()));
         }
         return result;
