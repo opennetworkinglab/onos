@@ -35,6 +35,7 @@
 
     // internal state
     var mode = null,
+        currentIndex = 0,
         allIndex = 0;
 
     // === -----------------------------------------------------
@@ -59,7 +60,12 @@
             trafficType: allTrafficTypes[allIndex]
         });
         flash.flash(allTrafficMsgs[allIndex]);
+        currentIndex = allIndex;
         allIndex = (allIndex + 1) % 3;
+    }
+
+    function selectedTrafficOverlay() {
+        return allTrafficTypes[currentIndex];
     }
 
     // === -----------------------------------------------------
@@ -80,7 +86,8 @@
 
                     // invoked from toolbar overlay buttons or keystrokes
                     cancelTraffic: cancelTraffic,
-                    showAllTraffic: showAllTraffic
+                    showAllTraffic: showAllTraffic,
+                    selectedTrafficOverlay: selectedTrafficOverlay
                 }
             }
         ]);

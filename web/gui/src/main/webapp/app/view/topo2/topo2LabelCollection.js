@@ -19,7 +19,6 @@
  A collection of any type of label (Topo2Label, Topo2Badge, Topo2LinkLabel)
  */
 
-
 (function () {
 
     var instance;
@@ -32,12 +31,18 @@
                 var LabelCollection = Collection.extend({
                     initialize: function () {
                         instance = this;
+                    },
+                    addLabel: function (Model, label, targetNode, options) {
+                        if (this._byId[label.id]) {
+                            this.get(label.id).set(label);
+                        } else {
+                            var lab = new Model(label, targetNode, options)
+                            this.add(lab);
+                        }
                     }
                 });
 
                 return instance || new LabelCollection();
             }
         ]);
-
-
 })();

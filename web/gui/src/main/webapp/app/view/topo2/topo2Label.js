@@ -50,16 +50,29 @@
                     _iconG: {},
                     _labelG: {},
 
-                    initialize: function (data, node, options) {
+                    initialize: function (data, node) {
                         this.parent = node;
-                        this.options = options || {};
-
                         t2zs.addZoomEventListener(this.setScale.bind(this));
+                        this.beforeRender();
                         this.render();
+                        this.afterRender();
                     },
-                    onChange: function (property, value, options) {
+                    onChange: function (property) {
                         if (property === 'x' || property === 'y') {
                             this._position();
+                        }
+
+                        if (property === 'label') {
+                            var width = this._labelG.text.node().getBBox().width + 20,
+                                height = this._labelG.text.node().getBBox().height + 10;
+
+                            this._labelG.text.text(this.get('label'));
+                            this._labelG.rect.attr({
+                                width: width,
+                                height: height
+                            }).style({
+                                transform: sus.translate(-(width/2) + 'px', -(height/2) + 'px')
+                            });
                         }
                     },
 
@@ -67,9 +80,9 @@
                     setScale: function () {},
 
                     applyStyles: function () {
-                        var styles = _.extend({}, defaultStyles, this.get('styles'));
+                        var styles = _.extend({}, defaultStyles, this.get('styles') || {});
 
-                        if (this.get('text')) {
+                        if (this.get('label')) {
                             this._labelG.text.style(styles.label.text);
                             this._labelG.rect.style(styles.label.rect);
                         }
@@ -79,13 +92,9 @@
                             this._iconG.rect.style(styles.icon.rect);
                         }
                     },
-
                     _position: function () {
                         this.el.style('transform', sus.translate(this.get('x') + 'px',
                             this.get('y') + 'px'));
-                    },
-                    labelDimensions: function () {
-                        return this.content.node().getBBox();
                     },
                     renderText: function () {
                         this._labelG.el = this.content.append('g')
@@ -93,7 +102,7 @@
 
                         this._labelG.rect = this._labelG.el.append('rect');
                         this._labelG.text = this._labelG.el.append('text')
-                            .text(this.get('text'))
+                            .text(this.get('label'))
                             .attr('y', '0.4em')
                             .style('text-anchor', 'middle');
 
@@ -127,6 +136,7 @@
                             transform: sus.translate(iconX, iconY)
                         });
                     },
+                    beforeRender: function () {},
                     render: function () {
                         this.el = this.parent.append('g')
                             .attr('class', 'topo2-label')
@@ -146,6 +156,10 @@
                         this.applyStyles();
                         this.setPosition();
                         this.setScale();
+                    },
+                    afterRender: function () {},
+                    remove: function () {
+                        this.el.remove();
                     }
                 });
             }

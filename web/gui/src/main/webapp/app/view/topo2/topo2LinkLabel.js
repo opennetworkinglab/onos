@@ -30,8 +30,21 @@
                     className: 'topo2-linklabel',
                     maxHeight: 30,
                     minHeight: 20,
+                    initialize: function (label, dom, options) {
+                        this.link = options.link;
+                        this.parent = dom;
+                        this.super = this.constructor.__super__;
+                        this.super.initialize.apply(this, arguments);
+                    },
+                    onChange: function () {
+                        this.link.onChange();
+                        this.constructor.__super__.onChange.apply(this, arguments);
+                    },
+                    linkLabelCSSClass: function () {
+                        return this.get('css') || '';
+                    },
                     setPosition: function () {
-                        var link = this.options.link;
+                        var link = this.link;
                         this.set({
                             x: (link.source.x + link.target.x) / 2,
                             y: (link.source.y + link.target.y) / 2
@@ -40,6 +53,14 @@
                     setScale: function () {
                         this.content.style('transform',
                             'scale(' + t2zs.adjustmentScale(20, 30) + ')');
+                    },
+                    beforeRender: function () {
+                        this.link.linkLabel = this;
+                    },
+                    remove: function () {
+                        this.link.linkLabel = null;
+                        this.link.onChange();
+                        this.constructor.__super__.remove.apply(this, arguments);
                     }
                 });
             }

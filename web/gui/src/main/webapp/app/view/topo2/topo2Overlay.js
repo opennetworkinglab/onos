@@ -22,7 +22,7 @@
     var t2os = 'Topo2OverlayService: ';
 
     // injected refs
-    var $log, $timeout, fs, gs, wss, t2kcs, api;
+    var $log, $timeout, fs, gs, wss, t2kcs, t2rs, t2lc, api, LinkLabel;
 
     // internal state
     var overlays = {},
@@ -134,27 +134,20 @@
     }
 
     function showHighlights(data) {
-        function doHighlight() {
-            _showHighlights(data);
-        }
-
-        // note: this allows the server-side event to add a manual delay
-        //       before invoking the highlight... this was (originally) to
-        //       allow for the re-creation of the DOM model, before trying
-        //       to reference elements. For Topo2, there may be a better
-        //       solution, making this piece of code redundant. Steven??
-
-        if (data.delay) {
-            $timeout(doHighlight, data.delay);
-        } else {
-            doHighlight();
-        }
-
-    }
-
-    function _showHighlights(data) {
-        // TODO: implement the highlighting .. see topoOverlay.js for example
         $log.info('+++ TOPO 2 +++ show highlights', data);
+        t2lc.empty();
+        var linkLabelsDOM = d3.select('.topo2-linkLabels');
+        _.each(data.links, function (link) {
+            // TODO: Inconsistent host id's (currentRegion and LinkLabel)
+            var id = link.id.replace('/None/0', '/None').replace('-', '~'),
+                lab = t2rs.getLink(id);
+                // TODO: There's a bug in backend where link id is in reverse
+                if (lab) {
+                    t2lc.addLabel(LinkLabel, link, linkLabelsDOM, {
+                        link: lab
+                    });
+                }
+        });
     }
 
     // ========================================================================
@@ -162,15 +155,20 @@
     angular.module('ovTopo2')
     .factory('Topo2OverlayService', [
         '$log', '$timeout', 'FnService', 'GlyphService', 'WebSocketService',
-        'Topo2KeyCommandService',
+        'Topo2KeyCommandService', 'Topo2RegionService', 'Topo2LabelCollection',
+        'Topo2LinkLabel',
 
-        function (_$log_, _$timeout_, _fs_, _gs_, _wss_, _t2kcs_) {
+        function (_$log_, _$timeout_, _fs_, _gs_, _wss_, _t2kcs_, _t2rs_,
+            _t2lc_, _t2ll_) {
             $log = _$log_;
             $timeout = _$timeout_;
             fs = _fs_;
             gs = _gs_;
             wss = _wss_;
             t2kcs = _t2kcs_;
+            t2rs = _t2rs_;
+            t2lc = _t2lc_;
+            LinkLabel = _t2ll_;
 
             return {
                 register: register,

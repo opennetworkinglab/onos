@@ -22,7 +22,8 @@
 (function () {
     'use strict';
 
-    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps, fn, ps, t2mss;
+    var $log, Collection, Model, ts, sus, t2zs, t2vs, t2lps,
+        fn, ps, t2mss, t2ts;
 
     var linkLabelOffset = '0.35em';
 
@@ -134,7 +135,8 @@
                         enhanced: this.get('enhanced'),
                         selected: this.get('selected'),
                         suppressedmax: this.get('mastership')
-                    }
+                    },
+                    (this.linkLabel) ? this.linkLabel.linkLabelCSSClass() : null
                 );
             },
             expected: function () {
@@ -154,6 +156,7 @@
                 // Update class names when the model changes
                 if (this.el) {
                     this.el.attr('class', this.svgClassName());
+                    this.setScale();
                 }
             },
             enhance: function () {
@@ -239,7 +242,6 @@
                 };
             },
             setPosition: function () {
-
                 var multiline = this.get('multiline');
                 if (multiline) {
                     var offsetAmt = this.amt(multiline.deviceLinks, multiline.index);
@@ -256,6 +258,9 @@
                     this.el.attr(this.get('position'));
                 }
 
+                if (this.linkLabel) {
+                    this.linkLabel.setPosition();
+                }
             },
             updatePortPosition: function () {
                 var sourcePos = this.locatePortLabel(1),
@@ -324,11 +329,39 @@
                 this.setVisibility();
                 this.setScale();
             },
+            linkWidth: function () {
+                var width = widthRatio;
+                if (this.get('enhanced')) { width = 3.5; }
+                if (this.linkLabel) {
+                    var scale = d3.scale.ordinal()
+                            .rangeRoundPoints([4, 8]),
+                        label = this.linkLabel.get('label').split(' ');
+
+                    switch (t2ts.selectedTrafficOverlay()) {
+                        case 'flowStatsBytes':
+                            scale.domain(['KB', 'MB', 'GB']);
+                            width = scale(label[1]);
+                            break;
+                        case 'portStatsBitSec':
+                            scale.domain(['Kbps', 'Mbps', 'Gbps'])
+                            width = scale(label[1]);
+                            break;
+                        case 'portStatsPktSec':
+                            scale = d3.scale.linear()
+                                .domain([1, 10, 100, 1000, 10000])
+                                .range(d3.range(3.5, 9))
+                                .clamp(true);
+                            width = scale(parseInt(label[0]));
+                    }
+                }
+
+                return width;
+            },
             setScale: function () {
 
                 if (!this.el) return;
 
-                var linkWidthRatio = this.get('enhanced') ? 3.5 : widthRatio;
+                var linkWidthRatio = this.linkWidth();
 
                 var width = linkScale(linkWidthRatio) / t2zs.scale();
                 this.el.attr('stroke-width', width + 'px');
@@ -342,6 +375,9 @@
 
                 this.setPosition();
 
+                if (this.linkLabel) {
+                    this.linkLabel.setScale();
+                }
             },
             update: function () {
                 if (this.get('enhanced')) {
@@ -390,9 +426,9 @@
         '$log', 'Topo2Collection', 'Topo2Model',
         'ThemeService', 'SvgUtilService', 'Topo2ZoomService',
         'Topo2ViewService', 'Topo2LinkPanelService', 'FnService', 'PrefsService',
-        'Topo2MastershipService',
+        'Topo2MastershipService', 'Topo2TrafficService',
         function (_$log_, _c_, _Model_, _ts_, _sus_,
-            _t2zs_, _t2vs_, _t2lps_, _fn_, _ps_, _t2mss_) {
+            _t2zs_, _t2vs_, _t2lps_, _fn_, _ps_, _t2mss_, _t2ts_) {
 
             $log = _$log_;
             ts = _ts_;
@@ -405,6 +441,7 @@
             fn = _fn_;
             ps = _ps_;
             t2mss = _t2mss_;
+            t2ts = _t2ts_;
 
             return {
                 createLinkCollection: createLinkCollection
