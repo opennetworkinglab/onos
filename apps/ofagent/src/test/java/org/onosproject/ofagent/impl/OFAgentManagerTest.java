@@ -17,6 +17,7 @@ package org.onosproject.ofagent.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -112,6 +113,7 @@ public class OFAgentManagerTest {
         ofAgentStore = new DistributedOFAgentStore();
         TestUtils.setField(ofAgentStore, "coreService", createMock(CoreService.class));
         TestUtils.setField(ofAgentStore, "storageService", new TestStorageService());
+        TestUtils.setField(ofAgentStore, "eventExecutor", MoreExecutors.newDirectExecutorService());
         ofAgentStore.activate();
 
         expect(mockCoreService.registerApplication(anyObject()))
@@ -243,15 +245,13 @@ public class OFAgentManagerTest {
     }
 
     private void validateEvents(Enum... types) {
-        TestTools.assertAfter(100, () -> {
-            int i = 0;
-            assertEquals("Number of events does not match", types.length, testListener.events.size());
-            for (Event event : testListener.events) {
-                assertEquals("Incorrect event received", types[i], event.type());
-                i++;
-            }
-            testListener.events.clear();
-        });
+        int i = 0;
+        assertEquals("Number of events does not match", types.length, testListener.events.size());
+        for (Event event : testListener.events) {
+            assertEquals("Incorrect event received", types[i], event.type());
+            i++;
+        }
+        testListener.events.clear();
     }
 
     private static class TestOFAgentListener implements OFAgentListener {
