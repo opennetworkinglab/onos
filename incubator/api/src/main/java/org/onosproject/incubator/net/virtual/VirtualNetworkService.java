@@ -110,6 +110,7 @@ public interface VirtualNetworkService
      * <li>{@link org.onosproject.net.flow.FlowRuleService}</li>
      * <li>{@link org.onosproject.net.flowobjective.FlowObjectiveService}</li>
      * <li>{@link org.onosproject.net.intent.IntentService}</li>
+     * <li>{@link org.onosproject.mastership.MastershipService}</li>
      * </ul>
      *
      * @param networkId    network identifier
