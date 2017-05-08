@@ -81,7 +81,8 @@ public class RoutesListCommand extends AbstractShellCommand {
     }
 
     private void print(String format, RouteInfo routeInfo) {
-        routeInfo.allRoutes()
+        routeInfo.allRoutes().stream()
+                .sorted(Comparator.comparing(r -> r.nextHop()))
                 .forEach(r -> print(format, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
                         r.prefix(), r.nextHop(), r.route().source()));
     }
