@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-tetunnel</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.8.6</version>
+        <version>1.8.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-tetunnel</artifactId>
@@ -32,12 +32,12 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-app-tetunnel-api</artifactId>
-            <version>1.8.6</version>
+            <version>1.8.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
-            <version>1.8.6</version>
+            <version>1.8.7-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
