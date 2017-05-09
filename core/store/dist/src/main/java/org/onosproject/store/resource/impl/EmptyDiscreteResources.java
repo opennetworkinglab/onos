@@ -63,6 +63,16 @@ final class EmptyDiscreteResources implements DiscreteResources {
     }
 
     @Override
+    public int hashCode() {
+        return INSTANCE.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof DiscreteResources && ((DiscreteResources) object).isEmpty();
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("values", ImmutableSet.of())

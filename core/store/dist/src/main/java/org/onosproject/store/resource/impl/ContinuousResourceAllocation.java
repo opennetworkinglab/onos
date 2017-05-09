@@ -22,6 +22,7 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,5 +94,27 @@ final class ContinuousResourceAllocation {
         return new ContinuousResourceAllocation(original,
                 Stream.concat(nonMatched.stream(), matched.stream())
                         .collect(GuavaCollectors.toImmutableList()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ContinuousResourceAllocation that = (ContinuousResourceAllocation) o;
+
+        if (!original.equals(that.original)) {
+            return false;
+        }
+        return allocations.equals(that.allocations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(original, allocations);
     }
 }
