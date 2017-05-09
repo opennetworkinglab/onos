@@ -15,10 +15,6 @@
  */
 package org.onosproject.net.optical.config;
 
-import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
-import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
-import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
-import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Set;
@@ -36,10 +32,6 @@ import org.onosproject.net.Port.Type;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultPortDescription;
-import org.onosproject.net.device.OchPortDescription;
-import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
-import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 
@@ -137,43 +129,6 @@ public final class OpticalPortOperator implements PortConfigOperator {
                                                      SparseAnnotations sa,
                                                      PortDescription descr) {
 
-        // TODO This switch can go away once deprecation is complete.
-        switch (descr.type()) {
-            case OMS:
-                if (descr instanceof OmsPortDescription) {
-                    OmsPortDescription oms = (OmsPortDescription) descr;
-                    return omsPortDescription(port, oms.isEnabled(), oms.minFrequency(),
-                                                  oms.maxFrequency(), oms.grid(), sa);
-                }
-                break;
-            case OCH:
-                // We might need to update lambda below with STATIC_LAMBDA.
-                if (descr instanceof OchPortDescription) {
-                    OchPortDescription och = (OchPortDescription) descr;
-                    return ochPortDescription(port, och.isEnabled(), och.signalType(),
-                            och.isTunable(), och.lambda(), sa);
-                }
-                break;
-            case ODUCLT:
-                if (descr instanceof OduCltPortDescription) {
-                    OduCltPortDescription odu = (OduCltPortDescription) descr;
-                    return oduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
-                }
-                break;
-            case PACKET:
-            case FIBER:
-            case COPPER:
-                break;
-            case OTU:
-                if (descr instanceof OtuPortDescription) {
-                    OtuPortDescription otu = (OtuPortDescription) descr;
-                    return otuPortDescription(port, otu.isEnabled(), otu.signalType(), sa);
-                }
-                break;
-            default:
-                log.warn("Unsupported optical port type {} - can't update", descr.type());
-                return descr;
-        }
         if (port.exactlyEquals(descr.portNumber()) && sa.equals(descr.annotations())) {
             // result is no-op
             return descr;

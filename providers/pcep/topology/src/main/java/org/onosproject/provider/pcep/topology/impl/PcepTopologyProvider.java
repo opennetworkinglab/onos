@@ -26,14 +26,12 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OduCltPort;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
@@ -43,9 +41,6 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.device.OchPortDescription;
-import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
@@ -58,7 +53,6 @@ import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.pcep.api.PcepController;
 import org.onosproject.pcep.api.PcepDpid;
 import org.onosproject.pcep.api.PcepLink;
-import org.onosproject.pcep.api.PcepLink.PortType;
 import org.onosproject.pcep.api.PcepLinkListener;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepSwitch;
@@ -157,8 +151,7 @@ public class PcepTopologyProvider extends AbstractProvider
     }
 
     private List<PortDescription> buildPortDescriptions(PcepDpid dpid,
-                                                        Port port,
-                                                        PortType portType) {
+                                                        Port port) {
 
         List<PortDescription> portList;
 
@@ -167,39 +160,16 @@ public class PcepTopologyProvider extends AbstractProvider
         } else {
             portList = new ArrayList<>();
         }
-        if (port != null && portType != null) {
-            portList.add(buildPortDescription(port, portType));
+        if (port != null) {
+            SparseAnnotations annotations = DefaultAnnotations.builder()
+                    .putAll(port.annotations()).build();
+            portList.add(new DefaultPortDescription(port.number(), port.isEnabled(),
+                                                    port.type(), port.portSpeed(),
+                                                    annotations));
         }
 
         portMap.put(dpid.value(), portList);
         return portList;
-    }
-
-    private PortDescription buildPortDescription(Port port, PortType portType) {
-        PortDescription portDescription;
-
-        switch (portType) {
-            case OCH_PORT:
-                OchPort ochp = (OchPort) port;
-                portDescription = new OchPortDescription(ochp.number(), ochp.isEnabled(),
-                        ochp.signalType(), ochp.isTunable(),
-                        ochp.lambda());
-                break;
-            case ODU_PORT:
-                OduCltPort odup = (OduCltPort) port;
-                portDescription = new OduCltPortDescription(odup.number(), odup.isEnabled(),
-                        odup.signalType());
-                break;
-            case OMS_PORT:
-                OmsPort op = (OmsPort) port;
-                portDescription = new OmsPortDescription(op.number(), op.isEnabled(), op.minFrequency(),
-                        op.maxFrequency(), op.grid());
-                break;
-            default:
-                portDescription = new DefaultPortDescription(port.number(), port.isEnabled());
-                break;
-        }
-        return portDescription;
     }
 
     /**
@@ -217,12 +187,12 @@ public class PcepTopologyProvider extends AbstractProvider
         deviceProviderService
                 .updatePorts(srcDeviceID,
                         buildPortDescriptions(pceLink.linkSrcDeviceID(),
-                                pceLink.linkSrcPort(), pceLink.portType()));
+                                pceLink.linkSrcPort()));
 
         deviceProviderService
                 .updatePorts(dstDeviceID,
                         buildPortDescriptions(pceLink.linkDstDeviceId(),
-                                pceLink.linkDstPort(), pceLink.portType()));
+                                pceLink.linkDstPort()));
 
         ConnectPoint src = new ConnectPoint(srcDeviceID, pceLink.linkSrcPort().number());
 

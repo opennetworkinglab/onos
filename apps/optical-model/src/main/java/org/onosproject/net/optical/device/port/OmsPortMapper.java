@@ -20,7 +20,6 @@ import java.util.Optional;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OmsPort;
 import org.onosproject.net.optical.device.OmsPortHelper;
-import org.onosproject.net.optical.impl.DefaultOmsPort;
 
 import com.google.common.annotations.Beta;
 
@@ -49,17 +48,7 @@ public class OmsPortMapper extends AbstractPortMapper<OmsPort> {
     protected Optional<OmsPort> mapPort(Port port) {
         if (port instanceof OmsPort) {
             return Optional.of((OmsPort) port);
-        } else if (port instanceof org.onosproject.net.OmsPort) {
-            // TODO remove after deprecation of old OmsPort is complete
-
-            // translate to new OmsPort
-            org.onosproject.net.OmsPort old = (org.onosproject.net.OmsPort) port;
-            return Optional.of(new DefaultOmsPort(old,
-                                                  old.minFrequency(),
-                                                  old.maxFrequency(),
-                                                  old.grid()));
         }
-
         return OmsPortHelper.asOmsPort(port);
     }
 

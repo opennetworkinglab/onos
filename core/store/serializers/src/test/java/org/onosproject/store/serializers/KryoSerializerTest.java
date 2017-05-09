@@ -34,7 +34,6 @@ import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -47,14 +46,7 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.MarkerResource;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.OduCltPort;
-import org.onosproject.net.OmsPort;
-import org.onosproject.net.OtuPort;
-import org.onosproject.net.OtuSignalType;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.OduSignalType;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -106,7 +98,6 @@ public class KryoSerializerTest {
     private static final String MFR = "whitebox";
     private static final String HW = "1.1.x";
     private static final String SW1 = "3.8.1";
-    private static final String SW2 = "3.9.5";
     private static final String SN = "43311-12345";
     private static final ChassisId CID = new ChassisId();
     private static final Device DEV1 = new DefaultDevice(PID, DID1, Device.Type.SWITCH, MFR, HW,
@@ -119,8 +110,6 @@ public class KryoSerializerTest {
             .remove("A1")
             .set("B3", "b3")
             .build();
-    private static final OchSignal OCH_SIGNAL1 = (OchSignal) org.onosproject.net.Lambda.ochSignal(
-            GridType.DWDM, ChannelSpacing.CHL_100GHZ, -8, 4);
     private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
 
     private StoreSerializer serializer;
@@ -186,31 +175,6 @@ public class KryoSerializerTest {
         testSerializedEquals(new DefaultPort(DEV1, P1, true, A1_2));
     }
 
-    @Test
-    public void testOmsPort() {
-        testSerializedEquals(new OmsPort(DEV1, P1, true, Frequency.ofGHz(190_100), Frequency.ofGHz(197_300),
-                Frequency.ofGHz(100)));
-        testSerializedEquals(new OmsPort(DEV1, P1, true, Frequency.ofGHz(190_100), Frequency.ofGHz(197_300),
-                Frequency.ofGHz(100), A1_2));
-    }
-
-    @Test
-    public void testOchPort() {
-        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, OCH_SIGNAL1));
-        testSerializedEquals(new OchPort(DEV1, P1, true, OduSignalType.ODU0, false, OCH_SIGNAL1, A1_2));
-    }
-
-    @Test
-    public void testOduCltPort() {
-        testSerializedEquals(new OduCltPort(DEV1, P1, true, CltSignalType.CLT_10GBE));
-        testSerializedEquals(new OduCltPort(DEV1, P1, true, CltSignalType.CLT_10GBE, A1_2));
-    }
-
-    @Test
-    public void testOtuPort() {
-        testSerializedEquals(new OtuPort(DEV1, P1, true, OtuSignalType.OTU2));
-        testSerializedEquals(new OtuPort(DEV1, P1, true, OtuSignalType.OTU2, A1_2));
-    }
     @Test
     public void testDeviceId() {
         testSerializedEquals(DID1);

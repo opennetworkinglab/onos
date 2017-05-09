@@ -43,10 +43,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.OchPort;
-import org.onosproject.net.OduCltPort;
-import org.onosproject.net.OmsPort;
-import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortStatistics;
@@ -55,10 +51,6 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
-import org.onosproject.net.device.OchPortDescription;
-import org.onosproject.net.device.OduCltPortDescription;
-import org.onosproject.net.device.OmsPortDescription;
-import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.provider.ProviderId;
@@ -1205,49 +1197,8 @@ public class GossipDeviceStore
 
     private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,
                                  PortDescription description, Annotations annotations) {
-        // FIXME this switch need to go away once all ports are done.
-        switch (description.type()) {
-            case OMS:
-                if (description instanceof OmsPortDescription) {
-                    // remove if-block once deprecation is complete
-                    OmsPortDescription omsDesc = (OmsPortDescription) description;
-                    return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
-                            omsDesc.maxFrequency(), omsDesc.grid(), annotations);
-                }
-                // same as default
-                return new DefaultPort(device, number, isEnabled, description.type(),
-                                       description.portSpeed(), annotations);
-            case OCH:
-                if (description instanceof OchPortDescription) {
-                    // remove if-block once Och deprecation is complete
-                    OchPortDescription ochDesc = (OchPortDescription) description;
-                    return new OchPort(device, number, isEnabled, ochDesc.signalType(),
-                                       ochDesc.isTunable(), ochDesc.lambda(), annotations);
-                }
-                return new DefaultPort(device, number, isEnabled, description.type(),
-                                       description.portSpeed(), annotations);
-            case ODUCLT:
-                if (description instanceof OduCltPortDescription) {
-                    // remove if-block once deprecation is complete
-                    OduCltPortDescription oduDesc = (OduCltPortDescription) description;
-                    return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);
-                }
-                // same as default
-                return new DefaultPort(device, number, isEnabled, description.type(),
-                                       description.portSpeed(), annotations);
-            case OTU:
-                if (description instanceof OtuPortDescription) {
-                    // remove if-block once deprecation is complete
-                    OtuPortDescription otuDesc = (OtuPortDescription) description;
-                    return new OtuPort(device, number, isEnabled, otuDesc.signalType(), annotations);
-                }
-                // same as default
-                return new DefaultPort(device, number, isEnabled, description.type(),
-                                       description.portSpeed(), annotations);
-            default:
                 return new DefaultPort(device, number, isEnabled, description.type(),
                         description.portSpeed(), annotations);
-        }
     }
 
     /**

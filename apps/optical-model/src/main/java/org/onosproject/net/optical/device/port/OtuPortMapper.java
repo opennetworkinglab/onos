@@ -20,7 +20,6 @@ import java.util.Optional;
 import org.onosproject.net.Port;
 import org.onosproject.net.optical.OtuPort;
 import org.onosproject.net.optical.device.OtuPortHelper;
-import org.onosproject.net.optical.impl.DefaultOtuPort;
 
 import com.google.common.annotations.Beta;
 
@@ -49,13 +48,6 @@ public class OtuPortMapper extends AbstractPortMapper<OtuPort> {
     protected Optional<OtuPort> mapPort(Port port) {
         if (port instanceof OtuPort) {
             return Optional.of((OtuPort) port);
-        } else if (port instanceof org.onosproject.net.OtuPort) {
-            // TODO remove after deprecation of old OtuPort is complete
-
-            // translate to new OtuPort
-            org.onosproject.net.OtuPort old = (org.onosproject.net.OtuPort) port;
-            return Optional.of(new DefaultOtuPort(old,
-                                                  old.signalType()));
         }
 
         return OtuPortHelper.asOtuPort(port);

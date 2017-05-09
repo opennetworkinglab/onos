@@ -14,6 +14,6 @@ onos_app (
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'PCEP protocol providers root.',
-    required_apps = [ 'org.onosproject.pcep-api' ],
+    required_apps = [ 'org.onosproject.pcep-api', 'org.onosproject.optical-model' ],
 )
 

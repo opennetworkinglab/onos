@@ -156,19 +156,6 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                     .signalType(signalType)
                     .bidirectional(bidirectional)
                     .build();
-        } else if (srcPort instanceof org.onosproject.net.OchPort &&
-                   dstPort instanceof org.onosproject.net.OchPort) {
-            print("WARN: encountered old OchPort model");
-            // old OchPort model can be removed when ready
-            OduSignalType signalType = ((org.onosproject.net.OchPort) srcPort).signalType();
-            intent = OpticalConnectivityIntent.builder()
-                    .appId(appId())
-                    .key(key())
-                    .src(ingress)
-                    .dst(egress)
-                    .signalType(signalType)
-                    .bidirectional(bidirectional)
-                    .build();
         } else {
             print("Unable to create optical intent between connect points %s and %s", ingress, egress);
             return;

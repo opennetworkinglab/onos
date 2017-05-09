@@ -7,6 +7,7 @@ COMPILE_DEPS = [
     '//protocols/pcep/api:onos-protocols-pcep-api',
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//core/api:onos-api-tests',
+    '//apps/optical-model:onos-apps-optical-model',
 ]
 
 osgi_jar_with_tests (
