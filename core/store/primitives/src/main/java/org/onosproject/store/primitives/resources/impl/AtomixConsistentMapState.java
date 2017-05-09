@@ -295,8 +295,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
 
             if (updateStatus != MapEntryUpdateResult.Status.OK) {
                 commit.close();
-                return new MapEntryUpdateResult<>(updateStatus, "", key,
-                        oldMapValue, oldMapValue);
+                return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue, oldMapValue);
             }
 
             byte[] newValue = commit.operation().value();
@@ -329,8 +328,7 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
             }
 
             publish(Lists.newArrayList(new MapEvent<>("", key, newMapValue, oldMapValue)));
-            return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue,
-                    newMapValue);
+            return new MapEntryUpdateResult<>(updateStatus, "", key, oldMapValue, newMapValue);
         } catch (Exception e) {
             log.error("State machine operation failed", e);
             throw Throwables.propagate(e);
@@ -678,16 +676,15 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      */
     private MapEntryUpdateResult.Status validate(UpdateAndGet update) {
         MapEntryValue existingValue = mapEntries.get(update.key());
-        if (existingValue == null && update.value() == null) {
+        boolean isEmpty = existingValue == null || existingValue.type() == MapEntryValue.Type.TOMBSTONE;
+        if (isEmpty && update.value() == null) {
             return MapEntryUpdateResult.Status.NOOP;
         }
         if (preparedKeys.contains(update.key())) {
             return MapEntryUpdateResult.Status.WRITE_LOCK;
         }
-        byte[] existingRawValue = existingValue == null ? null : existingValue
-                .value();
-        Long existingVersion = existingValue == null ? null : existingValue
-                .version();
+        byte[] existingRawValue = isEmpty ? null : existingValue.value();
+        Long existingVersion = isEmpty ? null : existingValue.version();
         return update.valueMatch().matches(existingRawValue)
                 && update.versionMatch().matches(existingVersion) ? MapEntryUpdateResult.Status.OK
                 : MapEntryUpdateResult.Status.PRECONDITION_FAILED;
