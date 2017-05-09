@@ -411,7 +411,7 @@ public class TopologyForDeviceAndLinkImpl implements TopologyForDeviceAndLink {
 
         while (iterator.hasNext()) {
             Ip4Address secondValue = (Ip4Address) iterator.next();
-            if (!value.equals("0.0.0.0")) {
+            if (!value.toString().equals("0.0.0.0")) {
                 if ((!value.equals(secondValue))) {
                     if ((!secondValue.equals(ospfArea.routerId()))) {
                         String key = "link:" + value.toString() + "-" + secondValue.toString();

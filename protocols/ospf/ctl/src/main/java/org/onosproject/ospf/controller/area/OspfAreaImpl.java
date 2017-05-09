@@ -668,7 +668,7 @@ public class OspfAreaImpl implements OspfArea {
                         }
                     }
                 }
-                if (recLsa.advertisingRouter().equals((String) neighborIP)) {
+                if (recLsa.advertisingRouter().toString().equals((String) neighborIP)) {
                     continue;
                 }
                 if ((recLsa.lsType() == OspfParameters.LINK_LOCAL_OPAQUE_LSA ||
