@@ -24,6 +24,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,8 +33,6 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -565,8 +565,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 return null;
             }
 
-            ChannelBuffer bb = ChannelBuffers.wrappedBuffer(
-                    msg.getData().getData());
+            ByteBuf bb = Unpooled.wrappedBuffer(msg.getData().getData());
 
             if (bb.readableBytes() < MIN_EXPECTED_BYTE_LEN) {
                 log.debug("Wrong length: Expected to be >= {}, was: {}",

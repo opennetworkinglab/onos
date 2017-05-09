@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,8 +35,6 @@ import org.onosproject.net.meter.MeterId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -208,9 +207,9 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         Instructions.MeterInstruction meter;
 
-        List<Instruction> deferred = Lists.newLinkedList();
+        List<Instruction> deferred = new ArrayList<>();
 
-        List<Instruction> immediate = Lists.newLinkedList();
+        List<Instruction> immediate = new ArrayList<>();
 
         List<Instruction> current = immediate;
 

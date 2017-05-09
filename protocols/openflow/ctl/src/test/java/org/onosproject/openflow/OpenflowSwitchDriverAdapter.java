@@ -15,11 +15,11 @@
  */
 package org.onosproject.openflow;
 
-import org.jboss.netty.channel.Channel;
 import org.onosproject.net.Device;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowSession;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
@@ -147,7 +147,7 @@ public class OpenflowSwitchDriverAdapter implements OpenFlowSwitchDriver {
     }
 
     @Override
-    public void setChannel(Channel channel) {
+    public void setChannel(OpenFlowSession channel) {
 
     }
 

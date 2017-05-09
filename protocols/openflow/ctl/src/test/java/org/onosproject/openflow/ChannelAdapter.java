@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,21 @@ import java.net.SocketAddress;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelConfig;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelId;
+import io.netty.channel.ChannelMetadata;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelProgressivePromise;
 import io.netty.channel.ChannelPromise;
+import io.netty.channel.EventLoop;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import io.netty.util.concurrent.EventExecutor;
 
 /**
- * Adapter for testing against a netty channel handler context.
+ * Dummy Channel for testing.
  */
-public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
+public class ChannelAdapter implements Channel {
 
     @Override
     public <T> Attribute<T> attr(AttributeKey<T> key) {
@@ -41,85 +42,102 @@ public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
     }
 
     @Override
-    public Channel channel() {
-
-        return new ChannelAdapter();
+    public int compareTo(Channel o) {
+        return 0;
     }
 
     @Override
-    public EventExecutor executor() {
-
+    public EventLoop eventLoop() {
         return null;
     }
 
     @Override
-    public String name() {
-
+    public Channel parent() {
         return null;
     }
 
     @Override
-    public ChannelHandler handler() {
-
+    public ChannelConfig config() {
         return null;
     }
 
     @Override
-    public boolean isRemoved() {
-
+    public boolean isOpen() {
         return false;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelRegistered() {
+    public boolean isRegistered() {
+        return false;
+    }
 
+    @Override
+    public boolean isActive() {
+        return false;
+    }
+
+    @Override
+    public ChannelMetadata metadata() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelUnregistered() {
-
+    public SocketAddress localAddress() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelActive() {
-
+    public SocketAddress remoteAddress() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelInactive() {
-
+    public ChannelFuture closeFuture() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireExceptionCaught(Throwable cause) {
+    public boolean isWritable() {
+        return false;
+    }
 
+    @Override
+    public Unsafe unsafe() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireUserEventTriggered(Object event) {
-
+    public ChannelPipeline pipeline() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelRead(Object msg) {
-
+    public ByteBufAllocator alloc() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelReadComplete() {
-
+    public ChannelPromise newPromise() {
         return null;
     }
 
     @Override
-    public ChannelHandlerContext fireChannelWritabilityChanged() {
+    public ChannelProgressivePromise newProgressivePromise() {
+        return null;
+    }
+
+    @Override
+    public ChannelFuture newSucceededFuture() {
+        return null;
+    }
+
+    @Override
+    public ChannelFuture newFailedFuture(Throwable cause) {
+        return null;
+    }
+
+    @Override
+    public ChannelPromise voidPromise() {
 
         return null;
     }
@@ -202,7 +220,7 @@ public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
     }
 
     @Override
-    public ChannelHandlerContext read() {
+    public Channel read() {
 
         return null;
     }
@@ -220,7 +238,7 @@ public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
     }
 
     @Override
-    public ChannelHandlerContext flush() {
+    public Channel flush() {
 
         return null;
     }
@@ -238,49 +256,27 @@ public class ChannelHandlerContextAdapter implements ChannelHandlerContext {
     }
 
     @Override
-    public ChannelPipeline pipeline() {
-
-        return null;
-    }
-
-    @Override
-    public ByteBufAllocator alloc() {
-
-        return null;
-    }
-
-    @Override
-    public ChannelPromise newPromise() {
-
-        return null;
-    }
-
-    @Override
-    public ChannelProgressivePromise newProgressivePromise() {
-
-        return null;
-    }
-
-    @Override
-    public ChannelFuture newSucceededFuture() {
-
-        return null;
-    }
-
-    @Override
-    public ChannelFuture newFailedFuture(Throwable cause) {
-
-        return null;
-    }
-
-    @Override
-    public ChannelPromise voidPromise() {
-
-        return null;
-    }
-
-    @Override
     public <T> boolean hasAttr(AttributeKey<T> key) {
+
         return false;
     }
+
+    @Override
+    public ChannelId id() {
+
+        return null;
+    }
+
+    @Override
+    public long bytesBeforeUnwritable() {
+
+        return 0;
+    }
+
+    @Override
+    public long bytesBeforeWritable() {
+
+        return 0;
+    }
+
 }

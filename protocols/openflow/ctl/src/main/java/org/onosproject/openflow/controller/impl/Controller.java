@@ -18,11 +18,17 @@ package org.onosproject.openflow.controller.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
@@ -46,13 +52,11 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,7 +100,8 @@ public class Controller {
 
     private OpenFlowAgent agent;
 
-    private NioServerSocketChannelFactory execFactory;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
     protected String ksLocation;
     protected String tsLocation;
@@ -144,20 +149,19 @@ public class Controller {
 
         try {
             final ServerBootstrap bootstrap = createServerBootStrap();
+            bootstrap.option(ChannelOption.SO_REUSEADDR, true);
+            bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
+            bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+            bootstrap.childOption(ChannelOption.SO_SNDBUF, Controller.SEND_BUFFER_SIZE);
+//            bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK,
+//                                  new WriteBufferWaterMark(8 * 1024, 32 * 1024));
 
-            bootstrap.setOption("reuseAddr", true);
-            bootstrap.setOption("child.keepAlive", true);
-            bootstrap.setOption("child.tcpNoDelay", true);
-            bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
+            bootstrap.childHandler(new OFChannelInitializer(this, null, sslContext));
 
-            ChannelPipelineFactory pfact =
-                    new OpenflowPipelineFactory(this, null, sslContext);
-            bootstrap.setPipelineFactory(pfact);
-            cg = new DefaultChannelGroup();
             openFlowPorts.forEach(port -> {
-                InetSocketAddress sa = new InetSocketAddress(port);
-                cg.add(bootstrap.bind(sa));
-                log.info("Listening for switch connections on {}", sa);
+                // TODO revisit if this is best way to listen to multiple ports
+                cg.add(bootstrap.bind(port).syncUninterruptibly().channel());
+                log.info("Listening for switch connections on {}", port);
             });
 
         } catch (Exception e) {
@@ -168,20 +172,43 @@ public class Controller {
 
     private ServerBootstrap createServerBootStrap() {
 
-        if (workerThreads == 0) {
-            execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)));
-            return new ServerBootstrap(execFactory);
-        } else {
-            execFactory = new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "boss-%d", log)),
-                    Executors.newCachedThreadPool(groupedThreads("onos/of", "worker-%d", log)), workerThreads);
-            return new ServerBootstrap(execFactory);
+        int bossThreads = Math.max(1, openFlowPorts.size());
+        try {
+            bossGroup = new EpollEventLoopGroup(bossThreads, groupedThreads("onos/of", "boss-%d", log));
+            workerGroup = new EpollEventLoopGroup(workerThreads, groupedThreads("onos/of", "worker-%d", log));
+            ServerBootstrap bs = new ServerBootstrap()
+                    .group(bossGroup, workerGroup)
+                    .channel(EpollServerSocketChannel.class);
+            log.info("Using Epoll transport");
+            return bs;
+        } catch (Throwable e) {
+            log.debug("Failed to initialize native (epoll) transport: {}", e.getMessage());
         }
+
+// Requires 4.1.11 or later
+//        try {
+//            bossGroup = new KQueueEventLoopGroup(bossThreads, groupedThreads("onos/of", "boss-%d", log));
+//            workerGroup = new KQueueEventLoopGroup(workerThreads, groupedThreads("onos/of", "worker-%d", log));
+//            ServerBootstrap bs = new ServerBootstrap()
+//                    .group(bossGroup, workerGroup)
+//                    .channel(KQueueServerSocketChannel.class);
+//            log.info("Using Kqueue transport");
+//            return bs;
+//        } catch (Throwable e) {
+//            log.debug("Failed to initialize native (kqueue) transport. ", e.getMessage());
+//        }
+
+        bossGroup = new NioEventLoopGroup(bossThreads, groupedThreads("onos/of", "boss-%d", log));
+        workerGroup = new NioEventLoopGroup(workerThreads, groupedThreads("onos/of", "worker-%d", log));
+        log.info("Using Nio transport");
+        return new ServerBootstrap()
+                    .group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class);
     }
 
     public void setConfigParams(Dictionary<?, ?> properties) {
+        // TODO should be possible to reconfigure ports without restart,
+        // by updating ChannelGroup
         String ports = get(properties, "openflowPorts");
         if (!Strings.isNullOrEmpty(ports)) {
             this.openFlowPorts = Stream.of(ports.split(","))
@@ -206,6 +233,8 @@ public class Controller {
         this.controllerNodeIPsCache = new HashMap<>();
 
         this.systemStartTime = System.currentTimeMillis();
+
+        cg = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
         try {
             getTlsParameters();
@@ -303,11 +332,11 @@ public class Controller {
         }
 
         if (driver == null) {
-            log.error("No OpenFlow driver for {} : {}", dpid, desc);
+            log.error("No OpenFlow driver for {} : {}", dpidObj, desc);
             return null;
         }
 
-        log.info("Driver {} assigned to device {}", driver.name(), dpidObj);
+        log.info("Driver '{}' assigned to device {}", driver.name(), dpidObj);
 
         if (!driver.hasBehaviour(OpenFlowSwitchDriver.class)) {
             log.error("Driver {} does not support OpenFlowSwitchDriver behaviour", driver.name());
@@ -321,7 +350,6 @@ public class Controller {
         ofSwitchDriver.init(dpidObj, desc, ofv);
         ofSwitchDriver.setAgent(agent);
         ofSwitchDriver.setRoleHandler(new RoleManager(ofSwitchDriver));
-        log.info("OpenFlow handshaker found for device {}: {}", dpid, ofSwitchDriver);
         return ofSwitchDriver;
     }
 
@@ -337,7 +365,19 @@ public class Controller {
     public void stop() {
         log.info("Stopping OpenFlow IO");
         cg.close();
-        execFactory.shutdown();
+
+        // Shut down all event loops to terminate all threads.
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+
+        // Wait until all threads are terminated.
+        try {
+            bossGroup.terminationFuture().sync();
+            workerGroup.terminationFuture().sync();
+        } catch (InterruptedException e) {
+            log.warn("Interrupted while stopping", e);
+            Thread.currentThread().interrupt();
+        }
     }
 
 }

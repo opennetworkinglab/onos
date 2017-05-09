@@ -19,13 +19,13 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:org.onosproject/openflowj/3.2.0.onos</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-openflow-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-openflow-ctl/${project.version}</bundle>
 
-        <bundle>mvn:${project.groupId}/onos-of-provider-device/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-provider-packet/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-provider-flow/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-provider-group/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-of-provider-meter/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-openflow-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-openflow-packet/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-openflow-flow/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-openflow-group/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-openflow-meter/${project.version}</bundle>
     </feature>
 </features>

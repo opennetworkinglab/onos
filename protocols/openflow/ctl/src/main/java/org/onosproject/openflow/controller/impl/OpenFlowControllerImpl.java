@@ -289,9 +289,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         write(dpid, msg);
 
         ConcurrentMap<Long, CompletableFuture<OFMessage>> xids =
-                responses.computeIfAbsent(dpid, k -> new ConcurrentHashMap());
+                responses.computeIfAbsent(dpid, k -> new ConcurrentHashMap<>());
 
-        CompletableFuture<OFMessage> future = new CompletableFuture();
+        CompletableFuture<OFMessage> future = new CompletableFuture<>();
         xids.put(msg.getXid(), future);
 
         return future;
@@ -303,14 +303,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         Collection<OFTableStatsEntry> tableStats;
         Collection<OFGroupStatsEntry> groupStats;
         Collection<OFGroupDescStatsEntry> groupDescStats;
-        Collection<OFPortStatsEntry> portStats;
 
         OpenFlowSwitch sw = this.getSwitch(dpid);
 
         // Check if someone is waiting for this message
         ConcurrentMap<Long, CompletableFuture<OFMessage>> xids = responses.get(dpid);
-        if (xids != null && xids.containsKey(msg.getXid())) {
-            xids.remove(msg.getXid()).complete(msg);
+        if (xids != null) {
+            CompletableFuture<OFMessage> future = xids.remove(msg.getXid());
+            if (future != null) {
+                future.complete(msg);
+            }
         }
 
         switch (msg.getType()) {
@@ -326,7 +328,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             break;
         case PACKET_IN:
             if (sw == null) {
-                log.error("Switch {} is not found", dpid);
+                log.error("Ignoring PACKET_IN, switch {} is not found", dpid);
                 break;
             }
             OpenFlowPacketContext pktCtx = DefaultOpenFlowPacketContext

@@ -16,26 +16,27 @@
 package org.onosproject.openflow.controller.impl;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Collections;
 
 import io.netty.buffer.ByteBuf;
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBufAllocator;
+
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openflow.OfMessageAdapter;
-import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFType;
-
-import com.google.common.collect.ImmutableList;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Tests for the OpenFlow message encoder.
  */
 public class OFMessageEncoderTest {
 
+    private ByteBuf buf;
     static class MockOfMessage extends OfMessageAdapter {
         static int nextId = 1;
         final int id;
@@ -52,40 +53,26 @@ public class OFMessageEncoderTest {
         }
     }
 
-    /**
-     * Tests that encoding a non-list returns the object specified.
-     *
-     * @throws Exception on exception in the encoder
-     */
-    @Test
-    public void testNoList() throws Exception {
-        OFMessageEncoder encoder = new OFMessageEncoder();
-        MockOfMessage message = new MockOfMessage();
-        OFMessage returnedMessage =
-                (OFMessage) encoder.encode(null, null, message);
-        assertThat(message, is(returnedMessage));
+    @Before
+    public void setUp() {
+        buf = ByteBufAllocator.DEFAULT.buffer();
     }
 
-    /**
-     * Tests that encoding a list returns the proper encoded payload.
-     *
-     * @throws Exception on exception in the encoder
-     */
+    @After
+    public void tearDown() {
+        buf.release();
+    }
+
     @Test
-    public void testList() throws Exception {
-        OFMessageEncoder encoder = new OFMessageEncoder();
+    public void testEncode() throws Exception {
+        OFMessageEncoder encoder = OFMessageEncoder.getInstance();
         MockOfMessage message1 = new MockOfMessage();
-        MockOfMessage message2 = new MockOfMessage();
-        MockOfMessage message3 = new MockOfMessage();
-        List<MockOfMessage> messages = ImmutableList.of(message1, message2, message3);
-        ChannelBuffer returnedChannel =
-                (ChannelBuffer) encoder.encode(null, null, messages);
-        assertThat(returnedChannel, notNullValue());
-        byte[] channelBytes = returnedChannel.array();
-        String expectedListMessage = "message1 message2 message3 ";
-        String listMessage =
-                (new String(channelBytes, StandardCharsets.UTF_8))
-                        .substring(0, expectedListMessage.length());
-        assertThat(listMessage, is(expectedListMessage));
+        encoder.encode(null, Collections.singletonList(message1), buf);
+
+        assertThat(buf.isReadable(), Matchers.is(true));
+        byte[] channelBytes = new byte[buf.readableBytes()];
+        buf.readBytes(channelBytes);
+        String expectedListMessage = "message1 ";
+        assertThat(channelBytes, is(expectedListMessage.getBytes()));
     }
 }

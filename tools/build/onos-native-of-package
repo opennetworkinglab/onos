@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+# Script to replace OF southbound with maven built artifact,
+# which can use native-transport inside karaf
+
+# Workadound until buck built artifact can build equivalent.
+
+cd $ONOS_ROOT || exit 1
+. tools/build/envDefaults
+
+echo "Preparing onos tarball"
+onos-package
+
+echo "Building onos-protocols-openflow-ctl with native-transport"
+mvn install -DskipTests -Dcheckstyle.skip -am --projects :onos-protocols-openflow-ctl -T 1C
+
+. tools/build/envDefaults
+
+echo "Repackaging onos tarball"
+cd $ONOS_STAGE_ROOT || exit 1
+tar xf $ONOS_TAR
+
+cp -p $ONOS_ROOT/protocols/openflow/ctl/target/onos-protocols-openflow-ctl-$ONOS_POM_VERSION.jar /tmp/onos-$ONOS_POM_VERSION/apache-karaf-$KARAF_VERSION/system/org/onosproject/onos-protocols-openflow-ctl/$ONOS_POM_VERSION/onos-protocols-openflow-ctl-$ONOS_POM_VERSION.jar
+
+rm $ONOS_TAR
+
+tar czf $ONOS_TAR onos-$ONOS_POM_VERSION/
+
+echo "Repackaged:"
+ls -l $ONOS_TAR
+

@@ -49,10 +49,13 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- for HashedWheelTimer -->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty</artifactId>
         </dependency>
+
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>

@@ -101,6 +101,15 @@ public interface OpenFlowSwitch {
     long getId();
 
     /**
+     * Gets the datapathId of the switch.
+     *
+     * @return the switch dpid
+     */
+    default Dpid getDpid() {
+        return new Dpid(getId());
+    }
+
+    /**
      * fetch the manufacturer description.
      * @return the description
      */

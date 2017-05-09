@@ -25,7 +25,10 @@ import org.jboss.netty.channel.ChannelPipeline;
 
 /**
  * Adapter for testing against a netty channel.
+ *
+ * @deprecated in 1.11.0
  */
+@Deprecated
 public class ChannelAdapter implements Channel {
     @Override
     public Integer getId() {

@@ -16,12 +16,13 @@
 
 package org.onosproject.openflow.controller.driver;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
-import org.jboss.netty.channel.Channel;
-import org.onlab.packet.IpAddress;
+
 import org.onosproject.net.Device;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowSession;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
@@ -43,8 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +60,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Channel channel;
+    private OpenFlowSession channel;
     protected String channelId;
 
     private boolean connected;
@@ -71,6 +70,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     private final AtomicInteger xidCounter = new AtomicInteger(0);
 
     private OFVersion ofVersion;
+    private OFFactory ofFactory;
 
     protected List<OFPortDescStatsReply> ports = new ArrayList<>();
 
@@ -106,7 +106,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void disconnectSwitch() {
         setConnected(false);
-        this.channel.close();
+        this.channel.closeSession();
     }
 
     @Override
@@ -151,15 +151,14 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                           dpid, messages.size());
             } else {
                 // not transitioning to MASTER
-                log.warn("Dropping message for switch {} (role: {}, connected: {}): {}",
-                         dpid, role, channel.isConnected(), msgs);
+                log.warn("Dropping message for switch {} (role: {}, active: {}): {}",
+                         dpid, role, channel.isActive(), msgs);
             }
         }
     }
 
     private void sendMsgsOnChannel(List<OFMessage> msgs) {
-        if (channel.isConnected()) {
-            channel.write(msgs);
+        if (channel.sendMsg(msgs)) {
             agent.processDownstreamMessage(dpid, msgs);
         } else {
             log.warn("Dropping messages for switch {} because channel is not connected: {}",
@@ -197,18 +196,9 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
-    public final void setChannel(Channel channel) {
+    public final void setChannel(OpenFlowSession channel) {
         this.channel = channel;
-        final SocketAddress address = channel.getRemoteAddress();
-        if (address instanceof InetSocketAddress) {
-            final InetSocketAddress inetAddress = (InetSocketAddress) address;
-            final IpAddress ipAddress = IpAddress.valueOf(inetAddress.getAddress());
-            if (ipAddress.isIp4()) {
-                channelId = ipAddress.toString() + ':' + inetAddress.getPort();
-            } else {
-                channelId = '[' + ipAddress.toString() + "]:" + inetAddress.getPort();
-            }
-        }
+        channelId = channel.sessionInfo().toString();
     }
 
     @Override
@@ -226,6 +216,11 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
+    public Dpid getDpid() {
+        return this.dpid;
+    }
+
+    @Override
     public final String getStringId() {
         return this.dpid.toString();
     }
@@ -233,6 +228,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void setOFVersion(OFVersion ofV) {
         this.ofVersion = ofV;
+        this.ofFactory = OFFactories.getFactory(ofV);
     }
 
     @Override
@@ -264,7 +260,11 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void handleMessage(OFMessage m) {
         if (this.role == RoleState.MASTER || m instanceof OFPortStatus) {
-            this.agent.processMessage(dpid, m);
+            try {
+                this.agent.processMessage(dpid, m);
+            } catch (Exception e) {
+                log.warn("Unhandled exception processing {}@{}", m, dpid, e);
+            }
         } else {
             log.trace("Dropping received message {}, was not MASTER", m);
         }
@@ -319,7 +319,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     @Override
     public OFFactory factory() {
-        return OFFactories.getFactory(ofVersion);
+        return ofFactory;
     }
 
     @Override
@@ -513,8 +513,9 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     @Override
     public String toString() {
-        return this.getClass().getName() + " [" + ((channel != null)
-                ? channel.getRemoteAddress() : "?")
-                + " DPID[" + ((getStringId() != null) ? getStringId() : "?") + "]]";
+        return MoreObjects.toStringHelper(getClass())
+                .add("session", channel.sessionInfo())
+                .add("dpid", dpid)
+                .toString();
     }
 }

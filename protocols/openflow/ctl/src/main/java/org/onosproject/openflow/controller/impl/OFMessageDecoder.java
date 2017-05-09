@@ -18,30 +18,45 @@ package org.onosproject.openflow.controller.impl;
 
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.frame.FrameDecoder;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
+
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMessageReader;
+import org.slf4j.Logger;
 
 /**
- * Decode an openflow message from a Channel, for use in a netty pipeline.
+ * Decode an openflow message from a netty channel, for use in a netty pipeline.
  */
-public class OFMessageDecoder extends FrameDecoder {
+public final class OFMessageDecoder extends ByteToMessageDecoder {
+
+    private static final Logger log = getLogger(OFMessageDecoder.class);
+
+    public static OFMessageDecoder getInstance() {
+        // not Sharable
+        return new OFMessageDecoder();
+    }
+
+    private OFMessageDecoder() {}
+
 
     @Override
-    protected Object decode(ChannelHandlerContext ctx, Channel channel,
-            ChannelBuffer buffer) throws Exception {
-        if (!channel.isConnected()) {
+    protected void decode(ChannelHandlerContext ctx,
+                          ByteBuf byteBuf,
+                          List<Object> out) throws Exception {
+
+        if (!ctx.channel().isActive()) {
             // In testing, I see decode being called AFTER decode last.
             // This check avoids that from reading corrupted frames
-            return null;
+            return;
         }
 
-        // Note that a single call to decode results in reading a single
+        // Note that a single call to readFrom results in reading a single
         // OFMessage from the channel buffer, which is passed on to, and processed
         // by, the controller (in OFChannelHandler).
         // This is different from earlier behavior (with the original openflowj),
@@ -50,16 +65,11 @@ public class OFMessageDecoder extends FrameDecoder {
         // The performance *may or may not* not be as good as before.
         OFMessageReader<OFMessage> reader = OFFactories.getGenericReader();
 
-        //toByteBuffer is optimized to avoid copying.
-        ByteBuf byteBuf = Unpooled.wrappedBuffer(buffer.toByteBuffer());
         OFMessage message = reader.readFrom(byteBuf);
-
-        if (message != null) {
-            //set buffer's read index, as it has not been changed.
-            buffer.readerIndex(buffer.readerIndex() + byteBuf.readerIndex());
+        while (message != null) {
+            out.add(message);
+            message = reader.readFrom(byteBuf);
         }
-
-        return message;
     }
 
 }

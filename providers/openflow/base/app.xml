@@ -19,12 +19,12 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="org.onosproject.optical-model">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-of-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-openflow-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-openflow-ctl/${project.version}</artifact>
 
-    <artifact>mvn:${project.groupId}/onos-of-provider-device/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-provider-packet/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-provider-flow/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-provider-group/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-of-provider-meter/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-device/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-packet/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-flow/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-group/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-meter/${project.version}</artifact>
 </app>

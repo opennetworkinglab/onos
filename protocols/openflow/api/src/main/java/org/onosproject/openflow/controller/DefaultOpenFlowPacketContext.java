@@ -114,7 +114,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
     public Dpid dpid() {
         checkPermission(PACKET_READ);
 
-        return new Dpid(sw.getId());
+        return sw.getDpid();
     }
 
     /**

@@ -19,5 +19,5 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-of-provider-message/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-openflow-message/${project.version}</artifact>
 </app>
