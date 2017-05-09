@@ -98,7 +98,7 @@ public class PollingAlarmProviderTest {
             new DeviceEvent(DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED, device);
 
     private static final String UNIQUE_ID_1 = "unique_id_1";
-    private static final AlarmId A_ID= AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
+    private static final AlarmId A_ID = AlarmId.alarmId(DEVICE_ID, UNIQUE_ID_1);
     private static final DefaultAlarm ALARM = new DefaultAlarm.Builder(A_ID,
             DEVICE_ID, "aaa", Alarm.SeverityLevel.CRITICAL, 0).build();
 
