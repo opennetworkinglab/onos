@@ -24,12 +24,16 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.TrafficMonitorBase.Mode;
+import org.onosproject.ui.impl.UiWebSocket;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.model.topo.UiLinkId;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.topo.Highlights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Map;
 
 import static org.onosproject.ui.topo.TopoJson.topo2HighlightsMessage;
 
@@ -44,9 +48,6 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
     private static final String REQUEST_ALL_TRAFFIC = "topo2RequestAllTraffic";
     private static final String CANCEL_TRAFFIC = "topo2CancelTraffic";
 
-    // === Outbound event identifiers
-    private static final String HIGHLIGHTS = "topo2Highlights";
-
     // field values
     private static final String TRAFFIC_TYPE = "trafficType";
     private static final String FLOW_STATS_BYTES = "flowStatsBytes";
@@ -56,13 +57,9 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
     // configuration parameters
     private static final long TRAFFIC_PERIOD = 5000;
 
-//    private UiTopoSession topoSession;
-//    private Topo2Jsonifier t2json;
-
     protected ServicesBundle services;
-    private String version;
 
-
+    private UiTopoSession topoSession;
     private Traffic2Monitor traffic;
 
 
@@ -71,13 +68,8 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
         super.init(connection, directory);
 
         services = new ServicesBundle(directory);
-
         traffic = new Traffic2Monitor(TRAFFIC_PERIOD, services, this);
-
-        // get the topo session from the UiWebSocket
-//        topoSession = ((UiWebSocket) connection).topoSession();
-//        t2json = new Topo2Jsonifier(directory, connection.userName());
-
+        topoSession = ((UiWebSocket) connection).topoSession();
     }
 
     @Override
@@ -102,6 +94,16 @@ public class Topo2TrafficMessageHandler extends UiMessageHandler {
      */
     void sendHighlights(Highlights highlights) {
         sendMessage(topo2HighlightsMessage(highlights));
+    }
+
+    /**
+     * Asks the topo session for the relevant synth links for current region.
+     * The returned map is keyed by "original" link.
+     *
+     * @return synth link map
+     */
+    Map<UiLinkId, UiSynthLink> retrieveRelevantSynthLinks() {
+        return topoSession.relevantSynthLinks();
     }
 
     // ==================================================================

@@ -19,6 +19,7 @@ package org.onosproject.ui.impl.topo;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.UiWebSocket;
+import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.impl.topo.model.UiModelListener;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -279,5 +281,15 @@ public class UiTopoSession implements UiModelListener {
         RegionId r = RegionId.regionId(regionId);
         UiTopoLayout layout = layoutService.getLayout(r);
         setCurrentLayout(layout);
+    }
+
+    /**
+     * Returns synthetic links that are in the current region, mapped by
+     * original link ID.
+     *
+     * @return map of synth links
+     */
+    public Map<UiLinkId, UiSynthLink> relevantSynthLinks() {
+        return sharedModel.relevantSynthLinks(currentLayout.regionId());
     }
 }

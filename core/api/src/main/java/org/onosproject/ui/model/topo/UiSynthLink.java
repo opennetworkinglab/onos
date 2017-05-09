@@ -28,16 +28,20 @@ public class UiSynthLink {
 
     private final RegionId regionId;
     private final UiLink link;
+    private final UiLink original;
 
     /**
      * Constructs a synthetic link with the given parameters.
      *
      * @param regionId the region to which the link belongs
      * @param link     the link instance
+     * @param original the original link (device or edge)
+     *                 from which this was derived
      */
-    public UiSynthLink(RegionId regionId, UiLink link) {
+    public UiSynthLink(RegionId regionId, UiLink link, UiLink original) {
         this.regionId = regionId;
         this.link = link;
+        this.original = original;
     }
 
     @Override
@@ -45,6 +49,7 @@ public class UiSynthLink {
         return toStringHelper(this)
                 .add("region", regionId)
                 .add("link", link)
+                .add("original", original)
                 .toString();
     }
 
@@ -64,5 +69,14 @@ public class UiSynthLink {
      */
     public UiLink link() {
         return link;
+    }
+
+    /**
+     * Returns the original link from which this was derived.
+     *
+     * @return the original link
+     */
+    public UiLink original() {
+        return original;
     }
 }

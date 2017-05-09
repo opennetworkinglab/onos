@@ -20,10 +20,15 @@ package org.onosproject.ui.impl.topo;
 import org.onosproject.ui.impl.TrafficMonitorBase;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.impl.topo.util.TrafficLink;
+import org.onosproject.ui.model.topo.UiLinkId;
+import org.onosproject.ui.model.topo.UiSynthLink;
 import org.onosproject.ui.topo.Highlights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -95,9 +100,34 @@ public class Traffic2Monitor extends TrafficMonitorBase {
 
     @Override
     protected Set<TrafficLink> doAggregation(Set<TrafficLink> linksWithTraffic) {
-        // TODO: figure out how to aggregate the link data...
         log.debug("Need to aggregate {} links", linksWithTraffic.size());
 
-        return linksWithTraffic;
+        // first, retrieve from the shared topology model those synth links that
+        // are part of the region currently being viewed by the user...
+        Map<UiLinkId, UiSynthLink> synthLinkMap =
+                msgHandler.retrieveRelevantSynthLinks();
+
+        // NOTE: compute Set<TrafficLink> which represents the consolidated links
+
+        Map<UiLinkId, TrafficLink> mappedByUiLinkId = new HashMap<>();
+
+        for (TrafficLink tl : linksWithTraffic) {
+            UiLinkId tlid = UiLinkId.uiLinkId(tl.key());
+            UiSynthLink sl = synthLinkMap.get(tlid);
+            if (sl != null) {
+                UiLinkId aggrid = sl.link().id();
+                TrafficLink aggregated = mappedByUiLinkId.get(aggrid);
+                if (aggregated == null) {
+                    aggregated = new TrafficLink(tl);
+                    mappedByUiLinkId.put(aggrid, aggregated);
+                } else {
+                    aggregated.mergeStats(tl);
+                }
+            }
+        }
+
+        Set<TrafficLink> result = new HashSet<>();
+        result.addAll(mappedByUiLinkId.values());
+        return result;
     }
 }

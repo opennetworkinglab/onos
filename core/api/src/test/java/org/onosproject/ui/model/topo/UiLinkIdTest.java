@@ -23,6 +23,7 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.region.RegionId;
@@ -164,4 +165,20 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         assertEquals("port", P1, id.portB());
     }
 
+    @Test
+    public void fromLinkKey() {
+        title("fromLinkKey");
+
+        LinkKey lk1 = LinkKey.linkKey(CP_X1, CP_Y2);
+        print("link-key-1: %s", lk1);
+        LinkKey lk2 = LinkKey.linkKey(CP_Y2, CP_X1);
+        print("link-key-2: %s", lk2);
+
+        UiLinkId id1 = UiLinkId.uiLinkId(lk1);
+        print("identifier-1: %s", id1);
+        UiLinkId id2 = UiLinkId.uiLinkId(lk2);
+        print("identifier-2: %s", id2);
+
+        assertEquals("unequal canon-ids", id1, id2);
+    }
 }

@@ -16,11 +16,13 @@
 
 package org.onosproject.ui.model.topo;
 
+import org.onlab.util.Identifier;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.region.RegionId;
 
@@ -40,7 +42,7 @@ public final class UiLinkId {
     private static final String E_IDENTICAL = "Region IDs cannot be same";
 
     private static final Comparator<RegionId> REGION_ID_COMPARATOR =
-            (o1, o2) -> o1.toString().compareTo(o2.toString());
+            Comparator.comparing(Identifier::toString);
 
     /**
      * Designates the directionality of an underlying (uni-directional) link.
@@ -257,16 +259,28 @@ public final class UiLinkId {
      *
      * @param link link for which the identifier is required
      * @return link identifier
-     * @throws NullPointerException if any of the required fields are null
+     * @throws NullPointerException if src or dst connect point is null
      */
     public static UiLinkId uiLinkId(Link link) {
-        ConnectPoint src = link.src();
-        ConnectPoint dst = link.dst();
+        return canonicalizeIdentifier(link.src(), link.dst());
+    }
+
+    /**
+     * Creates the canonical link identifier from the given link key.
+     *
+     * @param lk link key
+     * @return equivalent link identifier
+     * @throws NullPointerException if src or dst connect point is null
+     */
+    public static UiLinkId uiLinkId(LinkKey lk) {
+        return canonicalizeIdentifier(lk.src(), lk.dst());
+    }
+
+    private static UiLinkId canonicalizeIdentifier(ConnectPoint src, ConnectPoint dst) {
         if (src == null || dst == null) {
             throw new NullPointerException(
-                    "null src or dst connect point: " + link);
+                    "null src or dst connect point (illegal for UiLinkId)");
         }
-
         ElementId srcId = src.elementId();
         ElementId dstId = dst.elementId();
 

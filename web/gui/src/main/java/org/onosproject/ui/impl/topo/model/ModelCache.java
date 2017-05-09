@@ -49,8 +49,10 @@ import org.onosproject.ui.model.topo.UiTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
@@ -553,6 +555,14 @@ class ModelCache {
         return uiTopology.findSynthLinks(regionId);
     }
 
+    Map<UiLinkId, UiSynthLink> relevantSynthLinks(RegionId regionId) {
+        Map<UiLinkId, UiSynthLink> result = new HashMap<>();
+        for (UiSynthLink sl : getSynthLinks(regionId)) {
+            result.put(sl.original().id(), sl);
+        }
+        return result;
+    }
+
     /**
      * Refreshes the internal state.
      */
@@ -569,11 +579,6 @@ class ModelCache {
 
         services.region().getRegions().forEach(r -> {
             RegionId rid = r.id();
-
-//            BasicRegionConfig rcfg = cfgService.getConfig(rid, BasicRegionConfig.class);
-//            services.netcfg() ...
-            // TODO: figure out how to include peer-location data in UiRegion instance
-
             UiRegion region = uiTopology.findRegion(rid);
             if (region != null) {
                 reconcileDevicesAndHostsWithRegion(allDevices, allHosts, rid, region);

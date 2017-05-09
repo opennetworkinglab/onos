@@ -56,7 +56,7 @@ public class UiTopology extends UiElement {
     private static final Logger log = LoggerFactory.getLogger(UiTopology.class);
 
     private static final Comparator<UiClusterMember> CLUSTER_MEMBER_COMPARATOR =
-            (o1, o2) -> o1.idAsString().compareTo(o2.idAsString());
+            Comparator.comparing(UiClusterMember::idAsString);
 
 
     // top level mappings of topology elements by ID
@@ -67,8 +67,8 @@ public class UiTopology extends UiElement {
     private final Map<UiLinkId, UiDeviceLink> devLinkLookup = new HashMap<>();
     private final Map<UiLinkId, UiEdgeLink> edgeLinkLookup = new HashMap<>();
 
-    // a cache of the computed synthetic links
-    private final List<UiSynthLink> synthLinks = new ArrayList<>();
+    // a cache of the computed synthetic links, keyed by ID of original UiLink
+    private final Map<UiLinkId, UiSynthLink> synthMap = new HashMap<>();
 
     // a container for devices, hosts, etc. belonging to no region
     private final UiRegion nullRegion = new UiRegion(this, null);
@@ -93,7 +93,7 @@ public class UiTopology extends UiElement {
                 .add("#hosts", hostLookup.size())
                 .add("#dev-links", devLinkLookup.size())
                 .add("#edge-links", edgeLinkLookup.size())
-                .add("#synth-links", synthLinks.size())
+                .add("#synth-links", synthMap.size())
                 .toString();
     }
 
@@ -115,7 +115,7 @@ public class UiTopology extends UiElement {
         devLinkLookup.clear();
         edgeLinkLookup.clear();
 
-        synthLinks.clear();
+        synthMap.clear();
 
         nullRegion.destroy();
     }
@@ -507,8 +507,10 @@ public class UiTopology extends UiElement {
             slinks.addAll(wrapHostLinks(r));
         }
 
-        synthLinks.clear();
-        synthLinks.addAll(slinks);
+        synthMap.clear();
+        for (UiSynthLink sl : slinks) {
+            synthMap.put(sl.original().id(), sl);
+        }
     }
 
     private Set<UiSynthLink> wrapHostLinks(UiRegion region) {
@@ -519,7 +521,7 @@ public class UiTopology extends UiElement {
 
     private UiSynthLink wrapHostLink(RegionId regionId, UiHost host) {
         UiEdgeLink elink = new UiEdgeLink(this, host.edgeLinkId());
-        return new UiSynthLink(regionId, elink);
+        return new UiSynthLink(regionId, elink, elink);
     }
 
     private UiSynthLink inferSyntheticLink(UiDeviceLink link) {
@@ -637,7 +639,7 @@ public class UiTopology extends UiElement {
                 link = orig;
             }
         }
-        return new UiSynthLink(commonRegion, link);
+        return new UiSynthLink(commonRegion, link, orig);
     }
 
     private List<RegionId> ancestors(DeviceId id) {
@@ -667,7 +669,7 @@ public class UiTopology extends UiElement {
      * @return synthetic links for this region
      */
     public List<UiSynthLink> findSynthLinks(RegionId regionId) {
-        return synthLinks.stream()
+        return synthMap.values().stream()
                 .filter(s -> Objects.equals(regionId, s.regionId()))
                 .collect(Collectors.toList());
     }
@@ -679,7 +681,7 @@ public class UiTopology extends UiElement {
      * @return the synthetic link count
      */
     public int synthLinkCount() {
-        return synthLinks.size();
+        return synthMap.size();
     }
 
     /**
@@ -722,7 +724,7 @@ public class UiTopology extends UiElement {
         }
 
         sb.append(INDENT_1).append("Synth Links").append(EOL);
-        for (UiSynthLink link : synthLinks) {
+        for (UiSynthLink link : synthMap.values()) {
             sb.append(INDENT_2).append(link).append(EOL);
         }
         sb.append("------").append(EOL);
