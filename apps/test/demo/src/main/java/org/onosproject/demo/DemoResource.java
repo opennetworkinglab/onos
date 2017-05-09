@@ -56,6 +56,24 @@ public class DemoResource extends BaseResource {
     }
 
     /**
+     * Start the flow objective test.
+     *
+     * @param input JSON describing how to run the flow objective test
+     * @return response code OK
+     * @throws IOException if the JSON processing fails
+     */
+    @POST
+    @Path("flowObjTest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response flowObjTest(InputStream input) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode cfg = mapper.readTree(input);
+        DemoApi demo = get(DemoApi.class);
+        return Response.ok(demo.flowObjTest(Optional.ofNullable(cfg)).toString()).build();
+    }
+
+    /**
      * Set up the flow test.
      *
      * @param input JSON describing how to configure the flow test

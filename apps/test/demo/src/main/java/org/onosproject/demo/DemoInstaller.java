@@ -17,6 +17,9 @@ package org.onosproject.demo;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -63,6 +66,16 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.DefaultFilteringObjective;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.HostToHostIntent;
@@ -112,6 +125,9 @@ public class DemoInstaller implements DemoApi {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService objectiveService;
+
     private ExecutorService worker;
 
     private ExecutorService installWorker;
@@ -123,6 +139,7 @@ public class DemoInstaller implements DemoApi {
 
     private ObjectMapper mapper = new ObjectMapper();
 
+    private AtomicLong macIndex;
 
 
     @Activate
@@ -158,6 +175,30 @@ public class DemoInstaller implements DemoApi {
         }
 
         Future<JsonNode> future = worker.submit(new FlowTest(flowsPerDevice, neighbours, remove));
+
+        try {
+            return future.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            ObjectNode node = mapper.createObjectNode();
+            node.put("Error", e.getMessage());
+            return node;
+        }
+    }
+
+    @Override
+    public JsonNode flowObjTest(Optional<JsonNode> params) {
+        int flowObjPerDevice = 1000;
+        int neighbours = 0;
+        boolean remove = true;
+        String typeObj = "forward";
+        if (params.isPresent()) {
+            flowObjPerDevice = params.get().get("flowObjPerDevice").asInt();
+            neighbours = params.get().get("neighbours").asInt();
+            remove = params.get().get("remove").asBoolean();
+            typeObj = params.get().get("typeObj").asText().toString();
+        }
+
+        Future<JsonNode> future = worker.submit(new FlowObjTest(flowObjPerDevice, neighbours, remove, typeObj));
 
         try {
             return future.get(10, TimeUnit.SECONDS);
@@ -594,6 +635,209 @@ public class DemoInstaller implements DemoApi {
             latch.await(10, TimeUnit.SECONDS);
             if (this.remove) {
                 flowService.apply(removes.build());
+            }
+            return node;
+        }
+    }
+
+    private class FlowObjTest implements Callable<JsonNode> {
+        private final int flowObjPerDevice;
+        private final int neighbours;
+        private final boolean remove;
+        private final String typeObj;
+        Map<DeviceId, Set<ForwardingObjective.Builder>> forwardingObj = new HashMap<>();
+        Map<DeviceId, Set<FilteringObjective.Builder>> filteringObj  = new HashMap<>();
+
+        public FlowObjTest(int flowObjPerDevice, int neighbours, boolean remove, String typeObj) {
+            this.flowObjPerDevice = flowObjPerDevice;
+            this.neighbours = neighbours;
+            this.remove = remove;
+            this.typeObj = typeObj;
+            prepareInstallation();
+        }
+
+        private void prepareInstallation() {
+            Set<ControllerNode> instances = Sets.newHashSet(clusterService.getNodes());
+            instances.remove(clusterService.getLocalNode());
+            Set<NodeId> acceptableNodes = Sets.newHashSet();
+            macIndex = new AtomicLong(0);
+            if (neighbours >= instances.size()) {
+                instances.forEach(instance -> acceptableNodes.add(instance.id()));
+            } else {
+                Iterator<ControllerNode> nodes = instances.iterator();
+                for (int i = neighbours; i > 0; i--) {
+                    acceptableNodes.add(nodes.next().id());
+                }
+            }
+            acceptableNodes.add(clusterService.getLocalNode().id());
+
+            Set<Device> devices = Sets.newHashSet();
+            for (Device dev : deviceService.getDevices()) {
+                if (acceptableNodes.contains(
+                        mastershipService.getMasterFor(dev.id()))) {
+                    devices.add(dev);
+                }
+            }
+            for (Device device : devices) {
+                switch (this.typeObj) {
+                    case "forward":
+                        forwardingObj.put(device.id(), createForward(flowObjPerDevice));
+                        break;
+                    case "filter":
+                        filteringObj.put(device.id(), createFilter(flowObjPerDevice));
+                        break;
+                    default:
+                        log.warn("Unsupported Flow Objective Type");
+                        break;
+                }
+            }
+        }
+
+        /*
+         * Method to create forwarding flow objectives.
+         */
+        private Set<ForwardingObjective.Builder> createForward(int flowObjPerDevice) {
+            Set<ForwardingObjective.Builder> fObj = new HashSet<>();
+            for (int i = 0; i < flowObjPerDevice; i++) {
+                TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+                sbuilder.matchEthSrc(MacAddress.valueOf(macIndex.incrementAndGet()));
+                sbuilder.matchInPort(PortNumber.portNumber(2));
+
+                TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+                tbuilder.add(Instructions.createOutput(PortNumber.portNumber(3)));
+
+                ForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder();
+                fobBuilder.withFlag(ForwardingObjective.Flag.SPECIFIC)
+                        .withSelector(sbuilder.build())
+                        .withTreatment(tbuilder.build())
+                        .withPriority(i + 1)
+                        .fromApp(appId)
+                        .makePermanent();
+
+                fObj.add(fobBuilder);
+            }
+            return fObj;
+        }
+
+        /*
+         *Method to install forwarding flow objectives.
+         */
+        private ObjectNode installForward() {
+            ObjectNode node = mapper.createObjectNode();
+            long addStartTime = System.currentTimeMillis();
+            int totalFlowObj = (flowObjPerDevice * deviceService.getDeviceCount());
+            CountDownLatch installationLatch = new CountDownLatch(totalFlowObj);
+            for (DeviceId dId : forwardingObj.keySet()) {
+                Set<ForwardingObjective.Builder> fObjs = forwardingObj.get(dId);
+                for (ForwardingObjective.Builder builder : fObjs) {
+                    ObjectiveContext context = new DefaultObjectiveContext(
+                            (objective -> {
+                                installationLatch.countDown();
+                            })
+                    );
+                    objectiveService.forward(dId, builder.add(context));
+                }
+            }
+
+            try {
+                installationLatch.await();
+            } catch (InterruptedException e) {
+                Thread.interrupted();
+            }
+
+            node.put("elapsed", System.currentTimeMillis() - addStartTime);
+            log.info("{} Forward Flow Objectives elapsed -> {} ms",
+                     totalFlowObj, (System.currentTimeMillis() - addStartTime));
+
+            if (this.remove) {
+                for (DeviceId dId : forwardingObj.keySet()) {
+                    Set<ForwardingObjective.Builder> fObjs = forwardingObj.get(dId);
+                    for (ForwardingObjective.Builder builder : fObjs) {
+                        objectiveService.forward(dId, builder.remove());
+                    }
+                }
+            }
+            return node;
+
+        }
+
+        /*
+         * Method to create filtering flow objectives.
+         */
+        private Set<FilteringObjective.Builder> createFilter(int flowObjPerDevice) {
+            Set<FilteringObjective.Builder> filterObjSet = new HashSet<>();
+            for (int i = 0; i < flowObjPerDevice; i++) {
+                TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+                tbuilder.add(Instructions.createOutput(PortNumber.portNumber(2)));
+
+                FilteringObjective.Builder fobBuilder = DefaultFilteringObjective.builder();
+                fobBuilder.fromApp(appId)
+                          .addCondition(Criteria.matchEthType(2))
+                          .withMeta(tbuilder.build())
+                          .permit()
+                          .withPriority(i + 1)
+                          .makePermanent();
+
+                filterObjSet.add(fobBuilder);
+            }
+
+            return filterObjSet;
+        }
+
+        /*
+         * Method to install filtering flow objectives.
+         */
+        private ObjectNode installFilter() {
+            ObjectNode node = mapper.createObjectNode();
+            long addStartTime = System.currentTimeMillis();
+            int totalFlowObj = (flowObjPerDevice * deviceService.getDeviceCount());
+            CountDownLatch installationLatch = new CountDownLatch(totalFlowObj);
+            for (DeviceId dId : filteringObj.keySet()) {
+                Set<FilteringObjective.Builder> fObjs = filteringObj.get(dId);
+                for (FilteringObjective.Builder builder : fObjs) {
+                    ObjectiveContext context = new DefaultObjectiveContext(
+                            (objective -> {
+                                installationLatch.countDown();
+                            })
+                    );
+                    objectiveService.filter(dId, builder.add(context));
+                }
+            }
+
+            try {
+                installationLatch.await();
+            } catch (InterruptedException e) {
+                Thread.interrupted();
+            }
+
+            node.put("elapsed", System.currentTimeMillis() - addStartTime);
+            log.info("{} Filter Flow Objectives elapsed -> {} ms",
+                     totalFlowObj, (System.currentTimeMillis() - addStartTime));
+
+            if (this.remove) {
+                for (DeviceId dId : filteringObj.keySet()) {
+                    Set<FilteringObjective.Builder> fObjs = filteringObj.get(dId);
+                    for (FilteringObjective.Builder builder : fObjs) {
+                        objectiveService.filter(dId, builder.remove());
+                    }
+                }
+            }
+            return node;
+        }
+
+
+        @Override
+        public JsonNode call() throws Exception {
+            ObjectNode node = mapper.createObjectNode();
+            switch (this.typeObj) {
+                case "forward":
+                    node = installForward();
+                    break;
+                case "filter":
+                    node = installFilter();
+                    break;
+                default:
+                    log.warn("Unsupported Flow Objective Type");
             }
             return node;
         }
