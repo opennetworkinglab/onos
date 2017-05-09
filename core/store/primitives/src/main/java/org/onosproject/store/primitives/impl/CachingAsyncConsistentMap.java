@@ -50,7 +50,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
     private final Logger log = getLogger(getClass());
 
     private final LoadingCache<K, CompletableFuture<Versioned<V>>> cache;
-
+    private final AsyncConsistentMap<K, V> backingMap;
     private final MapEventListener<K, V> cacheUpdater;
     private final Consumer<Status> statusListener;
 
@@ -71,6 +71,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
      */
     public CachingAsyncConsistentMap(AsyncConsistentMap<K, V> backingMap, int cacheSize) {
         super(backingMap);
+        this.backingMap = backingMap;
         cache = CacheBuilder.newBuilder()
                             .maximumSize(cacheSize)
                             .build(CacheLoader.from(CachingAsyncConsistentMap.super::get));
@@ -108,6 +109,23 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
                         cache.invalidate(key);
                     }
                 });
+    }
+
+    @Override
+    public CompletableFuture<Versioned<V>> getOrDefault(K key, V defaultValue) {
+        return cache.getUnchecked(key).thenCompose(r -> {
+            if (r == null) {
+                CompletableFuture<Versioned<V>> versioned = backingMap.getOrDefault(key, defaultValue);
+                cache.put(key, versioned);
+                return versioned;
+            } else {
+                return CompletableFuture.completedFuture(r);
+            }
+        }).whenComplete((r, e) -> {
+            if (e != null) {
+                cache.invalidate(key);
+            }
+        });
     }
 
     @Override
