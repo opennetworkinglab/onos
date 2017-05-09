@@ -32,6 +32,11 @@ public final class Ip6Address extends IpAddress {
     public static final int BIT_LENGTH = IpAddress.INET6_BIT_LENGTH;
 
     /**
+     * All-zero unspecified IPv6 address.
+     */
+    public static final Ip6Address ZERO = Ip6Address.valueOf("::");
+
+    /**
      * Constructor for given IP address version and address octets.
      *
      * @param value the IP address value stored in network byte order

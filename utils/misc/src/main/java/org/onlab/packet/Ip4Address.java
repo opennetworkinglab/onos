@@ -33,6 +33,11 @@ public final class Ip4Address extends IpAddress {
     public static final int BIT_LENGTH = IpAddress.INET_BIT_LENGTH;
 
     /**
+     * All-zero unspecified IPv4 address.
+     */
+    public static final Ip4Address ZERO = Ip4Address.valueOf("0.0.0.0");
+
+    /**
      * Constructor for given IP address version and address octets.
      *
      * @param value the IP address value stored in network byte order
