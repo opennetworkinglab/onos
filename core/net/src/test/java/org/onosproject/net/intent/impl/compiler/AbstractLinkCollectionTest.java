@@ -134,6 +134,7 @@ abstract class AbstractLinkCollectionTest extends AbstractIntentTest {
 
     final TrafficSelector selector = emptySelector();
     final TrafficSelector vlan69Selector = vlanSelector("69");
+    final TrafficSelector vlan1Selector = vlanSelector("1");
     final TrafficSelector vlan100Selector = vlanSelector("100");
     final TrafficSelector vlan200Selector = vlanSelector("200");
     final TrafficSelector vlan300Selector = vlanSelector("300");

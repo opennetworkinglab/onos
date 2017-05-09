@@ -31,6 +31,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -54,15 +56,18 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.impl.LabelAllocator;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.onosproject.net.domain.DomainId.LOCAL;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Compiler to produce flow objectives from link collections.
@@ -71,6 +76,7 @@ import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 public class LinkCollectionIntentObjectiveCompiler
         extends LinkCollectionCompiler<Objective>
         implements IntentCompiler<LinkCollectionIntent> {
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentConfigurableRegistrator registrator;
@@ -97,7 +103,6 @@ public class LinkCollectionIntentObjectiveCompiler
             labelAllocator = new LabelAllocator(resourceService);
         }
     }
-
 
     @Deactivate
     public void deactivate() {
@@ -172,12 +177,12 @@ public class LinkCollectionIntentObjectiveCompiler
          */
         Optional<EncapsulationConstraint> encapConstraint = this.getIntentEncapConstraint(intent);
 
-        inPorts.forEach(inport -> {
+        inPorts.forEach(inPort -> {
 
             ForwardingInstructions instructions = this.createForwardingInstruction(
                     encapConstraint,
                     intent,
-                    inport,
+                    inPort,
                     outPorts,
                     deviceId,
                     labels
@@ -199,11 +204,16 @@ public class LinkCollectionIntentObjectiveCompiler
                 }
             }
 
-            EthCriterion ethDst = (EthCriterion) instructions.selector()
-                    .getCriterion(Criterion.Type.ETH_DST);
+            EthCriterion ethDst = (EthCriterion) intent.selector().getCriterion(Criterion.Type.ETH_DST);
             boolean broadcastObjective = ethDst != null &&
                     (ethDst.mac().isBroadcast() || ethDst.mac().isMulticast());
 
+            FilteringObjective filteringObjective = buildFilteringObjective(intent,
+                                                                            instructions.selector(),
+                                                                            deviceId, inPort);
+            if (filteringObjective != null) {
+                objectives.add(filteringObjective);
+            }
             if (treatmentsWithDifferentPort.size() < 2 && !broadcastObjective) {
                 objectives.addAll(createSimpleNextObjective(instructions, intent));
             } else {
@@ -220,7 +230,6 @@ public class LinkCollectionIntentObjectiveCompiler
                                                      Set<TrafficTreatment> treatmentsWithDifferentPort,
                                                      LinkCollectionIntent intent) {
         List<Objective> objectives = Lists.newArrayList();
-        FilteringObjective filteringObjective;
         ForwardingObjective forwardingObjective;
         NextObjective nextObjective;
 
@@ -240,9 +249,6 @@ public class LinkCollectionIntentObjectiveCompiler
         treatmentsWithDifferentPort.forEach(nxBuilder::addTreatment);
         nextObjective = nxBuilder.add();
 
-        filteringObjective = buildFilteringObjective(instructions.selector(), intent.priority());
-
-        objectives.add(filteringObjective);
         objectives.add(forwardingObjective);
         objectives.add(nextObjective);
 
@@ -252,7 +258,6 @@ public class LinkCollectionIntentObjectiveCompiler
     private List<Objective> createSimpleNextObjective(ForwardingInstructions instructions,
                                                       LinkCollectionIntent intent) {
         List<Objective> objectives = Lists.newArrayList();
-        FilteringObjective filteringObjective;
         ForwardingObjective forwardingObjective;
         NextObjective nextObjective;
 
@@ -271,16 +276,14 @@ public class LinkCollectionIntentObjectiveCompiler
                 .withPriority(intent.priority())
                 .add();
 
-        filteringObjective = buildFilteringObjective(instructions.selector(), intent.priority());
-
-        objectives.add(filteringObjective);
         objectives.add(forwardingObjective);
         objectives.add(nextObjective);
 
         return objectives;
     }
 
-    private ForwardingObjective buildForwardingObjective(TrafficSelector selector, Integer nextId, int priority) {
+    private ForwardingObjective buildForwardingObjective(TrafficSelector selector,
+                                                         Integer nextId, int priority) {
         return DefaultForwardingObjective.builder()
                 .withMeta(selector)
                 .withSelector(selector)
@@ -292,22 +295,95 @@ public class LinkCollectionIntentObjectiveCompiler
                 .add();
     }
 
-    private FilteringObjective buildFilteringObjective(TrafficSelector selector, int priority) {
+    private FilteringObjective buildFilteringObjective(LinkCollectionIntent intent,
+                                                       TrafficSelector selector,
+                                                       DeviceId deviceId,
+                                                       PortNumber inPort) {
         FilteringObjective.Builder builder = DefaultFilteringObjective.builder();
         builder.fromApp(appId)
                 .permit()
                 .makePermanent()
-                .withPriority(priority);
-
-        Criterion inPortCriterion =
-                selector.getCriterion(Criterion.Type.IN_PORT);
-
+                .withPriority(intent.priority());
+        Criterion inPortCriterion = selector.getCriterion(Criterion.Type.IN_PORT);
         if (inPortCriterion != null) {
             builder.withKey(inPortCriterion);
         }
 
-        selector.criteria().forEach(builder::addCondition);
+        FilteredConnectPoint ingressPoint = intent.filteredIngressPoints().stream()
+                .filter(fcp -> fcp.connectPoint().equals(new ConnectPoint(deviceId, inPort)))
+                .filter(fcp -> selector.criteria().containsAll(fcp.trafficSelector().criteria()))
+                .findFirst()
+                .orElse(null);
+
+        AtomicBoolean emptyCondition = new AtomicBoolean(true);
+        if (ingressPoint != null) {
+            // ingress point, use criterion of it
+            ingressPoint.trafficSelector().criteria().forEach(criterion -> {
+                builder.addCondition(criterion);
+                emptyCondition.set(false);
+            });
+            if (emptyCondition.get()) {
+                return null;
+            }
+            return builder.add();
+        }
+        Optional<EncapsulationConstraint> encapConstraint = this.getIntentEncapConstraint(intent);
+        if (encapConstraint.isPresent() &&
+                !encapConstraint.get().encapType().equals(EncapsulationType.NONE)) {
+            // encapsulation enabled, use encapsulation label and tag.
+            EncapsulationConstraint encap = encapConstraint.get();
+            switch (encap.encapType()) {
+                case VLAN:
+                    builder.addCondition(selector.getCriterion(Criterion.Type.VLAN_VID));
+                    emptyCondition.set(false);
+                    break;
+                case MPLS:
+                    builder.addCondition(selector.getCriterion(Criterion.Type.MPLS_LABEL));
+                    emptyCondition.set(false);
+                    break;
+                default:
+                    log.warn("No filtering rule found because of unknown encapsulation type.");
+                    break;
+            }
+        } else {
+            // encapsulation not enabled, check if the treatment applied to the ingress or not
+            if (intent.applyTreatmentOnEgress()) {
+                // filtering criterion will be changed on egress point, use
+                // criterion of ingress point
+                ingressPoint = intent.filteredIngressPoints().stream()
+                        .findFirst()
+                        .orElse(null);
+                if (ingressPoint == null) {
+                    log.warn("No filtering rule found because no ingress point in the Intent");
+                } else {
+                    ingressPoint.trafficSelector().criteria().stream()
+                            .filter(criterion -> !criterion.type().equals(Criterion.Type.IN_PORT))
+                            .forEach(criterion -> {
+                                builder.addCondition(criterion);
+                                emptyCondition.set(false);
+                            });
+                }
+            } else {
+                // filtering criterion will be changed on ingress point, use
+                // criterion of egress point
+                FilteredConnectPoint egressPoint = intent.filteredEgressPoints().stream()
+                        .findFirst()
+                        .orElse(null);
+                if (egressPoint == null) {
+                    log.warn("No filtering rule found because no egress point in the Intent");
+                } else {
+                    egressPoint.trafficSelector().criteria().stream()
+                            .filter(criterion -> !criterion.type().equals(Criterion.Type.IN_PORT))
+                            .forEach(criterion -> {
+                                builder.addCondition(criterion);
+                                emptyCondition.set(false);
+                            });
+                }
+            }
+        }
+        if (emptyCondition.get()) {
+            return null;
+        }
         return builder.add();
     }
-
 }
