@@ -1,6 +1,6 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
-  '//apps/openroadm/yangmodel:onos-apps-openroadm-yangmodel',
+  '//models/openroadm:onos-models-openroadm',
   '//core/store/serializers:onos-core-serializers',
 ] + YANG_TOOLS
 

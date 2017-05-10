@@ -7,10 +7,10 @@ APPS = [
   'org.onosproject.protocols.restconfserver',
   'org.onosproject.netconf',
   'org.onosproject.netconfsb',
+  'org.onosproject.models.openroadm',
 ]
 
 BUNDLES = [
-  '//apps/openroadm/yangmodel:onos-apps-openroadm-yangmodel',
   '//apps/openroadm/service:onos-apps-openroadm-service',
   '//apps/openroadm/network:onos-apps-openroadm-network',
 ]

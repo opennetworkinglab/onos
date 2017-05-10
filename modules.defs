@@ -197,10 +197,12 @@ ONOS_APPS = [
     '//apps/cord-support:onos-apps-cord-support-oar',
     '//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar',
     '//apps/l3vpn:onos-apps-l3vpn-oar',
+    '//apps/openroadm:onos-apps-openroadm-oar',
 ]
 
 MODELS = [
     '//models/demo:onos-models-demo-oar',
+    '//models/openroadm:onos-models-openroadm-oar',
 ]
 
 APP_JARS = [
