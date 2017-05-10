@@ -424,19 +424,18 @@ public class AtomixConsistentMapState extends ResourceStateMachine implements Se
      * @return prepare result
      */
     protected PrepareResult prepareAndCommit(Commit<? extends TransactionPrepareAndCommit> commit) {
+        TransactionId transactionId = commit.operation().transactionLog().transactionId();
         PrepareResult prepareResult = prepare(commit);
-        TransactionScope transactionScope =
-                activeTransactions.remove(commit.operation().transactionLog().transactionId());
-        this.currentVersion = commit.index();
+        TransactionScope transactionScope = activeTransactions.remove(transactionId);
         if (prepareResult == PrepareResult.OK) {
+            this.currentVersion = commit.index();
             transactionScope = transactionScope.prepared(commit);
             commit(transactionScope);
-        } else {
+        } else if (transactionScope != null) {
             transactionScope.close();
         }
         discardTombstones();
         return prepareResult;
-
     }
 
     /**
