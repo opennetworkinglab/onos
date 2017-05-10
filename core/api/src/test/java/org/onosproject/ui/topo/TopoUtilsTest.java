@@ -22,6 +22,7 @@ import org.onosproject.net.DefaultLink;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.ui.AbstractUiTest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,7 +32,7 @@ import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
 /**
  * Unit tests for {@link TopoUtils}.
  */
-public class TopoUtilsTest {
+public class TopoUtilsTest extends AbstractUiTest {
     private static final String AM_WL = "wrong label";
     private static final String AM_WM = "wrong magnitude";
     private static final String AM_CL = "clipped?";
@@ -54,6 +55,21 @@ public class TopoUtilsTest {
             .providerId(ProviderId.NONE)
             .build();
 
+    private static final Link LINK_7_TO_3 = DefaultLink.builder()
+            .src(deviceConnectPoint("of:0000000000000007/2"))
+            .dst(deviceConnectPoint("of:0000000000000003/2"))
+            .type(Link.Type.DIRECT)
+            .providerId(ProviderId.NONE)
+            .build();
+
+    private static final Link LINK_3_TO_7 = DefaultLink.builder()
+            .src(deviceConnectPoint("of:0000000000000003/2"))
+            .dst(deviceConnectPoint("of:0000000000000007/2"))
+            .type(Link.Type.DIRECT)
+            .providerId(ProviderId.NONE)
+            .build();
+
+
     private TopoUtils.ValueLabel vl;
 
     @Test
@@ -73,6 +89,15 @@ public class TopoUtilsTest {
         LinkKey fb = TopoUtils.canonicalLinkKey(LINK_FU_BAH);
         LinkKey bf = TopoUtils.canonicalLinkKey(LINK_BAH_FU);
         assertEquals("not canonical", fb, bf);
+    }
+
+    @Test
+    public void canon723() {
+        LinkKey lk1 = TopoUtils.canonicalLinkKey(LINK_7_TO_3);
+        print(lk1);
+        LinkKey lk2 = TopoUtils.canonicalLinkKey(LINK_3_TO_7);
+        print(lk2);
+        assertEquals("not canonical 3/7", lk1, lk2);
     }
 
     @Test

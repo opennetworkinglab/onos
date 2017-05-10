@@ -10,7 +10,7 @@ log:set DEBUG org.onosproject.ui.impl.topo.Topo2Jsonifier
 log:set DEBUG org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler
 log:set DEBUG org.onosproject.ui.impl.topo.Traffic2Monitor
 
-#log:set DEBUG org.onosproject.ui.impl.UiWebSocket
+log:set DEBUG org.onosproject.ui.impl.UiWebSocket
 #log:set DEBUG org.onosproject.ui.impl.UiTopoSession
 
 log:list

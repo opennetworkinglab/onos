@@ -38,7 +38,7 @@ public abstract class BiLink {
      * that the caller will have used {@link TopoUtils#canonicalLinkKey(Link)}
      * to generate the key.
      *
-     * @param key canonical key for this bi-link
+     * @param key  canonical key for this bi-link
      * @param link first link
      */
     public BiLink(LinkKey key, Link link) {
@@ -62,7 +62,7 @@ public abstract class BiLink {
      * @return link identifier
      */
     public String linkId() {
-        return TopoUtils.compactLinkString(one);
+        return key.asId();
     }
 
     /**
@@ -90,6 +90,11 @@ public abstract class BiLink {
      */
     public Link two() {
         return two;
+    }
+
+    @Override
+    public String toString() {
+        return key.asId();
     }
 
     /**

@@ -15,13 +15,12 @@
  */
 package org.onosproject.net;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.MoreObjects;
+import org.onosproject.net.link.LinkDescription;
 
 import java.util.Objects;
 
-import org.onosproject.net.link.LinkDescription;
-
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 // TODO Consider renaming.
 // it's an identifier for a Link, but it's not ElementId, so not using LinkId.
@@ -31,8 +30,21 @@ import com.google.common.base.MoreObjects;
  */
 public final class LinkKey {
 
+    private static final String DELIM = "-";
+
     private final ConnectPoint src;
     private final ConnectPoint dst;
+
+    /**
+     * Creates a link identifier with source and destination connection point.
+     *
+     * @param src source connection point
+     * @param dst destination connection point
+     */
+    private LinkKey(ConnectPoint src, ConnectPoint dst) {
+        this.src = checkNotNull(src);
+        this.dst = checkNotNull(dst);
+    }
 
     /**
      * Returns source connection point.
@@ -53,14 +65,38 @@ public final class LinkKey {
     }
 
     /**
-     * Creates a link identifier with source and destination connection point.
+     * Returns a string suitable to be used as an identifier.
      *
-     * @param src source connection point
-     * @param dst destination connection point
+     * @return string as identifier
      */
-    private LinkKey(ConnectPoint src, ConnectPoint dst) {
-        this.src = checkNotNull(src);
-        this.dst = checkNotNull(dst);
+    public String asId() {
+        return src + DELIM + dst;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(src, dst);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof LinkKey) {
+            final LinkKey other = (LinkKey) obj;
+            return Objects.equals(this.src, other.src) &&
+                    Objects.equals(this.dst, other.dst);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("src", src)
+                .add("dst", dst)
+                .toString();
     }
 
     /**
@@ -94,29 +130,4 @@ public final class LinkKey {
         return new LinkKey(link.src(), link.dst());
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(src, dst);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof LinkKey) {
-            final LinkKey other = (LinkKey) obj;
-            return Objects.equals(this.src, other.src) &&
-                    Objects.equals(this.dst, other.dst);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("src", src)
-                .add("dst", dst)
-                .toString();
-    }
 }

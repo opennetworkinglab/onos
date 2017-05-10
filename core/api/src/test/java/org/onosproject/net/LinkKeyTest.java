@@ -126,4 +126,10 @@ public class LinkKeyTest {
                                    containsString("src=1/1"),
                                    containsString("dst=2/1}")));
     }
+
+    @Test
+    public void asId() {
+        LinkKey k1 = LinkKey.linkKey(SRC1, DST2);
+        assertThat(k1.asId(), is(equalTo("1/1-2/2")));
+    }
 }

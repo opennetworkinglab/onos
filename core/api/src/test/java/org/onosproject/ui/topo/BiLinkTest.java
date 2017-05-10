@@ -57,5 +57,25 @@ public class BiLinkTest extends BiLinkTestBase {
         blink = new ConcreteLink(KEY_AB, LINK_AB);
         blink.setOther(null);
     }
+
+    @Test
+    public void canonIdentifiers() {
+        // FIRST: an assumption that the LinkKey used is canonicalized
+        //        ( See TopoUtils.canonicalLinkKey(Link) )
+        //  so in both the following cases, KEY_AB is used...
+        String expected = CP_A1 + "-" + CP_B2;
+
+        // let's assume that link [A -> B] was dealt with first...
+        blink = new ConcreteLink(KEY_AB, LINK_AB);
+        blink.setOther(LINK_BA);
+        print(blink);
+        assertEquals("non-canon AB", expected, blink.linkId());
+
+        // let's assume that link [B -> A] was dealt with first...
+        blink = new ConcreteLink(KEY_AB, LINK_BA);
+        blink.setOther(LINK_AB);
+        print(blink);
+        assertEquals("non-canon BA", expected, blink.linkId());
+    }
 }
 
