@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.driver;
+
+package org.onosproject.drivers.bmv2;
+
+import org.apache.felix.scr.annotations.Component;
+import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**
- * Abstraction of handler behaviour used to set-up and tear-down driver
- * connection with a device.
+ * Loader for P4Runtime device drivers.
  */
-public interface DriverConnect extends HandlerBehaviour {
+@Component(immediate = true)
+public class Bmv2DriversLoader extends AbstractDriverLoader {
 
-    /**
-     * Connects to the device.
-     *
-     * @param credentials optional login credentials in string form
-     */
-    void connect(String... credentials);
-
-    /**
-     * Disconnects from the device.
-     */
-    void disconnect();
-
+    public Bmv2DriversLoader() {
+        super("/bmv2-drivers.xml");
+    }
 }

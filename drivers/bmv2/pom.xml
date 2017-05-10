@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onos-drivers-general</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.11.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>onos-drivers-bmv2</artifactId>
+    <packaging>bundle</packaging>
+
+    <description>BMv2 device drivers</description>
+
+    <properties>
+        <onos.app.name>org.onosproject.drivers.bmv2</onos.app.name>
+        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.title>BMv2 Device Drivers</onos.app.title>
+        <onos.app.category>Drivers</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.requires>
+            org.onosproject.generaldeviceprovider
+        </onos.app.requires>
+    </properties>
+
+</project>

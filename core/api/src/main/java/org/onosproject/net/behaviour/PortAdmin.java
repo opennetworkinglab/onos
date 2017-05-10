@@ -15,19 +15,44 @@
  */
 package org.onosproject.net.behaviour;
 
-import org.onosproject.net.device.PortDescription;
+import com.google.common.annotations.Beta;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
- * Means to administratively enable/disable a logical port at the device.
+ * Means to administratively enable,disable and query the state
+ * of a port on a device.
  */
+@Beta
 public interface PortAdmin extends HandlerBehaviour {
 
     /**
-     * Enable/disable administratively a port.
+     * Enable administratively a port.
      *
-     * @param port a port description containing the desired port state
+     * @param number the port to be enabled
+     * @return CompletableFuture with true if the operation was successful
      */
-    void enable(PortDescription port);
+    CompletableFuture<Boolean> enable(PortNumber number);
+
+    /**
+     * Disable administratively a port.
+     *
+     * @param number the port to be disabled
+     * @return CompletableFuture with true if the operation was successful
+     */
+    CompletableFuture<Boolean> disable(PortNumber number);
+
+    /**
+     * Retrieves the information about the administrative state of a port.
+     *
+     * @param number identifier of the port to be queried about its state
+     * @return CompletableFuture containing, when completed, true if the port isEnabled.
+     */
+    CompletableFuture<Boolean> isEnabled(PortNumber number);
+
+    //TODO this behaviour can be augmented or others can be created for
+    // LED and Speed configuration
 
 }

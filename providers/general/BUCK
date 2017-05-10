@@ -1,0 +1,15 @@
+BUNDLES = [
+    '//providers/general/device:onos-providers-general-device',
+]
+
+onos_app (
+    app_name = "org.onosproject.generaldeviceprovider",
+    title = 'General Device Provider',
+    category = 'Provider',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+    description = 'General device southbound providers.',
+    required_apps = [],
+)
+
+

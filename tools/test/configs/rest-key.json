@@ -1,0 +1,6 @@
+{
+  "id": "p4runtime:device:identifier",
+  "type": "USERNAME_PASSWORD",
+  "username": "test_username",
+  "password": "test_password"
+}

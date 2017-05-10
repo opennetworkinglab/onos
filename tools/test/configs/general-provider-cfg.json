@@ -1,0 +1,38 @@
+{
+  "devices": {
+    "device:identifier": {
+      "generalprovider": {
+        "p4runtime": {
+          "ip": "192.168.56.104",
+          "port": 830,
+          "deviceKeyId": "p4runtime:device:identifier"
+        },
+        "gnmi": {
+          "ip": "192.168.56.105",
+          "port": 830,
+          "deviceKeyId": "p4runtime:device:identifier"
+        }
+      },
+      "basic": {
+        "driver": "bmv2"
+      }
+    },
+    "device:identifier2": {
+      "generalprovider": {
+        "p4runtime": {
+          "ip": "192.168.56.106",
+          "port": 830,
+          "deviceKeyId": "p4runtime:device:identifier2"
+        },
+        "gnmi": {
+          "ip": "192.168.56.107",
+          "port": 830,
+          "deviceKeyId": "p4runtime:device:identifier2"
+        }
+      },
+      "basic": {
+        "driver": "bmv2"
+      }
+    }
+  }
+}

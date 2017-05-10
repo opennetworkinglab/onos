@@ -53,6 +53,7 @@
         <module>ietfte</module>
         -->
         <module>tl1</module>
+        <module>general</module>
     </modules>
 
     <dependencies>
