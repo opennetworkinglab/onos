@@ -145,13 +145,13 @@
         });
 
         selectors.forEach(function (sel) {
-            var selArray = sel.split(':');
-            populateTable(topSelTablebody, selArray[0], selArray[1]);
+            var selArray = sel.match(/^([^:]*):([\s\S]*)/);
+            populateTable(topSelTablebody, selArray[1], selArray[2]);
         });
 
         treatment.forEach(function (sel) {
-            var selArray = sel.split(':');
-            populateTable(topTrmtTable, selArray[0], selArray[1]);
+            var selArray = sel.match(/^([^:]*):([\s\S]*)/);
+            populateTable(topTrmtTable, selArray[1], selArray[2]);
         });
 
     }
