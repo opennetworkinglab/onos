@@ -1,0 +1,21 @@
+COMPILE_DEPS = [
+  '//lib:CORE_DEPS',
+  '//lib:javax.ws.rs-api',
+  '//utils/rest:onlab-rest',
+  '//lib:jersey-media-multipart',
+  '//lib:onos-yang-model',
+  '//lib:onos-yang-compiler-api',
+  '//lib:onos-yang-runtime',
+]
+
+TEST_DEPS = [
+  '//lib:TEST_REST',
+  '//utils/osgi:onlab-osgi-tests',
+  '//web/api:onos-rest-tests',
+]
+
+osgi_jar_with_tests(
+  deps = COMPILE_DEPS,
+  test_deps = TEST_DEPS,
+  web_context = '/onos/yang',
+)

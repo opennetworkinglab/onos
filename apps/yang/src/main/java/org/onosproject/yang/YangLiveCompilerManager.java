@@ -45,12 +45,10 @@ public class YangLiveCompilerManager implements YangCompilerService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-    private YangCompilerService compilerService;
 
     @Activate
     public void activate() {
         coreService.registerApplication(APP_ID);
-        // TODO implementation.
         log.info("Started");
     }
 
@@ -59,11 +57,11 @@ public class YangLiveCompilerManager implements YangCompilerService {
         log.info("Stopped");
     }
 
-
     @Override
     public YangCompiledOutput compileYangFiles(YangCompilationParam param)
             throws IOException, YangCompilerException {
-        // TODO implementation.
+        // TODO : uncomment when yang tools new version is released.
+        //return new YangCompilerManager().compileYangFiles(param);
         return null;
     }
 }
