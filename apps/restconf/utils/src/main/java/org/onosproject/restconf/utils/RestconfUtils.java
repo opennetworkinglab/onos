@@ -29,7 +29,7 @@ import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultCompositeData;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
-import org.onosproject.yang.runtime.DefaultResourceData;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.RuntimeContext;
 import org.onosproject.yang.runtime.YangRuntimeService;

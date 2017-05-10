@@ -38,7 +38,7 @@ import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
-import org.onosproject.yang.runtime.DefaultResourceData;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -39,7 +39,7 @@ import org.onosproject.yang.model.LeafNode;
 import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.runtime.DefaultResourceData;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.Accumulator;
 import org.slf4j.Logger;
