@@ -162,6 +162,9 @@ public class NetworkConfigLinksProvider
     protected void deactivate() {
         withdrawIntercepts();
         providerRegistry.unregister(this);
+        deviceService.removeListener(deviceListener);
+        netCfgService.removeListener(cfgListener);
+        packetService.removeProcessor(packetProcessor);
         disable();
         log.info("Deactivated");
     }
