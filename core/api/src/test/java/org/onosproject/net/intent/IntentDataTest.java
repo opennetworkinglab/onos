@@ -15,13 +15,11 @@
  */
 package org.onosproject.net.intent;
 
-import org.junit.After;
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.store.Timestamp;
-
-import com.google.common.testing.EqualsTester;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,7 +31,7 @@ import static org.onosproject.net.intent.IntentTestsMocks.MockTimestamp;
 /**
  * Unit tests for intent data objects.
  */
-public class IntentDataTest {
+public class IntentDataTest extends AbstractIntentTest {
 
     private Timestamp timestamp1;
     private Timestamp timestamp2;
@@ -53,10 +51,8 @@ public class IntentDataTest {
     IdGenerator idGenerator;
 
     @Before
-    public void setUpTest() {
-        idGenerator = new MockIdGenerator();
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+    public void setUp() {
+        super.setUp();
 
         timestamp1 = new MockTimestamp(1);
         timestamp2 = new MockTimestamp(2);
@@ -72,11 +68,6 @@ public class IntentDataTest {
         data2Copy = new IntentData(intent2, IntentState.INSTALLED, timestamp2);
         data3 = new IntentData(intent3, IntentState.INSTALLED, timestamp3);
         data3Copy = new IntentData(intent3, IntentState.INSTALLED, timestamp3);
-    }
-
-    @After
-    public void tearDownTest() {
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

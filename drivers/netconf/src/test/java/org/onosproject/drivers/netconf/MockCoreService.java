@@ -15,15 +15,15 @@
  */
 package org.onosproject.drivers.netconf;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
 import org.onosproject.net.intent.MockIdGenerator;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MockCoreService implements CoreService {
 
@@ -35,7 +35,6 @@ public class MockCoreService implements CoreService {
         appIds = new HashSet<ApplicationId>();
         appIds.add(new DefaultApplicationId(101, "org.onosproject.drivers.netconf"));
         version = Version.version(1, 1, "1", "1");
-        idGenerator = new MockIdGenerator();
     }
 
     @Override
@@ -83,7 +82,7 @@ public class MockCoreService implements CoreService {
 
     @Override
     public IdGenerator getIdGenerator(String topic) {
-        return idGenerator;
+        return MockIdGenerator.INSTANCE;
     }
 
 }

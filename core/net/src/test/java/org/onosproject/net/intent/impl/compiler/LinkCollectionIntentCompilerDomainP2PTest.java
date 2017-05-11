@@ -18,7 +18,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigAdapter;
@@ -40,9 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -74,8 +71,7 @@ public class LinkCollectionIntentCompilerDomainP2PTest extends AbstractLinkColle
         expect(domainService.getDomain(d3Id)).andReturn(LOCAL).anyTimes();
         sut.domainService = domainService;
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
 
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService
@@ -94,11 +90,6 @@ public class LinkCollectionIntentCompilerDomainP2PTest extends AbstractLinkColle
         LinkCollectionCompiler.copyTtl = false;
 
         replay(coreService, domainService, intentExtensionService);
-    }
-
-    @After
-    public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

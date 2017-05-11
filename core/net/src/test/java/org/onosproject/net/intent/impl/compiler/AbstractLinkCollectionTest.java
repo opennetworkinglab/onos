@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -30,10 +29,10 @@ import org.onosproject.net.domain.DomainService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.MockIdGenerator;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,13 +40,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.NetTestTools.*;
-import static org.onosproject.net.NetTestTools.macDstTreatment;
 
 /**
  * Abstract class to hold the common variables and pieces
  * of code.
  */
-class AbstractLinkCollectionTest {
+abstract class AbstractLinkCollectionTest extends AbstractIntentTest {
 
     static final String LABEL_SELECTION = "FIRST_FIT";
     static final String LABEL = "1";
@@ -155,7 +153,6 @@ class AbstractLinkCollectionTest {
     DomainService domainService;
     IntentExtensionService intentExtensionService;
     IntentConfigurableRegistrator registrator;
-    IdGenerator idGenerator = new MockIdGenerator();
 
     LinkCollectionIntent intent;
 

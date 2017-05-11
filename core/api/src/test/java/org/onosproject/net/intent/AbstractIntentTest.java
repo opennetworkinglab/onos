@@ -17,20 +17,20 @@ package org.onosproject.net.intent;
 
 import org.junit.After;
 import org.junit.Before;
-import org.onosproject.core.IdGenerator;
 
+/**
+ * Basis for all intent-related tests. It cleanly binds and unbinds a
+ * deterministic mock generator as part of set-up and tear-down.
+ */
 public abstract class AbstractIntentTest {
 
-    protected IdGenerator idGenerator = new MockIdGenerator();
-
     @Before
-    public void setUp() throws Exception {
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+    public void setUp() {
+        MockIdGenerator.cleanBind();
     }
 
     @After
     public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
+        MockIdGenerator.unbind();
     }
 }

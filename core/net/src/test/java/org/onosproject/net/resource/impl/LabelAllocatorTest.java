@@ -56,7 +56,7 @@ public class LabelAllocatorTest {
 
     private LabelAllocator allocator;
     private MockResourceService resourceService;
-    private IdGenerator idGenerator = new MockIdGenerator();
+    private IdGenerator idGenerator = MockIdGenerator.INSTANCE;
 
     private final ConnectPoint d1p0 = connectPoint("s1", 0);
     private final ConnectPoint d1p1 = connectPoint("s1", 1);

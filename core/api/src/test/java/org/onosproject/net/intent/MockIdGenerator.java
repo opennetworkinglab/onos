@@ -22,18 +22,38 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Mock id generator for testing.
  */
-public class MockIdGenerator implements IdGenerator {
+public final class MockIdGenerator implements IdGenerator {
+
+    public static final MockIdGenerator INSTANCE = new MockIdGenerator();
 
     private static boolean generatorIsBound = false;
-    private static MockIdGenerator idGenerator;
-    public static void bindNewGenerator() {
+
+    // Ban public construction
+    private MockIdGenerator() {
+    }
+
+    /**
+     * Binds clean mock generator to the intent.
+     */
+    public static synchronized void cleanBind() {
+        INSTANCE.nextId = new AtomicLong(0);
         if (!generatorIsBound) {
             generatorIsBound = true;
-            idGenerator = new MockIdGenerator();
-            Intent.unbindIdGenerator(idGenerator);
-            Intent.bindIdGenerator(idGenerator);
+            Intent.unbindIdGenerator(INSTANCE);
+            Intent.bindIdGenerator(INSTANCE);
         }
     }
+
+    /**
+     * Unbinds mock generator from the intent.
+     */
+    public static synchronized void unbind() {
+        if (generatorIsBound) {
+            generatorIsBound = false;
+            Intent.unbindIdGenerator(INSTANCE);
+        }
+    }
+
     private AtomicLong nextId = new AtomicLong(0);
 
     @Override

@@ -22,11 +22,8 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.ResourceGroup;
 
 import java.util.Collection;
-import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
 /**
  * Abstraction of an application level intent.
@@ -286,7 +283,7 @@ public abstract class Intent {
      * @param oldIdGenerator the current id generator
      */
     public static void unbindIdGenerator(IdGenerator oldIdGenerator) {
-        if (Objects.equals(idGenerator, oldIdGenerator)) {
+        if (idGenerator == oldIdGenerator) {
             idGenerator = null;
         }
     }

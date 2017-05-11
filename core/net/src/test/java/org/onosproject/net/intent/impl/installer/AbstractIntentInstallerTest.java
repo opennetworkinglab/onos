@@ -18,7 +18,6 @@ package org.onosproject.net.intent.impl.installer;
 
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.ResourceGroup;
@@ -26,12 +25,11 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentInstallCoordinator;
 import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.impl.ObjectiveTrackerService;
 
@@ -41,7 +39,7 @@ import static org.easymock.EasyMock.createMock;
  * Abstract class to hold the common variables and pieces of code for Intent
  * installer test.
  */
-public class AbstractIntentInstallerTest {
+public class AbstractIntentInstallerTest extends AbstractIntentTest {
     protected static final ApplicationId APP_ID = TestApplicationId.create("IntentInstallerTest");
     protected static final ConnectPoint CP1 = ConnectPoint.deviceConnectPoint("s1/1");
     protected static final ConnectPoint CP2 = ConnectPoint.deviceConnectPoint("s1/2");
@@ -49,22 +47,16 @@ public class AbstractIntentInstallerTest {
     protected static final Key KEY1 = Key.of("test intent 1", APP_ID);
     protected static final ResourceGroup RG1 = ResourceGroup.of("test resource group 1");
     protected static final int DEFAULT_PRIORITY = 30000;
-    protected static final IdGenerator ID_GENERATOR = new MockIdGenerator();
 
     protected IntentExtensionService intentExtensionService;
     protected ObjectiveTrackerService trackerService;
     protected TestIntentInstallCoordinator intentInstallCoordinator;
 
     public void setup() {
-        Intent.unbindIdGenerator(ID_GENERATOR);
-        Intent.bindIdGenerator(ID_GENERATOR);
+        super.setUp();
         intentExtensionService = createMock(IntentExtensionService.class);
         trackerService = createMock(ObjectiveTrackerService.class);
         intentInstallCoordinator = new TestIntentInstallCoordinator();
-    }
-
-    public void tearDown() {
-        Intent.unbindIdGenerator(ID_GENERATOR);
     }
 
     /**

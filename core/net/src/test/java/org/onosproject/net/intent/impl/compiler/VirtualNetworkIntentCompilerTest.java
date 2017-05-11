@@ -68,7 +68,6 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
     private CoreService coreService;
     private TestableIntentService intentService = new FakeIntentManager();
     private IntentExtensionService intentExtensionService;
-    private final IdGenerator idGenerator = new MockIdGenerator();
     private VirtualNetworkIntentCompiler compiler;
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
@@ -97,8 +96,7 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
 
         coreService = new TestCoreService();
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        MockIdGenerator.cleanBind();
 
         setField(virtualNetworkManagerStore, "coreService", coreService);
         setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
@@ -130,8 +128,8 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
 
     @After
     public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
         manager.deactivate();
+        MockIdGenerator.unbind();
     }
 
     /**

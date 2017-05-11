@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl.phase;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
@@ -30,10 +29,9 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.IntentCompilationException;
 import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.impl.IntentProcessor;
@@ -44,10 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -59,7 +54,7 @@ import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 /**
  * Unit tests for Compiling phase.
  */
-public class CompilingTest {
+public class CompilingTest extends AbstractIntentTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
     private final ProviderId pid = new ProviderId("of", "test");
@@ -83,13 +78,10 @@ public class CompilingTest {
 
     @Before
     public void setUp() {
+        super.setUp();
+
         processor = createMock(IntentProcessor.class);
         version = createMock(Timestamp.class);
-
-        idGenerator = new MockIdGenerator();
-
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
 
         // Intent creation should be placed after binding an ID generator
         input = PointToPointIntent.builder()
@@ -105,12 +97,6 @@ public class CompilingTest {
                 .treatment(treatment)
                 .path(path)
                 .build();
-    }
-
-
-    @After
-    public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

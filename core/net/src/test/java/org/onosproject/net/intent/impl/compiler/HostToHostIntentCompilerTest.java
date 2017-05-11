@@ -102,7 +102,7 @@ public class HostToHostIntentCompilerTest extends AbstractIntentTest {
 
     @Override
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         super.setUp();
         Host hostOne = createMock(Host.class);
         expect(hostOne.mac()).andReturn(new MacAddress(HOST_ONE_MAC.getBytes())).anyTimes();

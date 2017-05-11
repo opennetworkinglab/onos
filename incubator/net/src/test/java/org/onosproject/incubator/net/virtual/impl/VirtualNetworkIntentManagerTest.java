@@ -55,14 +55,14 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.WorkPartitionService;
-import org.onosproject.net.intent.WorkPartitionServiceAdapter;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.TestableIntentService;
+import org.onosproject.net.intent.WorkPartitionService;
+import org.onosproject.net.intent.WorkPartitionServiceAdapter;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.store.service.TestStorageService;
 
@@ -108,7 +108,6 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
     private WorkPartitionService workPartitionService;
     private ServiceDirectory testDirectory;
     private TestListener listener = new TestListener();
-    private IdGenerator idGenerator = new MockIdGenerator();
     private static final int MAX_WAIT_TIME = 5;
     private static final int MAX_PERMITS = 1;
     private static Semaphore created;
@@ -121,8 +120,7 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
 
         coreService = new VirtualNetworkIntentManagerTest.TestCoreService();
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        MockIdGenerator.cleanBind();
 
         TestUtils.setField(virtualNetworkManagerStore, "coreService", coreService);
         TestUtils.setField(virtualNetworkManagerStore, "storageService", new TestStorageService());
@@ -158,7 +156,7 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         virtualNetworkManagerStore.deactivate();
         manager.deactivate();
         NetTestTools.injectEventDispatcher(manager, null);
-        Intent.unbindIdGenerator(idGenerator);
+        MockIdGenerator.unbind();
         intentService.removeListener(listener);
         created = null;
         withdrawn = null;

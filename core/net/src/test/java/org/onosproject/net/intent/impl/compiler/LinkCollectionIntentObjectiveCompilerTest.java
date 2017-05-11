@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
@@ -52,16 +51,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.domain.DomainId.LOCAL;
@@ -93,7 +87,7 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
         expect(domainService.getDomain(anyObject(DeviceId.class))).andReturn(LOCAL).anyTimes();
         compiler.domainService = domainService;
 
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
 
         intentExtensionService = createMock(IntentExtensionService.class);
         intentExtensionService.registerCompiler(LinkCollectionIntent.class, compiler);
@@ -112,11 +106,6 @@ public class LinkCollectionIntentObjectiveCompilerTest extends AbstractLinkColle
 
         replay(coreService, domainService, intentExtensionService);
 
-    }
-
-    @After
-    public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

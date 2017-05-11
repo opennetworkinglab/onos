@@ -35,7 +35,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -56,6 +55,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MockIdGenerator;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
@@ -76,7 +76,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
-import static org.onosproject.net.intent.MockIdGenerator.bindNewGenerator;
 
 /**
  * Unit tests for Intents REST APIs.
@@ -101,7 +100,6 @@ public class IntentsResourceTest extends ResourceTest {
     final HashSet<Intent> intents = new HashSet<>();
     final List<org.onosproject.net.intent.Intent> installableIntents = new ArrayList<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
-    private IdGenerator mockGenerator;
 
     final DeviceId deviceId1 = DeviceId.deviceId("1");
 
@@ -698,7 +696,7 @@ public class IntentsResourceTest extends ResourceTest {
 
         BaseResource.setServiceDirectory(testDirectory);
 
-        bindNewGenerator();
+        MockIdGenerator.cleanBind();
     }
 
     /**
@@ -706,6 +704,7 @@ public class IntentsResourceTest extends ResourceTest {
      */
     @After
     public void tearDownTest() {
+        MockIdGenerator.unbind();
         verify(mockIntentService);
     }
 

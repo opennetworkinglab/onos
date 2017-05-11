@@ -15,20 +15,12 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
@@ -38,26 +30,28 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.resource.MockResourceService;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.NetTestTools.APP_ID;
-import static org.onosproject.net.NetTestTools.PID;
-import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.*;
 
-public class MplsPathIntentCompilerTest {
+public class MplsPathIntentCompilerTest extends AbstractIntentTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
 
@@ -83,8 +77,6 @@ public class MplsPathIntentCompilerTest {
             createEdgeLink(d3pe, false)
     );
 
-    private IdGenerator idGenerator = new MockIdGenerator();
-
     private final int hops = links.size() - 1;
     private MplsPathIntent intent;
     private MplsPathIntentCompiler sut;
@@ -98,8 +90,7 @@ public class MplsPathIntentCompilerTest {
         sut.coreService = coreService;
         sut.resourceService = new MockResourceService();
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
 
         intent = MplsPathIntent.builder()
                 .appId(APP_ID)
@@ -117,11 +108,6 @@ public class MplsPathIntentCompilerTest {
         sut.intentExtensionService = intentExtensionService;
 
         replay(coreService, intentExtensionService);
-    }
-
-    @After
-    public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     @Test

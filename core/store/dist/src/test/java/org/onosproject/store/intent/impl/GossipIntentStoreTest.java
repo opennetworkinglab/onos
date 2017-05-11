@@ -15,26 +15,25 @@
  */
 package org.onosproject.store.intent.impl;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterServiceAdapter;
-import org.onosproject.core.IdGenerator;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.WorkPartitionServiceAdapter;
 import org.onosproject.store.service.TestStorageService;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -45,10 +44,9 @@ import static org.onosproject.net.NetTestTools.hid;
 /**
  * Gossip Intent Store test using database adapter.
  */
-public class GossipIntentStoreTest {
+public class GossipIntentStoreTest extends AbstractIntentTest {
 
     private GossipIntentStore intentStore;
-    private IdGenerator idGenerator;
     private HostToHostIntent.Builder builder1;
 
     @Before
@@ -57,9 +55,7 @@ public class GossipIntentStoreTest {
         intentStore.storageService = new TestStorageService();
         intentStore.partitionService = new WorkPartitionServiceAdapter();
         intentStore.clusterService = new ClusterServiceAdapter();
-        idGenerator = new MockIdGenerator();
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
         builder1 = HostToHostIntent
                         .builder()
                         .one(hid("12:34:56:78:91:ab/1"))
@@ -70,9 +66,9 @@ public class GossipIntentStoreTest {
     }
 
     @After
-    public void cleanUp() {
+    public void tearDown() {
         intentStore.deactivate();
-        Intent.unbindIdGenerator(idGenerator);
+        super.tearDown();
     }
 
     /**

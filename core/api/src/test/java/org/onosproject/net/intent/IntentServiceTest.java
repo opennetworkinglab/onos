@@ -18,7 +18,6 @@ package org.onosproject.net.intent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.core.IdGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +31,7 @@ import static org.onosproject.net.intent.IntentEvent.Type.*;
 /**
  * Suite of tests for the intent service contract.
  */
-public class IntentServiceTest {
+public class IntentServiceTest extends AbstractIntentTest {
 
     public static final int IID = 123;
     public static final int INSTALLABLE_IID = 234;
@@ -41,20 +40,18 @@ public class IntentServiceTest {
 
     protected TestableIntentService service;
     protected TestListener listener = new TestListener();
-    protected IdGenerator idGenerator = new MockIdGenerator();
 
     @Before
     public void setUp() {
+        super.setUp();
         service = createIntentService();
         service.addListener(listener);
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
     }
 
     @After
     public void tearDown() {
         service.removeListener(listener);
-        Intent.unbindIdGenerator(idGenerator);
+        super.tearDown();
     }
 
     /**

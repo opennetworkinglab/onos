@@ -21,14 +21,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.core.IdGenerator;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.trivial.SimpleIntentStore;
 import org.onosproject.store.trivial.SystemClockTimestamp;
@@ -42,19 +41,17 @@ import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
  * Test intent cleanup using Mocks.
  * FIXME remove this or IntentCleanupTest
  */
-public class IntentCleanupTestMock {
+public class IntentCleanupTestMock extends AbstractIntentTest {
 
     private IntentCleanup cleanup;
     private IntentService service;
     private IntentStore store;
-    protected IdGenerator idGenerator; // global or one per test? per test for now.
 
     @Before
     public void setUp() {
         service = createMock(IntentService.class);
         store = new SimpleIntentStore();
         cleanup = new IntentCleanup();
-        idGenerator = new MockIdGenerator();
 
         service.addListener(cleanup);
         expectLastCall().once();
@@ -73,8 +70,7 @@ public class IntentCleanupTestMock {
         assertTrue("store should be empty",
                    Sets.newHashSet(cleanup.store.getIntents()).isEmpty());
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
     }
 
     @After
@@ -88,7 +84,7 @@ public class IntentCleanupTestMock {
         verify(service);
         reset(service);
 
-        Intent.unbindIdGenerator(idGenerator);
+        super.tearDown();
     }
 
     /**

@@ -24,16 +24,15 @@ import org.junit.Test;
 import org.onlab.junit.TestTools;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.TestInstallableIntent;
 import org.onosproject.store.intent.impl.IntentStoreAdapter;
@@ -43,15 +42,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Tests for install coordinator.
  */
-public class InstallCoordinatorTest {
+public class InstallCoordinatorTest extends AbstractIntentTest {
     private static final int INSTALL_DELAY = 100;
     private static final int INSTALL_DURATION = 1000;
-    private static final IdGenerator ID_GENERATOR = new MockIdGenerator();
 
     private InstallCoordinator installCoordinator;
     private InstallerRegistry installerRegistry;
@@ -61,8 +60,7 @@ public class InstallCoordinatorTest {
 
     @Before
     public void setup() {
-        Intent.unbindIdGenerator(ID_GENERATOR);
-        Intent.bindIdGenerator(ID_GENERATOR);
+        super.setUp();
         installerRegistry = new InstallerRegistry();
         intentStore = new TestIntentStore();
         intentInstaller = new TestIntentInstaller();
@@ -74,7 +72,7 @@ public class InstallCoordinatorTest {
     @After
     public void tearDown() {
         installerRegistry.unregisterInstaller(TestInstallableIntent.class);
-        Intent.unbindIdGenerator(ID_GENERATOR);
+        super.tearDown();
     }
 
     /**

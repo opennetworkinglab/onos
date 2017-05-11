@@ -15,18 +15,13 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -35,9 +30,8 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceListener;
@@ -46,23 +40,22 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.onosproject.net.resource.ResourceEvent.Type.*;
-import static org.onosproject.net.NetTestTools.APP_ID;
-import static org.onosproject.net.NetTestTools.device;
-import static org.onosproject.net.NetTestTools.link;
+import static org.hamcrest.Matchers.*;
+import static org.onosproject.net.NetTestTools.*;
+import static org.onosproject.net.resource.ResourceEvent.Type.RESOURCE_ADDED;
 
 /**
  * Tests for the objective tracker.
  */
-public class ObjectiveTrackerTest {
+public class ObjectiveTrackerTest extends AbstractIntentTest {
     private static final int WAIT_TIMEOUT_SECONDS = 2;
     private Topology topology;
     private ObjectiveTracker tracker;
@@ -71,7 +64,6 @@ public class ObjectiveTrackerTest {
     private TopologyListener listener;
     private DeviceListener deviceListener;
     private ResourceListener resourceListener;
-    private IdGenerator mockGenerator;
 
     /**
      * Initialization shared by all test cases.
@@ -79,7 +71,7 @@ public class ObjectiveTrackerTest {
      * @throws TestUtilsException if any filed look ups fail
      */
     @Before
-    public void setUp() throws TestUtilsException {
+    public void setUp() {
         topology = createMock(Topology.class);
         tracker = new ObjectiveTracker();
         delegate = new TestTopologyChangeDelegate();
@@ -88,9 +80,7 @@ public class ObjectiveTrackerTest {
         listener = TestUtils.getField(tracker, "listener");
         deviceListener = TestUtils.getField(tracker, "deviceListener");
         resourceListener = TestUtils.getField(tracker, "resourceListener");
-        mockGenerator = new MockIdGenerator();
-        Intent.unbindIdGenerator(mockGenerator);
-        Intent.bindIdGenerator(mockGenerator);
+        super.setUp();
     }
 
     /**
@@ -99,7 +89,7 @@ public class ObjectiveTrackerTest {
     @After
     public void tearDown() {
         tracker.unsetDelegate(delegate);
-        Intent.unbindIdGenerator(mockGenerator);
+        super.tearDown();
     }
 
     /**

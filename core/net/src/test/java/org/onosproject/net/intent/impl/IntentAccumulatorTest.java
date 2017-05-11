@@ -15,24 +15,21 @@
  */
 package org.onosproject.net.intent.impl;
 
-import java.util.Collection;
-import java.util.List;
-
+import com.google.common.collect.ImmutableList;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.core.IdGenerator;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentTestsMocks.MockIntent;
 import org.onosproject.net.intent.IntentTestsMocks.MockTimestamp;
-import org.onosproject.net.intent.MockIdGenerator;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -40,12 +37,11 @@ import static org.hamcrest.Matchers.hasSize;
 /**
  * Unit tests for the intent accumulator.
  */
-public class IntentAccumulatorTest {
+public class IntentAccumulatorTest extends AbstractIntentTest {
 
     Intent intent1;
     Intent intent2;
     Intent intent3;
-    IdGenerator mockGenerator;
 
     private static IntentDataMatcher containsIntent(Intent intent) {
         return new IntentDataMatcher(intent);
@@ -55,22 +51,12 @@ public class IntentAccumulatorTest {
      * Creates mock intents used by the test.
      */
     @Before
-    public void localSetup() {
-        mockGenerator = new MockIdGenerator();
-        Intent.unbindIdGenerator(mockGenerator);
-        Intent.bindIdGenerator(mockGenerator);
+    public void setUp() {
+        super.setUp();
 
         intent1 = new MockIntent(1L);
         intent2 = new MockIntent(2L);
         intent3 = new MockIntent(3L);
-    }
-
-    /**
-     * Removes id generator from the Intent class.
-     */
-    @After
-    public void localTearDown() {
-        Intent.unbindIdGenerator(mockGenerator);
     }
 
     /**

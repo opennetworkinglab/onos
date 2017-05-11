@@ -201,7 +201,7 @@ public final class TestUtils {
      * through reflection. The original exception can be found by examining the
      * cause.
      */
-    public static class TestUtilsException extends Exception {
+    public static class TestUtilsException extends RuntimeException {
 
         private static final long serialVersionUID = 1L;
 

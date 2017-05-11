@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
@@ -26,7 +25,6 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
@@ -40,10 +38,10 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
+import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
@@ -56,32 +54,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
-import static org.onosproject.net.NetTestTools.APP_ID;
-import static org.onosproject.net.NetTestTools.PID;
-import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.*;
 
 /**
  * Unit tests for PathIntentCompiler.
  */
-public class PathIntentCompilerTest {
+public class PathIntentCompilerTest extends AbstractIntentTest {
 
     private CoreService coreService;
     private IntentExtensionService intentExtensionService;
     private IntentConfigurableRegistrator registrator;
-    private IdGenerator idGenerator = new MockIdGenerator();
     private PathIntentCompiler sut;
 
     private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
@@ -175,8 +165,7 @@ public class PathIntentCompilerTest {
         sut.coreService = coreService;
         sut.resourceService = new MockResourceService();
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
 
         intent = PathIntent.builder()
                 .appId(APP_ID)
@@ -336,15 +325,6 @@ public class PathIntentCompilerTest {
 
         replay(coreService, intentExtensionService);
     }
-
-    /**
-     * Tears down objects used in all the test cases.
-     */
-    @After
-    public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
-    }
-
 
     /**
      * Tests the compilation behavior of the path intent compiler in case of

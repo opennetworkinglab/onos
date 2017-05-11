@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableSet;
 import org.hamcrest.core.Is;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
@@ -51,24 +50,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.onlab.packet.EthType.EtherType.IPV4;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.PID;
 import static org.onosproject.net.domain.DomainId.LOCAL;
-import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
-import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_LABEL;
-import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.*;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 
 /**
@@ -89,8 +81,7 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
         expect(domainService.getDomain(anyObject(DeviceId.class))).andReturn(LOCAL).anyTimes();
         sut.domainService = domainService;
 
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        super.setUp();
 
         intent = LinkCollectionIntent.builder()
                 .appId(APP_ID)
@@ -118,12 +109,6 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
         replay(coreService, domainService, intentExtensionService);
 
-    }
-
-    @After
-    public void tearDown() {
-
-        Intent.unbindIdGenerator(idGenerator);
     }
 
     /**

@@ -42,6 +42,7 @@ import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteEvent;
 import org.onosproject.incubator.net.routing.RouteListener;
 import org.onosproject.incubator.net.routing.RouteServiceAdapter;
+import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
@@ -57,7 +58,6 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.intentsync.IntentSynchronizationService;
 import org.onosproject.sdnip.config.SdnIpConfig;
 
 import java.util.Collections;
@@ -125,7 +125,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
     private InterfaceListener interfaceListener;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         super.setUp();
 
         interfaceService = createMock(InterfaceService.class);
