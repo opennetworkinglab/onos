@@ -7,15 +7,11 @@ def _get_name():
     return ONOS_ARTIFACT_BASE + base_path.replace('/', '-') #TODO Unix-separator
 
 YANG_TOOLS = [
-    '//lib:guava',
     '//lib:onos-yang-model',
     '//lib:onos-yang-compiler-api',
     '//lib:onos-yang-runtime',
     '//lib:org.apache.felix.scr.annotations',
     '//apps/yang:onos-apps-yang',
-    # FIXME: This following dependencies MUST be removed for the long-run; they are a violation of the design principle.
-    '//core/api:onos-api',
-    '//apps/config:onos-apps-config',
 ]
 
 def yang_model(
