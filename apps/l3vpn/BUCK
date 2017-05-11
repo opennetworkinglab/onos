@@ -10,7 +10,7 @@ BUNDLES = [
 onos_app(
   app_name = 'org.onosproject.l3vpn',
   title = 'YANG L3VPN App',
-  category = 'L3VPN APP',
+  category = 'Traffic Steering',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,
   description = 'L3VPN YANG Application',
