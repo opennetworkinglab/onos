@@ -61,6 +61,7 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
     private final String exportPackages;
     private final String includeResources;
     private final String dynamicimportPackages;
+    private final String embeddedDependencies;
 
     public OnosJarStepFactory(JavacOptions javacOptions,
                               JavacOptionsAmender amender,
@@ -79,7 +80,8 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                               Optional<String> exportPackages,
                               Optional<String> includeResources,
                               Optional<String> dynamicimportPackages,
-                              Optional<String> privatePackages) {
+                              Optional<String> privatePackages,
+                              Optional<String> embeddedDependencies) {
         super(javacOptions, amender);
         this.bundleDescription = processParameter(bundleDescription);
         this.importPackages = processParameter(importPackages);
@@ -97,6 +99,7 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
         this.apiPackage = processParameter(apiPackage);
         this.apiDescription = processParameter(apiDescription);
         this.resources = resources;
+        this.embeddedDependencies = processParameter(embeddedDependencies);
     }
 
     private String processParameter(Optional<String> p) {
@@ -197,6 +200,7 @@ public class OnosJarStepFactory extends JavacToJarStepFactory {
                 includeResources, // include resources
                 webContext, // web context
                 dynamicimportPackages, // dynamic import packages
+                embeddedDependencies, // embedded dependencies
                 bundleDescription,  // bundle description
                 privatePackages // private packages
         );

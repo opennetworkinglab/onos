@@ -248,7 +248,7 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
                                                            args.groupId, args.bundleName, args.bundleVersion,
                                                            args.bundleLicense, args.bundleDescription, args.importPackages,
                                                            args.exportPackages, includedResourcesString,
-                                                           args.dynamicimportPackages, args.privatePackages),
+                                                           args.dynamicimportPackages, args.privatePackages, args.embeddedDependencies),
                                     args.resourcesRoot,
                                     args.manifestFile,
                                     args.mavenCoords,
@@ -329,5 +329,6 @@ public class OnosJarDescription implements Description<OnosJarDescription.Arg>, 
         public Optional<String> exportPackages;
         public Optional<ImmutableSortedMap<String, SourcePath>> includeResources;
         public Optional<String> dynamicimportPackages;
+        public Optional<String> embeddedDependencies;
     }
 }

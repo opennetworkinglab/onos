@@ -31,6 +31,7 @@ import com.facebook.buck.step.ExecutionContext;
 import com.facebook.buck.step.Step;
 import com.facebook.buck.step.StepExecutionResult;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -76,6 +77,7 @@ public class OSGiWrapper implements Step {
     private String importPackages;
     private String privatePackages;
     private String dynamicimportPackages;
+    private String embeddedDependencies;
 
     private String exportPackages;
     private String includeResources;
@@ -102,6 +104,7 @@ public class OSGiWrapper implements Step {
                        String includeResources,
                        String webContext,
                        String dynamicimportPackages,
+                       String embeddedDependencies,
                        String bundleDescription,
                        String privatePackages) {
         this.inputJar = inputJar;
@@ -125,6 +128,7 @@ public class OSGiWrapper implements Step {
         this.importPackages = importPackages;
         this.privatePackages = privatePackages;
         this.dynamicimportPackages = dynamicimportPackages;
+        this.embeddedDependencies = embeddedDependencies;
         this.exportPackages = exportPackages;
         this.includeResources = includeResources;
 
@@ -166,6 +170,15 @@ public class OSGiWrapper implements Step {
             analyzer.setProperty(Analyzer.INCLUDE_RESOURCE, includeResources);
         }
 
+        if(embeddedDependencies != null) {
+            analyzer.setProperty(Analyzer.BUNDLE_CLASSPATH,
+                                 embeddedDependencies);
+            String finalIncludes = Strings.isNullOrEmpty(includeResources) ?
+                    embeddedDependencies : (includeResources+","+embeddedDependencies);
+            analyzer.setProperty(Analyzer.INCLUDE_RESOURCE,
+                                 finalIncludes);
+        }
+
         if (isWab()) {
             analyzer.setProperty(Analyzer.WAB, "src/main/webapp/");
             analyzer.setProperty("Web-ContextPath", webContext);
@@ -203,7 +216,7 @@ public class OSGiWrapper implements Step {
             //addLocalPackages(new File(classesDir.toString()), analyzer);
 
             //add resources.
-            if (includeResources != null) {
+            if (includeResources != null || embeddedDependencies != null) {
                 doIncludeResources(analyzer);
             }
 
