@@ -83,7 +83,7 @@
 #application-details-panel h2 {
     display: inline-block;
     margin: 12px 0 6px 0;
-    font-size: 15pt;
+    font-size: 13pt;
     font-variant: small-caps;
     text-transform: uppercase;
 }
@@ -91,7 +91,7 @@
 #application-details-panel .top .app-title {
     width: 90%;
     height: 62px;
-    font-size: 30pt;
+    font-size: 20pt;
     font-weight: lighter;
     overflow: hidden;
     white-space: nowrap;

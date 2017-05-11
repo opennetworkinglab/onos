@@ -147,7 +147,7 @@
     }
 
     function urlize(u) {
-        return 'Url:<br/> <a href="' + u + '" target="_blank">' + u + '</a>';
+        return '<a href="' + u + '" target="_blank">' + u + '</a>';
     }
 
     function addIcon(elem, value) {
