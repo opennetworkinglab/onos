@@ -20,6 +20,11 @@ import com.google.common.annotations.Beta;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.event.ListenerService;
+import org.onosproject.yang.model.RpcCaller;
+import org.onosproject.yang.model.RpcCommand;
+import org.onosproject.yang.model.RpcHandler;
+import org.onosproject.yang.model.RpcInput;
+import org.onosproject.yang.model.RpcOutput;
 
 /**
  * Service for storing and distributing dynamic configuration data.
