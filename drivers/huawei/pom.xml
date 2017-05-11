@@ -31,7 +31,9 @@
     <packaging>pom</packaging>
 
     <modules>
+        <!-- detaching broken build
         <module>driver</module>
+        -->
         <module>yangmodel</module>
     </modules>
 

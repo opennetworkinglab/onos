@@ -87,7 +87,6 @@
         <module>mappingmanagement</module>
         <module>yang</module>
         <module>network-troubleshoot</module>
-        <module>l3vpn</module>
         <module>restconf</module>
     </modules>
 
