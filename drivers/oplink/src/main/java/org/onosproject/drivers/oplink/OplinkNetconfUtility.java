@@ -16,14 +16,17 @@
 
 package org.onosproject.drivers.oplink;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -33,7 +36,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class OplinkNetconfUtility {
 
     // public used nodes
-    public static final String CFG_TAR_RUNNING = "running";
     public static final String CFG_MODE_MERGE = "merge";
     public static final String CFG_MODE_REMOVE = "remove";
     public static final String KEY_XMLNS = "xmlns=\"http://com/att/device\"";
@@ -54,6 +56,25 @@ public final class OplinkNetconfUtility {
     }
 
     /**
+     * Retrieves session reply information for get operation.
+     *
+     * @param handler parent driver handler
+     * @param filter the filter string of xml content
+     * @return the reply string
+     */
+    public static String netconfGet(DriverHandler handler, String filter) {
+        NetconfController controller = checkNotNull(handler.get(NetconfController.class));
+        NetconfSession session = controller.getNetconfDevice(handler.data().deviceId()).getSession();
+        String reply;
+        try {
+            reply = session.get(filter, null);
+        } catch (IOException e) {
+            throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
+        }
+        return reply;
+    }
+
+    /**
      * Retrieves session reply information for get config operation.
      *
      * @param handler parent driver handler
@@ -65,7 +86,7 @@ public final class OplinkNetconfUtility {
         NetconfSession session = controller.getNetconfDevice(handler.data().deviceId()).getSession();
         String reply;
         try {
-            reply = session.getConfig(CFG_TAR_RUNNING, filter);
+            reply = session.getConfig(DatastoreId.RUNNING, filter);
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to retrieve configuration.", e));
         }
@@ -85,7 +106,7 @@ public final class OplinkNetconfUtility {
         NetconfSession session = controller.getNetconfDevice(handler.data().deviceId()).getSession();
         boolean reply = false;
         try {
-            reply = session.editConfig(CFG_TAR_RUNNING, mode, cfg);
+            reply = session.editConfig(DatastoreId.RUNNING, mode, cfg);
         } catch (IOException e) {
             throw new RuntimeException(new NetconfException("Failed to edit configuration.", e));
         }
@@ -97,16 +118,35 @@ public final class OplinkNetconfUtility {
      *
      * @param content the xml information
      * @param key the configuration key node
-     * @return the hierarchical configuration
+     * @return the hierarchical configuration, null if exception happens
      */
     public static HierarchicalConfiguration configAt(String content, String key) {
-        HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
         HierarchicalConfiguration info;
         try {
+            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
             info = cfg.configurationAt(key);
         } catch (Exception e) {
             // Accept null for information polling
             return null;
+        }
+        return info;
+    }
+
+    /**
+     * Retrieves specified node hierarchical configurations from the xml information.
+     *
+     * @param content the xml information
+     * @param key the configuration key node
+     * @return the hierarchical configurations, empty if exception happens
+     */
+    public static List<HierarchicalConfiguration> configsAt(String content, String key) {
+        List<HierarchicalConfiguration> info;
+        try {
+            HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
+            info = cfg.configurationsAt(key);
+        } catch (Exception e) {
+            // Accept empty for information polling
+            return ImmutableList.of();
         }
         return info;
     }
