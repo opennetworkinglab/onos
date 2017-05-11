@@ -44,6 +44,9 @@
             <action class="org.onosproject.distributedprimitives.cli.ConsistentMapTestCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.distributedprimitives.cli.EventuallyConsistentMapTestCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.distributedprimitives.cli.ValueTestCommand"/>
         </command>
         <command>
