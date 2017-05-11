@@ -1,10 +1,10 @@
 COMPILE_DEPS = [
   '//lib:CORE_DEPS',
   '//lib:org.apache.servicemix.bundles.dom4j',
-  '//apps/l3vpn/yangmodel:onos-apps-l3vpn-yangmodel',
+  '//models/l3vpn:onos-models-l3vpn',
   '//drivers/utilities:onos-drivers-utilities',
   '//protocols/netconf/api:onos-protocols-netconf-api',
-  '//apps/l3vpn/netl3vpn:onos-apps-l3vpn-netl3vpn',
+  '//apps/l3vpn:onos-apps-l3vpn',
   '//drivers/huawei/yangmodel:onos-drivers-huawei-yangmodel',
   '//apps/config:onos-apps-config',
   '//lib:onos-yang-model',

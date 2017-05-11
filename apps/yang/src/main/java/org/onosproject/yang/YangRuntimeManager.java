@@ -110,6 +110,8 @@ public class YangRuntimeManager implements YangModelRegistry,
 
     @Override
     public void registerSerializer(YangSerializer ys) {
+        //FIXME: Allow re-registration of model with additional service end
+        // points.
         serializerRegistry.registerSerializer(ys);
     }
 
