@@ -35,6 +35,9 @@ public final class LispEidRecord {
     private final byte maskLength;
     private final LispAfiAddress prefix;
 
+    // Cache the hash code for the string, default to 0
+    private final int hash;
+
     /**
      * Initializes LispEidRecord with mask length and EID prefix.
      *
@@ -47,6 +50,7 @@ public final class LispEidRecord {
         checkNotNull(prefix, "Must specify an address prefix");
 
         this.prefix = prefix;
+        this.hash = 31 * 17 + Objects.hashCode(maskLength, prefix);
     }
 
     /**
@@ -90,7 +94,7 @@ public final class LispEidRecord {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(maskLength, prefix);
+        return hash;
     }
 
     /**
