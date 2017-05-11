@@ -179,10 +179,12 @@ public class InstallCoordinator {
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
                 log.debug("Completed installing: {}", installData.key());
+                installData = new IntentData(installData, installData.installables());
                 installData.setState(INSTALLED);
                 intentStore.write(installData);
             } else if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
+                uninstallData = new IntentData(uninstallData, Collections.emptyList());
                 log.debug("Completed withdrawing: {}", uninstallData.key());
                 switch (uninstallData.request()) {
                     case INSTALL_REQ:
@@ -196,7 +198,7 @@ public class InstallCoordinator {
                         break;
                 }
                 // Intent has been withdrawn; we can clear the installables
-                intentStore.write(new IntentData(uninstallData, Collections.emptyList()));
+                intentStore.write(uninstallData);
             }
         } else {
             // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)

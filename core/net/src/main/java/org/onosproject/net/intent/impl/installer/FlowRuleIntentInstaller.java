@@ -16,6 +16,7 @@
 
 package org.onosproject.net.intent.impl.installer;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import static org.onosproject.net.intent.IntentInstaller.Direction.ADD;
 import static org.onosproject.net.intent.IntentInstaller.Direction.REMOVE;
 import static org.onosproject.net.intent.IntentState.INSTALLED;
@@ -79,8 +81,8 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
         Optional<IntentData> toUninstall = context.toUninstall();
         Optional<IntentData> toInstall = context.toInstall();
 
-        List<FlowRuleIntent> uninstallIntents = context.intentsToUninstall();
-        List<FlowRuleIntent> installIntents = context.intentsToInstall();
+        List<FlowRuleIntent> uninstallIntents = Lists.newArrayList(context.intentsToUninstall());
+        List<FlowRuleIntent> installIntents = Lists.newArrayList(context.intentsToInstall());
 
         if (!toInstall.isPresent() && !toUninstall.isPresent()) {
             intentInstallCoordinator.intentInstallSuccess(context);
@@ -94,7 +96,6 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
         } else {
             IntentData uninstall = toUninstall.get();
             IntentData install = toInstall.get();
-
             // Filter out same intents and intents with same flow rules
             Iterator<FlowRuleIntent> iterator = installIntents.iterator();
             while (iterator.hasNext()) {
@@ -145,8 +146,6 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
         };
 
         FlowRuleOperations operations = builder.build(flowRuleOperationsContext);
-
-
         log.debug("applying intent {} -> {} with {} rules: {}",
                   toUninstall.map(x -> x.key().toString()).orElse("<empty>"),
                   toInstall.map(x -> x.key().toString()).orElse("<empty>"),

@@ -460,6 +460,9 @@ public class IntentManager
                                        boolean compileAllFailed) {
         // Attempt recompilation of the specified intents first.
         for (Key key : intentKeys) {
+            if (!store.isMaster(key)) {
+                continue;
+            }
             Intent intent = store.getIntent(key);
             if (intent == null) {
                 continue;
@@ -470,6 +473,9 @@ public class IntentManager
         if (compileAllFailed) {
             // If required, compile all currently failed intents.
             for (Intent intent : getIntents()) {
+                if (!store.isMaster(intent.key())) {
+                    continue;
+                }
                 IntentState state = getIntentState(intent.key());
                 if (RECOMPILE.contains(state) || intentAllowsPartialFailure(intent)) {
                     if (WITHDRAW.contains(state)) {
