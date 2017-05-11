@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -49,6 +50,7 @@ import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,7 @@ public class OpenstackRoutingFloatingIpHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
+    private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -167,25 +170,39 @@ public class OpenstackRoutingFloatingIpHandler {
                 .build();
 
         osNodeService.gatewayDeviceIds().forEach(gnodeId -> {
-            TrafficTreatment externalTreatment = DefaultTrafficTreatment.builder()
+            TrafficTreatment.Builder externalBuilder = DefaultTrafficTreatment.builder()
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
                     .setEthDst(instPort.macAddress())
-                    .setIpDst(instPort.ipAddress().getIp4Address())
-                    .setTunnelId(Long.valueOf(osNet.getProviderSegID()))
-                    .extension(buildExtension(
-                            deviceService,
-                            gnodeId,
-                            dataIp.get().getIp4Address()),
-                            gnodeId)
-                    .setOutput(osNodeService.tunnelPort(gnodeId).get())
-                    .build();
+                    .setIpDst(instPort.ipAddress().getIp4Address());
+
+            switch (osNet.getNetworkType()) {
+                case VXLAN:
+                    externalBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
+                            .extension(buildExtension(
+                                    deviceService,
+                                    gnodeId,
+                                    dataIp.get().getIp4Address()),
+                                    gnodeId)
+                            .setOutput(osNodeService.tunnelPort(gnodeId).get());
+                    break;
+                case VLAN:
+                    externalBuilder.pushVlan()
+                            .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
+                            .setOutput(osNodeService.vlanPort(gnodeId).get());
+                    break;
+                default:
+                    final String error = String.format(
+                            ERR_UNSUPPORTED_NET_TYPE + "%s",
+                            osNet.getNetworkType().toString());
+                    throw new IllegalStateException(error);
+            }
 
             RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     gnodeId,
                     externalSelector,
-                    externalTreatment,
+                    externalBuilder.build(),
                     ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_EXTERNAL,
                     install);
@@ -197,25 +214,39 @@ public class OpenstackRoutingFloatingIpHandler {
                     .matchInPort(osNodeService.tunnelPort(gnodeId).get())
                     .build();
 
-            TrafficTreatment internalTreatment = DefaultTrafficTreatment.builder()
+            TrafficTreatment.Builder internalBuilder = DefaultTrafficTreatment.builder()
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
                     .setEthDst(instPort.macAddress())
-                    .setIpDst(instPort.ipAddress().getIp4Address())
-                    .setTunnelId(Long.valueOf(osNet.getProviderSegID()))
-                    .extension(buildExtension(
-                            deviceService,
-                            gnodeId,
-                            dataIp.get().getIp4Address()),
-                            gnodeId)
-                    .setOutput(PortNumber.IN_PORT)
-                    .build();
+                    .setIpDst(instPort.ipAddress().getIp4Address());
+
+            switch (osNet.getNetworkType()) {
+                case VXLAN:
+                    internalBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
+                            .extension(buildExtension(
+                                    deviceService,
+                                    gnodeId,
+                                    dataIp.get().getIp4Address()),
+                                    gnodeId)
+                            .setOutput(PortNumber.IN_PORT);
+                    break;
+                case VLAN:
+                    internalBuilder.pushVlan()
+                            .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
+                            .setOutput(PortNumber.IN_PORT);
+                    break;
+                default:
+                    final String error = String.format(
+                            ERR_UNSUPPORTED_NET_TYPE + "%s",
+                            osNet.getNetworkType().toString());
+                    throw new IllegalStateException(error);
+            }
 
             RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     gnodeId,
                     internalSelector,
-                    internalTreatment,
+                    internalBuilder.build(),
                     ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_INTERNAL,
                     install);
@@ -225,26 +256,41 @@ public class OpenstackRoutingFloatingIpHandler {
     private void setUpstreamRules(NetFloatingIP floatingIp, Network osNet,
                                   InstancePort instPort, boolean install) {
         IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchTunnelId(Long.valueOf(osNet.getProviderSegID()))
-                .matchIPSrc(instPort.ipAddress().toIpPrefix())
-                .build();
+                .matchIPSrc(instPort.ipAddress().toIpPrefix());
+
+        switch (osNet.getNetworkType()) {
+            case VXLAN:
+                sBuilder.matchTunnelId(Long.valueOf(osNet.getProviderSegID()));
+                break;
+            case VLAN:
+                sBuilder.matchVlanId(VlanId.vlanId(osNet.getProviderSegID()));
+                break;
+            default:
+                final String error = String.format(
+                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        osNet.getNetworkType().toString());
+                throw new IllegalStateException(error);
+        }
 
         osNodeService.gatewayDeviceIds().forEach(gnodeId -> {
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                     .setIpSrc(floating.getIp4Address())
                     .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                    .setEthDst(Constants.DEFAULT_EXTERNAL_ROUTER_MAC)
-                    .setOutput(osNodeService.externalPort(gnodeId).get())
-                    .build();
+                    .setEthDst(Constants.DEFAULT_EXTERNAL_ROUTER_MAC);
+
+            if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
+                tBuilder.popVlan();
+            }
 
             RulePopulatorUtil.setRule(
                     flowObjectiveService,
                     appId,
                     gnodeId,
-                    selector,
-                    treatment,
+                    sBuilder.build(),
+                    tBuilder.setOutput(osNodeService.externalPort(gnodeId).get()).build(),
                     ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_EXTERNAL,
                     install);

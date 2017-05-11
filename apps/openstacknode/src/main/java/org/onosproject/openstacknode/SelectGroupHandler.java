@@ -18,8 +18,10 @@ package org.onosproject.openstacknode;
 
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
+import org.onosproject.openstacknode.OpenstackNodeService.NetworkMode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -47,7 +49,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.Constants.*;
 import static org.onosproject.net.group.DefaultGroupBucket.createSelectGroupBucket;
 
 /**
@@ -57,7 +61,7 @@ public class SelectGroupHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String TUNNEL_DESTINATION = "tunnelDst";
-    private static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
+    private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
 
     private final GroupService groupService;
     private final DeviceService deviceService;
@@ -83,81 +87,139 @@ public class SelectGroupHandler {
     /**
      * Creates select type group description according to given deviceId.
      *
-     * @param srcDeviceId target device id for group description
+     * @param computeNode target device id for group description
      * @param gatewayNodeList gateway node list for bucket action
-     * @return created select type group description
      */
-    public GroupId createGatewayGroup(DeviceId srcDeviceId, List<OpenstackNode> gatewayNodeList) {
-        List<GroupBucket> bucketList = generateBucketsForSelectGroup(srcDeviceId, gatewayNodeList);
-        GroupId groupId = getGroupId(srcDeviceId);
-        GroupDescription groupDescription = new DefaultGroupDescription(
-                srcDeviceId,
-                GroupDescription.Type.SELECT,
-                new GroupBuckets(bucketList),
-                getGroupKey(srcDeviceId),
-                groupId.id(),
-                appId);
+    public void createGatewayGroup(OpenstackNode computeNode, List<OpenstackNode> gatewayNodeList) {
+        List<GroupBucket> bucketList;
+        GroupId groupId;
 
-        groupService.addGroup(groupDescription);
-        return groupId;
+        if (computeNode.dataIp().isPresent()) {
+            bucketList = generateBucketsForSelectGroup(computeNode, gatewayNodeList, NetworkMode.VXLAN);
+            groupId = groupId(computeNode.intBridge(), NetworkMode.VXLAN);
+
+            GroupDescription groupDescription = new DefaultGroupDescription(
+                    computeNode.intBridge(),
+                    GroupDescription.Type.SELECT,
+                    new GroupBuckets(bucketList),
+                    groupKey(computeNode.intBridge(), NetworkMode.VXLAN),
+                    groupId.id(),
+                    appId);
+
+            groupService.addGroup(groupDescription);
+        }
+
+        if (computeNode.vlanPort().isPresent()) {
+            bucketList = generateBucketsForSelectGroup(computeNode, gatewayNodeList, NetworkMode.VLAN);
+            groupId = groupId(computeNode.intBridge(), NetworkMode.VLAN);
+
+            GroupDescription groupDescription = new DefaultGroupDescription(
+                    computeNode.intBridge(),
+                    GroupDescription.Type.SELECT,
+                    new GroupBuckets(bucketList),
+                    groupKey(computeNode.intBridge(), NetworkMode.VLAN),
+                    groupId.id(),
+                    appId);
+
+            groupService.addGroup(groupDescription);
+        }
     }
 
     /**
-     * Returns unique group key with supplied source device ID as a hash.
-     *
+     * Returns unique group key with supplied source device ID and network mode as a hash.
      * @param srcDeviceId source device id
+     * @param networkMode network mode
      * @return group key
      */
-    public GroupKey getGroupKey(DeviceId srcDeviceId) {
-        return new DefaultGroupKey(srcDeviceId.toString().getBytes());
+    public GroupKey groupKey(DeviceId srcDeviceId, NetworkMode networkMode) {
+        if (networkMode.equals(NetworkMode.VXLAN)) {
+            return new DefaultGroupKey(srcDeviceId.toString().concat(DEFAULT_TUNNEL).getBytes());
+        } else {
+            return new DefaultGroupKey(srcDeviceId.toString().concat(VLAN).getBytes());
+        }
     }
 
-    private GroupId getGroupId(DeviceId srcDeviceId) {
-        return new GroupId(srcDeviceId.toString().hashCode());
+    private GroupId groupId(DeviceId srcDeviceId, NetworkMode networkMode) {
+        if (networkMode.equals(NetworkMode.VXLAN)) {
+            return new GroupId(srcDeviceId.toString().concat(DEFAULT_TUNNEL).hashCode());
+        } else {
+            return new GroupId(srcDeviceId.toString().concat(VLAN).hashCode());
+        }
     }
+
 
     /**
      * Updates groupBuckets in select type group.
      *
-     * @param deviceId target device id to update the group
+     * @param computeNode compute node
      * @param gatewayNodeList updated gateway node list for bucket action
+     * @param networkMode network mode
      * @param isInsert update type(add or remove)
      */
-    public void updateGatewayGroupBuckets(DeviceId deviceId,
+    public void updateGatewayGroupBuckets(OpenstackNode computeNode,
                                           List<OpenstackNode> gatewayNodeList,
+                                          NetworkMode networkMode,
                                           boolean isInsert) {
-        List<GroupBucket> bucketList = generateBucketsForSelectGroup(deviceId, gatewayNodeList);
-        GroupKey groupKey = getGroupKey(deviceId);
-        if (groupService.getGroup(deviceId, groupKey) == null) {
-            log.error("There's no group in compute node {}", deviceId);
+        List<GroupBucket> bucketList = generateBucketsForSelectGroup(computeNode, gatewayNodeList, networkMode);
+        GroupKey groupKey = groupKey(computeNode.intBridge(), networkMode);
+        if (groupService.getGroup(computeNode.intBridge(), groupKey) == null) {
+            log.error("There's no group in compute node {}", computeNode.intBridge());
             return;
         }
 
         if (isInsert) {
             groupService.addBucketsToGroup(
-                    deviceId,
+                    computeNode.intBridge(),
                     groupKey,
                     new GroupBuckets(bucketList),
                     groupKey, appId);
         } else {
             groupService.removeBucketsFromGroup(
-                    deviceId,
+                    computeNode.intBridge(),
                     groupKey,
                     new GroupBuckets(bucketList),
                     groupKey, appId);
         }
     }
 
-    private List<GroupBucket> generateBucketsForSelectGroup(DeviceId deviceId, List<OpenstackNode> gatewayNodeList) {
+
+
+    private List<GroupBucket> generateBucketsForSelectGroup(OpenstackNode computeNode,
+                                                         List<OpenstackNode> gatewayNodeList,
+                                                         NetworkMode networkMode) {
         List<GroupBucket> bucketList = Lists.newArrayList();
-        gatewayNodeList.forEach(node -> {
-            TrafficTreatment tBuilder = DefaultTrafficTreatment.builder()
-                    .extension(buildNiciraExtenstion(deviceId, node.dataIp().get().getIp4Address()), deviceId)
-                    .setOutput(getTunnelPort(deviceId))
-                    .build();
-            bucketList.add(createSelectGroupBucket(tBuilder));
-        });
-        return bucketList;
+
+        switch (networkMode) {
+            case VXLAN:
+                gatewayNodeList.stream()
+                        .filter(node -> node.dataIp().isPresent())
+                        .forEach(node -> {
+                            TrafficTreatment tBuilder = DefaultTrafficTreatment.builder()
+                                    .extension(buildNiciraExtenstion(computeNode.intBridge(),
+                                            node.dataIp().get().getIp4Address()),
+                                            computeNode.intBridge())
+                                    .setOutput(getTunnelPort(computeNode.intBridge()))
+                                    .build();
+                            bucketList.add(createSelectGroupBucket(tBuilder));
+                        });
+                return bucketList;
+            case VLAN:
+                gatewayNodeList.stream()
+                        .filter(node -> node.vlanPort().isPresent())
+                        .forEach(node -> {
+                            TrafficTreatment tBuilder = DefaultTrafficTreatment.builder()
+                                    .setEthDst(MacAddress.valueOf(vlanPortMac(node)))
+                                    .setOutput(vlanPortNum(computeNode))
+                                    .build();
+                            bucketList.add(createSelectGroupBucket(tBuilder));
+                        });
+                return bucketList;
+            default:
+                final String error = String.format(
+                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        networkMode.toString());
+                throw new IllegalStateException(error);
+        }
     }
 
     /**
@@ -193,7 +255,7 @@ public class SelectGroupHandler {
      */
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value(PORT_NAME).equals(PORTNAME_PREFIX_TUNNEL))
+                .filter(p -> p.annotations().value(PORT_NAME).equals(DEFAULT_TUNNEL))
                 .findAny().orElse(null);
 
         if (port == null) {
@@ -201,6 +263,18 @@ public class SelectGroupHandler {
             return null;
         }
         return port.number();
+    }
 
+    private PortNumber vlanPortNum(OpenstackNode node) {
+        return deviceService.getPorts(node.intBridge()).stream()
+                .filter(p -> p.annotations().value(PORT_NAME).equals(node.vlanPort().get()) &&
+                        p.isEnabled())
+                .map(Port::number).findFirst().get();
+
+    }
+    private String vlanPortMac(OpenstackNode node) {
+        return deviceService.getPorts(node.intBridge()).stream()
+                .filter(p -> p.annotations().value(PORT_NAME).equals(node.vlanPort().get()) && p.isEnabled())
+                .findFirst().get().annotations().value(PORT_MAC);
     }
 }

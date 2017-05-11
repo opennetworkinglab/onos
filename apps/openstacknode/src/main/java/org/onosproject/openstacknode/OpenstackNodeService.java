@@ -39,6 +39,14 @@ public interface OpenstackNodeService
         GATEWAY
     }
 
+    enum NetworkMode {
+        /**
+         * VxLAN or VLAN mode.
+         */
+        VXLAN,
+        VLAN
+    }
+
     /**
      * Adds or updates a new node to the service.
      *
@@ -150,9 +158,10 @@ public interface OpenstackNodeService
      * If the group does not exist in the supplied source device, creates one.
      *
      * @param srcDeviceId source device id
-     * @return The group id
+     * @param networkMode network mode
+     * @return group id
      */
-    GroupId gatewayGroupId(DeviceId srcDeviceId);
+    GroupId gatewayGroupId(DeviceId srcDeviceId, NetworkMode networkMode);
 
     /**
      * Returns the list of gateway node information with the given device identifier.

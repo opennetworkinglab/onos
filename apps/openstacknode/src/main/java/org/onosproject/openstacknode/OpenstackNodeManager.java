@@ -297,7 +297,7 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
         process(new OpenstackNodeEvent(COMPLETE, node));
         switch (node.type()) {
             case COMPUTE:
-                selectGroupHandler.createGatewayGroup(node.intBridge(), gatewayNodes());
+                selectGroupHandler.createGatewayGroup(node, gatewayNodes());
                 break;
             case GATEWAY:
                 updateGatewayGroup(node, true);
@@ -386,12 +386,15 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
     }
 
     @Override
-    public synchronized GroupId gatewayGroupId(DeviceId srcDeviceId) {
-        GroupKey groupKey = selectGroupHandler.getGroupKey(srcDeviceId);
+    public synchronized GroupId gatewayGroupId(DeviceId srcDeviceId, NetworkMode networkMode) {
+        GroupKey groupKey = selectGroupHandler.groupKey(srcDeviceId, networkMode);
         Group group = groupService.getGroup(srcDeviceId, groupKey);
+
         if (group == null) {
             log.info("Created gateway group for {}", srcDeviceId);
-            return selectGroupHandler.createGatewayGroup(srcDeviceId, gatewayNodes());
+            selectGroupHandler.createGatewayGroup(nodeByDeviceId(srcDeviceId), gatewayNodes());
+
+            return groupService.getGroup(srcDeviceId, selectGroupHandler.groupKey(srcDeviceId, networkMode)).id();
         } else {
             return group.id();
         }
@@ -425,13 +428,26 @@ public final class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEv
                 .stream()
                 .map(Versioned::value)
                 .filter(node -> node.type().equals(NodeType.COMPUTE))
+                .filter(node -> node.dataIp().isPresent())
                 .filter(node -> node.state().equals(COMPLETE))
-                .forEach(node -> {
-                    selectGroupHandler.updateGatewayGroupBuckets(node.intBridge(),
-                            ImmutableList.of(gatewayNode),
-                            isInsert);
-                    log.trace("Updated gateway group on {}", node.intBridge());
+                .forEach(computeNode -> {
+                    selectGroupHandler.updateGatewayGroupBuckets(computeNode,
+                            ImmutableList.of(gatewayNode), NetworkMode.VXLAN, isInsert);
+                    log.trace("Updated gateway group on {} for vxlan mode", computeNode.intBridge());
                 });
+
+        nodeStore.values()
+                .stream()
+                .map(Versioned::value)
+                .filter(node -> node.type().equals(NodeType.COMPUTE))
+                .filter(node -> node.vlanPort().isPresent())
+                .filter(node -> node.state().equals(COMPLETE))
+                .forEach(computeNode -> {
+                    selectGroupHandler.updateGatewayGroupBuckets(computeNode,
+                            ImmutableList.of(gatewayNode), NetworkMode.VLAN, isInsert);
+                    log.trace("Updated gateway group on {} for vlan mode", computeNode.intBridge());
+                });
+
     }
 
     private void initNode(OpenstackNode node) {
