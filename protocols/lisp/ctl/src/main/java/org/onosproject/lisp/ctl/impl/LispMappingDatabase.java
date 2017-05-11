@@ -113,9 +113,11 @@ public final class LispMappingDatabase {
     public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid, boolean proxyMapReply) {
 
         for (LispEidRecord key : map.keySet()) {
-            if (isInRange(key, eid) && map.get(key) != null
-                    && map.get(key).isProxyMapReply() == proxyMapReply) {
-                return map.get(key).getMapRecord();
+            if (isInRange(key, eid)) {
+                LispProxyMapRecord record = map.get(key);
+                if (record != null && record.isProxyMapReply() == proxyMapReply) {
+                    return record.getMapRecord();
+                }
             }
         }
 
