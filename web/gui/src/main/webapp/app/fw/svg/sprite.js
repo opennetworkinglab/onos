@@ -215,9 +215,9 @@
 
     // Returns a layout "builder", which can be used to programmatically
     // define a layout.
-    function createLayout(id, w, h, grid) {
-        $log.debug('createLayout:', id, w, 'x', h, '(grid=' + grid + ')');
-        return layoutBuilder(id, w, h, grid);
+    function createLayout(id, w, h, opts) {
+        $log.debug('createLayout:', id, w, 'x', h, '(opts:', opts, ')');
+        return layoutBuilder(id, w, h, opts);
     }
 
     // Registers a sprite defined by the given object (JSON structure).

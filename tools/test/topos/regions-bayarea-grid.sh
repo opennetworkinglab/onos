@@ -206,15 +206,16 @@ EOF
 
 ### Add regions and associate devices with them
 #
-# region-add <region-id> <region-name> <region-type> <lat/Y> <long/X> <region-master>
+# region-add <region-id> <region-name> <region-type> \
+#   <lat/Y> <long/X> <locType> <region-master>
 # region-add-devices <region-id> <device-id>...
 
 onos ${host} <<-EOF
 
-region-add c01 "San Francisco" DATA_CENTER 37.75394143914288 -122.45945851660800 ${host}
-region-add c02 "Palo Alto"     DATA_CENTER 37.45466637790734 -122.21838933304870 ${host}
-region-add c03 "San Jose"      DATA_CENTER 37.34425619809433 -121.94768095808017 ${host}
-region-add c04 "Fremont"      DATA_CENTER 37.54328280574901 -122.01205548699211 ${host}
+region-add c01 "San Francisco" DATA_CENTER 37.75394143914288 -122.45945851660800 geo ${host}
+region-add c02 "Palo Alto"     DATA_CENTER 37.45466637790734 -122.21838933304870 geo ${host}
+region-add c03 "San Jose"      DATA_CENTER 37.34425619809433 -121.94768095808017 geo ${host}
+region-add c04 "Fremont"      DATA_CENTER 37.54328280574901 -122.01205548699211 geo ${host}
 
 region-add-devices c01 \
     null:0000000000000001 \

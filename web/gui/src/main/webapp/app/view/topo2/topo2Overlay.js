@@ -141,7 +141,8 @@
             // TODO: Inconsistent host id's (currentRegion and LinkLabel)
             var id = link.id.replace('/None/0', '/None').replace('-', '~'),
                 lab = t2rs.getLink(id);
-                // TODO: There's a bug in backend where link id is in reverse
+                // DONE: There's a bug in backend where link id is in reverse
+                //       This is fixed -- SDH
                 if (lab) {
                     t2lc.addLabel(LinkLabel, link, linkLabelsDOM, {
                         link: lab

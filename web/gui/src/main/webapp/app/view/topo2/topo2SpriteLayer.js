@@ -31,9 +31,10 @@
 
     angular.module('ovTopo2')
         .factory('Topo2SpriteLayerService', [
-            'FnService', 'Topo2ViewController', 'SpriteService', 'ThemeService',
+            '$log', 'FnService',
+            'Topo2ViewController', 'SpriteService', 'ThemeService',
 
-            function (fs, ViewController, ss, ts) {
+            function ($log, fs, ViewController, ss, ts) {
 
                 var SpriteLayer = ViewController.extend({
 
@@ -50,13 +51,17 @@
                         this.container.selectAll("*").remove();
                         this.layout = ss.layout(id);
 
-                        this.width = this.layout.data.w;
-                        this.height = this.layout.data.h;
+                        if (this.layout) {
+                            this.width = this.layout.data.w;
+                            this.height = this.layout.data.h;
 
-                        this.renderLayout();
+                            this.renderLayout();
 
-                        if (fs.debugOn('sprite_grid')) {
-                            this.renderGrid();
+                            if (fs.debugOn('sprite_grid')) {
+                                this.renderGrid();
+                            }
+                        } else {
+                            $log.warn('no sprite layout registered:', id);
                         }
 
                         // Returns a promise for consistency with Topo2MapService

@@ -77,6 +77,9 @@
             .addLabel('Segment Routing 2', 120, 10, {anchor: 'right'})
             .register();
 
+        ssApi.createLayout('plain', 80, 60)
+            .register();
+
         ssApi.dump();
         // ----------------------------------------------------------$$$
     }

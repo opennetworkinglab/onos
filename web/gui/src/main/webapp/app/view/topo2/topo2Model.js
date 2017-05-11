@@ -25,6 +25,7 @@ Visualization of the topology in an SVG layer, using a D3 Force Layout.
     function Model(attributes, collection) {
         this.attributes = {};
         this.set(angular.extend({}, attributes || {}), { silent: true });
+        this.collection = collection;
         this.initialize.apply(this, arguments);
     }
 

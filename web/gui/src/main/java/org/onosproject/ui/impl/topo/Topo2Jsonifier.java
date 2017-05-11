@@ -611,9 +611,11 @@ public class Topo2Jsonifier {
         //       all descendant subregions.
 
         Region r = region.backingRegion();
-        // this is location data, as injected via network configuration script
-        addGeoGridLocation(node, r);
-        addProps(node, r);
+        if (r != null) {
+            // add data injected via network configuration script
+            addGeoGridLocation(node, r);
+            addProps(node, r);
+        }
 
         // this may contain location data, as dragged by user
         // (which should take precedence, over configured data)

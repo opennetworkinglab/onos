@@ -39,10 +39,13 @@ import java.util.Set;
         description = "Adds a new region.")
 public class RegionAddCommand extends AbstractShellCommand {
 
+    private static final String E_BAD_LOC_TYPE = "locType must be {geo|grid}";
+
+    private static final String GEO = "geo";
+    private static final String GRID = "grid";
     private static final String SLASH = "/";
 
-    private static final BiMap<String, Region.Type> REGION_TYPE_MAP
-            = HashBiMap.create();
+    private static final BiMap<String, Region.Type> REGION_TYPE_MAP = HashBiMap.create();
 
     static {
         for (Region.Type t : Region.Type.values()) {
@@ -63,15 +66,21 @@ public class RegionAddCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String type = null;
 
-    @Argument(index = 3, name = "latitude", description = "Geo latitude",
+    @Argument(index = 3, name = "latOrY",
+            description = "Geo latitude / Grid y-coord",
             required = true, multiValued = false)
-    Double latitude = null;
+    Double latOrY = null;
 
-    @Argument(index = 4, name = "longitude", description = "Geo longitude",
+    @Argument(index = 4, name = "longOrX",
+            description = "Geo longitude / Grid x-coord",
             required = true, multiValued = false)
-    Double longitude = null;
+    Double longOrX = null;
 
-    @Argument(index = 5, name = "masters", description = "Region Master, a set " +
+    @Argument(index = 5, name = "locType", description = "Location type {geo|grid}",
+            required = false, multiValued = false)
+    String locType = GEO;
+
+    @Argument(index = 6, name = "masters", description = "Region Master, a set " +
             "of nodeIds should be split with '/' delimiter (e.g., 1 2 3 / 4 5 6)",
             required = true, multiValued = true)
     List<String> masterArgs = null;
@@ -81,6 +90,33 @@ public class RegionAddCommand extends AbstractShellCommand {
         RegionAdminService service = get(RegionAdminService.class);
         RegionId regionId = RegionId.regionId(id);
 
+        NetworkConfigService cfgService = get(NetworkConfigService.class);
+        BasicRegionConfig cfg = cfgService.addConfig(regionId, BasicRegionConfig.class);
+        setConfigurationData(cfg);
+
+        List<Set<NodeId>> masters = parseMasterArgs();
+        service.createRegion(regionId, name, REGION_TYPE_MAP.get(type), masters);
+        print("Region successfully added.");
+    }
+
+    private void setConfigurationData(BasicRegionConfig cfg) {
+        cfg.name(name).locType(locType);
+
+        if (GEO.equals(locType)) {
+            cfg.latitude(latOrY).longitude(longOrX);
+
+        } else if (GRID.equals(locType)) {
+            cfg.gridY(latOrY).gridX(longOrX);
+
+        } else {
+            throw new IllegalArgumentException(E_BAD_LOC_TYPE);
+
+        }
+
+        cfg.apply();
+    }
+
+    private List<Set<NodeId>> parseMasterArgs() {
         List<Set<NodeId>> masters = Lists.newArrayList();
         Set<NodeId> nodeIds = Sets.newHashSet();
         for (String masterArg : masterArgs) {
@@ -92,15 +128,6 @@ public class RegionAddCommand extends AbstractShellCommand {
             }
         }
         masters.add(nodeIds);
-
-        NetworkConfigService cfgService = get(NetworkConfigService.class);
-        BasicRegionConfig cfg = cfgService.addConfig(regionId, BasicRegionConfig.class);
-        cfg.name(name)
-                .latitude(latitude)
-                .longitude(longitude)
-                .apply();
-
-        service.createRegion(regionId, name, REGION_TYPE_MAP.get(type), masters);
-        print("Region successfully added.");
+        return masters;
     }
 }
