@@ -44,7 +44,6 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.openstacknode.OpenstackNode;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
@@ -128,28 +127,6 @@ public class OpenstackRoutingFloatingIpHandler {
         eventExecutor.shutdown();
 
         log.info("Stopped");
-    }
-
-    private void floatingIpUpdated(NetFloatingIP floatingIp, String portId) {
-        Port osPort = osNetworkService.port(portId);
-        if (osPort == null) {
-            final String error = String.format(ERR_FLOW + "no port(%s) exists",
-                    floatingIp.getFloatingIpAddress(),
-                    floatingIp.getPortId());
-            throw new IllegalStateException(error);
-        }
-
-        if (Strings.isNullOrEmpty(floatingIp.getPortId())) {
-            setFloatingIpRules(floatingIp, osPort, false);
-            log.info("Disassociated floating IP:{} from fixed IP:{}",
-                    floatingIp.getFloatingIpAddress(),
-                    osPort.getFixedIps());
-        } else {
-            setFloatingIpRules(floatingIp, osPort, true);
-            log.info("Associated floating IP:{} to fixed IP:{}",
-                    floatingIp.getFloatingIpAddress(),
-                    floatingIp.getFixedIpAddress());
-        }
     }
 
     private void setFloatingIpRules(NetFloatingIP floatingIp, Port osPort,
@@ -290,25 +267,52 @@ public class OpenstackRoutingFloatingIpHandler {
         public void event(OpenstackRouterEvent event) {
             switch (event.type()) {
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
+                    eventExecutor.execute(() -> {
+                        NetFloatingIP fip = event.floatingIp();
+                        Port osPort = osNetworkService.port(event.portId());
+                        if (osPort == null) {
+                            final String error = String.format(ERR_FLOW + "port(%s) not found",
+                                    fip.getFloatingIpAddress(), fip.getPortId());
+                            throw new IllegalStateException(error);
+                        }
+                        setFloatingIpRules(fip, osPort, true);
+                        log.info("Associated floating IP {}:{}", fip.getFloatingIpAddress(),
+                                fip.getFixedIpAddress());
+                    });
+                    break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP fip = event.floatingIp();
-                        log.debug("Floating IP {} is updated", fip.getFloatingIpAddress());
-                        floatingIpUpdated(fip, event.portId());
+                        Port osPort = osNetworkService.port(event.portId());
+                        if (osPort == null) {
+                            final String error = String.format(ERR_FLOW + "port(%s) not found",
+                                    fip.getFloatingIpAddress(), event.portId());
+                            throw new IllegalStateException(error);
+                        }
+                        setFloatingIpRules(fip, osPort, false);
+                        log.info("Disassociated floating IP {}:{}", fip.getFloatingIpAddress(),
+                                fip.getFixedIpAddress());
+                    });
+                    break;
+                case OPENSTACK_FLOATING_IP_REMOVED:
+                    eventExecutor.execute(() -> {
+                        NetFloatingIP fip = event.floatingIp();
+                        if (Strings.isNullOrEmpty(fip.getPortId())) {
+                            return;
+                        }
+                        Port osPort = osNetworkService.port(fip.getPortId());
+                        if (osPort == null) {
+                            // FIXME when a port with floating IP removed without
+                            // disassociation step, it can reach here
+                            return;
+                        }
+                        setFloatingIpRules(fip, osPort, false);
+                        log.info("Disassociated floating IP {}:{}", fip.getFloatingIpAddress(),
+                                fip.getFixedIpAddress());
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
-                    log.debug("Floating IP {} is created",
-                            event.floatingIp().getFloatingIpAddress());
-                    break;
                 case OPENSTACK_FLOATING_IP_UPDATED:
-                    log.debug("Floating IP {} is updated",
-                            event.floatingIp().getFloatingIpAddress());
-                    break;
-                case OPENSTACK_FLOATING_IP_REMOVED:
-                    log.debug("Floating IP {} is removed",
-                            event.floatingIp().getFloatingIpAddress());
-                    break;
                 case OPENSTACK_ROUTER_CREATED:
                 case OPENSTACK_ROUTER_UPDATED:
                 case OPENSTACK_ROUTER_REMOVED:
@@ -336,17 +340,21 @@ public class OpenstackRoutingFloatingIpHandler {
 
         @Override
         public void event(OpenstackNodeEvent event) {
-            OpenstackNode osNode = event.subject();
 
             switch (event.type()) {
                 case COMPLETE:
                     eventExecutor.execute(() -> {
-                        log.info("GATEWAY node {} detected", osNode.hostname());
-                        osRouterService.floatingIps().stream()
-                                .filter(fip -> !Strings.isNullOrEmpty(fip.getPortId()))
-                                .forEach(fip -> {
-                                    floatingIpUpdated(fip, fip.getPortId());
-                                });
+                        for (NetFloatingIP fip : osRouterService.floatingIps()) {
+                            if (Strings.isNullOrEmpty(fip.getPortId())) {
+                                continue;
+                            }
+                            Port osPort = osNetworkService.port(fip.getPortId());
+                            if (osPort == null) {
+                                log.warn("Failed to set floating IP {}", fip.getId());
+                                continue;
+                            }
+                            setFloatingIpRules(fip, osPort, true);
+                        }
                     });
                     break;
                 case INIT:
