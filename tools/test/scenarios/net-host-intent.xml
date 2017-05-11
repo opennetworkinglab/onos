@@ -44,14 +44,14 @@
         <step name="Host-Intent.Validate-Intent-Failed" requires="Host-Intent.Link-2-Down"
               exec="onos-check-intent ${OC1} h2h FAILED"/>
 
-        <dependency name="Host-Intent.ExpectExceptionMarkEnd"
-                    requires="~Host-Intent.Validate-Intent-Failed"/>
-
         <dependency name="Host-Intent.Link-1-Up"
-                    requires="~Host-Intent.ExpectExceptionMarkEnd" />
+                    requires="~Host-Intent.Validate-Intent-Failed" />
 
         <step name="Host-Intent.Validate-Intent-Installed-Again" requires="Host-Intent.Link-1-Up"
               exec="onos-check-intent ${OC1} h2h INSTALLED"/>
+
+        <dependency name="Host-Intent.ExpectExceptionMarkEnd"
+                    requires="~Host-Intent.Validate-Intent-Installed-Again"/>
 
         <dependency name="Host-Intent.Ping-4"
                     requires="~Host-Intent.Validate-Intent-Installed-Again" />
