@@ -9,6 +9,7 @@ COMPILE_DEPS = [
   '//apps/config:onos-apps-config',
   '//lib:onos-yang-model',
   '//lib:onos-yang-runtime',
+  '//apps/yang:onos-apps-yang',
 ]
 
 TEST_DEPS = [

@@ -1,3 +1,16 @@
+APPS = [
+  'org.onosproject.yang',
+  'org.onosproject.yang-gui',
+  'org.onosproject.config',
+  'org.onosproject.restconf',
+  'org.onosproject.yms',
+  'org.onosproject.protocols.restconfserver',
+  'org.onosproject.netconf',
+  'org.onosproject.netconfsb',
+  'org.onosproject.models.l3vpn',
+  'org.onosproject.l3vpn',
+]
+
 BUNDLES = [
   '//drivers/huawei/yangmodel:onos-drivers-huawei-yangmodel',
   '//drivers/huawei/driver:onos-drivers-huawei-driver',
@@ -10,7 +23,5 @@ onos_app(
   url = 'http://onosproject.org',
   description = 'ONOS Huawei Device Drivers application.',
   included_bundles = BUNDLES,
-  required_apps = [
-    'org.onosproject.netconf'
-  ],
+  required_apps = APPS
 )

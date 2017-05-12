@@ -23,21 +23,10 @@ import org.onosproject.l3vpn.netl3vpn.BgpDriverInfo;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
 import org.onosproject.net.behaviour.L3VpnConfig;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.NeL3VpncommType;
-import org.onosproject.yang.gen.v1.ne.bgpcomm.rev20141225.NeBgpcomm;
-import org.onosproject.yang.gen.v1.ne.bgpcomm.type.rev20141225.NeBgpcommType;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.NeL3VpnApi;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.NeL3Vpncomm;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.YangModel;
-import org.onosproject.yang.model.YangModuleId;
-import org.onosproject.yang.runtime.DefaultAppModuleInfo;
-import org.onosproject.yang.runtime.ModelRegistrationParam;
 import org.onosproject.yang.runtime.YangModelRegistry;
-
-import java.util.Iterator;
 
 import static org.onosproject.drivers.huawei.BgpConstructionUtil.getCreateBgp;
 import static org.onosproject.drivers.huawei.BgpConstructionUtil.getDeleteBgp;
@@ -48,8 +37,6 @@ import static org.onosproject.drivers.huawei.DriverUtil.SLASH;
 import static org.onosproject.drivers.huawei.InsConstructionUtil.getCreateVpnIns;
 import static org.onosproject.drivers.huawei.InsConstructionUtil.getDeleteVpnIns;
 import static org.onosproject.drivers.huawei.IntConstructionUtil.getCreateInt;
-import static org.onosproject.yang.runtime.DefaultModelRegistrationParam.builder;
-import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.getYangModel;
 
 /**
  * Configures l3vpn on Huawei devices.
@@ -81,51 +68,9 @@ public class HuaweiL3VpnConfig extends AbstractHandlerBehaviour
         try {
             modelRegistry = handler().get(YangModelRegistry.class);
             configService = handler().get(DynamicConfigService.class);
-            registerModel();
         } catch (ServiceNotFoundException e) {
             throw new ServiceNotFoundException(SERVICE_NOT_FOUND);
         }
-    }
-
-    /**
-     * Registers the huawei generated classes to the YANG model.
-     */
-    private void registerModel() {
-        YangModel model = getYangModel(NeBgpcomm.class);
-        Iterator<YangModuleId> it = model.getYangModulesId().iterator();
-
-        //Create model registration param.
-        ModelRegistrationParam.Builder b = builder().setYangModel(model);
-        YangModuleId id;
-        while (it.hasNext()) {
-            id = it.next();
-            switch (id.moduleName()) {
-                case "ne-bgpcomm":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            NeBgpcomm.class, null));
-                    break;
-                case "ne-bgpcomm-type":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            NeBgpcommType.class, null));
-                    break;
-                case "ne-l3vpn-api":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            NeL3VpnApi.class, null));
-                    break;
-                case "ne-l3vpncomm":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            NeL3Vpncomm.class, null));
-                    break;
-                case "ne-l3vpncomm-type":
-                    b.addAppModuleInfo(id, new DefaultAppModuleInfo(
-                            NeL3VpncommType.class, null));
-                    break;
-                default:
-                    break;
-            }
-        }
-        ModelRegistrationParam regParam = b.build();
-        modelRegistry.registerModel(regParam);
     }
 
     @Override
