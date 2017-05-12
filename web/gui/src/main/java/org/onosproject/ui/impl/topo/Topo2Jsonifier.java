@@ -46,12 +46,12 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
-import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.model.topo.UiClusterMember;
 import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiElement;
 import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiSynthLink;
@@ -363,9 +363,13 @@ public class Topo2Jsonifier {
         return kids;
     }
 
-    private JsonNode jsonLinks(List<UiSynthLink> links) {
+    protected JsonNode jsonLinks(List<UiSynthLink> links) {
         ArrayNode synthLinks = arrayNode();
         links.forEach(l -> synthLinks.add(json(l)));
+
+        // TODO: implement the following........
+//        collateSynthLinks(synthLinks, links);
+
         return synthLinks;
     }
 
@@ -505,7 +509,7 @@ public class Topo2Jsonifier {
 
         } catch (NumberFormatException e) {
             log.warn("Invalid {} data: lat/Y={}, long/X={}",
-                    locType, values.get(0), values.get(1));
+                     locType, values.get(0), values.get(1));
         }
     }
 
@@ -517,9 +521,9 @@ public class Topo2Jsonifier {
             ObjectNode o = objectNode();
             for (LayoutLocation ll : locs) {
                 ObjectNode lnode = objectNode()
-                    .put(LOC_TYPE, ll.locType().toString())
-                    .put(LAT_OR_Y, ll.latOrY())
-                    .put(LONG_OR_X, ll.longOrX());
+                        .put(LOC_TYPE, ll.locType().toString())
+                        .put(LAT_OR_Y, ll.latOrY())
+                        .put(LONG_OR_X, ll.longOrX());
                 o.set(ll.id(), lnode);
             }
 
@@ -575,6 +579,13 @@ public class Topo2Jsonifier {
         addMetaUi(node, ridStr, host.idAsString());
 
         return node;
+    }
+
+    // TODO: add method to JSONify an aggregated collection of synth links
+
+    private void collateSynthLinks(ArrayNode array,
+                                   List<UiSynthLink> links) {
+        // TODO - combine via link id
     }
 
     private ObjectNode json(UiSynthLink sLink) {

@@ -30,8 +30,10 @@ import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.AbstractUiModelTest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.PortNumber.P0;
@@ -120,6 +122,9 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         assertEquals("wrong element B", DEV_X, id.elementB());
         assertNull("region A?", id.regionA());
         assertNull("region B?", id.regionB());
+        assertEquals("not H-D", UiLinkId.Type.HOST_DEVICE, id.type());
+        assertTrue("not host-dev", id.isHostDevice());
+        assertFalse("dev-dev?", id.isDeviceDevice());
     }
 
     @Test
@@ -133,6 +138,8 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         assertEquals("wrong element B", DEV_Y, id.elementB());
         assertNull("region A?", id.regionA());
         assertNull("region B?", id.regionB());
+        assertEquals("not D-D", UiLinkId.Type.DEVICE_DEVICE, id.type());
+        assertTrue("not dev-dev", id.isDeviceDevice());
     }
 
     @Test
@@ -143,6 +150,8 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         print(" first: %s", idFirst);
         print("second: %s", idSecond);
         assertEquals("Not same ID", idFirst, idSecond);
+        assertEquals("not R-R", UiLinkId.Type.REGION_REGION, idFirst.type());
+        assertTrue("not reg-reg", idFirst.isRegionRegion());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -163,6 +172,8 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         assertEquals("region ID", REG_1, id.regionA());
         assertEquals("device ID", DEV_X, id.elementB());
         assertEquals("port", P1, id.portB());
+        assertEquals("not R-D", UiLinkId.Type.REGION_DEVICE, id.type());
+        assertTrue("not reg-dev", id.isRegionDevice());
     }
 
     @Test
@@ -180,5 +191,40 @@ public class UiLinkIdTest extends AbstractUiModelTest {
         print("identifier-2: %s", id2);
 
         assertEquals("unequal canon-ids", id1, id2);
+    }
+
+    @Test
+    public void devToDevId() {
+        title("devToDevId");
+        UiLinkId id = UiLinkId.uiLinkId(DEV_X, P1, DEV_Y, P2);
+        print(id);
+        assertEquals("not dev x", DEV_X, id.elementA());
+        assertEquals("not dev y", DEV_Y, id.elementB());
+        assertEquals("not port 1", P1, id.portA());
+        assertEquals("not port 2", P2, id.portB());
+        assertTrue("not dev-dev", id.isDeviceDevice());
+    }
+
+    @Test
+    public void devToDevCanon() {
+        title("devToDevCanon");
+        UiLinkId id1 = UiLinkId.uiLinkId(DEV_X, P1, DEV_Y, P2);
+        UiLinkId id2 = UiLinkId.uiLinkId(DEV_Y, P2, DEV_X, P1);
+        print(id1);
+        print(id2);
+        assertEquals("not canonical", id1, id2);
+        assertEquals("not flipped", DEV_X, id2.elementA());
+    }
+
+    @Test
+    public void hostToDevId() {
+        title("hostToDevId");
+        UiLinkId id = UiLinkId.uiLinkId(HOST_A, DEV_Y, P2);
+        print(id);
+        assertEquals("not host a", HOST_A, id.elementA());
+        assertEquals("not port 0", P0, id.portA());
+        assertEquals("not dev y", DEV_Y, id.elementB());
+        assertEquals("not port 2", P2, id.portB());
+        assertTrue("not host-dev", id.isHostDevice());
     }
 }

@@ -16,19 +16,32 @@
 
 package org.onosproject.ui.impl.topo;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.impl.AbstractUiImplTest;
+import org.onosproject.ui.model.topo.UiDeviceLink;
+import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.model.topo.UiNode;
+import org.onosproject.ui.model.topo.UiRegionLink;
+import org.onosproject.ui.model.topo.UiSynthLink;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.region.RegionId.regionId;
+import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_DEFAULT;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_OPTICAL;
 import static org.onosproject.ui.model.topo.UiNode.LAYER_PACKET;
@@ -85,7 +98,7 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
 
     @Test
     public void threeLayers() {
-        print("threeLayers()");
+        title("threeLayers()");
 
         List<Set<UiNode>> result = t2.splitByLayer(ALL_TAGS, NODES);
         print(result);
@@ -110,7 +123,7 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
 
     @Test
     public void twoLayers() {
-        print("twoLayers()");
+        title("twoLayers()");
 
         List<Set<UiNode>> result = t2.splitByLayer(PKT_DEF_TAGS, NODES);
         print(result);
@@ -132,7 +145,7 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
 
     @Test
     public void oneLayer() {
-        print("oneLayer()");
+        title("oneLayer()");
 
         List<Set<UiNode>> result = t2.splitByLayer(DEF_TAG_ONLY, NODES);
         print(result);
@@ -197,10 +210,86 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
 
     @Test
     public void annotValues() {
-        print("annotValues()");
+        title("annotValues()");
         verifyValues(t2.getAnnotValues(THING, K1), V1);
         verifyValues(t2.getAnnotValues(THING, K3, K1), V3, V1);
         verifyValues(t2.getAnnotValues(THING, K1, K2, K3), V1, V2, V3);
         verifyValues(t2.getAnnotValues(THING, K1, K4));
+    }
+
+
+    /*
+     * Test collation of region links in the following scenario...
+     *
+     *   Region A     Region B     Region C
+     *   +.......+    +.......+    +.......+
+     *   :  [1] -------- [3] -------- [5]  :
+     *   :   |   :    :   |   :    :   |   :
+     *   :   |   :    :   |   :    :   |   :
+     *   :  [2] -------- [4] -------- [6]  :
+     *   +.......+    +.......+    +.......+
+     */
+
+    private static PortNumber pn(long i) {
+        return PortNumber.portNumber(i);
+    }
+
+    private static UiLink rrLink(UiLinkId id) {
+        if (!id.isRegionRegion()) {
+            throw new IllegalArgumentException();
+        }
+        return new UiRegionLink(null, id);
+    }
+
+    private static UiLink ddLink(UiLinkId id) {
+        if (!id.isDeviceDevice()) {
+            throw new IllegalArgumentException();
+        }
+        return new UiDeviceLink(null, id);
+    }
+
+    private static final RegionId REGION_ROOT = regionId("root");
+    private static final RegionId REGION_A = regionId("rA");
+    private static final RegionId REGION_B = regionId("rB");
+    private static final RegionId REGION_C = regionId("rC");
+
+    private static final DeviceId DEV_1 = deviceId("d1");
+    private static final DeviceId DEV_2 = deviceId("d2");
+    private static final DeviceId DEV_3 = deviceId("d3");
+    private static final DeviceId DEV_4 = deviceId("d4");
+    private static final DeviceId DEV_5 = deviceId("d5");
+    private static final DeviceId DEV_6 = deviceId("d6");
+
+    private static final UiLinkId D1_D2 = uiLinkId(DEV_1, pn(2), DEV_2, pn(1));
+    private static final UiLinkId D1_D3 = uiLinkId(DEV_1, pn(3), DEV_3, pn(1));
+    private static final UiLinkId D2_D4 = uiLinkId(DEV_2, pn(4), DEV_4, pn(2));
+    private static final UiLinkId D3_D4 = uiLinkId(DEV_3, pn(4), DEV_4, pn(3));
+    private static final UiLinkId D3_D5 = uiLinkId(DEV_3, pn(5), DEV_5, pn(3));
+    private static final UiLinkId D4_D6 = uiLinkId(DEV_4, pn(6), DEV_6, pn(4));
+    private static final UiLinkId D5_D6 = uiLinkId(DEV_5, pn(6), DEV_6, pn(5));
+
+    private static final UiLinkId RA_RB = uiLinkId(REGION_A, REGION_B);
+    private static final UiLinkId RB_RC = uiLinkId(REGION_B, REGION_C);
+
+    private UiSynthLink makeSynth(RegionId container, UiLinkId rr, UiLinkId dd) {
+        return new UiSynthLink(container, rrLink(rr), ddLink(dd));
+    }
+
+    private List<UiSynthLink> createSynthLinks() {
+        List<UiSynthLink> links = new ArrayList<>();
+        links.add(makeSynth(REGION_ROOT, RA_RB, D1_D3));
+        links.add(makeSynth(REGION_ROOT, RA_RB, D2_D4));
+        links.add(makeSynth(REGION_ROOT, RB_RC, D3_D5));
+        links.add(makeSynth(REGION_ROOT, RB_RC, D4_D6));
+        return links;
+    }
+
+    @Test
+    public void encodeSynthLinks() {
+        title("encodeSynthLinks()");
+        JsonNode node = t2.jsonLinks(createSynthLinks());
+        print(node);
+        // TODO: assert structure of JSON created so we know we got it right
+
     }
 }

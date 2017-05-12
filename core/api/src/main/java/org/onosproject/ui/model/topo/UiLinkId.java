@@ -38,11 +38,15 @@ public final class UiLinkId {
 
     private static final String E_PORT_NULL = "Port number cannot be null";
     private static final String E_DEVICE_ID_NULL = "Device ID cannot be null";
+    private static final String E_HOST_ID_NULL = "Host ID cannot be null";
     private static final String E_REGION_ID_NULL = "Region ID cannot be null";
     private static final String E_IDENTICAL = "Region IDs cannot be same";
 
     private static final Comparator<RegionId> REGION_ID_COMPARATOR =
             Comparator.comparing(Identifier::toString);
+    private static final Comparator<DeviceId> DEVICE_ID_COMPARATOR =
+            Comparator.comparing(DeviceId::toString);
+
 
     /**
      * Designates the directionality of an underlying (uni-directional) link.
@@ -50,6 +54,16 @@ public final class UiLinkId {
     public enum Direction {
         A_TO_B,
         B_TO_A
+    }
+
+    /**
+     * Designates the type of link the identifier represents.
+     */
+    public enum Type {
+        REGION_REGION,
+        REGION_DEVICE,
+        DEVICE_DEVICE,
+        HOST_DEVICE
     }
 
     static final String CP_DELIMITER = "~";
@@ -66,6 +80,8 @@ public final class UiLinkId {
     private final String idStr;
     private final String idA;
     private final String idB;
+
+    private final Type type;
 
     /**
      * Creates a UI link identifier. It is expected that A comes before B when
@@ -87,10 +103,14 @@ public final class UiLinkId {
         regionA = null;
         regionB = null;
 
+        boolean isEdgeLink = (a instanceof HostId);
+
         // NOTE: for edgelinks, hosts are always element A
-        idA = (a instanceof HostId) ? a.toString() : a + ID_PORT_DELIMITER + pa;
+        idA = isEdgeLink ? a.toString() : a + ID_PORT_DELIMITER + pa;
         idB = b + ID_PORT_DELIMITER + pb;
         idStr = idA + CP_DELIMITER + idB;
+
+        type = isEdgeLink ? Type.HOST_DEVICE : Type.DEVICE_DEVICE;
     }
 
     /**
@@ -112,6 +132,8 @@ public final class UiLinkId {
         idA = a.toString();
         idB = b.toString();
         idStr = idA + CP_DELIMITER + idB;
+
+        type = Type.REGION_REGION;
     }
 
     /**
@@ -134,6 +156,8 @@ public final class UiLinkId {
         idA = r.toString();
         idB = elementB + ID_PORT_DELIMITER + portB;
         idStr = idA + CP_DELIMITER + idB;
+
+        type = Type.REGION_DEVICE;
     }
 
     @Override
@@ -219,6 +243,52 @@ public final class UiLinkId {
      */
     public RegionId regionB() {
         return regionB;
+    }
+
+    /**
+     * Returns the type of link this identifier represents.
+     *
+     * @return the link identifier type
+     */
+    public Type type() {
+        return type;
+    }
+
+    /**
+     * Returns true if this identifier represents a region-region link.
+     *
+     * @return true if region-region link identifier; false otherwise
+     */
+    public boolean isRegionRegion() {
+        return type == Type.REGION_REGION;
+    }
+
+    /**
+     * Returns true if this identifier represents a region-device link.
+     *
+     * @return true if region-device link identifier; false otherwise
+     */
+    public boolean isRegionDevice() {
+        return type == Type.REGION_DEVICE;
+    }
+
+    /**
+     * Returns true if this identifier represents a device-device
+     * (infrastructure) link.
+     *
+     * @return true if device-device link identifier; false otherwise
+     */
+    public boolean isDeviceDevice() {
+        return type == Type.DEVICE_DEVICE;
+    }
+
+    /**
+     * Returns true if this identifier represents a host-device (edge) link.
+     *
+     * @return true if host-device link identifier; false otherwise
+     */
+    public boolean isHostDevice() {
+        return type == Type.HOST_DEVICE;
     }
 
     @Override
@@ -327,4 +397,43 @@ public final class UiLinkId {
 
         return new UiLinkId(regionId, deviceId, portNumber);
     }
+
+    /**
+     * Generates an identifier for a link between two devices.
+     *
+     * @param a  device A
+     * @param pa port A
+     * @param b  device B
+     * @param pb port B
+     * @return link identifier
+     * @throws NullPointerException if any of the required fields are null
+     */
+    public static UiLinkId uiLinkId(DeviceId a, PortNumber pa,
+                                    DeviceId b, PortNumber pb) {
+        checkNotNull(a, E_DEVICE_ID_NULL + " (A)");
+        checkNotNull(b, E_DEVICE_ID_NULL + " (B)");
+        checkNotNull(pa, E_PORT_NULL + " (A)");
+        checkNotNull(pb, E_PORT_NULL + " (B)");
+
+        boolean flip = DEVICE_ID_COMPARATOR.compare(a, b) > 0;
+        return flip ? new UiLinkId(b, pb, a, pa) : new UiLinkId(a, pa, b, pb);
+    }
+
+    /**
+     * Generates an identifier for an edge link. Note that host is always
+     * element A.
+     *
+     * @param h host
+     * @param d device
+     * @param p port
+     * @return link identifier
+     * @throws NullPointerException if any of the required fields are null
+     */
+    public static UiLinkId uiLinkId(HostId h, DeviceId d, PortNumber p) {
+        checkNotNull(h, E_HOST_ID_NULL);
+        checkNotNull(d, E_DEVICE_ID_NULL);
+        checkNotNull(p, E_PORT_NULL);
+        return new UiLinkId(h, PortNumber.P0, d, p);
+    }
+
 }
