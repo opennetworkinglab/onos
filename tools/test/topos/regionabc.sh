@@ -23,14 +23,14 @@ region-add rB "Region B" LOGICAL_GROUP 30 40 grid ${host}
 region-add rC "Region C" LOGICAL_GROUP 30 60 grid ${host}
 
 # -- set peer locations
-region-add-peer-loc rA rB 40 70
-region-add-peer-loc rA rC 50 70
+region-add-peer-loc rA rB 40 70 grid
+region-add-peer-loc rA rC 50 70 grid
 
-region-add-peer-loc rB rA 30 10
-region-add-peer-loc rB rC 30 70
+region-add-peer-loc rB rA 30 10 grid
+region-add-peer-loc rB rC 30 70 grid
 
-region-add-peer-loc rC rA 10 10
-region-add-peer-loc rC rB 20 10
+region-add-peer-loc rC rA 10 10 grid
+region-add-peer-loc rC rB 20 10 grid
 
 EOF
 

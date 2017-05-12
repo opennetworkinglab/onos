@@ -66,10 +66,15 @@
             }
 
             // assumed to be grid
-            var loc = {
-                longOrX: -20,
-                latOrY: 10 * node.index()
-            };
+            var loc = node.get('location');
+
+            // fallback to default placement if not defined.
+            if (!loc.latOrY && !loc.longOrX) {
+                loc = {
+                    longOrX: -20,
+                    latOrY: 10 * node.index()
+                };
+            }
 
             setElCoord(node, coordFromXY(loc));
             return;
