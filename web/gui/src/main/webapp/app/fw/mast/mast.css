@@ -32,15 +32,25 @@ html[data-platform='iPad'] #mast {
 }
 
 #mast .nav-menu-button {
-    width: 26px;
-    height: 21px;
-    margin: 14px 18px 14px 14px;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 48px;
+    padding: 0 12px;
+    cursor: pointer; cursor: hand;
+    /* Needed to removed 3px space at the bottom of img tags */
+    font-size: 0;
 }
 
-#mast img.logo {
+#mast .nav-menu-button img {
+    width: 25px;
+    vertical-align: middle;
+}
+
+#mast .logo {
     height: 47px;
     width: 511px;
-    margin: 0;
+    vertical-align: bottom;
 }
 
 #mast-right {
@@ -49,7 +59,7 @@ html[data-platform='iPad'] #mast {
     position: relative;
     top: 0;
     padding-right: 15px;
-    line-height: 44px;
+    line-height: 48px;
 }
 
 /*
@@ -57,8 +67,15 @@ html[data-platform='iPad'] #mast {
 */
 
 #mast-right div.ctrl-btns {
-    position: relative;
     float: right;
+}
+
+#mast-right div.icon {
+    box-sizing: border-box;
+    position: relative;
+    height: 48px;
+    width: 48px;
+    padding: 9px;
 }
 
 #mast .dropdown-parent {

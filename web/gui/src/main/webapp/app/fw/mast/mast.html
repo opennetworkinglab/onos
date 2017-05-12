@@ -1,7 +1,10 @@
 <!-- Masthead partial HTML -->
-<img class="nav-menu-button clickable" src="data/img/nav-menu-mojo.png"
-     ng-click="mastCtrl.toggleNav()"></div>
+<span class="nav-menu-button clickable" ng-click="mastCtrl.toggleNav()">
+    <img src="data/img/nav-menu-mojo.png"/>
+</span>
+
 <img class="logo" src="data/img/masthead-logo-mojo.png">
+
 <div id="mast-right">
     <nav>
         <div class="dropdown-parent">
@@ -11,8 +14,8 @@
             </div>
         </div>
         <div class="ctrl-btns">
-            <div class="active clickable"
-                 icon icon-size="42" icon-id="query"
+            <div class="active clickable icon"
+                 icon icon-size="32" icon-id="query"
                  tooltip tt-msg="helpTip"
                  ng-click="directTo()"></div>
         </div>
