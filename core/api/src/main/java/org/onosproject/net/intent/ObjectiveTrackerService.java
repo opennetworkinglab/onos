@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
+package org.onosproject.net.intent;
 
 import org.onosproject.net.NetworkResource;
-import org.onosproject.net.intent.IntentData;
-import org.onosproject.net.intent.Key;
 
 import java.util.Collection;
 

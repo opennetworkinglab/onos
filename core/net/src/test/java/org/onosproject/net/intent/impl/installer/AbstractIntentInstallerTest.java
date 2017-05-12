@@ -31,7 +31,7 @@ import org.onosproject.net.intent.IntentInstallCoordinator;
 import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.impl.ObjectiveTrackerService;
+import org.onosproject.net.intent.ObjectiveTrackerService;
 
 import static org.easymock.EasyMock.createMock;
 

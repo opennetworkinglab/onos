@@ -32,6 +32,7 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.TopologyChangeDelegate;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceListener;

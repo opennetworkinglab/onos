@@ -43,6 +43,8 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.ObjectiveTrackerService;
+import org.onosproject.net.intent.TopologyChangeDelegate;
 import org.onosproject.net.intent.WorkPartitionEvent;
 import org.onosproject.net.intent.WorkPartitionEventListener;
 import org.onosproject.net.intent.WorkPartitionService;

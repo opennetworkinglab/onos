@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent.impl;
-
-import org.onosproject.net.intent.Key;
+package org.onosproject.net.intent;
 
 /**
  * Auxiliary delegate for integration of intent manager and flow trackerService.

@@ -38,7 +38,7 @@ import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.ProtectionEndpointIntent;
 import org.onosproject.net.intent.impl.IntentManager;
-import org.onosproject.net.intent.impl.ObjectiveTrackerService;
+import org.onosproject.net.intent.ObjectiveTrackerService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

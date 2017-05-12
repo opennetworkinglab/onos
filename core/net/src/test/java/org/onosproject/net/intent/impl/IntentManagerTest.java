@@ -52,6 +52,8 @@ import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.ObjectiveTrackerService;
+import org.onosproject.net.intent.TopologyChangeDelegate;
 import org.onosproject.store.trivial.SimpleIntentStore;
 
 import java.util.Collection;
