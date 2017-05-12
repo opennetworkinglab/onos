@@ -25,9 +25,12 @@ import org.onosproject.lisp.msg.protocols.LispEidRecord;
 import org.onosproject.lisp.msg.protocols.LispMapRecord;
 import org.onosproject.lisp.msg.protocols.LispProxyMapRecord;
 import org.onosproject.lisp.msg.types.LispAfiAddress;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A singleton class that stores EID-RLOC mapping information.
@@ -36,7 +39,9 @@ public final class LispMappingDatabase {
 
     private static final long MINUTE_TO_MS_UNIT = 60 * 1000;
 
-    private ExpireMap<LispEidRecord, LispProxyMapRecord> map = new ExpireHashMap<>();
+    private static final Logger log = getLogger(LispMappingDatabase.class);
+
+    private final ExpireMap<LispEidRecord, LispProxyMapRecord> map = new ExpireHashMap<>();
 
     /**
      * Prevents object instantiation from external.
@@ -110,14 +115,14 @@ public final class LispMappingDatabase {
      * @param proxyMapReply proxy map reply flag
      * @return an EID-RLOC mapping record
      */
-    public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid, boolean proxyMapReply) {
-
-        for (LispEidRecord key : map.keySet()) {
-            if (isInRange(key, eid)) {
-                LispProxyMapRecord record = map.get(key);
-                if (record != null && record.isProxyMapReply() == proxyMapReply) {
-                    return record.getMapRecord();
-                }
+    public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid,
+                                                 boolean proxyMapReply) {
+        Optional<LispEidRecord> filteredEidRecord = map.keySet().parallelStream()
+                .filter(k -> isInRange(k, eid)).findAny();
+        if (filteredEidRecord.isPresent()) {
+            LispProxyMapRecord record = map.get(filteredEidRecord.get());
+            if (record != null && record.isProxyMapReply() == proxyMapReply) {
+                return record.getMapRecord();
             }
         }
 
@@ -136,7 +141,8 @@ public final class LispMappingDatabase {
                                                         boolean proxyMapReply) {
         List<LispMapRecord> mapRecords = Lists.newArrayList();
         eids.forEach(eidRecord -> {
-            LispMapRecord mapRecord = getMapRecordByEidRecord(eidRecord, proxyMapReply);
+            LispMapRecord mapRecord =
+                    getMapRecordByEidRecord(eidRecord, proxyMapReply);
             if (mapRecord != null) {
                 mapRecords.add(mapRecord);
             }
@@ -152,7 +158,8 @@ public final class LispMappingDatabase {
      */
     public LispMapRecord getMapRecordByEidAddress(LispAfiAddress address) {
         Optional<LispEidRecord> eidRecord =
-                map.keySet().stream().filter(k -> k.getPrefix().equals(address)).findFirst();
+                map.keySet().stream().filter(k ->
+                        k.getPrefix().equals(address)).findFirst();
         return eidRecord.map(lispEidRecord ->
                 map.get(lispEidRecord).getMapRecord()).orElse(null);
     }
