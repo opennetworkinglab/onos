@@ -17,7 +17,6 @@
 package org.onosproject.drivers.oplink;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -75,9 +74,8 @@ public class OplinkOpticalFlowRuleProgrammable
 
     private Collection<FlowEntry> parseConnections() {
         log.debug("Fetch connections...");
-        String reply = netconfGetConfig(handler(), getConnectionsFilter());
-        HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(reply);
-        List<HierarchicalConfiguration> subtrees = cfg.configurationsAt(KEY_DATA_CONNS);
+        String reply = netconfGet(handler(), getConnectionsFilter());
+        List<HierarchicalConfiguration> subtrees = configsAt(reply, KEY_DATA_CONNS);
         Collection<FlowEntry> list = new ArrayList<>();
         for (HierarchicalConfiguration connection : subtrees) {
             list.add(new DefaultFlowEntry(parseConnection(connection), FlowEntry.FlowEntryState.ADDED));

@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.oplink;
 
+import com.google.common.collect.Range;
 import org.onlab.util.Frequency;
 import org.onosproject.core.CoreService;
 import org.onosproject.driver.extensions.OplinkAttenuation;
@@ -61,9 +62,10 @@ public final class OplinkOpticalUtility {
     // Power multiply factor, the power accuracy supported by device is 0.01dBm.
     // Transforms the double typed number to long typed power for ONOS.
     public static final int POWER_MULTIPLIER = 100;
-    // Attenuation range supported by device, [0, 25dB].
-    public static final long MIN_ATTENUATION = 0L;
-    public static final long MAX_ATTENUATION = 2500L;
+    // Attenuation range supported by device, [0, 25.5dB].
+    public static final Range<Long> RANGE_ATT = Range.closed(0L, 2550L);
+    // General power range for fiber switch, [-60dBm, 60dBm].
+    public static final Range<Long> RANGE_GENERAL = Range.closed(-6000L, 6000L);
 
     // Default attenuation value if the attenuation instruction is not found.
     private static final int DEFAULT_ATT = 0;

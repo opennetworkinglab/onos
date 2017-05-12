@@ -19,10 +19,12 @@ package org.onosproject.drivers.oplink;
 import com.google.common.collect.Range;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.onosproject.driver.extensions.OplinkAttenuation;
+import org.onosproject.net.Device;
 import org.onosproject.net.Direction;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PowerConfig;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -33,11 +35,11 @@ import org.slf4j.Logger;
 
 import java.util.Optional;
 
-import static org.onosproject.drivers.oplink.OplinkOpticalUtility.MAX_ATTENUATION;
-import static org.onosproject.drivers.oplink.OplinkOpticalUtility.MIN_ATTENUATION;
 import static org.onosproject.drivers.oplink.OplinkOpticalUtility.POWER_MULTIPLIER;
-import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.drivers.oplink.OplinkOpticalUtility.RANGE_ATT;
+import static org.onosproject.drivers.oplink.OplinkOpticalUtility.RANGE_GENERAL;
 import static org.onosproject.drivers.oplink.OplinkNetconfUtility.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Get current or target port/channel power from an Oplink optical netconf device.
@@ -64,7 +66,6 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
     public static final String KEY_PORTS_PORT_PROPERTY = String.format("%s.%s", KEY_PORTS_PORT, KEY_PORTPROPERTY);
     // log
     private static final Logger log = getLogger(OplinkOpticalPowerConfig.class);
-
 
     @Override
     public Optional<Long> getTargetPower(PortNumber port, T component) {
@@ -162,7 +163,7 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     private Long acquirePortPower(PortNumber port, String selection) {
-        String reply = netconfGetConfig(handler(), getPortPowerFilter(port, selection));
+        String reply = netconfGet(handler(), getPortPowerFilter(port, selection));
         HierarchicalConfiguration info = configAt(reply, KEY_PORTS_PORT);
         if (info == null) {
             return null;
@@ -172,7 +173,7 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
 
     private Long acquireChannelAttenuation(PortNumber port, OchSignal channel) {
         log.debug("Get port{} channel{} attenuation...", port, channel.channelSpacing());
-        String reply = netconfGetConfig(handler(), getChannelAttenuationFilter(port, channel));
+        String reply = netconfGet(handler(), getChannelAttenuationFilter(port, channel));
         HierarchicalConfiguration info = configAt(reply, KEY_CONNS);
         if (info == null) {
             return null;
@@ -182,7 +183,7 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
 
     private Long acquireChannelPower(PortNumber port, OchSignal channel) {
         log.debug("Get port{} channel{} power...", port, channel.channelSpacing());
-        String reply = netconfGetConfig(handler(), getChannelPowerFilter(port, channel));
+        String reply = netconfGet(handler(), getChannelPowerFilter(port, channel));
         HierarchicalConfiguration info = configAt(reply, KEY_DATA_CONNS);
         if (info == null) {
             return null;
@@ -235,7 +236,15 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     private Range<Long> getPowerRange(PortNumber port, String directionKey, String minKey, String maxKey) {
-        String reply = netconfGetConfig(handler(), getPowerRangeFilter(port, directionKey));
+        // TODO
+        // Optical protection switch does not support power range configuration, it'll reply error.
+        // To prevent replying error log flooding from netconf session when polling all ports information,
+        // use general power range of [-60, 60] instead.
+        if (handler().get(DeviceService.class).getDevice(data().deviceId()).type()
+                == Device.Type.FIBER_SWITCH) {
+            return RANGE_GENERAL;
+        }
+        String reply = netconfGet(handler(), getPowerRangeFilter(port, directionKey));
         HierarchicalConfiguration info = configAt(reply, KEY_PORTS_PORT_PROPERTY);
         if (info == null) {
             return null;
@@ -251,7 +260,7 @@ public class OplinkOpticalPowerConfig<T> extends AbstractHandlerBehaviour
             return getPowerRange(port, KEY_PORTDIRECT_TX, KEY_PORTPWRCAPMINTX, KEY_PORTPWRCAPMAXTX);
         } else {
             log.debug("Get channel attenuation range...");
-            return Range.closed(MIN_ATTENUATION, MAX_ATTENUATION);
+            return RANGE_ATT;
         }
     }
 

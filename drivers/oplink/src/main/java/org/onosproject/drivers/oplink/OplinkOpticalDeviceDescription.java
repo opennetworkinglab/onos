@@ -19,7 +19,6 @@ package org.onosproject.drivers.oplink;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.PortNumber;
@@ -59,7 +58,7 @@ public class OplinkOpticalDeviceDescription extends AbstractHandlerBehaviour
     @Override
     public List<PortDescription> discoverPortDetails() {
         log.debug("Port description to be added for device {}", data().deviceId());
-        String reply = netconfGetConfig(handler(), getPortsFilter());
+        String reply = netconfGet(handler(), getPortsFilter());
         List<PortDescription> descriptions = parsePorts(reply);
         return ImmutableList.copyOf(descriptions);
     }
@@ -72,9 +71,8 @@ public class OplinkOpticalDeviceDescription extends AbstractHandlerBehaviour
     }
 
     private List<PortDescription> parsePorts(String content) {
-        HierarchicalConfiguration cfg = XmlConfigParser.loadXmlString(content);
+        List<HierarchicalConfiguration> subtrees = configsAt(content, KEY_DATA_PORTS);
         List<PortDescription> portDescriptions = Lists.newArrayList();
-        List<HierarchicalConfiguration> subtrees = cfg.configurationsAt(KEY_DATA_PORTS);
         for (HierarchicalConfiguration portConfig : subtrees) {
             portDescriptions.add(parsePort(portConfig));
         }
