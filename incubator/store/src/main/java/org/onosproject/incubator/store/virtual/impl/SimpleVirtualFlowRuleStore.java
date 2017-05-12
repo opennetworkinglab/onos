@@ -177,8 +177,7 @@ public class SimpleVirtualFlowRuleStore
                 .transformAndConcat(Collections::unmodifiableList);
     }
 
-    @Override
-    public void storeFlowRule(NetworkId networkId, FlowRule rule) {
+    private void storeFlowRule(NetworkId networkId, FlowRule rule) {
         storeFlowRuleInternal(networkId, rule);
     }
 

@@ -60,17 +60,6 @@ public interface VirtualNetworkFlowRuleStore
     Iterable<FlowEntry> getFlowEntries(NetworkId networkId, DeviceId deviceId);
 
     /**
-     * // TODO: Better description of method behavior.
-     * Stores a new flow rule without generating events.
-     *
-     * @param networkId virtual network identifier
-     * @param rule the flow rule to add
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    void storeFlowRule(NetworkId networkId, FlowRule rule);
-
-    /**
      * Stores a batch of flow rules.
      *
      * @param networkId virtual network identifier
