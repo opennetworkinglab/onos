@@ -265,7 +265,7 @@ public class ControlPlaneRedirectManager {
         DeviceId deviceId = intf.connectPoint().deviceId();
 
         PortNumber controlPlanePort = request.controlPlaneConnectPoint().port();
-        for (InterfaceIpAddress ip : intf.ipAddresses()) {
+        for (InterfaceIpAddress ip : intf.ipAddressesList()) {
             // create nextObjectives for forwarding to this interface and the
             // controlPlaneConnectPoint
             int cpNextId, intfNextId;

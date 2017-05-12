@@ -272,7 +272,7 @@ public class ControlPlaneRedirectManagerTest {
     private void setUpInterfaceConfiguration(Interface intf, boolean install) {
         DeviceId deviceId = controlPlaneConnectPoint.deviceId();
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
-        for (InterfaceIpAddress ip : intf.ipAddresses()) {
+        for (InterfaceIpAddress ip : intf.ipAddressesList()) {
             int cpNextId, intfNextId;
             cpNextId = modifyNextObjective(deviceId, controlPlanePort,
                     VlanId.vlanId(ControlPlaneRedirectManager.ASSIGNED_VLAN), true, install);
@@ -698,7 +698,7 @@ public class ControlPlaneRedirectManagerTest {
         public Interface getMatchingInterface(IpAddress ip) {
             Interface intff = null;
             for (Interface intf : interfaces) {
-                for (InterfaceIpAddress address : intf.ipAddresses()) {
+                for (InterfaceIpAddress address : intf.ipAddressesList()) {
                     if (address.ipAddress().equals(ip)) {
                         intff = intf;
                         break;

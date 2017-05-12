@@ -160,7 +160,7 @@ public class TunnellingConnectivityManager {
                     interfaceService.getInterfacesByPort(context.inPacket().receivedFrom());
 
             if (interfaces.stream()
-                    .flatMap(intf -> intf.ipAddresses().stream())
+                    .flatMap(intf -> intf.ipAddressesList().stream())
                     .anyMatch(ia -> ia.ipAddress().equals(dstAddress))) {
                 outputPort = bgpSpeaker.connectPoint();
             }

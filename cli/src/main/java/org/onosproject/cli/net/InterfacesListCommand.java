@@ -58,9 +58,9 @@ public class InterfacesListCommand extends AbstractShellCommand {
     private void printInterface(Interface intf) {
         StringBuilder formatStringBuilder = new StringBuilder(FORMAT);
 
-        if (!intf.ipAddresses().isEmpty()) {
+        if (!intf.ipAddressesList().isEmpty()) {
             formatStringBuilder.append(IP_FORMAT);
-            formatStringBuilder.append(intf.ipAddresses().toString());
+            formatStringBuilder.append(intf.ipAddressesList().toString());
         }
 
         if (!intf.mac().equals(MacAddress.NONE)) {

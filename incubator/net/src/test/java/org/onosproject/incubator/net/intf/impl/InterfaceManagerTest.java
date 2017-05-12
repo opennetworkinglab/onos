@@ -186,7 +186,7 @@ public class InterfaceManagerTest {
         // Create an interface that is the same as the existing one, but adds a
         // new IP address
         Interface intf = createInterface(1);
-        List<InterfaceIpAddress> addresses = Lists.newArrayList(intf.ipAddresses());
+        List<InterfaceIpAddress> addresses = Lists.newArrayList(intf.ipAddressesList());
         addresses.add(InterfaceIpAddress.valueOf("192.168.100.1/24"));
         intf = new Interface(Interface.NO_INTERFACE_NAME, intf.connectPoint(), addresses, intf.mac(), intf.vlan());
 

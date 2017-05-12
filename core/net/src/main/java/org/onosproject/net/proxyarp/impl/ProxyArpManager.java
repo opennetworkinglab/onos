@@ -160,7 +160,7 @@ public class ProxyArpManager implements ProxyArpService {
 
             interfaceService.getInterfacesByPort(context.inPort())
                     .stream()
-                    .filter(intf -> intf.ipAddresses()
+                    .filter(intf -> intf.ipAddressesList()
                             .stream()
                             .anyMatch(ia -> ia.ipAddress().equals(context.target())))
                     .forEach(intf -> buildAndSendReply(context, intf.mac()));
@@ -228,7 +228,7 @@ public class ProxyArpManager implements ProxyArpService {
     private Set<Interface> filterVlanInterfacesNoIp(Set<Interface> vlanInterfaces) {
         return vlanInterfaces
                 .stream()
-                .filter(intf -> intf.ipAddresses().isEmpty())
+                .filter(intf -> intf.ipAddressesList().isEmpty())
                 .collect(Collectors.toSet());
     }
 
@@ -244,7 +244,7 @@ public class ProxyArpManager implements ProxyArpService {
         Set<Interface> vlanInterfaces = interfaceService.getInterfacesByVlan(vlanId);
         return interfaceService.getInterfacesByVlan(vlanId)
                 .stream()
-                .anyMatch(intf -> intf.connectPoint().equals(connectPoint) && intf.ipAddresses().isEmpty())
+                .anyMatch(intf -> intf.connectPoint().equals(connectPoint) && intf.ipAddressesList().isEmpty())
                 && vlanInterfaces.size() > 1;
     }
 
@@ -310,7 +310,7 @@ public class ProxyArpManager implements ProxyArpService {
     private boolean hasIpAddress(ConnectPoint connectPoint) {
         return interfaceService.getInterfacesByPort(connectPoint)
                 .stream()
-                .flatMap(intf -> intf.ipAddresses().stream())
+                .flatMap(intf -> intf.ipAddressesList().stream())
                 .findAny()
                 .isPresent();
     }

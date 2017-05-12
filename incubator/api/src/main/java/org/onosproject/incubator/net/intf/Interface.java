@@ -27,7 +27,6 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -109,17 +108,6 @@ public class Interface {
      */
     public ConnectPoint connectPoint() {
         return connectPoint;
-    }
-
-    /**
-     * Retrieves the set of IP addresses that are assigned to the interface.
-     *
-     * @return the set of interface IP addresses
-     * @deprecated in Falcon release in favour of an ordered list
-     */
-    @Deprecated
-    public Set<InterfaceIpAddress> ipAddresses() {
-        return ipAddresses.stream().collect(Collectors.toSet());
     }
 
     /**

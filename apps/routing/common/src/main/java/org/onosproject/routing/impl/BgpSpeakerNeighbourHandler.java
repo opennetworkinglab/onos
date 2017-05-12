@@ -120,7 +120,7 @@ public class BgpSpeakerNeighbourHandler {
 
     private void updateInterface(Interface intf) {
         // Only use interfaces that have an IP address
-        if (!intf.ipAddresses().isEmpty()) {
+        if (!intf.ipAddressesList().isEmpty()) {
             neighbourService.registerNeighbourHandler(intf, externalHandler, appId);
         }
     }
@@ -144,7 +144,7 @@ public class BgpSpeakerNeighbourHandler {
                 // address on this port. Drop all other requests.
                 interfaceService.getInterfacesByPort(context.inPort())
                         .stream()
-                        .filter(intf -> intf.ipAddresses()
+                        .filter(intf -> intf.ipAddressesList()
                                 .stream()
                                 .anyMatch(ia -> ia.ipAddress().equals(context.target()) &&
                                         ia.subnetAddress().contains(context.sender())))

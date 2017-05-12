@@ -74,7 +74,7 @@ public class IcmpHandler {
             return;
         }
 
-        for (InterfaceIpAddress interfaceIpAddress: targetInterface.ipAddresses()) {
+        for (InterfaceIpAddress interfaceIpAddress: targetInterface.ipAddressesList()) {
             if (interfaceIpAddress.ipAddress().equals(destIpAddress)) {
                 ipMatches = true;
                 break;
