@@ -17,6 +17,8 @@
 package org.onosproject.ui.topo;
 
 import org.junit.Test;
+import org.onosproject.net.region.RegionId;
+import org.onosproject.ui.model.topo.UiLinkId;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -27,6 +29,10 @@ import static org.junit.Assert.assertNull;
 public class BiLinkTest extends BiLinkTestBase {
 
     private static final String EXP_ID_AB = "device-a/1-device-b/2";
+
+    private static final RegionId RA = RegionId.regionId("rA");
+    private static final RegionId RB = RegionId.regionId("rB");
+    private static final String EXP_RA_RB = "rA~rB";
 
     private BiLink blink;
 
@@ -77,5 +83,17 @@ public class BiLinkTest extends BiLinkTestBase {
         print(blink);
         assertEquals("non-canon BA", expected, blink.linkId());
     }
+
+    @Test
+    public void uiLinkId() {
+        blink = new ConcreteLink(UiLinkId.uiLinkId(RA, RB));
+        print(blink);
+        assertEquals("non-canon AB", EXP_RA_RB, blink.linkId());
+
+        assertNull("key not null", blink.key());
+        assertNull("one not null", blink.one());
+        assertNull("two not null", blink.two());
+    }
+
 }
 

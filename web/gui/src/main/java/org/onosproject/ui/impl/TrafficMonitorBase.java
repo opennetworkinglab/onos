@@ -270,7 +270,6 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
         addEdgeLinks(linkMap);
 
         Set<TrafficLink> linksWithTraffic = new HashSet<>();
-        // TODO: consider whether a map would be better...
 
         for (TrafficLink tlink : linkMap.biLinks()) {
             if (type == TrafficLink.StatsType.FLOW_STATS) {

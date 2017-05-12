@@ -18,6 +18,7 @@ package org.onosproject.ui.topo;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.ui.model.topo.UiLinkId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -26,9 +27,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * Subclasses will decide how to generate the link highlighting (coloring
  * and labeling) for the topology view.
+ * <p>
+ * As an alternative, a bi-link can be initialized with a {@link UiLinkId}
+ * (ignoring the LinkKey and links one and two), which will be reported as
+ * its identifier instead.
  */
 public abstract class BiLink {
 
+    private final UiLinkId uiLinkId;
     private final LinkKey key;
     private final Link one;
     private Link two;
@@ -44,6 +50,19 @@ public abstract class BiLink {
     public BiLink(LinkKey key, Link link) {
         this.key = checkNotNull(key);
         this.one = checkNotNull(link);
+        this.uiLinkId = null;
+    }
+
+    /**
+     * Constructs a bi-link for the given UI link identifier; sets remaining
+     * fields to null.
+     *
+     * @param uilinkId canonical ID for this bi-link
+     */
+    public BiLink(UiLinkId uilinkId) {
+        this.uiLinkId = checkNotNull(uilinkId);
+        this.key = null;
+        this.one = null;
     }
 
     /**
@@ -62,7 +81,16 @@ public abstract class BiLink {
      * @return link identifier
      */
     public String linkId() {
-        return key.asId();
+        return uiLinkId != null ? uiLinkId.toString() : key.asId();
+    }
+
+    /**
+     * Returns the UI link identifier for this bi-link (if set).
+     *
+     * @return the UI link ID
+     */
+    public UiLinkId uiLinkId() {
+        return uiLinkId;
     }
 
     /**
@@ -94,7 +122,7 @@ public abstract class BiLink {
 
     @Override
     public String toString() {
-        return key.asId();
+        return linkId();
     }
 
     /**

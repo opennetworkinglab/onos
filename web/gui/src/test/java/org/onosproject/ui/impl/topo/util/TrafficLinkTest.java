@@ -24,9 +24,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.region.RegionId;
 import org.onosproject.net.statistic.DefaultLoad;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.ui.impl.AbstractUiImplTest;
+import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.topo.TopoUtils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -45,10 +47,11 @@ public class TrafficLinkTest extends AbstractUiImplTest {
     private static final PortNumber P2 = portNumber(2);
 
     private static final ConnectPoint SRC1 = new ConnectPoint(D1, P1);
-    private static final ConnectPoint DST1 = new ConnectPoint(D2, P1);
     private static final ConnectPoint DST2 = new ConnectPoint(D2, P2);
 
-    private static final LinkKey X = LinkKey.linkKey(SRC1, DST2);
+    private static final RegionId RA = RegionId.regionId("rA");
+    private static final RegionId RB = RegionId.regionId("rB");
+    private static final String EXP_RA_RB = "rA~rB";
 
 
     private TrafficLink createALink() {
@@ -76,20 +79,11 @@ public class TrafficLinkTest extends AbstractUiImplTest {
     }
 
     @Test
-    public void copyConstructor() {
-        title("copy-constructor");
-        TrafficLink tlOrig = createALink();
-        TrafficLink tlCopy = new TrafficLink(tlOrig);
-        assertEquals("not copied correctly (1)", tlOrig, tlCopy);
-
-        tlOrig.addLoad(new DefaultLoad(2000, 0));
-        tlCopy = new TrafficLink(tlOrig);
-        assertEquals("not copied correctly (2)", tlOrig, tlCopy);
-
-        tlOrig = createALink();
-        tlOrig.addFlows(345);
-        tlCopy = new TrafficLink(tlOrig);
-        assertEquals("not copied correctly (3)", tlOrig, tlCopy);
+    public void emptyStats() {
+        title("emptyStats");
+        UiLinkId uiLinkId = UiLinkId.uiLinkId(RA, RB);
+        TrafficLink tl = new TrafficLink(uiLinkId);
+        assertEquals("wrong id", EXP_RA_RB, tl.linkId());
     }
 
     @Test

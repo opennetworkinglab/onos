@@ -25,6 +25,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ui.AbstractUiTest;
+import org.onosproject.ui.model.topo.UiLinkId;
 
 /**
  * Base class for unit tests of {@link BiLink} and {@link BiLinkMap}.
@@ -108,6 +109,10 @@ public abstract class BiLinkTestBase extends AbstractUiTest {
     protected static class ConcreteLink extends BiLink {
         public ConcreteLink(LinkKey key, Link link) {
             super(key, link);
+        }
+
+        public ConcreteLink(UiLinkId uiLinkId) {
+            super(uiLinkId);
         }
 
         @Override

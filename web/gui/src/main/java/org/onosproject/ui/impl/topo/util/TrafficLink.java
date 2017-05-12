@@ -19,6 +19,7 @@ package org.onosproject.ui.impl.topo.util;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.statistic.Load;
+import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.topo.BiLink;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
@@ -70,22 +71,17 @@ public class TrafficLink extends BiLink {
         super(key, link);
     }
 
+
     /**
-     * Copy constructor.
+     * Returns an "empty" traffic link (one with no underlying links or stats)
+     * with the given identifier. This is useful when we want to aggregate
+     * stats from other links into a single entity (such as a region-region
+     * link reporting the stats for the links that compose it).
      *
-     * @param copy the instance to copy
+     * @param id the link identifier
      */
-    public TrafficLink(TrafficLink copy) {
-        super(copy.key(), copy.one());
-        setOther(copy.two());
-        bytes = copy.bytes;
-        rate = copy.rate;
-        flows = copy.flows;
-        taggedFlavor = copy.taggedFlavor;
-        hasTraffic = copy.hasTraffic;
-        isOptical = copy.isOptical;
-        antMarch = copy.antMarch;
-        mods.addAll(copy.mods);
+    public TrafficLink(UiLinkId id) {
+        super(id);
     }
 
     @Override
@@ -121,7 +117,7 @@ public class TrafficLink extends BiLink {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("key", key())
+                .add("linkId", linkId())
                 .add("bytes", bytes)
                 .add("rate", rate)
                 .add("flows", flows)

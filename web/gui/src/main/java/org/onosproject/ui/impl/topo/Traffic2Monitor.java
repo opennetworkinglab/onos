@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
+
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns in the
  * Topology-2 view.
@@ -112,17 +114,13 @@ public class Traffic2Monitor extends TrafficMonitorBase {
         Map<UiLinkId, TrafficLink> mappedByUiLinkId = new HashMap<>();
 
         for (TrafficLink tl : linksWithTraffic) {
-            UiLinkId tlid = UiLinkId.uiLinkId(tl.key());
+            UiLinkId tlid = uiLinkId(tl.key());
             UiSynthLink sl = synthLinkMap.get(tlid);
             if (sl != null) {
                 UiLinkId aggrid = sl.link().id();
-                TrafficLink aggregated = mappedByUiLinkId.get(aggrid);
-                if (aggregated == null) {
-                    aggregated = new TrafficLink(tl);
-                    mappedByUiLinkId.put(aggrid, aggregated);
-                } else {
-                    aggregated.mergeStats(tl);
-                }
+                TrafficLink aggregated =
+                        mappedByUiLinkId.computeIfAbsent(aggrid, TrafficLink::new);
+                aggregated.mergeStats(tl);
             }
         }
 
