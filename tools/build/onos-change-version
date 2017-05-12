@@ -45,6 +45,9 @@ for atype in api bundle cli rest ui uitab uitopo; do
 done
 sed -i "" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION/g" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 
+# Fix the onos-build-conf version
+sed -i "" -E "s/\<onos-build-conf.version\>.*\<.onos-build-conf.version\>/\<onos-build-conf.version\>$NEW_VERSION\<\/onos-build-conf.version\>/g" $ONOS_ROOT/lib/pom.xml
+
 # Version the BUCK artifacts
 sed -i "" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
 sed -i "" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar
