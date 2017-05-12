@@ -140,12 +140,10 @@
         _.each(data.links, function (link) {
             // TODO: Inconsistent host id's (currentRegion and LinkLabel)
             var id = link.id.replace('/None/0', '/None').replace('-', '~'),
-                lab = t2rs.getLink(id);
-                // DONE: There's a bug in backend where link id is in reverse
-                //       This is fixed -- SDH
-                if (lab) {
+                nodeLink = t2rs.getLink(id);
+                if (nodeLink) {
                     t2lc.addLabel(LinkLabel, link, linkLabelsDOM, {
-                        link: lab
+                        link: nodeLink
                     });
                 }
         });

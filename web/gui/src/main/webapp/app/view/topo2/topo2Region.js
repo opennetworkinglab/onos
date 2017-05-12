@@ -86,6 +86,8 @@
                     this.sortMultiLinks();
                     this.assignPeerLocations();
 
+                    // TODO: RegionLinks are dublicated in JSON Payload
+
                     this.model.set({ subregions: t2sr.createSubRegionCollection(this.regionData.subregions, this) });
                     this.model.set({ devices: t2ds.createDeviceCollection(this.regionData.devices, this) });
                     this.model.set({ hosts: t2hs.createHostCollection(this.regionData.hosts, this) });

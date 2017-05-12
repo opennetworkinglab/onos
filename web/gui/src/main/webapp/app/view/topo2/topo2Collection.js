@@ -53,6 +53,10 @@
                 return data;
             }
 
+            if (this._byId[data.id]) {
+                return this._byId[data.id];
+            }
+
             var CollectionModel = this.model;
             var model = new CollectionModel(data, this);
             model.collection = this;

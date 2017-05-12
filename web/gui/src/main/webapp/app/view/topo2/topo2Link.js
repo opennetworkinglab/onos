@@ -343,7 +343,7 @@
                             width = scale(label[1]);
                             break;
                         case 'portStatsBitSec':
-                            scale.domain(['Kbps', 'Mbps', 'Gbps'])
+                            scale.domain(['Kbps', 'Mbps', 'Gbps']);
                             width = scale(label[1]);
                             break;
                         case 'portStatsPktSec':
