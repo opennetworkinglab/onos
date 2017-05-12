@@ -31,7 +31,7 @@ class RegionABC( Topo ):
         S2_host = self.addHost( 'h2' )
         S3_host = self.addHost( 'h3' )
         S4_host = self.addHost( 'h4' )
-        S5_host  = self.addHost( 'h5' )
+        S5_host = self.addHost( 'h5' )
         S6_host = self.addHost( 'h6' )
 
         # add edges between switch and corresponding host

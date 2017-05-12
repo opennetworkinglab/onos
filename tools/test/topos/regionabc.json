@@ -2,14 +2,14 @@
   "devices": {
     "of:0000000000000001": {
       "basic": {
-        "name": "S1",
+        "name": "Sw-1",
         "gridX": 40,
         "gridY": 20
       }
     },
     "of:0000000000000002": {
       "basic": {
-        "name": "S2",
+        "name": "Sw-2",
         "gridX": 40,
         "gridY": 40
       }
@@ -17,14 +17,14 @@
 
     "of:0000000000000003": {
       "basic": {
-        "name": "S3",
+        "name": "Sw-3",
         "gridX": 40,
         "gridY": 20
       }
     },
     "of:0000000000000004": {
       "basic": {
-        "name": "S4",
+        "name": "Sw-4",
         "gridX": 40,
         "gridY": 40
       }
@@ -32,14 +32,14 @@
 
     "of:0000000000000005": {
       "basic": {
-        "name": "S5",
+        "name": "Sw-5",
         "gridX": 40,
         "gridY": 20
       }
     },
     "of:0000000000000006": {
       "basic": {
-        "name": "S6",
+        "name": "Sw-6",
         "gridX": 40,
         "gridY": 40
       }
