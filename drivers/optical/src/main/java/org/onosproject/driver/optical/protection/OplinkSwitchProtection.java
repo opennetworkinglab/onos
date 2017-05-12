@@ -155,25 +155,47 @@ public class OplinkSwitchProtection extends AbstractHandlerBehaviour implements 
         return result;
     }
 
-    /*
-    ** index: PRIMARY_PORT - manual switch to primary port
-    *        SECONDARY_PORT - manual switch to Secondary port
-    *        VIRTUAL_PORT - automatic switch mode
-    */
     @Override
     public CompletableFuture<Void> switchWorkingPath(ConnectPoint identifier, int index) {
-        CompletableFuture result = new CompletableFuture<Boolean>();
+        return switchToManual(identifier, index);
+    }
 
-        //send switch command to switch to device by sending a flow-mod message.
-        if (identifier.port().toLong() == VIRTUAL_PORT) {
-            deleteFlow();
-            addFlow(PortNumber.portNumber(index));
-            result.complete(true);
-        } else {
-            result.complete(false);
-        }
+    @Override
+    public CompletableFuture<Void> switchToForce(ConnectPoint identifier, int index) {
+        // TODO
+        // Currently not supported for openflow device.
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        future.completeExceptionally(new UnsupportedOperationException());
+        return future;
+    }
 
-        return result;
+    @Override
+    public CompletableFuture<Void> switchToManual(ConnectPoint identifier, int index) {
+        return getProtectionEndpointConfig(identifier)
+                .thenApply(m -> m.paths().get(index))
+                .thenApply(m -> switchDevice(m.output().connectPoint().port()))
+                .thenApply(m -> null);
+    }
+
+    @Override
+    public CompletableFuture<Void> switchToAutomatic(ConnectPoint identifier) {
+        switchDevice(PortNumber.portNumber(VIRTUAL_PORT));
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * port: PRIMARY_PORT   - manual switch to primary port.
+     *       SECONDARY_PORT - manual switch to Secondary port.
+     *       VIRTUAL_PORT   - automatic switch mode.
+     */
+    private boolean switchDevice(PortNumber port) {
+        // TODO
+        // If the flow operations do not go through, the controller would be in an inconsistent state.
+        // Using listener can be a hack to imitate async API, to workaround the issue.
+        // But can probably get tricky to do it correctly, ensuring not leaving dangling listener, etc.
+        deleteFlow();
+        addFlow(port);
+        return true;
     }
 
     /*
