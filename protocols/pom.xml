@@ -42,9 +42,7 @@
         <module>snmp</module>
         <module>bmv2</module>
         <module>lisp</module>
-        <!-- This currently does not work
         <module>restconf</module>
-        -->
         <module>tl1</module>
     </modules>
 

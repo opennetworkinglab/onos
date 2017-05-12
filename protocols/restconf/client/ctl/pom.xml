@@ -67,23 +67,6 @@
             <version>${project.version}</version>
             <type>bundle</type>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-restconf-server-utils</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms-api</artifactId>
-            <version>${project.version}</version>
-            <type>bundle</type>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-ietfte-provider-utils</artifactId>
-            <version>${project.version}</version>
-            <type>bundle</type>
-        </dependency>
   </dependencies>
 
     <build>

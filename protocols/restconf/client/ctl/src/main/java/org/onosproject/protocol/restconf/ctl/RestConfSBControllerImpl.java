@@ -18,8 +18,6 @@ package org.onosproject.protocol.restconf.ctl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.glassfish.jersey.client.ChunkedInput;
 import org.onlab.packet.IpAddress;
@@ -28,8 +26,6 @@ import org.onosproject.protocol.http.ctl.HttpSBControllerImpl;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.onosproject.protocol.restconf.RestConfSBController;
 import org.onosproject.protocol.restconf.RestconfNotificationEventListener;
-import org.onosproject.yms.ych.YangProtocolEncodingFormat;
-import org.onosproject.yms.ymsm.YmsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,19 +63,11 @@ public class RestConfSBControllerImpl extends HttpSBControllerImpl
             restconfNotificationListenerMap = new ConcurrentHashMap<>();
     private Map<DeviceId, GetChunksRunnable> runnableTable = new ConcurrentHashMap<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected YmsService ymsService;
-
     ExecutorService executor = Executors.newCachedThreadPool();
 
     @Activate
     public void activate() {
         log.info("RESTCONF SBI Started");
-        if (ymsService != null) {
-            ymsService
-                    .registerDefaultCodec(new JsonYdtCodec(ymsService),
-                                          YangProtocolEncodingFormat.JSON);
-        }
     }
 
     @Deactivate
