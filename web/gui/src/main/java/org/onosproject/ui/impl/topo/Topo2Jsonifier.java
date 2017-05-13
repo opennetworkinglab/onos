@@ -51,6 +51,7 @@ import org.onosproject.ui.model.topo.UiDevice;
 import org.onosproject.ui.model.topo.UiElement;
 import org.onosproject.ui.model.topo.UiHost;
 import org.onosproject.ui.model.topo.UiLink;
+import org.onosproject.ui.model.topo.UiLinkId;
 import org.onosproject.ui.model.topo.UiModelEvent;
 import org.onosproject.ui.model.topo.UiNode;
 import org.onosproject.ui.model.topo.UiRegion;
@@ -364,13 +365,7 @@ public class Topo2Jsonifier {
     }
 
     protected JsonNode jsonLinks(List<UiSynthLink> links) {
-        ArrayNode synthLinks = arrayNode();
-        links.forEach(l -> synthLinks.add(json(l)));
-
-        // TODO: implement the following........
-//        collateSynthLinks(synthLinks, links);
-
-        return synthLinks;
+        return collateSynthLinks(links);
     }
 
     private ArrayNode jsonStrings(List<String> strings) {
@@ -581,15 +576,42 @@ public class Topo2Jsonifier {
         return node;
     }
 
-    // TODO: add method to JSONify an aggregated collection of synth links
+    private ArrayNode collateSynthLinks(List<UiSynthLink> links) {
+        Map<UiLinkId, Set<UiSynthLink>> collation = new HashMap<>();
 
-    private void collateSynthLinks(ArrayNode array,
-                                   List<UiSynthLink> links) {
-        // TODO - combine via link id
+        // first, group together the synthlinks into sets per ID...
+        for (UiSynthLink sl : links) {
+            UiLinkId id = sl.link().id();
+            Set<UiSynthLink> rollup =
+                    collation.computeIfAbsent(id, k -> new HashSet<>());
+            rollup.add(sl);
+        }
+
+        // now add json nodes per set, and return the array of them
+        ArrayNode array = arrayNode();
+        for (UiLinkId id : collation.keySet()) {
+            array.add(json(collation.get(id)));
+        }
+        return array;
     }
 
-    private ObjectNode json(UiSynthLink sLink) {
-        return json(sLink.link());
+    private ObjectNode json(Set<UiSynthLink> memberSet) {
+        ArrayNode rollup = arrayNode();
+        ObjectNode node = null;
+
+        boolean first = true;
+        for (UiSynthLink member : memberSet) {
+            UiLink link = member.link();
+            if (first) {
+                node = json(link);
+                first = false;
+            }
+            rollup.add(json(member.original()));
+        }
+        if (node != null) {
+            node.set("rollup", rollup);
+        }
+        return node;
     }
 
     private ObjectNode json(UiLink link) {

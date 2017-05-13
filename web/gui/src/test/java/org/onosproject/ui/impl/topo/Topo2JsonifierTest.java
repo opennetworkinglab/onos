@@ -17,6 +17,8 @@
 package org.onosproject.ui.impl.topo;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
@@ -34,11 +36,13 @@ import org.onosproject.ui.model.topo.UiRegionLink;
 import org.onosproject.ui.model.topo.UiSynthLink;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.region.RegionId.regionId;
 import static org.onosproject.ui.model.topo.UiLinkId.uiLinkId;
@@ -287,9 +291,41 @@ public class Topo2JsonifierTest extends AbstractUiImplTest {
     @Test
     public void encodeSynthLinks() {
         title("encodeSynthLinks()");
-        JsonNode node = t2.jsonLinks(createSynthLinks());
-        print(node);
-        // TODO: assert structure of JSON created so we know we got it right
+        ArrayNode array = (ArrayNode) t2.jsonLinks(createSynthLinks());
+        print(array);
 
+        assertEquals("wrong size", 2, array.size());
+        ObjectNode first = (ObjectNode) array.get(0);
+        ObjectNode second = (ObjectNode) array.get(1);
+
+        boolean firstIsAB = first.get("id").asText().equals("rA~rB");
+        if (firstIsAB) {
+            validateSynthLinks(first, second);
+        } else {
+            validateSynthLinks(second, first);
+        }
+    }
+
+    private void validateSynthLinks(ObjectNode ab, ObjectNode bc) {
+        validateLinkRollup(ab, RA_RB, D1_D3, D2_D4);
+        validateLinkRollup(bc, RB_RC, D3_D5, D4_D6);
+    }
+
+    private void validateLinkRollup(ObjectNode link, UiLinkId id,
+                                    UiLinkId... expInRollup) {
+        String actId = link.get("id").asText();
+        assertEquals("unexp id", id.toString(), actId);
+
+        Set<String> rollupIds = new HashSet<>();
+        ArrayNode rollupArray = (ArrayNode) link.get("rollup");
+
+        for (JsonNode n : rollupArray) {
+            ObjectNode o = (ObjectNode) n;
+            rollupIds.add(o.get("id").asText());
+        }
+
+        for (UiLinkId expId : expInRollup) {
+            assertTrue("missing exp id: " + expId, rollupIds.contains(expId.toString()));
+        }
     }
 }
