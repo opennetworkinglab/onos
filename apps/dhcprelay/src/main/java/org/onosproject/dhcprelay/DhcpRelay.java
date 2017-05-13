@@ -33,6 +33,7 @@ import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
@@ -204,34 +205,25 @@ public class DhcpRelay {
         dhcpGatewayIp = cfg.getDhcpGatewayIp();
         dhcpConnectMac = null; // reset for updated config
         dhcpConnectVlan = null; // reset for updated config
-        log.info("dhcp server connect point: " + dhcpServerConnectPoint);
-        log.info("dhcp server ipaddress " + dhcpServerIp);
-        if (dhcpGatewayIp != null) {
-            // check for gateway
-            Set<Host> ghosts = hostService.getHostsByIp(dhcpGatewayIp);
-            if (ghosts == null || ghosts.isEmpty()) {
-                log.info("Probing to resolve dhcp gateway IP {}", dhcpGatewayIp);
-                if (oldDhcpGatewayIp != null) {
-                    hostService.stopMonitoringIp(oldDhcpGatewayIp);
-                }
-                hostService.startMonitoringIp(dhcpGatewayIp);
-            } else {
-                // gw is known, no need to probe; should be only 1 host with this ip
-                hostUpdated(ghosts.iterator().next());
+        log.info("DHCP server connect point: " + dhcpServerConnectPoint);
+        log.info("DHCP server ipaddress " + dhcpServerIp);
+
+        IpAddress ipToProbe = dhcpGatewayIp != null ? dhcpGatewayIp : dhcpServerIp;
+        String hostToProbe = dhcpGatewayIp != null ? "gateway" : "DHCP server";
+
+        Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
+        if (hosts.isEmpty()) {
+            log.info("Probing to resolve {} IP {}", hostToProbe, ipToProbe);
+            if (oldDhcpGatewayIp != null) {
+                hostService.stopMonitoringIp(oldDhcpGatewayIp);
             }
+            if (oldDhcpServerIp != null) {
+                hostService.stopMonitoringIp(oldDhcpServerIp);
+            }
+            hostService.startMonitoringIp(ipToProbe);
         } else {
-            // check for server
-            Set<Host> shosts = hostService.getHostsByIp(dhcpServerIp);
-            if (shosts == null || shosts.isEmpty()) {
-                log.info("Probing to resolve dhcp server IP {}", dhcpServerIp);
-                if (oldDhcpServerIp != null) {
-                    hostService.stopMonitoringIp(oldDhcpServerIp);
-                }
-                hostService.startMonitoringIp(dhcpServerIp);
-            } else {
-                // dhcp server is know, no need to probe
-                hostUpdated(shosts.iterator().next());
-            }
+            // Probe target is known; There should be only 1 host with this ip
+            hostUpdated(hosts.iterator().next());
         }
     }
 
