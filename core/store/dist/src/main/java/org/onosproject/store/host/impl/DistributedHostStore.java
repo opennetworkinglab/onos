@@ -389,7 +389,7 @@ public class DistributedHostStore
                     }
                     break;
                 case REMOVE:
-                    updateHostsByIp(host);
+                    removeHostsByIp(host);
                     notifyDelegate(new HostEvent(HOST_REMOVED, host));
                     break;
                 default:
