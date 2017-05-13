@@ -26,14 +26,13 @@ import java.util.Set;
 public class MacAddress {
 
     /**
-     * Dummy MAC address.
-     * We use the first MAC address in ONOS OUI range as a dummy MAC address.
-     */
-    public static final MacAddress NONE = MacAddress.ONOS;
-    /**
      * First MAC address in ONOS OUI range.
      */
     public static final MacAddress ONOS = valueOf("a4:23:05:00:00:00");
+    /**
+     * Dummy MAC address. We use the first MAC address in ONOS OUI range as the dummy MAC address.
+     */
+    public static final MacAddress NONE = ONOS;
     /**
      * ONOS LLDP MAC address with multicast bit set.
      */
