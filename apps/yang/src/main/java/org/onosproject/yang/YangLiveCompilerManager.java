@@ -28,6 +28,7 @@ import org.onosproject.yang.compiler.api.YangCompilationParam;
 import org.onosproject.yang.compiler.api.YangCompiledOutput;
 import org.onosproject.yang.compiler.api.YangCompilerException;
 import org.onosproject.yang.compiler.api.YangCompilerService;
+import org.onosproject.yang.compiler.tool.YangCompilerManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +61,6 @@ public class YangLiveCompilerManager implements YangCompilerService {
     @Override
     public YangCompiledOutput compileYangFiles(YangCompilationParam param)
             throws IOException, YangCompilerException {
-        // TODO : uncomment when yang tools new version is released.
-        //return new YangCompilerManager().compileYangFiles(param);
-        return null;
+        return new YangCompilerManager().compileYangFiles(param);
     }
 }
