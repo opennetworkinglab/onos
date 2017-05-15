@@ -160,9 +160,8 @@ public class HttpSBControllerImpl implements HttpSBController {
         Response response = null;
         if (payload != null) {
             try {
-                response = wt.request(mediaType).post(
-                    Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType)
-                );
+                response = wt.request(mediaType)
+                        .post(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType));
             } catch (IOException e) {
                 log.error("Cannot do POST {} request on device {} because can't read payload", request, device);
             }
@@ -185,13 +184,13 @@ public class HttpSBControllerImpl implements HttpSBController {
         Response response = null;
         if (payload != null) {
             try {
-                response = wt.request(mediaType.getType()).put(Entity.entity(IOUtils.
-                        toString(payload, StandardCharsets.UTF_8), mediaType.getType()));
+                response = wt.request(mediaType).put(Entity.entity(IOUtils.
+                        toString(payload, StandardCharsets.UTF_8), mediaType));
             } catch (IOException e) {
                 log.error("Cannot do PUT {} request on device {} because can't read payload", request, device);
             }
         } else {
-            response = wt.request(mediaType.getType()).put(Entity.entity(null, mediaType.getType()));
+            response = wt.request(mediaType).put(Entity.entity(null, mediaType));
         }
 
         if (response == null) {
@@ -209,7 +208,7 @@ public class HttpSBControllerImpl implements HttpSBController {
     public InputStream get(DeviceId device, String request, MediaType mediaType) {
         WebTarget wt = getWebTarget(device, request);
 
-        Response s = wt.request(mediaType.getType()).get();
+        Response s = wt.request(mediaType).get();
 
         if (checkReply(s)) {
             return new ByteArrayInputStream(s.readEntity((String.class)).getBytes(StandardCharsets.UTF_8));
@@ -236,7 +235,7 @@ public class HttpSBControllerImpl implements HttpSBController {
             }
             if (payload != null) {
                 StringEntity input = new StringEntity(IOUtils.toString(payload, StandardCharsets.UTF_8));
-                input.setContentType(mediaType.getType());
+                input.setContentType(mediaType.toString());
                 httprequest.setEntity(input);
             }
             CloseableHttpClient httpClient;
@@ -265,7 +264,7 @@ public class HttpSBControllerImpl implements HttpSBController {
         // FIXME: do we need to delete an entry by enclosing data in DELETE
         // request?
         // wouldn't it be nice to use PUT to implement the similar concept?
-        Response response = wt.request(mediaType.getType()).delete();
+        Response response = wt.request(mediaType).delete();
 
         return response.getStatus();
     }

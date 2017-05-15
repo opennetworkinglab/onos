@@ -59,7 +59,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     private static final String ETHERNET = "Ethernet";
     private static final String MANAGEMENT = "Management";
     private static final String INTERFACE_TYPE = "interfaceType";
-    private static final int WEIGHTING_FACTOR_MANAGEMENT_INTERFACE = 100;
+    private static final int WEIGHTING_FACTOR_MANAGEMENT_INTERFACE = 10000;
     private static final String JSONRPC = "jsonrpc";
     private static final String METHOD = "method";
     private static final String RUN_CMDS = "runCmds";
@@ -107,7 +107,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
         String response = controller.post(deviceId, API_ENDPOINT,
                 new ByteArrayInputStream(sendObjNode.toString().getBytes()),
-                MediaType.APPLICATION_JSON, String.class);
+                MediaType.APPLICATION_JSON_TYPE, String.class);
 
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(response);
@@ -143,7 +143,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
     private int getPortNumber(String interfaceName) {
         if (interfaceName.startsWith(ETHERNET)) {
-            return Integer.valueOf(interfaceName.substring(ETHERNET.length()));
+            return Integer.valueOf(interfaceName.substring(ETHERNET.length()).replace('/', '0'));
         } else {
             return Integer.valueOf(interfaceName.substring(MANAGEMENT.length())).intValue()
                     + WEIGHTING_FACTOR_MANAGEMENT_INTERFACE;
