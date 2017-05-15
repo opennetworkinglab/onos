@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
