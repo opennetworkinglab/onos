@@ -522,6 +522,11 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             bridge.setFailMode(Sets.newHashSet(failMode));
         }
 
+        if (ovsdbBridge.datapathType().isPresent()) {
+            String datapathType = ovsdbBridge.datapathType().get();
+            bridge.setDatapathType(datapathType);
+        }
+
         String bridgeUuid = getBridgeUuid(ovsdbBridge.name());
         if (bridgeUuid == null) {
             bridge.setName(ovsdbBridge.name());

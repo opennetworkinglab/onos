@@ -38,6 +38,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
     private final boolean enableLocalController;
     private final Optional<FailMode> failMode;
     private final Optional<String> datapathId;
+    private final Optional<String> datapathType;
     private final Optional<Boolean> disableInBand;
 
     /* Adds more configurations */
@@ -47,12 +48,14 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                      boolean enableLocalController,
                                      Optional<FailMode> failMode,
                                      Optional<String> datapathId,
+                                     Optional<String> datapathType,
                                      Optional<Boolean> disableInBand) {
         this.name = checkNotNull(name);
         this.controllers = controllers;
         this.enableLocalController = enableLocalController;
         this.failMode = failMode;
         this.datapathId = datapathId;
+        this.datapathType = datapathType;
         this.disableInBand = disableInBand;
     }
 
@@ -87,6 +90,11 @@ public final class DefaultBridgeDescription implements BridgeDescription {
     }
 
     @Override
+    public Optional<String> datapathType() {
+        return datapathType;
+    }
+
+    @Override
     public Optional<DeviceId> deviceId() {
         if (datapathId.isPresent()) {
             return Optional.of(DeviceId.deviceId("of:" + datapathId.get()));
@@ -116,6 +124,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         private boolean enableLocalController = false;
         private Optional<FailMode> failMode = Optional.empty();
         private Optional<String> datapathId = Optional.empty();
+        private Optional<String> datapathType = Optional.empty();
         private Optional<Boolean> disableInBand = Optional.empty();
 
         private Builder() {
@@ -127,6 +136,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                                 enableLocalController,
                                                 failMode,
                                                 datapathId,
+                                                datapathType,
                                                 disableInBand);
         }
 
@@ -160,6 +170,12 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         @Override
         public Builder datapathId(String datapathId) {
             this.datapathId = Optional.ofNullable(datapathId);
+            return this;
+        }
+
+        @Override
+        public Builder datapathType(String datapathType) {
+            this.datapathType = Optional.ofNullable(datapathType);
             return this;
         }
 

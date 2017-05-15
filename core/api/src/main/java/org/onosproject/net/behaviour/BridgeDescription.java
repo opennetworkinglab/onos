@@ -80,6 +80,13 @@ public interface BridgeDescription extends Description {
     Optional<String> datapathId();
 
     /**
+     * Returns OVSDB datapath Type of the bridge.
+     *
+     * @return datapath type
+     */
+    Optional<String> datapathType();
+
+    /**
      * Returns OpenFlow device ID. Valid only if OpenFlow controller is configured
      * for the bridge.
      *
@@ -139,6 +146,14 @@ public interface BridgeDescription extends Description {
          * @return bridge description builder
          */
         Builder datapathId(String datapathId);
+
+        /**
+         * Returns bridge description builder with a given datapath type.
+         *
+         * @param datapathType datapath type
+         * @return bridge description builder
+         */
+        Builder datapathType(String datapathType);
 
         /**
          * Returns bridge description builder with in-band control disabled.
