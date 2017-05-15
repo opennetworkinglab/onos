@@ -44,6 +44,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowRuleStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkIntentStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualNetworkPacketStore;
 import org.onosproject.incubator.net.virtual.VirtualPort;
@@ -58,6 +59,7 @@ import org.onosproject.incubator.store.virtual.impl.DistributedVirtualNetworkSto
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowObjectiveStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualFlowRuleStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualGroupStore;
+import org.onosproject.incubator.store.virtual.impl.SimpleVirtualIntentStore;
 import org.onosproject.incubator.store.virtual.impl.SimpleVirtualPacketStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -854,11 +856,10 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), DeviceService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), LinkService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), TopologyService.class);
-        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), IntentService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), HostService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PathService.class);
 
-        // extra setup needed for FlowRuleService, PacketService, GroupService
+        // extra setup needed for FlowRuleService, PacketService, GroupService, and IntentService
         VirtualProviderManager virtualProviderManager = new VirtualProviderManager();
         virtualProviderManager.registerProvider(new DefaultVirtualFlowRuleProvider());
         virtualProviderManager.registerProvider(new DefaultVirtualPacketProvider());
@@ -870,12 +871,14 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
                 .add(VirtualNetworkFlowRuleStore.class, new SimpleVirtualFlowRuleStore())
                 .add(VirtualNetworkPacketStore.class, new SimpleVirtualPacketStore())
                 .add(VirtualNetworkGroupStore.class, new SimpleVirtualGroupStore())
+                .add(VirtualNetworkIntentStore.class, new SimpleVirtualIntentStore())
                 .add(VirtualNetworkFlowObjectiveStore.class, new SimpleVirtualFlowObjectiveStore());
 
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowRuleService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), FlowObjectiveService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), PacketService.class);
         validateServiceGetReturnsSavedInstance(virtualNetwork.id(), GroupService.class);
+        validateServiceGetReturnsSavedInstance(virtualNetwork.id(), IntentService.class);
     }
 
     /**

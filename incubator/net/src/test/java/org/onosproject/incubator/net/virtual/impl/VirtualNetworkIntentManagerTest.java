@@ -217,9 +217,7 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         virtualNetworkManagerStore.updateLink(link4, link4.tunnelId(), Link.State.ACTIVE);
 
         vnetIntentService = new VirtualNetworkIntentManager(manager, virtualNetwork.id());
-        vnetIntentService.intentService = intentService;
         vnetIntentService.intentStore = intentStore;
-        vnetIntentService.partitionService = workPartitionService;
         return virtualNetwork;
     }
 
