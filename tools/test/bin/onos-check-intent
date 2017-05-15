@@ -23,7 +23,8 @@ re='^[0-9]+$'
 
 for i in {1..15}; do
     echo "Attempt #$i"
-    onos $target "onos:intents" | tee $aux
+    onos $target date
+    onos $target "onos:intents --filter $2" | tee $aux
     if  [ -z "$numIntentsExpected" ]; then
         ( cat $aux | egrep "Key.*$2" && cat $aux | egrep "State.*$3" ) && cat $aux && exit 0
     else
@@ -39,6 +40,11 @@ for i in {1..15}; do
     sleep 2
 done
 
+# failed. print informations
+echo "Failed print information for debugging"
+onos $target "onos:intents"
+onos $target "onos:intent-details"
+onos $target "onos:flows -s -n"
+
 cat $aux
 exit 1
-
