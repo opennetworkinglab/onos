@@ -185,7 +185,7 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
             } else {
                 // We get the NextGroup from the remove operation.
                 // Doing an operation on the store seems to be very expensive.
-                next = flowObjectiveStore.removeNextGroup(fwd.nextId());
+                next = flowObjectiveStore.getNextGroup(fwd.nextId());
                 if (next == null) {
                     fwd.context().ifPresent(c -> c.onError(fwd, ObjectiveError.GROUPMISSING));
                     return;
@@ -254,6 +254,12 @@ public class DefaultSingleTablePipeline extends AbstractHandlerBehaviour impleme
                 );
                 break;
             case REMOVE:
+                NextGroup next = flowObjectiveStore.removeNextGroup(nextObjective.id());
+                if (next == null) {
+                    nextObjective.context().ifPresent(context -> context.onError(nextObjective,
+                                                                                 ObjectiveError.GROUPMISSING));
+                    return;
+                }
                 break;
             default:
                 log.warn("Unsupported operation {}", nextObjective.op());
