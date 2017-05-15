@@ -289,9 +289,7 @@ public class DistributedGroupStore
     private void synchronizeGroupStoreEntries() {
         Map<GroupStoreKeyMapKey, StoredGroupEntry> groupEntryMap = groupStoreEntriesByKey.asJavaMap();
         for (Entry<GroupStoreKeyMapKey, StoredGroupEntry> entry : groupEntryMap.entrySet()) {
-            GroupStoreKeyMapKey key = entry.getKey();
             StoredGroupEntry value = entry.getValue();
-
             ConcurrentMap<GroupId, StoredGroupEntry> groupIdTable = getGroupIdTable(value.deviceId());
             groupIdTable.put(value.id(), value);
         }
@@ -1069,21 +1067,22 @@ public class DistributedGroupStore
                  existing.deviceId(),
                  operation.failureCode());
         if (operation.failureCode() == GroupOperation.GroupMsgErrorCode.GROUP_EXISTS) {
-            log.warn("Current extraneous groups in device:{} are: {}",
-                     deviceId,
-                     getExtraneousGroups(deviceId));
             if (operation.buckets().equals(existing.buckets())) {
-                if (existing.state() == GroupState.PENDING_ADD) {
+                if (existing.state() == GroupState.PENDING_ADD ||
+                        existing.state() == GroupState.PENDING_ADD_RETRY) {
                     log.info("GROUP_EXISTS: GroupID and Buckets match for group in pending "
                                      + "add state - moving to ADDED for group {} in device {}",
                              existing.id(), deviceId);
                     addOrUpdateGroupEntry(existing);
                     return;
                 } else {
-                    log.warn("GROUP EXISTS: Group ID matched but buckets did not. "
-                                     + "Operation: {} Existing: {}", operation.buckets(),
-                             existing.buckets());
+                    log.warn("GROUP_EXISTS: GroupId and Buckets match but existing"
+                            + "group in state: {}", existing.state());
                 }
+            } else {
+                log.warn("GROUP EXISTS: Group ID matched but buckets did not. "
+                        + "Operation: {} Existing: {}", operation.buckets(),
+                        existing.buckets());
             }
         }
         switch (operation.opType()) {

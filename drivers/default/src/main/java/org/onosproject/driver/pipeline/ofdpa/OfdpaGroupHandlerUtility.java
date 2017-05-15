@@ -391,6 +391,10 @@ public final class OfdpaGroupHandlerUtility {
             return nextObj;
         }
 
+        public List<Deque<GroupKey>> allKeys() {
+            return gkeys;
+        }
+
         @Override
         public byte[] data() {
             return Ofdpa2Pipeline.appKryo.serialize(gkeys);

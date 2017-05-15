@@ -361,16 +361,19 @@ public class EcmpShortestPathGraph {
         StringBuilder sBuilder = new StringBuilder();
         for (Device device: srManager.deviceService.getDevices()) {
             if (device.id() != rootDevice) {
-                sBuilder.append("\r\n Paths from " + rootDevice + " to "
-                                + device.id() + "\r\n");
+                sBuilder.append("\r\n  Paths from " + rootDevice + " to "
+                                + device.id());
                 ArrayList<Path> paths = getECMPPaths(device.id());
                 if (paths != null) {
                     for (Path path : paths) {
-                        sBuilder.append("\r\n == "); // equal cost paths delimiter
-                        for (Link link : path.links()) {
+                        sBuilder.append("\r\n       == "); // equal cost paths delimiter
+                        for (int i = path.links().size() - 1; i >= 0; i--) {
+                            Link link = path.links().get(i);
                             sBuilder.append(" : " + link.src() + " -> " + link.dst());
                         }
                     }
+                } else {
+                    sBuilder.append("\r\n       == no paths");
                 }
             }
         }

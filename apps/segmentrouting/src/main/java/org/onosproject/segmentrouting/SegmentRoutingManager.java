@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
@@ -99,6 +100,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -219,6 +221,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
+
+    // Local store for all links seen and their present status, used for
+    // optimized routing. The existence of the link in the keys is enough to know
+    // if the link has been "seen-before" by this instance of the controller.
+    // The boolean value indicates if the link is currently up or not.
+    // XXX Currently the optimized routing logic depends on "forgetting" a link
+    // when a switch goes down, but "remembering" it when only the link goes down.
+    // Consider changing this logic so we can use the Link Service instead of
+    // a local cache.
+    private Map<Link, Boolean> seenLinks = new ConcurrentHashMap<>();
 
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
@@ -488,6 +500,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return deviceSubnetMap;
     }
 
+
+    @Override
+    public ImmutableMap<DeviceId, EcmpShortestPathGraph> getCurrentEcmpSpg() {
+        if (defaultRoutingHandler != null) {
+            return defaultRoutingHandler.getCurrentEmcpSpgMap();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public ImmutableMap<NeighborSetNextObjectiveStoreKey, Integer> getNeighborSet() {
+        if (nsNextObjStore != null) {
+            return ImmutableMap.copyOf(nsNextObjStore.entrySet());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
     /**
      * Extracts the application ID from the manager.
      *
@@ -630,48 +661,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the next objective ID for the given NeighborSet.
-     * If the nextObjective does not exist, a new one is created and
-     * its id is returned.
-     *
-     * @param deviceId Device ID
-     * @param ns NegighborSet
-     * @param meta metadata passed into the creation of a Next Objective
-     * @param isBos indicates if it is BoS or not
-     * @return next objective ID or -1 if an error was encountered during the
-     *         creation of the nextObjective
-     */
-    public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns,
-                                  TrafficSelector meta, boolean isBos) {
-        if (groupHandlerMap.get(deviceId) != null) {
-            log.trace("getNextObjectiveId query in device {}", deviceId);
-            return groupHandlerMap
-                    .get(deviceId).getNextObjectiveId(ns, meta, isBos);
-        } else {
-            log.warn("getNextObjectiveId query - groupHandler for device {} "
-                    + "not found", deviceId);
-            return -1;
-        }
-    }
-
-    /**
-     * Returns the next objective ID for the given NeighborSet.
-     * If the nextObjective does not exist, a new one is created and
-     * its id is returned.
-     *
-     * @param deviceId Device ID
-     * @param ns NegighborSet
-     * @param meta metadata passed into the creation of a Next Objective
-     * @return next objective ID or -1 if an error was encountered during the
-     *         creation of the nextObjective
-     */
-    public int getNextObjectiveId(DeviceId deviceId,
-                                  NeighborSet ns,
-                                  TrafficSelector meta) {
-        return this.getNextObjectiveId(deviceId, ns, meta, true);
-    }
-
-    /**
      * Returns the next objective ID for the given subnet prefix. It is expected
      * Returns the next objective ID for the given vlan id. It is expected
      * that the next-objective has been pre-created from configuration.
@@ -718,6 +707,88 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    /**
+     * Returns the group handler object for the specified device id.
+     *
+     * @param devId the device identifier
+     * @return the groupHandler object for the device id, or null if not found
+     */
+    public DefaultGroupHandler getGroupHandler(DeviceId devId) {
+        return groupHandlerMap.get(devId);
+    }
+
+    /**
+     * Returns true if this controller instance has seen this link before. The
+     * link may not be currently up, but as long as the link had been seen before
+     * this method will return true. The one exception is when the link was
+     * indeed seen before, but this controller instance was forced to forget it
+     * by a call to purgeSeenLink method.
+     *
+     * @param link the infrastructure link being queried
+     * @return true if this controller instance has seen this link before
+     */
+    public boolean isSeenLink(Link link) {
+        return seenLinks.containsKey(link);
+    }
+
+    /**
+     * Updates the seen link store. Updates can be for links that are currently
+     * available or not.
+     *
+     * @param link the link to update in the seen-link local store
+     * @param up the status of the link, true if up, false if down
+     */
+    public void updateSeenLink(Link link, boolean up) {
+        seenLinks.put(link, up);
+    }
+
+    /**
+     * Returns the status of a seen-link (up or down). If the link has not
+     * been seen-before, a null object is returned.
+     *
+     * @param link the infrastructure link being queried
+     * @return null if the link was not seen-before;
+     *         true if the seen-link is up;
+     *         false if the seen-link is down
+     */
+    public Boolean isSeenLinkUp(Link link) {
+        return seenLinks.get(link);
+    }
+
+    /**
+     * Makes this controller instance forget a previously seen before link.
+     *
+     * @param link the infrastructure link to purge
+     */
+    public void purgeSeenLink(Link link) {
+        seenLinks.remove(link);
+    }
+
+    /**
+     * Returns the status of a link as parallel link. A parallel link
+     * is defined as a link which has common src and dst switches as another
+     * seen-link that is currently enabled. It is not necessary for the link being
+     * queried to be a seen-link.
+     *
+     *  @param link the infrastructure link being queried
+     *  @return true if a seen-link exists that is up, and shares the
+     *          same src and dst switches as the link being queried
+     */
+    public boolean isParallelLink(Link link) {
+        for (Entry<Link, Boolean> seen : seenLinks.entrySet()) {
+            Link seenLink = seen.getKey();
+           if (seenLink.equals(link)) {
+               continue;
+           }
+           if (seenLink.src().deviceId().equals(link.src().deviceId()) &&
+                   seenLink.dst().deviceId().equals(link.dst().deviceId()) &&
+                   seen.getValue()) {
+               return true;
+           }
+        }
+        return false;
+    }
+
     private class InternalPacketProcessor implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
@@ -735,7 +806,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             log.trace("Rcvd pktin: {}", ethernet);
             if (ethernet.getEtherType() == TYPE_ARP) {
-                log.warn("Received unexpected ARP packet on {}", context.inPacket().receivedFrom());
+                log.warn("Received unexpected ARP packet on {}",
+                         context.inPacket().receivedFrom());
                 log.trace("{}", ethernet);
                 return;
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
@@ -758,7 +830,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             icmp6Packet.getIcmpType() == ICMP6.ECHO_REPLY) {
                         icmpHandler.processIcmpv6(ethernet, pkt.receivedFrom());
                     } else {
-                        log.debug("Received ICMPv6 0x{} - not handled",
+                        log.trace("Received ICMPv6 0x{} - not handled",
                                 Integer.toHexString(icmp6Packet.getIcmpType() & 0xff));
                     }
                 } else {
@@ -791,7 +863,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             case PORT_ADDED:
             case DEVICE_UPDATED:
             case DEVICE_AVAILABILITY_CHANGED:
-                log.debug("Event {} received from Device Service", event.type());
+                log.trace("Event {} received from Device Service", event.type());
                 scheduleEventHandlerIfNotScheduled(event);
                 break;
             default:
@@ -837,15 +909,28 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     }
                     if (event.type() == LinkEvent.Type.LINK_ADDED ||
                             event.type() == LinkEvent.Type.LINK_UPDATED) {
+                        // Note: do not update seenLinks here, otherwise every
+                        // link, even one seen for the first time, will be appear
+                        // to be a previously seen link
                         processLinkAdded((Link) event.subject());
                     } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
                         Link linkRemoved = (Link) event.subject();
+                        if (linkRemoved.type() == Link.Type.DIRECT) {
+                            updateSeenLink(linkRemoved, false);
+                        }
+                        // device availability check helps to ensure that
+                        // multiple link-removed events are actually treated as a
+                        // single switch removed event. purgeSeenLink is necessary
+                        // so we do rerouting (instead of rehashing) when switch
+                        // comes back.
                         if (linkRemoved.src().elementId() instanceof DeviceId &&
                                 !deviceService.isAvailable(linkRemoved.src().deviceId())) {
+                            purgeSeenLink(linkRemoved);
                             continue;
                         }
                         if (linkRemoved.dst().elementId() instanceof DeviceId &&
                                 !deviceService.isAvailable(linkRemoved.dst().deviceId())) {
+                            purgeSeenLink(linkRemoved);
                             continue;
                         }
                         processLinkRemoved((Link) event.subject());
@@ -867,7 +952,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         // so port filtering rules are handled at the device_added event.
                         // port added calls represent all ports on the device,
                         // enabled or not.
-                        log.debug("** PORT ADDED {}/{} -> {}",
+                        log.trace("** PORT ADDED {}/{} -> {}",
                                   ((DeviceEvent) event).subject().id(),
                                   ((DeviceEvent) event).port().number(),
                                   event.type());
@@ -897,16 +982,22 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             log.warn("Source device of this link is not configured.");
             return;
         }
-        //Irrespective whether the local is a MASTER or not for this device,
-        //create group handler instance and push default TTP flow rules.
-        //Because in a multi-instance setup, instances can initiate
-        //groups for any devices. Also the default TTP rules are needed
-        //to be pushed before inserting any IP table entries for any device
+        if (link.type() != Link.Type.DIRECT) {
+            // NOTE: A DIRECT link might be transiently marked as INDIRECT
+            //       if BDDP is received before LLDP. We can safely ignore that
+            //       until the LLDP is received and the link is marked as DIRECT.
+            log.info("Ignore link {}->{}. Link type is {} instead of DIRECT.",
+                    link.src(), link.dst(), link.type());
+            return;
+        }
+
+        //Irrespective of whether the local is a MASTER or not for this device,
+        //create group handler instance and push default TTP flow rules if needed,
+        //as in a multi-instance setup, instances can initiate groups for any device.
         DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src()
                 .deviceId());
         if (groupHandler != null) {
-            groupHandler.linkUp(link, mastershipService.isLocalMaster(
-                                           link.src().deviceId()));
+            groupHandler.portUpForLink(link);
         } else {
             Device device = deviceService.getDevice(link.src().deviceId());
             if (device != null) {
@@ -916,29 +1007,45 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 processDeviceAdded(device);
                 groupHandler = groupHandlerMap.get(link.src()
                                                    .deviceId());
-                groupHandler.linkUp(link, mastershipService.isLocalMaster(device.id()));
+                groupHandler.portUpForLink(link);
             }
         }
 
         log.trace("Starting optimized route population process");
-        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null);
-        //log.trace("processLinkAdded: re-starting route population process");
-        //defaultRoutingHandler.startPopulationProcess();
+        boolean seenBefore = isSeenLink(link);
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null, link, null);
+        if (mastershipService.isLocalMaster(link.src().deviceId())) {
+            if (!seenBefore) {
+                // if link seen first time, we need to ensure hash-groups have all ports
+                groupHandler.retryHash(link, false, true);
+            } else {
+                //seen before-link
+                if (isParallelLink(link)) {
+                    groupHandler.retryHash(link, false, false);
+                }
+            }
+        }
 
         mcastHandler.init();
     }
 
     private void processLinkRemoved(Link link) {
         log.info("** LINK REMOVED {}", link.toString());
+        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link, null, null);
+
+        // update local groupHandler stores
         DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src().deviceId());
         if (groupHandler != null) {
-            groupHandler.portDown(link.src().port(),
-                                  mastershipService.isLocalMaster(link.src().deviceId()));
+            if (mastershipService.isLocalMaster(link.src().deviceId()) &&
+                    isParallelLink(link)) {
+                groupHandler.retryHash(link, true, false);
+            }
+            // ensure local stores are updated
+            groupHandler.portDown(link.src().port());
+        } else {
+            log.warn("group handler not found for dev:{} when removing link: {}",
+                     link.src().deviceId(), link);
         }
-        log.trace("Starting optimized route population process");
-        defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
-        //log.trace("processLinkRemoved: re-starting route population process");
-        //defaultRoutingHandler.startPopulationProcess();
 
         mcastHandler.processLinkDown(link);
     }
@@ -1011,6 +1118,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 });
         groupHandlerMap.remove(device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
+        // Note that a switch going down is associated with all of its links
+        // going down as well, but it is treated as a single switch down event
+        // while the link-downs are ignored.
+        defaultRoutingHandler
+            .populateRoutingRulesForLinkStatusChange(null, null, device.id());
         mcastHandler.removeDevice(device.id());
         xConnectHandler.removeDevice(device.id());
     }
@@ -1049,7 +1161,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         Set<VlanId> taggedVlans = getTaggedVlanId(cp);
 
         if (untaggedVlan == null && nativeVlan == null && taggedVlans.isEmpty()) {
-            log.debug("Not handling port updated event for unconfigured port "
+            log.debug("Not handling port updated event for non-edge port (unconfigured) "
                     + "dev/port: {}/{}", device.id(), port.number());
             return;
         }
@@ -1272,4 +1384,5 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
     }
+
 }

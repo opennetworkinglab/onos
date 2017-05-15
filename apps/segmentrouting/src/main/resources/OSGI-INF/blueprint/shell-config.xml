@@ -16,6 +16,7 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
+        <!-- XXX revisit when we formally add policies
         <command>
             <action class="org.onosproject.segmentrouting.cli.TunnelListCommand"/>
         </command>
@@ -34,11 +35,18 @@
         <command>
             <action class="org.onosproject.segmentrouting.cli.TunnelRemoveCommand"/>
         </command>
+        -->
         <command>
             <action class="org.onosproject.segmentrouting.cli.RerouteNetworkCommand"/>
         </command>
         <command>
             <action class="org.onosproject.segmentrouting.cli.DeviceSubnetListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.EcmpGraphCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.NeighborSetCommand"/>
         </command>
     </command-bundle>
 </blueprint>

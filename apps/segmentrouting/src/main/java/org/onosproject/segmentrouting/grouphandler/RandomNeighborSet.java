@@ -23,17 +23,18 @@ import org.onosproject.net.DeviceId;
 import java.util.Set;
 
 /**
- * Extends its super classe modifying its internal behavior.
+ * Extends its super class modifying its internal behavior.
  * Pick a neighbor will pick a random neighbor.
  */
 public class RandomNeighborSet extends NeighborSet {
 
-    public RandomNeighborSet(Set<DeviceId> neighbors) {
-        super(neighbors, true);
+    public RandomNeighborSet(Set<DeviceId> neighbors, DeviceId dstSw) {
+        super(neighbors, true, dstSw);
     }
 
-    public RandomNeighborSet(Set<DeviceId> neighbors, int edgeLabel) {
-        super(neighbors, true, edgeLabel);
+    public RandomNeighborSet(Set<DeviceId> neighbors, int edgeLabel,
+                             DeviceId dstSw) {
+        super(neighbors, true, edgeLabel, dstSw);
     }
 
     public RandomNeighborSet() {
@@ -53,6 +54,7 @@ public class RandomNeighborSet extends NeighborSet {
     @Override
     public String toString() {
         return " RandomNeighborset Sw: " + getDeviceIds()
-                + " and Label: " + getEdgeLabel();
+                + " and Label: " + getEdgeLabel()
+                + " for destination: " + getDestinationSw();
     }
 }

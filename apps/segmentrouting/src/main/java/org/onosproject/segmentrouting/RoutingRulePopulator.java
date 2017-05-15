@@ -34,6 +34,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -326,10 +327,10 @@ public class RoutingRulePopulator {
         // is not set.
         if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
             tbuilder.immediate().decNwTtl();
-            ns = new NeighborSet(nextHops, false);
+            ns = new NeighborSet(nextHops, false, destSw);
             treatment = tbuilder.build();
         } else {
-            ns = new NeighborSet(nextHops, false, segmentId);
+            ns = new NeighborSet(nextHops, false, segmentId, destSw);
             treatment = null;
         }
 
@@ -338,8 +339,14 @@ public class RoutingRulePopulator {
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
         metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
+        DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
+        if (grpHandler == null) {
+            log.warn("populateIPRuleForRouter: groupHandler for device {} "
+                    + "not found", deviceId);
+            return false;
+        }
 
-        int nextId = srManager.getNextObjectiveId(deviceId, ns, metabuilder.build());
+        int nextId = grpHandler.getNextObjectiveId(ns, metabuilder.build(), true);
         if (nextId <= 0) {
             log.warn("No next objective in {} for ns: {}", deviceId, ns);
             return false;
@@ -356,10 +363,8 @@ public class RoutingRulePopulator {
         if (treatment != null) {
             fwdBuilder.withTreatment(treatment);
         }
-        log.debug("Installing IPv4 forwarding objective "
-                        + "for router IP/subnet {} in switch {}",
-                ipPrefix,
-                deviceId);
+        log.debug("Installing IPv4 forwarding objective for router IP/subnet {} "
+                + "in switch {} with nextId: {}", ipPrefix, deviceId, nextId);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("IP rule for router {} populated in dev:{}",
                                          ipPrefix, deviceId),
@@ -438,7 +443,7 @@ public class RoutingRulePopulator {
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             // If the next hop is the destination router for the segment, do pop
             log.debug("populateMplsRule: Installing MPLS forwarding objective for "
-                              + "label {} in switch {} with pop", segmentId, targetSwId);
+                    + "label {} in switch {} with pop", segmentId, targetSwId);
             // Not-bos pop case (php for the current label). If MPLS-ECMP
             // has been configured, the application we will request the
             // installation for an MPLS-ECMP group.
@@ -448,7 +453,8 @@ public class RoutingRulePopulator {
                                                true,
                                                isMplsBos,
                                                metabuilder.build(),
-                                               routerIp);
+                                               routerIp,
+                                               destSwId);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
                 return Collections.emptyList();
@@ -457,8 +463,8 @@ public class RoutingRulePopulator {
 
         } else {
             // next hop is not destination, SR CONTINUE case (swap with self)
-            log.debug("Installing MPLS forwarding objective for "
-                              + "label {} in switch {} without pop", segmentId, targetSwId);
+            log.debug("Installing MPLS forwarding objective for label {} in "
+                    + "switch {} without pop", segmentId, targetSwId);
             // Not-bos pop case. If MPLS-ECMP has been configured, the
             // application we will request the installation for an MPLS-ECMP
             // group.
@@ -468,7 +474,8 @@ public class RoutingRulePopulator {
                                                false,
                                                isMplsBos,
                                                metabuilder.build(),
-                                               routerIp);
+                                               routerIp,
+                                               destSwId);
             // Error case, we cannot handle, exit.
             if (fwdObjNoBosBuilder == null) {
                 return Collections.emptyList();
@@ -561,7 +568,8 @@ public class RoutingRulePopulator {
                                              boolean phpRequired,
                                              boolean isBos,
                                              TrafficSelector meta,
-                                             IpAddress routerIp) {
+                                             IpAddress routerIp,
+                                             DeviceId destSw) {
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                 .builder().withFlag(ForwardingObjective.Flag.SPECIFIC);
@@ -592,11 +600,11 @@ public class RoutingRulePopulator {
         fwdBuilder.withTreatment(tbuilder.build());
         // if MPLS-ECMP == True we will build a standard NeighborSet.
         // Otherwise a RandomNeighborSet.
-        NeighborSet ns = NeighborSet.neighborSet(false, nextHops, false);
+        NeighborSet ns = NeighborSet.neighborSet(false, nextHops, false, destSw);
         if (!isBos && this.srManager.getMplsEcmp()) {
-            ns = NeighborSet.neighborSet(false, nextHops, true);
+            ns = NeighborSet.neighborSet(false, nextHops, true, destSw);
         } else if (!isBos && !this.srManager.getMplsEcmp()) {
-            ns = NeighborSet.neighborSet(true, nextHops, true);
+            ns = NeighborSet.neighborSet(true, nextHops, true, destSw);
         }
         log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
                   deviceId, ns);
@@ -606,7 +614,13 @@ public class RoutingRulePopulator {
         // MPLS-ECMP.
         // The metadata informs the driver that the next-Objective will be used
         // by MPLS flows and if Bos == False the driver will use MPLS groups.
-        int nextId = srManager.getNextObjectiveId(deviceId, ns, meta, isBos);
+        DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
+        if (grpHandler == null) {
+            log.warn("populateIPRuleForRouter: groupHandler for device {} "
+                    + "not found", deviceId);
+            return null;
+        }
+        int nextId = grpHandler.getNextObjectiveId(ns, meta, isBos);
         if (nextId <= 0) {
             log.warn("No next objective in {} for ns: {}", deviceId, ns);
             return null;
@@ -710,13 +724,13 @@ public class RoutingRulePopulator {
             // error encountered during build
             return false;
         }
-        log.info("{} filtering objectives for dev/port:{}/{}", (install ? "Installing" : "Removing"),
-                deviceId, portnum);
+        log.debug("{} filtering objectives for dev/port:{}/{}",
+                 install ? "Installing" : "Removing", deviceId, portnum);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Filter for {}/{} {}", deviceId, portnum,
-                        (install ? "installed" : "removed")),
+                        install ? "installed" : "removed"),
                 (objective, error) -> log.warn("Failed to {} filter for {}/{}: {}",
-                        (install ? "install" : "remove"), deviceId, portnum, error));
+                        install ? "install" : "remove", deviceId, portnum, error));
         if (install) {
             srManager.flowObjectiveService.filter(deviceId, fob.add(context));
         } else {
@@ -893,10 +907,6 @@ public class RoutingRulePopulator {
      * Populates a forwarding objective to send packets that miss other high
      * priority Bridging Table entries to a group that contains all ports of
      * its subnet.
-     *
-     * Note: We assume that packets sending from the edge switches to the hosts
-     * have untagged VLAN.
-     * The VLAN tag will be popped later in the flooding group.
      *
      * @param deviceId switch ID to set the rules
      */

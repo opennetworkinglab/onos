@@ -46,6 +46,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective.Operation;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -1098,17 +1099,14 @@ public class Ofdpa2GroupHandler {
                                                       true,
                                                       deviceId);
 
-        // update original NextGroup with new bucket-chain
-        // If active keys shows only the top-level group without a chain of groups,
-        // then it represents an empty group. Update by replacing empty chain.
-        Deque<GroupKey> newBucketChain = allGroupKeys.get(0);
-        newBucketChain.addFirst(l3ecmpGroupKey);
-        if (allActiveKeys.size() == 1 && allActiveKeys.get(0).size() == 1) {
-            allActiveKeys.clear();
+        // update new bucket-chains
+        List<Deque<GroupKey>> addedKeys = new ArrayList<>();
+        for (Deque<GroupKey> newBucketChain : allGroupKeys) {
+            newBucketChain.addFirst(l3ecmpGroupKey);
+            addedKeys.add(newBucketChain);
         }
-        allActiveKeys.add(newBucketChain);
-        updatePendingNextObjective(l3ecmpGroupKey, new OfdpaNextGroup(allActiveKeys, nextObjective));
-
+        updatePendingNextObjective(l3ecmpGroupKey,
+                                   new OfdpaNextGroup(addedKeys, nextObjective));
         log.debug("Adding to L3ECMP: device:{} gid:{} group key:{} nextId:{}",
                 deviceId, Integer.toHexString(l3ecmpGroupId),
                 l3ecmpGroupKey, nextObjective.id());
@@ -1116,7 +1114,8 @@ public class Ofdpa2GroupHandler {
         unsentGroups.forEach(groupInfo -> {
             // send the innermost group
             log.debug("Sending innermost group {} in group chain on device {} ",
-                      Integer.toHexString(groupInfo.innerMostGroupDesc().givenGroupId()), deviceId);
+                      Integer.toHexString(groupInfo.innerMostGroupDesc().givenGroupId()),
+                      deviceId);
             updatePendingGroups(groupInfo.nextGroupDesc().appCookie(), l3ecmpGce);
             groupService.addGroup(groupInfo.innerMostGroupDesc());
         });
@@ -1177,8 +1176,6 @@ public class Ofdpa2GroupHandler {
                                    true,
                                    deviceId);
 
-        updatePendingNextObjective(l2floodGroupKey,
-                                   new OfdpaNextGroup(allActiveKeys, nextObj));
 
         //ensure assignedVlan applies to the chosen group
         VlanId floodGroupVlan = extractVlanIdFromGroupId(l2floodGroupId);
@@ -1190,18 +1187,13 @@ public class Ofdpa2GroupHandler {
             fail(nextObj, ObjectiveError.BADPARAMS);
             return;
         }
-
+        List<Deque<GroupKey>> addedKeys = new ArrayList<>();
         groupInfos.forEach(groupInfo -> {
             // update original NextGroup with new bucket-chain
-            // If active keys shows only the top-level group without a chain of groups,
-            // then it represents an empty group. Update by replacing empty chain.
             Deque<GroupKey> newBucketChain = new ArrayDeque<>();
             newBucketChain.addFirst(groupInfo.nextGroupDesc().appCookie());
             newBucketChain.addFirst(l2floodGroupKey);
-            if (allActiveKeys.size() == 1 && allActiveKeys.get(0).size() == 1) {
-                allActiveKeys.clear();
-            }
-            allActiveKeys.add(newBucketChain);
+            addedKeys.add(newBucketChain);
 
             log.debug("Adding to L2FLOOD: device:{} gid:{} group key:{} nextId:{}",
                       deviceId, Integer.toHexString(l2floodGroupId),
@@ -1224,6 +1216,9 @@ public class Ofdpa2GroupHandler {
                 groupService.addGroup(groupInfo.innerMostGroupDesc());
             }
         });
+
+        updatePendingNextObjective(l2floodGroupKey,
+                                   new OfdpaNextGroup(addedKeys, nextObj));
     }
 
     private void addBucketToL3MulticastGroup(NextObjective nextObj,
@@ -1271,6 +1266,8 @@ public class Ofdpa2GroupHandler {
                                                        groupInfos.size(),
                                                        true,
                                                        deviceId);
+
+        List<Deque<GroupKey>> addedKeys = new ArrayList<>();
         groupInfos.forEach(groupInfo -> {
             // update original NextGroup with new bucket-chain
             Deque<GroupKey> newBucketChain = new ArrayDeque<>();
@@ -1280,12 +1277,7 @@ public class Ofdpa2GroupHandler {
                 newBucketChain.addFirst(groupInfo.nextGroupDesc().appCookie());
             }
             newBucketChain.addFirst(l3mcastGroupKey);
-            // If active keys shows only the top-level group without a chain of groups,
-            // then it represents an empty group. Update by replacing empty chain.
-            if (allActiveKeys.size() == 1 && allActiveKeys.get(0).size() == 1) {
-                allActiveKeys.clear();
-            }
-            allActiveKeys.add(newBucketChain);
+            addedKeys.add(newBucketChain);
 
             updatePendingGroups(groupInfo.nextGroupDesc().appCookie(), l3mcastGce);
             // Point next group to inner-most group, if any
@@ -1308,7 +1300,7 @@ public class Ofdpa2GroupHandler {
         });
 
         updatePendingNextObjective(l3mcastGroupKey,
-                                   new OfdpaNextGroup(allActiveKeys, nextObj));
+                                   new OfdpaNextGroup(addedKeys, nextObj));
     }
 
     /**
@@ -1351,7 +1343,6 @@ public class Ofdpa2GroupHandler {
         List<Deque<GroupKey>> chainsToRemove = Lists.newArrayList();
         for (Deque<GroupKey> gkeys : allActiveKeys) {
             // last group in group chain should have a single bucket pointing to port
-
             GroupKey groupWithPort = gkeys.peekLast();
             Group group = groupService.getGroup(deviceId, groupWithPort);
             if (group == null) {
@@ -1434,17 +1425,25 @@ public class Ofdpa2GroupHandler {
         groupService.removeBucketsFromGroup(deviceId, modGroupKey,
                                             removeBuckets, modGroupKey,
                                             nextObjective.appId());
-        // update store
-        allActiveKeys.removeAll(chainsToRemove);
-        // If no buckets in the group, then retain an entry for the
-        // top level group which still exists.
-        if (allActiveKeys.isEmpty()) {
-            ArrayDeque<GroupKey> top = new ArrayDeque<>();
-            top.add(modGroupKey);
-            allActiveKeys.add(top);
+        // update store - synchronize access
+        synchronized (flowObjectiveStore) {
+            // get fresh copy of what the store holds
+            next = flowObjectiveStore.getNextGroup(nextObjective.id());
+            allActiveKeys = appKryo.deserialize(next.data());
+            // Note that since we got a new object, and ArrayDeque does not implement
+            // Object.equals(), we have to check the deque last elems one by one
+            allActiveKeys.removeIf(active -> chainsToRemove.stream().anyMatch(remove ->
+                                       remove.peekLast().equals(active.peekLast())));
+            // If no buckets in the group, then retain an entry for the
+            // top level group which still exists.
+            if (allActiveKeys.isEmpty()) {
+                ArrayDeque<GroupKey> top = new ArrayDeque<>();
+                top.add(modGroupKey);
+                allActiveKeys.add(top);
+            }
+            flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                            new OfdpaNextGroup(allActiveKeys, nextObjective));
         }
-        flowObjectiveStore.putNextGroup(nextObjective.id(),
-                                        new OfdpaNextGroup(allActiveKeys, nextObjective));
     }
 
     /**
@@ -1572,7 +1571,7 @@ public class Ofdpa2GroupHandler {
                               Integer.toHexString(groupService.getGroup(deviceId, key)
                                                           .givenGroupId()));
                     pass(nextGrp.nextObjective());
-                    flowObjectiveStore.putNextGroup(nextGrp.nextObjective().id(), nextGrp);
+                    updateFlowObjectiveStore(nextGrp.nextObjective().id(), nextGrp);
 
                     // check if addBuckets waiting for this completion
                     pendingBuckets.compute(nextGrp.nextObjective().id(), (nextId, pendBkts) -> {
@@ -1621,6 +1620,28 @@ public class Ofdpa2GroupHandler {
     protected void addPendingRemoveNextObjective(NextObjective nextObjective,
                                                  List<GroupKey> groupKeys) {
         pendingRemoveNextObjectives.put(nextObjective, groupKeys);
+    }
+
+    private void updateFlowObjectiveStore(Integer nextId, OfdpaNextGroup nextGrp) {
+        synchronized (flowObjectiveStore) {
+            // get fresh copy of what the store holds
+            NextGroup next = flowObjectiveStore.getNextGroup(nextId);
+            if (next == null || nextGrp.nextObjective().op() == Operation.ADD) {
+                flowObjectiveStore.putNextGroup(nextId, nextGrp);
+                return;
+            }
+            if (nextGrp.nextObjective().op() == Operation.ADD_TO_EXISTING) {
+                List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
+                // If active keys shows only the top-level group without a chain of groups,
+                // then it represents an empty group. Update by replacing empty chain.
+                if (allActiveKeys.size() == 1 && allActiveKeys.get(0).size() == 1) {
+                    allActiveKeys.clear();
+                }
+                allActiveKeys.addAll(nextGrp.allKeys());
+                flowObjectiveStore.putNextGroup(nextId,
+                    new OfdpaNextGroup(allActiveKeys, nextGrp.nextObjective()));
+            }
+        }
     }
 
     private class InnerGroupListener implements GroupListener {

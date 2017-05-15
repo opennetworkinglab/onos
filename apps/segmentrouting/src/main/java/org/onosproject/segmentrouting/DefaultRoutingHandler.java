@@ -16,6 +16,8 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,6 +31,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,12 +103,26 @@ public class DefaultRoutingHandler {
     }
 
     /**
+     * Returns an immutable copy of the current ECMP shortest-path graph as
+     * computed by this controller instance.
+     *
+     * @return the current ECMP graph
+     */
+    public ImmutableMap<DeviceId, EcmpShortestPathGraph> getCurrentEmcpSpgMap() {
+        Builder<DeviceId, EcmpShortestPathGraph> builder = ImmutableMap.builder();
+        currentEcmpSpgMap.entrySet().forEach(entry -> {
+            if (entry.getValue() != null) {
+                builder.put(entry.getKey(), entry.getValue());
+            }
+        });
+        return builder.build();
+    }
+
+    /**
      * Populates all routing rules to all connected routers, including default
      * routing rules, adjacency rules, and policy rules if any.
-     *
-     * @return true if it succeeds in populating all rules, otherwise false
      */
-    public boolean populateAllRoutingRules() {
+    public void populateAllRoutingRules() {
 
         statusLock.lock();
         try {
@@ -116,8 +133,8 @@ public class DefaultRoutingHandler {
 
             for (Device sw : srManager.deviceService.getDevices()) {
                 if (!srManager.mastershipService.isLocalMaster(sw.id())) {
-                    log.debug("populateAllRoutingRules: skipping device {}...we are not master",
-                              sw.id());
+                    log.debug("populateAllRoutingRules: skipping device {}..."
+                            + "we are not master", sw.id());
                     continue;
                 }
 
@@ -126,9 +143,10 @@ public class DefaultRoutingHandler {
                     log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                     populationStatus = Status.ABORTED;
                     log.debug("Abort routing rule population");
-                    return false;
+                    return;
                 }
                 currentEcmpSpgMap.put(sw.id(), ecmpSpg);
+                log.debug("Updating ECMPspg for sw:{}", sw.id());
 
                 // TODO: Set adjacency routing rule for all switches
             }
@@ -137,31 +155,42 @@ public class DefaultRoutingHandler {
             populationStatus = Status.SUCCEEDED;
             log.info("Completed routing rule population. Total # of rules pushed : {}",
                     rulePopulator.getCounter());
-            return true;
+            return;
         } finally {
             statusLock.unlock();
         }
     }
 
     /**
-     * Populates the routing rules according to the route changes due to the link
-     * failure or link add. It computes the routes changed due to the link changes and
-     * repopulates the rules only for these routes. Note that when a switch goes
-     * away, all of its links fail as well, but this is handled as a single
-     * switch removal event.
+     * Populates the routing rules or makes hash group changes according to the
+     * route-path changes due to link failure, switch failure or link up. This
+     * method should only be called for one of these three possible event-types.
+     * Note that when a switch goes away, all of its links fail as well,
+     * but this is handled as a single switch removal event.
      *
-     * @param failedLink the single failed link, or null for other conditions
-     *                  such as an added link or a removed switch
-     * @return true if it succeeds to populate all rules, false otherwise
+     * @param linkDown the single failed link, or null for other conditions
+     *                  such as link-up or a removed switch
+     * @param linkUp the single link up, or null for other conditions such as
+     *                  link-down or a removed switch
+     * @param switchDown the removed switch, or null for other conditions such as
+     *                  link-down or link-up
      */
-    public boolean populateRoutingRulesForLinkStatusChange(Link failedLink) {
+    public void populateRoutingRulesForLinkStatusChange(Link linkDown,
+                                                           Link linkUp,
+                                                           DeviceId switchDown) {
+        if ((linkDown != null && (linkUp != null || switchDown != null)) ||
+                (linkUp != null && (linkDown != null || switchDown != null)) ||
+                (switchDown != null && (linkUp != null || linkDown != null))) {
+            log.warn("Only one event can be handled for link status change .. aborting");
+            return;
+        }
 
         statusLock.lock();
         try {
 
             if (populationStatus == Status.STARTED) {
                 log.warn("Previous rule population is not finished.");
-                return true;
+                return;
             }
 
             // Take the snapshots of the links
@@ -178,60 +207,269 @@ public class DefaultRoutingHandler {
             log.info("Starts rule population from link change");
 
             Set<ArrayList<DeviceId>> routeChanges;
-            log.trace("populateRoutingRulesForLinkStatusChange: "
+            log.debug("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
             // try optimized re-routing
-            if (failedLink == null) {
-                // Compare all routes of existing ECMP SPG to new ECMP SPG
+            if (linkDown == null) {
+                // either a linkUp or a switchDown - compute all route changes by
+                // comparing all routes of existing ECMP SPG to new ECMP SPG
                 routeChanges = computeRouteChange();
+
+                if (routeChanges != null) {
+                    // deal with linkUp of a seen-before link
+                    if (linkUp != null && srManager.isSeenLink(linkUp)) {
+                        if (!isBidirectional(linkUp)) {
+                            log.warn("Not a bidirectional link yet .. not "
+                                    + "processing link {}", linkUp);
+                            srManager.updateSeenLink(linkUp, true);
+                            populationStatus = Status.ABORTED;
+                            return;
+                        }
+                        // link previously seen before
+                        // do hash-bucket changes instead of a re-route
+                        processHashGroupChange(routeChanges, false, null);
+                        // clear out routesChanges so a re-route is not attempted
+                        routeChanges = ImmutableSet.of();
+                    }
+
+                    //deal with switchDown
+                    if (switchDown != null) {
+                        processHashGroupChange(routeChanges, true, switchDown);
+                        // clear out routesChanges so a re-route is not attempted
+                        routeChanges = ImmutableSet.of();
+                    }
+
+                    // for a linkUp of a never-seen-before link
+                    // let it fall through to a reroute of the routeChanges
+
+                }
+
+                // now that we are past the check for a previously seen link
+                // it is safe to update the store for the linkUp
+                if (linkUp != null) {
+                    srManager.updateSeenLink(linkUp, true);
+                }
+
             } else {
-                // Compare existing ECMP SPG only with the link removed
-                routeChanges = computeDamagedRoutes(failedLink);
+                // link has gone down
+                // Compare existing ECMP SPG only with the link that went down
+                routeChanges = computeDamagedRoutes(linkDown);
+                if (routeChanges != null) {
+                    processHashGroupChange(routeChanges, true, null);
+                    // clear out routesChanges so a re-route is not attempted
+                    routeChanges = ImmutableSet.of();
+                }
             }
 
             // do full re-routing if optimized routing returns null routeChanges
             if (routeChanges == null) {
-                return populateAllRoutingRules();
+                log.info("Optimized routing failed... doing full re-route");
+                populateAllRoutingRules();
+                return;
             }
 
             if (routeChanges.isEmpty()) {
-                log.info("No route changes for the link status change");
+                log.info("No re-route attempted for the link status change");
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
-                return true;
+                return;
             }
 
+            // reroute of routeChanges
             if (repopulateRoutingRulesForRoutes(routeChanges)) {
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
-                log.info("Complete to repopulate the rules. # of rules populated : {}",
+                log.info("Completed repopulation of rules. # of rules populated : {}",
                         rulePopulator.getCounter());
-                return true;
+                return;
             } else {
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
                 log.warn("Failed to repopulate the rules.");
-                return false;
+                return;
             }
         } finally {
             statusLock.unlock();
         }
     }
 
-    private boolean repopulateRoutingRulesForRoutes(Set<ArrayList<DeviceId>> routes) {
+    /**
+     * Returns true if the link being queried is a bidirectional link. A bidi
+     * link is defined as a link, whose reverse link - ie. the link in the reverse
+     * direction - has been seen-before and is up.
+     *
+     * @param link the infrastructure link being queried
+     * @return true if another unidirectional link exists in the reverse direction,
+     *              has been seen-before and is up
+     */
+    private boolean isBidirectional(Link link) {
+        Link reverseLink = srManager.linkService.getLink(link.dst(), link.src());
+        if (reverseLink == null) {
+            return false;
+        }
+        Boolean result = srManager.isSeenLinkUp(reverseLink);
+        if (result == null) {
+            return false;
+        }
+        return result.booleanValue();
+    }
+
+    /**
+     * Processes a set a route-path changes by editing hash groups.
+     *
+     * @param routeChanges a set of route-path changes, where each route-path is
+     *                     a list with its first element the src-switch of the path
+     *                     and the second element the dst-switch of the path.
+     * @param linkOrSwitchFailed true if the route changes are for a failed
+     *                           switch or linkDown event
+     * @param failedSwitch the switchId if the route changes are for a failed switch,
+     *                     otherwise null
+     */
+    private void processHashGroupChange(Set<ArrayList<DeviceId>> routeChanges,
+                                        boolean linkOrSwitchFailed,
+                                        DeviceId failedSwitch) {
+        for (ArrayList<DeviceId> route : routeChanges) {
+            DeviceId targetSw = route.get(0);
+            boolean success;
+            DeviceId dstSw = null;
+            if (route.size() > 1) {
+                dstSw = route.get(1);
+            }
+
+            if (linkOrSwitchFailed) {
+                success = fixHashGroupsForRoute(route, true);
+                // it's possible that we cannot fix hash groups for a route
+                // if the target switch has failed. Nevertheless the ecmp graph
+                // for the impacted switch must still be updated.
+                if (failedSwitch != null && targetSw.equals(failedSwitch)
+                        && dstSw != null) {
+                    currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
+                    currentEcmpSpgMap.remove(targetSw);
+                    log.debug("Updating ECMPspg for dst:{} removing failed "
+                            + "target:{}", dstSw, targetSw);
+                    return;
+                }
+                //linkfailed - update both sides
+                currentEcmpSpgMap.put(targetSw, updatedEcmpSpgMap.get(targetSw));
+                dstSw = route.get(1);
+                currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
+                log.debug("Updating ECMPspg for dst:{} and target:{}", dstSw, targetSw);
+            } else {
+                success = fixHashGroupsForRoute(route, false);
+                if (success) {
+                    currentEcmpSpgMap.put(targetSw, updatedEcmpSpgMap.get(targetSw));
+                    if (dstSw != null) {
+                        currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
+                    }
+                    log.debug("Updating ECMPspg for target:{} and dst:{}",
+                              targetSw, dstSw);
+                }
+            }
+        }
+    }
+
+    /**
+     * Edits hash groups in the src-switch (targetSw) of a route-path by
+     * calling the groupHandler to either add or remove buckets in an existing
+     * hash group.
+     *
+     * @param route a single list representing a route-path where the first element
+     *                  is the src-switch (targetSw) of the route-path and the
+     *                  second element is the dst-switch
+     * @param revoke true if buckets in the hash-groups need to be removed;
+     *              false if buckets in the hash-groups need to be added
+     * @return true if the hash group editing is successful
+     */
+    private boolean fixHashGroupsForRoute(ArrayList<DeviceId> route,
+                                          boolean revoke) {
+        DeviceId targetSw = route.get(0);
+        if (route.size() < 2) {
+            log.warn("Cannot fixHashGroupsForRoute - no dstSw in route {}", route);
+            return false;
+        }
+        DeviceId destSw = route.get(1);
+        log.debug("Processing fixHashGroupsForRoute: Target {} -> Dest {}",
+                  targetSw, destSw);
+        boolean targetIsEdge = false;
+        try {
+            targetIsEdge = srManager.deviceConfiguration.isEdgeDevice(targetSw);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + "Cannot determine if targetIsEdge {}.. "
+                    + "continuing fixHash", targetSw);
+        }
+
+        // figure out the new next hops at the targetSw towards the destSw
+        Set<DeviceId> nextHops = new HashSet<>();
+        EcmpShortestPathGraph ecmpSpg = updatedEcmpSpgMap.get(destSw);
+        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
+                ecmpSpg.getAllLearnedSwitchesAndVia();
+        for (Integer itrIdx : switchVia.keySet()) {
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
+                    switchVia.get(itrIdx);
+            for (DeviceId target : swViaMap.keySet()) {
+                if (target.equals(targetSw)) {
+                    // found the iteration where targetSw is reached- get nextHops
+                    if (!targetIsEdge && itrIdx > 1) {
+                        // optimization for spines to not use other leaves to get
+                        // to a leaf to avoid loops
+                        log.debug("Avoiding {} hop path for non-edge targetSw:{}"
+                                + " --> dstSw:{}", itrIdx, targetSw, destSw);
+                        break;
+                    }
+                    for (ArrayList<DeviceId> via : swViaMap.get(target)) {
+                        if (via.isEmpty()) {
+                            nextHops.add(destSw);
+                        } else {
+                            // first elem is next-hop in each ECMP path
+                            nextHops.add(via.get(0));
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // call group handler to change hash group at targetSw
+        DefaultGroupHandler grpHandler = srManager.getGroupHandler(targetSw);
+        if (grpHandler == null) {
+            log.warn("Cannot find grouphandler for dev:{} .. aborting"
+                    + " {} hash group buckets for route:{} ", targetSw,
+                    (revoke) ? "revoke" : "repopulate", route);
+            return false;
+        }
+        log.debug("{} hash-groups buckets For Route {} -> {} to next-hops {}",
+                  (revoke) ? "revoke" : "repopulating",
+                  targetSw, destSw, nextHops);
+        return (revoke) ? grpHandler.fixHashGroups(targetSw, nextHops,
+                                                       destSw, true)
+                            : grpHandler.fixHashGroups(targetSw, nextHops,
+                                                       destSw, false);
+    }
+
+    /**
+     * Processes a set a route-path changes by reprogramming routing rules and
+     * creating new hash-groups if necessary.
+     *
+     * @param routeChanges a set of route-path changes, where each route-path is
+     *                     a list with its first element the src-switch of the path
+     *                     and the second element the dst-switch of the path.
+     * @return true if successful in repopulating routes
+     */
+    private boolean repopulateRoutingRulesForRoutes(Set<ArrayList<DeviceId>> routeChanges) {
         rulePopulator.resetCounter();
         HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
                 new HashMap<>();
-        for (ArrayList<DeviceId> link: routes) {
+        for (ArrayList<DeviceId> link: routeChanges) {
             // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
-                log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
+                log.debug("-- repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
                 EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg, ImmutableSet.of())) {
                     log.debug("Populating flow rules from all to dest:{} is successful",
                               link.get(0));
                     currentEcmpSpgMap.put(link.get(0), ecmpSpg);
+                    log.debug("Updating ECMPspg for dest:{}", link.get(0));
                 } else {
                     log.warn("Failed to populate the flow rules from all to dest:{}", link.get(0));
                     return false;
@@ -251,7 +489,7 @@ public class DefaultRoutingHandler {
             ArrayList<ArrayList<DeviceId>> deviceRoutes =
                     routesBydevice.get(impactedDevice);
             for (ArrayList<DeviceId> link: deviceRoutes) {
-                log.debug("repopulate RoutingRules For Routes {} -> {}",
+                log.debug("-- repopulateRoutingRulesForRoutes {} -> {}",
                           link.get(0), link.get(1));
                 DeviceId src = link.get(0);
                 DeviceId dst = link.get(1);
@@ -267,6 +505,7 @@ public class DefaultRoutingHandler {
                         }
                         Set<DeviceId> nextHops = new HashSet<>();
                         for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                            // in this ECMP path to the targetSw, get the next hop
                             if (via.isEmpty()) {
                                 nextHops.add(dst);
                             } else {
@@ -281,7 +520,6 @@ public class DefaultRoutingHandler {
                                   targetSw, dst);
                     }
                 }
-                //currentEcmpSpgMap.put(dst, ecmpSpg);
             }
             //Only if all the flows for all impacted routes to a
             //specific target are pushed successfully, update the
@@ -292,7 +530,11 @@ public class DefaultRoutingHandler {
             //is updated here, without any flows being pushed.
             currentEcmpSpgMap.put(impactedDevice,
                                   updatedEcmpSpgMap.get(impactedDevice));
+            log.debug("Updating ECMPspg for impacted dev:{}", impactedDevice);
         }
+
+        processHashGroupChange(routeChanges, false, null);
+
         return true;
     }
 
@@ -323,10 +565,15 @@ public class DefaultRoutingHandler {
                         + " rerouting and opting for full-reroute", sw.id());
                 return null;
             }
+            if (log.isDebugEnabled()) {
+                log.debug("Root switch: {}", sw.id());
+                log.debug("  Current/Existing SPG: {}", ecmpSpg);
+                log.debug("       New/Updated SPG: {}", updatedEcmpSpgMap.get(sw.id()));
+            }
             HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
                     ecmpSpg.getAllLearnedSwitchesAndVia();
             for (Integer itrIdx : switchVia.keySet()) {
-                log.trace("Iterindex# {}", itrIdx);
+                log.trace("Current/Exiting SPG Iterindex# {}", itrIdx);
                 HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
                         switchVia.get(itrIdx);
                 for (DeviceId targetSw : swViaMap.keySet()) {
@@ -348,8 +595,8 @@ public class DefaultRoutingHandler {
                                      alink.get(1).equals(linkFail.src().deviceId()))) {
                             log.debug("Impacted route:{}->{}", targetSw, rootSw);
                             ArrayList<DeviceId> aRoute = new ArrayList<>();
-                            aRoute.add(targetSw);
-                            aRoute.add(rootSw);
+                            aRoute.add(targetSw); // switch with rules to populate
+                            aRoute.add(rootSw); // towards this destination
                             routes.add(aRoute);
                             break;
                         }
@@ -382,22 +629,23 @@ public class DefaultRoutingHandler {
                 continue;
             }
             if (log.isTraceEnabled()) {
-                log.trace("link of {} - ", rootSw);
+                log.trace("Device links for dev: {}", rootSw);
                 for (Link link: srManager.linkService.getDeviceLinks(rootSw)) {
                     log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
                 }
             }
             EcmpShortestPathGraph currEcmpSpg = currentEcmpSpgMap.get(rootSw);
             if (currEcmpSpg == null) {
-                log.debug("No existing ECMP graph for device {}", rootSw);
+                log.debug("No existing ECMP graph for device {}.. adding self as "
+                        + "changed route", rootSw);
                 changedRoutesBuilder.add(Lists.newArrayList(rootSw));
                 continue;
             }
             EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(rootSw);
-            if (log.isTraceEnabled()) {
-                log.trace("Root switch: {}", rootSw);
-                log.trace("  Current/Existing SPG: {}", currEcmpSpg);
-                log.trace("       New/Updated SPG: {}", newEcmpSpg);
+            if (log.isDebugEnabled()) {
+                log.debug("Root switch: {}", rootSw);
+                log.debug("  Current/Existing SPG: {}", currEcmpSpg);
+                log.debug("       New/Updated SPG: {}", newEcmpSpg);
             }
             // first use the updated/new map to compare to current/existing map
             // as new links may have come up
@@ -445,7 +693,7 @@ public class DefaultRoutingHandler {
                 ArrayList<ArrayList<DeviceId>> basePath = baseViaMap.get(targetSw);
                 ArrayList<ArrayList<DeviceId>> compPath = getVia(compMap, targetSw);
                 if ((compPath == null) || !basePath.equals(compPath)) {
-                    log.debug("Impacted route:{} -> {}", targetSw, rootSw);
+                    log.trace("Impacted route:{} -> {}", targetSw, rootSw);
                     ArrayList<DeviceId> route = new ArrayList<>();
                     route.add(targetSw);
                     route.add(rootSw);
@@ -501,7 +749,7 @@ public class DefaultRoutingHandler {
      * @param destSw Device ID of destination switch
      * @param ecmpSPG ECMP shortest path graph
      * @param subnets Subnets to be populated. If empty, populate all configured subnets.
-     * @return true if succeed
+     * @return true if it succeeds in populating rules
      */
     private boolean populateEcmpRoutingRules(DeviceId destSw,
                                              EcmpShortestPathGraph ecmpSPG,
@@ -538,7 +786,7 @@ public class DefaultRoutingHandler {
      * @param destSw Device ID of final destination switch to which the rules will forward
      * @param nextHops List of next hops via which destSw will be reached
      * @param subnets Subnets to be populated. If empty, populate all configured subnets.
-     * @return true if succeed
+     * @return true if it succees in populating rules
      */
     private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
                                                    DeviceId destSw,
@@ -567,70 +815,58 @@ public class DefaultRoutingHandler {
         }
 
         if (targetIsEdge && destIsEdge) {
-            subnets = (subnets != null && !subnets.isEmpty()) ? subnets : config.getSubnets(destSw);
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
-                      targetSw, destSw, subnets);
+            subnets = (subnets != null && !subnets.isEmpty()) ? subnets
+                                                              : config.getSubnets(destSw);
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
+                    + "for subnets {}", targetSw, destSw, subnets);
             result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
                                                            destSw, nextHops);
             if (!result) {
                 return false;
             }
-
             IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
-                      targetSw, destSw, routerIpPrefix);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
+                    + "for router IP {}", targetSw, destSw, routerIpPrefix);
+            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
+                                                           destSw, nextHops);
             if (!result) {
                 return false;
             }
-            /*
-             * If present we deal with IPv6 loopback.
-             */
+            // If present we deal with IPv6 loopback.
             if (destRouterIpv6 != null) {
                 routerIpPrefix = destRouterIpv6.toIpPrefix();
-                log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for v6 router IP {}",
-                          targetSw, destSw, routerIpPrefix);
-                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
-                if (!result) {
-                    return false;
-                }
-            }
-
-        } else if (targetIsEdge) {
-            // If the target switch is an edge router, then set IP rules for the router IP.
-            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
-                      targetSw, destSw, routerIpPrefix);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
-            if (!result) {
-                return false;
-            }
-            if (destRouterIpv6 != null) {
-                routerIpPrefix = destRouterIpv6.toIpPrefix();
-                log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for v6 router IP {}",
-                          targetSw, destSw, routerIpPrefix);
-                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
+                log.debug("* populateEcmpRoutingRulePartial in device {} towards {}"
+                        + " for v6 router IP {}", targetSw, destSw, routerIpPrefix);
+                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
+                                                               destSw, nextHops);
                 if (!result) {
                     return false;
                 }
             }
         }
-        // Populates MPLS rules to all routers
-        log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
-                targetSw, destSw);
-        result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops, destRouterIpv4);
-        if (!result) {
-            return false;
-        }
-        /*
-         * If present we will populate the MPLS rules for the IPv6 sid.
-         */
-        if (destRouterIpv6 != null) {
-            result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops, destRouterIpv6);
+
+        if (!targetIsEdge && destIsEdge) {
+            // MPLS rules in all non-edge target devices
+            log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for "
+                    + "all MPLS rules", targetSw, destSw);
+            result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops,
+                                                    destRouterIpv4);
             if (!result) {
                 return false;
             }
+            if (destRouterIpv6 != null) {
+                result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops,
+                                                        destRouterIpv6);
+                if (!result) {
+                    return false;
+                }
+            }
         }
+
+        // To save on ECMP groups
+        // avoid MPLS rules in non-edge-devices to non-edge-devices
+        // avoid MPLS transit rules in edge-devices
+        // avoid loopback IP rules in edge-devices to non-edge-devices
         return true;
     }
 
@@ -740,7 +976,6 @@ public class DefaultRoutingHandler {
         if (updatedEcmpSpgMap != null) {
             updatedEcmpSpgMap.remove(deviceId);
         }
-        this.populateRoutingRulesForLinkStatusChange(null);
     }
 
     /**

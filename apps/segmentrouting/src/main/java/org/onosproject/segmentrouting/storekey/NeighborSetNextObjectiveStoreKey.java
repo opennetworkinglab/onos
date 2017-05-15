@@ -84,6 +84,6 @@ public class NeighborSetNextObjectiveStoreKey {
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " Neighborset: " + ns;
+        return "Device: " + deviceId + " " + ns;
     }
 }

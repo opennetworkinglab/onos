@@ -17,6 +17,9 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.DeviceId;
+import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
+
+import com.google.common.collect.ImmutableMap;
 
 import java.util.List;
 import java.util.Map;
@@ -116,4 +119,18 @@ public interface SegmentRoutingService {
      * @return device-subnet mapping
      */
     Map<DeviceId, Set<IpPrefix>> getDeviceSubnetMap();
+
+    /**
+     * Returns the current ECMP shortest path graph in this controller instance.
+     *
+     * @return ECMP shortest path graph
+     */
+    ImmutableMap<DeviceId, EcmpShortestPathGraph> getCurrentEcmpSpg();
+
+    /**
+     * Returns the neighborSet-NextObjective store contents.
+     *
+     * @return current contents of the neighborSetNextObjectiveStore
+     */
+    ImmutableMap<NeighborSetNextObjectiveStoreKey, Integer> getNeighborSet();
 }
