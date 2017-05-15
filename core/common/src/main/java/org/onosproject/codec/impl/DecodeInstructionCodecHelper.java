@@ -107,6 +107,9 @@ public final class DecodeInstructionCodecHelper {
         } else if (subType.equals(L2ModificationInstruction.L2SubType.MPLS_PUSH.name())) {
             return Instructions.pushMpls();
         } else if (subType.equals(L2ModificationInstruction.L2SubType.MPLS_POP.name())) {
+            if (json.has(InstructionCodec.ETHERNET_TYPE)) {
+                return Instructions.popMpls(getEthType());
+            }
             return Instructions.popMpls();
         } else if (subType.equals(L2ModificationInstruction.L2SubType.DEC_MPLS_TTL.name())) {
             return Instructions.decMplsTtl();
