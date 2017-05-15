@@ -62,7 +62,7 @@ public class PortStatsCollector {
 
         @Override
         public void run() {
-            sendPortStatistic();
+            sendPortStatisticRequest();
         }
     }
 
@@ -101,7 +101,7 @@ public class PortStatsCollector {
     /**
      * Sends port statistic request to switch.
      */
-    private void sendPortStatistic() {
+    private void sendPortStatisticRequest() {
         if (sw.getRole() != RoleState.MASTER) {
             return;
         }

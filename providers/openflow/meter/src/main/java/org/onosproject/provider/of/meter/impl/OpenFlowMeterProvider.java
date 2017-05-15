@@ -194,7 +194,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
         OpenFlowSwitch sw = controller.getSwitch(dpid);
 
         MeterStatsCollector once = new MeterStatsCollector(sw, 1);
-        once.sendMeterStatistic();
+        once.sendMeterStatisticRequest();
 
     }
 

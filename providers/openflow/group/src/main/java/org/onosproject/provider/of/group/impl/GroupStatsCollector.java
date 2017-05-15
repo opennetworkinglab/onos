@@ -60,7 +60,7 @@ public class GroupStatsCollector implements TimerTask {
     public void run(Timeout timeout) throws Exception {
         log.trace("Collecting stats for {}", sw.getStringId());
 
-        sendGroupStatistic();
+        sendGroupStatisticRequest();
 
         if (!this.stopTimer) {
             log.trace("Scheduling stats collection in {} seconds for {}",
@@ -70,7 +70,7 @@ public class GroupStatsCollector implements TimerTask {
         }
     }
 
-    private void sendGroupStatistic() {
+    private void sendGroupStatisticRequest() {
         if (log.isTraceEnabled()) {
             log.trace("sendGroupStatistics {}:{}", sw.getStringId(), sw.getRole());
         }
