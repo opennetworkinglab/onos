@@ -28,3 +28,5 @@ web/gui/src/main/webapp/node_modules/
 
 npm-debug.log
 sonar-project.properties
+
+out/
