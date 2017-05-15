@@ -42,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class InstallCoordinator {
     private static final String INSTALLER_NOT_FOUND = "Intent installer not found, Intent: {}";
-    private final Logger log = getLogger(IntentManager.class);
+    private final Logger log = getLogger(InstallCoordinator.class);
 
     private InstallerRegistry installerRegistry;
     private IntentStore intentStore;
