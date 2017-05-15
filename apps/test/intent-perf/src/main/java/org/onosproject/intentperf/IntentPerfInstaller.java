@@ -177,10 +177,6 @@ public class IntentPerfInstaller {
         reportTimer = new Timer("onos-intent-perf-reporter");
         workers = Executors.newFixedThreadPool(DEFAULT_NUM_WORKERS, groupedThreads("onos/intent-perf", "worker-%d"));
 
-        // disable flow backups for testing
-        configService.setProperty("org.onosproject.store.flow.impl.DistributedFlowRuleStore",
-                                  "backupEnabled", "true");
-
         // TODO: replace with shared executor
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/perf", "command-handler"));
