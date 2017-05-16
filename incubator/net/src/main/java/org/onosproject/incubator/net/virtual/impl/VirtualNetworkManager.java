@@ -15,8 +15,8 @@
  */
 package org.onosproject.incubator.net.virtual.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -72,6 +72,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -354,13 +355,11 @@ public class VirtualNetworkManager
     }
 
     @Override
-    public Set<DeviceId> getPhysicalDevices(NetworkId networkId,
-                                             VirtualDevice virtualDevice) {
+    public Set<DeviceId> getPhysicalDevices(NetworkId networkId, DeviceId deviceId) {
         checkNotNull(networkId, "Network ID cannot be null");
-        checkNotNull(virtualDevice, "Virtual device cannot be null");
-        Set<VirtualPort> virtualPortSet =
-                getVirtualPorts(networkId, virtualDevice.id());
-        Set<DeviceId> physicalDeviceSet = Sets.newConcurrentHashSet();
+        checkNotNull(deviceId, "Virtual device ID cannot be null");
+        Set<VirtualPort> virtualPortSet = getVirtualPorts(networkId, deviceId);
+        Set<DeviceId> physicalDeviceSet = new HashSet<>();
 
         virtualPortSet.forEach(virtualPort -> {
             if (virtualPort.realizedBy() != null) {
@@ -368,7 +367,7 @@ public class VirtualNetworkManager
             }
         });
 
-        return physicalDeviceSet;
+        return ImmutableSet.copyOf(physicalDeviceSet);
     }
 
     private final Map<ServiceKey, VnetService> networkServices = Maps.newConcurrentMap();

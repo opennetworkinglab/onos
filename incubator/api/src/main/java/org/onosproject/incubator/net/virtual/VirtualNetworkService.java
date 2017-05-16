@@ -90,11 +90,10 @@ public interface VirtualNetworkService
      * port mapping mechanism.
      *
      * @param networkId network identifier
-     * @param virtualDevice the virtual device
+     * @param deviceId the virtual device identifier
      * @return collection of the specified device's identifier
      */
-    Set<DeviceId> getPhysicalDevices(NetworkId networkId,
-                                             VirtualDevice virtualDevice);
+    Set<DeviceId> getPhysicalDevices(NetworkId networkId, DeviceId deviceId);
 
     /**
      * Returns implementation of the specified service class for operating

@@ -378,32 +378,28 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
 
         Set<DeviceId> physicalDeviceSet;
         Set<DeviceId> testSet = new HashSet<>();
-        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork1.id(), vDevice1InVnet1);
+        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork1.id(), vDevice1InVnet1.id());
         testSet.add(PHYDID1);
         testSet.add(PHYDID2);
         assertEquals("The physical devices 1 did not match", testSet, physicalDeviceSet);
-        physicalDeviceSet.clear();
         testSet.clear();
 
-        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork1.id(), vDevice2InVnet1);
+        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork1.id(), vDevice2InVnet1.id());
         testSet.add(PHYDID3);
         testSet.add(PHYDID4);
         assertEquals("The physical devices 2 did not match", testSet, physicalDeviceSet);
-        physicalDeviceSet.clear();
         testSet.clear();
 
-        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork2.id(), vDevice1InVnet2);
+        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork2.id(), vDevice1InVnet2.id());
         testSet.add(PHYDID1);
         testSet.add(PHYDID2);
         assertEquals("The physical devices 1 did not match", testSet, physicalDeviceSet);
-        physicalDeviceSet.clear();
         testSet.clear();
 
-        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork2.id(), vDevice2InVnet2);
+        physicalDeviceSet = manager.getPhysicalDevices(virtualNetwork2.id(), vDevice2InVnet2.id());
         testSet.add(PHYDID3);
         testSet.add(PHYDID4);
         assertEquals("The physical devices 2 did not match", testSet, physicalDeviceSet);
-        physicalDeviceSet.clear();
         testSet.clear();
     }
 

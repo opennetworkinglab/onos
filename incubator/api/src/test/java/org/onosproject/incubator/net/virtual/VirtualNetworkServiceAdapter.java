@@ -62,7 +62,7 @@ public abstract class VirtualNetworkServiceAdapter implements VirtualNetworkServ
     }
 
     @Override
-    public Set<DeviceId> getPhysicalDevices(NetworkId networkId, VirtualDevice virtualDevice) {
+    public Set<DeviceId> getPhysicalDevices(NetworkId networkId, DeviceId deviceId) {
         return null;
     }
 
