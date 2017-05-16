@@ -240,16 +240,16 @@ public class OpenFlowRuleProvider extends AbstractProvider
             // NewAdaptiveFlowStatsCollector Constructor
             NewAdaptiveFlowStatsCollector fsc =
                     new NewAdaptiveFlowStatsCollector(driverService, sw, flowPollFrequency);
-            fsc.start();
             stopCollectorIfNeeded(afsCollectors.put(new Dpid(sw.getId()), fsc));
+            fsc.start();
         } else {
             FlowStatsCollector fsc = new FlowStatsCollector(timer, sw, flowPollFrequency);
-            fsc.start();
             stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
+            fsc.start();
         }
         TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
-        tsc.start();
         stopCollectorIfNeeded(tableStatsCollectors.put(new Dpid(sw.getId()), tsc));
+        tsc.start();
     }
 
     private void stopCollectorIfNeeded(SwitchDataCollector collector) {

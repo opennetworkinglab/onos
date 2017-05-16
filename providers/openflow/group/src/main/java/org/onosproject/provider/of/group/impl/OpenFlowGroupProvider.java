@@ -375,8 +375,8 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
             }
             if (isGroupSupported(sw)) {
                 GroupStatsCollector gsc = new GroupStatsCollector(sw, POLL_INTERVAL);
-                gsc.start();
                 stopCollectorIfNeeded(collectors.put(dpid, gsc));
+                gsc.start();
             }
 
             //figure out race condition
