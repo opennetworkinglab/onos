@@ -52,7 +52,7 @@ import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.DefaultYangSerializerContext;
 import org.onosproject.yang.runtime.YangRuntimeService;
 import org.onosproject.yang.runtime.YangSerializerContext;
-import org.onosproject.yang.runtime.helperutils.SerializerHelper;
+import org.onosproject.yang.runtime.SerializerHelper;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.netconf.TargetConfig.RUNNING;
 import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE;
-import static org.onosproject.yang.runtime.helperutils.SerializerHelper.addDataNode;
+import static org.onosproject.yang.runtime.SerializerHelper.addDataNode;
 
 /*FIXME these imports are not visible using OSGI*/
 

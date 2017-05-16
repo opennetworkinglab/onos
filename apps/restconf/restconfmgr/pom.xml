@@ -32,7 +32,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-model</artifactId>
-            <version>1.12.0-b8</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
