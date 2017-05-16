@@ -15,6 +15,7 @@
  */
 package org.onosproject.roadm;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -52,7 +53,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
-import org.onosproject.net.optical.OpticalAnnotations;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,12 +62,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.OpticalAnnotations.INPUT_PORT_STATUS;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_AUTO;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_FORCE;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_MANUAL;
 
 /**
  * Application for monitoring and configuring ROADM devices.
@@ -111,6 +113,7 @@ public class RoadmManager implements RoadmService {
         log.info("Stopped");
     }
 
+    @Deprecated
     @Override
     public void setProtectionSwitchWorkingPath(DeviceId deviceId, int index) {
         checkNotNull(deviceId);
@@ -130,6 +133,7 @@ public class RoadmManager implements RoadmService {
         behaviour.switchWorkingPath(map.keySet().toArray(new ConnectPoint[0])[0], index);
     }
 
+    @Deprecated
     @Override
     public String getProtectionSwitchPortState(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
@@ -145,7 +149,7 @@ public class RoadmManager implements RoadmService {
         for (ProtectedTransportEndpointState state : map.values()) {
             for (TransportEndpointState element : state.pathStates()) {
                 if (element.description().output().connectPoint().port().equals(portNumber)) {
-                    return element.attributes().get(OpticalAnnotations.INPUT_PORT_STATUS);
+                    return element.attributes().get(INPUT_PORT_STATUS);
                 }
             }
         }
@@ -153,6 +157,37 @@ public class RoadmManager implements RoadmService {
         log.debug("Unable to get port status, device: {}, port: {}", deviceId, portNumber);
         return null;
     }
+
+    @Override
+    public void configProtectionSwitch(DeviceId deviceId, String operation, ConnectPoint identifier, int index) {
+        checkNotNull(deviceId);
+        ProtectionConfigBehaviour behaviour = getProtectionConfig(deviceId);
+        if (behaviour == null) {
+            return;
+        }
+        // automatic operation
+        if (OPS_OPT_AUTO.equals(operation)) {
+            behaviour.switchToAutomatic(identifier);
+            return;
+        }
+        // force or manual operation
+        if (OPS_OPT_MANUAL.equals(operation)) {
+            behaviour.switchToManual(identifier, index);
+        } else if (OPS_OPT_FORCE.equals(operation)) {
+            behaviour.switchToForce(identifier, index);
+        }
+    }
+
+    @Override
+    public Map<ConnectPoint, ProtectedTransportEndpointState> getProtectionSwitchStates(DeviceId deviceId) {
+        checkNotNull(deviceId);
+        ProtectionConfigBehaviour behaviour = getProtectionConfig(deviceId);
+        if (behaviour == null) {
+            return ImmutableMap.of();
+        }
+        return getProtectionSwitchStates(behaviour);
+    }
+
 
     @Override
     public void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, long power) {
@@ -547,6 +582,7 @@ public class RoadmManager implements RoadmService {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 log.warn("Thread interrupted. Setting attenuation early.");
+                Thread.currentThread().interrupt();
             }
             setAttenuation(deviceId, outPort, ochSignal, attenuation);
         };
@@ -556,17 +592,16 @@ public class RoadmManager implements RoadmService {
     // get protection endpoint states
     private Map<ConnectPoint, ProtectedTransportEndpointState> getProtectionSwitchStates(
             ProtectionConfigBehaviour behaviour) {
-        CompletableFuture<Map<ConnectPoint, ProtectedTransportEndpointState>>
-                states = behaviour.getProtectionEndpointStates();
         Map<ConnectPoint, ProtectedTransportEndpointState> map;
         try {
-            map = states.get();
+            map = behaviour.getProtectionEndpointStates().get();
         } catch (InterruptedException e1) {
             log.error("Interrupted.", e1);
-            return null;
+            Thread.currentThread().interrupt();
+            return ImmutableMap.of();
         } catch (ExecutionException e1) {
             log.error("Exception caught.", e1);
-            return null;
+            return ImmutableMap.of();
         }
         return map;
     }

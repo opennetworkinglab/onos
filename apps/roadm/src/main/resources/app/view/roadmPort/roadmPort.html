@@ -70,8 +70,8 @@
             </table>
             <div class="mode-select" ng-show="showServiceState">
                 <hr/>
-                <label class="mode-title">Protection Mode:</label>
-                <select ng-model="opsModeType" ng-options="mode.type for mode in opsModeTypes"></select>
+                <label class="mode-title">Protection Switch:</label>
+                <select ng-model="opsModeType" ng-options="mode.name for mode in opsModeTypes"></select>
                 <button ng-click="changeOpsMode()" title="Click to apply selected protection mode">Apply</button>
                 <label class="mode-fail" ng-if="changeModeFail">{{changeModeFailMsg}}</label>
             </div>

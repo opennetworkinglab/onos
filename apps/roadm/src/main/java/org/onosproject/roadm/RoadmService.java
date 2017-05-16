@@ -16,11 +16,14 @@
 package org.onosproject.roadm;
 
 import com.google.common.collect.Range;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
 import org.onosproject.net.flow.FlowId;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,7 +50,9 @@ public interface RoadmService {
      *
      * @param deviceId DeviceId of the device to configure
      * @param index working path index to switch to
+     * @deprecated 1.11.0
      */
+    @Deprecated
     void setProtectionSwitchWorkingPath(DeviceId deviceId, int index);
 
     /**
@@ -56,8 +61,27 @@ public interface RoadmService {
      * @param deviceId DeviceId of the device to configure
      * @param portNumber the port
      * @return port service status
+     * @deprecated 1.11.0
      */
+    @Deprecated
     String getProtectionSwitchPortState(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Attempts to config protection switch by specified {@code operation} and {@code index}.
+     *
+     * @param deviceId DeviceId of the device to configure
+     * @param operation switch configuration, automatic, force or manual
+     * @param identifier {@link ConnectPoint} for the virtual Port representing protected path endpoint
+     * @param index working path index to switch to
+     */
+    void configProtectionSwitch(DeviceId deviceId, String operation, ConnectPoint identifier, int index);
+
+    /**
+     * Retrieves protection switch endpoint states.
+     * @param deviceId DeviceId of the device to configure
+     * @return map groups of underlying paths
+     */
+    Map<ConnectPoint, ProtectedTransportEndpointState> getProtectionSwitchStates(DeviceId deviceId);
 
     /**
      * Set target power for a port if the port has configurable target power.

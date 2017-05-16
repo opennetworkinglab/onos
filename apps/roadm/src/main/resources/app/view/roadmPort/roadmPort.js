@@ -40,6 +40,10 @@
         $scope.showTargetPower = data.showTargetPower;
         $scope.showServiceState = data.showServiceState;
         $scope.showFlowIcon = data.showFlowIcon;
+        $scope.opsModeTypes = data.opsOperations;
+        if ($scope.opsModeType == null) {
+            $scope.opsModeType = $scope.opsModeTypes[0];
+        }
         $scope.$apply();
     }
 
@@ -47,7 +51,8 @@
         wss.sendEvent(SET_OPS_MODE_REQ,
             {
                 devId: $scope.devId,
-                index: $scope.opsModeType.index
+                index: $scope.opsModeType.index,
+                operation: $scope.opsModeType.operation
             });
     }
 
@@ -86,12 +91,7 @@
             $scope.deviceTip = 'Show device table';
             $scope.flowTip = 'Show flow view for this device';
             $scope.portTip = 'Show port view for this device';
-            $scope.opsModeTypes = [
-                {index: 0, type: "Auto"},
-                {index: 1, type: "Primary"},
-                {index: 2, type: "Secondary"}
-            ];
-            $scope.opsModeType = $scope.opsModeTypes[0];//auto mode
+            $scope.opsModeType = null;
 
             var handlers = {};
             handlers[SET_TARGET_POWER_RESP] = portPowerCb;

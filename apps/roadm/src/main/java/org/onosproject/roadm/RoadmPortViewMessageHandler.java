@@ -15,17 +15,23 @@
  */
 package org.onosproject.roadm;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
+import org.onosproject.net.behaviour.protection.TransportEndpointState;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -38,9 +44,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.onosproject.net.Device.Type;
+import static org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState.ACTIVE_UNKNOWN;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_AUTO;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_FORCE;
+import static org.onosproject.roadm.RoadmUtil.OPS_OPT_MANUAL;
 
 /**
  * Table-View message handler for ROADM port view.
@@ -142,9 +153,20 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         }
 
         private String getPortServiceState(DeviceId deviceId, PortNumber portNumber) {
-            return RoadmUtil.defaultString(
-                    roadmService.getProtectionSwitchPortState(deviceId, portNumber),
-                    RoadmUtil.UNKNOWN);
+            if (deviceService.getDevice(deviceId).type() != Type.FIBER_SWITCH) {
+                return RoadmUtil.NA;
+            }
+            Map<ConnectPoint, ProtectedTransportEndpointState> map =
+                    roadmService.getProtectionSwitchStates(deviceId);
+            for (ProtectedTransportEndpointState state : map.values()) {
+                for (TransportEndpointState element : state.pathStates()) {
+                    if (element.description().output().connectPoint().port().equals(portNumber)) {
+                        return RoadmUtil.defaultString(element.attributes()
+                            .get(OpticalAnnotations.INPUT_PORT_STATUS), RoadmUtil.UNKNOWN);
+                    }
+                }
+            }
+            return RoadmUtil.UNKNOWN;
         }
 
         private Frequency minFreq = null, maxFreq = null, channelSpacing = null;
@@ -224,10 +246,18 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         }
     }
 
+    // Protection switch operation type and path index
+    private static final String OPS_ARRAY_INDEX = "index";
+    private static final String OPS_ARRAY_OPERATION = "operation";
+    private static final String[] OPS_NON_AUTO_OPTS = {OPS_OPT_FORCE, OPS_OPT_MANUAL};
+
     private final class CreateShowItemsRequestHandler extends RequestHandler {
         private static final String SHOW_TARGET_POWER = "showTargetPower";
         private static final String SHOW_SERVICE_STATE = "showServiceState";
         private static final String SHOW_FLOW_ICON = "showFlowIcon";
+        private static final String OPS_PATHS = "opsOperations";
+        private static final String OPS_ARRAY_NAME = "name";
+        private static final String OPS_GROUP_FMT = "GROUP%d ";
 
         private CreateShowItemsRequestHandler() {
             super(ROADM_SHOW_ITEMS_REQ);
@@ -239,15 +269,51 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             Type devType = deviceService.getDevice(did).type();
             // Build response
             ObjectNode node = objectNode();
-            node.put(SHOW_TARGET_POWER, devType != Type.FIBER_SWITCH);
-            node.put(SHOW_SERVICE_STATE, devType == Type.FIBER_SWITCH);
             node.put(SHOW_FLOW_ICON, devType == Type.ROADM);
+            if (devType == Type.FIBER_SWITCH) {
+                node.put(SHOW_TARGET_POWER, false);
+                node.put(SHOW_SERVICE_STATE, true);
+                // add protection switch paths
+                putProtectionSwitchPaths(did, node);
+            } else {
+                node.put(SHOW_TARGET_POWER, true);
+                node.put(SHOW_SERVICE_STATE, false);
+            }
             sendMessage(ROADM_SHOW_ITEMS_RESP, node);
+        }
+
+        private void putProtectionSwitchPaths(DeviceId deviceId, ObjectNode node) {
+            Map<ConnectPoint, ProtectedTransportEndpointState> states =
+                    roadmService.getProtectionSwitchStates(deviceId);
+            ArrayNode nodes = node.putArray(OPS_PATHS);
+            // Add path names for every identifier.
+            int groupIndex = 0;
+            for (ConnectPoint identifier : states.keySet()) {
+                // No group name needed if there is only one connection point identifier.
+                String groupName = states.keySet().size() == 1 ? "" : String.format(OPS_GROUP_FMT, ++groupIndex);
+                // Add AUTOMATIC operation.
+                nodes.add(new ObjectNode(JsonNodeFactory.instance)
+                          .put(OPS_ARRAY_INDEX, ACTIVE_UNKNOWN)
+                          .put(OPS_ARRAY_OPERATION, OPS_OPT_AUTO)
+                          .put(OPS_ARRAY_NAME, String.format("%s%s", groupName, OPS_OPT_AUTO)));
+                // Add FORCE and MANUAL operations for every path.
+                for (String opt : OPS_NON_AUTO_OPTS) {
+                    int pathIndex = 0;
+                    for (TransportEndpointState state : states.get(identifier).pathStates()) {
+                        nodes.add(new ObjectNode(JsonNodeFactory.instance)
+                                  .put(OPS_ARRAY_INDEX, pathIndex++)
+                                  .put(OPS_ARRAY_OPERATION, opt)
+                                  .put(OPS_ARRAY_NAME,
+                                       String.format("%s%s %s", groupName, opt, state.id().id().toUpperCase())));
+                    }
+                }
+            }
+
+
         }
     }
 
     private final class CreateOpsModeSetRequestHandler extends RequestHandler {
-        private static final String OPS_SWITCH_INDEX = "index";
         private static final String DEVICE_INVALID_ERR_MSG = "Apply failed: device is offline or unavailable.";
         private static final String TYPE_INVALID_ERR_MSG = "Apply failed: invalid device type.";
 
@@ -272,8 +338,10 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 sendMessage(ROADM_SET_OPS_MODE_RESP, node);
                 return;
             }
-            // get virtual port and switch port from payload
-            roadmService.setProtectionSwitchWorkingPath(did, (int) number(payload, OPS_SWITCH_INDEX));
+            // get switch configuration from payload, and then switch the device.
+            roadmService.configProtectionSwitch(did, string(payload, OPS_ARRAY_OPERATION),
+                    roadmService.getProtectionSwitchStates(did).keySet().toArray(new ConnectPoint[0])[0],
+                    (int) number(payload, OPS_ARRAY_INDEX));
             node.put(RoadmUtil.VALID, true);
             sendMessage(ROADM_SET_OPS_MODE_RESP, node);
         }

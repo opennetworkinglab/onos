@@ -31,6 +31,11 @@ public final class RoadmUtil {
     public static final String NA = "N/A";
     public static final String UNKNOWN = "Unknown";
     public static final String NO_ROWS_MESSAGE = "No items found";
+    // Optical protection switch operations.
+    // There are 3 operations for protection switch now: AUTOMATIC, FORCE, MANUAL.
+    public static final String OPS_OPT_AUTO = "AUTOMATIC";
+    public static final String OPS_OPT_FORCE = "FORCE";
+    public static final String OPS_OPT_MANUAL = "MANUAL";
 
     private RoadmUtil() {
     }
