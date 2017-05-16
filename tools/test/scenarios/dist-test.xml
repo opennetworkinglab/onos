@@ -26,6 +26,9 @@
             <import file="${ONOS_SCENARIOS}/dist-map.xml"/>
             <dependency name="Distributed-Primitive-Map"/>
 
+            <import file="${ONOS_SCENARIOS}/dist-ec-map.xml"/>
+            <dependency name="Distributed-Primitive-Ec-Map"/>
+
             <import file="${ONOS_SCENARIOS}/dist-value.xml"/>
             <dependency name="Distributed-Primitive-Value"/>
 

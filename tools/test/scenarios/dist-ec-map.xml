@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright 2017-present Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<scenario name="distributed-eventually-consistent-map-test"
+          description="ONOS EventuallyConsistentMap distributed primitive Test">
+    <group name="Distributed-Primitive-Ec-Map">
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Put1"
+              exec="onos ${OCI} ec-map-test foo put a b"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Put2"
+              exec="onos ${OCI} ec-map-test foo put b c"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Put1"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Put1,Distributed-Primitive-Ec-Map.Test-Map-Put2"
+              exec="onos-cluster-execute-expect ec-map-test foo get a --expect b"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Put2"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Put1"
+              exec="onos-cluster-execute-expect ec-map-test foo get b --expect c"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Size"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Put2"
+              exec="onos-cluster-execute-expect ec-map-test foo size --expect 2"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-IsEmpty"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Size"
+              exec="onos-cluster-execute-expect ec-map-test foo isEmpty --expect false"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Remove"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-IsEmpty"
+              exec="onos-execute-expect ${OCI} ec-map-test foo remove a --expect b"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Remove-Key-Value-Does-Not-Match"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Remove"
+              exec="onos ${OCI} ec-map-test foo remove b a"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Not-Updated-After-Remove"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Remove-Key-Value-Does-Not-Match"
+              exec="onos-cluster-execute-expect ec-map-test foo get b --expect c"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Remove-Key-Value-Does-Match"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Not-Updated-After-Remove"
+              exec="onos ${OCI} ec-map-test foo remove b c"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Remove"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Remove-Key-Value-Does-Match"
+              exec="onos-cluster-execute-expect ec-map-test foo get a --expect null"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-Size-Updated-After-Remove"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Updated-After-Remove"
+              exec="onos-cluster-execute-expect ec-map-test foo size --expect 0"/>
+
+        <step name="Distributed-Primitive-Ec-Map.Test-Map-IsEmpty-Updated-After-Remove"
+              requires="Distributed-Primitive-Ec-Map.Test-Map-Size-Updated-After-Remove"
+              exec="onos-cluster-execute-expect ec-map-test foo isEmpty --expect true"/>
+
+        <group name="Distributed-Primitive-Ec-Map.Check-Log-Exceptions"
+               requires="Distributed-Primitive-Ec-Map.Test-Map-IsEmpty-Updated-After-Remove">
+            <parallel var="${OC#}">
+                <step name="Distributed-Primitive-Ec-Map.Check-Log-Exceptions-${#}"
+                      exec="onos-check-logs ${OC#}"/>
+            </parallel>
+        </group>
+
+    </group>
+</scenario>
+
