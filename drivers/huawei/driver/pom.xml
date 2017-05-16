@@ -31,7 +31,7 @@
 
     <description>Huawei driver implementation</description>
     <properties>
-        <yang-tool-version>1.12.0-b7</yang-tool-version>
+        <yang-tool-version>2.0</yang-tool-version>
     </properties>
     <dependencies>
         <dependency>
