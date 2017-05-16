@@ -568,9 +568,12 @@ public class Topo2Jsonifier {
         // TODO: complete host details
         Host h = host.backingHost();
 
-        addIps(node, h);
-        addProps(node, h);
-        addGeoGridLocation(node, h);
+        // h will be null, for example, after a HOST_REMOVED event
+        if (h != null) {
+            addIps(node, h);
+            addProps(node, h);
+            addGeoGridLocation(node, h);
+        }
         addMetaUi(node, ridStr, host.idAsString());
 
         return node;
