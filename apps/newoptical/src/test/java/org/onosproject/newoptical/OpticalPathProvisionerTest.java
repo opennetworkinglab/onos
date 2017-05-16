@@ -20,6 +20,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Bandwidth;
@@ -45,7 +47,6 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
@@ -75,8 +76,9 @@ import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.ResourceId;
 import org.onosproject.net.resource.ResourceListener;
 import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathServiceAdapter;
+import org.onosproject.net.topology.LinkWeigher;
+import org.onosproject.net.topology.Topology;
+import org.onosproject.net.topology.TopologyServiceAdapter;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.newoptical.api.OpticalPathEvent;
 import org.onosproject.newoptical.api.OpticalPathListener;
@@ -98,7 +100,6 @@ import org.onosproject.store.service.Versioned;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -173,7 +174,7 @@ public class OpticalPathProvisionerTest {
     protected TestListener listener = new TestListener();
     protected TestDeviceService deviceService;
     protected TestLinkService linkService;
-    protected TestPathService pathService;
+    protected TestTopologyService topologyService;
     protected TestIntentService intentService;
     protected TestMastershipService mastershipService;
     protected TestClusterService clusterService;
@@ -208,7 +209,7 @@ public class OpticalPathProvisionerTest {
         linkService.links.addAll(Stream.of(LINK1, LINK2, LINK3, LINK4, LINK5, LINK6)
             .collect(Collectors.toList()));
 
-        this.pathService = new TestPathService();
+        this.topologyService = new TestTopologyService();
         this.intentService = new TestIntentService();
         this.mastershipService = new TestMastershipService();
         this.clusterService = new TestClusterService();
@@ -224,7 +225,7 @@ public class OpticalPathProvisionerTest {
         this.target = new OpticalPathProvisioner();
         target.coreService = new TestCoreService();
         target.intentService = this.intentService;
-        target.pathService = this.pathService;
+        target.topologyService = this.topologyService;
         target.linkService = this.linkService;
         target.mastershipService = this.mastershipService;
         target.clusterService = this.clusterService;
@@ -235,7 +236,7 @@ public class OpticalPathProvisionerTest {
         injectEventDispatcher(target, new TestEventDispatcher());
         target.addListener(listener);
 
-        target.activate();
+        target.activate(new ComponentContextAdapter());
 
         // To overwrite opticalView-ed deviceService
         target.deviceService = this.deviceService;
@@ -271,9 +272,9 @@ public class OpticalPathProvisionerTest {
         assertNotNull(cid);
 
         // Checks path computation is called as expected
-        assertEquals(1, pathService.edges.size());
-        assertEquals(CP12.deviceId(), pathService.edges.get(0).getKey());
-        assertEquals(CP71.deviceId(), pathService.edges.get(0).getValue());
+        assertEquals(1, topologyService.edges.size());
+        assertEquals(CP12.deviceId(), topologyService.edges.get(0).getKey());
+        assertEquals(CP71.deviceId(), topologyService.edges.get(0).getValue());
 
         // Checks intents are installed as expected
         assertEquals(1, intentService.submitted.size());
@@ -292,7 +293,7 @@ public class OpticalPathProvisionerTest {
         Duration latency = Duration.ofMillis(10);
         List<Link> links = Stream.of(LINK1, LINK2, LINK3, LINK4, LINK5, LINK6)
                 .collect(Collectors.toList());
-        Path path = new DefaultPath(PROVIDER_ID, links, 0);
+        Path path = new DefaultPath(PROVIDER_ID, links, new ScalarWeight(0));
 
         OpticalConnectivityId cid = target.setupPath(path, bandwidth, latency);
         assertNotNull(cid);
@@ -494,26 +495,25 @@ public class OpticalPathProvisionerTest {
         }
     }
 
-    private static class TestPathService extends PathServiceAdapter {
+    private static class TestTopologyService extends TopologyServiceAdapter {
         List<Pair<DeviceId, DeviceId>> edges = new ArrayList<>();
 
         @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
+        public Stream<Path> getKShortestPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeigher weigher) {
             if (!(src instanceof DeviceId && dst instanceof DeviceId)) {
-                return Collections.emptySet();
+                return Stream.empty();
             }
 
-            edges.add(Pair.of((DeviceId) src, (DeviceId) dst));
+            edges.add(Pair.of(src, dst));
 
             Set<Path> paths = new HashSet<>();
             List<Link> links = Stream.of(LINK1, LINK2, LINK3, LINK4, LINK5, LINK6)
                     .collect(Collectors.toList());
-            paths.add(new DefaultPath(PROVIDER_ID, links, 0));
+            paths.add(new DefaultPath(PROVIDER_ID, links, new ScalarWeight(0)));
 
             // returns paths containing single path
-            return paths;
+            return paths.stream();
         }
-
     }
 
     private static class TestIntentService extends IntentServiceAdapter {
@@ -712,7 +712,6 @@ public class OpticalPathProvisionerTest {
                 return newValue;
             }
 
-
             @Override
             public Set<Map.Entry<K, Versioned<V>>> entrySet() {
                 return map.entrySet();
@@ -765,7 +764,6 @@ public class OpticalPathProvisionerTest {
                 return null;
             }
         }
-
     }
 
     private static class TestDeviceService extends DeviceServiceAdapter {

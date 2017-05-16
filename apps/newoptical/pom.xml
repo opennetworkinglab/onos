@@ -114,6 +114,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

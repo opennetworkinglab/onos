@@ -21,23 +21,23 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.graph.DefaultEdgeWeigher;
+import org.onlab.graph.ScalarWeight;
+import org.onlab.graph.Weight;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.GuavaCollectors;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.event.ListenerTracker;
-import org.onosproject.net.optical.OchPort;
-import org.onosproject.net.optical.OduCltPort;
-import org.onosproject.newoptical.api.OpticalConnectivityId;
-import org.onosproject.newoptical.api.OpticalPathEvent;
-import org.onosproject.newoptical.api.OpticalPathListener;
-import org.onosproject.newoptical.api.OpticalPathService;
 import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.event.ListenerTracker;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -47,6 +47,8 @@ import org.onosproject.net.LinkKey;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BandwidthCapacity;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
@@ -58,16 +60,21 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
-import org.onosproject.net.config.basics.BandwidthCapacity;
-import org.onosproject.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OduCltPort;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
-import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.TopologyEdge;
+import org.onosproject.net.topology.TopologyService;
+import org.onosproject.net.topology.TopologyVertex;
+import org.onosproject.newoptical.api.OpticalConnectivityId;
+import org.onosproject.newoptical.api.OpticalPathEvent;
+import org.onosproject.newoptical.api.OpticalPathListener;
+import org.onosproject.newoptical.api.OpticalPathService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.ConsistentMap;
@@ -77,6 +84,7 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +92,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,6 +100,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -127,7 +137,7 @@ public class OpticalPathProvisioner
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PathService pathService;
+    protected TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -153,6 +163,11 @@ public class OpticalPathProvisioner
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
 
+    private static final String MAX_PATHS = "maxPaths";
+    private static final int DEFAULT_MAX_PATHS = 10;
+    @Property(name = MAX_PATHS, intValue = DEFAULT_MAX_PATHS,
+            label = "Maximum number of paths to consider for path provisioning")
+    private int maxPaths = DEFAULT_MAX_PATHS;
 
     private ApplicationId appId;
 
@@ -192,7 +207,7 @@ public class OpticalPathProvisioner
             .register(KryoNamespaces.API);
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         deviceService = opticalView(deviceService);
         appId = coreService.registerApplication("org.onosproject.newoptical");
 
@@ -225,6 +240,8 @@ public class OpticalPathProvisioner
 
         linkPathMap.addListener(storeListener);
 
+        readComponentConfiguration(context);
+
         log.info("Started");
     }
 
@@ -235,6 +252,22 @@ public class OpticalPathProvisioner
         eventDispatcher.removeSink(OpticalPathEvent.class);
 
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        readComponentConfiguration(context);
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        maxPaths = Tools.getIntegerProperty(properties, MAX_PATHS, DEFAULT_MAX_PATHS);
+        log.info("Configured. Maximum paths to consider is configured to {}", maxPaths);
     }
 
     @Override
@@ -270,32 +303,28 @@ public class OpticalPathProvisioner
         checkNotNull(egress);
         log.info("setupConnectivity({}, {}, {}, {})", ingress, egress, bandwidth, latency);
 
-        bandwidth = (bandwidth == null) ? NO_BW_REQUIREMENT : bandwidth;
+        Bandwidth bw = (bandwidth == null) ? NO_BW_REQUIREMENT : bandwidth;
 
-        Set<Path> paths = pathService.getPaths(ingress.deviceId(), egress.deviceId(),
+        Stream<Path> paths = topologyService.getKShortestPaths(
+                topologyService.currentTopology(),
+                ingress.deviceId(), egress.deviceId(),
                 new BandwidthLinkWeight(bandwidth));
-        if (paths.isEmpty()) {
-            log.warn("Unable to find multi-layer path.");
-            return null;
+
+        // Path service calculates from node to node, we're only interested in port to port
+        Optional<OpticalConnectivityId> id =
+                paths.filter(p -> p.src().equals(ingress) && p.dst().equals(egress))
+                        .limit(maxPaths)
+                        .map(p -> setupPath(p, bw, latency))
+                        .filter(Objects::nonNull)
+                        .findFirst();
+
+        if (id.isPresent()) {
+            log.info("Assigned OpticalConnectivityId: {}", id);
+        } else {
+            log.error("setupConnectivity({}, {}, {}, {}) failed.", ingress, egress, bandwidth, latency);
         }
 
-        // Search path with available cross connect points
-        for (Path path : paths) {
-            // Path service calculates from node to node, we're only interested in port to port
-            if (!path.src().equals(ingress) || !path.dst().equals(egress)) {
-                continue;
-            }
-
-            OpticalConnectivityId id = setupPath(path, bandwidth, latency);
-            if (id != null) {
-                log.info("Assigned OpticalConnectivityId: {}", id);
-                return id;
-            }
-        }
-
-        log.error("setupConnectivity({}, {}, {}, {}) failed.", ingress, egress, bandwidth, latency);
-
-        return null;
+        return id.orElse(null);
     }
 
     /*
@@ -363,7 +392,6 @@ public class OpticalPathProvisioner
             log.error("No intents produced from {}", crossConnectPoints);
             return null;
         }
-
 
         // create set of PacketLinkRealizedByOptical
         Set<PacketLinkRealizedByOptical> packetLinks = createPacketLinkSet(crossConnectPoints,
@@ -647,7 +675,7 @@ public class OpticalPathProvisioner
         return linkDiscoveryEnabled(cp1) && linkDiscoveryEnabled(cp2);
     }
 
-    private class BandwidthLinkWeight implements LinkWeight {
+    private class BandwidthLinkWeight extends DefaultEdgeWeigher<TopologyVertex, TopologyEdge> implements LinkWeigher {
         private Bandwidth bandwidth = null;
 
         public BandwidthLinkWeight(Bandwidth bandwidth) {
@@ -655,42 +683,38 @@ public class OpticalPathProvisioner
         }
 
         @Override
-        public double weight(TopologyEdge edge) {
+        public Weight weight(TopologyEdge edge) {
             Link l = edge.link();
 
             // Avoid inactive links
             if (l.state() == Link.State.INACTIVE) {
                 log.trace("{} is not active", l);
-                return -1.0;
+                return ScalarWeight.NON_VIABLE_WEIGHT;
             }
 
             // Avoid cross connect links with used ports
             if (isCrossConnectLink(l) && usedCrossConnectLinkSet.contains(l)) {
                 log.trace("Cross connect {} in use", l);
-                return -1.0;
+                return ScalarWeight.NON_VIABLE_WEIGHT;
             }
 
             // Check availability of bandwidth
             if (bandwidth != null && !NO_BW_REQUIREMENT.equals(bandwidth)) {
                 if (hasEnoughBandwidth(l.src()) && hasEnoughBandwidth(l.dst())) {
-                    return 1.0;
+                    return new ScalarWeight(1.0);
                 } else {
                     log.trace("Not enough bandwidth on {}", l);
-                    return -1.0;
+                    return ScalarWeight.NON_VIABLE_WEIGHT;
                 }
+            // Allow everything else
             } else {
-                // Use everything except our own indirect links
-                if (l.type() == Link.Type.INDIRECT) {
-                    return -1.0;
-                } else {
-                    return 1.0;
-                }
+                return new ScalarWeight(1.0);
             }
         }
 
         private boolean hasEnoughBandwidth(ConnectPoint cp) {
             if (cp.elementId() instanceof DeviceId) {
-                Device device =  deviceService.getDevice(cp.deviceId());
+                Device device = deviceService.getDevice(cp.deviceId());
                 Device.Type type = device.type();
 
                 if (isTransportLayer(type)) {
@@ -711,7 +735,7 @@ public class OpticalPathProvisioner
                         return resourceService.isAvailable(resource);
                     } catch (Exception e) {
                         log.error("Resource service failed checking availability of {}",
-                                  resource, e);
+                                resource, e);
                         throw e;
                     }
                 }
@@ -719,7 +743,6 @@ public class OpticalPathProvisioner
             return false;
         }
     }
-
 
     public class InternalIntentListener implements IntentListener {
         @Override
