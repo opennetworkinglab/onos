@@ -257,6 +257,7 @@ public class IntentData { //FIXME need to make this "immutable"
         } else if (currentData.version().isOlderThan(newData.version())) {
             return true;
         } else if (currentData.version().isNewerThan(newData.version())) {
+            log.trace("{} update not acceptable: current is newer", newData.key());
             return false;
         }
 
@@ -267,6 +268,7 @@ public class IntentData { //FIXME need to make this "immutable"
         switch (newState) {
         case INSTALLING:
             if (currentState == INSTALLING) {
+                log.trace("{} update not acceptable: no-op INSTALLING", newData.key());
                 return false;
             }
             // FALLTHROUGH
@@ -283,11 +285,13 @@ public class IntentData { //FIXME need to make this "immutable"
 
         case WITHDRAWING:
             if (currentState == WITHDRAWING) {
+                log.trace("{} update not acceptable: no-op WITHDRAWING", newData.key());
                 return false;
             }
             // FALLTHROUGH
         case WITHDRAWN:
             if (currentState == WITHDRAWN) {
+                log.trace("{} update not acceptable: no-op WITHDRAWN", newData.key());
                 return false;
             } else if (currentState == INSTALLING || currentState == INSTALLED
                     || currentState == PURGE_REQ) {
@@ -299,12 +303,14 @@ public class IntentData { //FIXME need to make this "immutable"
 
         case FAILED:
             if (currentState == FAILED) {
+                log.trace("{} update not acceptable: no-op FAILED", newData.key());
                 return false;
             }
             return true;
 
         case CORRUPT:
             if (currentState == CORRUPT) {
+                log.trace("{} update not acceptable: no-op CORRUPT", newData.key());
                 return false;
             }
             return true;

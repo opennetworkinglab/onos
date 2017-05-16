@@ -410,7 +410,7 @@ public class FlowRuleManager
                     try {
                         frp.applyFlowRule(flowRule);
                     } catch (UnsupportedOperationException e) {
-                        log.warn(e.getMessage());
+                        log.warn("Unsupported operation", e);
                         if (flowRule instanceof DefaultFlowEntry) {
                             //FIXME modification of "stored" flow entry outside of store
                             ((DefaultFlowEntry) flowRule).setState(FlowEntry.FlowEntryState.FAILED);
@@ -530,7 +530,7 @@ public class FlowRuleManager
                         }
                     }
                 } catch (Exception e) {
-                    log.debug("Can't process added or extra rule {}", e.getMessage());
+                    log.warn("Can't process added or extra rule {}", e);
                 }
             }
 
@@ -542,7 +542,7 @@ public class FlowRuleManager
                         log.debug("Adding rule in store, but not on switch {}", rule);
                         flowMissing(rule);
                     } catch (Exception e) {
-                        log.debug("Can't add missing flow rule:", e);
+                        log.warn("Can't add missing flow rule:", e);
                     }
                 }
             }

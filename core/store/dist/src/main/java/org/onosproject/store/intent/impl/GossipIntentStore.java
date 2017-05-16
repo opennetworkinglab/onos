@@ -291,6 +291,8 @@ public class GossipIntentStore
             } else {
                 currentMap.put(newData.key(), new IntentData(newData));
             }
+        } else {
+            log.debug("Update for {} not acceptable", newData.key());
         }
         // Remove the intent data from the pending map if the newData is more
         // recent or equal to the existing entry. No matter if it is an acceptable
@@ -304,6 +306,8 @@ public class GossipIntentStore
 
         if (!existingValue.version().isNewerThan(newData.version())) {
             pendingMap.remove(key, existingValue);
+        } else {
+            log.debug("{} in pending map was newer, leaving it there", key);
         }
     }
 
