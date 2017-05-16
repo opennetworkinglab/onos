@@ -50,6 +50,9 @@
                             y: (link.source.y + link.target.y) / 2
                         });
                     },
+                    setVisibility: function (visible) {
+                        this.el.style('visibility', visible ? 'visible' : 'hidden');
+                    },
                     setScale: function () {
                         this.content.style('transform',
                             'scale(' + t2zs.adjustmentScale(20, 30) + ')');

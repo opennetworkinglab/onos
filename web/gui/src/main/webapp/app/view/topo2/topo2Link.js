@@ -392,6 +392,10 @@
 
                 var visible = ps.getPrefs('topo2_prefs')['hosts'];
                 this.el.style('visibility', visible ? 'visible' : 'hidden');
+
+                if (this.linkLabel) {
+                    this.linkLabel.setVisibility(visible);
+                }
             },
             displayMastership: function () {
                 this.set({ mastership: t2mss.mastership() !== null});
