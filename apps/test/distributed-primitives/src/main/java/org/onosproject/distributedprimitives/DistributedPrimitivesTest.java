@@ -75,7 +75,7 @@ public class DistributedPrimitivesTest {
     public EventuallyConsistentMap<String, String> getEcMap(String name) {
         return maps.computeIfAbsent(name, n -> storageService.<String, String>eventuallyConsistentMapBuilder()
                 .withName(name)
-                .withSerializer(KryoNamespaces.BASIC)
+                .withSerializer(KryoNamespaces.API)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build());
     }
