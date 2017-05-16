@@ -18,6 +18,7 @@ package org.onosproject.net.host.impl;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.config.basics.BasicHostConfig;
@@ -26,6 +27,8 @@ import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementations of merge policies for various sources of host configuration
@@ -46,7 +49,7 @@ public final class BasicHostOperator extends BasicElementOperator {
      */
     public static HostDescription combine(BasicHostConfig cfg,
                                           HostDescription descr) {
-        if (cfg == null) {
+        if (cfg == null || descr == null) {
             return descr;
         }
 
@@ -64,8 +67,8 @@ public final class BasicHostOperator extends BasicElementOperator {
 
         SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultHostDescription(descr.hwAddress(), descr.vlan(),
-                location, ipAddresses,
-                descr.configured(), sa);
+                                          location, ipAddresses,
+                                          descr.configured(), sa);
     }
 
     /**
@@ -81,5 +84,18 @@ public final class BasicHostOperator extends BasicElementOperator {
         combineElementAnnotations(cfg, builder);
 
         return DefaultAnnotations.union(an, builder.build());
+    }
+
+    /**
+     * Returns a description of the given host.
+     *
+     * @param host the host
+     * @return a description of the host
+     */
+    public static HostDescription descriptionOf(Host host) {
+        checkNotNull(host, "Must supply a non-null Host");
+        return new DefaultHostDescription(host.mac(), host.vlan(), host.location(),
+                                          host.ipAddresses(), host.configured(),
+                                          (SparseAnnotations) host.annotations());
     }
 }
