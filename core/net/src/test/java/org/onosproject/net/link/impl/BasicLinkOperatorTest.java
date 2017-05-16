@@ -47,7 +47,7 @@ public class BasicLinkOperatorTest {
     private static final ConnectPoint SRC = new ConnectPoint(DID1, P1);
     private static final ConnectPoint DST = new ConnectPoint(DID2, P1);
     private static final LinkKey LK = LinkKey.linkKey(SRC, DST);
-    private static final Duration NTIME = Duration.ofNanos(200);
+    private static final long NTIME = 200;
 
     private static final SparseAnnotations SA = DefaultAnnotations.builder()
             .set(AnnotationKeys.DURABLE, "true").build();
@@ -60,13 +60,13 @@ public class BasicLinkOperatorTest {
     @Before
     public void setUp() {
         BLC.init(LK, "optest", JsonNodeFactory.instance.objectNode(), mapper, delegate);
-        BLC.latency(NTIME);
+        BLC.latency(Duration.ofNanos(NTIME));
     }
 
     @Test
     public void testDescOps() {
         LinkDescription desc = BasicLinkOperator.combine(BLC, LD);
-        assertEquals(NTIME.toString(), desc.annotations().value(AnnotationKeys.LATENCY));
+        assertEquals(String.valueOf(NTIME), desc.annotations().value(AnnotationKeys.LATENCY));
         assertEquals("true", desc.annotations().value(AnnotationKeys.DURABLE));
     }
 }

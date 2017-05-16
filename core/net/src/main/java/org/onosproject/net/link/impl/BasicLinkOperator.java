@@ -82,7 +82,9 @@ public final class BasicLinkOperator implements ConfigOperator {
             b.set(AnnotationKeys.METRIC, String.valueOf(cfg.metric()));
         }
         if (!cfg.latency().equals(DEF_DURATION)) {
-            b.set(AnnotationKeys.LATENCY, cfg.latency().toString());
+            //Convert the latency from Duration to long,
+            //so that it's computable in the latencyConstraint.
+            b.set(AnnotationKeys.LATENCY, String.valueOf(cfg.latency().toNanos()));
         }
         if (cfg.bandwidth() != DEF_BANDWIDTH) {
             b.set(AnnotationKeys.BANDWIDTH, String.valueOf(cfg.bandwidth()));

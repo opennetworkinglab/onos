@@ -62,7 +62,12 @@ public class LatencyConstraint implements Constraint {
     }
 
     private double cost(Link link) {
-        return getAnnotatedValue(link, LATENCY);
+        //Check only links, not EdgeLinks
+        if (link.type() != Link.Type.EDGE) {
+            return link.annotations().value(LATENCY) != null ? getAnnotatedValue(link, LATENCY) : 0;
+        } else {
+            return 0;
+        }
     }
 
     // doesn't use LinkResourceService
@@ -73,8 +78,9 @@ public class LatencyConstraint implements Constraint {
     }
 
     private boolean validate(Path path) {
+        //Guarantee all the latency units in ONOS is nanoseconds.
         double pathLatency = path.links().stream().mapToDouble(this::cost).sum();
-        return Duration.of((long) pathLatency, ChronoUnit.MICROS).compareTo(latency) <= 0;
+        return Duration.of((long) pathLatency, ChronoUnit.NANOS).compareTo(latency) <= 0;
     }
 
     @Override

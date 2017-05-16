@@ -91,7 +91,7 @@ public class LatencyConstraintTest {
      */
     @Test
     public void testLessThanLatency() {
-        sut = new LatencyConstraint(Duration.of(10, ChronoUnit.MICROS));
+        sut = new LatencyConstraint(Duration.of(10, ChronoUnit.NANOS));
 
         assertThat(sut.validate(path, resourceContext), is(true));
     }
@@ -101,7 +101,7 @@ public class LatencyConstraintTest {
      */
     @Test
     public void testMoreThanLatency() {
-        sut = new LatencyConstraint(Duration.of(3, ChronoUnit.MICROS));
+        sut = new LatencyConstraint(Duration.of(3, ChronoUnit.NANOS));
 
         assertThat(sut.validate(path, resourceContext), is(false));
     }
@@ -111,7 +111,7 @@ public class LatencyConstraintTest {
      */
     @Test
     public void testCost() {
-        sut = new LatencyConstraint(Duration.of(10, ChronoUnit.MICROS));
+        sut = new LatencyConstraint(Duration.of(10, ChronoUnit.NANOS));
 
         assertThat(sut.cost(link1, resourceContext), is(closeTo(Double.parseDouble(LATENCY1), 1.0e-6)));
         assertThat(sut.cost(link2, resourceContext), is(closeTo(Double.parseDouble(LATENCY2), 1.0e-6)));
