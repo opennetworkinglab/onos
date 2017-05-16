@@ -294,9 +294,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // disconnect to trigger switch-add later
                 sw.disconnectSwitch();
             }
-            PortStatsCollector psc = new PortStatsCollector(timer, sw, portStatsPollFrequency);
-            psc.start();
-            collectors.put(new Dpid(sw.getId()), psc);
         }
     }
 
