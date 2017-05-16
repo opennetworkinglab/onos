@@ -253,10 +253,10 @@ public class MacAddress {
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder(2 * 6 + 5);
         for (final byte b : this.address) {
             if (builder.length() > 0) {
-                builder.append(":");
+                builder.append(':');
             }
             builder.append(String.format("%02X", b & 0xFF));
         }
