@@ -543,7 +543,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<>();
-        if (portCriterion.port() == PortNumber.ALL) {
+        if (portCriterion != null && PortNumber.ALL.equals(portCriterion.port())) {
             for (Port port : deviceService.getPorts(deviceId)) {
                 if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
                     portnums.add(port.number());
@@ -601,7 +601,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         // Consider PortNumber.ANY as wildcard. Match ETH_DST only
-        if (portCriterion != null && portCriterion.port() == PortNumber.ANY) {
+        if (portCriterion != null && PortNumber.ANY.equals(portCriterion.port())) {
             return processEthDstOnlyFilter(ethCriterion, applicationId);
         }
 
@@ -617,7 +617,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<>();
-        if (portCriterion.port() == PortNumber.ALL) {
+        if (portCriterion != null && PortNumber.ALL.equals(portCriterion.port())) {
             for (Port port : deviceService.getPorts(deviceId)) {
                 if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
                     portnums.add(port.number());
