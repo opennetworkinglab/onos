@@ -43,7 +43,7 @@ public interface OpticalPathService extends ListenerService<OpticalPathEvent, Op
      * @param egress    egress port
      * @param bandwidth required bandwidth. No bandwidth is assured if null.
      * @param latency   required latency. No latency is assured if null.
-     * @return ID of created connectivity if successful. null otherwise.
+     * @return id of created connectivity if successful, null otherwise.
      */
     OpticalConnectivityId setupConnectivity(ConnectPoint ingress, ConnectPoint egress,
                                             Bandwidth bandwidth, Duration latency);
@@ -54,7 +54,7 @@ public interface OpticalPathService extends ListenerService<OpticalPathEvent, Op
      * @param path      multi-layer path along which connectivity will be set up
      * @param bandwidth required bandwidth. No bandwidth is assured if null.
      * @param latency   required latency. No latency is assured if null.
-     * @return true if successful. false otherwise.
+     * @return id of created connectivity if successful, null otherwise.
      */
     OpticalConnectivityId setupPath(Path path, Bandwidth bandwidth, Duration latency);
 

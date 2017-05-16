@@ -23,6 +23,7 @@ import org.onosproject.net.Path;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Test adapter for topology service.
@@ -79,6 +80,17 @@ public class TopologyServiceAdapter implements TopologyService {
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
                               LinkWeigher weigher) {
+        return null;
+    }
+
+    @Override
+    public Set<Path> getKShortestPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       LinkWeigher weigher, int maxPaths) {
+        return null;
+    }
+
+    @Override
+    public Stream<Path> getKShortestPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeigher weigher) {
         return null;
     }
 
