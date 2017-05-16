@@ -15,20 +15,10 @@
  */
 package org.onosproject.net.device.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -78,10 +68,20 @@ import org.onosproject.net.provider.Provider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.Futures;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Multimaps.newListMultimap;
@@ -146,8 +146,8 @@ public class DeviceManager
      * Index to look up PortConfigOperator from Config each PortConfigOperator uses.
      */
     private final Multimap<Class<? extends Config<ConnectPoint>>, PortConfigOperator> portOpsIndex
-        = synchronizedListMultimap(
-           newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));
+            = synchronizedListMultimap(
+            newListMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));
 
     // not part of portOps. must be executed at the end
     private PortAnnotationOperator portAnnotationOp;
@@ -164,6 +164,7 @@ public class DeviceManager
             dateTime = now;
         }
     }
+
     private final Map<DeviceId, LocalStatus> deviceLocalStatus =
             Maps.newConcurrentMap();
 
@@ -173,7 +174,7 @@ public class DeviceManager
         portOpsIndex.put(PortAnnotationConfig.class, portAnnotationOp);
 
         backgroundService = newSingleThreadScheduledExecutor(
-                             groupedThreads("onos/device", "manager-background", log));
+                groupedThreads("onos/device", "manager-background", log));
         localNodeId = clusterService.getLocalNode().id();
 
         store.setDelegate(delegate);
@@ -447,10 +448,10 @@ public class DeviceManager
             // Generate updated description and establish my Role
             deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
-                    .thenAccept(role -> {
-                        log.info("Local role is {} for {}", role, deviceId);
-                        applyRole(deviceId, role);
-                    }));
+                                         .thenAccept(role -> {
+                                             log.info("Local role is {} for {}", role, deviceId);
+                                             applyRole(deviceId, role);
+                                         }));
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                                                            deviceDescription);
@@ -573,11 +574,11 @@ public class DeviceManager
                 return;
             }
             if ((Device.Type.ROADM.equals(device.type())) ||
-                (Device.Type.OTN.equals(device.type()))) {
+                    (Device.Type.OTN.equals(device.type()))) {
                 // FIXME This is ignoring all other info in portDescription given as input??
                 PortDescription storedPortDesc = store.getPortDescription(provider().id(),
-                                                          deviceId,
-                                                          portDescription.portNumber());
+                                                                          deviceId,
+                                                                          portDescription.portNumber());
                 portDescription = ensurePortEnabledState(storedPortDesc,
                                                          portDescription.isEnabled());
             }
@@ -811,9 +812,9 @@ public class DeviceManager
             // device is not connected to this node
             if (mastershipService.getLocalRole(did) == NONE) {
                 log.debug("Node was instructed to be {} role for {}, "
-                                + "but this node cannot reach the device "
-                                + "and role is already None. Ignoring request.",
-                        myNextRole, did);
+                                  + "but this node cannot reach the device "
+                                  + "and role is already None. Ignoring request.",
+                          myNextRole, did);
             } else if (myNextRole != NONE) {
                 log.warn("Node was instructed to be {} role for {}, "
                                  + "but this node cannot reach the device.  "
@@ -891,7 +892,7 @@ public class DeviceManager
             return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
                     && (event.configClass().equals(BasicDeviceConfig.class)
-                        || portOpsIndex.containsKey(event.configClass()));
+                    || portOpsIndex.containsKey(event.configClass()));
         }
 
         @Override
@@ -900,29 +901,33 @@ public class DeviceManager
             if (event.configClass().equals(BasicDeviceConfig.class)) {
                 log.debug("Detected device network config event {}", event.type());
                 DeviceId did = (DeviceId) event.subject();
-                BasicDeviceConfig cfg = networkConfigService.getConfig(did, BasicDeviceConfig.class);
+                DeviceProvider dp = getProvider(did);
+                BasicDeviceConfig cfg =
+                        networkConfigService.getConfig(did, BasicDeviceConfig.class);
 
                 if (!isAllowed(cfg)) {
                     kickOutBadDevice(did);
                 } else {
                     Device dev = getDevice(did);
-                    DeviceDescription desc = (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
+                    DeviceDescription desc =
+                            (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
                     desc = BasicDeviceOperator.combine(cfg, desc);
-                    if (desc != null && getProvider(did) != null) {
-                        de = store.createOrUpdateDevice(getProvider(did).id(), did, desc);
+                    if (desc != null && dp != null) {
+                        de = store.createOrUpdateDevice(dp.id(), did, desc);
                     }
                 }
             }
             if (portOpsIndex.containsKey(event.configClass())) {
                 ConnectPoint cpt = (ConnectPoint) event.subject();
                 DeviceId did = cpt.deviceId();
+                DeviceProvider dp = getProvider(did);
 
                 // Note: assuming PortOperator can modify existing port,
                 //       but cannot add new port purely from Config.
-                de = Optional.ofNullable(getProvider(did))
+                de = Optional.ofNullable(dp)
                         .map(provider -> store.getPortDescription(provider.id(), did, cpt.port()))
                         .map(desc -> applyAllPortOps(cpt, desc))
-                        .map(desc -> store.updatePortStatus(getProvider(did).id(), did, desc))
+                        .map(desc -> store.updatePortStatus(dp.id(), did, desc))
                         .orElse(null);
             }
 
@@ -943,7 +948,7 @@ public class DeviceManager
     @Override
     @SafeVarargs
     public final void registerPortConfigOperator(PortConfigOperator portOp,
-                                                              Class<? extends Config<ConnectPoint>>...configs) {
+                                                 Class<? extends Config<ConnectPoint>>... configs) {
         checkNotNull(portOp);
 
         portOp.bindService(networkConfigService);
@@ -959,25 +964,25 @@ public class DeviceManager
 
         // TODO: Should we be applying to all existing Ports?
         Tools.stream(store.getAvailableDevices())
-            .map(Device::id)
-            .filter(mastershipService::isLocalMaster)
-            // for each locally managed Device, update all port descriptions
-            .map(did -> {
-                ProviderId pid = Optional.ofNullable(getProvider(did))
-                                            .map(Provider::id)
-                                            .orElse(null);
-                if (pid == null) {
-                    log.warn("Provider not found for {}", did);
-                    return ImmutableList.<DeviceEvent>of();
-                }
-                List<PortDescription> pds
-                    = store.getPortDescriptions(pid, did)
-                        .map(pdesc -> applyAllPortOps(did, pdesc))
-                        .collect(Collectors.toList());
-                return store.updatePorts(pid, did, pds);
+                .map(Device::id)
+                .filter(mastershipService::isLocalMaster)
+                // for each locally managed Device, update all port descriptions
+                .map(did -> {
+                    ProviderId pid = Optional.ofNullable(getProvider(did))
+                            .map(Provider::id)
+                            .orElse(null);
+                    if (pid == null) {
+                        log.warn("Provider not found for {}", did);
+                        return ImmutableList.<DeviceEvent>of();
+                    }
+                    List<PortDescription> pds
+                            = store.getPortDescriptions(pid, did)
+                            .map(pdesc -> applyAllPortOps(did, pdesc))
+                            .collect(Collectors.toList());
+                    return store.updatePorts(pid, did, pds);
                 })
-            // ..and port port update event if necessary
-            .forEach(evts -> evts.forEach(this::post));
+                // ..and port port update event if necessary
+                .forEach(evts -> evts.forEach(this::post));
     }
 
     @Override
@@ -1009,8 +1014,8 @@ public class DeviceManager
     /**
      * Merges the appropriate PortConfig with the description.
      *
-     * @param cpt   ConnectPoint where the port is attached
-     * @param desc  {@link PortDescription}
+     * @param cpt  ConnectPoint where the port is attached
+     * @param desc {@link PortDescription}
      * @return merged {@link PortDescription}
      */
     private PortDescription applyAllPortOps(ConnectPoint cpt, PortDescription desc) {

@@ -47,8 +47,7 @@
 
     function coordFromLngLat(loc) {
         var p = api.projection();
-        // suspected cause of ONOS-2109
-        return p ? p([loc.lng, loc.lat]) : [0, 0];
+        return p ? p([loc.longOrX, loc.latOrY]) : [0, 0];
     }
 
     function lngLatFromCoord(coord) {
@@ -115,7 +114,7 @@
         var loc = node.location,
             coord;
 
-        if (loc && loc.type === 'geo') {
+        if (loc && loc.locType === 'geo') {
             coord = coordFromLngLat(loc);
             node.fixed = true;
             node.px = node.x = coord[0];

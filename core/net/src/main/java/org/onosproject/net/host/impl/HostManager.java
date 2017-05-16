@@ -30,17 +30,16 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.incubator.net.intf.InterfaceService;
-import org.onosproject.net.edge.EdgePortService;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
@@ -52,6 +51,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -64,8 +64,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
 import static org.onosproject.net.link.ProbedLinkProvider.DEFAULT_MAC;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.HOST_EVENT;
+import static org.onosproject.security.AppPermission.Type.HOST_READ;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -149,7 +150,7 @@ public class HostManager
     }
 
     @Modified
-     public void modified(ComponentContext context) {
+    public void modified(ComponentContext context) {
         boolean oldValue = monitorHosts;
         readComponentConfiguration(context);
         if (probeRate > 0) {
@@ -183,7 +184,7 @@ public class HostManager
         } else {
             monitorHosts = flag;
             log.info("Configured. monitorHosts {}",
-            monitorHosts ? "enabled" : "disabled");
+                     monitorHosts ? "enabled" : "disabled");
         }
 
         Long longValue = Tools.getLongProperty(properties, "probeRate");
@@ -217,24 +218,22 @@ public class HostManager
 
     /**
      * Starts monitoring the hosts by IP Address.
-     *
      */
     private void startMonitoring() {
         store.getHosts().forEach(host -> {
-                    host.ipAddresses().forEach(ip -> {
-                           monitor.addMonitoringFor(ip);
+            host.ipAddresses().forEach(ip -> {
+                monitor.addMonitoringFor(ip);
             });
         });
     }
 
     /**
      * Stops monitoring the hosts by IP Address.
-     *
      */
     private void stopMonitoring() {
         store.getHosts().forEach(host -> {
-                    host.ipAddresses().forEach(ip -> {
-                           monitor.stopMonitoring(ip);
+            host.ipAddresses().forEach(ip -> {
+                monitor.stopMonitoring(ip);
             });
         });
     }
@@ -447,27 +446,49 @@ public class HostManager
     // links that the config does not allow
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
+                    || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
+                    && (event.configClass().equals(BasicHostConfig.class));
+        }
+
+        @Override
         public void event(NetworkConfigEvent event) {
-            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
-                    event.configClass().equals(BasicHostConfig.class)) {
-                log.debug("Detected host network config event {}", event.type());
-                kickOutBadHost(((HostId) event.subject()));
+            log.debug("Detected host network config event {}", event.type());
+            HostEvent he = null;
+
+            HostId hostId = (HostId) event.subject();
+            BasicHostConfig cfg =
+                    networkConfigService.getConfig(hostId, BasicHostConfig.class);
+
+            if (!isAllowed(cfg)) {
+                kickOutBadHost(hostId);
+            } else {
+                Host host = getHost(hostId);
+                HostDescription desc =
+                        (host == null) ? null : BasicHostOperator.descriptionOf(host);
+                desc = BasicHostOperator.combine(cfg, desc);
+                if (desc != null) {
+                    he = store.createOrUpdateHost(host.providerId(), hostId, desc, false);
+                }
+            }
+
+            if (he != null) {
+                post(he);
             }
         }
     }
 
-    // checks if the specified host is allowed by the BasicHostConfig
-    // and if not, removes it
+    // by default allowed, otherwise check flag
+    private boolean isAllowed(BasicHostConfig cfg) {
+        return (cfg == null || cfg.isAllowed());
+    }
+
+    // removes the specified host, if it exists
     private void kickOutBadHost(HostId hostId) {
-        BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
-        if (cfg != null && !cfg.isAllowed()) {
-            Host badHost = getHost(hostId);
-            if (badHost != null) {
-                removeHost(hostId);
-            } else {
-                log.info("Failed removal: Host {} does not exist", hostId);
-            }
+        Host badHost = getHost(hostId);
+        if (badHost != null) {
+            removeHost(hostId);
         }
     }
 }
