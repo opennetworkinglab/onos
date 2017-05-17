@@ -201,7 +201,7 @@ ONOS_APPS = [
 ]
 
 MODELS = [
-    '//models/demo:onos-models-demo-oar',
+    '//models/huawei:onos-models-huawei-oar',
     '//models/openroadm:onos-models-openroadm-oar',
     '//models/l3vpn:onos-models-l3vpn-oar',
 ]
