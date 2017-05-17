@@ -117,7 +117,7 @@ public class SimpleIntentStore
                     if (pendingData.state() == PURGE_REQ) {
                         current.remove(newData.key(), newData);
                     } else {
-                        current.put(newData.key(), new IntentData(newData));
+                        current.put(newData.key(), IntentData.copy(newData));
                     }
 
                     if (pendingData.version().compareTo(newData.version()) <= 0) {
@@ -150,7 +150,7 @@ public class SimpleIntentStore
         if (currentData == null) {
             return null;
         }
-        return new IntentData(currentData);
+        return IntentData.copy(currentData);
     }
 
     @Override
@@ -167,7 +167,7 @@ public class SimpleIntentStore
                     existingData.version().compareTo(data.version()) < 0) {
                 pending.put(data.key(), data);
                 checkNotNull(delegate, "Store delegate is not set")
-                        .process(new IntentData(data));
+                        .process(IntentData.copy(data));
                 IntentEvent.getEvent(data).ifPresent(this::notifyDelegate);
             } else {
                 log.debug("IntentData {} is older than existing: {}",

@@ -57,7 +57,7 @@ class Compiling implements IntentProcessPhase {
             List<Intent> compiled = processor.compile(data.intent(),
                     //TODO consider passing an optional here in the future
                     stored.map(IntentData::installables).orElse(null));
-            return Optional.of(new Installing(processor, new IntentData(data, compiled), stored));
+            return Optional.of(new Installing(processor, IntentData.compiled(data, compiled), stored));
         } catch (IntentException e) {
             log.warn("Unable to compile intent {} due to:", data.intent(), e);
             if (stored.filter(x -> !x.installables().isEmpty()).isPresent()) {

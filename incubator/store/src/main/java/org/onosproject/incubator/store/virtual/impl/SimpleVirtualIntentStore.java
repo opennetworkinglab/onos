@@ -126,7 +126,7 @@ public class SimpleVirtualIntentStore
                     if (pendingData.state() == PURGE_REQ) {
                         getCurrentMap(networkId).remove(newData.key(), newData);
                     } else {
-                        getCurrentMap(networkId).put(newData.key(), new IntentData(newData));
+                        getCurrentMap(networkId).put(newData.key(), IntentData.copy(newData));
                     }
 
                     if (pendingData.version().compareTo(newData.version()) <= 0) {
@@ -159,7 +159,7 @@ public class SimpleVirtualIntentStore
         if (currentData == null) {
             return null;
         }
-        return new IntentData(currentData);
+        return IntentData.copy(currentData);
     }
 
     @Override
@@ -177,7 +177,7 @@ public class SimpleVirtualIntentStore
                 getPendingMap(networkId).put(data.key(), data);
 
                 checkNotNull(delegateMap.get(networkId), "Store delegate is not set")
-                        .process(new IntentData(data));
+                        .process(IntentData.copy(data));
                 IntentEvent.getEvent(data).ifPresent(e -> notifyDelegate(networkId, e));
             } else {
                 log.debug("IntentData {} is older than existing: {}",

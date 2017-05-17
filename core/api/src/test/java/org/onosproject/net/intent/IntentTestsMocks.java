@@ -471,6 +471,19 @@ public class IntentTestsMocks {
             MockTimestamp that = (MockTimestamp) o;
             return this.value - that.value;
         }
+
+        @Override
+        public int hashCode() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof MockTimestamp) {
+                return this.compareTo((MockTimestamp) obj) == 0;
+            }
+            return false;
+        }
     }
 
     /**

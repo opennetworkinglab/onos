@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterServiceAdapter;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -49,6 +50,7 @@ public class GossipIntentStoreTest extends AbstractIntentTest {
     private GossipIntentStore intentStore;
     private HostToHostIntent.Builder builder1;
 
+    @Override
     @Before
     public void setUp() {
         intentStore = new GossipIntentStore();
@@ -65,6 +67,7 @@ public class GossipIntentStoreTest extends AbstractIntentTest {
         intentStore.activate(null);
     }
 
+    @Override
     @After
     public void tearDown() {
         intentStore.deactivate();
@@ -171,11 +174,11 @@ public class GossipIntentStoreTest extends AbstractIntentTest {
         );
 
         // now purge the intent that was created
-        IntentData purge = new IntentData(
-                intent,
-                IntentState.PURGE_REQ,
-                new IntentTestsMocks.MockTimestamp(12));
-        intentStore.write(purge);
+        IntentData purgeAssigned =
+                IntentData.assign(IntentData.purge(intent),
+                                  new IntentTestsMocks.MockTimestamp(12),
+                                  new NodeId("node-id"));
+        intentStore.write(purgeAssigned);
 
         // check that no intents are left
         assertThat(intentStore.getIntentCount(), is(0L));

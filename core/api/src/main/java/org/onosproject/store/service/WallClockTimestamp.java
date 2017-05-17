@@ -19,9 +19,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 
+import org.joda.time.DateTime;
 import org.onosproject.store.Timestamp;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 
 /**
@@ -69,9 +69,7 @@ public class WallClockTimestamp implements Timestamp {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                    .add("unixTimestamp", unixTimestamp)
-                    .toString();
+        return new DateTime(unixTimestamp).toString();
     }
 
     /**

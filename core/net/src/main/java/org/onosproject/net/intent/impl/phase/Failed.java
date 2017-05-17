@@ -33,8 +33,7 @@ public class Failed extends FinalIntentProcessPhase {
      * @param data intentData
      */
     Failed(IntentData data) {
-        this.data = checkNotNull(data);
-        this.data.setState(FAILED);
+        this.data = IntentData.nextState(checkNotNull(data), FAILED);
     }
 
     @Override

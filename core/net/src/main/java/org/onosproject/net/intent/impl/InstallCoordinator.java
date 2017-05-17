@@ -178,18 +178,21 @@ public class InstallCoordinator {
         if (errCtxs == null || errCtxs.isEmpty()) {
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
-                log.debug("Completed installing: {}", installData.key());
+                log.debug("Completed installing: {}:{}",
+                          installData.key(),
+                          installData.intent().id());
                 installData = new IntentData(installData, installData.installables());
                 installData.setState(INSTALLED);
                 intentStore.write(installData);
             } else if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
                 uninstallData = new IntentData(uninstallData, Collections.emptyList());
-                log.debug("Completed withdrawing: {}", uninstallData.key());
+                log.debug("Completed withdrawing: {}:{}",
+                          uninstallData.key(),
+                          uninstallData.intent().id());
                 switch (uninstallData.request()) {
                     case INSTALL_REQ:
-                        log.warn("{} was requested to withdraw during installation?",
-                                 uninstallData.intent());
+                        // INSTALLED intent was damaged & clean up is now complete
                         uninstallData.setState(FAILED);
                         break;
                     case WITHDRAW_REQ:
@@ -204,16 +207,12 @@ public class InstallCoordinator {
             // if toInstall was cause of error, then recompile (manage/increment counter, when exceeded -> CORRUPT)
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
-                installData.setState(CORRUPT);
-                installData.incrementErrorCount();
-                intentStore.write(installData);
+                intentStore.write(IntentData.corrupt(installData));
             }
             // if toUninstall was cause of error, then CORRUPT (another job will clean this up)
             if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
-                uninstallData.setState(CORRUPT);
-                uninstallData.incrementErrorCount();
-                intentStore.write(uninstallData);
+                intentStore.write(IntentData.corrupt(uninstallData));
             }
         }
     }

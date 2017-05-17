@@ -239,7 +239,7 @@ public class IntentManager
     public void submit(Intent intent) {
         checkPermission(INTENT_WRITE);
         checkNotNull(intent, INTENT_NULL);
-        IntentData data = new IntentData(intent, IntentState.INSTALL_REQ, null);
+        IntentData data = IntentData.submit(intent);
         store.addPending(data);
     }
 
@@ -247,7 +247,7 @@ public class IntentManager
     public void withdraw(Intent intent) {
         checkPermission(INTENT_WRITE);
         checkNotNull(intent, INTENT_NULL);
-        IntentData data = new IntentData(intent, IntentState.WITHDRAW_REQ, null);
+        IntentData data = IntentData.withdraw(intent);
         store.addPending(data);
     }
 
@@ -255,7 +255,7 @@ public class IntentManager
     public void purge(Intent intent) {
         checkPermission(INTENT_WRITE);
         checkNotNull(intent, INTENT_NULL);
-        IntentData data = new IntentData(intent, IntentState.PURGE_REQ, null);
+        IntentData data = IntentData.purge(intent);
         store.addPending(data);
 
         // remove associated group if there is one
@@ -495,6 +495,8 @@ public class IntentManager
         @Override
         public void triggerCompile(Iterable<Key> intentKeys,
                                    boolean compileAllFailed) {
+            // TODO figure out who is making excessive calls?
+            log.trace("submitting {} + all?:{}", intentKeys, compileAllFailed);
             buildAndSubmitBatches(intentKeys, compileAllFailed);
         }
     }
@@ -509,6 +511,10 @@ public class IntentManager
             CompletableFuture.runAsync(() -> {
                 // process intent until the phase reaches one of the final phases
                 List<CompletableFuture<IntentData>> futures = operations.stream()
+                        .map(data -> {
+                            log.debug("Start processing of {} {}@{}", data.request(), data.key(), data.version());
+                            return data;
+                        })
                         .map(x -> CompletableFuture.completedFuture(x)
                                 .thenApply(IntentManager.this::createInitialPhase)
                                 .thenApplyAsync(IntentProcessPhase::process, workerExecutor)
@@ -525,9 +531,9 @@ public class IntentManager
                                         case INSTALLING:
                                         case WITHDRAW_REQ:
                                         case WITHDRAWING:
-                                            x.setState(FAILED);
+                                            // TODO should we swtich based on current
                                             IntentData current = store.getIntentData(x.key());
-                                            return new IntentData(x, current.installables());
+                                            return IntentData.nextState(current, FAILED);
                                         default:
                                             return null;
                                     }
