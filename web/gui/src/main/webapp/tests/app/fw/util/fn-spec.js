@@ -19,6 +19,7 @@
  */
 describe('factory: fw/util/fn.js', function() {
     var $window,
+        $log,
         fs,
         someFunction = function () {},
         someArray = [1, 2, 3],
@@ -38,13 +39,22 @@ describe('factory: fw/util/fn.js', function() {
         }
     };
 
+    var mockLog = {
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {}
+    };
+
     beforeEach(function () {
         module(function ($provide) {
             $provide.value('$window', mockWindow);
+            $provide.value('$log', mockLog);
         });
     });
 
-    beforeEach(inject(function (_$window_, FnService) {
+    beforeEach(inject(function (_$log_, _$window_, FnService) {
+        $log = _$log_;
         $window = _$window_;
         fs = FnService;
     }));
@@ -217,7 +227,7 @@ describe('factory: fw/util/fn.js', function() {
             'debugOn', 'debug',
             'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
             'eecode', 'noPx', 'noPxStyle', 'endsWith', 'addToTrie', 'removeFromTrie', 'trieLookup',
-            'classNames', 'extend'
+            'classNames', 'extend', 'sanitize'
         ])).toBeTruthy();
     });
 
@@ -423,6 +433,58 @@ describe('factory: fw/util/fn.js', function() {
 
     it('should return false if string doesnt end with foo', function () {
         expect(fs.endsWith("barfood", "foo")).toBe(false);
+    });
+
+    // === Tests for sanitize()
+    function chkSan(u, s) {
+        expect(fs.sanitize(u)).toEqual(s);
+    }
+    function chkGood(g) {
+        chkSan(g, g)
+    }
+    it('should return foo', function () {
+        chkGood('foo');
+    });
+    it('should retain < b > tags', function () {
+        chkGood('foo <b>bar</b> baz');
+    });
+    it('should retain < i > tags', function () {
+        chkGood('foo <i>bar</i> baz');
+    });
+    it('should retain < p > tags', function () {
+        chkGood('foo <p>bar</p> baz');
+    });
+    it('should retain < em > tags', function () {
+        chkGood('foo <em>bar</em> baz');
+    });
+    it('should retain < strong > tags', function () {
+        chkGood('foo <strong>bar</strong> baz');
+    });
+
+    it('should reject < a > tags', function () {
+        chkSan('test <a href="hah">something</a> this', 'test something this');
+    });
+
+    it('should log a warning for < script > tags', function () {
+        spyOn($log, 'warn');
+        chkSan('<script>alert("foo");</script>', '');
+        expect($log.warn).toHaveBeenCalledWith(
+            'Unsanitary HTML input -- <script> detected!'
+        );
+    });
+    it('should log a warning for < style > tags', function () {
+        spyOn($log, 'warn');
+        chkSan('<style> h1 {color:red;} </style>', '');
+        expect($log.warn).toHaveBeenCalledWith(
+            'Unsanitary HTML input -- <style> detected!'
+        );
+    });
+
+    it('should completely strip < script >, remove < a >, retain < i >', function () {
+        chkSan(
+            'Hey <i>this</i> is <script>alert("foo");</script> <a href="meh">cool</a>',
+            'Hey <i>this</i> is  cool'
+        );
     });
 
 });
