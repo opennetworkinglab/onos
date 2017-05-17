@@ -17,7 +17,6 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ContinuousResourceId;
 import org.onosproject.net.resource.DiscreteResourceId;
@@ -74,7 +73,7 @@ class ConsistentContinuousResourceSubStore implements ConsistentResourceSubStore
 
         return allocations.value().allocations().stream()
                 .filter(x -> x.resource().id().equals(resource))
-                .collect(GuavaCollectors.toImmutableList());
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override

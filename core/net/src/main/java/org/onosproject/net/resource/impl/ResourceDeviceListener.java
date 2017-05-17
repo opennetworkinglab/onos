@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
-import org.onlab.util.GuavaCollectors;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ChannelSpacing;
@@ -284,7 +283,7 @@ final class ResourceDeviceListener implements DeviceListener {
             if (query != null) {
                 return query.queryLambdas(port).stream()
                         .flatMap(ResourceDeviceListener::toResourceGrid)
-                        .collect(GuavaCollectors.toImmutableSet());
+                        .collect(ImmutableSet.toImmutableSet());
             } else {
                 return Collections.emptySet();
             }

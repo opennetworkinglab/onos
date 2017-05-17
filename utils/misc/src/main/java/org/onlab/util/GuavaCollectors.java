@@ -34,7 +34,10 @@ public final class GuavaCollectors {
      * @param <T> type
      * @return a {@code Collector} which collects all the input elements into a
      * {@code ImmutableSet}
+     *
+     * @deprecated in 1.11.0 consider using {@link ImmutableSet#toImmutableSet()} instead.
      */
+    @Deprecated
     public static <T> Collector<T, ImmutableSet.Builder<T>, ImmutableSet<T>> toImmutableSet() {
         return Collector.of(ImmutableSet.Builder<T>::new,
                             ImmutableSet.Builder<T>::add,
@@ -50,7 +53,10 @@ public final class GuavaCollectors {
      * @param <T> type
      * @return a {@code Collector} which collects all the input elements into a
      * {@code ImmutableList}, in encounter order
+     *
+     * @deprecated in 1.11.0 consider using {@link ImmutableList#toImmutableList()} instead.
      */
+    @Deprecated
     public static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> toImmutableList() {
         return Collector.of(ImmutableList.Builder<T>::new,
                             ImmutableList.Builder<T>::add,

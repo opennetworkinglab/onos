@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.GuavaCollectors;
 import org.onlab.util.Tools;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.resource.DiscreteResourceId;
@@ -133,7 +132,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         Collection<Resource> resources = store.getAllocatedResources(parent, cls);
         return resources.stream()
                 .flatMap(resource -> store.getResourceAllocations(resource.id()).stream())
-                .collect(GuavaCollectors.toImmutableList());
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override

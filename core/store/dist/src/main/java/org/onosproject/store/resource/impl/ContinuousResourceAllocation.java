@@ -16,7 +16,6 @@
 package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.resource.ContinuousResource;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
@@ -93,7 +92,7 @@ final class ContinuousResourceAllocation {
 
         return new ContinuousResourceAllocation(original,
                 Stream.concat(nonMatched.stream(), matched.stream())
-                        .collect(GuavaCollectors.toImmutableList()));
+                        .collect(ImmutableList.toImmutableList()));
     }
 
     @Override

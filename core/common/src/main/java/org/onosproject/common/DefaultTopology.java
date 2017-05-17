@@ -35,7 +35,6 @@ import org.onlab.graph.SuurballeGraphSearch;
 import org.onlab.graph.TarjanGraphSearch;
 import org.onlab.graph.TarjanGraphSearch.SccResult;
 import org.onlab.graph.Weight;
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDisjointPath;
@@ -437,7 +436,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         return KSHORTEST.search(graph, srcV, dstV, weigher, maxPaths)
                 .paths().stream()
                     .map(this::networkPath)
-                    .collect(GuavaCollectors.toImmutableSet());
+                    .collect(ImmutableSet.toImmutableSet());
     }
 
     /**

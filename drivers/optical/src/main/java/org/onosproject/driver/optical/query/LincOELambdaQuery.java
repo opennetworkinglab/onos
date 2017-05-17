@@ -15,7 +15,6 @@
  */
 package org.onosproject.driver.optical.query;
 
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
@@ -49,7 +48,7 @@ public class LincOELambdaQuery extends AbstractHandlerBehaviour implements Lambd
      */
     private static final Set<OchSignal> OMS_LAMBDAS = IntStream.range(0, LAMBDA_COUNT)
             .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
-            .collect(GuavaCollectors.toImmutableSet());
+            .collect(ImmutableSet.toImmutableSet());
 
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {

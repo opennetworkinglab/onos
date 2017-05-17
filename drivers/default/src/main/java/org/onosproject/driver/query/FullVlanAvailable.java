@@ -20,7 +20,6 @@ import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.VlanId;
-import org.onlab.util.GuavaCollectors;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -50,7 +49,7 @@ public class FullVlanAvailable
         return IntStream.range(0, MAX_VLAN_ID)
                 .filter(x -> !EXCLUDED.contains(x))
                 .mapToObj(x -> VlanId.vlanId((short) x))
-                .collect(GuavaCollectors.toImmutableSet());
+                .collect(ImmutableSet.toImmutableSet());
     }
 
 }
