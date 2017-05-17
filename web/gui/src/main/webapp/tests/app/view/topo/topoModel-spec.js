@@ -33,9 +33,9 @@ describe('factory: view/topo/topoModel.js', function() {
         mock: 'yup'
     };
 
-    // to mock out the [lng,lat] <=> [x,y] transformations, we will
+    // to mock out the [longOrX,latOrY] <=> [x,y] transformations, we will
     // add/subtract 2000, 3000 respectively:
-    //   lng:2005 === x:5,   lat:3004 === y:4
+    //   longOrX:2005 === x:5,   latOrY:3004 === y:4
 
     var mockProjection = function (lnglat) {
         return [lnglat[0] - 2000, lnglat[1] - 3000];
@@ -199,7 +199,7 @@ describe('factory: view/topo/topoModel.js', function() {
     });
 
     it('should install the mock projection', function () {
-        expect(tms.coordFromLngLat({lng: 2005, lat: 3004})).toEqual([5,4]);
+        expect(tms.coordFromLngLat({longOrX: 2005, latOrY: 3004})).toEqual([5,4]);
         expect(tms.lngLatFromCoord([5,4])).toEqual([2005,3004]);
     });
 
@@ -232,9 +232,9 @@ describe('factory: view/topo/topoModel.js', function() {
     it('should position a node by translating lng/lat', function () {
         var node = {
             location: {
-                type: 'geo',
-                lng: 2008,
-                lat: 3009
+                locType: 'geo',
+                longOrX: 2008,
+                latOrY: 3009
             }
         };
         tms.positionNode(node);
@@ -319,9 +319,9 @@ describe('factory: view/topo/topoModel.js', function() {
             type: 'yowser',
             online: true,
             location: {
-                type: 'geo',
-                lng: 2048,
-                lat: 3096
+                locType: 'geo',
+                longOrX: 2048,
+                latOrY: 3096
             }
         });
         expect(node).toBePositionedAt([48,96]);
