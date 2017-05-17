@@ -243,19 +243,24 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         checkPermission(FLOWRULE_WRITE);
-        if (queueFwdObjective(deviceId, forwardingObjective)) {
-            return;
+        if (forwardingObjective.nextId() == null ||
+                forwardingObjective.op() == Objective.Operation.REMOVE ||
+                flowObjectiveStore.getNextGroup(forwardingObjective.nextId()) != null ||
+                !queueFwdObjective(deviceId, forwardingObjective)) {
+            // fast path
+            executorService.execute(new ObjectiveInstaller(deviceId, forwardingObjective));
         }
-        executorService.execute(new ObjectiveInstaller(deviceId, forwardingObjective));
     }
 
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(FLOWRULE_WRITE);
-        if (queueNextObjective(deviceId, nextObjective)) {
-            return;
+        if (nextObjective.op() == Operation.ADD ||
+                flowObjectiveStore.getNextGroup(nextObjective.id()) != null ||
+                !queueNextObjective(deviceId, nextObjective)) {
+            // either group exists or we are trying to create it - let it through
+            executorService.execute(new ObjectiveInstaller(deviceId, nextObjective));
         }
-        executorService.execute(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
     @Override
@@ -268,12 +273,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     public void initPolicy(String policy) {}
 
     private boolean queueFwdObjective(DeviceId deviceId, ForwardingObjective fwd) {
-        if (fwd.nextId() == null ||
-                flowObjectiveStore.getNextGroup(fwd.nextId()) != null ||
-                fwd.op() == Objective.Operation.REMOVE) {
-            // fast path
-            return false;
-        }
         boolean queued = false;
         synchronized (pendingForwards) {
             // double check the flow objective store, because this block could run
@@ -299,11 +298,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     }
 
     private boolean queueNextObjective(DeviceId deviceId, NextObjective next) {
-        if (flowObjectiveStore.getNextGroup(next.id()) != null ||
-                next.op() == Operation.ADD) {
-            // either group exists or we are trying to create it - let it through
-            return false;
-        }
+
         // we need to hold off on other operations till we get notified that the
         // initial group creation has succeeded
         boolean queued = false;
