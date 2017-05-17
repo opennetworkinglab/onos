@@ -33,8 +33,7 @@ final class Withdrawn extends FinalIntentProcessPhase {
      * @param data intent data containing an intent to be withdrawn
      */
     Withdrawn(IntentData data) {
-        this.data = checkNotNull(data);
-        this.data.setState(WITHDRAWN);
+        this.data = IntentData.nextState(checkNotNull(data), WITHDRAWN);
     }
 
     @Override
