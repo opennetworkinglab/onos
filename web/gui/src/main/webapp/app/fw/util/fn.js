@@ -430,6 +430,61 @@
         return child;
     }
 
+    // -----------------------------------------------------------------
+    // The next section deals with sanitizing external strings destined
+    // to be loaded via a .html() function call.
+
+    var matcher = /<\/?([a-zA-Z0-9]+)*(.*?)\/?>/igm,
+        whitelist = ['b', 'i', 'p', 'em', 'strong'],
+        warnlist = ['script', 'style'];
+
+    // Returns true if the tag is in the warn list, (and is not an end-tag)
+    function inWarnList(tag) {
+        return (warnlist.indexOf(tag.name) !== -1 && tag.full.indexOf('/') === -1);
+    }
+
+    function analyze(html) {
+        html = String(html) || '';
+
+        var matches = [],
+            match;
+
+        // extract all tags
+        while ((match = matcher.exec(html)) !== null) {
+            matches.push({
+                full: match[0],
+                name: match[1]
+                // NOTE: ignoring attributes {match[2].split(' ')} for now
+            });
+        }
+
+        return matches;
+    }
+
+    function sanitize(html) {
+        html = String(html) || '';
+
+        var matches = analyze(html);
+
+        // do not allow script tags or style tags
+        html = html.replace(/<script(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/script>/gim, '');
+        html = html.replace(/<style(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/style>/gim, '');
+
+        // filter out all but whitelisted tag types
+        matches.forEach(function (tag) {
+            if (whitelist.indexOf(tag.name) === -1) {
+                html = html.replace(tag.full, '');
+                if (inWarnList(tag)) {
+                    $log.warn('Unsanitary HTML input -- ' + tag.full + ' detected!');
+                }
+            }
+        });
+
+        // TODO: consider encoding HTML entities, e.g. '&' -> '&amp;'
+
+        return html;
+    }
+
 
     angular.module('onosUtil')
         .factory('FnService',
@@ -469,7 +524,8 @@
                 removeFromTrie: removeFromTrie,
                 trieLookup: trieLookup,
                 classNames: classNames,
-                extend: extend
+                extend: extend,
+                sanitize: sanitize
             };
     }]);
 
