@@ -34,6 +34,7 @@ public final class Constants {
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
     public static final int PRIORITY_FLOATING_INTERNAL = 42000;
     public static final int PRIORITY_FLOATING_EXTERNAL = 41000;
+    public static final int PRIORITY_OVS_SNAT_RULE = 40500;
     public static final int PRIORITY_ICMP_RULE = 43000;
     public static final int PRIORITY_INTERNAL_ROUTING_RULE = 28000;
     public static final int PRIORITY_EXTERNAL_ROUTING_RULE = 25000;
