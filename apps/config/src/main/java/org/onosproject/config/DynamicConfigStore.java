@@ -59,19 +59,6 @@ public interface DynamicConfigStore
 
     /**
      * Updates an existing node in the dynamic config store.
-     * This request would fail if the requested node, any of its children or
-     * any parent nodes in the path were not present.
-     *
-     * @param path data structure with absolute path to the parent
-     * @param node recursive data structure, holding a leaf node or a subtree
-     * @return future that is completed with {@code true} if the node was
-     * successfully updated or completed exceptionally with
-     * {@code FailedException} if the update request failed
-     */
-    CompletableFuture<Boolean> updateNode(ResourceId path, DataNode node);
-
-    /**
-     * Updates an existing node in the dynamic config store.
      * Any missing children will be created with this request. The update will
      * fail if the requested node or any of the parent nodes in the path
      * were not present.
@@ -82,7 +69,7 @@ public interface DynamicConfigStore
      * successfully updated or completed exceptionally with
      * {@code FailedException} if the update request failed
      */
-    CompletableFuture<Boolean> updateNodeRecursive(ResourceId path, DataNode node);
+    CompletableFuture<Boolean> updateNode(ResourceId path, DataNode node);
 
     /**
      * Replaces nodes in the dynamic config store.

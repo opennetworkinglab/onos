@@ -321,14 +321,42 @@ public class DistributedDynamicConfigStore
         return objectStore.get(path).value();
     }
 
-    @Override
-    public CompletableFuture<Boolean> updateNode(ResourceId path, DataNode node) {
-        throw new FailedException("Not yet implemented");
+    private void parseForUpdate(String path, DataNode node) {
+        if (node.type() == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+            addLeaf(path, (LeafNode) node);
+        } else if (node.type() == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
+            path = ResourceIdParser.appendLeafList(path, (LeafListKey) node.key());
+            addLeaf(path, (LeafNode) node);
+        } else if (node.type() == DataNode.Type.SINGLE_INSTANCE_NODE) {
+            traverseInner(path, (InnerNode) node);
+        } else if (node.type() == DataNode.Type.MULTI_INSTANCE_NODE) {
+            path = ResourceIdParser.appendKeyList(path, (ListKey) node.key());
+            traverseInner(path, (InnerNode) node);
+        } else {
+            throw new FailedException("Invalid node type");
+        }
     }
 
     @Override
-    public CompletableFuture<Boolean> updateNodeRecursive(ResourceId path, DataNode node) {
-        throw new FailedException("Not yet implemented");
+    public CompletableFuture<Boolean> updateNode(ResourceId complete, DataNode node) {
+        CompletableFuture<Boolean> eventFuture = CompletableFuture.completedFuture(true);
+        List<NodeKey> nodeKeyList = complete.nodeKeys();
+        NodeKey f = nodeKeyList.get(0);
+        if (f.schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
+        String spath = ResourceIdParser.parseResId(complete);
+        if (spath == null) {
+            throw new FailedException("Invalid RsourceId, cannot update Node");
+        }
+        if (spath.compareTo(ResourceIdParser.ROOT) != 0) {
+            if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
+                throw new FailedException("Node or parent doesnot exist, cannot update");
+            }
+        }
+        spath = ResourceIdParser.appendNodeKey(spath, node.key());
+        parseForUpdate(spath, node);
+        return eventFuture;
     }
 
     @Override

@@ -75,18 +75,6 @@ public interface DynamicConfigService
 
     /**
      * Updates an existing node in the dynamic config store.
-     * This method would throw an exception if the requested node, any of its
-     * children or any parent nodes in the path were not present.
-     * Failure reason will be the error message in the exception.
-     *
-     * @param path data structure with absolute path to the parent
-     * @param node recursive data structure, holding a leaf node or a subtree
-     * @throws FailedException if the update request failed
-     */
-    void updateNode(ResourceId path, DataNode node);
-
-    /**
-     * Updates an existing node in the dynamic config store.
      * Any missing children nodes will be created with this request.
      * This method would throw an exception if the requested node or any of the
      * parent nodes in the path were not present.
@@ -95,9 +83,8 @@ public interface DynamicConfigService
      * @param path data structure with absolute path to the parent
      * @param node recursive data structure, holding a leaf node or a subtree
      * @throws FailedException if the update request failed for any reason
-     *
      */
-    void updateNodeRecursive(ResourceId path, DataNode node);
+    void updateNode(ResourceId path, DataNode node);
 
     /**
      * Replaces nodes in the dynamic config store.
