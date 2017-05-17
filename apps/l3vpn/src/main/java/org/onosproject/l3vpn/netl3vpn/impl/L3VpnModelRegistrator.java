@@ -47,13 +47,13 @@ public class L3VpnModelRegistrator extends AbstractYangModelRegistrator {
 
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
-        appInfo.put(new DefaultYangModuleId("ietf-inet-types", "2013-00-15"),
+        appInfo.put(new DefaultYangModuleId("ietf-inet-types", "2013-07-15"),
                     new DefaultAppModuleInfo(IetfInetTypes.class, null));
-        appInfo.put(new DefaultYangModuleId("ietf-l3vpn-svc", "2016-00-30"),
+        appInfo.put(new DefaultYangModuleId("ietf-l3vpn-svc", "2016-07-30"),
                     new DefaultAppModuleInfo(IetfL3VpnSvc.class, null));
-        appInfo.put(new DefaultYangModuleId("ietf-yang-types", "2013-00-15"),
+        appInfo.put(new DefaultYangModuleId("ietf-yang-types", "2013-07-15"),
                     new DefaultAppModuleInfo(IetfYangTypes.class, null));
-        appInfo.put(new DefaultYangModuleId("l3vpn-svc-ext", "2016-00-30"),
+        appInfo.put(new DefaultYangModuleId("l3vpn-svc-ext", "2016-07-30"),
                     new DefaultAppModuleInfo(L3VpnSvcExt.class, null));
         return ImmutableMap.copyOf(appInfo);
     }
