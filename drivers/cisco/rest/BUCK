@@ -1,0 +1,35 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:javax.ws.rs-api',
+    '//incubator/api:onos-incubator-api',
+    '//utils/rest:onlab-rest',
+    '//drivers/utilities:onos-drivers-utilities',
+    '//protocols/rest/api:onos-protocols-rest-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+]
+
+BUNDLES = [
+    ':onos-drivers-cisco-rest',
+    '//drivers/utilities:onos-drivers-utilities',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.cisco.rest',
+    title = 'Cisco REST device drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS Cisco REST device drivers application.',
+    included_bundles = BUNDLES,
+    required_apps = [ 'org.onosproject.restsb' ],
+)

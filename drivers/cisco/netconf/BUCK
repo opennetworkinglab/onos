@@ -10,7 +10,7 @@ TEST_DEPS = [
 ]
 
 BUNDLES = [
-    ':onos-drivers-cisco',
+    ':onos-drivers-cisco-netconf',
     '//drivers/utilities:onos-drivers-utilities',
 ]
 
@@ -22,11 +22,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    app_name = 'org.onosproject.drivers.cisco',
-    title = 'Cisco device drivers',
+    app_name = 'org.onosproject.drivers.cisco.netconf',
+    title = 'Cisco NETCONF device drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'ONOS Cisco device drivers application.',
+    description = 'ONOS Cisco NETCONF device drivers application.',
     included_bundles = BUNDLES,
     required_apps = [ 'org.onosproject.netconf', 'org.onosproject.drivers.netconf' ],
 )

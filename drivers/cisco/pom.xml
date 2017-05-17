@@ -26,32 +26,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>onos-drivers-cisco</artifactId>
-    <packaging>bundle</packaging>
+    <packaging>pom</packaging>
 
     <description>Cisco device drivers</description>
 
-    <properties>
-        <onos.app.name>org.onosproject.drivers.cisco</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
-        <onos.app.category>Drivers</onos.app.category>
-        <onos.app.title>Cisco Device Drivers</onos.app.title>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.requires>
-            org.onosproject.netconf
-        </onos.app.requires>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers-utilities</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-netconf-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>netconf</module>
+        <module>rest</module>
+    </modules>
 
 </project>

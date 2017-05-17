@@ -1,0 +1,11 @@
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "cli",
+    "params": {
+      "cmd": "show interface",
+      "version": 1
+    },
+    "id": 1
+  }
+]
