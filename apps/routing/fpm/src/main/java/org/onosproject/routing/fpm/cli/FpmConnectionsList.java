@@ -21,10 +21,12 @@ import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.routing.fpm.FpmConnectionInfo;
+import org.onosproject.routing.fpm.FpmPeerInfo;
 import org.onosproject.routing.fpm.FpmInfoService;
+import org.onosproject.routing.fpm.FpmPeer;
 
 import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Displays the current FPM connections.
@@ -33,19 +35,27 @@ import java.util.Comparator;
         description = "Displays the current FPM connections")
 public class FpmConnectionsList extends AbstractShellCommand {
 
-    private static final String FORMAT = "peer %s:%s connected to %s since %s %s";
+    private static final String FORMAT = "peer %s:%s connected to %s since %s %s (%d routes locally)";
 
     @Override
     protected void execute() {
         FpmInfoService fpmInfo = get(FpmInfoService.class);
+
+        fpmInfo.peers().entrySet().stream()
+                .sorted(Comparator.<Map.Entry<FpmPeer, FpmPeerInfo>, IpAddress>comparing(e -> e.getKey().address())
+                        .thenComparing(e -> e.getKey().port()))
+                .map(Map.Entry::getValue)
+                .forEach(this::print);
+    }
+
+    private void print(FpmPeerInfo info) {
         ClusterService clusterService = get(ClusterService.class);
 
-        fpmInfo.peers().values().stream()
-                .flatMap(v -> v.stream())
-                .sorted(Comparator.<FpmConnectionInfo, IpAddress>comparing(i -> i.peer().address())
-                        .thenComparing(i -> i.peer().port()))
-                .forEach(info -> print(FORMAT, info.peer().address(), info.peer().port(),
-                        info.connectedTo(), Tools.timeAgo(info.connectTime()),
-                        info.connectedTo().equals(clusterService.getLocalNode().id()) ? "*" : ""));
+        info.connections().forEach(cinfo ->
+            print(FORMAT, cinfo.peer().address(), cinfo.peer().port(),
+                    cinfo.connectedTo(), Tools.timeAgo(cinfo.connectTime()),
+                    cinfo.connectedTo().equals(clusterService.getLocalNode().id()) ? "*" : "",
+                    info.routes())
+        );
     }
 }

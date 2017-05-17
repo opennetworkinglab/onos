@@ -16,7 +16,6 @@
 
 package org.onosproject.routing.fpm;
 
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -27,7 +26,7 @@ public interface FpmInfoService {
     /**
      * Returns the FPM peers that are currently connected.
      *
-     * @return a map of FPM peer to connection time.
+     * @return a map of FPM peer with related information
      */
-    Map<FpmPeer, Collection<FpmConnectionInfo>> peers();
+    Map<FpmPeer, FpmPeerInfo> peers();
 }

@@ -16,7 +16,6 @@
 
 package org.onosproject.routing.fpm;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -62,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
@@ -292,11 +293,17 @@ public class FpmManager implements FpmInfoService {
         }
     }
 
+    private FpmPeerInfo toFpmInfo(FpmPeer peer, Collection<FpmConnectionInfo> connections) {
+        return new FpmPeerInfo(connections,
+                fpmRoutes.getOrDefault(peer, Collections.emptyMap()).size());
+    }
+
     @Override
-    public Map<FpmPeer, Collection<FpmConnectionInfo>> peers() {
-        return ImmutableMap.<FpmPeer, Collection<FpmConnectionInfo>>builder()
-                .putAll(peers.asJavaMap())
-                .build();
+    public Map<FpmPeer, FpmPeerInfo> peers() {
+        return peers.asJavaMap().entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> toFpmInfo(e.getKey(), e.getValue())));
     }
 
     private class InternalFpmListener implements FpmListener {
