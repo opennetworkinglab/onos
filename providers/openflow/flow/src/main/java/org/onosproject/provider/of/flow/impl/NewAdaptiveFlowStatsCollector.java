@@ -230,7 +230,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
 
                     callCountCalAndShortFlowsTask += CAL_AND_POLL_TIMES;
                     isFirstTimeStart = false;
-                } else  if (callCountCalAndShortFlowsTask == ENTIRE_POLL_TIMES) {
+                } else  if (callCountCalAndShortFlowsTask >= ENTIRE_POLL_TIMES) {
                     // entire_poll_times, get entire flow stats from a given switch sw
                     log.trace("CalAndShortFlowsTask Collecting Entire AdaptiveStats for {}", sw.getStringId());
                     ofFlowStatsRequestAllSend();
@@ -347,7 +347,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
                 log.trace("MidFlowsTask Collecting AdaptiveStats for {}", sw.getStringId());
 
                 // skip collecting because CalAndShortFlowsTask collects entire flow stats from a given switch sw
-                if (callCountMidFlowsTask == ENTIRE_POLL_TIMES) {
+                if (callCountMidFlowsTask >= ENTIRE_POLL_TIMES) {
                     callCountMidFlowsTask = MID_POLL_TIMES;
                 } else {
                     midFlowsTaskInternal();
@@ -368,7 +368,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
                 log.trace("LongFlowsTask Collecting AdaptiveStats for {}", sw.getStringId());
 
                 // skip collecting because CalAndShortFlowsTask collects entire flow stats from a given switch sw
-                if (callCountLongFlowsTask == ENTIRE_POLL_TIMES) {
+                if (callCountLongFlowsTask >= ENTIRE_POLL_TIMES) {
                     callCountLongFlowsTask = LONG_POLL_TIMES;
                 } else {
                     longFlowsTaskInternal();
