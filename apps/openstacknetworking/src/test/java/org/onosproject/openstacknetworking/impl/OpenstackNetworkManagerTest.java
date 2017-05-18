@@ -189,16 +189,6 @@ public class OpenstackNetworkManagerTest {
     }
 
     /**
-     * Tests if creating a network with null name fails with an exception.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateNetworkWithNullName() {
-        final Network testNet = NeutronNetwork.builder().build();
-        testNet.setId(NETWORK_ID);
-        target.createNetwork(testNet);
-    }
-
-    /**
      * Tests if creating a duplicate network fails with an exception.
      */
     @Test(expected = IllegalArgumentException.class)

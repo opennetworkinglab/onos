@@ -104,7 +104,6 @@ public class OpenstackNetworkManager
     public void createNetwork(Network osNet) {
         checkNotNull(osNet, ERR_NULL_NETWORK);
         checkArgument(!Strings.isNullOrEmpty(osNet.getId()), ERR_NULL_NETWORK_ID);
-        checkArgument(!Strings.isNullOrEmpty(osNet.getName()), ERR_NULL_NETWORK_NAME);
 
         osNetworkStore.createNetwork(osNet);
         log.info(String.format(MSG_NETWORK, osNet.getName(), MSG_CREATED));
@@ -114,7 +113,6 @@ public class OpenstackNetworkManager
     public void updateNetwork(Network osNet) {
         checkNotNull(osNet, ERR_NULL_NETWORK);
         checkArgument(!Strings.isNullOrEmpty(osNet.getId()), ERR_NULL_NETWORK_ID);
-        checkArgument(!Strings.isNullOrEmpty(osNet.getName()), ERR_NULL_NETWORK_NAME);
 
         osNetworkStore.updateNetwork(osNet);
         log.info(String.format(MSG_NETWORK, osNet.getId(), MSG_UPDATED));
