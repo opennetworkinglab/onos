@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.routing;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.NodeId;
 
 import java.util.Objects;
 
@@ -32,6 +33,8 @@ public class Route {
 
     private static final String VERSION_MISMATCH =
             "Prefix and next hop must be in the same address family";
+
+    private static final NodeId UNDEFINED = new NodeId("-");
 
     /**
      * Source of the route.
@@ -61,15 +64,28 @@ public class Route {
     private final Source source;
     private final IpPrefix prefix;
     private final IpAddress nextHop;
+    private final NodeId sourceNode;
 
     /**
      * Creates a route.
      *
      * @param source route source
      * @param prefix IP prefix
-     * @param nextHop net hop IP address
+     * @param nextHop next hop IP address
      */
     public Route(Source source, IpPrefix prefix, IpAddress nextHop) {
+        this(source, prefix, nextHop, UNDEFINED);
+    }
+
+    /**
+     * Creates a route.
+     *
+     * @param source route source
+     * @param prefix IP prefix
+     * @param nextHop next hop IP address
+     * @param sourceNode ONOS node the route was sourced from
+     */
+    public Route(Source source, IpPrefix prefix, IpAddress nextHop, NodeId sourceNode) {
         checkNotNull(prefix);
         checkNotNull(nextHop);
         checkArgument(prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
@@ -77,6 +93,7 @@ public class Route {
         this.source = checkNotNull(source);
         this.prefix = prefix;
         this.nextHop = nextHop;
+        this.sourceNode = checkNotNull(sourceNode);
     }
 
     /**
@@ -104,6 +121,15 @@ public class Route {
      */
     public IpAddress nextHop() {
         return nextHop;
+    }
+
+    /**
+     * Returns the ONOS node the route was sourced from.
+     *
+     * @return ONOS node ID
+     */
+    public NodeId sourceNode() {
+        return sourceNode;
     }
 
     @Override

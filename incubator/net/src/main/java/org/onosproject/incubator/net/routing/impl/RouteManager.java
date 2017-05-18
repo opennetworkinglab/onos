@@ -204,7 +204,7 @@ public class RouteManager implements RouteService, RouteAdminService {
     @Override
     public Route longestPrefixMatch(IpAddress ip) {
         return longestPrefixLookup(ip)
-                .map(r -> new Route(Route.Source.STATIC, r.prefix(), r.nextHop()))
+                .map(ResolvedRoute::route)
                 .orElse(null);
     }
 

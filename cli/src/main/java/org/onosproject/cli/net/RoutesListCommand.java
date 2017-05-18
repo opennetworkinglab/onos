@@ -41,9 +41,10 @@ public class RoutesListCommand extends AbstractShellCommand {
     private static final String NETWORK = "Network";
     private static final String NEXTHOP = "Next Hop";
     private static final String SOURCE = "Source";
+    private static final String NODE = "Node";
 
-    private static final String FORMAT_ROUTE = "%-1s   %-18s %-15s %-10s";
-    private static final String FORMAT_ROUTE6 = "%-1s   %-43s %-39s %-10s";
+    private static final String FORMAT_ROUTE = "%-1s   %-18s %-15s %s (%s)";
+    private static final String FORMAT_ROUTE6 = "%-1s   %-43s %-39s %s (%s)";
 
     private static final String FORMAT_TABLE = "Table: %s";
     private static final String FORMAT_TOTAL = "   Total: %d";
@@ -67,7 +68,7 @@ public class RoutesListCommand extends AbstractShellCommand {
 
                 // Print header
                 print(FORMAT_TABLE, id);
-                print(format, "", NETWORK, NEXTHOP, SOURCE);
+                print(format, "", NETWORK, NEXTHOP, SOURCE, NODE);
 
                 // Print routing entries
                 tableRoutes.stream()
@@ -84,10 +85,8 @@ public class RoutesListCommand extends AbstractShellCommand {
         routeInfo.allRoutes().stream()
                 .sorted(Comparator.comparing(r -> r.nextHop()))
                 .forEach(r -> print(format, isBestRoute(routeInfo.bestRoute(), r) ? ">" : "",
-                        r.prefix(), r.nextHop(), r.route().source()));
+                        r.prefix(), r.nextHop(), r.route().source(), r.route().sourceNode()));
     }
-
-
 
     private boolean isBestRoute(Optional<ResolvedRoute> bestRoute, ResolvedRoute route) {
         return Objects.equals(bestRoute.orElse(null), route);

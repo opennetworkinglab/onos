@@ -37,6 +37,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteAdminService;
 import org.osgi.service.component.ComponentContext;
@@ -66,6 +67,9 @@ public class BgpSessionManager implements BgpInfoService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteAdminService routeService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
     boolean isShutdown = true;
     private Channel serverChannel;     // Listener for incoming BGP connections
     private ServerBootstrap serverBootstrap;
@@ -74,7 +78,7 @@ public class BgpSessionManager implements BgpInfoService {
             new ConcurrentHashMap<>();
     private Ip4Address myBgpId;        // Same BGP ID for all peers
 
-    private BgpRouteSelector bgpRouteSelector = new BgpRouteSelector(this);
+    private BgpRouteSelector bgpRouteSelector;
     private ConcurrentMap<Ip4Prefix, BgpRouteEntry> bgpRoutes4 =
             new ConcurrentHashMap<>();
     private ConcurrentMap<Ip6Prefix, BgpRouteEntry> bgpRoutes6 =
@@ -85,6 +89,7 @@ public class BgpSessionManager implements BgpInfoService {
 
     @Activate
     protected void activate(ComponentContext context) {
+        bgpRouteSelector = new BgpRouteSelector(this, clusterService);
         readComponentConfiguration(context);
         start();
         log.info("BgpSessionManager started");

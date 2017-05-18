@@ -267,7 +267,7 @@ public class FibInstaller {
     }
 
     private synchronized void deleteRoute(ResolvedRoute route) {
-        deleteRoute(new Route(Route.Source.UNDEFINED, route.prefix(), route.nextHop()));
+        deleteRoute(route.route());
     }
 
     private void deleteRoute(Route route) {

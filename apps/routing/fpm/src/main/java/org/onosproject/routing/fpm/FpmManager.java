@@ -244,7 +244,7 @@ public class FpmManager implements FpmInfoService {
                 // We ignore interface routes with no gateway for now.
                 return;
             }
-            route = new Route(Route.Source.FPM, prefix, gateway);
+            route = new Route(Route.Source.FPM, prefix, gateway, clusterService.getLocalNode().id());
 
 
             Route oldRoute = fpmRoutes.get(peer).put(prefix, route);
@@ -262,7 +262,7 @@ public class FpmManager implements FpmInfoService {
                 return;
             }
 
-            route = new Route(Route.Source.FPM, prefix, existing.nextHop());
+            route = new Route(Route.Source.FPM, prefix, existing.nextHop(), clusterService.getLocalNode().id());
 
             withdraws.add(route);
             break;

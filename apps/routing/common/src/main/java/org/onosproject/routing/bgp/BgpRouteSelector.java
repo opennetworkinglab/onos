@@ -17,6 +17,7 @@
 package org.onosproject.routing.bgp;
 
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.incubator.net.routing.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +33,17 @@ class BgpRouteSelector {
         LoggerFactory.getLogger(BgpRouteSelector.class);
 
     private BgpSessionManager bgpSessionManager;
+    private ClusterService clusterService;
 
     /**
      * Constructor.
      *
      * @param bgpSessionManager the BGP Session Manager to use
+     * @param clusterService the cluster service
      */
-    BgpRouteSelector(BgpSessionManager bgpSessionManager) {
+    BgpRouteSelector(BgpSessionManager bgpSessionManager, ClusterService clusterService) {
         this.bgpSessionManager = bgpSessionManager;
+        this.clusterService = clusterService;
     }
 
     /**
@@ -82,7 +86,7 @@ class BgpRouteSelector {
                                            Collection<Route> withdraws) {
         if (routeUpdate != null) {
             Route route = new Route(Route.Source.BGP, routeUpdate.routeEntry().prefix(),
-                    routeUpdate.routeEntry().nextHop());
+                    routeUpdate.routeEntry().nextHop(), clusterService.getLocalNode().id());
             if (routeUpdate.type().equals(RouteUpdate.Type.UPDATE)) {
                 updates.add(route);
             } else if (routeUpdate.type().equals(RouteUpdate.Type.DELETE)) {
