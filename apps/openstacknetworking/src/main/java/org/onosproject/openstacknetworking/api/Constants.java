@@ -41,4 +41,9 @@ public final class Constants {
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_ACL_RULE = 30000;
 
+    public static final int SRC_VNI_TABLE = 0;
+    public static final int ACL_TABLE = 1;
+    public static final int JUMP_TABLE = 2;
+    public static final int ROUTING_TABLE = 3;
+    public static final int FORWARDING_TABLE = 4;
 }
