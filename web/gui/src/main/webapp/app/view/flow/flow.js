@@ -94,11 +94,11 @@
         topTable = top.append('div').classed('top-content', true)
             .append('table');
         top.append('hr');
-        trmtDiv.append('h2').html('Treatment');
+        trmtDiv.append('h2').text('Treatment');
         topTrmtTable = trmtDiv.append('div').classed('top-content', true)
             .append('table');
         trmtDiv.append('hr');
-        selDiv.append('h2').html('Selector');
+        selDiv.append('h2').text('Selector');
         topSelTable = selDiv.append('div').classed('top-content', true)
             .append('table');
 
@@ -110,7 +110,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
@@ -120,7 +120,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', label + ' :');
         addCell('value', value);
@@ -128,7 +128,7 @@
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'flowTable', 40);
-        top.select('h2').html(details.flowId);
+        top.select('h2').text(details.flowId);
 
         var tbody = topTable.append('tbody');
 

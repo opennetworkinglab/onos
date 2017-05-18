@@ -37,7 +37,7 @@
 
     function init() {
         panelLayer = d3.select('#floatpanels');
-        panelLayer.html('');
+        panelLayer.text('');
         panels = {};
     }
 
@@ -130,7 +130,7 @@
         }
 
         function emptyPanel() {
-            return p.el.html('');
+            return p.el.text('');
         }
 
         function appendPanel(what) {

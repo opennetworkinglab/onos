@@ -435,7 +435,7 @@
     // to be loaded via a .html() function call.
 
     var matcher = /<\/?([a-zA-Z0-9]+)*(.*?)\/?>/igm,
-        whitelist = ['b', 'i', 'p', 'em', 'strong'],
+        whitelist = ['b', 'i', 'p', 'em', 'strong', 'br'],
         evillist = ['script', 'style', 'iframe'];
 
     // Returns true if the tag is in the evil list, (and is not an end-tag)
