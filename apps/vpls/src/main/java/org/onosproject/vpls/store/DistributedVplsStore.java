@@ -62,7 +62,9 @@ public class DistributedVplsStore
 
     private static final KryoNamespace APP_KRYO = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
+            .register(Interface.class)
             .register(VplsData.class)
+            .register(VplsData.VplsState.class)
             .register(VplsOperation.class)
             .build();
 
@@ -163,6 +165,10 @@ public class DistributedVplsStore
      */
     public void writeVplsToNetConfig(Collection<VplsData> vplsDataCollection) {
         VplsAppConfig config = networkConfigService.addConfig(appId, VplsAppConfig.class);
+        if (config == null) {
+            log.debug("VPLS config is not available now");
+            return;
+        }
         config.clearVplsConfig();
 
         // Setup update time for this VPLS application configuration
