@@ -436,11 +436,11 @@
 
     var matcher = /<\/?([a-zA-Z0-9]+)*(.*?)\/?>/igm,
         whitelist = ['b', 'i', 'p', 'em', 'strong'],
-        warnlist = ['script', 'style'];
+        evillist = ['script', 'style', 'iframe'];
 
-    // Returns true if the tag is in the warn list, (and is not an end-tag)
-    function inWarnList(tag) {
-        return (warnlist.indexOf(tag.name) !== -1 && tag.full.indexOf('/') === -1);
+    // Returns true if the tag is in the evil list, (and is not an end-tag)
+    function inEvilList(tag) {
+        return (evillist.indexOf(tag.name) !== -1 && tag.full.indexOf('/') === -1);
     }
 
     function analyze(html) {
@@ -466,15 +466,17 @@
 
         var matches = analyze(html);
 
-        // do not allow script tags or style tags
-        html = html.replace(/<script(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/script>/gim, '');
-        html = html.replace(/<style(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/style>/gim, '');
+        // completely obliterate evil tags and their contents...
+        evillist.forEach(function (tag) {
+            var re = new RegExp('<' + tag + '(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/' + tag + '>', 'gim');
+            html = html.replace(re, '');
+        });
 
-        // filter out all but whitelisted tag types
+        // filter out all but white-listed tags and end-tags
         matches.forEach(function (tag) {
             if (whitelist.indexOf(tag.name) === -1) {
                 html = html.replace(tag.full, '');
-                if (inWarnList(tag)) {
+                if (inEvilList(tag)) {
                     $log.warn('Unsanitary HTML input -- ' + tag.full + ' detected!');
                 }
             }

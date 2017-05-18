@@ -480,6 +480,15 @@ describe('factory: fw/util/fn.js', function() {
         );
     });
 
+
+    it('should log a warning for < iframe > tags', function () {
+        spyOn($log, 'warn');
+        chkSan('Foo<iframe><body><h1>fake</h1></body></iframe>Bar', 'FooBar');
+        expect($log.warn).toHaveBeenCalledWith(
+            'Unsanitary HTML input -- <iframe> detected!'
+        );
+    });
+
     it('should completely strip < script >, remove < a >, retain < i >', function () {
         chkSan(
             'Hey <i>this</i> is <script>alert("foo");</script> <a href="meh">cool</a>',
