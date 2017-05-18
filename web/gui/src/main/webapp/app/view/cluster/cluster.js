@@ -98,7 +98,7 @@
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').classed('devices-title', true).html('Devices');
+        bottom.append('h2').classed('devices-title', true).text('Devices');
         bottom.append('table');
         //ToDo add more details
     }
@@ -107,7 +107,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
@@ -115,7 +115,7 @@
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'node', 40);
-        top.select('h2').html(details.id);
+        top.select('h2').text(details.id);
 
         var tbody = topTable.append('tbody');
 
@@ -128,7 +128,7 @@
         var tr = tbody.append('tr');
 
         deviceCols.forEach(function (col) {
-            tr.append('td').html(device[col]);
+            tr.append('td').text(device[col]);
         });
     }
 
@@ -139,7 +139,7 @@
             tbWidth, tbHeight;
 
         friendlyDeviceCols.forEach(function (col) {
-            theader.append('th').html(col);
+            theader.append('th').text(col);
         });
         devices.forEach(function (device) {
             addDeviceRow(tbody, device);

@@ -88,7 +88,7 @@
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').html('YANG Source');
+        bottom.append('h2').text('YANG Source');
 
         srcFrame = bottom.append('div').classed('src-frame', true);
         srcDiv = srcFrame.append('div').classed('module-source', true);
@@ -98,12 +98,12 @@
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'nav_yang', 40);
         top.select('h2')
-            .html('Module ' + details.id + ' (' + details.revision + ')');
+            .text('Module ' + details.id + ' (' + details.revision + ')');
     }
 
     function populateBottom(source) {
         var src = srcDiv.select('pre');
-        src.html(source.join('\n'));
+        src.text(source.join('\n'));
     }
 
     function closePanel() {

@@ -78,7 +78,7 @@
     }
 
     function exitEditMode(nameH2, name) {
-        nameH2.html(name);
+        nameH2.text(name);
         nameH2.classed('editable clickable', true);
         editingName = false;
         ks.enableGlobalKeys(true);
@@ -114,7 +114,7 @@
 
         if (!editingName) {
             nameH2.classed('editable clickable', false);
-            nameH2.html('');
+            nameH2.text('');
             tf = nameH2.append('input').classed('name-input', true)
                 .attr('type', 'text')
                 .attr('value', $scope.panelData.name);
@@ -149,7 +149,7 @@
         top.append('hr');
 
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2').classed('ports-title', true).html('Ports');
+        bottom.append('h2').classed('ports-title', true).text('Ports');
         bottom.append('table');
     }
 
@@ -157,7 +157,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
@@ -172,7 +172,7 @@
                         .append('tbody');
 
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
-        top.select('h2').html(details.name);
+        top.select('h2').text(details.name);
 
         // === demonstrate use of JsonCodec object see ONOS-5976
         addProp(leftTbl,  0, device.id);
@@ -195,7 +195,7 @@
         var tr = tbody.append('tr');
 
         portCols.forEach(function (col) {
-            tr.append('td').html(port[col]);
+            tr.append('td').text(port[col]);
         });
     }
 
@@ -205,7 +205,7 @@
             tbWidth, tbHeight;
 
         friendlyPortCols.forEach(function (col) {
-            theader.append('th').html(col);
+            theader.append('th').text(col);
         });
         ports.forEach(function (port) {
             addPortRow(tbody, port);
@@ -253,7 +253,7 @@
     function respNameCb(data) {
         if (data.warn) {
             $log.warn(data.warn, data.id);
-            top.select('h2').html(data.id);
+            top.select('h2').text(data.id);
         }
     }
 

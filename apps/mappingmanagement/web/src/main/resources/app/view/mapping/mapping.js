@@ -97,11 +97,11 @@
         topTable = top.append('div').classed('top-content', true)
             .append('table');
         top.append('hr');
-        keyDiv.append('h2').html('Mapping Key');
+        keyDiv.append('h2').text('Mapping Key');
         topKeyTable = keyDiv.append('div').classed('top-content', true)
                             .append('table');
         keyDiv.append('hr');
-        valueDiv.append('h2').html('Mapping Value');
+        valueDiv.append('h2').text('Mapping Value');
         bottomValueTable = valueDiv.append('table');
 
         // TODO: add more details later
@@ -111,7 +111,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
@@ -121,7 +121,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', label + ' :');
         addCell('value', value);
@@ -129,7 +129,7 @@
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'mappingTable', 40);
-        top.select('h2').html(details.mappingId);
+        top.select('h2').text(details.mappingId);
 
         var tbody = topTable.append('tbody');
 
@@ -146,10 +146,10 @@
             addProp(tbody, i, details[prop]);
         });
 
-        topKeyTablebody.append('tr').append('td').attr('class', 'value').html(address);
+        topKeyTablebody.append('tr').append('td').attr('class', 'value').text(address);
 
         treatmentFriendlyProps.forEach(function (col) {
-            bottomValueTableheader.append('th').html(col);
+            bottomValueTableheader.append('th').text(col);
         });
         treatments.forEach(function (sel) {
             populateTreatmentTable(bottomValueTablebody, sel);
@@ -165,7 +165,7 @@
 
     function addTreatmentProp(tr, value) {
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('value', value);
     }

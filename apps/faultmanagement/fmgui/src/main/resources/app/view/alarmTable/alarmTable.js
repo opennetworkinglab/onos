@@ -9,15 +9,22 @@
     var detailsReq = 'alarmTableDetailsRequest',
             detailsResp = 'alarmTableDetailsResponse',
             pName = 'ov-alarm-table-item-details-panel',
-            propOrder = ['id', 'alarmDeviceId', 'alarmDesc', 'alarmSource', 'alarmTimeRaised', 'alarmTimeUpdated', 'alarmTimeCleared', 'alarmSeverity'],
-            friendlyProps = ['Alarm Id', 'Device Id', 'Description', 'Source', 'Time Raised', 'Time Updated', 'Time Cleared', 'Severity'];
+            propOrder = [
+                'id', 'alarmDeviceId', 'alarmDesc', 'alarmSource',
+                'alarmTimeRaised', 'alarmTimeUpdated', 'alarmTimeCleared',
+                'alarmSeverity'
+            ],
+            friendlyProps = [
+                'Alarm Id', 'Device Id', 'Description', 'Source',
+                'Time Raised', 'Time Updated', 'Time Cleared', 'Severity'
+            ];
 
 
     function addProp(tbody, index, value) {
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
