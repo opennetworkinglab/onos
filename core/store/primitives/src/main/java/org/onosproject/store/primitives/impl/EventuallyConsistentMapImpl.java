@@ -922,15 +922,19 @@ public class EventuallyConsistentMapImpl<K, V>
             items.forEach(item -> map.compute(item.key(), (key, existing) ->
                     item.isNewerThan(existing) ? item : existing));
             communicationExecutor.execute(() -> {
-                clusterCommunicator.unicast(ImmutableList.copyOf(map.values()),
-                                            updateMessageSubject,
-                                            serializer::encode,
-                                            peer)
-                                   .whenComplete((result, error) -> {
-                                       if (error != null) {
-                                           log.debug("Failed to send to {}", peer, error);
-                                       }
-                                   });
+                try {
+                    clusterCommunicator.unicast(ImmutableList.copyOf(map.values()),
+                            updateMessageSubject,
+                            serializer::encode,
+                            peer)
+                            .whenComplete((result, error) -> {
+                                if (error != null) {
+                                    log.debug("Failed to send to {}", peer, error);
+                                }
+                            });
+                } catch (Exception e) {
+                    log.warn("Failed to send to {}", peer, e);
+                }
             });
         }
     }
