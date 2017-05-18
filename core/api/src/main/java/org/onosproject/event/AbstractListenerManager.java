@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 /**
  * Basis for components which need to export listener mechanism.
  */
-@Component(componentAbstract = true)
+@Component
 public abstract class AbstractListenerManager<E extends Event, L extends EventListener<E>>
     implements ListenerService<E, L> {
 
