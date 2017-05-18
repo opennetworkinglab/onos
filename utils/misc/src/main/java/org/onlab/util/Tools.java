@@ -662,6 +662,10 @@ public abstract class Tools {
             CompletableFuture<T> future,
             Executor orderedExecutor,
             Executor threadPoolExecutor) {
+        if (future.isDone()) {
+            return future;
+        }
+
         BlockingAwareFuture<T> newFuture = new BlockingAwareFuture<T>();
         future.whenComplete((result, error) -> {
             Runnable completer = () -> {
