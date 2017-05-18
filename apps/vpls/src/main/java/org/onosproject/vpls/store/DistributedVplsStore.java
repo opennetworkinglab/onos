@@ -100,6 +100,7 @@ public class DistributedVplsStore
     @Deactivate
     protected  void deactive() {
         vplsDataStore.removeListener(vplsDataListener);
+        networkConfigService.removeConfig(appId);
         log.info("Stopped");
     }
 

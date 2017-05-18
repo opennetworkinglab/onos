@@ -304,13 +304,12 @@ public class VplsOperationManager implements VplsOperationService {
                             // Error consumer
                             VplsOperation vplsOperation =
                                     vplsOperationException.vplsOperation();
-                            log.debug("VPLS operation failed: {}", vplsOperation);
+                            log.warn(OP_EXEC_ERR,
+                                     vplsOperation.toString(),
+                                     vplsOperationException.getMessage());
                             VplsData vplsData = vplsOperation.vpls();
                             vplsData.state(VplsData.VplsState.FAILED);
                             vplsStore.updateVpls(vplsData);
-                            log.error(OP_EXEC_ERR,
-                                      vplsOperation.toString(),
-                                      vplsOperationException.getMessage());
                             runningOperations.remove(vplsName);
                         });
                 log.debug("Applying operation: {}", operation);
@@ -544,6 +543,7 @@ public class VplsOperationManager implements VplsOperationService {
         private void removeVplsIntents() {
             Set<Intent> intentsToWithdraw = getCurrentIntents();
             applyIntentsSync(intentsToWithdraw, Direction.REMOVE);
+            intentsToWithdraw.forEach(intentService::purge);
         }
 
         /**
