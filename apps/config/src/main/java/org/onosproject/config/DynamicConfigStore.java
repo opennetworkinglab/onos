@@ -110,4 +110,13 @@ public interface DynamicConfigStore
      * {@code FailedException} if the delete request failed
      */
     CompletableFuture<Boolean> deleteNodeRecursive(ResourceId path);
+
+    /**
+     * Returns whether the requested node exists in the Dynamic Config store.
+     *
+     * @param path data structure with absolute path to the intended node
+     * @return future that is completed with {@code true} if the node existed
+     * in the store, {@code false} otherwise
+     */
+    CompletableFuture<Boolean> nodeExist(ResourceId path);
 }

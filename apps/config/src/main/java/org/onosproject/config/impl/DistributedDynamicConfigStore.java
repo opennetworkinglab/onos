@@ -272,48 +272,47 @@ public class DistributedDynamicConfigStore
                 DocumentPath.from(spath));
         Map<String, Versioned<DataNode.Type>> entries = null;
         entries = complete(ret);
-        /*if ((entries == null) || (entries.size() == 0)) {
-            throw new FailedException("Inner node cannot have empty children map");
-        }*/
-        entries.forEach((k, v) -> {
-            String[] names = k.split(ResourceIdParser.NM_CHK);
-            String name = names[0];
-            String nmSpc = ResourceIdParser.getNamespace(names[1]);
-            String keyVal = ResourceIdParser.getKeyVal(names[1]);
-            DataNode.Type type = v.value();
-            String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
-            if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
-                superBldr.createChildBuilder(name, nmSpc, readLeaf(tempPath).value())
-                        .type(type)
-                        .exitNode();
-            } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
-                String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
-                LeafNode lfnode = readLeaf(mlpath);
-                superBldr.createChildBuilder(name, nmSpc, lfnode.value())
-                        .type(type)
-                        .addLeafListValue(lfnode.value())
-                        .exitNode();
-                //TODO this alone should be sufficient and take the nm, nmspc too
-            } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
-                DataNode.Builder tempBldr = superBldr.createChildBuilder(name, nmSpc)
-                        .type(type);
-                readInner(tempBldr, tempPath);
-            } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
-                DataNode.Builder tempBldr = superBldr.createChildBuilder(name, nmSpc)
-                        .type(type);
-                tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
-                String[] keys = k.split(ResourceIdParser.KEY_CHK);
-                for (int i = 1; i < keys.length; i++) {
-                    //String curKey = ResourceIdParser.appendKeyLeaf(tempPath, keys[i]);
-                    //LeafNode lfnd = readLeaf(curKey);
-                    String[] keydata = keys[i].split(ResourceIdParser.NM_CHK);
-                    tempBldr.addKeyLeaf(keydata[0], keydata[1], keydata[2]);
+        if ((entries != null) && (!entries.isEmpty())) {
+            entries.forEach((k, v) -> {
+                String[] names = k.split(ResourceIdParser.NM_CHK);
+                String name = names[0];
+                String nmSpc = ResourceIdParser.getNamespace(names[1]);
+                String keyVal = ResourceIdParser.getKeyVal(names[1]);
+                DataNode.Type type = v.value();
+                String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
+                if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+                    superBldr.createChildBuilder(name, nmSpc, readLeaf(tempPath).value())
+                            .type(type)
+                            .exitNode();
+                } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
+                    String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
+                    LeafNode lfnode = readLeaf(mlpath);
+                    superBldr.createChildBuilder(name, nmSpc, lfnode.value())
+                            .type(type)
+                            .addLeafListValue(lfnode.value())
+                            .exitNode();
+                    //TODO this alone should be sufficient and take the nm, nmspc too
+                } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
+                    DataNode.Builder tempBldr = superBldr.createChildBuilder(name, nmSpc)
+                            .type(type);
+                    readInner(tempBldr, tempPath);
+                } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
+                    DataNode.Builder tempBldr = superBldr.createChildBuilder(name, nmSpc)
+                            .type(type);
+                    tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
+                    String[] keys = k.split(ResourceIdParser.KEY_CHK);
+                    for (int i = 1; i < keys.length; i++) {
+                        //String curKey = ResourceIdParser.appendKeyLeaf(tempPath, keys[i]);
+                        //LeafNode lfnd = readLeaf(curKey);
+                        String[] keydata = keys[i].split(ResourceIdParser.NM_CHK);
+                        tempBldr.addKeyLeaf(keydata[0], keydata[1], keydata[2]);
+                    }
+                    readInner(tempBldr, tempPath);
+                } else {
+                    throw new FailedException("Invalid node type");
                 }
-                readInner(tempBldr, tempPath);
-            } else {
-                throw new FailedException("Invalid node type");
-            }
-        });
+            });
+        }
         superBldr.exitNode();
     }
 
@@ -360,6 +359,23 @@ public class DistributedDynamicConfigStore
     }
 
     @Override
+    public CompletableFuture<Boolean> nodeExist(ResourceId complete) {
+        Boolean stat = true;
+        List<NodeKey> nodeKeyList = complete.nodeKeys();
+        NodeKey f = nodeKeyList.get(0);
+        if (f.schemaId().name().compareTo("/") == 0) {
+            nodeKeyList.remove(0);
+        }
+        String spath = ResourceIdParser.parseResId(complete);
+        if (spath == null) {
+            stat = false;
+        } else if (completeVersioned(keystore.get(DocumentPath.from(spath))) == null) {
+            stat = false;
+        }
+        return CompletableFuture.completedFuture(stat);
+    }
+
+    @Override
     public CompletableFuture<Boolean> replaceNode(ResourceId path, DataNode node) {
         throw new FailedException("Not yet implemented");
     }
@@ -374,30 +390,29 @@ public class DistributedDynamicConfigStore
                 DocumentPath.from(spath));
         Map<String, Versioned<DataNode.Type>> entries = null;
         entries = complete(ret);
-        /*if ((entries == null) || (entries.size() == 0)) {
-            throw new FailedException("Inner node cannot have empty children map");
-        }*/
-        entries.forEach((k, v) -> {
-            String[] names = k.split(ResourceIdParser.NM_CHK);
-            String name = names[0];
-            String nmSpc = ResourceIdParser.getNamespace(names[1]);
-            String keyVal = ResourceIdParser.getKeyVal(names[1]);
-            DataNode.Type type = v.value();
-            String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
-            if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
-                removeLeaf(tempPath);
-            } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
-                String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
-                removeLeaf(mlpath);
-            } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
-                deleteInner(tempPath);
-            } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
-                tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
-                deleteInner(tempPath);
-            } else {
-                throw new FailedException("Invalid node type");
-            }
-        });
+        if ((entries != null) && (!entries.isEmpty())) {
+            entries.forEach((k, v) -> {
+                String[] names = k.split(ResourceIdParser.NM_CHK);
+                String name = names[0];
+                String nmSpc = ResourceIdParser.getNamespace(names[1]);
+                String keyVal = ResourceIdParser.getKeyVal(names[1]);
+                DataNode.Type type = v.value();
+                String tempPath = ResourceIdParser.appendNodeKey(spath, name, nmSpc);
+                if (type == DataNode.Type.SINGLE_INSTANCE_LEAF_VALUE_NODE) {
+                    removeLeaf(tempPath);
+                } else if (type == DataNode.Type.MULTI_INSTANCE_LEAF_VALUE_NODE) {
+                    String mlpath = ResourceIdParser.appendLeafList(tempPath, keyVal);
+                    removeLeaf(mlpath);
+                } else if (type == DataNode.Type.SINGLE_INSTANCE_NODE) {
+                    deleteInner(tempPath);
+                } else if (type == DataNode.Type.MULTI_INSTANCE_NODE) {
+                    tempPath = ResourceIdParser.appendMultiInstKey(tempPath, k);
+                    deleteInner(tempPath);
+                } else {
+                    throw new FailedException("Invalid node type");
+                }
+            });
+        }
         keystore.removeNode(DocumentPath.from(spath));
     }
 

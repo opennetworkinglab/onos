@@ -74,6 +74,15 @@ public interface DynamicConfigService
     Integer getNumberOfChildren(ResourceId path, Filter filter);
 
     /**
+     * Returns whether the requested node exists in the Dynamic Config store.
+     *
+     * @param path data structure with absolute path to the intended node
+     * @return {@code true} if the node existed in the store
+     * {@code false} otherwise
+     */
+    Boolean nodeExist(ResourceId path);
+
+    /**
      * Updates an existing node in the dynamic config store.
      * Any missing children nodes will be created with this request.
      * This method would throw an exception if the requested node or any of the

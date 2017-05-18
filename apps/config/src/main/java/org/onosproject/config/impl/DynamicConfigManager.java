@@ -98,6 +98,10 @@ public class DynamicConfigManager
         throw new FailedException("Not yet implemented");
     }
 
+    public Boolean nodeExist(ResourceId path) {
+        return store.nodeExist(path).join();
+    }
+
     public void registerHandler(RpcHandler handler, RpcCommand command) {
         throw new FailedException("Not yet implemented");
     }
