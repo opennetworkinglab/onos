@@ -67,6 +67,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfException;
+import org.onosproject.netconf.config.NetconfDeviceConfig;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -154,9 +155,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     protected ScheduledFuture<?> scheduledTask;
 
     protected final List<ConfigFactory> factories = ImmutableList.of(
+            // TODO consider moving Config registration to NETCONF ctl bundle
             new ConfigFactory<DeviceId, NetconfDeviceConfig>(
                     SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                    NetconfDeviceConfig.class, SCHEME_NAME) {
+                    NetconfDeviceConfig.class, NetconfDeviceConfig.CONFIG_KEY) {
                 @Override
                 public NetconfDeviceConfig createConfig() {
                     return new NetconfDeviceConfig();
@@ -351,21 +353,33 @@ public class NetconfDeviceProvider extends AbstractProvider
         Set<DeviceId> deviceSubjects =
                 cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
         deviceSubjects.forEach(deviceId -> {
-            NetconfDeviceConfig config =
-                    cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
-            DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
-            log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
-                      deviceId, config.ip(), config.port(), config.username());
-            storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
-            if (deviceService.getDevice(deviceId) == null) {
-                providerService.deviceConnected(deviceId, deviceDescription);
-            }
-            try {
-                checkAndUpdateDevice(deviceId, deviceDescription);
-            } catch (Exception e) {
-                log.error("Unhandled exception checking {}", deviceId, e);
-            }
+            connectDevice(cfgService.getConfig(deviceId, NetconfDeviceConfig.class));
         });
+    }
+
+
+    private void connectDevice(NetconfDeviceConfig config) {
+        if (config == null) {
+            return;
+        }
+        DeviceId deviceId = config.subject();
+        if (!deviceId.uri().getScheme().equals(SCHEME_NAME)) {
+            // not under my scheme, skipping
+            log.trace("{} not my scheme, skipping", deviceId);
+            return;
+        }
+        DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
+        log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
+                  deviceId, config.ip(), config.port(), config.username());
+        storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
+        if (deviceService.getDevice(deviceId) == null) {
+            providerService.deviceConnected(deviceId, deviceDescription);
+        }
+        try {
+            checkAndUpdateDevice(deviceId, deviceDescription);
+        } catch (Exception e) {
+            log.error("Unhandled exception checking {}", deviceId, e);
+        }
     }
 
     private void checkAndUpdateDevice(DeviceId deviceId, DeviceDescription deviceDescription) {
@@ -580,7 +594,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         @Override
         public void event(NetworkConfigEvent event) {
             if (event.configClass().equals(NetconfDeviceConfig.class)) {
-                executor.execute(NetconfDeviceProvider.this::connectDevices);
+                executor.execute(() -> connectDevice((NetconfDeviceConfig) event.config().get()));
             } else {
                 log.warn("Injecting device via this Json is deprecated, " +
                                  "please put configuration under devices/ as shown in the wiki");

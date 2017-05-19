@@ -70,6 +70,7 @@ import org.onosproject.net.key.DeviceKeyAdminServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDeviceListener;
+import org.onosproject.netconf.config.NetconfDeviceConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -106,13 +107,16 @@ public class NetconfDeviceProviderTest {
     private final DeviceStore deviceStore = new MockDeviceStore();
 
     //Class for testing
-    private final NetworkConfigEvent deviceAddedEvent =
-            new NetworkConfigEvent(NetworkConfigEvent.Type.CONFIG_ADDED,
-                                   DeviceId.deviceId(NETCONF_DEVICE_ID_STRING), NetconfDeviceConfig.class);
     private final NetconfDeviceConfig netconfDeviceConfig = new NetconfDeviceConfig();
     private final NetconfDeviceConfig netconfDeviceConfigSshKey = new NetconfDeviceConfig();
     private final NetconfDeviceConfig netconfDeviceConfigEmptyIpv4 = new NetconfDeviceConfig();
     private final NetconfDeviceConfig netconfDeviceConfigEmptyIpv6 = new NetconfDeviceConfig();
+    private final NetworkConfigEvent deviceAddedEvent =
+            new NetworkConfigEvent(NetworkConfigEvent.Type.CONFIG_ADDED,
+                                   DeviceId.deviceId(NETCONF_DEVICE_ID_STRING),
+                                   netconfDeviceConfig, null,
+                                   NetconfDeviceConfig.class);
+
     private final NetworkConfigEvent deviceAddedEventOld =
             new NetworkConfigEvent(NetworkConfigEvent.Type.CONFIG_ADDED,
                                    null, NetconfProviderConfig.class);
@@ -436,7 +440,7 @@ public class NetconfDeviceProviderTest {
 
         @Override
         public <S, C extends Config<S>> Set<S> getSubjects(Class<S> subjectClass, Class<C> configClass) {
-            Set<S> subjects = new HashSet<S>();
+            Set<S> subjects = new HashSet<>();
             if (available) {
                 if (cfg != null) {
                     subjects.add((S) DeviceId.deviceId(NETCONF_DEVICE_ID_STRING_OLD));
