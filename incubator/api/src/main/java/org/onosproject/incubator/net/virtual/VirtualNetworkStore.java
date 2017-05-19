@@ -240,6 +240,7 @@ public interface VirtualNetworkStore
      * @param intent   intent
      * @param tunnelId tunnel identifier
      */
+    @Deprecated
     void addTunnelId(Intent intent, TunnelId tunnelId);
 
     /**
@@ -248,6 +249,7 @@ public interface VirtualNetworkStore
      * @param intent intent
      * @return set of tunnel identifiers
      */
+    @Deprecated
     Set<TunnelId> getTunnelIds(Intent intent);
 
     /**
@@ -256,5 +258,6 @@ public interface VirtualNetworkStore
      * @param intent   intent
      * @param tunnelId tunnel identifier
      */
+    @Deprecated
     void removeTunnelId(Intent intent, TunnelId tunnelId);
 }
