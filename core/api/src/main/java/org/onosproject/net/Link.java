@@ -110,9 +110,7 @@ public interface Link extends Annotated, Provided, Projectable, NetworkResource 
      * Indicates if the link is to be considered durable.
      *
      * @return true if the link is durable
-     * @deprecated in Falcon Release - replaced by isConfigured()
      */
-    @Deprecated
     boolean isDurable();
 
     /**
