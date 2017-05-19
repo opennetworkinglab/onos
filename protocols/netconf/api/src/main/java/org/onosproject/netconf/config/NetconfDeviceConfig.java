@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.netconf.device.impl;
+package org.onosproject.netconf.config;
 
 import com.google.common.annotations.Beta;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -29,6 +28,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public class NetconfDeviceConfig extends Config<DeviceId> {
+
+    /**
+     * netcfg ConfigKey.
+     */
+    public static final String CONFIG_KEY = "netconf";
 
     private static final String IP = "ip";
     private static final String PORT = "port";
@@ -138,13 +142,19 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
     }
 
     private Pair<String, Integer> extractIpPort() {
-        String info = subject.toString();
-        if (info.startsWith(NetconfDeviceProvider.SCHEME_NAME)) {
-            //+1 is due to length of colon separator
-            String ip = info.substring(info.indexOf(":") + 1, info.lastIndexOf(":"));
-            int port = Integer.parseInt(info.substring(info.lastIndexOf(":") + 1));
-            return Pair.of(ip, port);
+        // Assuming one of
+        //  - netconf:ip:port
+        //  - netconf:ip
+
+        // foo:schemespecifcpart
+        String info = subject.uri().getSchemeSpecificPart();
+        int portSeparator = info.lastIndexOf(':');
+        if (portSeparator == -1) {
+            // assume default port
+            return Pair.of(info, 830);
         }
-        return null;
+        String ip = info.substring(0, portSeparator);
+        int port = Integer.parseInt(info.substring(portSeparator + 1));
+        return Pair.of(ip, port);
     }
 }

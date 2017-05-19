@@ -16,8 +16,11 @@
 package org.onosproject.net;
 
 import com.google.common.testing.EqualsTester;
+
+import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**
@@ -32,6 +35,16 @@ public class DeviceIdTest {
                                   deviceId("of:foo"))
                 .addEqualityGroup(deviceId("of:bar"))
                 .testEquals();
+    }
+
+
+    @Test
+    public void ipAndPort() {
+        DeviceId ipp = deviceId("netconf:127.0.0.1:830");
+        assertEquals("127.0.0.1:830", ipp.uri().getSchemeSpecificPart());
+
+        DeviceId ipp6 = deviceId("netconf:[2001:db8:85a3:8d3:1319:8a2e:370:7348]:830");
+        Assert.assertEquals("[2001:db8:85a3:8d3:1319:8a2e:370:7348]:830", ipp6.uri().getSchemeSpecificPart());
     }
 
 }
