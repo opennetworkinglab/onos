@@ -1363,11 +1363,12 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         // The OF protocol requires us to start things off by sending the highest
         // version of the protocol supported.
 
-        // bitmap represents OF1.0, OF1.3, and OF1.4
+        // bitmap represents OF1.0, OF1.3, OF1.4, and OF1.5
         // see Sec. 7.5.1 of the OF1.3.4 spec
         U32 bitmap = U32.ofRaw((0b1 << OFVersion.OF_10.getWireVersion()) |
                                (0b1 << OFVersion.OF_13.getWireVersion()) |
-                               (0b1 << OFVersion.OF_14.getWireVersion()));
+                               (0b1 << OFVersion.OF_14.getWireVersion()) |
+                               (0b1 << OFVersion.OF_15.getWireVersion()));
         OFVersion version = Optional.ofNullable(ofVersion).orElse(OFVersion.OF_13);
         OFHelloElem hem = OFFactories.getFactory(version)
                 .buildHelloElemVersionbitmap()

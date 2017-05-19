@@ -123,7 +123,7 @@ class RoleManager implements RoleHandler {
         }
 
         int xid = sw.getNextTransactionId();
-        OFRoleRequest rrm = OFFactories.getFactory(OFVersion.OF_13)
+        OFRoleRequest rrm = sw.factory()
                 .buildRoleRequest()
                 .setRole(roleToSend)
                 .setXid(xid)

@@ -53,6 +53,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFMatchV3;
+import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
@@ -268,6 +269,8 @@ public class FlowEntryBuilder {
             case OF_11:
             case OF_12:
             case OF_13:
+            case OF_14:
+            case OF_15:
                 return entry.getInstructions();
             default:
                 log.warn("Unknown OF version {}", entry.getVersion());
@@ -283,6 +286,8 @@ public class FlowEntryBuilder {
             case OF_11:
             case OF_12:
             case OF_13:
+            case OF_14:
+            case OF_15:
                 return entry.getInstructions();
             default:
                 log.warn("Unknown OF version {}", entry.getVersion());
@@ -743,7 +748,7 @@ public class FlowEntryBuilder {
             case VLAN_VID:
                 if (selectorInterpreter != null &&
                         selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
-                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                    if (isOF13OrLater(match)) {
                         OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.VLAN_VID);
                         builder.extension(selectorInterpreter.mapOxm(oxm),
                                 deviceId);
@@ -1079,7 +1084,7 @@ public class FlowEntryBuilder {
             case OFDPA_OVID:
                 if (selectorInterpreter != null &&
                         selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_OVID.type())) {
-                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                    if (isOF13OrLater(match)) {
                         OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_OVID);
                         builder.extension(selectorInterpreter.mapOxm(oxm),
                                           deviceId);
@@ -1091,7 +1096,7 @@ public class FlowEntryBuilder {
             case OFDPA_MPLS_L2_PORT:
                 if (selectorInterpreter != null &&
                         selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_MPLS_L2_PORT.type())) {
-                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                    if (isOF13OrLater(match)) {
                         OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_MPLS_L2_PORT);
                         builder.extension(selectorInterpreter.mapOxm(oxm),
                                           deviceId);
@@ -1106,6 +1111,14 @@ public class FlowEntryBuilder {
             }
         }
         return builder.build();
+    }
+
+    /**
+     * @param obj OpenFlow object to test
+     * @return true if OFObject is OF_13 or later
+     */
+    private static boolean isOF13OrLater(OFObject obj) {
+        return obj.getVersion().wireVersion >= OFVersion.OF_13.wireVersion;
     }
 
     private DriverHandler getDriver(DeviceId devId) {

@@ -134,6 +134,7 @@ public abstract class FlowModBuilder {
             return new FlowModBuilderVer10(flowRule, factory, xid, driverService);
         case OF_13:
         case OF_14:
+        case OF_15:
             return new FlowModBuilderVer13(flowRule, factory, xid, driverService);
         default:
             throw new UnsupportedOperationException(

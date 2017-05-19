@@ -7,6 +7,11 @@ from mininet.topo import Topo
 class AttMplsTopo( Topo ):
     "Internet Topology Zoo Specimen."
 
+    def addSwitch( self, name, **opts ):
+        kwargs = { 'protocols' : 'OpenFlow13' }
+        kwargs.update( opts )
+        return super(AttMplsTopo, self).addSwitch( name, **kwargs )
+
     def __init__( self ):
         "Create a topology."
 

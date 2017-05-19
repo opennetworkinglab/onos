@@ -327,6 +327,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 sw.sendMsg(fact.buildFeaturesRequest().setXid(0).build());
                 break;
             case OF_13:
+            case OF_14:
+            case OF_15:
                 sw.sendMsg(fact.buildPortDescStatsRequest().setXid(0).build());
                 break;
             default:
@@ -977,11 +979,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (status.getReason() != OFPortReason.DELETE) {
                 return buildPortDescription(port);
             } else {
-                PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
-                Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-                SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString()).build();
-                return new DefaultPortDescription(portNo, false, true, type,
-                                                  portSpeed(port), annotations);
+                PortDescription desc = buildPortDescription(port);
+                if (desc.isEnabled()) {
+                    return DefaultPortDescription.builder(desc)
+                            .isEnabled(false)
+                            .build();
+                }
+                return desc;
             }
         }
 
