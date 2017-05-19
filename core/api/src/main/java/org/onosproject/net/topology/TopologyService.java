@@ -23,6 +23,8 @@ import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
+import static org.onosproject.net.topology.HopCountLinkWeigher.DEFAULT_HOP_COUNT_WEIGHER;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -158,8 +160,19 @@ public interface TopologyService
      * Returns the k-shortest paths between source and
      * destination devices.
      *
-     * The first {@code maxPaths} paths will be returned
-     * in ascending order according to the provided {@code weigher}
+     * @param topology topology descriptor
+     * @param src    source device
+     * @param dst    destination device
+     * @return stream of k-shortest paths
+     */
+    default Stream<Path> getKShortestPaths(Topology topology,
+                                        DeviceId src, DeviceId dst) {
+        return getKShortestPaths(topology, src, dst, DEFAULT_HOP_COUNT_WEIGHER);
+     }
+
+    /**
+     * Returns the k-shortest paths between source and
+     * destination devices.
      *
      * @param topology topology descriptor
      * @param src    source device

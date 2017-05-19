@@ -20,8 +20,11 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 
+import static org.onosproject.net.topology.HopCountLinkWeigher.DEFAULT_HOP_COUNT_WEIGHER;
+
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Service for obtaining pre-computed paths or for requesting computation of
@@ -66,6 +69,33 @@ public interface PathService {
      * @return set of all shortest paths between the two element
      */
     Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher);
+
+    /**
+     * Returns the k-shortest paths between source and
+     * destination devices.
+     *
+     * @param src    source device
+     * @param dst    destination device
+     * @return stream of k-shortest paths
+     */
+    default Stream<Path> getKShortestPaths(ElementId src, ElementId dst) {
+        return getKShortestPaths(src, dst, DEFAULT_HOP_COUNT_WEIGHER);
+    }
+
+    /**
+     * Returns the k-shortest paths between source and
+     * destination devices.
+     *
+     * @param src    source device
+     * @param dst    destination device
+     * @param weigher edge-weight entity
+     * @return stream of k-shortest paths
+     */
+    default Stream<Path> getKShortestPaths(ElementId src, ElementId dst,
+                                           LinkWeigher weigher) {
+        return getPaths(src, dst, weigher).stream();
+    }
+
 
     /**
      * Returns the set of all disjoint shortest path pairs between the
