@@ -39,6 +39,7 @@ import org.onosproject.net.provider.ProviderId;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.topology.AdapterLinkWeigher.adapt;
@@ -102,6 +103,40 @@ public abstract class AbstractPathService
                 dstDevice, internalWeigher);
 
         return edgeToEdgePaths(srcEdge, dstEdge, paths, internalWeigher);
+    }
+
+    @Override
+    public Stream<Path> getKShortestPaths(ElementId src, ElementId dst,
+                                          LinkWeigher weigher) {
+        checkNotNull(src, ELEMENT_ID_NULL);
+        checkNotNull(dst, ELEMENT_ID_NULL);
+
+        LinkWeigher internalWeigher = weigher != null ? weigher : DEFAULT_WEIGHER;
+
+        // Get the source and destination edge locations
+        EdgeLink srcEdge = getEdgeLink(src, true);
+        EdgeLink dstEdge = getEdgeLink(dst, false);
+
+        // If either edge is null, bail with no paths.
+        if (srcEdge == null || dstEdge == null) {
+            return Stream.empty();
+        }
+
+        DeviceId srcDevice = srcEdge != NOT_HOST ? srcEdge.dst().deviceId() : (DeviceId) src;
+        DeviceId dstDevice = dstEdge != NOT_HOST ? dstEdge.src().deviceId() : (DeviceId) dst;
+
+        // If the source and destination are on the same edge device, there
+        // is just one path, so build it and return it.
+        if (srcDevice.equals(dstDevice)) {
+            return Stream.of(edgeToEdgePath(srcEdge, dstEdge, null, internalWeigher));
+        }
+
+        // Otherwise get all paths between the source and destination edge
+        // devices.
+        Topology topology = topologyService.currentTopology();
+
+        return topologyService.getKShortestPaths(topology, srcDevice, dstDevice, internalWeigher)
+                .map(path -> edgeToEdgePath(srcEdge, dstEdge, path, internalWeigher));
     }
 
     @Override

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -74,6 +75,10 @@ public class PathManagerTest {
         fakeTopoMgr.paths.add(createPath("src", "middle", "dst"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 2, src, dst);
+
+        validatePaths(service.getKShortestPaths(src, dst)
+                          .collect(Collectors.toSet()),
+                      1, 2, src, dst);
     }
 
     @Test
@@ -105,6 +110,10 @@ public class PathManagerTest {
         fakeHostMgr.hosts.put(dst, host("12:34:56:78:90:ef/1", "dstEdge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 4, src, dst);
+
+        validatePaths(service.getKShortestPaths(src, dst)
+                      .collect(Collectors.toSet()),
+                  1, 4, src, dst);
     }
 
     @Test
@@ -115,6 +124,10 @@ public class PathManagerTest {
         fakeHostMgr.hosts.put(dst, host("12:34:56:78:90:ef/1", "edge"));
         Set<Path> paths = service.getPaths(src, dst);
         validatePaths(paths, 1, 2, src, dst);
+
+        validatePaths(service.getKShortestPaths(src, dst)
+                      .collect(Collectors.toSet()),
+                  1, 2, src, dst);
     }
 
     @Test
