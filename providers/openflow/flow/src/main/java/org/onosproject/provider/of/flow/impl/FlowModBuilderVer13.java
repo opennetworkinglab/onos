@@ -340,17 +340,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildModOchSignalInstruction(ModOchSignalInstruction instruction) {
-        OchSignal signal = instruction.lambda();
-        byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
-        byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
-
-        return factory().actions().circuit(factory().oxms().expOchSigId(
-                new CircuitSignalID(gridType, channelSpacing,
-                        (short) signal.spacingMultiplier(), (short) signal.slotGranularity())
-        ));
-    }
-
     private OFAction buildL1Modification(Instruction i) {
         L1ModificationInstruction l1m = (L1ModificationInstruction) i;
         OFOxm<?> oxm = null;
