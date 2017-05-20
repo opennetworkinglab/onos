@@ -20,6 +20,7 @@ import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AtomicCounterBuilder;
 import org.onosproject.store.service.AtomicCounterMapBuilder;
+import org.onosproject.store.service.AtomicIdGeneratorBuilder;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMultimapBuilder;
@@ -60,6 +61,11 @@ public class StorageServiceAdapter implements StorageService {
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
+        return null;
+    }
+
+    @Override
+    public AtomicIdGeneratorBuilder atomicIdGeneratorBuilder() {
         return null;
     }
 

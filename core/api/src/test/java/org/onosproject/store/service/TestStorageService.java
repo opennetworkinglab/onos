@@ -39,6 +39,11 @@ public class TestStorageService extends StorageServiceAdapter {
     }
 
     @Override
+    public AtomicIdGeneratorBuilder atomicIdGeneratorBuilder() {
+        return TestAtomicIdGenerator.builder();
+    }
+
+    @Override
     public <V> AtomicValueBuilder<V> atomicValueBuilder() {
         throw new UnsupportedOperationException("atomicValueBuilder");
     }

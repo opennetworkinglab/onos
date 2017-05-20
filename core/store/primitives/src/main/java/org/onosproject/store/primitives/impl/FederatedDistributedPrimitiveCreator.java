@@ -25,6 +25,7 @@ import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -100,6 +101,11 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
     @Override
     public AsyncAtomicCounter newAsyncCounter(String name, Supplier<Executor> executorSupplier) {
         return getCreator(name).newAsyncCounter(name, executorSupplier);
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator newAsyncIdGenerator(String name, Supplier<Executor> executorSupplier) {
+        return getCreator(name).newAsyncIdGenerator(name, executorSupplier);
     }
 
     @Override

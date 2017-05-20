@@ -62,6 +62,11 @@ public interface DistributedPrimitive {
         COUNTER,
 
         /**
+         * Numeric ID generator.
+         */
+        ID_GENERATOR,
+
+        /**
          * Atomic counter map.
          */
         COUNTER_MAP,

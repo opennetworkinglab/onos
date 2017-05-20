@@ -92,6 +92,13 @@ public interface StorageService {
     AtomicCounterBuilder atomicCounterBuilder();
 
     /**
+     * Creates a new AtomicIdGeneratorBuilder.
+     *
+     * @return atomic ID generator builder
+     */
+    AtomicIdGeneratorBuilder atomicIdGeneratorBuilder();
+
+    /**
      * Creates a new AtomicValueBuilder.
      *
      * @param <V> atomic value type
@@ -124,6 +131,16 @@ public interface StorageService {
     }
 
     /**
+     * Returns an instance of {@code AsyncAtomicIdGenerator} with specified name.
+     *
+     * @param name ID generator name
+     * @return AsyncAtomicIdGenerator instance
+     */
+    default AsyncAtomicIdGenerator getAsyncAtomicIdGenerator(String name) {
+        return atomicIdGeneratorBuilder().withName(name).build();
+    }
+
+    /**
      * Returns an instance of {@code AtomicCounter} with specified name.
      * @param name counter name
      *
@@ -131,6 +148,16 @@ public interface StorageService {
      */
     default AtomicCounter getAtomicCounter(String name) {
         return getAsyncAtomicCounter(name).asAtomicCounter();
+    }
+
+    /**
+     * Returns an instance of {@code AtomicIdGenerator} with specified name.
+     *
+     * @param name ID generator name
+     * @return AtomicIdGenerator instance
+     */
+    default AtomicIdGenerator getAtomicIdGenerator(String name) {
+        return getAsyncAtomicIdGenerator(name).asAtomicIdGenerator();
     }
 
     /**

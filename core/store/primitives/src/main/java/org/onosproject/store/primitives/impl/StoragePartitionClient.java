@@ -46,11 +46,13 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultim
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentTreeMap;
 import org.onosproject.store.primitives.resources.impl.AtomixCounter;
 import org.onosproject.store.primitives.resources.impl.AtomixDocumentTree;
+import org.onosproject.store.primitives.resources.impl.AtomixIdGenerator;
 import org.onosproject.store.primitives.resources.impl.AtomixLeaderElector;
 import org.onosproject.store.primitives.resources.impl.AtomixWorkQueue;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -255,6 +257,13 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
         DistributedLong distributedLong = client.getLong(name).join();
         AsyncAtomicCounter asyncCounter = new AtomixCounter(name, distributedLong);
         return new ExecutingAsyncAtomicCounter(asyncCounter, defaultExecutor(executorSupplier), sharedExecutor);
+    }
+
+    @Override
+    public AsyncAtomicIdGenerator newAsyncIdGenerator(String name, Supplier<Executor> executorSupplier) {
+        DistributedLong distributedLong = client.getLong(name).join();
+        AsyncAtomicIdGenerator asyncIdGenerator = new AtomixIdGenerator(name, distributedLong);
+        return new ExecutingAsyncAtomicIdGenerator(asyncIdGenerator, defaultExecutor(executorSupplier), sharedExecutor);
     }
 
     @Override

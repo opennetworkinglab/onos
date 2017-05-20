@@ -17,6 +17,7 @@ package org.onosproject.store.primitives;
 
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
+import org.onosproject.store.service.AsyncAtomicIdGenerator;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
@@ -157,6 +158,25 @@ public interface DistributedPrimitiveCreator {
      * @return counter
      */
     AsyncAtomicCounter newAsyncCounter(String name, Supplier<Executor> executorSupplier);
+
+    /**
+     * Creates a new {@code AsyncAtomixIdGenerator}.
+     *
+     * @param name ID generator name
+     * @return ID generator
+     */
+    default AsyncAtomicIdGenerator newAsyncIdGenerator(String name) {
+        return newAsyncIdGenerator(name, null);
+    }
+
+    /**
+     * Creates a new {@code AsyncAtomixIdGenerator}.
+     *
+     * @param name ID generator name
+     * @param executorSupplier a callback that returns an executor to be used asynchronous callbacks
+     * @return ID generator
+     */
+    AsyncAtomicIdGenerator newAsyncIdGenerator(String name, Supplier<Executor> executorSupplier);
 
     /**
      * Creates a new {@code AsyncAtomicValue}.

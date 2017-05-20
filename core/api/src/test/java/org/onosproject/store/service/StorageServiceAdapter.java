@@ -45,6 +45,11 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public AtomicIdGeneratorBuilder atomicIdGeneratorBuilder() {
+        return null;
+    }
+
+    @Override
     public <V> AtomicValueBuilder<V> atomicValueBuilder() {
         return null;
     }
