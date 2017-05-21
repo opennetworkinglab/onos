@@ -131,7 +131,7 @@ public class HostMonitorTest {
         hostMonitor.registerHostProvider(hostProvider);
         hostMonitor.addMonitoringFor(hostIp);
 
-        hostMonitor.run(null);
+        hostMonitor.run();
 
         verify(hostProvider);
     }
@@ -176,7 +176,7 @@ public class HostMonitorTest {
         hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV4_ADDR);
-        hostMonitor.run(null);
+        hostMonitor.run();
 
 
         // Check that a packet was sent to our PacketService and that it has
@@ -245,7 +245,7 @@ public class HostMonitorTest {
         hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV6_ADDR);
-        hostMonitor.run(null);
+        hostMonitor.run();
 
 
         // Check that a packet was sent to our PacketService and that it has
@@ -316,7 +316,7 @@ public class HostMonitorTest {
         hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV4_ADDR);
-        hostMonitor.run(null);
+        hostMonitor.run();
 
 
         // Check that a packet was sent to our PacketService and that it has
@@ -386,7 +386,7 @@ public class HostMonitorTest {
         hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IPV6_ADDR);
-        hostMonitor.run(null);
+        hostMonitor.run();
 
 
         // Check that a packet was sent to our PacketService and that it has

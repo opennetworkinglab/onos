@@ -16,14 +16,14 @@
 
 package org.onosproject.provider.of.meter.impl;
 
-import org.jboss.netty.util.HashedWheelTimer;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
 import org.onlab.util.Timer;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMeterStatsRequest;
 import org.slf4j.Logger;
+
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +34,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class MeterStatsCollector implements TimerTask {
 
-    private final HashedWheelTimer timer = Timer.getTimer();
     private final OpenFlowSwitch sw;
     private final Logger log = getLogger(getClass());
     private final int refreshInterval;
@@ -68,7 +67,7 @@ public class MeterStatsCollector implements TimerTask {
         if (!this.stopTimer) {
             log.trace("Scheduling stats collection in {} seconds for {}",
                     this.refreshInterval, this.sw.getStringId());
-            timeout.getTimer().newTimeout(this, refreshInterval,
+            timeout.timer().newTimeout(this, refreshInterval,
                     TimeUnit.SECONDS);
         }
     }
@@ -94,7 +93,7 @@ public class MeterStatsCollector implements TimerTask {
      */
     public void start() {
         log.info("Starting Meter Stats collection thread for {}", sw.getStringId());
-        timeout = timer.newTimeout(this, 1, TimeUnit.SECONDS);
+        timeout = Timer.newTimeout(this, 1, TimeUnit.SECONDS);
     }
 
     /**

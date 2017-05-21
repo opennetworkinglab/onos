@@ -15,7 +15,14 @@
  */
 package org.onlab.util;
 
-import org.jboss.netty.util.HashedWheelTimer;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import com.google.common.base.Suppliers;
+
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 
 /**
  * Hashed-wheel timer singleton. Care must be taken to shutdown the timer
@@ -23,18 +30,37 @@ import org.jboss.netty.util.HashedWheelTimer;
  */
 public final class Timer {
 
-    private static volatile HashedWheelTimer timer;
+    private static volatile org.jboss.netty.util.HashedWheelTimer timer;
+
+    private static final Supplier<HashedWheelTimer> TIMER =
+            Suppliers.memoize(HashedWheelTimer::new);
+
 
     // Ban public construction
     private Timer() {
     }
 
     /**
+     * Executes one-shot timer task on shared thread pool.
+     *
+     * @param task timer task to execute
+     * @param delay before executing the task
+     * @param unit of delay
+     * @return a handle which is associated with the specified task
+     */
+    public static Timeout newTimeout(TimerTask task, long delay, TimeUnit unit) {
+        return TIMER.get().newTimeout(task, delay, unit);
+    }
+
+    /**
      * Returns the singleton hashed-wheel timer.
      *
      * @return hashed-wheel timer
+     *
+     * @deprecated in 1.11.0
      */
-    public static HashedWheelTimer getTimer() {
+    @Deprecated
+    public static org.jboss.netty.util.HashedWheelTimer getTimer() {
         if (Timer.timer == null) {
             initTimer();
         }
@@ -43,7 +69,8 @@ public final class Timer {
 
     private static synchronized  void initTimer() {
         if (Timer.timer == null) {
-            HashedWheelTimer hwTimer = new HashedWheelTimer();
+            org.jboss.netty.util.HashedWheelTimer hwTimer =
+                    new org.jboss.netty.util.HashedWheelTimer();
             hwTimer.start();
             Timer.timer = hwTimer;
         }

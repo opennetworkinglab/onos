@@ -17,6 +17,7 @@ package org.onosproject.dhcp.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,8 +26,6 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCPOption;
@@ -39,7 +38,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Timer;
+import org.onlab.util.SharedScheduledExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -84,6 +83,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
@@ -168,7 +168,7 @@ public class DhcpManager implements DhcpService {
     private static MacAddress myMAC = valueOf("4e:4f:4f:4f:4f:4f");
     private static final Ip4Address IP_BROADCAST = Ip4Address.valueOf("255.255.255.255");
 
-    protected Timeout timeout;
+    protected ScheduledFuture<?> timeout;
     protected static int timerDelay = 2;
 
     @Activate
@@ -183,7 +183,7 @@ public class DhcpManager implements DhcpService {
         hostProviderService = hostProviderRegistry.register(hostProvider);
         packetService.addProcessor(processor, PacketProcessor.director(1));
         requestPackets();
-        timeout = Timer.getTimer().newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);
+        timeout = SharedScheduledExecutors.newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);
         log.info("Started");
     }
 
@@ -195,7 +195,7 @@ public class DhcpManager implements DhcpService {
         hostProviderRegistry.unregister(hostProvider);
         hostProviderService = null;
         cancelPackets();
-        timeout.cancel();
+        timeout.cancel(true);
         log.info("Stopped");
     }
 
@@ -729,10 +729,10 @@ public class DhcpManager implements DhcpService {
         }
     }
 
-    private class PurgeListTask implements TimerTask {
+    private class PurgeListTask implements Runnable {
 
         @Override
-        public void run(Timeout to) {
+        public void run() {
             IpAssignment ipAssignment;
             Date dateNow = new Date();
 
@@ -750,7 +750,7 @@ public class DhcpManager implements DhcpService {
                     }
                 }
             }
-            timeout = Timer.getTimer().newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);
+            timeout = SharedScheduledExecutors.newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);
         }
     }
 }

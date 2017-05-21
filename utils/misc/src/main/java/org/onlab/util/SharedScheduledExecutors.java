@@ -20,6 +20,9 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Utility for managing a set of shared execution resources, such as a single
  * thread scheduled executor and thread pool scheduled executor for use by
@@ -56,6 +59,20 @@ public final class SharedScheduledExecutors {
      */
     public static SharedScheduledExecutorService getSingleThreadExecutor() {
         return singleThreadExecutor;
+    }
+
+    /**
+     * Executes one-shot timer task on shared thread pool.
+     *
+     * @param task timer task to execute
+     * @param delay before executing the task
+     * @param unit of delay
+     * @return a ScheduledFuture representing pending completion of the task
+     *         and whose get() method will return null upon completion
+     */
+    public static ScheduledFuture<?> newTimeout(Runnable task, long delay, TimeUnit unit) {
+        return SharedScheduledExecutors.getPoolThreadExecutor()
+                .schedule(task, delay, unit);
     }
 
     /**

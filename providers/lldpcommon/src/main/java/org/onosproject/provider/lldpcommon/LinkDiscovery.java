@@ -17,8 +17,9 @@ package org.onosproject.provider.lldpcommon;
 
 import com.google.common.collect.Sets;
 
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
+
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
@@ -109,7 +110,7 @@ public class LinkDiscovery implements TimerTask {
     public synchronized void start() {
         if (isStopped) {
             isStopped = false;
-            timeout = Timer.getTimer().newTimeout(this, 0, MILLISECONDS);
+            timeout = Timer.newTimeout(this, 0, MILLISECONDS);
         } else {
             log.warn("LinkDiscovery started multiple times?");
         }
@@ -218,7 +219,7 @@ public class LinkDiscovery implements TimerTask {
         }
 
         if (!isStopped()) {
-            timeout = Timer.getTimer().newTimeout(this, context.probeRate(), MILLISECONDS);
+            timeout = t.timer().newTimeout(this, context.probeRate(), MILLISECONDS);
         }
     }
 
