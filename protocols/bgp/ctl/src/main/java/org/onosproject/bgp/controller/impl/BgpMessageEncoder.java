@@ -23,8 +23,6 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.onosproject.bgpio.protocol.BgpMessage;
-import org.onlab.util.HexDump;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

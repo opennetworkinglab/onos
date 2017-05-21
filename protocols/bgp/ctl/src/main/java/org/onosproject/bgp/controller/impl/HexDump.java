@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onlab.util;
+package org.onosproject.bgp.controller.impl;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.slf4j.Logger;
@@ -21,10 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * HexDump class an utility to dump buffer in hex format.
- *
- * @deprecated in 1.11.0
  */
-@Deprecated
 public final class HexDump {
     protected static final Logger log = LoggerFactory.getLogger(HexDump.class);
 

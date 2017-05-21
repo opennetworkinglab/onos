@@ -23,7 +23,6 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
 import org.onosproject.bgpio.protocol.BgpMessage;
-import org.onlab.util.HexDump;
 import org.onosproject.bgpio.protocol.BgpFactories;
 import org.onosproject.bgpio.protocol.BgpMessageReader;
 import org.onosproject.bgpio.types.BgpHeader;
