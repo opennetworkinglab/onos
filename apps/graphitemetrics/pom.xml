@@ -35,7 +35,7 @@
         <onos.app.title>Graphite Report and Query App</onos.app.title>
         <onos.app.category>Monitoring</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <metrics.version>3.1.2</metrics.version>
+        <metrics.version>3.2.2</metrics.version>
     </properties>
 
     <dependencies>

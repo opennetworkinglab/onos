@@ -37,8 +37,8 @@
 
         <bundle>mvn:joda-time/joda-time/2.9.3</bundle>
 
-        <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.2</bundle>
-        <bundle>mvn:io.dropwizard.metrics/metrics-json/3.1.2</bundle>
+        <bundle>mvn:io.dropwizard.metrics/metrics-core/3.2.2</bundle>
+        <bundle>mvn:io.dropwizard.metrics/metrics-json/3.2.2</bundle>
         <bundle>mvn:com.eclipsesource.minimal-json/minimal-json/0.9.4</bundle>
 
         <bundle>mvn:com.esotericsoftware/kryo/4.0.0</bundle>

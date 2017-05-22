@@ -19,7 +19,7 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-graphite/${project.version}</bundle>
-        <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.2</bundle>
-        <bundle>mvn:io.dropwizard.metrics/metrics-graphite/3.1.2</bundle>
+        <bundle>mvn:io.dropwizard.metrics/metrics-core/3.2.2</bundle>
+        <bundle>mvn:io.dropwizard.metrics/metrics-graphite/3.2.2</bundle>
     </feature>
 </features>
