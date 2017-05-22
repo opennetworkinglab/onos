@@ -25,6 +25,7 @@
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>For various Microsemi Devices including EdgeAssure
             1000 SFP-NID</onos.app.readme>
+        <onos.yang.version>1.11</onos.yang.version>
     </properties>
 
 
@@ -38,13 +39,13 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-utils-generator</artifactId>
-            <version>1.11</version>
+            <version>${onos.yang.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-datamodel</artifactId>
-            <version>1.11</version>
+            <version>${onos.yang.version}</version>
         </dependency>
 
         <dependency>
@@ -80,7 +81,7 @@
             <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-yang-maven-plugin</artifactId>
-                <version>1.11</version>
+                <version>${onos.yang.version}</version>
                 <executions>
                     <execution>
                         <configuration>
@@ -101,6 +102,30 @@
                         <Include-Resource>yang/resources/YangMetaData.ser=target/classes/yang/resources/YangMetaData.ser</Include-Resource>
                     </instructions>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>onos-yang-plugin-workaround</id>
+                        <!-- yang plugin cannot handle non-clean compilation -->
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <filesets>
+                                <fileset>
+                                    <directory>target/generated-sources</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
