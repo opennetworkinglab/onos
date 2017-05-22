@@ -37,7 +37,6 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualPort;
-import org.onosproject.incubator.net.virtual.VirtualLink;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.InternalRoutingAlgorithm;
 import org.onosproject.incubator.net.virtual.provider.VirtualFlowRuleProvider;
@@ -80,7 +79,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -442,235 +440,165 @@ public class DefaultVirtualFlowRuleProvider extends AbstractVirtualProvider
                                         TrafficTreatment commonTreatment,
                                         FlowRule flowRule) {
 
-        Set<FlowRule> outRules = new HashSet<>();
-
         if (ingressPoint.deviceId().equals(egressPoint.deviceId()) ||
                 egressPoint.port().isLogical()) {
-            //Traffic is handled inside a single physical switch
-
-            TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector
-                    .builder(commonSelector)
-                    .matchInPort(ingressPoint.port());
-
-            TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
-                    .builder(commonTreatment);
-
-            VirtualPort virtualIngressPort = vnService
-                    .getVirtualPorts(networkId, flowRule.deviceId())
-                    .stream()
-                    .filter(p -> p.realizedBy().equals(ingressPoint))
-                    .findFirst()
-                    .get();
-
-            VirtualPort virtualEgressPort = vnService
-                    .getVirtualPorts(networkId, flowRule.deviceId())
-                    .stream()
-                    .filter(p -> p.realizedBy().equals(egressPoint))
-                    .findFirst()
-                    .get();
-
-            ConnectPoint ingressCp = new ConnectPoint(virtualIngressPort.element().id(), virtualIngressPort.number());
-            ConnectPoint egressCp = new ConnectPoint(virtualEgressPort.element().id(), virtualEgressPort.number());
-
-            Optional<VirtualLink> optionalIngressLink = vnService
-                    .getVirtualLinks(networkId)
-                    .stream()
-                    .filter(l -> l.dst().equals(ingressCp))
-                    .findFirst();
-
-            Optional<VirtualLink> optionalEgressLink = vnService
-                    .getVirtualLinks(networkId)
-                    .stream()
-                    .filter(l -> l.src().equals(egressCp))
-                    .findFirst();
-
-            //Isolate traffic from different virtual networks with VLAN
-            if (!optionalIngressLink.isPresent() && !optionalEgressLink.isPresent()) {
-                treatmentBuilder.setOutput(egressPoint.port());
-            } else if (optionalIngressLink.isPresent() && !optionalEgressLink.isPresent()) {
-                selectorBuilder.matchVlanId(VlanId.vlanId(networkId.id().shortValue()));
-                treatmentBuilder.popVlan();
-                treatmentBuilder.setOutput(egressPoint.port());
-            } else if (!optionalIngressLink.isPresent() && optionalEgressLink.isPresent()) {
-                outRules.addAll(generateRulesOnPath(networkId, optionalEgressLink.get(),
-                        commonSelector, commonTreatment, flowRule));
-                treatmentBuilder.pushVlan()
-                        .setVlanId(VlanId.vlanId(networkId.id().shortValue()));
-                treatmentBuilder.setOutput(egressPoint.port());
-            } else if (optionalIngressLink.isPresent() && optionalEgressLink.isPresent()) {
-                outRules.addAll(generateRulesOnPath(networkId, optionalEgressLink.get(),
-                        commonSelector, commonTreatment, flowRule));
-                selectorBuilder.matchVlanId(VlanId.vlanId(networkId.id().shortValue()));
-                treatmentBuilder.setOutput(egressPoint.port());
-            }
-
-            FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                    .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
-                    .forDevice(ingressPoint.deviceId())
-                    .withSelector(selectorBuilder.build())
-                    .withTreatment(treatmentBuilder.build())
-                    .withIdleTimeout(flowRule.timeout())
-                    .withPriority(flowRule.priority());
-
-            FlowRule rule = ruleBuilder.build();
-            frm.addIngressRule(flowRule, rule, networkId);
-            outRules.add(rule);
+            return generateRuleForSingle(networkId, ingressPoint, egressPoint,
+                                         commonSelector, commonTreatment, flowRule);
         } else {
-            //Traffic is handled by multiple physical switches
-            //A tunnel is needed.
-
-            Path internalPath = internalRoutingAlgorithm
-                    .findPath(ingressPoint, egressPoint);
-            checkNotNull(internalPath, "No path between " +
-                    ingressPoint.toString() + " " + egressPoint.toString());
-
-            ConnectPoint outCp = internalPath.links().get(0).src();
-
-            //ingress point of tunnel
-            TrafficSelector.Builder selectorBuilder =
-                    DefaultTrafficSelector.builder(commonSelector);
-            selectorBuilder.matchInPort(ingressPoint.port());
-
-            TrafficTreatment.Builder treatmentBuilder =
-                    DefaultTrafficTreatment.builder(commonTreatment);
-            //TODO: add the logic to check host location
-            treatmentBuilder.pushVlan()
-                    .setVlanId(VlanId.vlanId(networkId.id().shortValue()));
-            treatmentBuilder.setOutput(outCp.port());
-
-            FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                    .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
-                    .forDevice(ingressPoint.deviceId())
-                    .withSelector(selectorBuilder.build())
-                    .withIdleTimeout(flowRule.timeout())
-                    .withTreatment(treatmentBuilder.build())
-                    .withPriority(flowRule.priority());
-
-            FlowRule rule = ruleBuilder.build();
-            frm.addIngressRule(flowRule, rule, networkId);
-            outRules.add(rule);
-
-            //routing inside tunnel
-            ConnectPoint inCp = internalPath.links().get(0).dst();
-
-            if (internalPath.links().size() > 1) {
-                for (Link l : internalPath.links()
-                        .subList(1, internalPath.links().size())) {
-
-                    outCp = l.src();
-
-                    selectorBuilder = DefaultTrafficSelector
-                            .builder(commonSelector)
-                            .matchVlanId(VlanId.vlanId(networkId.id().shortValue()))
-                            .matchInPort(inCp.port());
-
-                    treatmentBuilder = DefaultTrafficTreatment
-                            .builder(commonTreatment)
-                            .setOutput(outCp.port());
-
-                    ruleBuilder = DefaultFlowRule.builder()
-                            .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
-                            .forDevice(inCp.deviceId())
-                            .withSelector(selectorBuilder.build())
-                            .withTreatment(treatmentBuilder.build())
-                            .withIdleTimeout(flowRule.timeout())
-                            .withPriority(flowRule.priority());
-
-                    outRules.add(ruleBuilder.build());
-                    inCp = l.dst();
-                }
-            }
-
-            //egress point of tunnel
-            selectorBuilder = DefaultTrafficSelector.builder(commonSelector)
-                    .matchVlanId(VlanId.vlanId(networkId.id().shortValue()))
-                    .matchInPort(inCp.port());
-
-            treatmentBuilder = DefaultTrafficTreatment.builder(commonTreatment)
-                    .popVlan()
-                    .setOutput(egressPoint.port());
-
-            ruleBuilder = DefaultFlowRule.builder()
-                    .fromApp(appId)
-                    .forDevice(egressPoint.deviceId())
-                    .withSelector(selectorBuilder.build())
-                    .withTreatment(treatmentBuilder.build())
-                    .withIdleTimeout(flowRule.timeout())
-                    .withPriority(flowRule.priority());
-
-            outRules.add(ruleBuilder.build());
+            return generateRuleForMulti(networkId, ingressPoint, egressPoint,
+                                         commonSelector, commonTreatment, flowRule);
         }
-
-        return outRules;
     }
 
     /**
-     * Generate flow rules to the intermediate nodes on the physical path for a virtual link.
+     * Generate physical rules when a virtual flow rule can be handled inside
+     * a single physical switch.
      *
      * @param networkId The virtual network identifier
-     * @param virtualLink A virtual link
+     * @param ingressPoint The ingress point of the physical network
+     * @param egressPoint The egress point of the physical network
      * @param commonSelector A common traffic selector between the virtual
      *                       and physical flow rules
      * @param commonTreatment A common traffic treatment between the virtual
      *                        and physical flow rules
      * @param flowRule The virtual flow rule to be translated
-     * @return A set of flow rules for the path on physical network
+     * @return A set of flow rules for the physical network
      */
-    private Set<FlowRule> generateRulesOnPath(NetworkId networkId,
-                                              VirtualLink virtualLink,
-                                              TrafficSelector commonSelector,
-                                              TrafficTreatment commonTreatment,
-                                              FlowRule flowRule) {
+    private Set<FlowRule> generateRuleForSingle(NetworkId networkId,
+            ConnectPoint ingressPoint,
+            ConnectPoint egressPoint,
+            TrafficSelector commonSelector,
+            TrafficTreatment commonTreatment,
+            FlowRule flowRule) {
 
-        VirtualPort srcVirtualPort = vnService
-                .getVirtualPorts(networkId, virtualLink.src().deviceId())
-                .stream()
-                .filter(p -> p.number().equals(virtualLink.src().port()))
-                .findFirst()
-                .get();
-
-        VirtualPort dstVirtualPort = vnService
-                .getVirtualPorts(networkId, virtualLink.dst().deviceId())
-                .stream()
-                .filter(p -> p.number().equals(virtualLink.dst().port()))
-                .findFirst()
-                .get();
         Set<FlowRule> outRules = new HashSet<>();
-        ConnectPoint srcCp = srcVirtualPort.realizedBy();
-        ConnectPoint dstCp = dstVirtualPort.realizedBy();
+
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector
+                .builder(commonSelector)
+                .matchInPort(ingressPoint.port());
+
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
+                .builder(commonTreatment)
+                .setOutput(egressPoint.port());
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
+                .forDevice(ingressPoint.deviceId())
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatmentBuilder.build())
+                .withIdleTimeout(flowRule.timeout())
+                .withPriority(flowRule.priority());
+
+        FlowRule rule = ruleBuilder.build();
+        frm.addIngressRule(flowRule, rule, networkId);
+        outRules.add(rule);
+
+        return outRules;
+    }
+
+    /**
+     * Generate physical rules when a virtual flow rule can be handled with
+     * multiple physical switches.
+     *
+     * @param networkId The virtual network identifier
+     * @param ingressPoint The ingress point of the physical network
+     * @param egressPoint The egress point of the physical network
+     * @param commonSelector A common traffic selector between the virtual
+     *                       and physical flow rules
+     * @param commonTreatment A common traffic treatment between the virtual
+     *                        and physical flow rules
+     * @param flowRule The virtual flow rule to be translated
+     * @return A set of flow rules for the physical network
+     */
+    private Set<FlowRule> generateRuleForMulti(NetworkId networkId,
+                                                ConnectPoint ingressPoint,
+                                                ConnectPoint egressPoint,
+                                                TrafficSelector commonSelector,
+                                                TrafficTreatment commonTreatment,
+                                                FlowRule flowRule) {
+        Set<FlowRule> outRules = new HashSet<>();
 
         Path internalPath = internalRoutingAlgorithm
-                .findPath(srcCp, dstCp);
-        List<Link> links = internalPath.links();
-        if (internalPath != null && links.size() > 1) {
-            for (int i = 0; i < links.size() - 1; i++) {
-                ConnectPoint inCp = links.get(i).dst();
-                ConnectPoint outCp = links.get(i + 1).src();
-                TrafficSelector.Builder linkSelectorBuilder = DefaultTrafficSelector
+                .findPath(ingressPoint, egressPoint);
+        checkNotNull(internalPath, "No path between " +
+                ingressPoint.toString() + " " + egressPoint.toString());
+
+        ConnectPoint outCp = internalPath.links().get(0).src();
+
+        //ingress point of tunnel
+        TrafficSelector.Builder selectorBuilder =
+                DefaultTrafficSelector.builder(commonSelector);
+        selectorBuilder.matchInPort(ingressPoint.port());
+
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder(commonTreatment);
+        //TODO: add the logic to check host location
+        treatmentBuilder.pushVlan()
+                .setVlanId(VlanId.vlanId(networkId.id().shortValue()));
+        treatmentBuilder.setOutput(outCp.port());
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
+                .forDevice(ingressPoint.deviceId())
+                .withSelector(selectorBuilder.build())
+                .withIdleTimeout(flowRule.timeout())
+                .withTreatment(treatmentBuilder.build())
+                .withPriority(flowRule.priority());
+
+        FlowRule rule = ruleBuilder.build();
+        frm.addIngressRule(flowRule, rule, networkId);
+        outRules.add(rule);
+
+        //routing inside tunnel
+        ConnectPoint inCp = internalPath.links().get(0).dst();
+
+        if (internalPath.links().size() > 1) {
+            for (Link l : internalPath.links()
+                    .subList(1, internalPath.links().size())) {
+
+                outCp = l.src();
+
+                selectorBuilder = DefaultTrafficSelector
                         .builder(commonSelector)
                         .matchVlanId(VlanId.vlanId(networkId.id().shortValue()))
                         .matchInPort(inCp.port());
 
-                TrafficTreatment.Builder linkTreatmentBuilder = DefaultTrafficTreatment
+                treatmentBuilder = DefaultTrafficTreatment
                         .builder(commonTreatment)
                         .setOutput(outCp.port());
 
-                FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                ruleBuilder = DefaultFlowRule.builder()
                         .fromApp(vnService.getVirtualNetworkApplicationId(networkId))
                         .forDevice(inCp.deviceId())
-                        .withSelector(linkSelectorBuilder.build())
-                        .withTreatment(linkTreatmentBuilder.build())
+                        .withSelector(selectorBuilder.build())
+                        .withTreatment(treatmentBuilder.build())
+                        .withIdleTimeout(flowRule.timeout())
                         .withPriority(flowRule.priority());
 
-                if (flowRule.isPermanent()) {
-                    ruleBuilder.makePermanent();
-                } else {
-                    ruleBuilder.makeTemporary(flowRule.timeout());
-                }
-
                 outRules.add(ruleBuilder.build());
+                inCp = l.dst();
             }
         }
+
+        //egress point of tunnel
+        selectorBuilder = DefaultTrafficSelector.builder(commonSelector)
+                .matchVlanId(VlanId.vlanId(networkId.id().shortValue()))
+                .matchInPort(inCp.port());
+
+        treatmentBuilder = DefaultTrafficTreatment.builder(commonTreatment)
+                .popVlan()
+                .setOutput(egressPoint.port());
+
+        ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .forDevice(egressPoint.deviceId())
+                .withSelector(selectorBuilder.build())
+                .withTreatment(treatmentBuilder.build())
+                .withIdleTimeout(flowRule.timeout())
+                .withPriority(flowRule.priority());
+
+        outRules.add(ruleBuilder.build());
+
         return outRules;
     }
 
