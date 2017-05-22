@@ -47,9 +47,9 @@
         <bundle>mvn:com.esotericsoftware/minlog/1.3.0</bundle>
         <bundle>mvn:org.objenesis/objenesis/2.2</bundle>
 
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.8.6</bundle>
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.8.6</bundle>
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.8.6</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.8.8</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.8.8</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.8.8</bundle>
 
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
         <bundle>mvn:commons-collections/commons-collections/3.2.2</bundle>
