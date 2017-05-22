@@ -77,6 +77,7 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.key.DeviceKey;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.meter.Band;
@@ -124,6 +125,7 @@ public class CodecManager implements CodecService {
         registerCodec(HostToHostIntent.class, new HostToHostIntentCodec());
         registerCodec(PointToPointIntent.class, new PointToPointIntentCodec());
         registerCodec(SinglePointToMultiPointIntent.class, new SinglePointToMultiPointIntentCodec());
+	registerCodec(MultiPointToSinglePointIntent.class, new MultiPointToSinglePointIntentCodec());
         registerCodec(Intent.class, new IntentCodec());
         registerCodec(ConnectivityIntent.class, new ConnectivityIntentCodec());
         registerCodec(FlowEntry.class, new FlowEntryCodec());
