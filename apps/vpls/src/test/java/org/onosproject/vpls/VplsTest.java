@@ -33,7 +33,6 @@ import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
-import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
@@ -76,7 +75,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -150,8 +148,6 @@ public abstract class VplsTest {
 
     protected static final NodeId NODE_ID_1 = new NodeId("Node1");
     protected static final NodeId NODE_ID_2 = new NodeId("Node2");
-
-    protected static IdGenerator idGenerator;
 
     protected static final Interface V100H1 =
             new Interface("v100h1", CP1, null, null, VLAN100);
@@ -535,19 +531,6 @@ public abstract class VplsTest {
         public void removeAllVpls() {
             testData.clear();
         }
-    }
-
-    /**
-     * Represents a fake IdGenerator class for intents.
-     */
-    protected static class TestIdGenerator implements IdGenerator {
-        private final AtomicLong id = new AtomicLong(0);
-
-        @Override
-        public long getNewId() {
-            return id.getAndIncrement();
-        }
-
     }
 
     /**
