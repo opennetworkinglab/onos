@@ -23,7 +23,7 @@
         <bundle>mvn:commons-lang/commons-lang/2.6</bundle>
         <bundle>mvn:org.apache.commons/commons-lang3/3.5</bundle>
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
-        <bundle>mvn:com.google.guava/guava/21.0</bundle>
+        <bundle>mvn:com.google.guava/guava/22.0</bundle>
         <bundle>mvn:io.netty/netty/3.10.5.Final</bundle>
         <bundle>mvn:io.netty/netty-common/4.1.5.Final</bundle>
         <bundle>mvn:io.netty/netty-buffer/4.1.5.Final</bundle>
