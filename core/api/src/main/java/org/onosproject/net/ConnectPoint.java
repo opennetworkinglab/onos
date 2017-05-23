@@ -167,4 +167,15 @@ public class ConnectPoint {
         return elementId + "/" + portNumber;
     }
 
+    public boolean isDevice(){
+        if (this.elementId() instanceof DeviceId)
+            return true;
+        return false;
+    }
+
+    private boolean isHost(){
+        if (this.elementId() instanceof HostId)
+            return true;
+        return false;
+    }
 }
