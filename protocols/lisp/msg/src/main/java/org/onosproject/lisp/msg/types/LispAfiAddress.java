@@ -76,10 +76,7 @@ public abstract class LispAfiAddress {
         }
 
         LispAfiAddress other = (LispAfiAddress) obj;
-        if (afi != other.afi) {
-            return false;
-        }
-        return true;
+        return afi == other.afi;
     }
 
     /**

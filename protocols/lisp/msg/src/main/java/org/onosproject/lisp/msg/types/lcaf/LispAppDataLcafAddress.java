@@ -403,7 +403,7 @@ public final class LispAppDataLcafAddress extends LispLcafAddress {
          * @param value integer value
          * @return an array of bytes
          */
-        public static byte[] getPartialByteArray(int value) {
+        static byte[] getPartialByteArray(int value) {
             ByteBuffer buffer = ByteBuffer.allocate(4);
             byte[] array = buffer.putInt(value).array();
             return Arrays.copyOfRange(array, 1, 4);
