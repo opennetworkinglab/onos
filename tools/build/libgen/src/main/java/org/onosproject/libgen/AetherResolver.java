@@ -21,20 +21,13 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.collection.CollectResult;
-import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.graph.DependencyFilter;
-import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.VersionRangeRequest;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResult;
@@ -42,8 +35,6 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
-import org.eclipse.aether.util.artifact.JavaScopes;
-import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import org.eclipse.aether.version.Version;
 
 import java.io.BufferedReader;
@@ -147,19 +138,28 @@ public class AetherResolver {
     }
 
     private boolean isOsgiReady(Artifact artifact) throws Exception {
-        JarFile jar = new JarFile(artifact.getFile());
-        Attributes attrs = jar.getManifest().getMainAttributes();
-        return attrs.getValue("Bundle-SymbolicName") != null &&
-                attrs.getValue("Bundle-Version") != null;
+        try (JarFile jar = new JarFile(artifact.getFile())) {
+            Attributes attrs = jar.getManifest().getMainAttributes();
+            return attrs.getValue("Bundle-SymbolicName") != null &&
+                    attrs.getValue("Bundle-Version") != null;
+        }
     }
 
     private String getSha(Artifact artifact) throws Exception {
         String directory = artifact.getFile().getParent();
-        String file = String.format("%s-%s.%s.sha1",
-                                    artifact.getArtifactId(),
-                                    artifact.getVersion(),
-                                    artifact.getExtension());
-        String shaPath = Paths.get(directory, file).toString();
+        StringBuilder file = new StringBuilder();
+
+        // artifactId-version[-classifier].version.sha1
+        file.append(artifact.getArtifactId())
+            .append('-').append(artifact.getVersion());
+
+        if (!artifact.getClassifier().isEmpty()) {
+            file.append('-').append(artifact.getClassifier());
+        }
+        file.append('.').append(artifact.getExtension())
+            .append(".sha1");
+
+        String shaPath = Paths.get(directory, file.toString()).toString();
 
         try (Reader reader = new FileReader(shaPath)) {
             return new BufferedReader(reader).readLine().trim().split(" ", 2)[0];
