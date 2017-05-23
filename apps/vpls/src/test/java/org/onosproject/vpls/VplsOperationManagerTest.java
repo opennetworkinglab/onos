@@ -34,6 +34,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.api.VplsOperation;
@@ -58,11 +59,7 @@ public class VplsOperationManagerTest extends VplsTest {
 
     @Before
     public void setup() {
-        if (idGenerator == null) {
-            idGenerator = new TestIdGenerator();
-        }
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        MockIdGenerator.cleanBind();
         vplsOperationManager = new VplsOperationManager();
         vplsOperationManager.coreService = new TestCoreService();
         vplsOperationManager.intentService = new TestIntentService();
@@ -76,6 +73,7 @@ public class VplsOperationManagerTest extends VplsTest {
 
     @After
     public void tearDown() {
+        MockIdGenerator.unbind();
         vplsOperationManager.deactivate();
     }
 

@@ -40,6 +40,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentServiceAdapter;
 import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.vpls.api.VplsData;
@@ -73,9 +74,7 @@ public class VplsIntentTest extends VplsTest {
 
     @Before
     public void setUp() throws Exception {
-        idGenerator = new TestIdGenerator();
-        Intent.unbindIdGenerator(idGenerator);
-        Intent.bindIdGenerator(idGenerator);
+        MockIdGenerator.cleanBind();
         hostsAvailable = Sets.newHashSet();
         intentService = new TestIntentService();
         interfaceService = createMock(InterfaceService.class);
@@ -86,7 +85,7 @@ public class VplsIntentTest extends VplsTest {
 
     @After
     public void tearDown() {
-        Intent.unbindIdGenerator(idGenerator);
+        MockIdGenerator.unbind();
     }
 
     /**
