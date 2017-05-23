@@ -146,7 +146,7 @@ public class HttpSBControllerImpl implements HttpSBController {
     public <T> T post(DeviceId device, String request, InputStream payload, MediaType mediaType,
                       Class<T> responseClass) {
         Response response = getResponse(device, request, payload, mediaType);
-        if (response.hasEntity()) {
+        if (response != null && response.hasEntity()) {
             return response.readEntity(responseClass);
         }
         log.error("Response from device {} for request {} contains no entity", device, request);
