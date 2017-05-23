@@ -27,9 +27,11 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Spliterator;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -81,7 +83,7 @@ public class LazyKShortestPathsSearch<V extends Vertex, E extends Edge<V>> {
         final List<Path<V, E>> resultPaths = new ArrayList<>(); // A
         final Queue<Path<V, E>> potentialPaths = new PriorityQueue<>(pathComparator); // B
 
-        Path<V, E> next;
+        Supplier<Path<V, E>> next;
 
         ShortestPathIterator(Graph<V, E> graph,
                              V src, V dst,
@@ -92,25 +94,32 @@ public class LazyKShortestPathsSearch<V extends Vertex, E extends Edge<V>> {
             this.weigher = checkNotNull(weigher);
 
             maskingWeigher = new InnerEdgeWeigher(weigher);
-            next = shortest.search(graph, src, dst, weigher, 1)
-                            .paths().stream().findFirst().orElse(null);
+            next = Suppliers.ofInstance(
+                        shortest.search(graph, src, dst, weigher, 1)
+                            .paths().stream().findFirst().orElse(null));
         }
 
         @Override
         public boolean hasNext() {
-            return next != null;
+            return next.get() != null;
         }
 
         @Override
         public Path<V, E> next() {
-            if (next == null) {
+            if (next.get() == null) {
                 throw new NoSuchElementException("No more path between " + src + "-" + dst);
             }
 
             // lastPath: the path to return at the end of this call
-            Path<V, E> lastPath = next;
+            Path<V, E> lastPath = next.get();
             resultPaths.add(lastPath);
 
+            next = Suppliers.memoize(() -> computeNext(lastPath));
+
+            return lastPath;
+        }
+
+        private Path<V, E> computeNext(Path<V, E> lastPath) {
             /// following is basically Yen's k-shortest path algorithm
 
             // start searching for next path
@@ -133,11 +142,12 @@ public class LazyKShortestPathsSearch<V extends Vertex, E extends Edge<V>> {
 
                 shortest.search(graph, spurNode, dst, maskingWeigher, 1)
                         .paths().stream().findAny().ifPresent(spurPath -> {
+
                             List<E> totalPath = ImmutableList.<E>builder()
                                     .addAll(rootPathEdgeList)
                                     .addAll(spurPath.edges())
                                     .build();
-                    potentialPaths.add(path(totalPath));
+                            potentialPaths.add(path(totalPath));
                 });
 
                 // Restore all removed paths and nodes
@@ -145,12 +155,10 @@ public class LazyKShortestPathsSearch<V extends Vertex, E extends Edge<V>> {
             }
 
             if (potentialPaths.isEmpty()) {
-                next = null;
+                return null;
             } else {
-                next = potentialPaths.poll();
+                return potentialPaths.poll();
             }
-
-            return lastPath;
         }
 
         private Path<V, E> path(List<E> edges) {
