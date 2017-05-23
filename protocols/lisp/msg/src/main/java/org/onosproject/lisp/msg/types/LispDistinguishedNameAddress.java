@@ -106,8 +106,8 @@ public class LispDistinguishedNameAddress extends LispAfiAddress {
                                                     throws LispWriterException {
             String distinguishedName = address.getDistinguishedName();
             byte[] nameBytes = distinguishedName.getBytes();
-            for (int i = 0; i < nameBytes.length; i++) {
-                byteBuf.writeByte(nameBytes[i]);
+            for (byte nameByte : nameBytes) {
+                byteBuf.writeByte(nameByte);
             }
         }
     }

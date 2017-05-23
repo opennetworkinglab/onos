@@ -250,8 +250,8 @@ public final class DefaultLispMapRecord extends AbstractLispRecord
             // serialize locator
             LocatorWriter recordWriter = new LocatorWriter();
             List<LispLocator> locators = message.getLocators();
-            for (int i = 0; i < locators.size(); i++) {
-                recordWriter.writeTo(byteBuf, locators.get(i));
+            for (LispLocator locator : locators) {
+                recordWriter.writeTo(byteBuf, locator);
             }
         }
     }

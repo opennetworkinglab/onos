@@ -401,8 +401,8 @@ public final class DefaultLispMapRegister extends AbstractLispMessage
             MapRecordWriter writer = new MapRecordWriter();
             List<LispMapRecord> records = message.getMapRecords();
 
-            for (int i = 0; i < records.size(); i++) {
-                writer.writeTo(byteBuf, records.get(i));
+            for (LispMapRecord record : records) {
+                writer.writeTo(byteBuf, record);
             }
         }
     }

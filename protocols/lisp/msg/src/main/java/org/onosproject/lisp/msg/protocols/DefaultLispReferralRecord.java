@@ -310,8 +310,8 @@ public final class DefaultLispReferralRecord extends AbstractLispRecord
             // serialize referrals
             ReferralWriter referralWriter = new ReferralWriter();
             List<LispReferral> referrals = message.getReferrals();
-            for (int i = 0; i < referrals.size(); i++) {
-                referralWriter.writeTo(byteBuf, referrals.get(i));
+            for (LispReferral referral : referrals) {
+                referralWriter.writeTo(byteBuf, referral);
             }
         }
     }

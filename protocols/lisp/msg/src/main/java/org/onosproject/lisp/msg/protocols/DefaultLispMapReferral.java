@@ -220,8 +220,8 @@ public final class DefaultLispMapReferral extends AbstractLispMessage
             ReferralRecordWriter writer = new ReferralRecordWriter();
             List<LispReferralRecord> records = message.getReferralRecords();
 
-            for (int i = 0; i < records.size(); i++) {
-                writer.writeTo(byteBuf, records.get(i));
+            for (LispReferralRecord record : records) {
+                writer.writeTo(byteBuf, record);
             }
         }
     }

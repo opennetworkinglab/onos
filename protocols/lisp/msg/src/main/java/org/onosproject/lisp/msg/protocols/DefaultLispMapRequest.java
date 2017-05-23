@@ -476,16 +476,16 @@ public final class DefaultLispMapRequest extends AbstractLispMessage
 
             // ITR RLOCs
             List<LispAfiAddress> rlocs = message.getItrRlocs();
-            for (int i = 0; i < rlocs.size(); i++) {
-                afiAddressWriter.writeTo(byteBuf, rlocs.get(i));
+            for (LispAfiAddress rloc : rlocs) {
+                afiAddressWriter.writeTo(byteBuf, rloc);
             }
 
             // EID records
             EidRecordWriter recordWriter = new EidRecordWriter();
             List<LispEidRecord> records = message.getEids();
 
-            for (int i = 0; i < records.size(); i++) {
-                recordWriter.writeTo(byteBuf, records.get(i));
+            for (LispEidRecord record : records) {
+                recordWriter.writeTo(byteBuf, record);
             }
 
             // reply record

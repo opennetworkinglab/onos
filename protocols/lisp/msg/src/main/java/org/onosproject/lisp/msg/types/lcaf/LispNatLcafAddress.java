@@ -329,8 +329,8 @@ public final class LispNatLcafAddress extends LispLcafAddress {
 
             List<LispAfiAddress> rtrRlocAddresses = address.getRtrRlocAddresses();
 
-            for (int i = 0; i < rtrRlocAddresses.size(); i++) {
-                writer.writeTo(byteBuf, rtrRlocAddresses.get(i));
+            for (LispAfiAddress rtrRlocAddress : rtrRlocAddresses) {
+                writer.writeTo(byteBuf, rtrRlocAddress);
             }
 
             updateLength(lcafIndex, byteBuf);

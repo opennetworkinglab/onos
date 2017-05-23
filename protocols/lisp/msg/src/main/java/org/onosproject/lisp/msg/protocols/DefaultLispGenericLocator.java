@@ -31,14 +31,14 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DefaultLispGenericLocator implements LispGenericLocator {
 
-    protected final byte priority;
-    protected final byte weight;
-    protected final byte multicastPriority;
-    protected final byte multicastWeight;
-    protected final boolean localLocator;
-    protected final boolean rlocProbed;
-    protected final boolean routed;
-    protected final LispAfiAddress locatorAfi;
+    private final byte priority;
+    private final byte weight;
+    private final byte multicastPriority;
+    private final byte multicastWeight;
+    private final boolean localLocator;
+    private final boolean rlocProbed;
+    private final boolean routed;
+    private final LispAfiAddress locatorAfi;
 
     private static final int LOCAL_LOCATOR_SHIFT_BIT = 2;
     private static final int PROBED_SHIFT_BIT = 1;
@@ -63,11 +63,10 @@ public class DefaultLispGenericLocator implements LispGenericLocator {
      * @param routed            routed flag
      * @param locatorAfi        locator AFI
      */
-    protected DefaultLispGenericLocator(byte priority, byte weight,
-                                        byte multicastPriority,
-                                        byte multicastWeight,
-                                        boolean localLocator, boolean rlocProbed,
-                                        boolean routed, LispAfiAddress locatorAfi) {
+    DefaultLispGenericLocator(byte priority, byte weight, byte multicastPriority,
+                              byte multicastWeight, boolean localLocator,
+                              boolean rlocProbed, boolean routed,
+                              LispAfiAddress locatorAfi) {
         this.priority = priority;
         this.weight = weight;
         this.multicastPriority = multicastPriority;
@@ -162,14 +161,14 @@ public class DefaultLispGenericLocator implements LispGenericLocator {
 
     public abstract static class AbstractGenericLocatorBuilder<T>
             implements GenericLocatorBuilder<T> {
-        protected byte priority;
-        protected byte weight;
-        protected byte multicastPriority;
-        protected byte multicastWeight;
-        protected boolean localLocator;
-        protected boolean rlocProbed;
-        protected boolean routed;
-        protected LispAfiAddress locatorAfi;
+        byte priority;
+        byte weight;
+        byte multicastPriority;
+        byte multicastWeight;
+        boolean localLocator;
+        boolean rlocProbed;
+        boolean routed;
+        LispAfiAddress locatorAfi;
 
         @Override
         public T withPriority(byte priority) {

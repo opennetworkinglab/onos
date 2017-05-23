@@ -164,8 +164,8 @@ public final class LispTeLcafAddress extends LispLcafAddress {
             LispTeRecord.TeRecordWriter writer = new LispTeRecord.TeRecordWriter();
 
             List<LispTeRecord> teRecords = address.getTeRecords();
-            for (int i = 0; i < teRecords.size(); i++) {
-                writer.writeTo(byteBuf, teRecords.get(i));
+            for (LispTeRecord teRecord : teRecords) {
+                writer.writeTo(byteBuf, teRecord);
             }
 
             LispLcafAddress.updateLength(lcafIndex, byteBuf);
