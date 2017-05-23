@@ -47,7 +47,6 @@ public class LispMacAuthentication {
             algorithm = authType.getName();
         } else {
             log.warn(NOT_SUPPORT_ALGORITHM_MSG, authType.getName());
-            return;
         }
     }
 
@@ -81,14 +80,5 @@ public class LispMacAuthentication {
             log.warn(INVALID_KEY_MSG, key, e.getMessage());
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Obtains authentication algorithm.
-     *
-     * @return authentication algorithm
-     */
-    String getAlgorithm() {
-        return algorithm;
     }
 }
