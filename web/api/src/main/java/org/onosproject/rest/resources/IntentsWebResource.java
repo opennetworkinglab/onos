@@ -22,6 +22,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -72,6 +73,8 @@ public class IntentsWebResource extends AbstractWebResource {
     private static final String POINT_TO_POINT_INTENT = "PointToPointIntent";
     private static final String SINGLE_TO_MULTI_POINT_INTENT =
             "SinglePointToMultiPointIntent";
+    private static final String MULTI_TO_SINGLE_POINT_INTENT =
+            "MultiPointToSinglePointIntent";
     private static final String INTENT = "Intent";
     private static final String APP_ID = "appId";
     private static final String ID = "id";
@@ -127,6 +130,8 @@ public class IntentsWebResource extends AbstractWebResource {
             root = codec(PointToPointIntent.class).encode((PointToPointIntent) intent, this);
         } else if (intent instanceof SinglePointToMultiPointIntent) {
             root = codec(SinglePointToMultiPointIntent.class).encode((SinglePointToMultiPointIntent) intent, this);
+	} else if (intent instanceof MultiPointToSinglePointIntent) {
+            root = codec(MultiPointToSinglePointIntent.class).encode((MultiPointToSinglePointIntent) intent, this);
         } else {
             root = codec(Intent.class).encode(intent, this);
         }
@@ -175,6 +180,8 @@ public class IntentsWebResource extends AbstractWebResource {
             root.put(INTENT_TYPE, POINT_TO_POINT_INTENT);
         } else if (intent instanceof SinglePointToMultiPointIntent) {
             root.put(INTENT_TYPE, SINGLE_TO_MULTI_POINT_INTENT);
+	} else if (intent instanceof MultiPointToSinglePointIntent) {
+            root.put(INTENT_TYPE, MULTI_TO_SINGLE_POINT_INTENT);
         } else {
             root.put(INTENT_TYPE, INTENT);
         }
