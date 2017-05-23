@@ -20,7 +20,6 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.Sets;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +35,7 @@ import org.onosproject.ofagent.api.OFAgentService;
 import org.onosproject.ofagent.api.OFController;
 import org.onosproject.ofagent.impl.DefaultOFAgent;
 import org.onosproject.ofagent.impl.DefaultOFController;
+import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -46,18 +46,25 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.Matchers.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.ofagent.api.OFAgent.State.STOPPED;
 
-
 /**
  * Test class for OFAgent application REST resource.
  */
-public class OFAgentWebResourceTest extends JerseyTest {
-
+public class OFAgentWebResourceTest extends ResourceTest {
 
     private static final Set<OFController> CONTROLLER_SET_1 = Sets.newHashSet(
             DefaultOFController.of(
@@ -138,7 +145,7 @@ public class OFAgentWebResourceTest extends JerseyTest {
     /**
      * Tests the result of the rest api GET when there are OFAgents.
      *
-     * @throws IOException
+     * @throws IOException IO exception
      */
     @Test
     public void testNonEmptyOFAgentSet() throws IOException {
@@ -177,7 +184,7 @@ public class OFAgentWebResourceTest extends JerseyTest {
     /**
      * Tests the result of the rest api GET when there are no OFAgents.
      *
-     * @throws IOException
+     * @throws IOException IO exception
      */
     @Test
     public void testEmptyOFAgentSet() throws IOException {
@@ -199,7 +206,7 @@ public class OFAgentWebResourceTest extends JerseyTest {
     /**
      * Tests the result of the rest api GET for OFAgent.
      *
-     * @throws IOException
+     * @throws IOException IO exception
      */
     @Test
     public void testOFAgent() throws IOException {
@@ -223,7 +230,7 @@ public class OFAgentWebResourceTest extends JerseyTest {
     /**
      * Tests the result of the rest api GET for non-existent OFAgent.
      *
-     * @throws IOException
+     * @throws IOException IO exception
      */
     @Test
     public void testNonExistentOFAgent() throws IOException {

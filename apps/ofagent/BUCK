@@ -20,6 +20,7 @@ TEST_DEPS = [
     '//core/common:onos-core-common-tests',
     '//lib:TEST_REST',
     '//lib:jersey-server',
+    '//web/api:onos-rest-tests',
 ]
 
 EXCLUDED_BUNDLES = [
