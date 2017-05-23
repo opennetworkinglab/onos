@@ -30,7 +30,10 @@ public interface DisjointPath extends Path {
      *
      * @return boolean corresponding to whether request to use
      *          backup was successful.
+     *
+     * @deprecated in 1.11.0
      */
+    @Deprecated
     boolean useBackup();
 
     /**

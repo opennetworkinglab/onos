@@ -30,8 +30,6 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
     private final DefaultPath path1;
     private final DefaultPath path2;
 
-    boolean usingPath1 = true;
-
     /**
      * Creates a disjoint path pair from two default paths.
      *
@@ -58,21 +56,17 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
 
     @Override
     public List<Link> links() {
-        if (usingPath1) {
-            return path1.links();
-        } else {
-            return path2.links();
-        }
+        return path1.links();
     }
 
     @Override
     public double cost() {
-        return usingPath1 ? path1.cost() : path2.cost();
+        return path1.cost();
     }
 
     @Override
     public Weight weight() {
-        return usingPath1 ? path1.weight() : path2.weight();
+        return path1.weight();
     }
 
     @Override
@@ -105,12 +99,9 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
         return false;
     }
 
+    @Deprecated
     @Override
     public boolean useBackup() {
-        if (path2 == null || path2.links() == null) {
-            return false;
-        }
-        usingPath1 = !usingPath1;
-        return true;
+        return false;
     }
 }

@@ -87,28 +87,6 @@ public class DefaultDisjointPathTest {
     }
 
     /**
-     * Tests switching to the backup path.
-     */
-    @Test
-    public void testUseBackup() {
-        disjointPath1.useBackup();
-        assertThat(disjointPath1.primary(), is(path1));
-        assertThat(disjointPath1.backup(), is(path2));
-        assertThat(disjointPath1.links(), is(links2));
-        assertThat(disjointPath1.cost(), is(2.0));
-
-        disjointPath1.useBackup();
-        assertThat(disjointPath1.links(), is(links1));
-        assertThat(disjointPath1.cost(), is(1.0));
-
-        assertThat(disjointPath4.primary(), is(path1));
-        assertThat(disjointPath4.backup(), is((DefaultDisjointPath) null));
-        disjointPath4.useBackup();
-        assertThat(disjointPath4.primary(), is(path1));
-        assertThat(disjointPath4.backup(), is((DefaultDisjointPath) null));
-    }
-
-    /**
      * Tests equals(), hashCode(), and toString() methods.
      */
     @Test

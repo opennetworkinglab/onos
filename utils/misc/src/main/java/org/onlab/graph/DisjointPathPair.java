@@ -31,7 +31,6 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Path<V, E> {
 
     private final Path<V, E> primary, secondary;
-    private boolean primaryActive = true;
 
     /**
      * Creates a disjoint path pair from two paths.
@@ -79,7 +78,7 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
 
     @Override
     public List<E> edges() {
-        return primaryActive || !hasBackup() ? primary.edges() : secondary.edges();
+        return primary.edges();
     }
 
     /**
