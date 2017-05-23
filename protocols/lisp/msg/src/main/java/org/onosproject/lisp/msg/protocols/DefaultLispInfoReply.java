@@ -63,7 +63,7 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
      * @param eidPrefix      EID prefix
      * @param natLcafAddress NAT LCAF address
      */
-    protected DefaultLispInfoReply(boolean infoReply, long nonce, short keyId, short authDataLength,
+    DefaultLispInfoReply(boolean infoReply, long nonce, short keyId, short authDataLength,
                                    byte[] authData, int ttl, byte maskLength,
                                    LispAfiAddress eidPrefix, LispNatLcafAddress natLcafAddress) {
         super(infoReply, nonce, keyId, authDataLength, authData, ttl, maskLength, eidPrefix);
@@ -249,16 +249,19 @@ public final class DefaultLispInfoReply extends DefaultLispInfo implements LispI
             LispNatLcafAddress natLcafAddress = (LispNatLcafAddress)
                     new LcafAddressReader().readFrom(byteBuf);
 
-            return new DefaultInfoReplyBuilder()
-                    .withIsInfoReply(lispInfo.isInfoReply())
-                    .withNonce(lispInfo.getNonce())
-                    .withKeyId(lispInfo.getKeyId())
-                    .withAuthDataLength(lispInfo.getAuthDataLength())
-                    .withAuthData(lispInfo.getAuthData())
-                    .withTtl(lispInfo.getTtl())
-                    .withMaskLength(lispInfo.getMaskLength())
-                    .withEidPrefix(lispInfo.getPrefix())
-                    .withNatLcafAddress(natLcafAddress).build();
+            if (lispInfo != null) {
+                return new DefaultInfoReplyBuilder()
+                        .withIsInfoReply(lispInfo.isInfoReply())
+                        .withNonce(lispInfo.getNonce())
+                        .withKeyId(lispInfo.getKeyId())
+                        .withAuthDataLength(lispInfo.getAuthDataLength())
+                        .withAuthData(lispInfo.getAuthData())
+                        .withTtl(lispInfo.getTtl())
+                        .withMaskLength(lispInfo.getMaskLength())
+                        .withEidPrefix(lispInfo.getPrefix())
+                        .withNatLcafAddress(natLcafAddress).build();
+            }
+            return null;
         }
     }
 
