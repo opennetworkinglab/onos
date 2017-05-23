@@ -311,19 +311,19 @@ remote_jar (
 
 remote_jar (
   name = 'guava',
-  out = 'guava-19.0.jar',
-  url = 'mvn:com.google.guava:guava:jar:19.0',
-  sha1 = '6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9',
-  maven_coords = 'com.google.guava:guava:19.0',
+  out = 'guava-22.0.jar',
+  url = 'mvn:com.google.guava:guava:jar:22.0',
+  sha1 = '3564ef3803de51fb0530a8377ec6100b33b0d073',
+  maven_coords = 'com.google.guava:guava:22.0',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'guava-testlib',
-  out = 'guava-testlib-19.0.jar',
-  url = 'mvn:com.google.guava:guava-testlib:jar:19.0',
-  sha1 = 'ce5b880b206de3f76d364988a6308c68c726f74a',
-  maven_coords = 'com.google.guava:guava-testlib:jar:NON-OSGI:19.0',
+  out = 'guava-testlib-22.0.jar',
+  url = 'mvn:com.google.guava:guava-testlib:jar:22.0',
+  sha1 = '3be1b88f1cfc6592acbcbfe1f3a420f79eb2b146',
+  maven_coords = 'com.google.guava:guava-testlib:jar:NON-OSGI:22.0',
   visibility = [ 'PUBLIC' ],
 )
 
