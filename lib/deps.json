@@ -195,7 +195,6 @@
     "apache-karaf": "http://onlab.vicci.org/onos/third-party/apache-karaf-3.0.8-offline-20170202.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",
     "bndexe": "http://onlab.vicci.org/onos/third-party/biz.aQute.bnd-3.1.0.jar",
-    "cord-config": "mvn:org.onosproject:cord-config:1.0-b1",
     "libthrift": "mvn:org.apache.thrift:libthrift:0.9.3",
     "qdox": "mvn:com.thoughtworks.qdox:qdox:2.0-M3",
     "org.apache.felix.scr.bnd": {

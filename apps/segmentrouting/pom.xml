@@ -65,12 +65,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>cord-config</artifactId>
-            <!-- TODO: Replace this with variable -->
-            <version>1.0-b1</version>
-        </dependency>
-        <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <version>2.0.1</version>
