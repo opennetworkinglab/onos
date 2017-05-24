@@ -119,7 +119,7 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
 
     private void processDeviceLinks(Device device) {
         for (Link link : linkService.getDeviceLinks(device.id())) {
-            if (link.isDurable() && link.type() == OPTICAL) {
+            if (link.isExpected() && link.type() == OPTICAL) {
                 processLink(link);
             }
         }
@@ -128,7 +128,7 @@ public class OpticalLinkProvider extends AbstractProvider implements LinkProvide
     private void processPortLinks(Device device, Port port) {
         ConnectPoint connectPoint = new ConnectPoint(device.id(), port.number());
         for (Link link : linkService.getLinks(connectPoint)) {
-            if (link.isDurable() && link.type() == OPTICAL) {
+            if (link.isExpected() && link.type() == OPTICAL) {
                 processLink(link);
             }
         }

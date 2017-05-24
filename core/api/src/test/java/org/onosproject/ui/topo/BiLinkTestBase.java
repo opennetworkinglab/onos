@@ -62,11 +62,6 @@ public abstract class BiLinkTestBase extends AbstractUiTest {
         }
 
         @Override
-        public boolean isDurable() {
-            return false;
-        }
-
-        @Override
         public boolean isExpected() {
             return false;
         }

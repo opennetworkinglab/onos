@@ -95,11 +95,6 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     }
 
     @Override
-    public boolean isDurable() {
-        return isExpected();
-    }
-
-    @Override
     public boolean isExpected() {
         return isExpected;
     }

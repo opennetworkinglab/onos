@@ -45,7 +45,7 @@ public class DefaultLinkSerializer extends Serializer<DefaultLink> {
         kryo.writeClassAndObject(output, object.dst());
         kryo.writeClassAndObject(output, object.type());
         kryo.writeClassAndObject(output, object.state());
-        output.writeBoolean(object.isDurable());
+        output.writeBoolean(object.isExpected());
     }
 
     @Override

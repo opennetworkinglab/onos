@@ -110,7 +110,7 @@ public class DefaultPath extends DefaultLink implements Path {
                 .add("dst", dst())
                 .add("type", type())
                 .add("state", state())
-                .add("durable", isDurable())
+                .add("expected", isExpected())
                 .add("links", links)
                 .add("cost", cost)
                 .toString();

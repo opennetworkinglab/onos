@@ -49,10 +49,10 @@ public class LinkViewMessageHandler extends UiMessageHandler {
     private static final String TYPE = "type";
     private static final String STATE = "_iconid_state";
     private static final String DIRECTION = "direction";
-    private static final String DURABLE = "durable";
+    private static final String EXPECTED = "expected";
 
     private static final String[] COL_IDS = {
-            ONE, TWO, TYPE, STATE, DIRECTION, DURABLE
+            ONE, TWO, TYPE, STATE, DIRECTION, EXPECTED
     };
 
     private static final String ICON_ID_ONLINE = "active";
@@ -109,7 +109,7 @@ public class LinkViewMessageHandler extends UiMessageHandler {
                 .cell(TYPE, linkType(blink))
                 .cell(STATE, linkState(blink))
                 .cell(DIRECTION, linkDir(blink))
-                .cell(DURABLE, blink.one().isDurable());
+                .cell(EXPECTED, blink.one().isExpected());
         }
 
         private String linkType(BaseLink link) {

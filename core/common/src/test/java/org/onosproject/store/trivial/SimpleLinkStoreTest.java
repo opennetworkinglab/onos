@@ -470,9 +470,9 @@ public class SimpleLinkStoreTest {
         LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
 
         putLink(linkId1, DIRECT, DA1);
-        assertTrue("should be be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        assertTrue("should be be durable", linkStore.getLink(d1P1, d2P2).isExpected());
         putLink(linkId1, DIRECT, NDA1);
-        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isExpected());
     }
 
     @Test
@@ -482,9 +482,9 @@ public class SimpleLinkStoreTest {
         LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
 
         putLink(linkId1, DIRECT, A1);
-        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        assertFalse("should not be durable", linkStore.getLink(d1P1, d2P2).isExpected());
         putLink(linkId1, DIRECT, DA1);
-        assertTrue("should be durable", linkStore.getLink(d1P1, d2P2).isDurable());
+        assertTrue("should be durable", linkStore.getLink(d1P1, d2P2).isExpected());
     }
 
     // If Delegates should be called only on remote events,

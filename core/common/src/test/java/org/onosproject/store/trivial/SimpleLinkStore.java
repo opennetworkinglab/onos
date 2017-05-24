@@ -193,7 +193,7 @@ public class SimpleLinkStore
             return null;
         }
 
-        if (link.isDurable()) {
+        if (link.isExpected()) {
             return link.state() == INACTIVE ? null :
                     updateLink(linkKey(link.src(), link.dst()), link,
                                DefaultLink.builder()

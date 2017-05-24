@@ -291,7 +291,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                         dontRecompileAllFailedIntents = dontRecompileAllFailedIntents &&
                                 (linkEvent.type() == LINK_REMOVED ||
                                 (linkEvent.type() == LINK_UPDATED &&
-                                linkEvent.subject().isDurable()));
+                                linkEvent.subject().isExpected()));
                     }
                 }
                 delegate.triggerCompile(intentsToRecompile, !dontRecompileAllFailedIntents);
