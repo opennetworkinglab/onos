@@ -65,8 +65,13 @@ import javax.ws.rs.ProcessingException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,6 +98,7 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String URL_SEPARATOR = "://";
     protected static final String ISNOTNULL = "Rest device is not null";
     private static final String UNKNOWN = "unknown";
+    private static final int REST_TIMEOUT_SEC = 5;
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -406,11 +412,39 @@ public class RestDeviceProvider extends AbstractProvider
 
     private boolean testDeviceConnection(RestSBDevice dev) {
         try {
+            Callable<Boolean> connectionSuccess;
+
             if (dev.testUrl().isPresent()) {
-                return controller
-                        .get(dev.deviceId(), dev.testUrl().get(), JSON) != null;
+                connectionSuccess = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return controller
+                                .get(dev.deviceId(), dev.testUrl().get(), JSON) != null;
+                    }
+                };
+            } else {
+                connectionSuccess = new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return controller.get(dev.deviceId(), "", JSON) != null;
+                    }
+                };
             }
-            return controller.get(dev.deviceId(), "", JSON) != null;
+
+            Future<Boolean> future = executor.submit(connectionSuccess);
+            try {
+                Boolean result = future.get(REST_TIMEOUT_SEC, TimeUnit.SECONDS);
+                return result;
+            } catch (TimeoutException ex) {
+                log.warn("Connection to device {} timed out", dev.deviceId());
+                return false;
+            } catch (InterruptedException ex) {
+                log.warn("Connection to device {} interrupted", dev.deviceId());
+                return false;
+            } catch (ExecutionException ex) {
+                log.warn("Connection to device {} had a execution exception", dev.deviceId());
+                return false;
+            }
 
         } catch (ProcessingException e) {
             log.warn("Cannot connect to device {}", dev, e);
