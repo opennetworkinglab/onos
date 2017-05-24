@@ -104,7 +104,6 @@ public class VirtualNetworkIntentCompilerTest extends TestDeviceParams {
 
         manager = new VirtualNetworkManager();
         manager.setStore(virtualNetworkManagerStore);
-        manager.setIntentService(intentService);
         setField(manager, "coreService", coreService);
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
         manager.activate();

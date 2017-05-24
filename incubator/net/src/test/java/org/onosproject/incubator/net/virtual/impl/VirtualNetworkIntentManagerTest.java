@@ -133,7 +133,6 @@ public class VirtualNetworkIntentManagerTest extends TestDeviceParams {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
-        manager.intentService = intentService;
         intentService.addListener(listener);
 
         // Register a compiler and an installer both setup for success.

@@ -36,8 +36,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TestDeviceParams;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.store.service.TestStorageService;
 
@@ -57,7 +55,6 @@ public class VirtualNetworkLinkManagerTest extends TestDeviceParams {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
-    private TestableIntentService intentService = new FakeIntentManager();
     private TestServiceDirectory testDirectory;
 
     @Before
@@ -71,7 +68,6 @@ public class VirtualNetworkLinkManagerTest extends TestDeviceParams {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
         manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 

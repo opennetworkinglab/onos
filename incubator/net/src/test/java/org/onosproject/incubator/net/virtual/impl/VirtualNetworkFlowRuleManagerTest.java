@@ -59,8 +59,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.TestStorageService;
 
@@ -79,7 +77,6 @@ public class VirtualNetworkFlowRuleManagerTest extends VirtualNetworkTestUtil {
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
-    private TestableIntentService intentService = new FakeIntentManager();
     private ServiceDirectory testDirectory;
     private VirtualNetworkFlowRuleStore flowRuleStore;
     private VirtualProviderManager providerRegistryService;
@@ -117,7 +114,6 @@ public class VirtualNetworkFlowRuleManagerTest extends VirtualNetworkTestUtil {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
         TestUtils.setField(manager, "coreService", coreService);
 
         eventDeliveryService = new TestEventDispatcher();

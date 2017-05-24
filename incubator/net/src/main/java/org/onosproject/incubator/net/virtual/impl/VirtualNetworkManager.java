@@ -105,9 +105,6 @@ public class VirtualNetworkManager
     protected VirtualNetworkStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentService intentService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     private VirtualNetworkStoreDelegate delegate = this::post;
@@ -124,16 +121,6 @@ public class VirtualNetworkManager
      */
     public void setStore(VirtualNetworkStore store) {
         this.store = store;
-    }
-
-    /**
-     * Only used for Junit test methods outside of this package.
-     *
-     * @param intentService intent service
-     */
-
-    public void setIntentService(IntentService intentService) {
-        this.intentService = intentService;
     }
 
     @Activate

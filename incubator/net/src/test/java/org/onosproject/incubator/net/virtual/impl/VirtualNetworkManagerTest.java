@@ -69,11 +69,9 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.PathService;
@@ -103,7 +101,6 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
     private TestListener listener = new TestListener();
-    private TestableIntentService intentService = new FakeIntentManager();
     private TopologyService topologyService;
 
     private ConnectPoint cp6;
@@ -125,7 +122,6 @@ public class VirtualNetworkManagerTest extends VirtualNetworkTestUtil {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.addListener(listener);
-        manager.intentService = intentService;
         manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 

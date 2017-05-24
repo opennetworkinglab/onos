@@ -44,8 +44,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.ArrayList;
@@ -65,7 +63,6 @@ public class VirtualNetworkDeviceManagerTest extends VirtualNetworkTestUtil {
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService;
-    private TestableIntentService intentService = new FakeIntentManager();
     private TestServiceDirectory testDirectory;
     private TestListener testListener = new TestListener();
     private TestEventDispatcher dispatcher = new TestEventDispatcher();
@@ -81,7 +78,6 @@ public class VirtualNetworkDeviceManagerTest extends VirtualNetworkTestUtil {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
         manager.coreService = coreService;
         NetTestTools.injectEventDispatcher(manager, dispatcher);
 

@@ -60,8 +60,6 @@ import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.StoredGroupEntry;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.TestStorageService;
 
@@ -81,7 +79,6 @@ public class VirtualNetworkGroupManagerTest {
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
-    private TestableIntentService intentService = new FakeIntentManager();
     private ServiceDirectory testDirectory;
     private VirtualProviderManager providerRegistryService;
 
@@ -120,7 +117,6 @@ public class VirtualNetworkGroupManagerTest {
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
         TestUtils.setField(manager, "coreService", coreService);
 
         eventDeliveryService = new TestEventDispatcher();

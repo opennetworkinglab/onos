@@ -56,8 +56,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.FlowObjectiveServiceAdapter;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -90,7 +88,6 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
     protected VirtualNetworkManager manager;
     protected DistributedVirtualNetworkStore virtualNetworkManagerStore;
     private CoreService coreService = new TestCoreService();
-    private TestableIntentService intentService = new FakeIntentManager();
     protected TestServiceDirectory testDirectory;
     private EventDeliveryService eventDeliveryService;
     private VirtualProviderManager providerRegistryService;
@@ -122,7 +119,6 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
         manager.coreService = coreService;
-        manager.intentService = intentService;
         NetTestTools.injectEventDispatcher(manager, new TestEventDispatcher());
 
         flowObjectiveStore = new SimpleVirtualFlowObjectiveStore();

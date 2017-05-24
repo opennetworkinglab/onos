@@ -56,8 +56,6 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.intent.FakeIntentManager;
-import org.onosproject.net.intent.TestableIntentService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestStorageService;
@@ -72,7 +70,6 @@ public class VirtualNetworkFlowObjectiveManagerTest
 
     private VirtualNetworkManager manager;
     private DistributedVirtualNetworkStore virtualNetworkManagerStore;
-    private TestableIntentService intentService = new FakeIntentManager();
     private ServiceDirectory testDirectory;
     protected SimpleVirtualFlowObjectiveStore flowObjectiveStore;
 
@@ -109,7 +106,6 @@ public class VirtualNetworkFlowObjectiveManagerTest
 
         manager = new VirtualNetworkManager();
         manager.store = virtualNetworkManagerStore;
-        manager.intentService = intentService;
         TestUtils.setField(manager, "coreService", coreService);
 
         providerRegistryService = new VirtualProviderManager();
