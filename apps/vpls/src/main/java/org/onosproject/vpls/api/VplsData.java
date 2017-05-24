@@ -99,6 +99,7 @@ public final class VplsData {
     public static VplsData of(VplsData vplsData) {
         requireNonNull(vplsData);
         VplsData vplsDataCopy = new VplsData(vplsData.name(), vplsData.encapsulationType());
+        vplsDataCopy.state(vplsData.state());
         vplsDataCopy.addInterfaces(vplsData.interfaces());
         return vplsData;
     }
