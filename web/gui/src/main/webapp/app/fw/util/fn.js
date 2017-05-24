@@ -437,6 +437,64 @@
     }
 
 
+    // -----------------------------------------------------------------
+    // The next section deals with sanitizing external strings destined
+    // to be loaded via a .html() function call.
+
+    var matcher = /<\/?([a-zA-Z0-9]+)*(.*?)\/?>/igm,
+        whitelist = ['b', 'i', 'p', 'em', 'strong', 'br'],
+        evillist = ['script', 'style', 'iframe'];
+
+    // Returns true if the tag is in the evil list, (and is not an end-tag)
+    function inEvilList(tag) {
+        return (evillist.indexOf(tag.name) !== -1 && tag.full.indexOf('/') === -1);
+    }
+
+    function analyze(html) {
+        html = String(html) || '';
+
+        var matches = [],
+            match;
+
+        // extract all tags
+        while ((match = matcher.exec(html)) !== null) {
+            matches.push({
+                full: match[0],
+                name: match[1]
+                // NOTE: ignoring attributes {match[2].split(' ')} for now
+            });
+        }
+
+        return matches;
+    }
+
+    function sanitize(html) {
+        html = String(html) || '';
+
+        var matches = analyze(html);
+
+        // completely obliterate evil tags and their contents...
+        evillist.forEach(function (tag) {
+            var re = new RegExp('<' + tag + '(.*?)>(.*?[\r\n])*?(.*?)(.*?[\r\n])*?<\/' + tag + '>', 'gim');
+            html = html.replace(re, '');
+        });
+
+        // filter out all but white-listed tags and end-tags
+        matches.forEach(function (tag) {
+            if (whitelist.indexOf(tag.name) === -1) {
+                html = html.replace(tag.full, '');
+                if (inEvilList(tag)) {
+                    $log.warn('Unsanitary HTML input -- ' + tag.full + ' detected!');
+                }
+            }
+        });
+
+        // TODO: consider encoding HTML entities, e.g. '&' -> '&amp;'
+
+        return html;
+    }
+
+
     angular.module('onosUtil')
         .factory('FnService',
         ['$window', '$location', '$log', function (_$window_, $loc, _$log_) {
@@ -476,7 +534,8 @@
                 removeFromTrie: removeFromTrie,
                 trieLookup: trieLookup,
                 classNames: classNames,
-                extend: extend
+                extend: extend,
+                sanitize: sanitize
             };
     }]);
 
