@@ -94,9 +94,6 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
-import org.opencord.cordconfig.CordConfigEvent;
-import org.opencord.cordconfig.CordConfigListener;
-import org.opencord.cordconfig.CordConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,9 +161,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    CordConfigService cordConfigService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     RouteService routeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -192,7 +186,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     XConnectHandler xConnectHandler = null;
     private McastHandler mcastHandler = null;
     HostHandler hostHandler = null;
-    private CordConfigHandler cordConfigHandler = null;
     private RouteHandler routeHandler = null;
     private SegmentRoutingNeighbourDispatcher neighbourHandler = null;
     private L2TunnelHandler l2TunnelHandler = null;
@@ -200,7 +193,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalHostListener hostListener = new InternalHostListener();
     private final InternalConfigListener cfgListener = new InternalConfigListener(this);
     private final InternalMcastListener mcastListener = new InternalMcastListener();
-    private final InternalCordConfigListener cordConfigListener = new InternalCordConfigListener();
     private final InternalRouteEventListener routeListener = new InternalRouteEventListener();
 
     private ScheduledExecutorService executorService = Executors
@@ -367,7 +359,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         xConnectHandler = new XConnectHandler(this);
         mcastHandler = new McastHandler(this);
         hostHandler = new HostHandler(this);
-        cordConfigHandler = new CordConfigHandler(this);
         routeHandler = new RouteHandler(this);
         neighbourHandler = new SegmentRoutingNeighbourDispatcher(this);
         l2TunnelHandler = new L2TunnelHandler(this);
@@ -383,7 +374,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
         multicastRouteService.addListener(mcastListener);
-        cordConfigService.addListener(cordConfigListener);
 
         cfgListener.configureNetwork();
 
@@ -422,7 +412,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
         multicastRouteService.removeListener(mcastListener);
-        cordConfigService.removeListener(cordConfigListener);
         routeService.removeListener(routeListener);
 
         neighbourResolutionService.unregisterNeighbourHandlers(appId);
@@ -995,7 +984,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             defaultRoutingHandler.populatePortAddressingRules(deviceId);
             hostHandler.init(deviceId);
             xConnectHandler.init(deviceId);
-            cordConfigHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
@@ -1260,28 +1248,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     break;
                 case ROUTE_ADDED:
                 case ROUTE_REMOVED:
-                default:
-                    break;
-            }
-        }
-    }
-
-    private class InternalCordConfigListener implements CordConfigListener {
-        @Override
-        public void event(CordConfigEvent event) {
-            switch (event.type()) {
-                case ACCESS_AGENT_ADDED:
-                    cordConfigHandler.processAccessAgentAddedEvent(event);
-                    break;
-                case ACCESS_AGENT_UPDATED:
-                    cordConfigHandler.processAccessAgentUpdatedEvent(event);
-                    break;
-                case ACCESS_AGENT_REMOVED:
-                    cordConfigHandler.processAccessAgentRemovedEvent(event);
-                    break;
-                case ACCESS_DEVICE_ADDED:
-                case ACCESS_DEVICE_UPDATED:
-                case ACCESS_DEVICE_REMOVED:
                 default:
                     break;
             }

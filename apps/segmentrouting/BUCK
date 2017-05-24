@@ -2,7 +2,6 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
     '//lib:javax.ws.rs-api',
-    '//lib:cord-config',
     '//cli:onos-cli',
     '//core/store/serializers:onos-core-serializers',
     '//incubator/api:onos-incubator-api',
@@ -12,7 +11,6 @@ COMPILE_DEPS = [
 BUNDLES = [
     '//apps/segmentrouting:onos-apps-segmentrouting',
     '//apps/routing-api:onos-apps-routing-api',
-    '//lib:cord-config'
 ]
 
 TEST_DEPS = [

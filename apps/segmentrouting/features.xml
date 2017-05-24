@@ -19,7 +19,5 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
-        <!-- TODO: Replace this with variable -->
-        <bundle>mvn:org.onosproject/cord-config/1.0-b1</bundle>
     </feature>
 </features>
