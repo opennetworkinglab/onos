@@ -241,7 +241,7 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
      * synchronous access to this map
      */
     default ConsistentMultimap<K, V> asMultimap() {
-        return asMultimap(DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asMultimap(DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     /**

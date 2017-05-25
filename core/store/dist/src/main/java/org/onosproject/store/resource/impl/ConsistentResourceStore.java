@@ -366,7 +366,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      */
     private CommitStatus commitTransaction(TransactionContext tx)
             throws InterruptedException, ExecutionException, TimeoutException {
-        return tx.commit().get(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        return tx.commit().get(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
 
     /**

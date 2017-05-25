@@ -80,7 +80,7 @@ public abstract class TransactionalMapParticipant<K, V> implements Transactional
                 if (lock == null) {
                     try {
                         lock = transaction.begin()
-                                .get(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+                                .get(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new TransactionException.Interrupted();

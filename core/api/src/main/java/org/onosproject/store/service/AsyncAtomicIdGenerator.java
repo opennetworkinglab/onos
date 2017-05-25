@@ -52,6 +52,6 @@ public interface AsyncAtomicIdGenerator extends DistributedPrimitive {
      * @return new {@code AtomicIdGenerator} instance
      */
     default AtomicIdGenerator asAtomicIdGenerator() {
-        return new DefaultAtomicIdGenerator(this, DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return new DefaultAtomicIdGenerator(this, DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 }

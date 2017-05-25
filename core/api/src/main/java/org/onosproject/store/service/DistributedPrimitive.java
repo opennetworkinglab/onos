@@ -125,7 +125,16 @@ public interface DistributedPrimitive {
         INACTIVE
     }
 
-    static final long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;
+    /**
+     * Use {@link #DEFAULT_OPERATION_TIMEOUT_MILLIS} instead.
+     */
+    @Deprecated
+    long DEFAULT_OPERTATION_TIMEOUT_MILLIS = 5000L;
+
+    /**
+     * Default timeout for primitive operations.
+     */
+    long DEFAULT_OPERATION_TIMEOUT_MILLIS = 5000L;
 
     /**
      * Returns the name of this primitive.

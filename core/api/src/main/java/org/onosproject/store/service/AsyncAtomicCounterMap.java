@@ -169,7 +169,7 @@ public interface AsyncAtomicCounterMap<K> extends DistributedPrimitive {
      * @return new {@code AtomicCounterMap} instance
      */
     default AtomicCounterMap<K> asAtomicCounterMap() {
-        return asAtomicCounterMap(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asAtomicCounterMap(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     /**

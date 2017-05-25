@@ -23,8 +23,6 @@ import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.concurrent.CompletableFuture;
 
-import static org.onosproject.store.service.DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS;
-
 /**
  * API for a distributed tree map implementation.
  */
@@ -167,7 +165,7 @@ public interface AsyncConsistentTreeMap<V>
                                                       boolean inclusiveLower);
 
     default ConsistentTreeMap<V> asTreeMap() {
-        return asTreeMap(DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asTreeMap(DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     default ConsistentTreeMap<V> asTreeMap(long timeoutMillis) {

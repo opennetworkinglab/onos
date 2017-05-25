@@ -131,7 +131,7 @@ public interface AsyncDistributedSet<E> extends DistributedPrimitive {
      * @return new {@code DistributedSet} instance
      */
     default DistributedSet<E> asDistributedSet() {
-        return asDistributedSet(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asDistributedSet(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     /**

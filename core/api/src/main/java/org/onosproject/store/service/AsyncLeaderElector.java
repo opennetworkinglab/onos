@@ -142,6 +142,6 @@ public interface AsyncLeaderElector extends DistributedPrimitive {
      * @return new {@code LeaderElector} instance
      */
     default LeaderElector asLeaderElector() {
-        return asLeaderElector(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asLeaderElector(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 }

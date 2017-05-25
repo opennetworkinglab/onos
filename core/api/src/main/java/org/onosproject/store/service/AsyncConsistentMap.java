@@ -350,7 +350,7 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive, Transact
      * @return new {@code ConsistentMap} instance
      */
     default ConsistentMap<K, V> asConsistentMap() {
-        return asConsistentMap(DistributedPrimitive.DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return asConsistentMap(DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 
     /**

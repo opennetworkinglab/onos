@@ -99,6 +99,6 @@ public interface AsyncAtomicValue<V> extends DistributedPrimitive {
      * @return new {@code AtomicValue} instance
      */
     default AtomicValue<V> asAtomicValue() {
-        return new DefaultAtomicValue<>(this, DEFAULT_OPERTATION_TIMEOUT_MILLIS);
+        return new DefaultAtomicValue<>(this, DEFAULT_OPERATION_TIMEOUT_MILLIS);
     }
 }
