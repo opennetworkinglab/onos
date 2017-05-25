@@ -27,6 +27,7 @@ import static org.junit.Assert.assertThat;
  * Unit tests for the Cluster Metadata event.
  */
 public class ClusterMetadataEventTest {
+    private final long time1 = System.currentTimeMillis() - 100;
     private final long time = System.currentTimeMillis();
     private final PartitionId pid1 = PartitionId.from(1);
     private final PartitionId pid2 = PartitionId.from(2);
@@ -47,21 +48,24 @@ public class ClusterMetadataEventTest {
             new ClusterMetadata("baz", ImmutableSet.of(n2), ImmutableSet.of(p3));
 
     private final ClusterMetadataEvent event1 =
-            new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata1);
+            new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata1, time1);
     private final ClusterMetadataEvent sameAsEvent1 =
-            new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata1);
+            new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata1, time1);
     private final ClusterMetadataEvent event2 =
             new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata2, time);
     private final ClusterMetadataEvent sameAsEvent2 =
             new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata2, time);
-    private final ClusterMetadataEvent event3 =
-            new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata3);
 
     /**
      * Tests for proper operation of equals(), hashCode() and toString() methods.
      */
     @Test
-    public void checkEquals() {
+    public void checkEquals() throws Exception {
+        // ensure event3 will have different timestamp from `time`
+        Thread.sleep(1);
+        ClusterMetadataEvent event3 =
+                new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata3);
+
         new EqualsTester()
                 .addEqualityGroup(event1, sameAsEvent1)
                 .addEqualityGroup(event2, sameAsEvent2)
