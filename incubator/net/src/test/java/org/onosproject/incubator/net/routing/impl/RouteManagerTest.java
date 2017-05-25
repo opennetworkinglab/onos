@@ -27,6 +27,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteEvent;
@@ -44,11 +45,15 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WorkQueue;
 
 import java.util.Collections;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -93,6 +98,13 @@ public class RouteManagerTest {
 
         routeManager = new TestRouteManager();
         routeManager.hostService = hostService;
+
+        routeManager.clusterService = createNiceMock(ClusterService.class);
+        replay(routeManager.clusterService);
+        routeManager.storageService = createNiceMock(StorageService.class);
+        expect(routeManager.storageService.getWorkQueue(anyString(), anyObject()))
+                .andReturn(createNiceMock(WorkQueue.class));
+        replay(routeManager.storageService);
 
         LocalRouteStore routeStore = new LocalRouteStore();
         routeStore.activate();

@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.incubator.net.routing.InternalRouteEvent;
 import org.onosproject.incubator.net.routing.NextHop;
 import org.onosproject.incubator.net.routing.ResolvedRoute;
@@ -41,6 +42,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +83,15 @@ public class RouteManager implements RouteService, RouteAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
     private ResolvedRouteStore resolvedRouteStore;
+
+    private RouteMonitor routeMonitor;
 
     @GuardedBy(value = "this")
     private Map<RouteListener, ListenerQueue> listeners = new HashMap<>();
@@ -90,6 +100,7 @@ public class RouteManager implements RouteService, RouteAdminService {
 
     @Activate
     protected void activate() {
+        routeMonitor = new RouteMonitor(this, clusterService, storageService);
         threadFactory = groupedThreads("onos/route", "listener-%d", log);
 
         resolvedRouteStore = new DefaultResolvedRouteStore();
@@ -104,6 +115,7 @@ public class RouteManager implements RouteService, RouteAdminService {
 
     @Deactivate
     protected void deactivate() {
+        routeMonitor.shutdown();
         listeners.values().forEach(ListenerQueue::stop);
 
         routeStore.unsetDelegate(delegate);
