@@ -16,10 +16,10 @@ TEST_DEPS = [
   '//utils/osgi:onlab-osgi-tests',
 ]
 
-osgi_jar_with_tests(
-  name = 'onos-drivers-huawei-driver',
-  deps = COMPILE_DEPS,
-  test_deps = TEST_DEPS,
-  resources_root = 'src/main/resources',
-  resources = glob(['src/main/resources/**']),
-)
+#osgi_jar_with_tests(
+#  name = 'onos-drivers-huawei-driver',
+#  deps = COMPILE_DEPS,
+#  test_deps = TEST_DEPS,
+#  resources_root = 'src/main/resources',
+#  resources = glob(['src/main/resources/**']),
+#)

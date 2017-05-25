@@ -96,7 +96,8 @@ ONOS_DRIVERS = [
     '//drivers/juniper:onos-drivers-juniper-oar',
     '//drivers/lisp:onos-drivers-lisp-oar',
     '//drivers/flowspec:onos-drivers-flowspec-oar',
-    '//drivers/huawei:onos-drivers-huawei-oar',
+#    Removed until it compiles against onos-yang-tools 2.1
+#    '//drivers/huawei:onos-drivers-huawei-oar',
 #   Removed until we can handle v1.12 of onos-yang-tools - in the mean time build manually with Maven
 #   '//drivers/microsemi/ea1000driver:onos-drivers-microsemi-ea1000driver-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
@@ -196,14 +197,16 @@ ONOS_APPS = [
     '//apps/yang-gui:onos-apps-yang-gui-oar',
     '//apps/cord-support:onos-apps-cord-support-oar',
     '//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar',
-    '//apps/l3vpn:onos-apps-l3vpn-oar',
+#    Removed until it compiles against onos-yang-tools 2.1
+#    '//apps/l3vpn:onos-apps-l3vpn-oar',
     '//apps/openroadm:onos-apps-openroadm-oar',
 ]
 
 MODELS = [
     '//models/demo:onos-models-demo-oar',
     '//models/openroadm:onos-models-openroadm-oar',
-    '//models/l3vpn:onos-models-l3vpn-oar',
+#    Removed until it compiles against onos-yang-tools 2.1
+#    '//models/l3vpn:onos-models-l3vpn-oar',
 ]
 
 APP_JARS = [
