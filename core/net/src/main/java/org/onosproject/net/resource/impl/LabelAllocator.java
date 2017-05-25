@@ -29,9 +29,9 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
-import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
 
@@ -207,12 +207,13 @@ public final class LabelAllocator {
      * Allocates labels and associates them to links.
      *
      * @param links the links where labels will be allocated
-     * @param id the intent Id
+     * @param resourceConsumer the resource consumer
      * @param type the encapsulation type
      * @return the list of links and associated labels
      */
-    public Map<LinkKey, Identifier<?>> assignLabelToLinks(Set<Link> links, IntentId id, EncapsulationType type) {
-
+    public Map<LinkKey, Identifier<?>> assignLabelToLinks(Set<Link> links,
+                                                          ResourceConsumer resourceConsumer,
+                                                          EncapsulationType type) {
         Set<LinkKey> linkRequest = links.stream()
                 .map(LinkKey::linkKey)
                 .collect(Collectors.toSet());
@@ -237,9 +238,8 @@ public final class LabelAllocator {
                 ))
                 .collect(Collectors.toSet());
 
-        // FIXME resource allocated by IntentId will not be released
-        // when Intent is withdrawn. Behaviour changed by ONOS-5808
-        List<ResourceAllocation> allocations = resourceService.allocate(id, ImmutableList.copyOf(resources));
+        List<ResourceAllocation> allocations = resourceService.allocate(resourceConsumer,
+                                                                        ImmutableList.copyOf(resources));
 
         if (allocations.isEmpty()) {
             return Collections.emptyMap();
@@ -253,19 +253,23 @@ public final class LabelAllocator {
      * and destination ports of a link.
      *
      * @param links the links on which labels will be reserved
-     * @param id the intent Id
+     * @param resourceConsumer the resource consumer
      * @param type the encapsulation type
      * @return the list of ports and associated labels
      */
-    public Map<ConnectPoint, Identifier<?>> assignLabelToPorts(Set<Link> links, IntentId id, EncapsulationType type) {
-        Map<LinkKey, Identifier<?>> allocation = this.assignLabelToLinks(links, id, type);
+    public Map<ConnectPoint, Identifier<?>> assignLabelToPorts(Set<Link> links,
+                                                               ResourceConsumer resourceConsumer,
+                                                               EncapsulationType type) {
+        Map<LinkKey, Identifier<?>> allocation = this.assignLabelToLinks(links,
+                                                                         resourceConsumer,
+                                                                         type);
         if (allocation.isEmpty()) {
             return Collections.emptyMap();
         }
         Map<ConnectPoint, Identifier<?>> finalAllocation = Maps.newHashMap();
-        allocation.forEach((key, value) -> {
-            finalAllocation.putIfAbsent(key.src(), value);
-            finalAllocation.putIfAbsent(key.dst(), value);
+        allocation.forEach((link, value) -> {
+            finalAllocation.putIfAbsent(link.src(), value);
+            finalAllocation.putIfAbsent(link.dst(), value);
         });
         return ImmutableMap.copyOf(finalAllocation);
     }
