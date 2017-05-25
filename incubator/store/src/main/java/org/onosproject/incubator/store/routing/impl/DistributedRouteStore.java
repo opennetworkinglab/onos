@@ -44,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.onlab.util.Tools.groupedThreads;
+
 /**
  * Route store based on distributed storage.
  */
@@ -75,7 +77,7 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
      */
     public void activate() {
         routeTables = new ConcurrentHashMap<>();
-        executor = Executors.newSingleThreadExecutor();
+        executor = Executors.newSingleThreadExecutor(groupedThreads("onos/route", "store", log));
 
         KryoNamespace masterRouteTableSerializer = KryoNamespace.newBuilder()
                 .register(RouteTableId.class)
@@ -173,7 +175,7 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     }
 
     private void createRouteTable(RouteTableId tableId) {
-        routeTables.computeIfAbsent(tableId, id -> new DefaultRouteTable(id, ourDelegate, storageService));
+        routeTables.computeIfAbsent(tableId, id -> new DefaultRouteTable(id, ourDelegate, storageService, executor));
     }
 
     private void destroyRouteTable(RouteTableId tableId) {
