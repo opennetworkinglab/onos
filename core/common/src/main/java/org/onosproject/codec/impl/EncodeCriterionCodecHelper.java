@@ -139,6 +139,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.UDP_DST_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.SCTP_SRC_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.SCTP_DST_MASKED, new FormatUnknown());
+        formatMap.put(Criterion.Type.PROTOCOL_INDEPENDENT, new FormatUnknown());
 
     }
 

@@ -89,6 +89,11 @@ public interface Instruction {
         L4MODIFICATION,
 
         /**
+         * Signifies that a protocol-independent instruction will be used.
+         */
+        PROTOCOL_INDEPENDENT,
+
+        /**
          * Signifies that an extension instruction will be used.
          */
         EXTENSION

@@ -21,7 +21,7 @@ package org.onosproject.net.flow.criteria;
  */
 public interface Criterion {
 
-    static final String SEPARATOR = ":";
+    String SEPARATOR = ":";
 
     /**
      * Types of fields to which the selection criterion may apply.
@@ -216,6 +216,9 @@ public interface Criterion {
 
         /** ODU (Optical channel Data Unit) signal type. */
         ODU_SIGTYPE,
+
+        /** Protocol-independent. */
+        PROTOCOL_INDEPENDENT,
 
         /** Extension criterion. */
         EXTENSION,
