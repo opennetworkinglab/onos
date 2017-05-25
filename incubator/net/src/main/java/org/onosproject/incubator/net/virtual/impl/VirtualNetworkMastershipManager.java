@@ -45,9 +45,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
 import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -176,11 +176,15 @@ public class VirtualNetworkMastershipManager
     @Override
     public void balanceRoles() {
         //FIXME: More advanced logic for balancing virtual network roles.
-        List<ControllerNode> nodes = newArrayList(clusterService.getNodes());
+        List<ControllerNode> nodes = clusterService.getNodes().stream()
+                .filter(n -> clusterService.getState(n.id())
+                        .equals(ControllerNode.State.ACTIVE))
+                .collect(Collectors.toList());
+
         nodes.sort(Comparator.comparing(ControllerNode::id));
 
         //Pick a node using network Id,
-        NodeId masterNode = nodes.get((int) (networkId.id() % nodes.size())).id();
+        NodeId masterNode = nodes.get((int) ((networkId.id() - 1) % nodes.size())).id();
 
         List<CompletableFuture<Void>> setRoleFutures = Lists.newLinkedList();
         for (VirtualDevice device : manager.getVirtualDevices(networkId)) {
