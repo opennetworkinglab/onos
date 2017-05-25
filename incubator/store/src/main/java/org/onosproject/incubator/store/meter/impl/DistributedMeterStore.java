@@ -129,9 +129,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
         availableMeterIds = storageService.<DeviceId, BitSet>consistentMapBuilder()
                 .withName(AVAILABLEMETERIDSTORE)
-                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
-                        DeviceId.class,
-                        BitSet.class)).build();
+                .withSerializer(Serializer.using(KryoNamespaces.API)).build();
 
         log.info("Started");
     }
@@ -151,6 +149,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         });
     }
 
+    @Override
     public MeterId firstReusableMeterId(DeviceId deviceId) {
         Versioned<BitSet> bitSetVersioned = availableMeterIds.get(deviceId);
         if (bitSetVersioned == null) {
