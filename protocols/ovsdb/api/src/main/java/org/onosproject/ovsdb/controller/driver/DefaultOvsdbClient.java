@@ -1025,7 +1025,16 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         // insert an interface
         Interface intf = (Interface) TableGenerator.createTable(dbSchema, OvsdbTable.INTERFACE);
         intf.setName(ovsdbIface.name());
+
         intf.setType(ovsdbIface.typeToString());
+
+        if (ovsdbIface.mtu().isPresent()) {
+            Set<Long> mtuSet = Sets.newConcurrentHashSet();
+            mtuSet.add(ovsdbIface.mtu().get());
+            intf.setMtu(mtuSet);
+            intf.setMtuRequest(mtuSet);
+        }
+
         intf.setOptions(ovsdbIface.options());
         Insert intfInsert = new Insert(dbSchema.getTableSchema(INTERFACE), INTERFACE, intf.getRow());
         operations.add(intfInsert);

@@ -46,7 +46,7 @@ public class Interface extends AbstractOvsdbTableService {
         LACPCURRENT("lacp_current"), OTHERCONFIG("other_config"),
         STATISTICS("statistics"), STATUS("status"), ADMINSTATE("admin_state"),
         LINKSTATE("link_state"), LINKRESETS("link_resets"),
-        LINKSPEED("link_speed"), DUPLEX("duplex"), MTU("mtu"), ERROR("error");
+        LINKSPEED("link_speed"), DUPLEX("duplex"), MTU("mtu"), MTU_REQUEST("mtu_request"), ERROR("error");
 
         private final String columnName;
 
@@ -980,6 +980,20 @@ public class Interface extends AbstractOvsdbTableService {
     }
 
     /**
+     * Get the Column entity which column name is "mtuRequest" from the Row entity of
+     * attributes.
+     * @return the Column entity which column name is "mtuRequest"
+     */
+    public Column getMtuRequestColumn() {
+        ColumnDescription columndesc = new ColumnDescription(
+                                                             InterfaceColumn.MTU_REQUEST
+                                                             .columnName(),
+                                                            "getMtuRequestColumn",
+                                                             VersionNum.VERSION7140);
+        return (Column) super.getColumnHandler(columndesc);
+    }
+
+    /**
      * Add a Column entity which column name is "mtu" to the Row entity of
      * attributes.
      * @param mtu the column data which column name is "mtu"
@@ -991,6 +1005,20 @@ public class Interface extends AbstractOvsdbTableService {
                                                              "setMtu",
                                                              VersionNum.VERSION106);
         super.setDataHandler(columndesc, mtu);
+    }
+
+    /**
+     * Add a Column entity which column name is "mtuRequest" to the Row entity of
+     * attributes.
+     * @param mtuRequest the column data which column name is "mtuRequest"
+     */
+    public void setMtuRequest(Set<Long> mtuRequest) {
+        ColumnDescription columndesc = new ColumnDescription(
+                                                             InterfaceColumn.MTU_REQUEST
+                                                                     .columnName(),
+                                                             "setMtuRequest",
+                                                             VersionNum.VERSION7140);
+        super.setDataHandler(columndesc, mtuRequest);
     }
 
     /**
