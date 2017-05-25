@@ -43,7 +43,7 @@ import static org.onosproject.net.MastershipRole.STANDBY;
 
 public class SimpleVirtualMastershipStoreTest {
 
-    private static NetworkId VNID1 = NetworkId.networkId(1);
+    private static final NetworkId VNID1 = NetworkId.networkId(1);
 
     private static final DeviceId VDID1 = DeviceId.deviceId("of:01");
     private static final DeviceId VDID2 = DeviceId.deviceId("of:02");
