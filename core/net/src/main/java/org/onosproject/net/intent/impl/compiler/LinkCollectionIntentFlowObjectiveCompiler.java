@@ -102,7 +102,7 @@ public class LinkCollectionIntentFlowObjectiveCompiler
 
         if (encapConstraint.isPresent()) {
             labels = labelAllocator.assignLabelToPorts(intent.links(),
-                                                       intent.id(),
+                                                       intent.key(),
                                                        encapConstraint.get().encapType());
         }
 

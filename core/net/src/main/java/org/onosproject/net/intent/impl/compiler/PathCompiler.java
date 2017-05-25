@@ -121,7 +121,7 @@ public class PathCompiler<T> {
 
         Map<LinkKey, Identifier<?>> vlanIds = labelAllocator.assignLabelToLinks(
                 linksSet,
-                intent.id(),
+                intent.key(),
                 EncapsulationType.VLAN
         );
 
@@ -238,7 +238,7 @@ public class PathCompiler<T> {
 
         Map<LinkKey, Identifier<?>> mplsLabels = labelAllocator.assignLabelToLinks(
                 linksSet,
-                intent.id(),
+                intent.key(),
                 EncapsulationType.MPLS
         );
         Iterator<Link> links = intent.path().links().iterator();
