@@ -36,7 +36,7 @@
 
     function init() {
         tooltip = d3.select('#tooltip');
-        tooltip.html('');
+        tooltip.text('');
     }
 
     function tipStyle(mouseX, mouseY) {

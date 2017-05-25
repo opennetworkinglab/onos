@@ -64,7 +64,7 @@
             var cls = '.l_' + v,
                 span = ldDiv.select(cls).select('span'),
                 value = val || data[v];
-            span.html(value);
+            span.text(value);
         }
 
         setSpan('id');

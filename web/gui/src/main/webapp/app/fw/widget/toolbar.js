@@ -188,7 +188,7 @@
         function rowSetText(text) {
             rowClear();
             currentRow.append('div').classed('tbar-row-text', true)
-                .html(text);
+                .text(text);
         }
 
         function rowAddButton(id, gid, cb, tooltip) {

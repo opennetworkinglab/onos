@@ -95,7 +95,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', friendlyProps[index] + ' :');
         addCell('value', value);
@@ -103,7 +103,7 @@
 
     function populateTop(details) {
         is.loadEmbeddedIcon(iconDiv, 'flowTable', 40);
-        top.select('h2').html(details.flowId);
+        top.select('h2').text(details.flowId);
 
         var tbody = topTable.append('tbody');
 

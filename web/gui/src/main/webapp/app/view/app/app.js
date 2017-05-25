@@ -126,7 +126,7 @@
         bottom = container.append('div').classed('bottom', true);
 
         function nTable(hdr, cls) {
-            bottom.append('h2').html(hdr);
+            bottom.append('h2').text(hdr);
             bottom.append('div').classed(cls, true).append('table');
         }
 
@@ -139,7 +139,7 @@
         var tr = tbody.append('tr');
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
 
         addCell('label', friendlyProps[index] + ':');
@@ -147,6 +147,7 @@
     }
 
     function urlize(u) {
+        u = fs.sanitize(u);
         return 'Url:<br/> <a href="' + u + '" target="_blank">' + u + '</a>';
     }
 
@@ -182,7 +183,7 @@
                 tbody = table.append('tbody');
 
             items.forEach(function (item) {
-                tbody.append('tr').append('td').html(item);
+                tbody.append('tr').append('td').text(item);
             });
         }
 
@@ -289,7 +290,8 @@
             var content = ds.createDiv();
             content.append('p').text(fs.cap(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
-                content.append('p').html(discouragement).classed('strong', true);
+                content.append('p').html(fs.sanitize(discouragement))
+                    .classed('strong', true);
             }
             return content;
         }
