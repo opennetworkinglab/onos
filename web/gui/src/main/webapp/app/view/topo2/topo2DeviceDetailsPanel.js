@@ -128,7 +128,7 @@
         }
 
         function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
+            tr.append('td').attr('class', cls).text(txt);
         }
         addCell('label', lab + ' :');
         addCell('value', value);
