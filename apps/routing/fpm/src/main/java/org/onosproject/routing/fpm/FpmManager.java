@@ -42,6 +42,7 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.routing.Route;
 import org.onosproject.incubator.net.routing.RouteAdminService;
 import org.onosproject.routing.fpm.protocol.FpmHeader;
@@ -81,6 +82,10 @@ public class FpmManager implements FpmInfoService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final int FPM_PORT = 2620;
+    private static final String APP_NAME = "org.onosproject.fpm";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
@@ -126,6 +131,9 @@ public class FpmManager implements FpmInfoService {
 
         modified(context);
         startServer();
+
+        coreService.registerApplication(APP_NAME, peers::destroy);
+
         log.info("Started");
     }
 
@@ -326,6 +334,10 @@ public class FpmManager implements FpmInfoService {
             }
 
             peers.compute(peer, (p, infos) -> {
+                if (infos == null) {
+                    return null;
+                }
+
                 infos.stream()
                         .filter(i -> i.connectedTo().equals(clusterService.getLocalNode().id()))
                         .findAny()
