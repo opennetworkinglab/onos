@@ -25,17 +25,18 @@ APPS = [
     'org.onosproject.models.l3vpn',
 ]
 
-osgi_jar_with_tests(
-    deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS,
-)
+#Removed until this app builds with onos-yang-tools 2.1
+#osgi_jar_with_tests(
+#    deps = COMPILE_DEPS,
+#    test_deps = TEST_DEPS,
+#)
 
-onos_app(
-    app_name = 'org.onosproject.l3vpn',
-    title = 'YANG L3VPN App',
-    category = 'Traffic Steering',
-    url = 'http://onosproject.org',
-    description = 'L3VPN YANG Application',
-    required_apps = APPS,
-)
+#onos_app(
+#    app_name = 'org.onosproject.l3vpn',
+#    title = 'YANG L3VPN App',
+#    category = 'Traffic Steering',
+#    url = 'http://onosproject.org',
+#    description = 'L3VPN YANG Application',
+#    required_apps = APPS,
+#)
 
