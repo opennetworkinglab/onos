@@ -16,35 +16,35 @@
 
 package org.onosproject.drivers.huawei;
 
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.DefaultDevice;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.DeviceKeys;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.DefaultL3Vpn;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.L3Vpn;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.DefaultL3Vpncomm;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.L3Vpncomm;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.DefaultL3VpnInstances;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.L3VpnInstances;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.DefaultL3VpnInstance;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstance;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstanceKeys;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.DefaultVpnInstAfs;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.VpnInstAfs;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.DefaultVpnInstAf;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.VpnInstAf;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.DefaultVpnTargets;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.VpnTargets;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.DefaultVpnTarget;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.VpnTarget;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.DefaultL3VpnIfs;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.DefaultAugmentedNiNetworkInstance;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.Unicast;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.Rts;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.DefaultDevices;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.Device;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.DefaultNetworkInstance;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.NetworkInstance;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.DefaultAugmentedNiNetworkInstance;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.Unicast;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.Rts;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.DefaultDevices;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.Device;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.DefaultNetworkInstance;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.NetworkInstance;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.DefaultDevice;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.DeviceKeys;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.DefaultL3Vpn;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.L3Vpn;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.DefaultL3Vpncomm;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.L3Vpncomm;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.DefaultL3VpnInstances;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.L3VpnInstances;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.DefaultL3VpnInstance;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstance;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstanceKeys;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.DefaultVpnInstAfs;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.VpnInstAfs;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.DefaultVpnInstAf;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.VpnInstAf;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.DefaultVpnTargets;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.VpnTargets;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.DefaultVpnTarget;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.l3vpninstance.vpninstafs.vpninstaf.vpntargets.VpnTarget;
+import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.nel3vpncomm.l3vpnifs.DefaultL3VpnIfs;
 import org.onosproject.yang.model.InnerModelObject;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -65,10 +65,10 @@ import static org.onosproject.drivers.huawei.DriverUtil.getObjFromModData;
 import static org.onosproject.drivers.huawei.ModelIdLevel.DEVICE;
 import static org.onosproject.drivers.huawei.ModelIdLevel.DEVICES;
 import static org.onosproject.drivers.huawei.ModelIdLevel.ROOT;
-import static org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.L3VpncommonL3VpnPrefixType.of;
-import static org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.L3VpncommonVrfRtType.fromString;
-import static org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.l3vpncommonl3vpnprefixtype.L3VpncommonL3VpnPrefixTypeEnum.IPV4UNI;
-import static org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.BOTH;
+import static org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.BOTH;
+import static org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.nel3vpncommtype.L3VpncommonL3VpnPrefixType.of;
+import static org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.nel3vpncommtype.L3VpncommonVrfRtType.fromString;
+import static org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.nel3vpncommtype.l3vpncommonl3vpnprefixtype.L3VpncommonL3VpnPrefixTypeEnum.IPV4UNI;
 
 /**
  * Representation of utility for instance creation and deletion.
@@ -126,7 +126,7 @@ public final class InsConstructionUtil {
             id = ((Device) obj).deviceid();
             obj = ((Device) obj).networkInstances();
         }
-        org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi
+        org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi
                 .DefaultDevices devices = getDriverDevices(
                 id, (NetworkInstances) obj);
         return getCreateModObjData(modIdLvl, id, devices);
@@ -144,17 +144,17 @@ public final class InsConstructionUtil {
     private static ModelObjectData getCreateModObjData(ModelIdLevel modIdLvl,
                                                        String devId,
                                                        org.onosproject.yang.gen
-                                                               .v1.ne.l3vpn.api
+                                                               .v1.nel3vpnapi
                                                                .rev20141225
                                                                .nel3vpnapi
                                                                .DefaultDevices
                                                                devices) {
         ModelObjectId id;
-        List<org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi
+        List<org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi
                 .devices.Device> devList = devices.device();
-        Iterator<org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi
+        Iterator<org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi
                 .devices.Device> it = devList.iterator();
-        org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi
+        org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi
                 .devices.Device device = it.next();
         Iterator<L3VpnInstance> instIt = device.l3Vpn().l3Vpncomm()
                 .l3VpnInstances().l3VpnInstance().iterator();
@@ -187,15 +187,15 @@ public final class InsConstructionUtil {
      * @param obj network instances object
      * @return driver VPN instance's devices
      */
-    private static org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225
+    private static org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225
             .nel3vpnapi.DefaultDevices getDriverDevices(String id,
                                                         NetworkInstances obj) {
 
-        org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.
-                DefaultDevices devices = new org.onosproject.yang.gen.v1.ne
-                .l3vpn.api.rev20141225.nel3vpnapi.DefaultDevices();
-        org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices
-                .Device device = new org.onosproject.yang.gen.v1.ne.l3vpn.api
+        org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.
+                DefaultDevices devices = new org.onosproject.yang.gen.v1
+                .nel3vpnapi.rev20141225.nel3vpnapi.DefaultDevices();
+        org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices
+                .Device device = new org.onosproject.yang.gen.v1.nel3vpnapi
                 .rev20141225.nel3vpnapi.devices.DefaultDevice();
 
         L3Vpn l3Vpn = new DefaultL3Vpn();
@@ -203,7 +203,7 @@ public final class InsConstructionUtil {
         L3VpnInstances instances = new DefaultL3VpnInstances();
         L3VpnInstance ins = new DefaultL3VpnInstance();
         List<L3VpnInstance> insList = new LinkedList<>();
-        List<org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi
+        List<org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi
                 .devices.Device> devList = new LinkedList<>();
 
         createDriIns(obj, ins);
@@ -296,9 +296,8 @@ public final class InsConstructionUtil {
      * @param l3Vpn standard device L3VPN
      * @return driver address family
      */
-    private static VpnInstAfs processL3VpnAf(org.onosproject.yang.gen.v1.urn
-                                                     .ietf.params.xml.ns.yang
-                                                     .ietf.bgp.l3vpn.rev20160909
+    private static VpnInstAfs processL3VpnAf(org.onosproject.yang.gen.v1
+                                                     .ietfbgpl3vpn.rev20160909
                                                      .ietfbgpl3vpn.devices
                                                      .device.networkinstances
                                                      .networkinstance
@@ -477,7 +476,7 @@ public final class InsConstructionUtil {
         DeviceKeys key = new DeviceKeys();
         key.deviceid(id);
         return ModelObjectId.builder()
-                .addChild(org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225
+                .addChild(org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225
                                   .nel3vpnapi.DefaultDevices.class)
                 .addChild(DefaultDevice.class, key);
     }

@@ -20,39 +20,39 @@ import org.onosproject.l3vpn.netl3vpn.FullMeshVpnConfig;
 import org.onosproject.l3vpn.netl3vpn.HubSpokeVpnConfig;
 import org.onosproject.l3vpn.netl3vpn.VpnInstance;
 import org.onosproject.l3vpn.netl3vpn.VpnSiteRole;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.AugmentedNiNetworkInstance;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.DefaultAugmentedNiNetworkInstance;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.augmentedninetworkinstance.DefaultL3Vpn;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.augmentedninetworkinstance.L3Vpn;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.DefaultIpv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.DefaultIpv6;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.Ipv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.Ipv6;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.DefaultUnicast;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.Unicast;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routedistinguisherparams.DefaultRouteDistinguisher;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routedistinguisherparams.RouteDistinguisher;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.DefaultRouteTargets;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.RouteTargets;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.routetargets.Config;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.routetargets.DefaultConfig;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.DefaultRts;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.Rts;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.DefaultNetworkInstances;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.DefaultNetworkInstance;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.NetworkInstance;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.AugmentedNiNetworkInstance;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.DefaultAugmentedNiNetworkInstance;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.augmentedninetworkinstance.DefaultL3Vpn;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.devices.device.networkinstances.networkinstance.augmentedninetworkinstance.L3Vpn;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.DefaultIpv4;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.DefaultIpv6;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.Ipv4;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.Ipv6;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.DefaultUnicast;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv4.Unicast;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routedistinguisherparams.DefaultRouteDistinguisher;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routedistinguisherparams.RouteDistinguisher;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.DefaultRouteTargets;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.RouteTargets;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.routetargets.Config;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetparams.routetargets.DefaultConfig;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.DefaultRts;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.Rts;
+import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.DefaultNetworkInstances;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.DefaultNetworkInstance;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.networkinstances.NetworkInstance;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.onosproject.l3vpn.netl3vpn.VpnType.ANY_TO_ANY;
 import static org.onosproject.l3vpn.netl3vpn.VpnType.HUB;
-import static org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.BOTH;
-import static org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.EXPORT;
-import static org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.IMPORT;
+import static org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.BOTH;
+import static org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.EXPORT;
+import static org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.routetargetset.rts.RtTypeEnum.IMPORT;
 
 /**
  * Representation of utility for instance creation and deletion.
@@ -131,11 +131,10 @@ public final class InsConstructionUtil {
     private static Ipv6 buildIpv6Rt(VpnSiteRole role, VpnInstance vpnIns) {
         RouteTargets rts6 = new DefaultRouteTargets();
         Ipv6 v6 = new DefaultIpv6();
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn
-                .rev20160909.ietfbgpl3vpn.l3vpnvrfparams.ipv6.Unicast uni6 =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                        .ietf.bgp.l3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams
-                        .ipv6.DefaultUnicast();
+        org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn
+                .l3vpnvrfparams.ipv6.Unicast uni6 = new org.onosproject.yang
+                .gen.v1.ietfbgpl3vpn.rev20160909.ietfbgpl3vpn.l3vpnvrfparams
+                .ipv6.DefaultUnicast();
 
         Config configV6 = configRouteTarget(vpnIns, role);
         rts6.config(configV6);
@@ -222,12 +221,11 @@ public final class InsConstructionUtil {
      * @return l3 VPN object
      */
     private static L3Vpn buildRd(VpnInstance vpn) {
-
         String rd = vpn.vpnConfig().rd();
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn
+        org.onosproject.yang.gen.v1.ietfbgpl3vpn
                 .rev20160909.ietfbgpl3vpn.routedistinguisherparams
                 .routedistinguisher.Config config = new org.onosproject.yang
-                .gen.v1.urn.ietf.params.xml.ns.yang.ietf.bgp.l3vpn.rev20160909
+                .gen.v1.ietfbgpl3vpn.rev20160909
                 .ietfbgpl3vpn.routedistinguisherparams.routedistinguisher
                 .DefaultConfig();
         config.rd(rd);
