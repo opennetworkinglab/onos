@@ -32,7 +32,7 @@ public final class DiscreteResourceId extends ResourceId {
     private final ImmutableList<Object> components;
 
     DiscreteResourceId(ImmutableList<Object> components) {
-        this.components = ImmutableList.copyOf(components);
+        this.components = components;
     }
 
     DiscreteResourceId() {

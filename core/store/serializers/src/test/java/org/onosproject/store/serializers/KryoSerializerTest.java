@@ -127,6 +127,21 @@ public class KryoSerializerTest {
     public void tearDown() throws Exception {
     }
 
+    private byte[] serialize(Object object) {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        serializer.encode(object, buffer);
+        buffer.flip();
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        return bytes;
+    }
+
+    private <T> void testBytesEqual(T expected, T actual) {
+        byte[] expectedBytes = serialize(expected);
+        byte[] actualBytes = serialize(actual);
+        assertArrayEquals(expectedBytes, actualBytes);
+    }
+
     private <T> void testSerializedEquals(T original) {
         ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         serializer.encode(original, buffer);
@@ -196,6 +211,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testImmutableList() {
+        testBytesEqual(ImmutableList.of(DID1, DID2), ImmutableList.of(DID1, DID2, DID1, DID2).subList(0, 2));
         testSerializedEquals(ImmutableList.of(DID1, DID2));
         testSerializedEquals(ImmutableList.of(DID1));
         testSerializedEquals(ImmutableList.of());
