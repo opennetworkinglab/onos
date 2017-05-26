@@ -230,36 +230,29 @@ public class NeighborSolicitation extends BasePacket {
             return null;
         }
 
-        /*
-         * Here we craft the Ethernet packet.
-         */
+        // Here we craft the Ethernet packet.
         Ethernet ethernet = new Ethernet();
         ethernet.setEtherType(Ethernet.TYPE_IPV6)
                 .setDestinationMACAddress(destinationMac)
                 .setSourceMACAddress(sourceMac);
         ethernet.setVlanID(vlan.id());
-        /*
-         * IPv6 packet is created.
-         */
+        // IPv6 packet is created.
         IPv6 ipv6 = new IPv6();
         ipv6.setSourceAddress(sourceIp);
         ipv6.setDestinationAddress(destinationIp);
         ipv6.setHopLimit((byte) 255);
-        /*
-         * Create the ICMPv6 packet.
-         */
+        // Create the ICMPv6 packet.
         ICMP6 icmp6 = new ICMP6();
         icmp6.setIcmpType(ICMP6.NEIGHBOR_SOLICITATION);
         icmp6.setIcmpCode((byte) 0);
-        /*
-         * Create the Neighbor Solicitation packet.
-         */
+        // Create the Neighbor Solicitation packet.
         NeighborSolicitation ns = new NeighborSolicitation();
         ns.setTargetAddress(targetIp);
-        ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS, sourceMac);
-        /*
-         * Set the payloads
-         */
+        // DAD packets should not contain SRC_LL_ADDR option
+        if (!Arrays.equals(sourceIp, Ip6Address.ZERO.toOctets())) {
+            ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS, sourceMac);
+        }
+        // Set the payloads
         icmp6.setPayload(ns);
         ipv6.setPayload(icmp6);
         ethernet.setPayload(ipv6);

@@ -19,18 +19,31 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.PacketTestUtils;
+import org.onlab.packet.VlanId;
 
 import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.onlab.packet.ndp.NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS;
 
 /**
  * Tests for class {@link NeighborSolicitation}.
  */
 public class NeighborSolicitationTest {
+    private static final Ip6Address TARGET_IP = Ip6Address.valueOf("2000::1");
+    private static final Ip6Address SRC_IP = Ip6Address.valueOf("2000::f");
+    private static final Ip6Address DST_IP = Ip6Address.valueOf("2000::1");
+    private static final MacAddress SRC_MAC = MacAddress.valueOf("00:00:00:00:00:0f");
+    private static final MacAddress DST_MAC = MacAddress.valueOf("00:00:00:00:00:01");
+    private static final VlanId VLAN_ID = VlanId.NONE;
+
     private static final byte[] TARGET_ADDRESS = {
         (byte) 0x20, (byte) 0x01, (byte) 0x0f, (byte) 0x18,
         (byte) 0x01, (byte) 0x13, (byte) 0x02, (byte) 0x15,
@@ -138,5 +151,38 @@ public class NeighborSolicitationTest {
         String str = ns.toString();
 
         // TODO: need to handle TARGET_ADDRESS and Options
+    }
+
+    /**
+     * Tests regular non-DAD neighbor solicitation.
+     */
+    @Test
+    public void testBuildNdpSolicit() throws Exception {
+        Ethernet ethPacket = NeighborSolicitation.buildNdpSolicit(TARGET_IP.toOctets(),
+                SRC_IP.toOctets(), DST_IP.toOctets(),
+                SRC_MAC.toBytes(), DST_MAC.toBytes(), VLAN_ID);
+        IPv6 ipPacket = (IPv6) ethPacket.getPayload();
+        ICMP6 icmp6Packet = (ICMP6) ipPacket.getPayload();
+        NeighborSolicitation nsPacket = (NeighborSolicitation) icmp6Packet.getPayload();
+
+        assertEquals("Non-DAD NS should have 1 option", 1, nsPacket.getOptions().size());
+        assertEquals("The option should be SRC_LL_ADDR type", TYPE_SOURCE_LL_ADDRESS,
+                nsPacket.getOptions().stream().findFirst().get().type());
+    }
+
+    /**
+     * Tests DAD neighbor solicitation.
+     * Source IP should be all-zero.
+     */
+    @Test
+    public void testBuildNdpSolicitDad() throws Exception {
+        Ethernet ethPacket = NeighborSolicitation.buildNdpSolicit(TARGET_IP.toOctets(),
+                Ip6Address.ZERO.toOctets(), DST_IP.toOctets(),
+                SRC_MAC.toBytes(), DST_MAC.toBytes(), VLAN_ID);
+        IPv6 ipPacket = (IPv6) ethPacket.getPayload();
+        ICMP6 icmp6Packet = (ICMP6) ipPacket.getPayload();
+        NeighborSolicitation nsPacket = (NeighborSolicitation) icmp6Packet.getPayload();
+
+        assertEquals("DAD NS should have no option", 0, nsPacket.getOptions().size());
     }
 }
