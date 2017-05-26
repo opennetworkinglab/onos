@@ -32,6 +32,9 @@
         <command>
             <action class="org.onosproject.ui.impl.topo.cli.UiCacheLinksCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.ui.impl.topo.cli.UiGeoMapListCommand"/>
+        </command>
     </command-bundle>
 
     <!--<bean id="macIDCompleter" class="org.onosproject.dhcp.cli.MacIdCompleter"/>-->
