@@ -39,7 +39,6 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -61,8 +60,6 @@ public class OvsdbDeviceProvider extends AbstractProvider
     protected DeviceProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
 
     private DeviceProviderService providerService;
@@ -79,6 +76,7 @@ public class OvsdbDeviceProvider extends AbstractProvider
 
     @Deactivate
     public void deactivate() {
+        controller.removeNodeListener(innerNodeListener);
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");

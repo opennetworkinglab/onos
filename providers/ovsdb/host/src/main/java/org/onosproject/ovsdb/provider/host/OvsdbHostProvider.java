@@ -42,7 +42,6 @@ import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ovsdb.controller.EventSubject;
@@ -64,8 +63,6 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
     protected HostProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
@@ -82,6 +79,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
 
     @Deactivate
     public void deactivate() {
+        controller.removeOvsdbEventListener(innerEventListener);
         providerRegistry.unregister(this);
         providerService = null;
         log.info("Stopped");
