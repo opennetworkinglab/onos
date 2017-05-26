@@ -15,8 +15,10 @@
  */
 package org.onosproject.cli.net;
 
+import com.google.common.collect.Sets;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.util.Tools;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
@@ -25,15 +27,20 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentEvent;
+import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.ui.UiTopoLayoutService;
-import java.util.EnumSet;
-import java.util.concurrent.CountDownLatch;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import static org.onosproject.net.intent.IntentState.FAILED;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
 /**
@@ -44,9 +51,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 public class WipeOutCommand extends ClustersListCommand {
 
     private static final String PLEASE = "please";
-    private static final EnumSet<IntentState> CAN_PURGE = EnumSet.of(WITHDRAWN, FAILED);
-    @Argument(index = 0, name = "please", description = "Confirmation phrase",
-            required = false, multiValued = false)
+    @Argument(name = "please", description = "Confirmation phrase")
     String please = null;
 
     @Override
@@ -70,21 +75,37 @@ public class WipeOutCommand extends ClustersListCommand {
     private void wipeOutIntents() {
         print("Wiping intents");
         IntentService intentService = get(IntentService.class);
-        final CountDownLatch withdrawLatch;
-        withdrawLatch = new CountDownLatch(1);
-        for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.key()) != IntentState.WITHDRAWN) {
-                intentService.withdraw(intent);
-                try { // wait for withdraw event
-                    withdrawLatch.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    print("Timed out waiting for intent {} withdraw");
-                }
+        Set<Key> keysToWithdrawn = Sets.newConcurrentHashSet();
+        Set<Intent> intentsToWithdrawn = Tools.stream(intentService.getIntents())
+                .filter(intent -> intentService.getIntentState(intent.key()) != WITHDRAWN)
+                .collect(Collectors.toSet());
+        intentsToWithdrawn.stream()
+                .map(Intent::key)
+                .forEach(keysToWithdrawn::add);
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        IntentListener listener = e -> {
+            if (e.type() == IntentEvent.Type.WITHDRAWN) {
+                keysToWithdrawn.remove(e.subject().key());
             }
-            if (CAN_PURGE.contains(intentService.getIntentState(intent.key()))) {
-                intentService.purge(intent);
+            if (keysToWithdrawn.isEmpty()) {
+                completableFuture.complete(null);
             }
+        };
+        intentService.addListener(listener);
+        intentsToWithdrawn.forEach(intentService::withdraw);
+        try {
+            // Wait 1.5 seconds for each Intent
+            completableFuture.get(intentsToWithdrawn.size() * 1500, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            print("Got interrupted exception while withdrawn Intents " + e.toString());
+        } catch (ExecutionException e) {
+            print("Got execution exception while withdrawn Intents " + e.toString());
+        } catch (TimeoutException e) {
+            print("Got timeout exception while withdrawn Intents " + e.toString());
+        } finally {
+            intentService.removeListener(listener);
         }
+        intentsToWithdrawn.forEach(intentService::purge);
     }
 
     private void wipeOutFlows() {
