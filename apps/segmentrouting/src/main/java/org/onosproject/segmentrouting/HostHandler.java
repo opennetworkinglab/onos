@@ -42,8 +42,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 import java.util.Set;
 
-import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
-
 /**
  * Handles host-related events.
  */
@@ -296,16 +294,9 @@ public class HostHandler {
                 mbuilder.matchVlanId(nativeVlan);
                 tbuilder.immediate().popVlan();
             } else {
-                // TODO: This check is turned off for now since vRouter still assumes that
-                // hosts are internally tagged with INTERNAL_VLAN.
-                // We should turn this back on when we move forward to the bridging CPR approach.
-                //
-                //log.warn("Untagged host {}/{} is not allowed on {} without untagged or native vlan",
-                //        mac, hostVlanId, connectPoint);
-                //return null;
-                sbuilder.matchVlanId(INTERNAL_VLAN);
-                mbuilder.matchVlanId(INTERNAL_VLAN);
-                tbuilder.immediate().popVlan();
+                log.warn("Untagged host {}/{} is not allowed on {} without untagged or native" +
+                        "vlan config", mac, hostVlanId, connectPoint);
+                return null;
             }
         } else {
             log.warn("Tagged host {}/{} is not allowed on {} without VLAN listed in tagged vlan",
