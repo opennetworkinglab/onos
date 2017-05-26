@@ -20,15 +20,15 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 
 /**
- * CLI command to list the UiH0osts stored in the ModelCache.
+ * CLI command to list the UiLinks stored in the ModelCache.
  */
-@Command(scope = "onos", name = "ui-cache-hosts",
-        description = "Lists UiHosts in the Model Cache")
-public class ListHosts extends AbstractElementCommand {
+@Command(scope = "onos", name = "ui-cache-links",
+        description = "Lists UiLinks in the Model Cache")
+public class UiCacheLinksCommand extends AbstractUiCacheElementCommand {
 
     @Override
     protected void execute() {
         UiSharedTopologyModel model = get(UiSharedTopologyModel.class);
-        sorted(model.getHosts()).forEach(h -> print("%s", h));
+        sorted(model.getDeviceLinks()).forEach(l -> print("%s", l));
     }
 }

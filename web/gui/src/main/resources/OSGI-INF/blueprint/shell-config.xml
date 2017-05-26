@@ -18,19 +18,19 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.ui.impl.topo.cli.ListMembers"/>
+            <action class="org.onosproject.ui.impl.topo.cli.UiCacheMembersCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.ui.impl.topo.cli.ListRegions"/>
+            <action class="org.onosproject.ui.impl.topo.cli.UiCacheRegionsCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.ui.impl.topo.cli.ListDevices"/>
+            <action class="org.onosproject.ui.impl.topo.cli.UiCacheDevicesCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.ui.impl.topo.cli.ListHosts"/>
+            <action class="org.onosproject.ui.impl.topo.cli.UiCacheHostsCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.ui.impl.topo.cli.ListLinks"/>
+            <action class="org.onosproject.ui.impl.topo.cli.UiCacheLinksCommand"/>
         </command>
     </command-bundle>
 

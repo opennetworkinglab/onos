@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * Base class for model cache CLI commands.
  */
-abstract class AbstractElementCommand extends AbstractShellCommand {
+abstract class AbstractUiCacheElementCommand extends AbstractShellCommand {
 
     /**
      * Built in comparator for elements.
