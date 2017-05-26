@@ -23,24 +23,24 @@ import org.onosproject.l3vpn.netl3vpn.InterfaceInfo;
 import org.onosproject.l3vpn.netl3vpn.NetL3VpnException;
 import org.onosproject.l3vpn.netl3vpn.VpnType;
 import org.onosproject.net.DeviceId;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.DefaultL3VpnSvc;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.SiteRole;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.l3vpnsvc.DefaultSites;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.DefaultDevices;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.Devices;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.DefaultDevice;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.Device;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.DeviceKeys;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.DefaultL3VpnSvc;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.SiteRole;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.l3vpnsvc.DefaultSites;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.DefaultDevices;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.Devices;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.DefaultDevice;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.Device;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.DeviceKeys;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.NetworkInstances;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DefaultModelObjectData;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.model.InnerModelObject;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
-import org.onosproject.yang.model.DefaultResourceData;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -331,18 +331,15 @@ public final class NetL3VpnUtil {
      */
     private static ModelObjectData buildIntModDataDevice(String id,
                                                          Interfaces ifs) {
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces
-                .rev20140508.ietfinterfaces.devices.DeviceKeys keys =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                        .ietf.interfaces.rev20140508.ietfinterfaces.devices
-                        .DeviceKeys();
+        org.onosproject.yang.gen.v1.ietfinterfaces
+                .rev20140508.ietfinterfaces.devices.DeviceKeys keys = new org.
+                onosproject.yang.gen.v1.ietfinterfaces.rev20140508
+                .ietfinterfaces.devices.DeviceKeys();
         keys.deviceid(id);
         ModelObjectId modelId = ModelObjectId.builder()
-                .addChild(org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns
-                                  .yang.ietf.interfaces.rev20140508
+                .addChild(org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508
                                   .ietfinterfaces.DefaultDevices.class)
-                .addChild(org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns
-                                  .yang.ietf.interfaces.rev20140508
+                .addChild(org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508
                                   .ietfinterfaces.devices.DefaultDevice.class,
                           keys)
                 .build();
@@ -412,19 +409,15 @@ public final class NetL3VpnUtil {
      */
     private static ModelObjectData buildIntModDataRoot(String id,
                                                        Interfaces ifs) {
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces
-                .rev20140508.ietfinterfaces.Devices devices =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                        .ietf.interfaces.rev20140508.ietfinterfaces
-                        .DefaultDevices();
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces
-                .rev20140508.ietfinterfaces.devices.Device device =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                        .ietf.interfaces.rev20140508.ietfinterfaces.devices
-                        .DefaultDevice();
-        List<org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf
-                .interfaces.rev20140508.ietfinterfaces.devices
-                .Device> deviceList = new LinkedList<>();
+        org.onosproject.yang.gen.v1.ietfinterfaces
+                .rev20140508.ietfinterfaces.Devices devices = new org
+                .onosproject.yang.gen.v1.ietfinterfaces.rev20140508
+                .ietfinterfaces.DefaultDevices();
+        org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.
+                devices.Device device = new org.onosproject.yang.gen.v1.
+                ietfinterfaces.rev20140508.ietfinterfaces.devices.DefaultDevice();
+        List<org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508
+                .ietfinterfaces.devices.Device> deviceList = new LinkedList<>();
 
         device.deviceid(id);
         device.interfaces(ifs);

@@ -17,29 +17,29 @@
 package org.onosproject.l3vpn.netl3vpn.impl;
 
 import org.onosproject.l3vpn.netl3vpn.NetL3VpnException;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.Ipv4Address;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.Ipv4AddressNoZone;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.Ipv6Address;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev20130715.ietfinettypes.Ipv6AddressNoZone;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.DefaultInterfaces;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.interfaces.DefaultYangAutoPrefixInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.interfaces.YangAutoPrefixInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.AugmentedIfInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.DefaultAugmentedIfInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.DefaultIpv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.DefaultIpv6;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv6;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.Address;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.DefaultAddress;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.Subnet;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.subnet.DefaultPrefixLength;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv4.AugmentedIpIpv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv4.DefaultAugmentedIpIpv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv6.AugmentedIpIpv6;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv6.DefaultAugmentedIpIpv6;
+import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.Ipv4Address;
+import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.Ipv4AddressNoZone;
+import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.Ipv6Address;
+import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.ietfinettypes.Ipv6AddressNoZone;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.DefaultInterfaces;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.interfaces.DefaultYangAutoPrefixInterface;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.interfaces.YangAutoPrefixInterface;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.AugmentedIfInterface;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.DefaultAugmentedIfInterface;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.DefaultIpv4;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.DefaultIpv6;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv4;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv6;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.Address;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.DefaultAddress;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.Subnet;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.subnet.DefaultPrefixLength;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv4.AugmentedIpIpv4;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv4.DefaultAugmentedIpIpv4;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv6.AugmentedIpIpv6;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.ipv6.DefaultAugmentedIpIpv6;
 import org.onosproject.yang.model.InnerModelObject;
 
 import java.util.LinkedList;
@@ -88,13 +88,12 @@ public final class IntConstructionUtil {
                                                           String pName,
                                                           IpConnection connect) {
         // Bind vpn name in the augmented info of interface.
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network
-                .instance.rev20160623.ietfnetworkinstance.devices.device
-                .interfaces.yangautoprefixinterface.AugmentedIfInterface augIf =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                        .ietf.network.instance.rev20160623.ietfnetworkinstance
-                        .devices.device.interfaces.yangautoprefixinterface
-                        .DefaultAugmentedIfInterface();
+        org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623
+                .ietfnetworkinstance.devices.device.interfaces
+                .yangautoprefixinterface.AugmentedIfInterface augIf = new org
+                .onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623
+                .ietfnetworkinstance.devices.device.interfaces
+                .yangautoprefixinterface.DefaultAugmentedIfInterface();
         augIf.bindNetworkInstanceName(vpnName);
 
         // Bind ip address to the interface as augmented info.
@@ -119,15 +118,14 @@ public final class IntConstructionUtil {
      */
     private static Ipv6 getIpv6Aug(String vpnName, short mask, String ipv6Add) {
         AugmentedIpIpv6 augIpv6 = new DefaultAugmentedIpIpv6();
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip
+        org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device
+                .interfaces.yangautoprefixinterface.augmentedifinterface.ipv6
+                .Address add = new org.onosproject.yang.gen.v1.ietfip
                 .rev20140616.ietfip.devices.device.interfaces
-                .yangautoprefixinterface.augmentedifinterface.ipv6.Address add =
-                new org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf
-                        .ip.rev20140616.ietfip.devices.device.interfaces
-                        .yangautoprefixinterface.augmentedifinterface.ipv6
-                        .DefaultAddress();
+                .yangautoprefixinterface.augmentedifinterface.ipv6
+                .DefaultAddress();
         Ipv6 ipv6 = new DefaultIpv6();
-        List<org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip
+        List<org.onosproject.yang.gen.v1.ietfip
                 .rev20140616.ietfip.devices.device.interfaces
                 .yangautoprefixinterface.augmentedifinterface.ipv6
                 .Address> addList = new LinkedList<>();

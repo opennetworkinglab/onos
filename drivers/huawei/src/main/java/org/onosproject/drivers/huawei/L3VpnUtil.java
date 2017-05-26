@@ -16,7 +16,7 @@
 
 package org.onosproject.drivers.huawei;
 
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.DeviceKeys;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.DeviceKeys;
 import org.onosproject.yang.model.KeyInfo;
 
 /**

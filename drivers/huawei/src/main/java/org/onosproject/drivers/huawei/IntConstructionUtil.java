@@ -16,26 +16,26 @@
 
 package org.onosproject.drivers.huawei;
 
-import org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.Ipv4Address;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.DeviceKeys;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.DefaultL3Vpn;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.DefaultL3Vpncomm;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.DefaultL3VpnInstances;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.DefaultL3VpnInstance;
-import org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstanceKeys;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.DefaultL3VpnIfs;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.L3VpnIfs;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.DefaultL3VpnIf;
-import org.onosproject.yang.gen.v1.ne.l3vpn.comm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.L3VpnIf;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.DefaultDevices;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.Device;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.interfaces.DefaultYangAutoPrefixInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.interfaces.rev20140508.ietfinterfaces.devices.device.interfaces.YangAutoPrefixInterface;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv4;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.Address;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.subnet.PrefixLength;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.network.instance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.DefaultAugmentedIfInterface;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.DefaultDevices;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.Device;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.Interfaces;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.interfaces.DefaultYangAutoPrefixInterface;
+import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.ietfinterfaces.devices.device.interfaces.YangAutoPrefixInterface;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.Ipv4;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.Address;
+import org.onosproject.yang.gen.v1.ietfip.rev20140616.ietfip.devices.device.interfaces.yangautoprefixinterface.augmentedifinterface.ipv4.address.subnet.PrefixLength;
+import org.onosproject.yang.gen.v1.ietfnetworkinstance.rev20160623.ietfnetworkinstance.devices.device.interfaces.yangautoprefixinterface.DefaultAugmentedIfInterface;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.DeviceKeys;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.DefaultL3Vpn;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.DefaultL3Vpncomm;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.DefaultL3VpnInstances;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.DefaultL3VpnInstance;
+import org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225.nel3vpnapi.devices.device.l3vpn.l3vpncomm.l3vpninstances.L3VpnInstanceKeys;
+import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.nel3vpncomm.l3vpnifs.DefaultL3VpnIfs;
+import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.nel3vpncomm.l3vpnifs.L3VpnIfs;
+import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.DefaultL3VpnIf;
+import org.onosproject.yang.gen.v1.nel3vpncomm.rev20141225.nel3vpncomm.l3vpnifs.l3vpnifs.L3VpnIf;
+import org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.nel3vpncommtype.Ipv4Address;
 import org.onosproject.yang.model.InnerModelObject;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -51,7 +51,7 @@ import static org.onosproject.drivers.huawei.DriverUtil.OBJECT_NULL;
 import static org.onosproject.drivers.huawei.DriverUtil.getData;
 import static org.onosproject.drivers.huawei.DriverUtil.getIdFromModId;
 import static org.onosproject.drivers.huawei.DriverUtil.getObjFromModData;
-import static org.onosproject.yang.gen.v1.l3vpn.comm.type.rev20141225.nel3vpncommtype.Ipv4Address.fromString;
+import static org.onosproject.yang.gen.v1.nel3vpncommtype.rev20141225.nel3vpncommtype.Ipv4Address.fromString;
 
 /**
  * Representation of utility for interface creation and deletion.
@@ -132,11 +132,10 @@ public final class IntConstructionUtil {
         L3VpnInstanceKeys insKey = new L3VpnInstanceKeys();
         insKey.vrfName(vpnName);
         return ModelObjectId.builder()
-                .addChild(org.onosproject.yang.gen.v1.ne.l3vpn.api.rev20141225
+                .addChild(org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225
                                   .nel3vpnapi.DefaultDevices.class)
-                .addChild(org.onosproject.yang.gen.v1.ne.l3vpn.api
-                                  .rev20141225.nel3vpnapi.devices
-                                  .DefaultDevice.class, key)
+                .addChild(org.onosproject.yang.gen.v1.nel3vpnapi.rev20141225
+                                  .nel3vpnapi.devices.DefaultDevice.class, key)
                 .addChild(DefaultL3Vpn.class)
                 .addChild(DefaultL3Vpncomm.class)
                 .addChild(DefaultL3VpnInstances.class)
@@ -154,13 +153,13 @@ public final class IntConstructionUtil {
         L3VpnIf l3VpnIf = new DefaultL3VpnIf();
         List<L3VpnIf> l3VpnIfList = new LinkedList<>();
         l3VpnIf.ifName(ifs.name());
-        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.ip
+        org.onosproject.yang.gen.v1.ietfip
                 .rev20140616.ietfip.devices.device.interfaces
                 .yangautoprefixinterface.DefaultAugmentedIfInterface ipAug =
                 ((DefaultYangAutoPrefixInterface) ifs).augmentation(
-                        org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang
-                                .ietf.ip.rev20140616.ietfip.devices.device
-                                .interfaces.yangautoprefixinterface
+                        org.onosproject.yang.gen.v1.ietfip.rev20140616
+                                .ietfip.devices.device.interfaces
+                                .yangautoprefixinterface
                                 .DefaultAugmentedIfInterface.class);
 
         if (ipAug != null && ipAug.ipv4() != null) {

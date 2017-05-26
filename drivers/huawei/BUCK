@@ -31,19 +31,18 @@ TEST_DEPS = [
     '//utils/osgi:onlab-osgi-tests',
 ]
 
-#Removed until this app builds with onos-yang-tools 2.1
-#osgi_jar_with_tests(
-#    deps = COMPILE_DEPS,
-#    test_deps = TEST_DEPS,
-#    resources_root = 'src/main/resources',
-#    resources = glob(['src/main/resources/**']),
-#)
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
 
-#onos_app(
-#    app_name = 'org.onosproject.drivers.huawei',
-#    title = 'Huawei Device Drivers',
-#    category = 'Drivers',
-#    url = 'http://onosproject.org',
-#    description = 'ONOS Huawei Device Drivers application.',
-#    required_apps = APPS
-#)
+onos_app(
+    app_name = 'org.onosproject.drivers.huawei',
+    title = 'Huawei Device Drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS Huawei Device Drivers application.',
+    required_apps = APPS
+)

@@ -22,9 +22,9 @@ import org.onosproject.l3vpn.netl3vpn.DeviceInfo;
 import org.onosproject.l3vpn.netl3vpn.NetL3VpnException;
 import org.onosproject.l3vpn.netl3vpn.ProtocolInfo;
 import org.onosproject.l3vpn.netl3vpn.RouteProtocol;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.RoutingProtocolType;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
-import org.onosproject.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.l3vpn.svc.rev20160730.ietfl3vpnsvc.siterouting.routingprotocols.RoutingProtocol;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.RoutingProtocolType;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.siteattachmentipconnection.IpConnection;
+import org.onosproject.yang.gen.v1.ietfl3vpnsvc.rev20160730.ietfl3vpnsvc.siterouting.routingprotocols.RoutingProtocol;
 
 import java.util.List;
 import java.util.Map;
