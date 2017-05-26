@@ -8,13 +8,13 @@
 
 # If the BUCK-built bits are newer than the Maven-built bits, use the former.
 BUCK_TAR=$ONOS_ROOT/buck-out/gen/tools/package/onos-package/onos.tar.gz
-if [ -f $BUCK_TAR -a $BUCK_TAR -nt $ONOS_TAR ]; then
-    rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
+if [ -f $BUCK_TAR ] && [ $BUCK_TAR -nt $ONOS_TAR ]; then
+  rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
 fi
 
 ls -lL $ONOS_TAR  && cksum $ONOS_TAR
 if [ $? -ne 0 ]; then
-   echo "ONOS archive is unreadable" && exit 1
+  echo "ONOS archive is unreadable" && exit 1
 fi
 
 tar tzf ${ONOS_TAR} >/dev/null
@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
   echo "ONOS archive is not a valid tar file" && exit 1
 fi
 
-tar tzf ${ONOS_TAR} | grep -q onos-${ONOS_POM_VERSION}.*/VERSION
+tar tzf ${ONOS_TAR} | grep -q "onos-${ONOS_POM_VERSION}.*/VERSION"
 if [ $? -ne 0 ]; then
   echo "ONOS archive does not contain the proper version file" && exit 1
 fi
