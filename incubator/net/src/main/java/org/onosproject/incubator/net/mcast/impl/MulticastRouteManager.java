@@ -63,6 +63,7 @@ public class MulticastRouteManager
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(McastEvent.class);
         log.info("Stopped");
     }
