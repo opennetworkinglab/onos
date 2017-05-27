@@ -217,6 +217,10 @@ public class DistributedVplsStore
                     }
                     break;
                 case REMOVE:
+                    if (vplsData == null) {
+                        vplsData = VplsData.of(event.key());
+                    }
+                    vplsData.state(VplsData.VplsState.REMOVING);
                     VplsStoreEvent vplsStoreEvent =
                             new VplsStoreEvent(VplsStoreEvent.Type.REMOVE, vplsData);
                     notifyDelegate(vplsStoreEvent);

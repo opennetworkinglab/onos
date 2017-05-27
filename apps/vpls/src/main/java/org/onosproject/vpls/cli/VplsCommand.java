@@ -15,6 +15,7 @@
  */
 package org.onosproject.vpls.cli;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -23,6 +24,7 @@ import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.api.Vpls;
+import org.onosproject.vpls.api.VplsData.VplsState;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.vpls.api.VplsData.VplsState.*;
 
 
 /**
@@ -39,6 +42,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Command(scope = "onos", name = "vpls",
         description = "Manages the VPLS application")
 public class VplsCommand extends AbstractShellCommand {
+    private static final Set<VplsState> CHANGING_STATE =
+            ImmutableSet.of(ADDING, REMOVING, UPDATING);
 
     // Color codes and style
     private static final String BOLD = "\u001B[1m";
@@ -180,6 +185,11 @@ public class VplsCommand extends AbstractShellCommand {
             print(VPLS_NOT_FOUND, vplsName);
             return;
         }
+        if (CHANGING_STATE.contains(vplsData.state())) {
+            // when a VPLS is updating, we shouldn't try modify it.
+            print("VPLS %s still updating, please wait it finished", vplsData.name());
+            return;
+        }
         if (iface == null) {
             print(IFACE_NOT_FOUND, ifaceName);
             return;
@@ -225,6 +235,11 @@ public class VplsCommand extends AbstractShellCommand {
             print(VPLS_NOT_FOUND, vplsName);
             return;
         }
+        if (CHANGING_STATE.contains(vplsData.state())) {
+            // when a VPLS is updating, we shouldn't try modify it.
+            print("VPLS %s still updating, please wait it finished", vplsData.name());
+            return;
+        }
         vpls.removeVpls(vplsData);
     }
 
@@ -261,6 +276,11 @@ public class VplsCommand extends AbstractShellCommand {
         Interface iface = getInterface(ifaceName);
         if (vplsData == null) {
             print(VPLS_NOT_FOUND, vplsName);
+            return;
+        }
+        if (CHANGING_STATE.contains(vplsData.state())) {
+            // when a VPLS is updating, we shouldn't try modify it.
+            print("VPLS %s still updating, please wait it finished", vplsData.name());
             return;
         }
         if (iface == null) {

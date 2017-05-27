@@ -103,7 +103,8 @@ public class VplsManager implements Vpls {
     @Override
     public VplsData removeVpls(VplsData vplsData) {
         requireNonNull(vplsData);
-        vplsData.state(VplsData.VplsState.REMOVING);
+        VplsData newData = VplsData.of(vplsData);
+        newData.state(VplsData.VplsState.REMOVING);
         vplsStore.removeVpls(vplsData);
         return vplsData;
     }
@@ -112,28 +113,31 @@ public class VplsManager implements Vpls {
     public void addInterfaces(VplsData vplsData, Collection<Interface> interfaces) {
         requireNonNull(vplsData);
         requireNonNull(interfaces);
-        vplsData.addInterfaces(interfaces);
-        updateVplsStatus(vplsData, VplsData.VplsState.UPDATING);
+        VplsData newData = VplsData.of(vplsData);
+        newData.addInterfaces(interfaces);
+        updateVplsStatus(newData, VplsData.VplsState.UPDATING);
     }
 
     @Override
     public void addInterface(VplsData vplsData, Interface iface) {
         requireNonNull(vplsData);
         requireNonNull(iface);
-        vplsData.addInterface(iface);
-        updateVplsStatus(vplsData, VplsData.VplsState.UPDATING);
+        VplsData newData = VplsData.of(vplsData);
+        newData.addInterface(iface);
+        updateVplsStatus(newData, VplsData.VplsState.UPDATING);
     }
 
     @Override
     public void setEncapsulationType(VplsData vplsData, EncapsulationType encapsulationType) {
         requireNonNull(vplsData);
         requireNonNull(encapsulationType);
-        if (vplsData.encapsulationType().equals(encapsulationType)) {
+        VplsData newData = VplsData.of(vplsData);
+        if (newData.encapsulationType().equals(encapsulationType)) {
             // Encap type not changed.
             return;
         }
-        vplsData.encapsulationType(encapsulationType);
-        updateVplsStatus(vplsData, VplsData.VplsState.UPDATING);
+        newData.encapsulationType(encapsulationType);
+        updateVplsStatus(newData, VplsData.VplsState.UPDATING);
     }
 
     @Override
@@ -146,8 +150,9 @@ public class VplsManager implements Vpls {
     public Collection<Interface> removeInterfaces(VplsData vplsData, Collection<Interface> interfaces) {
         requireNonNull(vplsData);
         requireNonNull(interfaces);
-        vplsData.removeInterfaces(interfaces);
-        updateVplsStatus(vplsData, VplsData.VplsState.UPDATING);
+        VplsData newData = VplsData.of(vplsData);
+        newData.removeInterfaces(interfaces);
+        updateVplsStatus(newData, VplsData.VplsState.UPDATING);
         return interfaces;
     }
 
@@ -155,8 +160,9 @@ public class VplsManager implements Vpls {
     public Interface removeInterface(VplsData vplsData, Interface iface) {
         requireNonNull(vplsData);
         requireNonNull(iface);
-        vplsData.removeInterface(iface);
-        updateVplsStatus(vplsData, VplsData.VplsState.UPDATING);
+        VplsData newData = VplsData.of(vplsData);
+        newData.removeInterface(iface);
+        updateVplsStatus(newData, VplsData.VplsState.UPDATING);
         return iface;
     }
 
