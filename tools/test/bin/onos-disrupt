@@ -1,0 +1,339 @@
+#!/bin/bash
+# ---------------------------------
+# Disrupts links between ONOS nodes
+# ---------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+function print_usage {
+    command_name=`basename $0`
+    echo "Disrupts links between ONOS nodes."
+    echo
+    echo "Usage:     $command_name [<HOST>] <COMMAND> <ARGS>"
+    echo
+    echo "Options:"
+    echo "    HOST             The host on which to run the command"
+    echo "    COMMAND          The command to run"
+    echo "    ARGS             The command arguments"
+    echo "    [-h | --help]   Print this help"
+    echo
+    echo "COMMAND:  <crash | partition | partition-halves | partition-bridge | heal | delay | drop | reorder | duplicate | corrupt | restore>"
+    echo
+    echo "               crash    Crashes the given host using \"kill -9\""
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name <HOST> crash"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name 10.127.10.111 crash"
+    echo
+    echo "           partition    Partitions the given host from a list of source host or all ONOS hosts if no sources are specified"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name <HOST> partition [<SOURCE> [<SOURCE>...]]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name 10.127.10.111 partition"
+    echo "                            $command_name 10.127.10.111 partition 10.127.10.111"
+    echo "                            $command_name 10.127.10.111 partition 10.127.10.112 10.127.10.113"
+    echo
+    echo "    partition-halves    Splits the cluster into two partitions - this is only recommended for clusters with an odd number of nodes"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name partition-halves"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name partition-halves"
+    echo
+    echo "    partition-bridge    Creates a bridge partition where the cluster is partitioned into two halves and the target host is connected to both halves"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name <HOST> bridge"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name 10.127.10.111 bridge"
+    echo
+    echo "                heal    Heals a partition on the given host"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] heal"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name heal"
+    echo "                            $command_name 10.127.10.111 heal"
+    echo
+    echo "               delay    Delays packets incoming to the given host by an optional LATENCY, JITTER, CORRELATION, and DISTRIBUTION"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] delay [<LATENCY> [<JITTER> [<CORRELATION> [<DISTRIBUTION>]]]]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name delay"
+    echo "                            $command_name delay 50ms"
+    echo "                            $command_name delay 50ms 10ms"
+    echo "                            $command_name delay 50ms 10ms 75%"
+    echo "                            $command_name delay 50ms 10ms 75% normal"
+    echo "                            $command_name 10.127.10.111 delay"
+    echo "                            $command_name 10.127.10.111 delay 50ms"
+    echo "                            $command_name 10.127.10.111 delay 50ms 10ms"
+    echo "                            $command_name 10.127.10.111 delay 50ms 10ms 75%"
+    echo "                            $command_name 10.127.10.111 delay 50ms 10ms 75% normal"
+    echo
+    echo "                drop    Drops packets incoming to the given host by an optional PROBABILITY and CORRELATION"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] drop [<PROBABILITY> [<CORRELATION>]]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name drop"
+    echo "                            $command_name drop 2%"
+    echo "                            $command_name drop 2% 25%"
+    echo "                            $command_name 10.127.10.111 drop"
+    echo "                            $command_name 10.127.10.111 drop 2%"
+    echo "                            $command_name 10.127.10.111 drop 2% 25%"
+    echo
+    echo "             reorder    Reorders packets incoming to the given host by an optional PROBABILITY and CORRELATION"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] reorder [<PROBABILITY> [<CORRELATION>]]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name reorder"
+    echo "                            $command_name reorder 2%"
+    echo "                            $command_name reorder 2% 50%"
+    echo "                            $command_name 10.127.10.111 reorder"
+    echo "                            $command_name 10.127.10.111 reorder 2%"
+    echo "                            $command_name 10.127.10.111 reorder 2% 50%"
+    echo
+    echo "           duplicate    Duplicates packets incoming to the given host by an optional PROBABILITY and CORRELATION"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] duplicate [<PROBABILITY> [<CORRELATION>]]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name duplicate"
+    echo "                            $command_name duplicate 0.5%"
+    echo "                            $command_name duplicate 0.5% 5%"
+    echo "                            $command_name 10.127.10.111 duplicate"
+    echo "                            $command_name 10.127.10.111 duplicate 0.5%"
+    echo "                            $command_name 10.127.10.111 duplicate 0.5% 5%"
+    echo
+    echo "             corrupt    Corrupts packets incoming to the given host by an optional PROBABILITY"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] corrupt [<PROBABILITY>]"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name corrupt"
+    echo "                            $command_name corrupt 0.1%"
+    echo "                            $command_name 10.127.10.111 corrupt"
+    echo "                            $command_name 10.127.10.111 corrupt 0.1%"
+    echo
+    echo "             restore    Restores the given host from all delay/drop/reorder/duplicate/corrupt states"
+    echo
+    echo "                        Syntax:"
+    echo "                            $command_name [<HOST>] restore"
+    echo
+    echo "                        Examples:"
+    echo "                            $command_name restore"
+    echo "                            $command_name 10.127.10.111 restore"
+    echo
+}
+
+# Print usage
+if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
+    print_usage
+    exit 0
+fi
+
+# Converts an argument into a milliseconds string unless it's already in the correct format.
+function to_millis() {
+    if [[ ${1: -2} != "ms" ]]; then
+        echo "${1}ms"
+    else
+        echo ${1}
+    fi
+}
+
+function onos_nodes() {
+    echo $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+}
+
+function partition() {
+    local=${1}
+    remote=${2}
+    echo "Severing link ${remote}->${local}"
+    ssh $ONOS_USER@${local} "sudo iptables -A INPUT -s ${remote} -j DROP -w"
+}
+
+function heal() {
+    local=${1}
+    remote=${2}
+    echo "Restoring link ${remote}->${local}"
+    ssh $ONOS_USER@${local} "sudo iptables -D INPUT -s ${remote} -j DROP -w" &>/dev/null
+}
+
+function delay() {
+    host=${1}
+    latency=$(to_millis ${2:-"50ms"})
+    jitter=$(to_millis ${3:-"10ms"})
+    correlation=${4:-"75%"}
+    distribution=${5:-"normal"}
+    echo "Delaying packets for ${host} (latency: ${latency}, jitter: ${jitter}, correlation: ${correlation}, distribution: ${distribution})"
+    ssh $ONOS_USER@${host} "sudo tc qdisc add dev eth0 root netem delay ${latency} ${jitter} ${correlation} distribution ${distribution}"
+}
+
+function drop() {
+    host=${1}
+    probability=${2:-"2%"}
+    correlation=${3:-"25%"}
+    echo "Dropping packets for ${host} (probability: ${probability}, correlation: ${correlation})"
+    ssh $ONOS_USER@${host} "sudo tc qdisc add dev eth0 root netem loss ${probability} ${correlation}"
+}
+
+function reorder() {
+    host=${1}
+    probability=${2:-"2%"}
+    correlation=${3:-"50%"}
+    echo "Reordering packets for ${host} (probability: ${probability}, correlation: ${correlation})"
+    ssh $ONOS_USER@${host} "sudo tc qdisc add dev eth0 root netem reorder ${probability} ${correlation}"
+}
+
+function duplicate() {
+    host=${1}
+    probability=${2:-"0.5%"}
+    correlation=${3:-"5%"}
+    echo "Duplicating packets for ${host} (probability: ${probability}, correlation: ${correlation})"
+    ssh $ONOS_USER@${host} "sudo tc qdisc add dev eth0 root netem duplicate ${probability} ${correlation}"
+}
+
+function corrupt() {
+    host=${1}
+    probability=${2:-"0.1%"}
+    echo "Corrupting packets for ${host} (probability: ${probability})"
+    ssh $ONOS_USER@${host} "sudo tc qdisc add dev eth0 root netem corrupt ${probability}"
+}
+
+function restore() {
+    host=${1}
+    echo "Restoring packets for ${host}"
+    ssh $ONOS_USER@${host} "sudo tc qdisc del dev eth0 root" &>/dev/null
+}
+
+cmd=${1} && shift
+
+case $cmd in
+
+# Partitions the cluster into two halves.
+partition-halves)
+    # Get the list of ONOS nodes.
+    nodes=($(onos_nodes))
+
+    # Use a nested loop to split the network into two halves using index mod 2.
+    for i in "${!nodes[@]}"; do
+        if [[ $((i % 2)) == 0 ]]; then
+            for j in "${!nodes[@]}"; do
+                if [[ $i != $j ]] && [[ $((j % 2)) == 1 ]]; then
+                    partition ${nodes[i]} ${nodes[j]}
+                    partition ${nodes[j]} ${nodes[i]}
+                fi
+            done
+        fi
+    done
+    ;;
+
+# Heals all partitions on all nodes.
+heal)
+    # Get the list of ONOS nodes and heal partitions between each node in both directions.
+    nodes=$(onos_nodes)
+    for lnode in ${nodes}; do
+        for rnode in ${nodes}; do
+            if [[ ${lnode} != ${rnode} ]]; then
+                heal ${lnode} ${rnode}
+            fi
+        done
+    done
+    ;;
+
+*)
+    # If a function with the command name exists, iterate through all ONOS nodes and call the function for each node.
+    if [ -n "$(type -t $cmd)" ] && [ "$(type -t $cmd)" = function ]; then
+        nodes=$(onos_nodes)
+        for node in ${nodes}; do
+            ${cmd} ${node} "${@}"
+        done
+        exit 0
+    fi
+
+    host=$cmd
+    cmd="$1" && shift
+
+    case $cmd in
+
+    # Kills a node.
+    crash)
+        onos-kill "${host}"
+        ;;
+
+    # Creates a partition between the source node and a set of destination nodes.
+    partition)
+
+        # Default to ONOS nodes.
+        if [ -z "${1}" ]; then
+            nodes=$(onos_nodes)
+        else
+            nodes="${*}"
+        fi
+
+        # Iterate through all provided nodes and create partitions.
+        for node in $nodes; do
+            partition ${host} ${node}
+        done
+        ;;
+
+    # Splits the cluster into two halves, preserving the provided host as a bridge between the two halves.
+    partition-bridge)
+
+        # Get the list of ONOS nodes.
+        nodes=($(onos_nodes))
+
+        # Use a nested loop and split the network into two halves using index mod 2. Exclude
+        # the indicated host to ensure it can communicate with both sides of the partition.
+        for i in "${!nodes[@]}"; do
+            if [[ $((i % 2)) == 0 ]] && [[ ${nodes[i]} != ${host} ]]; then
+                for j in "${!nodes[@]}"; do
+                    if [[ $i != $j ]] && [[ $((j % 2)) == 1 ]] && [[ ${nodes[j]} != ${host} ]]; then
+                        partition ${nodes[i]} ${nodes[j]}
+                        partition ${nodes[j]} ${nodes[i]}
+                    fi
+                done
+            fi
+        done
+        ;;
+
+    # Heals a partition between the provided host and a set of ONOS nodes.
+    heal)
+
+        # Default to ONOS nodes.
+        if [ -z "${1}" ]; then
+            nodes=$(onos_nodes)
+        else
+            nodes="${*}"
+        fi
+
+        # Iterate through all provided nodes and heal partitions.
+        for node in $nodes; do
+            heal ${host} ${node}
+        done
+        ;;
+
+    # If we made it this far, use the command name variable to call the associated function.
+    *)
+        ${cmd} ${host} "${@}"
+        ;;
+
+    esac
+    ;;
+
+esac
