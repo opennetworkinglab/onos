@@ -471,6 +471,7 @@ public abstract class VplsTest {
         @Override
         public VplsData createVpls(String vplsName, EncapsulationType encapsulationType) {
             VplsData vplsData = VplsData.of(vplsName, encapsulationType);
+            vplsData.state(VplsData.VplsState.ADDED);
             testData.put(vplsName, vplsData);
             return vplsData;
         }
