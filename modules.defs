@@ -96,6 +96,7 @@ ONOS_DRIVERS = [
     '//drivers/fujitsu:onos-drivers-fujitsu-oar',
     '//drivers/lumentum:onos-drivers-lumentum-oar',
     '//drivers/netconf:onos-drivers-netconf-oar',
+    '//drivers/server:onos-drivers-server-oar',
     '//drivers/optical:onos-drivers-optical-oar',
     '//drivers/ovsdb:onos-drivers-ovsdb-oar',
     '//drivers/juniper:onos-drivers-juniper-oar',

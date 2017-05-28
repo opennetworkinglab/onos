@@ -1,0 +1,39 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:javax.ws.rs-api',
+    '//incubator/api:onos-incubator-api',
+    '//utils/rest:onlab-rest',
+    '//protocols/rest/api:onos-protocols-rest-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+]
+
+BUNDLES = [
+    ':onos-drivers-server',
+]
+
+REQUIRED_APPS = [
+    'org.onosproject.restsb',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.server',
+    title = 'Server Device Drivers',
+    category = 'Drivers',
+    origin = 'KTH Royal Institute of Technology &amp; RISE SICS',
+    url = 'https://github.com/gkatsikas/onos/tree/metron-driver',
+    description = 'ONOS southbound drivers for commodity servers',
+    included_bundles = BUNDLES,
+    required_apps = REQUIRED_APPS,
+)

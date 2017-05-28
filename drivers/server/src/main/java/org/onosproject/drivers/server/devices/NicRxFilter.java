@@ -1,0 +1,119 @@
+/*
+ * Copyright 2017-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.onosproject.drivers.server.devices;
+
+import org.apache.commons.lang.ArrayUtils;
+import com.google.common.base.MoreObjects;
+
+import java.util.Set;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * Filtering mechanisms supported by a NIC device.
+ */
+public class NicRxFilter {
+
+    /**
+     * Supported Rx filters.
+     */
+    public enum RxFilter {
+        VLAN("vlan"),
+        MAC("mac"),
+        MPLS("mpls");
+
+        private String rxFilter;
+
+        // Statically maps primitives with enum types
+        private static final Map<String, RxFilter> MAP = new HashMap<String, RxFilter>();
+        static {
+            for (RxFilter rxFilter : RxFilter.values()) {
+                MAP.put(rxFilter.toString(), rxFilter);
+            }
+        }
+
+        public static RxFilter getByName(String rxFilter) {
+            return MAP.get(rxFilter.toLowerCase());
+        }
+
+        public static boolean isSupported(RxFilter rxFilter) {
+            return MAP.containsKey(rxFilter.toString());
+        }
+
+        private RxFilter(String rxFilter) {
+            this.rxFilter = rxFilter;
+        }
+
+        @Override
+        public String toString() {
+            return this.rxFilter;
+        }
+    }
+
+    private Set<RxFilter> rxFilters;
+
+    public NicRxFilter() {
+        this.rxFilters = new HashSet<RxFilter>();
+    }
+
+    public NicRxFilter(RxFilter rxFilter) {
+        checkNotNull(rxFilter, "NIC Rx filter is NULL");
+
+        if (!ArrayUtils.contains(RxFilter.values(), rxFilter)) {
+            throw new IllegalArgumentException(String.valueOf(rxFilter));
+        }
+
+        this.rxFilters = new HashSet<RxFilter>();
+        rxFilters.add(rxFilter);
+    }
+
+    public NicRxFilter(NicRxFilter other) {
+        checkNotNull(other, "NIC Rx filter mechanism is NULL");
+        this.rxFilters = new HashSet<RxFilter>(other.rxFilters);
+    }
+
+    /**
+     * Returns the set of Rx filters supported by this NIC.
+     *
+     * @return set of supported Rx filters
+     */
+    public Set<RxFilter> rxFilters() {
+        return this.rxFilters;
+    }
+
+    /**
+     * Adds a new Rx filter to this NIC.
+     *
+     * @param rxFilter an Rx filter to be added
+     */
+    public void addRxFilter(RxFilter rxFilter) {
+        checkNotNull(rxFilter, "NIC Rx filter is NULL");
+        this.rxFilters.add(rxFilter);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .omitNullValues()
+                .add("rxFilters", rxFilters)
+                .toString();
+    }
+
+}

@@ -36,6 +36,7 @@
         <module>fujitsu</module>
         <module>cisco</module>
         <module>netconf</module>
+        <module>server</module>
         <module>ovsdb</module>
         <module>utilities</module>
         <module>lumentum</module>

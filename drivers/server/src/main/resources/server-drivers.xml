@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2017-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<drivers>
+    <driver name="restServer" extends="default" manufacturer="GenuineIntel" hwVersion="Intel(R) Xeon(R) CPU E5-2667 v3 @ 3.20GHz" swVersion="Click 2.1">
+        <behaviour api="org.onosproject.net.behaviour.DevicesDiscovery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
+        <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
+                   impl="org.onosproject.drivers.server.ServerControllerConfig"/>
+
+        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
+        <behaviour api="org.onosproject.drivers.server.behavior.CpuStatisticsDiscovery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
+        <behaviour api="org.onosproject.drivers.server.behavior.MonitoringStatisticsDiscovery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+    </driver>
+</drivers>
+
+
