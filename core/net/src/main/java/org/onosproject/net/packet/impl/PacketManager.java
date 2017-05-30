@@ -411,7 +411,11 @@ public class PacketManager
             DeviceId deviceid = request.deviceId().orElse(null);
 
             if (deviceid != null) {
-                pushRule(deviceService.getDevice(deviceid), request);
+                Device device = deviceService.getDevice(deviceid);
+
+                if (device != null) {
+                    pushRule(deviceService.getDevice(deviceid), request);
+                }
             } else {
                 pushToAllDevices(request);
             }
@@ -422,7 +426,11 @@ public class PacketManager
             DeviceId deviceid = request.deviceId().orElse(null);
 
             if (deviceid != null) {
-                removeRule(deviceService.getDevice(deviceid), request);
+                Device device = deviceService.getDevice(deviceid);
+
+                if (device != null) {
+                    removeRule(deviceService.getDevice(deviceid), request);
+                }
             } else {
                 removeFromAllDevices(request);
             }
