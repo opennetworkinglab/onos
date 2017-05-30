@@ -151,7 +151,6 @@ ONOS_APPS = [
     '//apps/mlb:onos-apps-mlb-oar',
     '//apps/openstacknetworking:onos-apps-openstacknetworking-oar',
     '//apps/mobility:onos-apps-mobility-oar',
-    '//apps/optical:onos-apps-optical-oar',
     '//apps/newoptical:onos-apps-newoptical-oar',
     '//apps/optical-model:onos-apps-optical-model-oar',
     '//apps/pathpainter:onos-apps-pathpainter-oar',
