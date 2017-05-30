@@ -563,21 +563,6 @@
         <command>
             <action class="org.onosproject.cli.net.WipeOutCommand"/>
         </command>
-        <command>
-            <action class="org.onosproject.cli.net.AddMplsIntent"/>
-            <completers>
-                <ref component-id="connectPointCompleter"/>
-                <ref component-id="connectPointCompleter"/>
-            </completers>
-            <optional-completers>
-                <entry key="-t" value-ref="ethTypeCompleter"/>
-                <entry key="--ipProto" value-ref="ipProtocolCompleter"/>
-                <entry key="--icmp6Type" value-ref="Icmp6TypeCompleter"/>
-                <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
-                <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
-                <entry key="-a" value-ref="allAppNameCompleter"/>
-            </optional-completers>
-        </command>
 
         <command>
             <action class="org.onosproject.cli.net.RoutesListCommand"/>

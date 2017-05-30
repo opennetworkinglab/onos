@@ -168,8 +168,6 @@ import org.onosproject.net.intent.IntentOperation;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.MplsIntent;
-import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
@@ -544,8 +542,6 @@ public final class KryoNamespaces {
             .register(TributarySlot.class)
             .register(OtuSignalType.class)
             .register(
-                    MplsIntent.class,
-                    MplsPathIntent.class,
                     org.onlab.packet.MplsLabel.class,
                     org.onlab.packet.MPLS.class
             )
