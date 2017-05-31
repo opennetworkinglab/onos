@@ -20,6 +20,8 @@ import com.google.common.base.Strings;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
@@ -28,6 +30,8 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
@@ -51,9 +55,11 @@ import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.model.network.SecurityGroupRule;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -73,6 +79,12 @@ public class OpenstackSecurityGroupHandler {
 
     private final Logger log = getLogger(getClass());
 
+    private static final boolean USE_SECURITY_GROUP = false;
+
+    @Property(name = "useSecurityGroup", boolValue = USE_SECURITY_GROUP,
+            label = "Apply OpenStack security group rule for VM traffic")
+    private boolean useSecurityGroup = USE_SECURITY_GROUP;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -90,6 +102,9 @@ public class OpenstackSecurityGroupHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
 
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackNetworkListener portListener = new InternalOpenstackPortListener();
@@ -113,6 +128,7 @@ public class OpenstackSecurityGroupHandler {
         instancePortService.addListener(instancePortListener);
         securityGroupService.addListener(securityGroupListener);
         osNetService.addListener(portListener);
+        configService.registerProperties(getClass());
 
         log.info("Started");
     }
@@ -122,9 +138,28 @@ public class OpenstackSecurityGroupHandler {
         instancePortService.removeListener(instancePortListener);
         securityGroupService.removeListener(securityGroupListener);
         osNetService.removeListener(portListener);
+        configService.unregisterProperties(getClass(), false);
         eventExecutor.shutdown();
 
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "useSecurityGroup");
+        if (flag == null) {
+            log.info("useSecurityGroup is not configured, " +
+                    "using current value of {}", useSecurityGroup);
+        } else {
+            useSecurityGroup = flag;
+            log.info("Configured. useSecurityGroup is {}",
+                    useSecurityGroup ? "enabled" : "disabled");
+        }
+
+        resetSecurityGroupRules();
     }
 
     private void setSecurityGroupRules(InstancePort instPort, Port port, boolean install) {
@@ -293,11 +328,51 @@ public class OpenstackSecurityGroupHandler {
         }
     }
 
+    private void resetSecurityGroupRules() {
+
+        if (useSecurityGroup) {
+            securityGroupService.securityGroups().forEach(securityGroup ->
+                    securityGroup.getRules().forEach(this::securityGroupRuleAdded));
+        } else {
+            securityGroupService.securityGroups().forEach(securityGroup ->
+                    securityGroup.getRules().forEach(this::securityGroupRuleRemoved));
+        }
+
+        log.info("Reset security group info " + (useSecurityGroup ? " with " : " without") + " Security Group");
+    }
+
+    private void securityGroupRuleAdded(SecurityGroupRule sgRule) {
+        osNetService.ports().stream()
+                .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
+                .forEach(port -> {
+                    updateSecurityGroupRule(
+                            instancePortService.instancePort(port.getId()),
+                            port, sgRule, true);
+                    log.debug("Applied security group rule {} to port {}",
+                            sgRule.getId(), port.getId());
+                });
+    }
+
+    private void securityGroupRuleRemoved(SecurityGroupRule sgRule) {
+        osNetService.ports().stream()
+                .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
+                .forEach(port -> {
+                    updateSecurityGroupRule(
+                            instancePortService.instancePort(port.getId()),
+                            port, sgRule, false);
+                    log.debug("Removed security group rule {} from port {}",
+                            sgRule.getId(), port.getId());
+                });
+    }
+
     private class InternalInstancePortListener implements InstancePortListener {
 
         @Override
         public boolean isRelevant(InstancePortEvent event) {
             InstancePort instPort = event.subject();
+            if (!useSecurityGroup) {
+                return false;
+            }
             return mastershipService.isLocalMaster(instPort.deviceId());
         }
 
@@ -346,6 +421,9 @@ public class OpenstackSecurityGroupHandler {
             if (instancePortService.instancePort(event.port().getId()) == null) {
                 return false;
             }
+            if (!useSecurityGroup) {
+                return false;
+            }
             return true;
         }
 
@@ -384,6 +462,14 @@ public class OpenstackSecurityGroupHandler {
     private class InternalSecurityGroupListener implements OpenstackSecurityGroupListener {
 
         @Override
+        public boolean isRelevant(OpenstackSecurityGroupEvent event) {
+            if (!useSecurityGroup) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
         public void event(OpenstackSecurityGroupEvent event) {
             switch (event.type()) {
                 case OPENSTACK_SECURITY_GROUP_RULE_CREATED:
@@ -409,30 +495,6 @@ public class OpenstackSecurityGroupHandler {
                     // do nothing
                     break;
             }
-        }
-
-        private void securityGroupRuleAdded(SecurityGroupRule sgRule) {
-            osNetService.ports().stream()
-                    .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
-                    .forEach(port -> {
-                        updateSecurityGroupRule(
-                                instancePortService.instancePort(port.getId()),
-                                port, sgRule, true);
-                        log.debug("Applied security group rule {} to port {}",
-                                sgRule.getId(), port.getId());
-                    });
-        }
-
-        private void securityGroupRuleRemoved(SecurityGroupRule sgRule) {
-            osNetService.ports().stream()
-                    .filter(port -> port.getSecurityGroups().contains(sgRule.getSecurityGroupId()))
-                    .forEach(port -> {
-                        updateSecurityGroupRule(
-                                instancePortService.instancePort(port.getId()),
-                                port, sgRule, false);
-                        log.debug("Removed security group rule {} from port {}",
-                                sgRule.getId(), port.getId());
-                    });
         }
     }
 }
