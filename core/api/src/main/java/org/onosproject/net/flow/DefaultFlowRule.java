@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -505,12 +504,14 @@ public class DefaultFlowRule implements FlowRule {
         }
 
         private int hash() {
+            // Guava documentation recommends using putUnencodedChars to hash raw character bytes within any encoding
+            // unless cross-language compatibility is needed. See the Hasher.putString documentation for more info.
             Funnel<TrafficSelector> selectorFunnel = (from, into) -> from.criteria()
-                    .forEach(c -> into.putString(c.toString(), Charsets.UTF_8));
+                    .forEach(c -> into.putUnencodedChars(c.toString()));
 
             HashFunction hashFunction = Hashing.murmur3_32();
             HashCode hashCode = hashFunction.newHasher()
-                    .putString(deviceId.toString(), Charsets.UTF_8)
+                    .putUnencodedChars(deviceId.toString())
                     .putObject(selector, selectorFunnel)
                     .putInt(priority)
                     .putInt(tableId)
