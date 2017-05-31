@@ -29,10 +29,12 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
@@ -102,6 +104,9 @@ public final class OpenstackSwitchingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -244,9 +249,15 @@ public final class OpenstackSwitchingHandler {
                 .matchInPort(instPort.portNumber())
                 .build();
 
+        // XXX All egress traffic needs to go through connection tracking module, which might hurt its performance.
+        ExtensionTreatment ctTreatment =
+                RulePopulatorUtil.niciraConnTrackTreatmentBuilder(driverService, instPort.deviceId())
+                        .commit(true).build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setTunnelId(getVni(instPort))
                 .transition(ACL_TABLE)
+                .extension(ctTreatment, instPort.deviceId())
                 .build();
 
         osFlowRuleService.setRule(
