@@ -160,13 +160,14 @@ public class HttpSBControllerImpl implements HttpSBController {
         Response response = null;
         if (payload != null) {
             try {
-                response = wt.request(mediaType.getType())
-                        .post(Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType.getType()));
+                response = wt.request(mediaType).post(
+                    Entity.entity(IOUtils.toString(payload, StandardCharsets.UTF_8), mediaType)
+                );
             } catch (IOException e) {
                 log.error("Cannot do POST {} request on device {} because can't read payload", request, device);
             }
         } else {
-            response = wt.request(mediaType.getType()).post(Entity.entity(null, mediaType.getType()));
+            response = wt.request(mediaType).post(Entity.entity(null, mediaType));
         }
         return response;
     }
