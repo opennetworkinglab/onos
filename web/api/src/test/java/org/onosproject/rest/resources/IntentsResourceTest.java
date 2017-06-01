@@ -19,6 +19,7 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -31,12 +32,17 @@ import org.onlab.packet.MacAddress;
 import org.onlab.rest.BaseResource;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.codec.impl.MockCodecContext;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
@@ -56,18 +62,21 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.net.provider.ProviderId;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -89,6 +98,12 @@ public class IntentsResourceTest extends ResourceTest {
     private static final String ID = "id";
     private static final String INSTRUCTIONS = "instructions";
     private static final String PATHS = "paths";
+    private static final String INSTALLABLES = "installables";
+    private static final String RESOURCES = "resources";
+    private static final String DEVICE = "device";
+    private static final String PORT = "port";
+    private static final String SRC = "src";
+    private static final String DST = "dst";
     private static final String SELECTOR = "selector";
     private static final String SPACE = " ";
     private static final String TREATMENT = "treatment";
@@ -102,6 +117,13 @@ public class IntentsResourceTest extends ResourceTest {
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
 
     final DeviceId deviceId1 = DeviceId.deviceId("1");
+    final DeviceId deviceId2 = DeviceId.deviceId("2");
+    final DeviceId deviceId3 = DeviceId.deviceId("3");
+
+    final ConnectPoint connectPoint1 = new ConnectPoint(deviceId1, PortNumber.portNumber(1L));
+    final ConnectPoint connectPoint2 = new ConnectPoint(deviceId2, PortNumber.portNumber(1L));
+    final ConnectPoint connectPoint3 = new ConnectPoint(deviceId2, PortNumber.portNumber(2L));
+    final ConnectPoint connectPoint4 = new ConnectPoint(deviceId3, PortNumber.portNumber(1L));
 
     final TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
             .setEthDst(MacAddress.BROADCAST)
@@ -367,7 +389,7 @@ public class IntentsResourceTest extends ResourceTest {
 
             // check intent type
             final String jsonType = jsonIntent.get("type").asString();
-            if (!"MockIntent".equals(jsonType)) {
+            if (!intent.getClass().getSimpleName().equals(jsonType)) {
                 reason = "type MockIntent";
                 return false;
             }
@@ -389,10 +411,32 @@ public class IntentsResourceTest extends ResourceTest {
                 for (final NetworkResource resource : intent.resources()) {
                     boolean resourceFound = false;
                     final String resourceString = resource.toString();
-                    for (int resourceIndex = 0; resourceIndex < jsonResources.size(); resourceIndex++) {
-                        final JsonValue value = jsonResources.get(resourceIndex);
-                        if (value.asString().equals(resourceString)) {
-                            resourceFound = true;
+
+                    if (resource instanceof Link) {
+                        final Link resourceLink = (Link) resource;
+                        MockCodecContext codecContext = new MockCodecContext();
+
+                        for (int resourceIndex = 0; resourceIndex < jsonResources.size(); resourceIndex++) {
+                            final ObjectNode value;
+                            try {
+                                value = (ObjectNode) codecContext.mapper()
+                                        .readTree(jsonResources.get(resourceIndex).toString());
+                            } catch (IOException e) {
+                                reason = "bad json";
+                                return false;
+                            }
+                            final Link link = codecContext.codec(Link.class).decode(value, codecContext);
+                            if (resourceLink.equals(link)) {
+                                resourceFound = true;
+                            }
+                        }
+                    } else {
+
+                        for (int resourceIndex = 0; resourceIndex < jsonResources.size(); resourceIndex++) {
+                            final JsonValue value = jsonResources.get(resourceIndex);
+                            if (value.asString().equals(resourceString)) {
+                                resourceFound = true;
+                            }
                         }
                     }
                     if (!resourceFound) {
@@ -857,6 +901,80 @@ public class IntentsResourceTest extends ResourceTest {
                 + "/0x0").request().get(String.class);
         final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
         assertThat(resultNumeric, matchesRelatedFlowEntries(paths, APP_ID.name()));
+    }
+
+    /**
+     * Tests the result of a rest api GET for intent installables.
+     */
+    @Test
+    public void testIntentInstallables() {
+
+        Link link1 = DefaultLink.builder()
+                .type(Link.Type.DIRECT)
+                .providerId(ProviderId.NONE)
+                .src(connectPoint1)
+                .dst(connectPoint2)
+                .build();
+
+        Link link2 = DefaultLink.builder()
+                .type(Link.Type.DIRECT)
+                .providerId(ProviderId.NONE)
+                .src(connectPoint3)
+                .dst(connectPoint4)
+                .build();
+
+        Set<NetworkResource> resources = new HashSet<>();
+        resources.add(link1);
+        resources.add(link2);
+
+        FlowRuleIntent flowRuleIntent = new FlowRuleIntent(
+                APP_ID,
+                new ArrayList<>(),
+                resources);
+
+        Intent intent = new MockIntent(MockIntent.nextId());
+        Long intentId = intent.id().id();
+        installableIntents.add(flowRuleIntent);
+        intents.add(intent);
+
+        expect(mockIntentService.getIntent(Key.of(intentId, APP_ID)))
+                .andReturn(intent)
+                .anyTimes();
+        expect(mockIntentService.getIntent(Key.of(intentId.toString(), APP_ID)))
+                .andReturn(intent)
+                .anyTimes();
+        expect(mockIntentService.getIntent(Key.of(intentId, APP_ID)))
+                .andReturn(intent)
+                .anyTimes();
+        expect(mockIntentService.getIntent(Key.of(Long.toHexString(intentId), APP_ID)))
+                .andReturn(null)
+                .anyTimes();
+        expect(mockIntentService.getInstallableIntents(intent.key()))
+                .andReturn(installableIntents)
+                .anyTimes();
+        replay(mockIntentService);
+
+        replay(mockFlowService);
+
+        expect(mockCoreService.getAppId(APP_ID.name()))
+                .andReturn(APP_ID).anyTimes();
+        expect(mockCoreService.getAppId(APP_ID.id()))
+                .andReturn(APP_ID).anyTimes();
+        replay(mockCoreService);
+
+        final WebTarget wt = target();
+
+        // Test get using key string
+        final String response = wt.path("intents/installables/" + APP_ID.name()
+                + "/" + intentId).request().get(String.class);
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent));
+
+        // Test get using numeric value
+        final String responseNumeric = wt.path("intents/installables/" + APP_ID.name()
+                + "/" + Long.toHexString(intentId)).request().get(String.class);
+        final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
+        assertThat(resultNumeric.get(INSTALLABLES).asArray(), hasIntent(flowRuleIntent));
     }
 
     /**

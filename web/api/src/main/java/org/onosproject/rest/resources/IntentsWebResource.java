@@ -98,6 +98,35 @@ public class IntentsWebResource extends AbstractWebResource {
     }
 
     /**
+     * Gets intent intallables by application ID and key.
+     * @param appId application identifier
+     * @param key   intent key
+     *
+     * @return 200 OK with array of the intent installables
+     * @onos.rsModel Intents
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("installables/{appId}/{key}")
+    public Response getIntentWithInstallable(@PathParam("appId") String appId,
+                                             @PathParam("key") String key) {
+        final IntentService intentService = get(IntentService.class);
+        final ApplicationId app = get(CoreService.class).getAppId(appId);
+        nullIsNotFound(app, APP_ID_NOT_FOUND);
+
+        Intent intent = intentService.getIntent(Key.of(key, app));
+        if (intent == null) {
+            long numericalKey = Long.decode(key);
+            intent = intentService.getIntent(Key.of(numericalKey, app));
+        }
+        nullIsNotFound(intent, INTENT_NOT_FOUND);
+
+        final Iterable<Intent> installables = intentService.getInstallableIntents(intent.key());
+        final ObjectNode root = encodeArray(Intent.class, "installables", installables);
+        return ok(root).build();
+    }
+
+    /**
      * Gets intent by application and key.
      * Returns details of the specified intent.
      *

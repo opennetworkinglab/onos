@@ -18,7 +18,7 @@ package org.onosproject.codec.impl;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.NetworkResource;
+import org.onosproject.net.Link;
 import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.Intent;
@@ -67,9 +67,16 @@ public final class IntentCodec extends JsonCodec<Intent> {
 
         final ArrayNode jsonResources = result.putArray(RESOURCES);
 
-        for (final NetworkResource resource : intent.resources()) {
-            jsonResources.add(resource.toString());
-        }
+        intent.resources()
+                .parallelStream()
+                .forEach(
+                        resource -> {
+                            if (resource instanceof Link) {
+                                jsonResources.add(context.codec(Link.class).encode((Link) resource, context));
+                            } else {
+                                jsonResources.add(resource.toString());
+                            }
+                        });
 
         IntentService service = context.getService(IntentService.class);
         IntentState state = service.getIntentState(intent.key());
