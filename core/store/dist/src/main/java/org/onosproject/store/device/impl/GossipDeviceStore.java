@@ -15,10 +15,27 @@
  */
 package org.onosproject.store.device.impl;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -70,26 +87,10 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
@@ -106,12 +107,10 @@ import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE;
-import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_INJECTED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_UPDATE;
-import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.PORT_INJECTED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.PORT_STATUS_UPDATE;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.PORT_UPDATE;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
@@ -184,8 +183,6 @@ public class GossipDeviceStore
                     .register(DeviceAntiEntropyAdvertisement.class)
                     .register(DeviceFragmentId.class)
                     .register(PortFragmentId.class)
-                    .register(DeviceInjectedEvent.class)
-                    .register(PortInjectedEvent.class)
                     .build("GossipDevice"));
 
     private ExecutorService executor;
@@ -210,8 +207,6 @@ public class GossipDeviceStore
         addSubscriber(PORT_UPDATE, this::handlePortEvent);
         addSubscriber(PORT_STATUS_UPDATE, this::handlePortStatusEvent);
         addSubscriber(DEVICE_ADVERTISE, this::handleDeviceAdvertisement);
-        addSubscriber(DEVICE_INJECTED, this::handleDeviceInjectedEvent);
-        addSubscriber(PORT_INJECTED, this::handlePortInjectedEvent);
 
         // start anti-entropy thread
         backgroundExecutor.scheduleAtFixedRate(new SendAdvertisementTask(),
@@ -273,8 +268,6 @@ public class GossipDeviceStore
         clusterCommunicator.removeSubscriber(PORT_UPDATE);
         clusterCommunicator.removeSubscriber(PORT_STATUS_UPDATE);
         clusterCommunicator.removeSubscriber(DEVICE_ADVERTISE);
-        clusterCommunicator.removeSubscriber(DEVICE_INJECTED);
-        clusterCommunicator.removeSubscriber(PORT_INJECTED);
         log.info("Stopped");
     }
 
@@ -328,30 +321,7 @@ public class GossipDeviceStore
             }
 
         } else {
-            // Only forward for ConfigProvider
-            // Forwarding was added as a workaround for ONOS-490
-            if (!"cfg".equals(providerId.scheme())) {
-                return null;
-            }
-            // FIXME Temporary hack for NPE (ONOS-1171).
-            // Proper fix is to implement forwarding to master on ConfigProvider
-            // redo ONOS-490
-            if (deviceNode == null) {
-                // silently ignore
-                return null;
-            }
-
-
-            DeviceInjectedEvent deviceInjectedEvent = new DeviceInjectedEvent(
-                    providerId, deviceId, deviceDescription);
-
-            // TODO check unicast return value
-            clusterCommunicator.unicast(deviceInjectedEvent, DEVICE_INJECTED, SERIALIZER::encode, deviceNode);
-            /* error log:
-            log.warn("Failed to process injected device id: {} desc: {} " +
-                            "(cluster messaging failed: {})",
-                    deviceId, deviceDescription, e);
-            */
+            return null;
         }
 
         return deviceEvent;
@@ -625,28 +595,7 @@ public class GossipDeviceStore
             }
 
         } else {
-            // Only forward for ConfigProvider
-            // Forwarding was added as a workaround for ONOS-490
-            if (!"cfg".equals(providerId.scheme())) {
-                return Collections.emptyList();
-            }
-            // FIXME Temporary hack for NPE (ONOS-1171).
-            // Proper fix is to implement forwarding to master on ConfigProvider
-            // redo ONOS-490
-            if (deviceNode == null) {
-                // silently ignore
-                return Collections.emptyList();
-            }
-
-            PortInjectedEvent portInjectedEvent = new PortInjectedEvent(providerId, deviceId, portDescriptions);
-
-            //TODO check unicast return value
-            clusterCommunicator.unicast(portInjectedEvent, PORT_INJECTED, SERIALIZER::encode, deviceNode);
-            /* error log:
-            log.warn("Failed to process injected ports of device id: {} " +
-                            "(cluster messaging failed: {})",
-                    deviceId, e);
-            */
+            return Collections.emptyList();
         }
 
         return deviceEvents == null ? Collections.emptyList() : deviceEvents;
@@ -1666,40 +1615,6 @@ public class GossipDeviceStore
             handleAdvertisement(advertisement);
         } catch (Exception e) {
             log.warn("Exception thrown handling Device advertisements.", e);
-        }
-    }
-
-    private void handleDeviceInjectedEvent(DeviceInjectedEvent event) {
-        ProviderId providerId = event.providerId();
-        DeviceId deviceId = event.deviceId();
-        DeviceDescription deviceDescription = event.deviceDescription();
-        if (!deviceClockService.isTimestampAvailable(deviceId)) {
-            // workaround for ONOS-1208
-            log.warn("Not ready to accept update. Dropping {}", deviceDescription);
-            return;
-        }
-
-        try {
-            createOrUpdateDevice(providerId, deviceId, deviceDescription);
-        } catch (Exception e) {
-            log.warn("Exception thrown handling device injected event.", e);
-        }
-    }
-
-    private void handlePortInjectedEvent(PortInjectedEvent event) {
-        ProviderId providerId = event.providerId();
-        DeviceId deviceId = event.deviceId();
-        List<PortDescription> portDescriptions = event.portDescriptions();
-        if (!deviceClockService.isTimestampAvailable(deviceId)) {
-            // workaround for ONOS-1208
-            log.warn("Not ready to accept update. Dropping {}", portDescriptions);
-            return;
-        }
-
-        try {
-            updatePorts(providerId, deviceId, portDescriptions);
-        } catch (Exception e) {
-            log.warn("Exception thrown handling port injected event.", e);
         }
     }
 

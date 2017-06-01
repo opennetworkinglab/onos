@@ -15,12 +15,19 @@
  */
 package org.onosproject.store.device.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
@@ -28,7 +35,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.SharedExecutors;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
@@ -70,18 +76,12 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
@@ -93,9 +93,7 @@ import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
-import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_INJECTED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ;
-import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.PORT_INJECTED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -156,8 +154,6 @@ public class ECDeviceStore
                   KryoNamespace.newBuilder()
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
-                    .register(DeviceInjectedEvent.class)
-                    .register(PortInjectedEvent.class)
                     .build("ECDevice"));
 
     protected static final KryoNamespace.Builder SERIALIZER_BUILDER = KryoNamespace.newBuilder()
@@ -211,18 +207,6 @@ public class ECDeviceStore
                 .withTombstonesDisabled()
                 .build();
 
-        clusterCommunicator.addSubscriber(DEVICE_INJECTED,
-                SERIALIZER::decode,
-                this::injectDevice,
-                SERIALIZER::encode,
-                SharedExecutors.getPoolThreadExecutor());
-
-        clusterCommunicator.addSubscriber(PORT_INJECTED,
-                SERIALIZER::decode,
-                this::injectPort,
-                SERIALIZER::encode,
-                SharedExecutors.getPoolThreadExecutor());
-
         availableDevices = storageService.<DeviceId>setBuilder()
                 .withName("onos-online-devices")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
@@ -249,8 +233,6 @@ public class ECDeviceStore
         portDescriptions.destroy();
         devices.clear();
         devicePorts.clear();
-        clusterCommunicator.removeSubscriber(DEVICE_INJECTED);
-        clusterCommunicator.removeSubscriber(PORT_INJECTED);
         log.info("Stopped");
     }
 
@@ -279,18 +261,7 @@ public class ECDeviceStore
             deviceDescriptions.put(new DeviceKey(providerId, deviceId), deviceDescription);
             return refreshDeviceCache(providerId, deviceId);
         } else {
-            // Only forward for ConfigProvider
-            // Forwarding was added as a workaround for ONOS-490
-            if (!"cfg".equals(providerId.scheme())) {
                 return null;
-            }
-            DeviceInjectedEvent deviceInjectedEvent = new DeviceInjectedEvent(providerId, deviceId, deviceDescription);
-            return Futures.getUnchecked(
-                    clusterCommunicator.sendAndReceive(deviceInjectedEvent,
-                            DEVICE_INJECTED,
-                            SERIALIZER::encode,
-                            SERIALIZER::decode,
-                            master));
         }
     }
 
@@ -416,21 +387,7 @@ public class ECDeviceStore
             });
             deviceEvents = refreshDevicePortCache(providerId, deviceId, Optional.empty());
         } else {
-            // Only forward for ConfigProvider
-            // Forwarding was added as a workaround for ONOS-490
-            if (!"cfg".equals(providerId.scheme())) {
-                return Collections.emptyList();
-            }
-            if (master == null) {
-                return Collections.emptyList();
-            }
-            PortInjectedEvent portInjectedEvent = new PortInjectedEvent(providerId, deviceId, descriptions);
-            deviceEvents = Futures.getUnchecked(
-                    clusterCommunicator.sendAndReceive(portInjectedEvent,
-                                    PORT_INJECTED,
-                                    SERIALIZER::encode,
-                                    SERIALIZER::decode,
-                                    master));
+            return Collections.emptyList();
         }
         return deviceEvents == null ? Collections.emptyList() : deviceEvents;
     }
@@ -724,14 +681,6 @@ public class ECDeviceStore
             mastershipService.relinquishMastership(deviceId);
         }
         return event;
-    }
-
-    private DeviceEvent injectDevice(DeviceInjectedEvent event) {
-        return createOrUpdateDevice(event.providerId(), event.deviceId(), event.deviceDescription());
-    }
-
-    private List<DeviceEvent> injectPort(PortInjectedEvent event) {
-        return updatePorts(event.providerId(), event.deviceId(), event.portDescriptions());
     }
 
     private DefaultAnnotations mergeAnnotations(DeviceId deviceId) {

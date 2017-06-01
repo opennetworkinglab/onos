@@ -35,17 +35,4 @@ public final class GossipDeviceStoreMessageSubjects {
     // to be used with 3-way anti-entropy process
     public static final MessageSubject DEVICE_REQUEST = new MessageSubject("peer-device-request");
 
-    // Network elements injected (not discovered) by ConfigProvider
-    /**
-     * Remnant of ConfigProvider.
-     * @deprecated in Hummingbird(1.7.0)
-     */
-    @Deprecated
-    public static final MessageSubject DEVICE_INJECTED = new MessageSubject("peer-device-injected");
-    /**
-     * Remnant of ConfigProvider.
-     * @deprecated in Hummingbird(1.7.0)
-     */
-    @Deprecated
-    public static final MessageSubject PORT_INJECTED = new MessageSubject("peer-port-injected");
 }
