@@ -111,6 +111,8 @@ public interface VirtualNetworkService
      * <li>{@link org.onosproject.net.flowobjective.FlowObjectiveService}</li>
      * <li>{@link org.onosproject.net.intent.IntentService}</li>
      * <li>{@link org.onosproject.mastership.MastershipService}</li>
+     * <li>{@link org.onosproject.mastership.MastershipAdminService}</li>
+     * <li>{@link org.onosproject.mastership.MastershipTermService}</li>
      * </ul>
      *
      * @param networkId    network identifier

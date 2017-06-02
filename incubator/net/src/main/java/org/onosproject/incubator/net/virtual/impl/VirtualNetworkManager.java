@@ -51,7 +51,9 @@ import org.onosproject.incubator.net.virtual.event.VirtualListenerRegistryManage
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
+import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -431,7 +433,9 @@ public class VirtualNetworkManager
             service = new VirtualNetworkGroupManager(this, network.id());
         } else if (serviceKey.serviceClass.equals(FlowObjectiveService.class)) {
             service = new VirtualNetworkFlowObjectiveManager(this, network.id());
-        } else if (serviceKey.serviceClass.equals(MastershipService.class)) {
+        } else if (serviceKey.serviceClass.equals(MastershipService.class) ||
+                serviceKey.serviceClass.equals(MastershipAdminService.class) ||
+                serviceKey.serviceClass.equals(MastershipTermService.class)) {
             service = new VirtualNetworkMastershipManager(this, network.id());
         } else {
             return null;

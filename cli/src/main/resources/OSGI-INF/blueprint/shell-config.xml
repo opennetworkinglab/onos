@@ -883,6 +883,13 @@
             </optional-completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.vnet.VirtualNetworkBalanceMastersCommand"/>
+            <completers>
+                <ref component-id="virtualNetworkCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DpisListCommand"/>
         </command>
 
