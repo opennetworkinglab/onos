@@ -24,6 +24,7 @@ import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.yang.compiler.api.YangCompilationParam;
 import org.onosproject.yang.compiler.api.YangCompilerService;
 import org.onosproject.yang.compiler.datamodel.YangNode;
+import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
 import org.onosproject.yang.model.YangModel;
 import org.onosproject.yang.runtime.DefaultModelRegistrationParam;
 import org.onosproject.yang.runtime.ModelRegistrationParam;
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,12 +49,10 @@ import static org.onosproject.yang.compiler.datamodel.utils.DataModelUtils.deSer
 import static org.onosproject.yang.compiler.utils.io.impl.YangIoUtils.deleteDirectory;
 import static org.onosproject.yang.runtime.helperutils.YangApacheUtils.processYangModel;
 
-//import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
-
 /**
  * Yang files upload resource.
  */
-@Path("live-compiler")
+@Path("compiler")
 public class YangWebResource extends AbstractWebResource {
     private static final String YANG_FILE_EXTENSION = ".yang";
     private static final String SER_FILE_EXTENSION = ".ser";
@@ -136,8 +136,7 @@ public class YangWebResource extends AbstractWebResource {
 
     private YangCompilationParam createCompilationParam(List<File> inputFiles)
             throws IOException {
-        // TODO : uncomment when yang tools new verison is released.
-        /*YangCompilationParam param = new DefaultYangCompilationParam();
+        YangCompilationParam param = new DefaultYangCompilationParam();
         for (File file : inputFiles) {
             if (file.getName().endsWith(YANG_FILE_EXTENSION)) {
                 param.addYangFile(Paths.get(file.getAbsolutePath()));
@@ -147,8 +146,7 @@ public class YangWebResource extends AbstractWebResource {
         }
         param.setCodeGenDir(Paths.get(CODE_GEN_DIR));
         param.setMetadataGenDir(Paths.get(META_DATA_DIR));
-        return param;*/
-        return null;
+        return param;
     }
 
     private ModelRegistrationParam getModelRegParam() throws IOException {
