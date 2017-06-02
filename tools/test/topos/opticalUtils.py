@@ -263,7 +263,7 @@ class LINCSwitch(OpticalSwitch):
     ### sys.config path ###
     sysConfig = "/home/{}/linc-oe/rel/linc/releases/1.0/sys.config".format(user)
     ### dict of containing dpids as key and corresponding LINC switchId as values ###
-    dpidsToLINCSwitchId = dpids_to_ids.__func__(sysConfig)
+    dpidsToLINCSwitchId = dpids_to_ids(sysConfig)
     
     ### ONOS Directory ###
     try:
@@ -286,11 +286,11 @@ class LINCSwitch(OpticalSwitch):
         os.environ[ 'ONOS_WEB_USER' ] = restUser
         os.environ[ 'ONOS_WEB_PASS' ] = restPass
     ### LINC-directory
-    lincDir = findDir.__func__('linc-oe', user)
+    lincDir = findDir('linc-oe', user)
     if not lincDir:
         error("***ERROR: Could not find linc-oe in user's home directory\n")
     ### LINC config generator directory###
-    configGen = findDir.__func__('LINC-config-generator', user)
+    configGen = findDir('LINC-config-generator', user)
     if not configGen:
         error("***ERROR: Could not find LINC-config-generator in user's home directory\n")
     # list of all the controllers
@@ -490,7 +490,7 @@ class LINCSwitch(OpticalSwitch):
 
         topoConfigJson = {}
 
-        topoConfigJson["switchConfig"] = LINCSwitch.getSwitchConfig(net.switches)
+        topoConfigJson["switchConfig"] = getSwitchConfig(net.switches)
         topoConfigJson["linkConfig"] = getLinkConfig(net.links)
 
         #Writing to TopoConfig.json
