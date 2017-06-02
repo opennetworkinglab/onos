@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.config.Config;
+import org.onosproject.net.config.InvalidConfigException;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.rest.AbstractWebResource;
@@ -67,6 +68,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         return "Config for '"
                 + subjectClassKey + "/" + subjectKey + "/" + configKey
                 + "' not found";
+    }
+
+    private String subjectClassNotValidErrorString(String subjectClassKey) {
+        return "subjectClassKey '" + subjectClassKey + "' not found";
     }
 
     /**
@@ -149,9 +154,11 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                              @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
 
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotFoundErrorString(subjectClassKey));
         Object subject =
-                nullIsNotFound(service.getSubjectFactory(subjectClassKey)
-                                       .createSubject(subjectKey),
+                nullIsNotFound(subjectFactory.createSubject(subjectKey),
                                         subjectNotFoundErrorString(subjectClassKey, subjectKey));
 
         Class configClass =
@@ -200,8 +207,12 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         List<String> errorMsgs = new ArrayList<String>();
         root.fieldNames()
                 .forEachRemaining(sk -> {
-                    errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
-                                                 service.getSubjectFactory(sk)));
+                    if (service.getSubjectFactory(sk) == null)  {
+                        errorMsgs.add(subjectClassNotValidErrorString(sk));
+                    } else {
+                        errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
+                                service.getSubjectFactory(sk)));
+                    }
                 });
         if (!errorMsgs.isEmpty()) {
             return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
@@ -225,7 +236,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
-        List<String> errorMsgs = consumeJson(service, root, service.getSubjectFactory(subjectClassKey));
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
+        List<String> errorMsgs = consumeJson(service, root, subjectFactory);
         if (!errorMsgs.isEmpty()) {
             return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
         }
@@ -250,8 +264,11 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
         List<String> errorMsgs = consumeSubjectJson(service, root,
-                                 service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+                subjectFactory.createSubject(subjectKey),
                                  subjectClassKey);
         if (!errorMsgs.isEmpty()) {
             return Response.status(MULTI_STATUS_RESPONE).entity(produceErrorJson(errorMsgs)).build();
@@ -279,8 +296,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         JsonNode root = mapper().readTree(request);
-        service.applyConfig(subjectClassKey,
-                            service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
+        service.applyConfig(subjectClassKey, subjectFactory.createSubject(subjectKey),
                             configKey, root);
         return Response.ok().build();
     }
@@ -306,6 +325,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                 service.applyConfig(subjectClassKey, subject, configKey, subjectNode.path(configKey));
             } catch (IllegalArgumentException e) {
                 errorMsgs.add("Error parsing config " + subjectClassKey + "/" + subject + "/" + configKey);
+            } catch (InvalidConfigException exception) {
+                errorMsgs.add(exception.getMessage());
             }
         });
         return errorMsgs;
@@ -343,7 +364,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response delete(@PathParam("subjectClassKey") String subjectClassKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.getSubjects(service.getSubjectFactory(subjectClassKey).subjectClass())
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
+        service.getSubjects(subjectFactory.subjectClass())
                 .forEach(subject -> service.removeConfig(subject));
         return Response.noContent().build();
     }
@@ -361,7 +385,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public Response delete(@PathParam("subjectClassKey") String subjectClassKey,
                            @PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.removeConfig(service.getSubjectFactory(subjectClassKey).createSubject(subjectKey));
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
+        service.removeConfig(subjectFactory.createSubject(subjectKey));
         return Response.noContent().build();
     }
 
@@ -380,9 +407,11 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("subjectKey") String subjectKey,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.removeConfig(subjectClassKey,
-                             service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
-                            configKey);
+        SubjectFactory subjectFactory =
+                nullIsNotFound(service.getSubjectFactory(subjectClassKey),
+                        subjectClassNotValidErrorString(subjectClassKey));
+        service.removeConfig(subjectClassKey, subjectFactory.createSubject(subjectKey),
+                configKey);
         return Response.noContent().build();
     }
 
