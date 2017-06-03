@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
@@ -32,12 +30,16 @@ import static org.onlab.packet.PacketUtils.*;
 public class UDP extends BasePacket {
     public static final Map<Integer, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
             ImmutableMap.<Integer, Deserializer<? extends IPacket>>builder()
-                .put(UDP.DHCP_SERVER_PORT, DHCP.deserializer())
-                .put(UDP.DHCP_CLIENT_PORT, DHCP.deserializer())
-                .build();
+                    .put(UDP.DHCP_SERVER_PORT, DHCP.deserializer())
+                    .put(UDP.DHCP_CLIENT_PORT, DHCP.deserializer())
+                    .put(UDP.DHCP_V6_SERVER_PORT, DHCP6.deserializer())
+                    .put(UDP.DHCP_V6_CLIENT_PORT, DHCP6.deserializer())
+                    .build();
 
     public static final int DHCP_SERVER_PORT = 67;
     public static final int DHCP_CLIENT_PORT = 68;
+    public static final int DHCP_V6_SERVER_PORT = 547;
+    public static final int DHCP_V6_CLIENT_PORT = 546;
 
     private static final short UDP_HEADER_LENGTH = 8;
 
