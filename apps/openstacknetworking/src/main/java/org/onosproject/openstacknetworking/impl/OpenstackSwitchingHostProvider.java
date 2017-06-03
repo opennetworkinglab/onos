@@ -110,7 +110,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
      * Creates OpenStack switching host provider.
      */
     public OpenstackSwitchingHostProvider() {
-        super(new ProviderId("host", OPENSTACK_NETWORKING_APP_ID));
+        super(new ProviderId("sona", OPENSTACK_NETWORKING_APP_ID));
     }
 
     @Activate
