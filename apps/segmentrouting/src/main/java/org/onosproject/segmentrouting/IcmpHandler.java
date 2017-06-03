@@ -29,6 +29,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageContext;
 import org.onosproject.incubator.net.neighbour.NeighbourMessageType;
+import org.onosproject.incubator.net.routing.ResolvedRoute;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -149,22 +151,35 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
     /**
      * Sends an ICMP reply message.
      *
-     * Note: we assume that packets sending from the edge switches to the hosts
-     * have untagged VLAN.
      * @param icmpRequest the original ICMP request
      * @param outport the output port where the ICMP reply should be sent to
      */
     private void sendIcmpResponse(Ethernet icmpRequest, ConnectPoint outport) {
-        // Note: We assume that packets arrive at the edge switches have
-        // untagged VLAN.
         Ethernet icmpReplyEth = ICMP.buildIcmpReply(icmpRequest);
         IPv4 icmpRequestIpv4 = (IPv4) icmpRequest.getPayload();
         IPv4 icmpReplyIpv4 = (IPv4) icmpReplyEth.getPayload();
         Ip4Address destIpAddress = Ip4Address.valueOf(icmpRequestIpv4.getSourceAddress());
         Ip4Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
+
+        // Note: Source IP of the ICMP request doesn't belong to any configured subnet.
+        //       The source might be an indirectly attached host (e.g. behind a router)
+        //       Lookup the route store for the nexthop instead.
+        if (destRouterAddress == null) {
+            Optional<ResolvedRoute> nexthop = srManager.routeService.longestPrefixLookup(destIpAddress);
+            if (nexthop.isPresent()) {
+                try {
+                    destRouterAddress = config.getRouterIpv4(nexthop.get().location().deviceId());
+                } catch (DeviceConfigNotFoundException e) {
+                    log.warn("Device config not found. Abort ICMP processing");
+                    return;
+                }
+            }
+        }
+
         int destSid = config.getIPv4SegmentId(destRouterAddress);
         if (destSid < 0) {
-            log.warn("Cannot find the Segment ID for {}", destIpAddress);
+            log.warn("Failed to lookup SID of the switch that {} attaches to. " +
+                    "Unable to process ICMP request.", destIpAddress);
             return;
         }
         sendPacketOut(outport, icmpReplyEth, destSid, destIpAddress, icmpReplyIpv4.getTtl());
@@ -214,16 +229,32 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
      * @param outport the output port where the ICMP reply should be sent to
      */
     private void sendIcmpv6Response(Ethernet ethRequest, ConnectPoint outport) {
-        // Note: We assume that packets arrive at the edge switches have
-        // untagged VLAN.
+        // Note: We assume that packets arrive at the edge switches have untagged VLAN.
         Ethernet ethReply = ICMP6.buildIcmp6Reply(ethRequest);
         IPv6 icmpRequestIpv6 = (IPv6) ethRequest.getPayload();
         IPv6 icmpReplyIpv6 = (IPv6) ethRequest.getPayload();
         Ip6Address destIpAddress = Ip6Address.valueOf(icmpRequestIpv6.getSourceAddress());
         Ip6Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
+
+        // Note: Source IP of the ICMP request doesn't belong to any configured subnet.
+        //       The source might be an indirect host behind a router.
+        //       Lookup the route store for the nexthop instead.
+        if (destRouterAddress == null) {
+            Optional<ResolvedRoute> nexthop = srManager.routeService.longestPrefixLookup(destIpAddress);
+            if (nexthop.isPresent()) {
+                try {
+                    destRouterAddress = config.getRouterIpv6(nexthop.get().location().deviceId());
+                } catch (DeviceConfigNotFoundException e) {
+                    log.warn("Device config not found. Abort ICMPv6 processing");
+                    return;
+                }
+            }
+        }
+
         int sid = config.getIPv6SegmentId(destRouterAddress);
         if (sid < 0) {
-            log.warn("Cannot find the Segment ID for {}", destIpAddress);
+            log.warn("Failed to lookup SID of the switch that {} attaches to. " +
+                    "Unable to process ICMPv6 request.", destIpAddress);
             return;
         }
         sendPacketOut(outport, ethReply, sid, destIpAddress, icmpReplyIpv6.getHopLimit());
