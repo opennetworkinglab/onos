@@ -29,7 +29,7 @@ import static org.onosproject.ui.model.topo.UiTopoLayoutId.layoutId;
 
 /**
  * Add a new UI layout.
- * <p>
+ *
  * <pre>
  * layout-add {layout-id} {bg-ref} \
  *   [ {region-id} {parent-layout-id} {scale} {offset-x} {offset-y} ]

@@ -34,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * Geo Coordinate type is defined in draft-ietf-lisp-lcaf-22
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-11
- * <p>
+ *
  * <pre>
  * {@literal
  *  0                   1                   2                   3
@@ -363,6 +363,7 @@ public final class LispGeoCoordinateLcafAddress extends LispLcafAddress {
          *
          * @return LispGeoCoordinateLcafAddress instance
          */
+        @Override
         public LispGeoCoordinateLcafAddress build() {
 
             checkNotNull(address, "Must specify an AFI address");

@@ -95,7 +95,7 @@ public class RestconfWebResource extends AbstractWebResource {
      * Handles the RESTCONF Event Notification Subscription request. If the
      * subscription is successful, a ChunkedOutput stream is created and returned
      * to the caller.
-     * <P></P>
+     * <p>
      * This function is not blocked on streaming the data (so that it can handle
      * other incoming requests). Instead, a worker thread running in the background
      * does the data streaming. If errors occur during streaming, the worker thread
@@ -108,7 +108,7 @@ public class RestconfWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("streams/{streamId}")
     public ChunkedOutput<String> handleNotificationRegistration(@PathParam("streamId") String streamId) {
-        final ChunkedOutput<String> output = new ChunkedOutput<String>(String.class);
+        final ChunkedOutput<String> output = new ChunkedOutput<>(String.class);
         try {
             service.subscribeEventStream(streamId, output);
         } catch (RestconfException e) {

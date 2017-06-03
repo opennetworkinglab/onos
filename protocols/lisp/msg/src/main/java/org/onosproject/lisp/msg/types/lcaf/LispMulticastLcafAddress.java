@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * Multicast group membership type is defined in draft-ietf-lisp-lcaf-22
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-15
- * <p>
+ *
  * <pre>
  * {@literal
  *  0                   1                   2                   3
@@ -229,6 +229,7 @@ public final class LispMulticastLcafAddress extends LispLcafAddress {
          *
          * @return LispMulticastLcafAddress instance
          */
+        @Override
         public LispMulticastLcafAddress build() {
 
             checkNotNull(srcAddress, "Must specify a source address");

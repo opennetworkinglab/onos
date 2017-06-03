@@ -33,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * <p>
  * Nonce locator data type is defined in draft-ietf-lisp-lcaf-22
  * https://tools.ietf.org/html/draft-ietf-lisp-lcaf-22#page-32
- * <p>
+ *
  * <pre>
  * {@literal
  *  0                   1                   2                   3
@@ -143,6 +143,7 @@ public final class LispNonceLcafAddress extends LispLcafAddress {
          *
          * @return LispNonceLcafAddress instance
          */
+        @Override
         public LispNonceLcafAddress build() {
 
             checkNotNull(address, "Must specify an address");

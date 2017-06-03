@@ -42,7 +42,7 @@ import static org.onosproject.lisp.msg.types.lcaf.LispCanonicalAddressFormatEnum
 
 /**
  * LISP Canonical Address Formatted address class.
- * <p>
+ *
  * <pre>
  * {@literal
  *  0                   1                   2                   3
