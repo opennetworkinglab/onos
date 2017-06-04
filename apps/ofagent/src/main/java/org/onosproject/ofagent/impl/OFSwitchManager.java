@@ -165,6 +165,11 @@ public class OFSwitchManager implements OFSwitchService {
         log.info("Added virtual OF switch for {}", deviceId);
 
         OFAgent ofAgent = ofAgentService.agent(networkId);
+        if (ofAgent == null) {
+            log.error("OFAgent for network {} does not exist", networkId);
+            return;
+        }
+
         if (ofAgent.state() == STARTED) {
             connectController(ofSwitch, ofAgent.controllers());
         }
