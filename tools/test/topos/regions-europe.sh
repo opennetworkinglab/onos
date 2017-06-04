@@ -56,11 +56,11 @@ onos ${host} <<-EOF
 layout-add root @europe . . 4.66 -2562.93 -412.56
 
 # -- layouts for top level regions
-layout-add lUK @europe rUK root 11.63 -6652.54 -938.04
-layout-add lIT @europe rIT root 7.15 -4818.73 -1330.36
-layout-add lFR @europe rFR root 8.98 -5378.99 -1334.77
-layout-add lDE @europe rDE root 10.06 -6739.05 -1002.4
-layout-add lES @europe rES root 10.34 -5804.84 -2464.81
+layout-add lUK @europe rUK root 14.82 -8533.83 -1377.96
+layout-add lIT @europe rIT root 8.93 -6055.26 -1626.86
+layout-add lFR @europe rFR root 7.94 -4694.70 -1092.92
+layout-add lDE @europe rDE root 8.20 -5367.29 -727.28
+layout-add lES @europe rES root 9.93 -5558.99 -2243.35
 
 # -- layouts for country sub-regions
 layout-add lMilan +segmentRoutingTwo rMilan lIT 0.86 68.58 54.71
@@ -202,10 +202,10 @@ null-create-link direct Rome Naples
 
 # -- Italy Peers
 
-#region-add-peer-loc rIT rES  xx.xxxx  xx.xxxx
-#region-add-peer-loc rIT rUK  xx.xxxx  xx.xxxx
-#region-add-peer-loc rIT rFR  xx.xxxx  xx.xxxx
-#region-add-peer-loc rIT rDE  xx.xxxx  xx.xxxx
+region-add-peer-loc rIT rES  41.8942 2.7590
+region-add-peer-loc rIT rUK  47.0678 6.3919
+region-add-peer-loc rIT rFR  43.9538 5.1235
+region-add-peer-loc rIT rDE  47.3839 10.9857
 
 # -- Germany Devices
 
@@ -237,10 +237,10 @@ null-create-link direct Berlin Frankfurt
 
 # -- Germany Peers
 
-#region-add-peer-loc rDE rES  xx.xxxx  xx.xxxx
-#region-add-peer-loc rDE rUK  xx.xxxx  xx.xxxx
-#region-add-peer-loc rDE rFR  xx.xxxx  xx.xxxx
-#region-add-peer-loc rDE rIT  xx.xxxx  xx.xxxx
+region-add-peer-loc rDE rES  46.9845 2.1152
+region-add-peer-loc rDE rUK  51.6325 -0.1912
+region-add-peer-loc rDE rFR  48.5239 4.9598
+region-add-peer-loc rDE rIT  46.9118 11.1705
 
 # -- Spain Devices
 
@@ -270,10 +270,10 @@ null-create-link direct Madrid Valencia
 
 # -- Spain Peers
 
-#region-add-peer-loc rES rDE  xx.xxxx  xx.xxxx
-#region-add-peer-loc rES rUK  xx.xxxx  xx.xxxx
-#region-add-peer-loc rES rFR  xx.xxxx  xx.xxxx
-#region-add-peer-loc rES rIT  xx.xxxx  xx.xxxx
+region-add-peer-loc rES rDE  43.0897 2.4361
+region-add-peer-loc rES rUK  44.0273 -6.4832
+region-add-peer-loc rES rFR  43.5896 -0.7197
+region-add-peer-loc rES rIT  39.8093 4.8966
 
 
 # -- Inter-Region Connectivity
