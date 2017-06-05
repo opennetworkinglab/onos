@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Builds and installs all tools needed for developing and testing P4 support in
+# ONOS.
+#
+# Tested on Ubuntu 14.04.
+#
+# Recommended minimum system requirements:
+# 4 GB of RAM
+# 2 cores
+# > 5 GB free hard drive space (~4 GB to build everything)
+# -----------------------------------------------------------------------------
+
+# Exit on errors.
+set -e
+
+BMV2_COMMIT="487ee8f907153d93d4806f3e9e209ed9cb668c2b"
+PI_COMMIT="d7418b386e2301f82c1330a1d2dca131ef7b4fe3"
+P4C_COMMIT="80db63762314494b313f39c40067b3d3416007d3"
+PROTOBUF_VER="3.0.2"
+GRPC_VER="1.3.0"
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd ${DIR}
+
+sudo apt update
+sudo apt install -y python-software-properties software-properties-common
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt update
+sudo apt install -y \
+    autoconf \
+    automake \
+    bison \
+    curl \
+    dpkg-dev \
+    flex \
+    g++-4.9 \
+    gcc-4.9 \
+    git \
+    libboost-dev \
+    libboost-iostreams-dev \
+    libfl-dev \
+    libgc-dev \
+    libgmp-dev \
+    libreadline6 \
+    libreadline6-dev \
+    libtool \
+    libc6-dev \
+    make \
+    pkg-config \
+    python \
+    python-ipaddr \
+    python-scapy \
+    tcpdump \
+    unzip
+
+# Needed for p4c.
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
+
+# Protobuf
+if [ ! -d protobuf ]; then
+  git clone https://github.com/google/protobuf.git
+fi
+cd protobuf
+git fetch
+git checkout tags/v${PROTOBUF_VER}
+./autogen.sh
+./configure --prefix=/usr
+make -j2
+sudo make install
+sudo ldconfig
+
+# gRPC
+cd ${DIR}
+if [ ! -d grpc ]; then
+  git clone https://github.com/grpc/grpc.git
+fi
+cd grpc
+git fetch
+git checkout tags/v${GRPC_VER}
+git submodule update --init
+make -j2
+sudo make install
+sudo ldconfig
+
+# BMv2 part 1 (without PI)
+cd ${DIR}
+if [ ! -d bmv2 ]; then
+    git clone https://github.com/p4lang/behavioral-model.git bmv2
+fi
+cd bmv2
+git fetch
+git checkout ${BMV2_COMMIT}
+./install_deps.sh
+./autogen.sh
+./configure --enable-debugger
+make -j2
+sudo make install
+sudo ldconfig
+
+# P4Runtime (PI)
+cd ${DIR}
+if [ ! -d p4runtime ]; then
+    git clone https://github.com/p4lang/PI.git p4runtime
+fi
+cd p4runtime
+git fetch
+git checkout ${PI_COMMIT}
+git submodule update --init --recursive
+./autogen.sh
+./configure --with-bmv2 --with-proto
+make -j2
+sudo make install
+sudo ldconfig
+
+# BMv2 part 2 (with PI)
+cd ${DIR}/bmv2
+./configure --enable-debugger --with-pi
+make -j2
+sudo make install
+sudo ldconfig
+
+# Simple_switch_grpc target
+cd targets/simple_switch_grpc
+./autogen.sh
+./configure
+make -j2
+sudo make install
+sudo ldconfig
+
+# p4c
+cd ${DIR}
+if [ ! -d p4c ]; then
+    git clone https://github.com/p4lang/p4c.git
+fi
+cd p4c
+git fetch
+git checkout ${P4C_COMMIT}
+git submodule update --init --recursive
+./bootstrap.sh
+cd build
+make -j2
+sudo make install
+sudo ldconfig
+
+# p4c-bmv2 (old BMv2 compiler)
+cd ${DIR}
+if [ ! -d p4c-bmv2 ]; then
+    git clone https://github.com/p4lang/p4c-bm.git p4c-bmv2
+fi
+cd p4c-bmv2
+git fetch
+sudo pip install -r requirements.txt
+sudo python setup.py install
+
+echo "DONE!"
