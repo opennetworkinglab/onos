@@ -16,9 +16,13 @@
 package org.onosproject.ovsdb.providers.device;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.net.URI;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -28,6 +32,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -36,9 +41,13 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -62,15 +71,28 @@ public class OvsdbDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
+
     private DeviceProviderService providerService;
     private OvsdbNodeListener innerNodeListener = new InnerOvsdbNodeListener();
+    private InternalDeviceListener deviceListener = new InternalDeviceListener();
     protected static final String ISNOTNULL = "OvsdbNodeId is not null";
+    protected static final String SCHEME_NAME = "ovsdb";
     private static final String UNKNOWN = "unknown";
+
+    protected ExecutorService executor =
+            Executors.newFixedThreadPool(5, groupedThreads("onos/ovsdbdeviceprovider",
+                                                           "device-installer-%d", log));
 
     @Activate
     public void activate() {
         providerService = providerRegistry.register(this);
         controller.addNodeListener(innerNodeListener);
+        deviceService.addListener(deviceListener);
         log.info("Started");
     }
 
@@ -78,6 +100,8 @@ public class OvsdbDeviceProvider extends AbstractProvider
     public void deactivate() {
         controller.removeNodeListener(innerNodeListener);
         providerRegistry.unregister(this);
+        deviceService.removeListener(deviceListener);
+        waitForTasksToEnd();
         providerService = null;
         log.info("Stopped");
     }
@@ -151,5 +175,47 @@ public class OvsdbDeviceProvider extends AbstractProvider
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
         // TODO if required
+    }
+
+    private void discoverPorts(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device.is(DeviceDescriptionDiscovery.class)) {
+            DeviceDescriptionDiscovery deviceDescriptionDiscovery = device.as(DeviceDescriptionDiscovery.class);
+            providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
+        } else {
+            log.warn("Device " + deviceId + " does not support behaviour DeviceDescriptionDiscovery");
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            DeviceId deviceId = event.subject().id();
+            if (!isRelevant(deviceId)) {
+                return;
+            }
+            if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
+                executor.execute(() -> discoverPorts(deviceId));
+            }
+        }
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            DeviceId deviceId = event.subject().id();
+            return isRelevant(deviceId) && mastershipService.isLocalMaster(deviceId);
+        }
+
+        private boolean isRelevant(DeviceId deviceId) {
+            return deviceId.uri().getScheme().equals(SCHEME_NAME);
+        }
+    }
+
+    private void waitForTasksToEnd() {
+        executor.shutdown();
+        try {
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.error("Timeout while waiting for child threads to finish because: " + e.getMessage());
+        }
     }
 }

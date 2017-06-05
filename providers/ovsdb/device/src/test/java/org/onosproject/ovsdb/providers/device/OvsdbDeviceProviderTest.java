@@ -15,28 +15,33 @@
  */
 package org.onosproject.ovsdb.providers.device;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
+import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
@@ -44,8 +49,21 @@ import org.onosproject.ovsdb.controller.OvsdbEventListener;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbNodeListener;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test for ovsdb device provider.
@@ -54,11 +72,24 @@ public class OvsdbDeviceProviderTest {
     private final OvsdbDeviceProvider provider = new OvsdbDeviceProvider();
     private final TestDeviceRegistry registry = new TestDeviceRegistry();
     private final TestController controller = new TestController();
+    private final TestDeviceService deviceService = new TestDeviceService();
+
+    private final Device ovsdbDevice = new MockDevice(
+            DeviceId.deviceId("ovsdb:127.0.0.1"),
+            DefaultAnnotations.EMPTY);
+
+    private final Device notOvsdbDevice = new MockDevice(
+            DeviceId.deviceId("other:127.0.0.1"),
+            DefaultAnnotations.EMPTY);
+
+    private final TestDescription deviceDescription = new TestDescription();
+
 
     @Before
     public void startUp() {
         provider.providerRegistry = registry;
         provider.controller = controller;
+        provider.deviceService = deviceService;
         provider.activate();
         assertNotNull("provider should be registered", registry.provider);
     }
@@ -68,11 +99,7 @@ public class OvsdbDeviceProviderTest {
         provider.deactivate();
         provider.controller = null;
         provider.providerRegistry = null;
-    }
-
-    @Test
-    public void triggerProbe() {
-
+        provider.deviceService = null;
     }
 
     @Test
@@ -91,11 +118,30 @@ public class OvsdbDeviceProviderTest {
         assertEquals("ovsdb node removded", 0, registry.connected.size());
     }
 
+    @Test
+    public void testDiscoverPortsAfterDeviceAdded() {
+        final int portCount = 5;
+        provider.executor = new SynchronousExecutor();
+        prepareMocks(portCount);
+
+        deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, ovsdbDevice));
+        deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, notOvsdbDevice));
+
+        assertEquals(portCount, registry.ports.get(ovsdbDevice.id()).size());
+        assertEquals(0, registry.ports.get(notOvsdbDevice.id()).size());
+    }
+
+    private void prepareMocks(int count) {
+        for(int i = 1; i <= count; i++) {
+            deviceDescription.portDescriptions.add(new DefaultPortDescription(PortNumber.portNumber(i), true));
+        }
+    }
+
     private class TestDeviceRegistry implements DeviceProviderRegistry {
         DeviceProvider provider;
 
-        Set<DeviceId> connected = new HashSet<>();
-        Multimap<DeviceId, PortDescription> ports = HashMultimap.create();
+        final Set<DeviceId> connected = new HashSet<>();
+        final Multimap<DeviceId, PortDescription> ports = HashMultimap.create();
         PortDescription descr = null;
 
         @Override
@@ -205,6 +251,127 @@ public class OvsdbDeviceProviderTest {
 
         }
 
+    }
+
+    private class TestDeviceService extends DeviceServiceAdapter {
+        DeviceListener listener = null;
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            return ovsdbDevice;
+        }
+
+        @Override
+        public void addListener(DeviceListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void removeListener(DeviceListener listener) {
+            this.listener = null;
+        }
+    }
+
+    private class TestDescription extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
+
+        final List<PortDescription> portDescriptions = new ArrayList<>();
+
+        @Override
+        public DeviceDescription discoverDeviceDetails() {
+            return null;
+        }
+
+        @Override
+        public List<PortDescription> discoverPortDetails() {
+            return portDescriptions;
+        }
+    }
+
+    private class MockDevice extends DefaultDevice {
+
+        MockDevice(DeviceId id,
+                   Annotations... annotations) {
+            super(null, id, Type.SWITCH, null, null, null, null,
+                  null, annotations);
+        }
+
+        @Override
+        public <B extends Behaviour> B as(Class<B> projectionClass) {
+            return (B) deviceDescription;
+        }
+
+        @Override
+        public <B extends Behaviour> boolean is(Class<B> projectionClass) {
+            return true;
+        }
+
+    }
+
+    private class SynchronousExecutor implements ExecutorService {
+        @Override
+        public void execute(Runnable task) {
+            task.run();
+        }
+
+        @Override
+        public void shutdown() {
+
+        }
+
+        @Override
+        public List<Runnable> shutdownNow() {
+            return null;
+        }
+
+        @Override
+        public boolean isShutdown() {
+            return true;
+        }
+
+        @Override
+        public boolean isTerminated() {
+            return true;
+        }
+
+        @Override
+        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+            return true;
+        }
+
+        @Override
+        public <T> Future<T> submit(Callable<T> task) {
+            return null;
+        }
+
+        @Override
+        public <T> Future<T> submit(Runnable task, T result) {
+            return null;
+        }
+
+        @Override
+        public Future<?> submit(Runnable task) {
+            return null;
+        }
+
+        @Override
+        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+            return null;
+        }
+
+        @Override
+        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+            return null;
+        }
+
+        @Override
+        public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+            return null;
+        }
+
+        @Override
+        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            return null;
+        }
     }
 
 }
