@@ -255,11 +255,11 @@ public final class JuniperUtils {
                      AK_DESCRIPTION,
                      phyIntf.getString("description"));
 
-        boolean opUp = phyIntf.getString(AK_OPER_STATUS, "down").equals("up");
-        annotations.set("oper-status", toUpDown(opUp));
+        boolean opUp = phyIntf.getString("oper-status", "down").equals("up");
+        annotations.set(AK_OPER_STATUS, toUpDown(opUp));
 
-        boolean admUp = phyIntf.getString(AK_ADMIN_STATUS, "down").equals("up");
-        annotations.set("admin-status", toUpDown(admUp));
+        boolean admUp = phyIntf.getString("admin-status", "down").equals("up");
+        annotations.set(AK_ADMIN_STATUS, toUpDown(admUp));
 
         long portSpeed = toMbps(phyIntf.getString(SPEED));
 
