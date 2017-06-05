@@ -22,6 +22,8 @@ import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.rest.AbstractInjectionResource;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiPreferencesService;
+import org.onosproject.ui.UiSessionToken;
+import org.onosproject.ui.UiTokenService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -67,8 +69,12 @@ public class MainIndexResource extends AbstractInjectionResource {
     public Response getMainIndex() throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
         UiExtensionService service;
+        UiTokenService tokens;
+
         try {
             service = get(UiExtensionService.class);
+            tokens = get(UiTokenService.class);
+
         } catch (ServiceNotFoundException e) {
             return Response.ok(classLoader.getResourceAsStream(NOT_READY)).build();
         }
@@ -84,9 +90,17 @@ public class MainIndexResource extends AbstractInjectionResource {
         int p2e = split(index, p2s, INJECT_CSS_END);
         int p3s = split(index, p2e, null);
 
+
         // FIXME: use global opaque auth token to allow secure failover
+
+        // for now, just use the user principal name...
         String userName = ctx.getUserPrincipal().getName();
-        String auth = "var onosAuth='" + userName + "';\n";
+
+        // get a session token to use for UI-web-socket authentication
+        UiSessionToken token = tokens.issueToken(userName);
+
+        String auth = "var onosUser='" + userName + "',\n" +
+                      "    onosAuth='" + token + "';\n";
 
         StreamEnumeration streams =
                 new StreamEnumeration(of(stream(index, 0, p0s),

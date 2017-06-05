@@ -29,6 +29,8 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiSessionToken;
+import org.onosproject.ui.UiTokenService;
 import org.onosproject.ui.UiTopo2OverlayFactory;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.UiTopoOverlayFactory;
@@ -57,6 +59,9 @@ public class UiWebSocket
     private static final String EVENT = "event";
     private static final String PAYLOAD = "payload";
     private static final String UNKNOWN = "unknown";
+    private static final String AUTHENTICATION = "authentication";
+    private static final String TOKEN = "token";
+    private static final String ERROR = "error";
 
     private static final String ID = "id";
     private static final String IP = "ip";
@@ -87,6 +92,9 @@ public class UiWebSocket
     private TopoOverlayCache overlayCache;
     private Topo2OverlayCache overlay2Cache;
 
+    private UiSessionToken sessionToken;
+
+
     /**
      * Creates a new web-socket for serving data to the Web UI.
      *
@@ -102,8 +110,8 @@ public class UiWebSocket
         UiTopoLayoutService layoutService = directory.get(UiTopoLayoutService.class);
 
         sharedModel.injectJsonifier(t2json);
-
         topoSession = new UiTopoSession(this, t2json, sharedModel, layoutService);
+        sessionToken = null;
     }
 
     @Override
@@ -192,6 +200,11 @@ public class UiWebSocket
 
     @Override
     public synchronized void onClose(int closeCode, String message) {
+        tokenService().revokeToken(sessionToken);
+        log.info("Session token revoked");
+
+        sessionToken = null;
+
         topoSession.destroy();
         destroyHandlersAndOverlays();
         log.info("GUI client disconnected [close-code={}, message={}]",
@@ -210,13 +223,20 @@ public class UiWebSocket
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             String type = message.path(EVENT).asText(UNKNOWN);
-            UiMessageHandler handler = handlers.get(type);
-            if (handler != null) {
-                log.debug("RX message: {}", message);
-                handler.process(message);
+
+            if (sessionToken == null) {
+                authenticate(type, message);
+
             } else {
-                log.warn("No GUI message handler for type {}", type);
+                UiMessageHandler handler = handlers.get(type);
+                if (handler != null) {
+                    log.debug("RX message: {}", message);
+                    handler.process(message);
+                } else {
+                    log.warn("No GUI message handler for type {}", type);
+                }
             }
+
         } catch (Exception e) {
             log.warn("Unable to parse GUI message {} due to {}", data, e);
             log.debug("Boom!!!", e);
@@ -275,6 +295,31 @@ public class UiWebSocket
         handlerCrossConnects(handlerInstances);
 
         log.debug("#handlers = {}, #overlays = {}", handlers.size(), overlayCache.size());
+    }
+
+    private void authenticate(String type, ObjectNode message) {
+        if (!AUTHENTICATION.equals(type)) {
+            log.warn("Non-Authenticated Web Socket: {}", message);
+            return;
+        }
+
+        String tokstr = message.path(PAYLOAD).path(TOKEN).asText(UNKNOWN);
+        UiSessionToken token = new UiSessionToken(tokstr);
+
+        if (tokenService().isTokenValid(token)) {
+            sessionToken = token;
+            log.info("Session token authenticated");
+            log.debug("WebSocket authenticated: {}", message);
+        } else {
+            log.warn("Invalid Authentication Token: {}", message);
+            sendMessage(ERROR, notAuthorized(token));
+        }
+    }
+
+    private ObjectNode notAuthorized(UiSessionToken token) {
+        return mapper.createObjectNode()
+                .put("message", "invalid authentication token")
+                .put("badToken", token.toString());
     }
 
     private void registerOverlays(UiExtension ext) {
@@ -350,4 +395,11 @@ public class UiWebSocket
         sendMessage(BOOTSTRAP, payload);
     }
 
+    private UiTokenService tokenService() {
+        UiTokenService service = directory.get(UiTokenService.class);
+        if (service == null) {
+            log.error("Unable to reference UiTokenService");
+        }
+        return service;
+    }
 }

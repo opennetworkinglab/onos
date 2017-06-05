@@ -1,2 +1,3 @@
-onosAuth = '';
+onosUser = 'onos';
+onosAuth = 'foo';
 userPrefs = {};
