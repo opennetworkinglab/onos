@@ -38,6 +38,10 @@ export ONOS_WEB_PASS=rocks
 # Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
+# Setup path to Mininet custom scripts
+export ONOS_MN_PY=$ONOS_ROOT/tools/dev/mininet/onos.py
+export BMV2_MN_PY=$ONOS_ROOT/tools/dev/mininet/bmv2.py
+
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {

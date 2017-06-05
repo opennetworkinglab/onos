@@ -1,21 +1,31 @@
+import os
 import socket
+import re
+import json
 
-from mininet.log import error, info
+from mininet.log import info, warn, error
 from mininet.node import Switch
 
+if 'ONOS_ROOT' not in os.environ:
+    error("ERROR: environment var $ONOS_ROOT not set")
+    exit()
+
 BMV2_TARGET = 'simple_switch_grpc'
+ONOS_ROOT = os.environ["ONOS_ROOT"]
+INIT_BMV2_JSON = '%s/tools/test/p4src/p4c-out/empty.json' % ONOS_ROOT
+
 
 class ONOSBmv2Switch(Switch):
-    """BMv2 software switch """
+    """BMv2 software switch with gRPC server"""
 
     deviceId = 0
     instanceCount = 0
 
     def __init__(self, name, debugger=False, loglevel="warn", elogger=False, persistent=False,
-                 logflush=False, **kwargs):
+                 logflush=False, thriftPort=None, grpcPort=None, netcfg=True, **kwargs):
         Switch.__init__(self, name, **kwargs)
-        self.thriftPort = ONOSBmv2Switch.pickUnusedPort()
-        self.grpcPort = ONOSBmv2Switch.pickUnusedPort()
+        self.thriftPort = ONOSBmv2Switch.pickUnusedPort() if not thriftPort else thriftPort
+        self.grpcPort = ONOSBmv2Switch.pickUnusedPort() if not grpcPort else grpcPort
         if self.dpid:
             self.deviceId = int(self.dpid, 0 if 'x' in self.dpid else 16)
         else:
@@ -27,6 +37,8 @@ class ONOSBmv2Switch(Switch):
         self.elogger = elogger
         self.persistent = persistent
         self.logflush = logflush
+        self.netcfg = netcfg
+        self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
         if persistent:
             self.exectoken = "/tmp/bmv2-%d-exec-token" % self.deviceId
             self.cmd("touch %s" % self.exectoken)
@@ -41,6 +53,38 @@ class ONOSBmv2Switch(Switch):
         addr, port = s.getsockname()
         s.close()
         return port
+
+    def getSourceIp(self, dstIP):
+        """
+        Queries the Linux routing table to get the source IP that can talk with dstIP, and vice
+        versa.
+        """
+        ipRouteOut = self.cmd('ip route get %s' % dstIP)
+        r = re.search(r"src (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", ipRouteOut)
+        return r.group(1) if r else None
+
+    def doOnosNetcfg(self, controllerIP):
+        """
+        Notifies ONOS about the new device via Netcfg.
+        """
+        srcIP = self.getSourceIp(controllerIP)
+        if not srcIP:
+            warn("WARN: unable to get device IP address, won't do onos-netcfg")
+            return
+        onosDeviceId = "bmv2:%s:%s#%s" % (srcIP, self.grpcPort, self.deviceId)
+        cfgData = {"devices": {
+            onosDeviceId: {
+                "basic": {
+                    "name": "bmv2:%s" % self.deviceId
+                }
+            }
+        }}
+        with open(self.netcfgfile, 'w') as fp:
+            json.dump(cfgData, fp, indent=4)
+        out = self.cmd("%s/tools/test/bin/onos-netcfg %s %s"
+                       % (ONOS_ROOT, controllerIP, self.netcfgfile))
+        if out:
+            print out
 
     def start(self, controllers):
         args = [BMV2_TARGET, '--device-id %s' % str(self.deviceId)]
@@ -57,32 +101,47 @@ class ONOSBmv2Switch(Switch):
         args.append('--log-file %s -L%s' % (self.logfile, self.loglevel))
         if self.logflush:
             args.append('--log-flush')
-        args.append('--no-p4')
+
+        args.append(INIT_BMV2_JSON)
+
+        # gRPC target-specific options.
         args.append('--')
         args.append('--enable-swap')
-        if self.grpcPort:
-            args.append('--grpc-server-addr 0.0.0.0:%d' % self.grpcPort)
+        args.append('--grpc-server-addr 0.0.0.0:%d' % self.grpcPort)
 
         bmv2cmd = " ".join(args)
         info("\nStarting BMv2 target: %s\n" % bmv2cmd)
         if self.persistent:
-            # Re-exec the switch if it crashes.
+            # Bash loop to re-exec the switch if it crashes.
             cmdStr = "(while [ -e {} ]; " \
                      "do {} ; " \
                      "sleep 1; " \
                      "done;) &".format(self.exectoken, bmv2cmd)
         else:
             cmdStr = "{} &".format(bmv2cmd)
-        self.cmd(cmdStr)
 
-    def stop(self):
-        "Terminate switch."
+        # Starts the switch.
+        out = self.cmd(cmdStr)
+        if out:
+            print out
+
+        if self.netcfg:
+            try:  # onos.py
+                clist = controllers[0].nodes()
+            except AttributeError:
+                clist = controllers
+            assert len(clist) > 0
+            cip = clist[0].IP()
+            self.doOnosNetcfg(cip)
+
+    def stop(self, deleteIntfs=True):
+        """Terminate switch."""
         self.cmd("rm -f /tmp/bmv2-%d-*" % self.deviceId)
         # wildcard end as BMv2 might create log files with .txt extension
         self.cmd("rm -f /tmp/bmv2-%d.log*" % self.deviceId)
         self.cmd('kill %' + BMV2_TARGET)
-        self.deleteIntfs()
+        Switch.stop(self, deleteIntfs)
 
 
-### Exports for bin/mn
+# Exports for bin/mn
 switches = {'onosbmv2': ONOSBmv2Switch}
