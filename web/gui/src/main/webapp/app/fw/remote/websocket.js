@@ -39,10 +39,9 @@
         nextListenerId = 1,     // internal ID for open listeners
         loggedInUser = null;    // name of logged-in user
 
-    // =======================
-    // === Bootstrap Handler
-
+    // built-in handlers
     var builtinHandlers = {
+
         bootstrap: function (data) {
             $log.debug('bootstrap data', data);
             loggedInUser = data.user;
@@ -54,6 +53,18 @@
                     // TODO: add connect info to masthead somewhere
                 }
             });
+        },
+
+        error: function (data) {
+            var m = data.message || 'error from server';
+            $log.error(m, data);
+
+            // Unrecoverable error - throw up the veil...
+            vs && vs.show([
+                'Oops!',
+                'Server reports error...',
+                m
+            ]);
         }
     };
 
@@ -188,7 +199,7 @@
 
     // Currently supported opts:
     //   wsport: web socket port (other than default 8181)
-    // host: if defined, is the host address to use
+    //   host:   if defined, is the host address to use
     function createWebSocket(opts, _host_) {
         var wsport = (opts && opts.wsport) || null;
 
@@ -203,6 +214,8 @@
             ws.onopen = handleOpen;
             ws.onmessage = handleMessage;
             ws.onclose = handleClose;
+
+            sendEvent('authentication', {token: onosAuth});
         }
         // Note: Wsock logs an error if the new WebSocket call fails
         return url;

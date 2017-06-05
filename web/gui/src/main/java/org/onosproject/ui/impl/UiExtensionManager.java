@@ -15,23 +15,15 @@
  */
 package org.onosproject.ui.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.DoubleNode;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ShortNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,6 +42,8 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiPreferencesService;
+import org.onosproject.ui.UiSessionToken;
+import org.onosproject.ui.UiTokenService;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
@@ -59,12 +53,23 @@ import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.LongNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ShortNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
@@ -80,11 +85,13 @@ import static org.onosproject.ui.UiView.Category.PLATFORM;
 @Component(immediate = true)
 @Service
 public class UiExtensionManager
-        implements UiExtensionService, UiPreferencesService, SpriteService {
+        implements UiExtensionService, UiPreferencesService, SpriteService,
+        UiTokenService {
 
     private static final ClassLoader CL = UiExtensionManager.class.getClassLoader();
 
     private static final String ONOS_USER_PREFERENCES = "onos-ui-user-preferences";
+    private static final String ONOS_SESSION_TOKENS = "onos-ui-session-tokens";
     private static final String CORE = "core";
     private static final String GUI_ADDED = "guiAdded";
     private static final String GUI_REMOVED = "guiRemoved";
@@ -116,6 +123,12 @@ public class UiExtensionManager
     private Map<String, ObjectNode> prefs;
     private final MapEventListener<String, ObjectNode> prefsListener =
             new InternalPrefsListener();
+
+    // Session tokens
+    private ConsistentMap<UiSessionToken, String> tokensConsistentMap;
+    private Map<UiSessionToken, String> tokens;
+    private final SessionTokenGenerator tokenGen =
+            new SessionTokenGenerator();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -204,11 +217,12 @@ public class UiExtensionManager
     @Activate
     public void activate() {
         Serializer serializer = Serializer.using(KryoNamespaces.API,
+
                 ObjectNode.class, ArrayNode.class,
                 JsonNodeFactory.class, LinkedHashMap.class,
                 TextNode.class, BooleanNode.class,
                 LongNode.class, DoubleNode.class, ShortNode.class,
-                IntNode.class, NullNode.class);
+                IntNode.class, NullNode.class, UiSessionToken.class);
 
         prefsConsistentMap = storageService.<String, ObjectNode>consistentMapBuilder()
                 .withName(ONOS_USER_PREFERENCES)
@@ -217,6 +231,14 @@ public class UiExtensionManager
                 .build();
         prefsConsistentMap.addListener(prefsListener);
         prefs = prefsConsistentMap.asJavaMap();
+
+        tokensConsistentMap = storageService.<UiSessionToken, String>consistentMapBuilder()
+                .withName(ONOS_SESSION_TOKENS)
+                .withSerializer(serializer)
+                .withRelaxedReadConsistency()
+                .build();
+        tokens = tokensConsistentMap.asJavaMap();
+
         register(core);
         log.info("Started");
     }
@@ -317,6 +339,55 @@ public class UiExtensionManager
         return key.split(SLASH)[IDX_KEY];
     }
 
+
+    // =====================================================================
+    // UiTokenService
+
+    @Override
+    public UiSessionToken issueToken(String username) {
+        UiSessionToken token = new UiSessionToken(tokenGen.nextSessionId());
+        tokens.put(token, username);
+        log.debug("UiSessionToken issued: {}", token);
+        return token;
+    }
+
+    @Override
+    public void revokeToken(UiSessionToken token) {
+        if (token != null) {
+            tokens.remove(token);
+            log.debug("UiSessionToken revoked: {}", token);
+        }
+    }
+
+    @Override
+    public boolean isTokenValid(UiSessionToken token) {
+        return token != null && tokens.containsKey(token);
+    }
+
+    private final class SessionTokenGenerator {
+        private final SecureRandom random = new SecureRandom();
+
+        /*
+            This works by choosing 130 bits from a cryptographically secure
+            random bit generator, and encoding them in base-32.
+
+            128 bits is considered to be cryptographically strong, but each
+            digit in a base 32 number can encode 5 bits, so 128 is rounded up
+            to the next multiple of 5.
+
+            This encoding is compact and efficient, with 5 random bits per
+            character. Compare this to a random UUID, which only has 3.4 bits
+            per character in standard layout, and only 122 random bits in total.
+
+            Note that SecureRandom objects are expensive to initialize, so
+            we'll want to keep it around and re-use it.
+         */
+
+        private String nextSessionId() {
+            return new BigInteger(130, random).toString(32);
+        }
+    }
+
     // Auxiliary listener to preference map events.
     private class InternalPrefsListener
             implements MapEventListener<String, ObjectNode> {
@@ -332,7 +403,7 @@ public class UiExtensionManager
 
         private ObjectNode jsonPrefs() {
             ObjectNode json = mapper.createObjectNode();
-            prefs.entrySet().forEach(e -> json.set(keyName(e.getKey()), e.getValue()));
+            prefs.forEach((key, value) -> json.set(keyName(key), value));
             return json;
         }
     }

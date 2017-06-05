@@ -84,8 +84,8 @@
                 ns.toggleNav();
             };
 
-            // onosAuth is a global set via the index.html generated source
-            $scope.user = onosAuth || '(no one)';
+            // onosUser is a global set via the index.html generated source
+            $scope.user = onosUser || '(no one)';
             $scope.helpTip = 'Show help page for current view';
 
             $scope.directTo = function () {

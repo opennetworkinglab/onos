@@ -122,7 +122,10 @@ describe('factory: fw/remote/websocket.js', function () {
             payload: { mock: 'thing' }
         };
         wss.sendEvent(fakeEvent.event, fakeEvent.payload);
-        expect(mockWebSocket.send).not.toHaveBeenCalled();
+        // on opening the socket, a single authentication event should have
+        // been sent already...
+        expect(mockWebSocket.send.calls.count()).toEqual(1);
+
         wss.createWebSocket({ wsport: 1234 });
         mockWebSocket.onopen();
         expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify(fakeEvent));
