@@ -1,0 +1,118 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks the logs of the local ONOS instance and makes sure they are clean.
+# -----------------------------------------------------------------------------
+
+function __usage() {
+cat << _EOM_
+usage: $(basename $0) [--old|--ignore-store-exceptions] [node]
+
+options:
+ --ignore-store-exceptions
+        if specified, any store service exceptions are ignored
+ --old
+        if specified, the entire logs are searched for errors and exceptions;
+        otherwise logs are scanned only from the last server start-up
+
+ node   the cluster node whose logs to inspect; default is \$OCI
+
+summary:
+ Checks the logs of the remote ONOS instance and makes sure they are clean.
+
+_EOM_
+}
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+# Process options
+while [ -z $opts ] ; do
+    case "$1" in
+    --ignore-store-exceptions) export ise=1; shift;;
+    --old) export allLogs=1; shift;;
+    --*) __usage && exit 1;;
+    -h)  __usage && exit 0;;
+    *) export opts=1;;
+    esac
+done
+
+remote=$ONOS_USER@${1:-$OCI}
+
+LOG=/tmp/onos-$ONOS_POM_VERSION/apache-karaf-$KARAF_VERSION/data/log/karaf.log*
+
+aux=/tmp/log.$$
+
+if [ -n "$allLogs" ]; then
+    egrep 'ERROR|Exception|Error' $LOG
+
+else
+        [ "uname" != 'Linux' ] && alias tac='tail -r'
+        tac $LOG | tr -d '\000' | awk -v ignoreStoreExceptions=${ise:-0} '
+            BEGIN { off = 0; fail = 0; exclusion = 0; expected = 0; trace = "";}
+            / org.apache.karaf.main.lock.SimpleFileLock lock/ {
+                exit fail;
+            }
+
+            # note: we are parsing log in reverse from the end
+            / EXPECTING_EXCEPTION_BEGIN/ {
+                print $0;
+                expected = 0;
+            }
+
+            / EXPECTING_EXCEPTION_END/ {
+                print $0;
+                expected = 1;
+            }
+
+            / ERROR / {
+                if (exception && !exclusion) {
+                    print $0;
+                    exception = 0;
+
+                    if (!expected) {
+                        fail = 1;
+                    }
+                }
+                exclusion = 0;
+            }
+            / WARN / {
+                if (exception && !exclusion) {
+                    print $0;
+                    exception = 0;
+                }
+                exclusion = 0;
+            }
+            / INFO / {
+                exception = 0;
+                exclusion = 0;
+            }
+
+            # Sanctioned exclusions for exceptions in the distributed stores; one pattern per exclusion
+            /org\.onosproject\.store\.service\..*Exception/ { exclusion = ignoreStoreExceptions;  }
+
+            /^[a-zA-Z0-9.]*(Exception|Error)/ {
+                if (!exclusion) {
+                    print trace;
+                    print $0;
+                    exception = 1;
+                    if (!expected) {
+                        fail = 1;
+                    }
+                    trace = "";
+                }
+            }
+
+            /(	at|Caused by:) / {
+                trace = trace "\n" $0;
+            }
+
+            # Sanctioned exclusions for exceptions in third-party code; one pattern per exclusion
+            /at org\.apache\.felix\.scr\.impl\.ComponentRegistry\.getComponents\(ComponentRegistry\.java:199\)/ { exclusion = 1; }
+            /at org\.apache\.karaf\.service\.guard\.impl\.GuardProxyCatalog.1.run\(GuardProxyCatalog\.java:253\)/ { exclusion = 1; }
+
+        END { exit fail; }
+        ' > $aux
+        status=$?
+        tac $aux && rm $aux
+        exit $status
+fi
