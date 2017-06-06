@@ -239,6 +239,7 @@ public interface VirtualNetworkStore
      *
      * @param intent   intent
      * @param tunnelId tunnel identifier
+     * @deprecated in Kingfisher Release (1.10)
      */
     @Deprecated
     void addTunnelId(Intent intent, TunnelId tunnelId);
@@ -248,6 +249,7 @@ public interface VirtualNetworkStore
      *
      * @param intent intent
      * @return set of tunnel identifiers
+     * @deprecated in Kingfisher Release (1.10)
      */
     @Deprecated
     Set<TunnelId> getTunnelIds(Intent intent);
@@ -257,6 +259,7 @@ public interface VirtualNetworkStore
      *
      * @param intent   intent
      * @param tunnelId tunnel identifier
+     * @deprecated in Kingfisher Release (1.10)
      */
     @Deprecated
     void removeTunnelId(Intent intent, TunnelId tunnelId);
