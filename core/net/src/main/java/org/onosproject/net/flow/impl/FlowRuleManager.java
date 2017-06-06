@@ -704,6 +704,11 @@ public class FlowRuleManager
         return store.getTableStatistics(deviceId);
     }
 
+    @Override
+    public long getActiveFlowRuleCount(DeviceId deviceId) {
+        return store.getActiveFlowRuleCount(deviceId);
+    }
+
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {

@@ -143,4 +143,14 @@ public interface FlowRuleService
      * @return collection of flow table statistics
      */
     Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId);
+
+    /**
+     * Returns number of flow rules in ADDED state for specified device.
+     *
+     * @param deviceId device identifier
+     * @return number of flow rules in ADDED state
+     */
+    default long getActiveFlowRuleCount(DeviceId deviceId) {
+        return 0;
+    }
 }

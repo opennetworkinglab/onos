@@ -31,6 +31,7 @@ package org.onosproject.store.flow.impl;
  import java.util.concurrent.atomic.AtomicReference;
  import java.util.stream.Collectors;
 
+ import com.google.common.collect.Streams;
  import org.apache.felix.scr.annotations.Activate;
  import org.apache.felix.scr.annotations.Component;
  import org.apache.felix.scr.annotations.Deactivate;
@@ -924,6 +925,13 @@ public class DistributedFlowRuleStore
             return Collections.emptyList();
         }
         return ImmutableList.copyOf(tableStats);
+    }
+
+    @Override
+    public long getActiveFlowRuleCount(DeviceId deviceId) {
+        return Streams.stream(getTableStatistics(deviceId))
+                .mapToLong(TableStatisticsEntry::activeFlowEntries)
+                .sum();
     }
 
     private class InternalTableStatsListener

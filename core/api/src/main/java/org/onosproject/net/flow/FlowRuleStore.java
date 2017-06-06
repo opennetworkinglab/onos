@@ -136,4 +136,12 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @return the flow table statistics
      */
     Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId);
+
+    /**
+     * Returns number of flow rules in ADDED state for specified device.
+     *
+     * @param deviceId the device ID
+     * @return number of flow rules in ADDED state
+     */
+    long getActiveFlowRuleCount(DeviceId deviceId);
 }

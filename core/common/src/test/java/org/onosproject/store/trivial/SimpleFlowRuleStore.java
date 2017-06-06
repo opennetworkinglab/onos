@@ -22,6 +22,7 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.SettableFuture;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -388,6 +389,13 @@ public class SimpleFlowRuleStore
             return Collections.emptyList();
         }
         return ImmutableList.copyOf(tableStats);
+    }
+
+    @Override
+    public long getActiveFlowRuleCount(DeviceId deviceId) {
+        return Streams.stream(getTableStatistics(deviceId))
+                .mapToLong(TableStatisticsEntry::activeFlowEntries)
+                .sum();
     }
 
     private static final class TimeoutFuture

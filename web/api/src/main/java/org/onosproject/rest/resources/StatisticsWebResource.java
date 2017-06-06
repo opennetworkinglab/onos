@@ -331,4 +331,28 @@ public class StatisticsWebResource  extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Gets sum of active entries in all tables for all devices.
+     *
+     * @onos.rsModel StatisticsFlowsActiveEntries
+     * @return 200 OK with JSON encoded array of active entry count per device
+     */
+    @GET
+    @Path("flows/activeentries")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getActiveEntriesCountPerDevice() {
+        final FlowRuleService service = get(FlowRuleService.class);
+        final Iterable<Device> devices = get(DeviceService.class).getDevices();
+        final ObjectNode root = mapper().createObjectNode();
+        final ArrayNode rootArrayNode = root.putArray("statistics");
+        for (final Device device : devices) {
+            long activeEntries = service.getActiveFlowRuleCount(device.id());
+            final ObjectNode entry = mapper().createObjectNode();
+            entry.put("device", device.id().toString());
+            entry.put("activeEntries", activeEntries);
+            rootArrayNode.add(entry);
+        }
+
+        return ok(root).build();
+    }
 }
