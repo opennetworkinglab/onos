@@ -196,6 +196,13 @@ public class OvsdbDeviceProvider extends AbstractProvider
             }
             if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
                 executor.execute(() -> discoverPorts(deviceId));
+            } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
+                log.debug("removing device {}", event.subject().id());
+                OvsdbNodeId ovsdbNodeId = changeDeviceIdToNodeId(deviceId);
+                OvsdbClientService client = controller.getOvsdbClient(ovsdbNodeId);
+                if (client != null) {
+                    client.disconnect();
+                }
             }
         }
 
