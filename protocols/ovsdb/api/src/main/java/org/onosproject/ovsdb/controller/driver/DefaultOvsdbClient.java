@@ -15,32 +15,36 @@
  */
 package org.onosproject.ovsdb.controller.driver;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
-
 import io.netty.channel.Channel;
+
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.MirroringName;
+import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbInterface;
-import org.onosproject.ovsdb.controller.OvsdbInterface.Type;
 import org.onosproject.ovsdb.controller.OvsdbMirror;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
@@ -51,7 +55,6 @@ import org.onosproject.ovsdb.controller.OvsdbQueue;
 import org.onosproject.ovsdb.controller.OvsdbRowStore;
 import org.onosproject.ovsdb.controller.OvsdbStore;
 import org.onosproject.ovsdb.controller.OvsdbTableStore;
-
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
@@ -86,25 +89,38 @@ import org.onosproject.ovsdb.rfc.utils.MutationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import static org.onosproject.ovsdb.controller.OvsdbConstant.*;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.CONTROLLER;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.DATABASENAME;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID_INTERFACE_ID;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRROR;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRRORS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORTS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT_QOS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS_EXTERNAL_ID_KEY;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE_EXTERNAL_ID_KEY;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.TYPEVXLAN;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.UUID;
 
 /**
  * An representation of an ovsdb client.
@@ -460,48 +476,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             log.info("Port {} delete", portName);
             deleteConfig(PORT, UUID, portUuid, BRIDGE, PORTS, Uuid.uuid(portUuid));
         }
-    }
-
-    @Deprecated
-    @Override
-    public void createBridge(String bridgeName) {
-        OvsdbBridge ovsdbBridge = OvsdbBridge.builder()
-                .name(bridgeName)
-                .build();
-
-        createBridge(ovsdbBridge);
-    }
-
-    @Deprecated
-    @Override
-    public void createBridge(String bridgeName, String dpid, String exPortName) {
-        OvsdbBridge ovsdbBridge = OvsdbBridge.builder()
-                .name(bridgeName)
-                .failMode(BridgeDescription.FailMode.SECURE)
-                .datapathId(dpid)
-                .disableInBand()
-                .controllers(Lists.newArrayList(localController()))
-                .build();
-
-        createBridge(ovsdbBridge);
-
-        if (exPortName != null) {
-            createPort(bridgeName, exPortName);
-        }
-    }
-
-    @Deprecated
-    @Override
-    public boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers) {
-        OvsdbBridge ovsdbBridge = OvsdbBridge.builder()
-                .name(bridgeName)
-                .failMode(BridgeDescription.FailMode.SECURE)
-                .datapathId(dpid)
-                .disableInBand()
-                .controllers(controllers)
-                .build();
-
-        return createBridge(ovsdbBridge);
     }
 
     @Override
@@ -1015,24 +989,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
         log.warn("Unable to delete {}", mirroringName.name());
         return;
-    }
-
-    @Deprecated
-    @Override
-    public boolean createTunnel(String bridgeName, String ifaceName, String tunnelType,
-                                Map<String, String> options) {
-        OvsdbInterface ovsdbIface = OvsdbInterface.builder()
-                .name(ifaceName)
-                .type(Type.valueOf(tunnelType))
-                .options(options)
-                .build();
-
-        return createInterface(bridgeName, ovsdbIface);
-    }
-
-    @Deprecated
-    @Override
-    public void dropTunnel(IpAddress srcIp, IpAddress dstIp) {
     }
 
     @Override

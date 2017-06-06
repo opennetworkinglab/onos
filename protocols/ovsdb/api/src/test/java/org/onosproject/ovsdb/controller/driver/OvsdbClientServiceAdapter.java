@@ -16,15 +16,14 @@
 
 package org.onosproject.ovsdb.controller.driver;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.List;
+import java.util.Set;
 
-import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.MirroringName;
+import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
@@ -40,9 +39,8 @@ import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Test Adapter for OvsdbClientService.
@@ -148,30 +146,12 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
-    public boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options) {
-        return true;
-    }
-
-    @Override
-    public void dropTunnel(IpAddress srcIp, IpAddress dstIp) {
-    }
-
-    @Override
     public boolean createInterface(String bridgeName, OvsdbInterface ovsdbIface) {
         return true;
     }
 
     @Override
     public boolean dropInterface(String name) {
-        return true;
-    }
-
-    @Override
-    public void createBridge(String bridgeName) {
-    }
-
-    @Override
-    public boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers) {
         return true;
     }
 
@@ -297,10 +277,5 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public ListenableFuture<List<JsonNode>> transact(DatabaseSchema dbSchema, List<Operation> operations) {
         return null;
-    }
-
-    @Override
-    public void createBridge(String bridgeName, String dpid, String exPortName) {
-
     }
 }

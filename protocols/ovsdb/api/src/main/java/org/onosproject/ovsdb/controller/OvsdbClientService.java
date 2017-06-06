@@ -15,13 +15,14 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.onlab.packet.IpAddress;
+import java.util.List;
+import java.util.Set;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.MirroringName;
+import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
 import org.onosproject.net.behaviour.QueueId;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
@@ -29,9 +30,7 @@ import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Represents to provider facing side of a node.
@@ -156,30 +155,6 @@ public interface OvsdbClientService extends OvsdbRpc {
     Set<OvsdbQueue> getQueues();
 
     /**
-     * Creates a tunnel port with given options.
-     *
-     * @deprecated version 1.7.0 - Hummingbird
-     * @param bridgeName bridge name
-     * @param portName port name
-     * @param tunnelType tunnel type
-     * @param options tunnel options
-     * @return true if tunnel creation is successful, false otherwise
-     */
-    @Deprecated
-    boolean createTunnel(String bridgeName, String portName, String tunnelType,
-                         Map<String, String> options);
-
-    /**
-     * Drops the configuration for tunnel.
-     *
-     * @deprecated version 1.7.0 - Hummingbird
-     * @param srcIp source IP address
-     * @param dstIp destination IP address
-     */
-    @Deprecated
-    void dropTunnel(IpAddress srcIp, IpAddress dstIp);
-
-    /**
      * Creates an interface with a given OVSDB interface description.
      *
      * @param bridgeName bridge name
@@ -195,39 +170,6 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return true if interface creation is successful, false otherwise
      */
     boolean dropInterface(String ifaceName);
-
-    /**
-     * Creates a bridge.
-     *
-     * @deprecated version 1.7.0 - Hummingbird
-     * @param bridgeName bridge name
-     */
-    @Deprecated
-    void createBridge(String bridgeName);
-
-    /**
-     * Creates a bridge.
-     *
-     * @deprecated version 1.7.0 - Hummingbird
-     * @param bridgeName bridge name
-     * @param dpid data path id
-     * @param exPortName external port name
-     */
-    @Deprecated
-    void createBridge(String bridgeName, String dpid, String exPortName);
-
-    /**
-     * Creates a bridge with given name and dpid.
-     * Sets the bridge's controller with given controllers.
-     *
-     * @deprecated version 1.7.0 - Hummingbird
-     * @param bridgeName bridge name
-     * @param dpid data path id
-     * @param controllers controllers
-     * @return true if bridge creation is successful, false otherwise
-     */
-    @Deprecated
-    boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers);
 
     /**
      * Creates a bridge with a given bridge description.
