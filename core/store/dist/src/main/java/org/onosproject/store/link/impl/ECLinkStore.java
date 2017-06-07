@@ -74,7 +74,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 
-import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.DefaultAnnotations.union;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.Link.State.INACTIVE;
@@ -372,26 +371,26 @@ public class ECLinkStore
         ConnectPoint src = base.src();
         ConnectPoint dst = base.dst();
         Type type = base.type();
-        AtomicReference<DefaultAnnotations> annotations = new AtomicReference<>(DefaultAnnotations.builder().build());
-        annotations.set(merge(annotations.get(), base.annotations()));
+        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        builder.putAll(base.annotations());
 
         getAllProviders(linkKey).stream()
                 .map(p -> new Provided<>(linkKey, p))
                 .forEach(key -> {
                     LinkDescription linkDescription = linkDescriptions.get(key);
                     if (linkDescription != null) {
-                        annotations.set(merge(annotations.get(),
-                                              linkDescription.annotations()));
+                        builder.putAll(linkDescription.annotations());
                     }
                 });
 
+        DefaultAnnotations annotations = builder.build();
         Link.State initialLinkState;
 
         boolean isExpected;
         if (linkDiscoveryMode == LinkDiscoveryMode.PERMISSIVE) {
             initialLinkState = ACTIVE;
             isExpected =
-                    Objects.equals(annotations.get().value(AnnotationKeys.DURABLE), "true");
+                    Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
         } else {
             initialLinkState = base.isExpected() ? ACTIVE : INACTIVE;
             isExpected = base.isExpected();
@@ -405,7 +404,7 @@ public class ECLinkStore
                 .type(type)
                 .state(initialLinkState)
                 .isExpected(isExpected)
-                .annotations(annotations.get())
+                .annotations(annotations)
                 .build();
     }
 

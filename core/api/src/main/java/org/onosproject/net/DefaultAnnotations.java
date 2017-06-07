@@ -141,6 +141,10 @@ public final class DefaultAnnotations implements SparseAnnotations {
             return annotations;
         }
 
+        if (annotations.keys().isEmpty()) {
+            return sparseAnnotations;
+        }
+
         final HashMap<String, String> newMap;
         if (annotations instanceof DefaultAnnotations) {
             newMap = copy(((DefaultAnnotations) annotations).map);

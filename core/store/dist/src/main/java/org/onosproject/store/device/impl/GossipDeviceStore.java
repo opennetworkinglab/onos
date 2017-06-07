@@ -100,7 +100,6 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
-import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
@@ -1123,8 +1122,8 @@ public class GossipDeviceStore
         String swVersion = base.swVersion();
         String serialNumber = base.serialNumber();
         ChassisId chassisId = base.chassisId();
-        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
-        annotations = merge(annotations, base.annotations());
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
+        annotations.putAll(base.annotations());
 
         for (Entry<ProviderId, DeviceDescriptions> e : providerDescs.entrySet()) {
             if (e.getKey().equals(primary)) {
@@ -1136,12 +1135,12 @@ public class GossipDeviceStore
             // providers
 
             // annotation merging. not so efficient, should revisit later
-            annotations = merge(annotations, e.getValue().getDeviceDesc().value().annotations());
+            annotations.putAll(e.getValue().getDeviceDesc().value().annotations());
         }
 
         return new DefaultDevice(primary, deviceId, type, manufacturer,
                                  hwVersion, swVersion, serialNumber,
-                                 chassisId, annotations);
+                                 chassisId, annotations.build());
     }
 
     private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,
@@ -1165,12 +1164,12 @@ public class GossipDeviceStore
         DeviceDescriptions primDescs = descsMap.get(primary);
         // if no primary, assume not enabled
         boolean isEnabled = false;
-        DefaultAnnotations annotations = DefaultAnnotations.builder().build();
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
         Timestamp newest = null;
         final Timestamped<PortDescription> portDesc = primDescs.getPortDesc(number);
         if (portDesc != null) {
             isEnabled = portDesc.value().isEnabled();
-            annotations = merge(annotations, portDesc.value().annotations());
+            annotations.putAll(portDesc.value().annotations());
             newest = portDesc.timestamp();
         }
         Port updated = null;
@@ -1189,18 +1188,18 @@ public class GossipDeviceStore
                 if (newest != null && newest.isNewerThan(otherPortDesc.timestamp())) {
                     continue;
                 }
-                annotations = merge(annotations, otherPortDesc.value().annotations());
+                annotations.putAll(otherPortDesc.value().annotations());
                 PortDescription other = otherPortDesc.value();
-                updated = buildTypedPort(device, number, isEnabled, other, annotations);
+                updated = buildTypedPort(device, number, isEnabled, other, annotations.build());
                 newest = otherPortDesc.timestamp();
             }
         }
         if (portDesc == null) {
-            return updated == null ? new DefaultPort(device, number, false, annotations) : updated;
+            return updated == null ? new DefaultPort(device, number, false, annotations.build()) : updated;
         }
         PortDescription current = portDesc.value();
         return updated == null
-                ? buildTypedPort(device, number, isEnabled, current, annotations)
+                ? buildTypedPort(device, number, isEnabled, current, annotations.build())
                 : updated;
     }
 

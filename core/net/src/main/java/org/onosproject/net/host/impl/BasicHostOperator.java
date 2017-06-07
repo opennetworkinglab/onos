@@ -80,10 +80,10 @@ public final class BasicHostOperator extends BasicElementOperator {
      */
     public static SparseAnnotations combine(BasicHostConfig cfg, SparseAnnotations an) {
         DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-
+        builder.putAll(an);
         combineElementAnnotations(cfg, builder);
 
-        return DefaultAnnotations.union(an, builder.build());
+        return builder.build();
     }
 
     /**

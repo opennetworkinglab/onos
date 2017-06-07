@@ -86,6 +86,7 @@ public final class BasicDeviceOperator extends BasicElementOperator {
      */
     public static SparseAnnotations combine(BasicDeviceConfig cfg, SparseAnnotations an) {
         DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+        builder.putAll(an);
         if (!Objects.equals(cfg.driver(), an.value(AnnotationKeys.DRIVER))) {
             builder.set(AnnotationKeys.DRIVER, cfg.driver());
         }
@@ -96,7 +97,7 @@ public final class BasicDeviceOperator extends BasicElementOperator {
             builder.set(AnnotationKeys.MANAGEMENT_ADDRESS, cfg.managementAddress());
         }
 
-        return DefaultAnnotations.union(an, builder.build());
+        return builder.build();
     }
 
     /**
