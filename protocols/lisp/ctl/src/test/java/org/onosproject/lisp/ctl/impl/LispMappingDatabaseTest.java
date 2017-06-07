@@ -57,7 +57,8 @@ public class LispMappingDatabaseTest {
     private static final String EID_IP_PREFIX_2_32 = "10.1.2.1";
     private static final String EID_IP_PREFIX_2_24 = "10.1.2.0";
 
-    final LispMappingDatabase mapDb = LispExpireMapDatabase.getInstance();
+    private final LispMappingDatabase expireMapDb = LispExpireMapDatabase.getInstance();
+    private final LispMappingDatabase radixTreeDb = LispRadixTreeDatabase.getInstance();
 
     @Before
     public void setup() {
@@ -126,9 +127,13 @@ public class LispMappingDatabaseTest {
         builder3.withRecordTtl(60);
         LispMapRecord mapRecord3 = builder3.build();
 
-        mapDb.putMapRecord(eidRecord1, mapRecord1, true);
-        mapDb.putMapRecord(eidRecord2, mapRecord2, true);
-        mapDb.putMapRecord(eidRecord3, mapRecord3, true);
+        expireMapDb.putMapRecord(eidRecord1, mapRecord1, true);
+        expireMapDb.putMapRecord(eidRecord2, mapRecord2, true);
+        expireMapDb.putMapRecord(eidRecord3, mapRecord3, true);
+
+        radixTreeDb.putMapRecord(eidRecord1, mapRecord1, true);
+        radixTreeDb.putMapRecord(eidRecord2, mapRecord2, true);
+        radixTreeDb.putMapRecord(eidRecord3, mapRecord3, true);
     }
 
     @Test
@@ -136,10 +141,14 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_1));
         LispEidRecord record = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord = mapDb.getMapRecordByEidRecord(record, true);
+        LispMapRecord mapRecord1 = expireMapDb.getMapRecordByEidRecord(record, true);
+        LispMapRecord mapRecord2 = radixTreeDb.getMapRecordByEidRecord(record, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                mapRecord.getLocatorCount(), is(3));
+                mapRecord1.getLocatorCount(), is(3));
+
+        assertThat("Failed to fetch the RLOCs with /32 EID record",
+                mapRecord2.getLocatorCount(), is(3));
     }
 
     @Test
@@ -147,17 +156,24 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_2_32));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
+        LispMapRecord mapRecordExpireMap32 = expireMapDb.getMapRecordByEidRecord(record32, true);
+        LispMapRecord mapRecordRadixTree32 = radixTreeDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_2_24));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
+        LispMapRecord mapRecordExpireMap24 = expireMapDb.getMapRecordByEidRecord(record24, true);
+        LispMapRecord mapRecordRadixTree24 = radixTreeDb.getMapRecordByEidRecord(record32, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                mapRecord32.getLocatorCount(), is(2));
+                mapRecordExpireMap32.getLocatorCount(), is(2));
         assertThat("Failed to fetch the RLOCs with /24 EID record",
-                mapRecord24.getLocatorCount(), is(2));
+                mapRecordExpireMap24.getLocatorCount(), is(2));
+
+        assertThat("Failed to fetch the RLOCs with /32 EID record",
+                mapRecordRadixTree32.getLocatorCount(), is(2));
+        assertThat("Failed to fetch the RLOCs with /24 EID record",
+                mapRecordRadixTree24.getLocatorCount(), is(2));
     }
 
     @Test
@@ -165,23 +181,33 @@ public class LispMappingDatabaseTest {
         byte cidr32 = (byte) 32;
         LispIpv4Address eid = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_32));
         LispEidRecord record32 = new LispEidRecord(cidr32, eid);
-        LispMapRecord mapRecord32 = mapDb.getMapRecordByEidRecord(record32, true);
+        LispMapRecord mapRecordExpireMap32 = expireMapDb.getMapRecordByEidRecord(record32, true);
+        LispMapRecord mapRecordRadixTree32 = radixTreeDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr24 = (byte) 24;
         LispIpv4Address eid24 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_24));
         LispEidRecord record24 = new LispEidRecord(cidr24, eid24);
-        LispMapRecord mapRecord24 = mapDb.getMapRecordByEidRecord(record24, true);
+        LispMapRecord mapRecordExpireMap24 = expireMapDb.getMapRecordByEidRecord(record24, true);
+        LispMapRecord mapRecordRadixTree24 = radixTreeDb.getMapRecordByEidRecord(record32, true);
 
         byte cidr16 = (byte) 16;
         LispIpv4Address eid16 = new LispIpv4Address(IpAddress.valueOf(EID_IP_PREFIX_1_16));
         LispEidRecord record16 = new LispEidRecord(cidr16, eid16);
-        LispMapRecord mapRecord16 = mapDb.getMapRecordByEidRecord(record16, true);
+        LispMapRecord mapRecordExpireMap16 = expireMapDb.getMapRecordByEidRecord(record16, true);
+        LispMapRecord mapRecordRadixTree16 = radixTreeDb.getMapRecordByEidRecord(record16, true);
 
         assertThat("Failed to fetch the RLOCs with /32 EID record",
-                mapRecord32.getLocatorCount(), is(1));
+                mapRecordExpireMap32.getLocatorCount(), is(1));
         assertThat("Failed to fetch the RLOCs with /24 EID record",
-                mapRecord24.getLocatorCount(), is(1));
+                mapRecordExpireMap24.getLocatorCount(), is(1));
         assertThat("Failed to fetch the RLOCs with /16 EID record",
-                mapRecord16.getLocatorCount(), is(1));
+                mapRecordExpireMap16.getLocatorCount(), is(1));
+
+        assertThat("Failed to fetch the RLOCs with /32 EID record",
+                mapRecordRadixTree32.getLocatorCount(), is(1));
+        assertThat("Failed to fetch the RLOCs with /24 EID record",
+                mapRecordRadixTree24.getLocatorCount(), is(1));
+        assertThat("Failed to fetch the RLOCs with /16 EID record",
+                mapRecordRadixTree16.getLocatorCount(), is(1));
     }
 }
