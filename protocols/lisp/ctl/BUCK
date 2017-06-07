@@ -8,6 +8,7 @@ COMPILE_DEPS = [
     '//lib:netty-transport-native-epoll',
     '//lib:netty-handler',
     '//lib:netty-resolver',
+    '//lib:concurrent-trees',
 ]
 
 TEST_DEPS = [
