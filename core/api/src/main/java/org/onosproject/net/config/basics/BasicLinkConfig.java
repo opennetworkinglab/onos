@@ -159,7 +159,7 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      *
      * @return true for bidirectional, false otherwise
      */
-    public Boolean isBidirectional() {
+    public boolean isBidirectional() {
         JsonNode res = object.path(IS_BIDIRECTIONAL);
         if (res.isMissingNode()) {
             return true;

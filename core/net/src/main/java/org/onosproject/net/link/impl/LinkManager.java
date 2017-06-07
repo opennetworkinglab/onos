@@ -248,22 +248,36 @@ public class LinkManager
             }
         }
 
-        // returns a LinkDescription made from the union of the BasicLinkConfig
-        // annotations if it exists
+        /**
+         * Validates configuration against link configuration.
+         *
+         * @param linkDescription input
+         * @return description combined with configuration or null if disallowed
+         */
         private LinkDescription validateLink(LinkDescription linkDescription) {
-            // TODO Investigate whether this can be made more efficient
             BasicLinkConfig cfg = networkConfigService.getConfig(linkKey(linkDescription.src(),
                                                                          linkDescription.dst()),
                                                                  BasicLinkConfig.class);
-            BasicLinkConfig cfgTwo = networkConfigService.getConfig(linkKey(linkDescription.dst(),
-                                                                            linkDescription.src()),
-                                                                    BasicLinkConfig.class);
-            if (isAllowed(cfg) && isAllowed(cfgTwo)) {
-                return BasicLinkOperator.combine(cfg, linkDescription);
-            } else {
+            if (!isAllowed(cfg)) {
                 log.trace("Link {} is not allowed", linkDescription);
                 return null;
             }
+
+            // test if bidirectional reverse configuration exists
+            BasicLinkConfig cfgRev = networkConfigService.getConfig(linkKey(linkDescription.dst(),
+                                                                            linkDescription.src()),
+                                                                    BasicLinkConfig.class);
+            LinkDescription description = linkDescription;
+            if (cfgRev != null && cfgRev.isBidirectional()) {
+                if (!cfgRev.isAllowed()) {
+                    log.trace("Link {} is not allowed (rev)", linkDescription);
+                    return null;
+                }
+                description = BasicLinkOperator.combine(cfgRev, description);
+            }
+
+            description = BasicLinkOperator.combine(cfg, description);
+            return description;
         }
 
         @Override
@@ -343,7 +357,9 @@ public class LinkManager
             if (!isAllowed(cfg)) {
                 log.info("Kicking out links between {} and {}", lk.src(), lk.dst());
                 removeLink(lk.src(), lk.dst());
-                removeLink(lk.dst(), lk.src());
+                if (cfg.isBidirectional()) {
+                    removeLink(lk.dst(), lk.src());
+                }
                 return;
             }
 
@@ -358,6 +374,9 @@ public class LinkManager
             LinkDescription desc;
 
             if (link == null) {
+                // TODO Revisit this behaviour.
+                // config alone probably should not be adding a link,
+                // netcfg provider should be the one.
                 desc = BasicLinkOperator.descriptionOf(src, dst, cfg);
             } else {
                 desc = BasicLinkOperator.combine(cfg,
