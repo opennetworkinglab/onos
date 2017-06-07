@@ -75,7 +75,7 @@ public final class LispMapServer {
 
     private boolean enableSmr = false;
 
-    private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
+    private LispMappingDatabase mapDb = LispExpireMapDatabase.getInstance();
     private LispAuthenticationConfig authConfig = LispAuthenticationConfig.getInstance();
 
     // non-instantiable (except for our Singleton)

@@ -58,7 +58,7 @@ public final class LispMapResolver {
                                 "No ETR RLOC is found, cannot relay to ETR.";
     private static final String NO_MAP_INFO_MSG  = "Map information is not found.";
 
-    private LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
+    private LispMappingDatabase mapDb = LispExpireMapDatabase.getInstance();
 
     // non-instantiable (except for our Singleton)
     private LispMapResolver() {

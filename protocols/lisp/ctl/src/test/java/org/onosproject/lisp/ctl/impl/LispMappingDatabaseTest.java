@@ -57,7 +57,7 @@ public class LispMappingDatabaseTest {
     private static final String EID_IP_PREFIX_2_32 = "10.1.2.1";
     private static final String EID_IP_PREFIX_2_24 = "10.1.2.0";
 
-    final LispMappingDatabase mapDb = LispMappingDatabase.getInstance();
+    final LispMappingDatabase mapDb = LispExpireMapDatabase.getInstance();
 
     @Before
     public void setup() {
