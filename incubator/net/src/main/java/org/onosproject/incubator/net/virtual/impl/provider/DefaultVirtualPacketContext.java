@@ -17,18 +17,19 @@
 package org.onosproject.incubator.net.virtual.impl.provider;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.VirtualPacketContext;
 import org.onosproject.net.packet.DefaultPacketContext;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 
 /**
- * Represents context for processing an inbound packet for a virtual network
- * and (optionally) emitting a corresponding outbound packet.
- * The translation of context is handled by VirtualPacketProvider.
+ *Default implementation of a virtual packet context.
  */
-public class VirtualPacketContext extends DefaultPacketContext {
-    private DefaultVirtualPacketProvider dvpp;
+public class DefaultVirtualPacketContext extends DefaultPacketContext
+        implements VirtualPacketContext {
+
     private NetworkId networkId;
+    private DefaultVirtualPacketProvider dvpp;
 
     /**
      * Creates a new packet context.
@@ -38,13 +39,13 @@ public class VirtualPacketContext extends DefaultPacketContext {
      * @param outPkt outbound packet
      * @param block  whether the context is blocked or not
      * @param networkId virtual network ID where this context is handled
-     * @param dvpp The pointer for DefaultVirtualPacketProvider
+     * @param dvpp  pointer to default virtual packet provider
      */
 
-    protected VirtualPacketContext(long time, InboundPacket inPkt,
-                                   OutboundPacket outPkt, boolean block,
-                                   NetworkId networkId,
-                                   DefaultVirtualPacketProvider dvpp) {
+    protected DefaultVirtualPacketContext(long time, InboundPacket inPkt,
+                                          OutboundPacket outPkt, boolean block,
+                                          NetworkId networkId,
+                                          DefaultVirtualPacketProvider dvpp) {
         super(time, inPkt, outPkt, block);
 
         this.networkId = networkId;
@@ -54,11 +55,12 @@ public class VirtualPacketContext extends DefaultPacketContext {
     @Override
     public void send() {
         if (!this.block()) {
-            dvpp.devirtualizeContext(this);
+            dvpp.send(this);
         }
     }
 
-    public NetworkId getNetworkId() {
+    @Override
+    public NetworkId networkId() {
         return networkId;
     }
 }
