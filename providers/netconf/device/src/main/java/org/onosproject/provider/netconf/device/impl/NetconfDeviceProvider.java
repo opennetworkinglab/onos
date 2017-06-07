@@ -141,7 +141,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                     "default is 30 sec")
     private int pollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
 
-    protected final ExecutorService executor =
+    protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
                                                            "device-installer-%d", log));
     protected ScheduledExecutorService connectionExecutor
