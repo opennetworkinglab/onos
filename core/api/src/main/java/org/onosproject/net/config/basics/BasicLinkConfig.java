@@ -53,6 +53,15 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
     }
 
     /**
+     * Returns if the link type is configured.
+     *
+     * @return true if config contains link type
+     */
+    public boolean isTypeConfigured() {
+        return hasField(TYPE);
+    }
+
+    /**
      * Returns the link type.
      *
      * @return link type override
