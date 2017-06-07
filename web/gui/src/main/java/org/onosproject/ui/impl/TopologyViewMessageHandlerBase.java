@@ -157,27 +157,27 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Produces an informational log message event bound to the client.
-    protected ObjectNode info(long id, String message) {
-        return message("info", id, message);
+    protected ObjectNode info(String message) {
+        return message("info", message);
     }
 
     // Produces a warning log message event bound to the client.
-    protected ObjectNode warning(long id, String message) {
-        return message("warning", id, message);
+    protected ObjectNode warning(String message) {
+        return message("warning", message);
     }
 
     // Produces an error log message event bound to the client.
-    protected ObjectNode error(long id, String message) {
-        return message("error", id, message);
+    protected ObjectNode error(String message) {
+        return message("error", message);
     }
 
     // Produces a log message event bound to the client.
-    private ObjectNode message(String severity, long id, String message) {
+    private ObjectNode message(String severity, String message) {
         ObjectNode payload = objectNode()
                 .put("severity", severity)
                 .put("message", message);
 
-        return JsonUtils.envelope("message", id, payload);
+        return JsonUtils.envelope("message", payload);
     }
 
     // Produces a cluster instance message to the client.
@@ -201,7 +201,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         addMetaUi(node.id().toString(), payload);
 
         String type = msgType != null ? msgType : CLUSTER_EVENT.get(event.type());
-        return JsonUtils.envelope(type, 0, payload);
+        return JsonUtils.envelope(type, payload);
     }
 
     // Produces a device event message to the client.
@@ -231,7 +231,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         addMetaUi(device.id().toString(), payload);
 
         String type = DEVICE_EVENT.get(event.type());
-        return JsonUtils.envelope(type, 0, payload);
+        return JsonUtils.envelope(type, payload);
     }
 
     // Produces a link event message to the client.
@@ -248,7 +248,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("dst", link.dst().deviceId().toString())
                 .put("dstPort", link.dst().port().toString());
         String type = LINK_EVENT.get(event.type());
-        return JsonUtils.envelope(type, 0, payload);
+        return JsonUtils.envelope(type, payload);
     }
 
     // Produces a host event message to the client.
@@ -273,7 +273,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         addMetaUi(host.id().toString(), payload);
 
         String type = HOST_EVENT.get(event.type());
-        return JsonUtils.envelope(type, 0, payload);
+        return JsonUtils.envelope(type, payload);
     }
 
     // Encodes the specified host location into a JSON object.
