@@ -17,6 +17,8 @@ package org.onosproject.ovsdb.providers.device;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -121,7 +123,7 @@ public class OvsdbDeviceProviderTest {
     @Test
     public void testDiscoverPortsAfterDeviceAdded() {
         final int portCount = 5;
-        provider.executor = new SynchronousExecutor();
+        provider.executor = MoreExecutors.newDirectExecutorService();
         prepareMocks(portCount);
 
         deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, ovsdbDevice));
@@ -132,7 +134,7 @@ public class OvsdbDeviceProviderTest {
     }
 
     private void prepareMocks(int count) {
-        for(int i = 1; i <= count; i++) {
+        for (int i = 1; i <= count; i++) {
             deviceDescription.portDescriptions.add(new DefaultPortDescription(PortNumber.portNumber(i), true));
         }
     }
@@ -305,73 +307,6 @@ public class OvsdbDeviceProviderTest {
             return true;
         }
 
-    }
-
-    private class SynchronousExecutor implements ExecutorService {
-        @Override
-        public void execute(Runnable task) {
-            task.run();
-        }
-
-        @Override
-        public void shutdown() {
-
-        }
-
-        @Override
-        public List<Runnable> shutdownNow() {
-            return null;
-        }
-
-        @Override
-        public boolean isShutdown() {
-            return true;
-        }
-
-        @Override
-        public boolean isTerminated() {
-            return true;
-        }
-
-        @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            return true;
-        }
-
-        @Override
-        public <T> Future<T> submit(Callable<T> task) {
-            return null;
-        }
-
-        @Override
-        public <T> Future<T> submit(Runnable task, T result) {
-            return null;
-        }
-
-        @Override
-        public Future<?> submit(Runnable task) {
-            return null;
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-            return null;
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-            return null;
-        }
-
-        @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-            return null;
-        }
-
-        @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-            return null;
-        }
     }
 
 }
