@@ -15,9 +15,11 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="bmv2" manufacturer="barefoot" hwVersion="1.0.0" swVersion="1.0.0">
+    <driver name="bmv2" manufacturer="p4.org" hwVersion="master" swVersion="master">
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"
                    impl="org.onosproject.drivers.bmv2.Bmv2Handshaker"/>
+        <behaviour api="org.onosproject.net.packet.PacketProgrammable"
+                   impl="org.onosproject.drivers.bmv2.Bmv2PacketProgrammable"/>
     </driver>
 </drivers>
 

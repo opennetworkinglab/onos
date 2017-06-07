@@ -1,0 +1,163 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+]
+
+
+PI_BASEURL = 'https://github.com/p4lang/PI.git'
+PROTOBUF_BASEURL = 'https://github.com/google/protobuf.git'
+
+PROTOC_VER = '3.3.0'
+GRPC_VER = '1.3.0'
+
+PROTOC_EXE_BASEURL = 'http://central.maven.org/maven2/com/google/protobuf/protoc/'
+GRPC_JAVA_BASEURL = 'http://central.maven.org/maven2/io/grpc/protoc-gen-grpc-java/'
+
+
+PROTOC_SHA1S = {
+    'protoc-3.3.0-linux-x86_64.exe':'e6a95fc7477c602cc402ed976d3edbd82c841879',
+    'protoc-3.3.0-osx-x86_64.exe':'3070e439f9557bb72fb04df631f29d7556c9029c'
+}
+
+GRPC_JAVA_SHA1S = {
+    'protoc-gen-grpc-java-1.3.0-linux-x86_64.exe':'44a0fa3e6074852ea84f93d258233b3f4f6d9e53',
+    'protoc-gen-grpc-java-1.3.0-osx-x86_64.exe':'61a1b81b9f0af7d0900c314a4201972b52fb5f12'
+}
+
+
+GRPC_DEPS = [
+    '//lib:grpc-core-' + GRPC_VER,
+    '//lib:grpc-protobuf-' + GRPC_VER,
+    '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
+    '//lib:grpc-auth-' + GRPC_VER,
+    '//lib:protobuf-java-' + PROTOC_VER,
+]
+
+
+def get_arch():
+    import platform
+    os_name = platform.system().lower()
+    if os_name == 'darwin':
+        os_name = 'osx'
+    arch = '%s-%s' % (os_name, platform.machine())
+    return arch
+
+# TODO: defs to download prebuilt protoc and grpc java plugin should visible by other BUCK files.
+
+def prebuilt_protoc():
+    fname = 'protoc-%s-%s.exe' % (PROTOC_VER, get_arch())
+    if fname not in PROTOC_SHA1S:
+        raise Exception('Cannot download %s, architecture not supported' % fname)
+    remote_file(
+        name = 'protoc-binary',
+        out = 'protoc.binary',
+        url = PROTOC_EXE_BASEURL + PROTOC_VER + '/' + fname,
+        sha1 = PROTOC_SHA1S[fname],
+    )
+    genrule (
+        name = 'protoc-exe',
+        srcs = [ ':protoc-binary' ],
+        bash = 'cp $(location :protoc-binary) $OUT && chmod +x $OUT',
+        executable = True,
+        out = 'protoc.exe'
+    )
+
+
+def prebuilt_protoc_java_plugin():
+    arch = get_arch()
+    fname = 'protoc-gen-grpc-java-%s-%s.exe' % (GRPC_VER, get_arch())
+    if fname not in GRPC_JAVA_SHA1S:
+        raise Exception('Cannot download %s, architecture not supported' % fname)
+    remote_file(
+        name = 'grpc-java-binary',
+        out = 'grpc-java.binary',
+        url = GRPC_JAVA_BASEURL + GRPC_VER + '/' + fname,
+        sha1 = GRPC_JAVA_SHA1S[fname],
+    )
+    genrule (
+        name = 'grpc-java-exe',
+        srcs = [ ':grpc-java-binary' ],
+        bash = 'cp $(location :grpc-java-binary) $OUT && chmod +x $OUT',
+        executable = True,
+        out = 'grpc-java.exe'
+    )
+
+prebuilt_protoc()
+prebuilt_protoc_java_plugin()
+
+genrule (
+    name = 'p4lang-pi-repo',
+    # FIXME: should download a specific commit id/tag of p4runtime, right now we get the master.
+    bash = 'git clone --quiet ' + PI_BASEURL + ' $OUT > /dev/null && cd $OUT && '
+            + 'git submodule update --quiet --init --recursive > /dev/null',
+    out = 'repo',
+)
+
+genrule (
+    name = 'protoc-repo',
+    bash = 'git clone --quiet ' + PROTOBUF_BASEURL + ' $OUT > /dev/null && cd $OUT && '
+            + 'git checkout --quiet -b x tags/v' + PROTOC_VER + ' > /dev/null',
+    out = 'repo',
+)
+
+def protoc_gen(
+        name,
+        proto_file,
+        out_pkg,
+    ):
+    genrule(
+        name = name + '-gen',
+        cmd = '$(exe :protoc-exe) --plugin=protoc-gen-grpc-java=$(location :grpc-java-exe) '
+            + '--grpc-java_out=$SRCDIR/../' + name + '-gen '
+            + '--java_out=$SRCDIR/../' + name + '-gen '
+            + '-I$(location :p4lang-pi-repo)/proto '
+            + '-I$(location :protoc-repo)/src '
+            + proto_file,
+        out = out_pkg,
+    )
+    zip_file(
+        name = name,
+        out = name + '.src.zip',
+        srcs = [':'+name+'-gen']
+    )
+
+# Wondering which .proto files to build? Check p4runtime's Makefile:
+# https://github.com/p4lang/PI/blob/master/proto/Makefile.am
+protoc_gen(
+    name = 'p4runtime',
+    proto_file = '$(location :p4lang-pi-repo)/proto/p4/p4runtime.proto',
+    out_pkg = 'p4',
+)
+protoc_gen(
+    name = 'p4info',
+    proto_file = '$(location :p4lang-pi-repo)/proto/p4/config/p4info.proto',
+    out_pkg = 'p4',
+)
+protoc_gen(
+    name = 'google-rpc-status',
+    proto_file = '$(location :p4lang-pi-repo)/proto/google/rpc/status.proto',
+    out_pkg = 'com',
+)
+protoc_gen(
+    name = 'google-rpc-code',
+    proto_file = '$(location :p4lang-pi-repo)/proto/google/rpc/code.proto',
+    out_pkg = 'com',
+)
+protoc_gen(
+    name = 'p4config',
+    proto_file = '$(location :p4lang-pi-repo)/proto/p4/tmp/p4config.proto',
+    out_pkg = 'p4',
+)
+
+
+osgi_jar(
+    srcs = [':p4runtime', ':p4info', ':google-rpc-status', ':google-rpc-code', ':p4config'],
+    deps = COMPILE_DEPS + GRPC_DEPS,
+    do_javadocs = False,
+    do_checkstyle = False
+)
+
+
+project_config(
+    src_target = ':onos-drivers-p4runtime-proto'
+)

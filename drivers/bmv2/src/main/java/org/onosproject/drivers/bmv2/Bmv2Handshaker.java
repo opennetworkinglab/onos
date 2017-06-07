@@ -16,6 +16,11 @@
 
 package org.onosproject.drivers.bmv2;
 
+import org.onosproject.grpc.api.GrpcChannelId;
+import org.onosproject.grpc.api.GrpcController;
+import org.onosproject.grpc.api.GrpcServiceId;
+import org.onosproject.grpc.api.GrpcStreamObserverId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceHandshaker;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -29,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of the DeviceHandshaker for the bmv2 softswitch.
+ * Implementation of the DeviceHandshaker for the BMv2 softswitch.
  */
 //TODO consider abstract class with empty connect method and
 //the implementation into a protected one for reusability.
@@ -41,6 +46,9 @@ public class Bmv2Handshaker extends AbstractHandlerBehaviour
 
     @Override
     public CompletableFuture<Boolean> connect() {
+        GrpcController controller = handler().get(GrpcController.class);
+        DeviceId deviceId = handler().data().deviceId();
+
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         DeviceKeyService deviceKeyService = handler().get(DeviceKeyService.class);
         DriverData data = data();
@@ -54,6 +62,13 @@ public class Bmv2Handshaker extends AbstractHandlerBehaviour
                 deviceKeyService.getDeviceKey(DeviceKeyId.deviceKeyId(data.value("gnmi_key")))
                         .asUsernamePassword().username());
         result.complete(true);
+
+        //we know we need packet in so we register the observer.
+        GrpcChannelId channelId = GrpcChannelId.of(deviceId, "bmv2");
+        GrpcServiceId serviceId = GrpcServiceId.of(channelId, "p4runtime");
+        GrpcStreamObserverId observerId = GrpcStreamObserverId.of(serviceId,
+                Bmv2PacketProgrammable.class.getSimpleName());
+        controller.addObserver(observerId, new Bmv2PacketInObserverHandler());
         return result;
     }
 

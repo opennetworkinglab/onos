@@ -1,5 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//protocols/grpc/api:onos-protocols-grpc-api',
+    '//lib:grpc-core-1.3.0',
+    '//lib:grpc-stub-1.3.0'
 ]
 
 TEST_DEPS = [
@@ -9,9 +12,12 @@ TEST_DEPS = [
 
 BUNDLES = [
     ':onos-drivers-bmv2',
+    '//lib:grpc-core-1.3.0',
+    '//lib:grpc-stub-1.3.0',
+    '//protocols/grpc/api:onos-protocols-grpc-api',
 ]
 
-osgi_jar_with_tests (
+osgi_jar_with_tests(
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     resources_root = 'src/main/resources',
@@ -20,10 +26,12 @@ osgi_jar_with_tests (
 
 onos_app (
     app_name = 'org.onosproject.drivers.bmv2',
-    title = 'bmv2 Device Drivers',
+    title = 'BMv2 Device Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
     description = 'ONOS BMv2 Device Drivers application.',
     included_bundles = BUNDLES,
-    required_apps = [ 'org.onosproject.generaldeviceprovider' ],
+    required_apps = [
+        'org.onosproject.generaldeviceprovider'
+    ],
 )
