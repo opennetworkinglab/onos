@@ -19,26 +19,19 @@ import com.google.common.collect.Lists;
 import com.googlecode.concurrenttrees.radix.ConcurrentRadixTree;
 import com.googlecode.concurrenttrees.radix.RadixTree;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
-import org.apache.commons.lang3.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onlab.packet.IpPrefix;
 
 import java.util.List;
 
+import static org.onosproject.lisp.ctl.impl.util.LispMapUtil.getParentPrefix;
+import static org.onosproject.lisp.ctl.impl.util.LispMapUtil.getPrefixString;
+
 /**
  * Implements current radix tree that stores IP address as a key.
  */
 public class IpConcurrentRadixTree<V> implements IpRadixTree<V> {
-
-    private static final int IPV4_BLOCK_LENGTH = 8;
-    private static final int IPV6_BLOCK_LENGTH = 16;
-
-    private static final String IPV4_DELIMITER = ".";
-    private static final String IPV6_DELIMITER = ":";
-
-    private static final String IPV4_ZERO = "0";
-    private static final String IPV6_SUFFIX = "::";
 
     private RadixTree<V> ipv4Tree =
             new ConcurrentRadixTree<>(new DefaultCharArrayNodeFactory());
@@ -167,99 +160,6 @@ public class IpConcurrentRadixTree<V> implements IpRadixTree<V> {
     }
 
     /**
-     * Obtains the string formatted IP prefix.
-     * For example, if the IP address is 10.1.1.1 and has 16 prefix length,
-     * the resulting string is 10.1
-     *
-     * @param prefix IP prefix
-     * @return string formatted IP prefix
-     */
-    private String getPrefixString(IpPrefix prefix) {
-        String addressString = prefix.address().toString();
-        StringBuilder sb = new StringBuilder();
-        String delimiter = "";
-        int numOfBlock = 0;
-
-        if (prefix.isIp4()) {
-            delimiter = IPV4_DELIMITER;
-            numOfBlock = prefix.prefixLength() / IPV4_BLOCK_LENGTH;
-        }
-
-        if (prefix.isIp6()) {
-            delimiter = IPV6_DELIMITER;
-            numOfBlock = prefix.prefixLength() / IPV6_BLOCK_LENGTH;
-        }
-
-        String[] octets = StringUtils.split(addressString, delimiter);
-
-        for (int i = 0; i < numOfBlock; i++) {
-            sb.append(octets[i]);
-
-            if (i < numOfBlock - 1) {
-                sb.append(delimiter);
-            }
-        }
-
-        return sb.toString();
-    }
-
-    /**
-     * Obtains the parent IP prefix of the given IP prefix.
-     * For example, if the given IP prefix is 10.1.1.1, the parent IP prefix
-     * will be 10.1.1
-     *
-     * @param prefix IP prefix
-     * @return parent IP prefix
-     */
-    private IpPrefix getParentPrefix(IpPrefix prefix) {
-        String addressString = prefix.address().toString();
-        int prefixLength = prefix.prefixLength();
-        StringBuilder sb = new StringBuilder();
-        String delimiter = "";
-        String zero = "";
-        int blockLength = 0;
-
-        if (prefix.isIp4()) {
-            delimiter = IPV4_DELIMITER;
-            blockLength = IPV4_BLOCK_LENGTH;
-            zero = IPV4_ZERO;
-        }
-
-        if (prefix.isIp6()) {
-            delimiter = IPV6_DELIMITER;
-            blockLength = IPV6_BLOCK_LENGTH;
-        }
-
-        String[] octets = StringUtils.split(addressString, delimiter);
-        String parentAddressString;
-        if (octets.length == 1) {
-            return prefix;
-        } else {
-            prefixLength = prefixLength - blockLength;
-            int blockIdx = prefixLength / blockLength;
-            for (int i = 0; i < octets.length; i++) {
-                if (i < blockIdx) {
-                    sb.append(octets[i]);
-                    sb.append(delimiter);
-                } else {
-                    sb.append(zero);
-                    if (prefix.isIp4()) {
-                        sb.append(delimiter);
-                    }
-                }
-            }
-
-            // ipv6 address prefix typically ends with ::
-            if (prefix.isIp6()) {
-                sb.append(IPV6_SUFFIX);
-            }
-            parentAddressString = StringUtils.substring(sb.toString(),
-                    0, sb.toString().length() - 1);
-            return IpPrefix.valueOf(parentAddressString + "/" + prefixLength);
-        }
-    }
-
-    /**
      * Returns the value associated with the closest parent address from a
      * given radix tree, or returns null if no such value is associated
      * with the address.
@@ -271,7 +171,7 @@ public class IpConcurrentRadixTree<V> implements IpRadixTree<V> {
      */
     private V getValueForClosestParentAddress(IpPrefix prefix, RadixTree<V> tree) {
 
-        while (prefix != null) {
+        while (prefix != null && prefix.prefixLength() > 0) {
             V value = tree.getValueForExactKey(getPrefixString(prefix));
             if (value != null) {
                 return value;

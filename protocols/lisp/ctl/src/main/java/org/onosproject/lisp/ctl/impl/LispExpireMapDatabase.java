@@ -17,6 +17,7 @@ package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.lisp.ctl.impl.map.ExpireMap;
 import org.onosproject.lisp.ctl.impl.map.ExpireHashMap;
 import org.onosproject.lisp.msg.protocols.DefaultLispProxyMapRecord.DefaultMapWithProxyBuilder;
@@ -29,8 +30,8 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Optional;
 
+import static org.onosproject.lisp.ctl.impl.util.LispMapUtil.*;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.lisp.ctl.impl.util.LispMapUtil.isInRange;
 
 /**
  * An expire map based LISP mapping database.
@@ -106,13 +107,10 @@ public final class LispExpireMapDatabase implements LispMappingDatabase {
     @Override
     public LispMapRecord getMapRecordByEidRecord(LispEidRecord eid,
                                                  boolean proxyMapReply) {
-        Optional<LispEidRecord> filteredEidRecord = map.keySet().parallelStream()
-                .filter(k -> isInRange(k, eid)).findAny();
-        if (filteredEidRecord.isPresent()) {
-            LispProxyMapRecord record = map.get(filteredEidRecord.get());
-            if (record != null && record.isProxyMapReply() == proxyMapReply) {
-                return record.getMapRecord();
-            }
+
+        LispProxyMapRecord record = getMapRecordForClosestParentAddress(getIpPrefixFromEidRecord(eid));
+        if (record != null && record.isProxyMapReply() == proxyMapReply) {
+            return record.getMapRecord();
         }
 
         return null;
@@ -144,6 +142,27 @@ public final class LispExpireMapDatabase implements LispMappingDatabase {
                         k.getPrefix().equals(address)).findFirst();
         return eidRecord.map(lispEidRecord ->
                 map.get(lispEidRecord).getMapRecord()).orElse(null);
+    }
+
+    /**
+     * Returns the map record associated with the closest parent address from a
+     * given expire map, or returns null if no such map record is associated
+     * with the address.
+     *
+     * @param prefix IP prefix
+     * @return a map record with the closest parent address, or null if no value
+     * was associated with the address
+     */
+    private LispProxyMapRecord getMapRecordForClosestParentAddress(IpPrefix prefix) {
+        while (prefix != null && prefix.prefixLength() > 0) {
+            LispProxyMapRecord record = map.get(getEidRecordFromIpPrefix(prefix));
+            if (record != null) {
+                return record;
+            }
+            prefix = getParentPrefix(prefix);
+        }
+
+        return null;
     }
 
     /**
