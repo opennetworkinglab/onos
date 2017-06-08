@@ -82,11 +82,63 @@ public class MeteringAgent {
             return nullTimer;
         }
         // Check if timer exists, if it doesn't creates it
-        final Timer currTimer = perObjOpTimers.computeIfAbsent(op, timer ->
-                metricsService.createTimer(metricsComponent, metricsFeature, op));
-        perOpTimers.computeIfAbsent(op, timer -> metricsService.createTimer(metricsComponent, wildcard, op));
+        final Timer currTimer = getObjectOperationTimer(op);
         // Starts timer
         return new Context(currTimer.time(), op);
+    }
+
+    /**
+     * Get or creates operation timer specific to this agent's object.
+     *
+     * @param operation name
+     * @return Timer
+     */
+    private Timer getObjectOperationTimer(String operation) {
+        Timer t = perObjOpTimers.get(operation);
+        if (t != null) {
+            return t;
+        }
+        return perObjOpTimers.computeIfAbsent(operation,
+                                              this::createObjectOperationTimer);
+    }
+
+    /**
+     * Creates operation timer specific to this agent's object.
+     * <p>
+     * Intended to be called from {@code perObjOpTimers.computeIfAbsent(..)}
+     *
+     * @param operation name
+     * @return Timer
+     */
+    private Timer createObjectOperationTimer(String operation) {
+        return metricsService.createTimer(metricsComponent, metricsFeature, operation);
+    }
+
+    /**
+     * Get or creates operation timer common for all objects.
+     *
+     * @param operation name
+     * @return Timer
+     */
+    private Timer getOperationTimer(String operation) {
+        Timer t = perOpTimers.get(operation);
+        if (t != null) {
+            return t;
+        }
+        return perOpTimers.computeIfAbsent(operation,
+                                           this::createOperationTimer);
+    }
+
+    /**
+     * Creates operation timer common for all objects.
+     * <p>
+     * Intended to be called from {@code perOpTimers.computeIfAbsent(..)}
+     *
+     * @param operation name
+     * @return Timer
+     */
+    private Timer createOperationTimer(String operation) {
+        return metricsService.createTimer(metricsComponent, wildcard, operation);
     }
 
     /**
@@ -119,7 +171,7 @@ public class MeteringAgent {
                 //Stop and updates timer with specific measurements per map, per operation
                 final long time = context.stop();
                 //updates timer with aggregated measurements per map
-                perOpTimers.get(operation).update(time, TimeUnit.NANOSECONDS);
+                getOperationTimer(operation).update(time, TimeUnit.NANOSECONDS);
                 //updates timer with aggregated measurements per map
                 perObjTimer.update(time, TimeUnit.NANOSECONDS);
                 //updates timer with aggregated measurements per all Consistent Maps
