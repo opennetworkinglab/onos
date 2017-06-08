@@ -1,0 +1,13 @@
+{
+  "name" : "Leaf-R1",
+  "ipv4NodeSid" : 101,
+  "ipv4Loopback" : "10.0.1.254",
+  "routerMac" : "00:00:00:00:01:80",
+  "isEdgeRouter" : true,
+  "adjacencySids" : [
+    { "adjSid" : 100, "ports" : [2, 3] },
+    { "adjSid" : 200, "ports" : [4, 5] }
+  ],
+  "pairDeviceId" : "of:123456789ABCDEF0",
+  "pairLocalPort" : "10"
+}

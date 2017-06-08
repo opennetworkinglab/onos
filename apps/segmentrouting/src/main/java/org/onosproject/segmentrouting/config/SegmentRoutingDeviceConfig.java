@@ -24,6 +24,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
 
 import java.util.HashMap;
@@ -43,21 +44,47 @@ public class SegmentRoutingDeviceConfig extends Config<DeviceId> {
     private static final String IP4_SID = "ipv4NodeSid";
     private static final String IP6_SID = "ipv6NodeSid";
     private static final String EDGE = "isEdgeRouter";
+    /**
+     * Adjancency SIDs config.
+     *
+     * @deprecated in Loon (1.11). We are not using and do not plan to use it.
+     */
+    @Deprecated
     private static final String ADJSIDS = "adjacencySids";
+
+    /**
+     * Adjancency SID config.
+     *
+     * @deprecated in Loon (1.11). We are not using and do not plan to use it.
+     */
+    @Deprecated
     private static final String ADJSID = "adjSid";
+
+    /**
+     * Adjancency port config.
+     *
+     * @deprecated in Loon (1.11). We are not using and do not plan to use it.
+     */
+    @Deprecated
     private static final String PORTS = "ports";
+
+    private static final String PAIR_DEVICE_ID = "pairDeviceId";
+    private static final String PAIR_LOCAL_PORT = "pairLocalPort";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(NAME, IP4, IP6, MAC,
-                             IP4_SID, IP6_SID, EDGE,
-                             ADJSIDS, ADJSID, PORTS) &&
+        return hasOnlyFields(NAME, IP4, IP6, MAC, IP4_SID, IP6_SID, EDGE, ADJSIDS, ADJSID, PORTS,
+                             PAIR_DEVICE_ID, PAIR_LOCAL_PORT) &&
                 name() != null &&
-                routerIpv4() != null &&
+                routerIpv4() != null && (!hasField(IP6) || routerIpv6() != null) &&
                 routerMac() != null &&
-                nodeSidIPv4() != -1 &&
+                nodeSidIPv4() != -1 && (!hasField(IP6_SID) || nodeSidIPv6() != -1) &&
                 isEdgeRouter() != null &&
-                adjacencySids() != null;
+                adjacencySids() != null &&
+                // pairDeviceId and pairLocalPort must be both configured or both omitted
+                !(hasField(PAIR_DEVICE_ID) ^ hasField(PAIR_LOCAL_PORT)) &&
+                (!hasField(PAIR_DEVICE_ID) || pairDeviceId() != null) &&
+                (!hasField(PAIR_LOCAL_PORT) || pairLocalPort() != null);
     }
 
     /**
@@ -265,5 +292,45 @@ public class SegmentRoutingDeviceConfig extends Config<DeviceId> {
         }
 
         return this;
+    }
+
+    /**
+     * Gets the pair device id.
+     *
+     * @return pair device id; Or null if not configured.
+     */
+    public DeviceId pairDeviceId() {
+        String pairDeviceId = get(PAIR_DEVICE_ID, null);
+        return pairDeviceId != null ? DeviceId.deviceId(pairDeviceId) : null;
+    }
+
+    /**
+     * Sets the pair device id.
+     *
+     * @param deviceId pair device id
+     * @return this configuration
+     */
+    public SegmentRoutingDeviceConfig setPairDeviceId(DeviceId deviceId) {
+        return (SegmentRoutingDeviceConfig) setOrClear(PAIR_DEVICE_ID, deviceId.toString());
+    }
+
+    /**
+     * Gets the pair local port.
+     *
+     * @return pair local port; Or null if not configured.
+     */
+    public PortNumber pairLocalPort() {
+        long pairLocalPort = get(PAIR_LOCAL_PORT, -1L);
+        return pairLocalPort != -1L ? PortNumber.portNumber(pairLocalPort) : null;
+    }
+
+    /**
+     * Sets the pair local port.
+     *
+     * @param portNumber pair local port
+     * @return this configuration
+     */
+    public SegmentRoutingDeviceConfig setPairLocalPort(PortNumber portNumber) {
+        return (SegmentRoutingDeviceConfig) setOrClear(PAIR_LOCAL_PORT, portNumber.toLong());
     }
 }
