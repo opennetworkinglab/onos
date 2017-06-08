@@ -46,4 +46,5 @@ public final class Constants {
     public static final int JUMP_TABLE = 2;
     public static final int ROUTING_TABLE = 3;
     public static final int FORWARDING_TABLE = 4;
+    public static final int GW_COMMON_TABLE = 0;
 }

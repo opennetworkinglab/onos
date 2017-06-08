@@ -36,15 +36,14 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
@@ -61,7 +60,10 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_INTERNAL;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.GATEWAY;
 
@@ -83,9 +85,6 @@ public class OpenstackRoutingFloatingIpHandler {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -102,6 +101,9 @@ public class OpenstackRoutingFloatingIpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -197,14 +199,13 @@ public class OpenstackRoutingFloatingIpHandler {
                     throw new IllegalStateException(error);
             }
 
-            RulePopulatorUtil.setRule(
-                    flowObjectiveService,
+            osFlowRuleService.setRule(
                     appId,
                     gnodeId,
                     externalSelector,
                     externalBuilder.build(),
-                    ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_EXTERNAL,
+                    GW_COMMON_TABLE,
                     install);
 
             // access from one VM to the other via floating IP
@@ -241,14 +242,13 @@ public class OpenstackRoutingFloatingIpHandler {
                     throw new IllegalStateException(error);
             }
 
-            RulePopulatorUtil.setRule(
-                    flowObjectiveService,
+            osFlowRuleService.setRule(
                     appId,
                     gnodeId,
                     internalSelector,
                     internalBuilder.build(),
-                    ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_INTERNAL,
+                    GW_COMMON_TABLE,
                     install);
         });
     }
@@ -285,14 +285,13 @@ public class OpenstackRoutingFloatingIpHandler {
                 tBuilder.popVlan();
             }
 
-            RulePopulatorUtil.setRule(
-                    flowObjectiveService,
+            osFlowRuleService.setRule(
                     appId,
                     gnodeId,
                     sBuilder.build(),
                     tBuilder.setOutput(osNodeService.externalPort(gnodeId).get()).build(),
-                    ForwardingObjective.Flag.VERSATILE,
                     PRIORITY_FLOATING_EXTERNAL,
+                    GW_COMMON_TABLE,
                     install);
         });
     }

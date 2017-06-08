@@ -16,18 +16,12 @@
 package org.onosproject.openstacknetworking.impl;
 
 import org.onlab.packet.Ip4Address;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.slf4j.Logger;
 
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
@@ -72,40 +66,6 @@ public final class RulePopulatorUtil {
         } catch (ExtensionPropertyException e) {
             log.warn("Failed to get tunnelDst extension treatment for {}", deviceId);
             return null;
-        }
-    }
-
-    /**
-     * Adds flow rules with the supplied information.
-     *
-     * @param flowObjectiveService flow objective service
-     * @param appId application id
-     * @param deviceId device id to remove this flow rule
-     * @param selector traffic selector
-     * @param treatment traffic treatment
-     * @param flag flag
-     * @param priority priority
-     * @param install populate flows if true, remove them otherwise
-     */
-    public static void setRule(FlowObjectiveService flowObjectiveService,
-                               ApplicationId appId,
-                               DeviceId deviceId,
-                               TrafficSelector selector,
-                               TrafficTreatment treatment,
-                               ForwardingObjective.Flag flag,
-                               int priority,
-                               boolean install) {
-        ForwardingObjective.Builder foBuilder = DefaultForwardingObjective.builder()
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .withFlag(flag)
-                .withPriority(priority)
-                .fromApp(appId);
-
-        if (install) {
-            flowObjectiveService.forward(deviceId, foBuilder.add());
-        } else {
-            flowObjectiveService.forward(deviceId, foBuilder.remove());
         }
     }
 }

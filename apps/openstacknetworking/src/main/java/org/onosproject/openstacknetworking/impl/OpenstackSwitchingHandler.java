@@ -32,12 +32,11 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
@@ -47,7 +46,12 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -74,7 +78,7 @@ public final class OpenstackSwitchingHandler {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InstancePortService instancePortService;
@@ -134,14 +138,13 @@ public final class OpenstackSwitchingHandler {
                 .setOutput(instPort.portNumber())
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_SWITCHING_RULE,
+                FORWARDING_TABLE,
                 install);
 
         // switching rules for the instPorts in the remote node
@@ -158,14 +161,13 @@ public final class OpenstackSwitchingHandler {
                             .setOutput(osNodeService.tunnelPort(osNode.intBridge()).get())
                             .build();
 
-                    RulePopulatorUtil.setRule(
-                            flowObjectiveService,
+                    osFlowRuleService.setRule(
                             appId,
                             osNode.intBridge(),
                             selector,
                             treatmentToRemote,
-                            ForwardingObjective.Flag.SPECIFIC,
                             PRIORITY_SWITCHING_RULE,
+                            FORWARDING_TABLE,
                             install);
                 });
     }
@@ -184,14 +186,13 @@ public final class OpenstackSwitchingHandler {
                 .setOutput(instPort.portNumber())
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_SWITCHING_RULE,
+                FORWARDING_TABLE,
                 install);
 
         // switching rules for the instPorts in the remote node
@@ -204,14 +205,13 @@ public final class OpenstackSwitchingHandler {
                                     .setOutput(osNodeService.vlanPort(osNode.intBridge()).get())
                                     .build();
 
-                    RulePopulatorUtil.setRule(
-                            flowObjectiveService,
+                    osFlowRuleService.setRule(
                             appId,
                             osNode.intBridge(),
                             selector,
                             treatmentToRemote,
-                            ForwardingObjective.Flag.SPECIFIC,
                             PRIORITY_SWITCHING_RULE,
+                            FORWARDING_TABLE,
                             install);
                 });
 
@@ -225,16 +225,16 @@ public final class OpenstackSwitchingHandler {
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setTunnelId(getVni(instPort))
+                .transition(ACL_TABLE)
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_TUNNEL_TAG_RULE,
+                SRC_VNI_TABLE,
                 install);
     }
 
@@ -247,16 +247,16 @@ public final class OpenstackSwitchingHandler {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .pushVlan()
                 .setVlanId(getVlanId(instPort))
+                .transition(ACL_TABLE)
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_TUNNEL_TAG_RULE,
+                SRC_VNI_TABLE,
                 install);
 
     }

@@ -16,21 +16,32 @@
 package org.onosproject.openstacknetworking.api;
 
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 
 /**
  * Service for setting flow rules.
  *
  */
 public interface OpenstackFlowRuleService {
-
     /**
-     * Sets flow rules.
+     * Sets the flow rule.
      *
-     * @param deviceId Device ID
-     * @param forwardingObjective flow rule container
-     * @param tableType table type for the flow rules
+     * @param appId application ID
+     * @param deviceId  device ID
+     * @param selector matches of the flow rule
+     * @param treatment actions of the flow rule
+     * @param priority priority of the flow rule
+     * @param tableType table number to put the flow rule
+     * @param install add the rule if true, remove it otherwise
      */
-    void forward(DeviceId deviceId, ForwardingObjective forwardingObjective, int tableType);
+    void setRule(ApplicationId appId,
+              DeviceId deviceId,
+              TrafficSelector selector,
+              TrafficTreatment treatment,
+              int priority,
+              int tableType,
+              boolean install);
 }

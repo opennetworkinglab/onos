@@ -34,9 +34,6 @@ import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknode.OpenstackNode;
@@ -63,7 +60,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
 
     private static final int DROP_PRIORITY = 0;
     private static final int HIGH_PRIORITY = 30000;
-    private static final int FLOW_RULE_TIME_OUT = 60;
+    private static final int TIMEOUT_SNAT_RULE = 60;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
@@ -97,35 +94,34 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         log.info("Stopped");
     }
 
+
     @Override
-    public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective, int tableType) {
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+    public void setRule(ApplicationId appId,
+                               DeviceId deviceId,
+                               TrafficSelector selector,
+                               TrafficTreatment treatment,
+                               int priority,
+                               int tableType,
+                               boolean install) {
 
-        forwardingObjective.treatment().allInstructions().stream()
-                .filter(i -> i.type() != Instruction.Type.NOACTION).forEach(treatment::add);
-
-        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+        FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder()
                 .forDevice(deviceId)
-                .withSelector(forwardingObjective.selector())
-                .withTreatment(treatment.build())
-                .withPriority(forwardingObjective.priority())
-                .fromApp(forwardingObjective.appId())
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(priority)
+                .fromApp(appId)
                 .forTable(tableType);
 
-        if (forwardingObjective.permanent()) {
-            ruleBuilder.makePermanent();
+        if (priority == Constants.PRIORITY_SNAT_RULE) {
+            flowRuleBuilder.makeTemporary(TIMEOUT_SNAT_RULE);
         } else {
-            ruleBuilder.makeTemporary(FLOW_RULE_TIME_OUT);
+            flowRuleBuilder.makePermanent();
         }
 
-        if (forwardingObjective.op().equals(Objective.Operation.ADD)) {
-            applyRules(true, ruleBuilder.build());
-        } else {
-            applyRules(false, ruleBuilder.build());
-        }
+        applyRule(flowRuleBuilder.build(), install);
     }
 
-    private void applyRules(boolean install, FlowRule flowRule) {
+    private void applyRule(FlowRule flowRule, boolean install) {
         FlowRuleOperations.Builder flowOpsBuilder = FlowRuleOperations.builder();
 
         flowOpsBuilder = install ? flowOpsBuilder.add(flowRule) : flowOpsBuilder.remove(flowRule);
@@ -146,7 +142,6 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     private void initializePipeline(DeviceId deviceId) {
         connectTables(deviceId, Constants.SRC_VNI_TABLE, Constants.ACL_TABLE);
         connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
-        setUpTableMissEntry(deviceId, Constants.ACL_TABLE);
         setupJumpTable(deviceId);
     }
 
@@ -166,7 +161,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 .forTable(fromTable)
                 .build();
 
-        applyRules(true, flowRule);
+        applyRule(flowRule, true);
     }
 
     private void setUpTableMissEntry(DeviceId deviceId, int table) {
@@ -185,7 +180,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 .forTable(table)
                 .build();
 
-        applyRules(true, flowRule);
+        applyRule(flowRule, true);
     }
 
     private void setupJumpTable(DeviceId deviceId) {
@@ -205,7 +200,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 .forTable(Constants.JUMP_TABLE)
                 .build();
 
-        applyRules(true, flowRule);
+        applyRule(flowRule, true);
 
         selector = DefaultTrafficSelector.builder();
         treatment = DefaultTrafficTreatment.builder();
@@ -222,7 +217,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 .forTable(Constants.JUMP_TABLE)
                 .build();
 
-        applyRules(true, flowRule);
+        applyRule(flowRule, true);
     }
 
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {
@@ -236,7 +231,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 case COMPLETE:
                     deviceEventExecutor.execute(() -> {
                         log.info("COMPLETE node {} is detected", osNode.hostname());
-
+                        processCompleteNode(event.subject());
                     });
                     break;
                 case INCOMPLETE:

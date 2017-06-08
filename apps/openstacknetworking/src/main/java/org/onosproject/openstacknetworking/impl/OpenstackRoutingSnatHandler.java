@@ -37,9 +37,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -47,8 +44,9 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -71,7 +69,11 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -84,7 +86,6 @@ public class OpenstackRoutingSnatHandler {
 
     private static final String ERR_PACKETIN = "Failed to handle packet in: ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
-    private static final int TIME_OUT_SNAT_RULE = 120;
     private static final long TIME_OUT_SNAT_PORT_MS = 120 * 1000;
     private static final int TP_PORT_MINIMUM_NUM = 65000;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
@@ -102,9 +103,6 @@ public class OpenstackRoutingSnatHandler {
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -118,6 +116,9 @@ public class OpenstackRoutingSnatHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackRouterService osRouterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -344,16 +345,14 @@ public class OpenstackRoutingSnatHandler {
                     throw new IllegalStateException(error);
             }
 
-            ForwardingObjective fo = DefaultForwardingObjective.builder()
-                    .withSelector(sBuilder.build())
-                    .withTreatment(tmpBuilder.build())
-                    .withFlag(ForwardingObjective.Flag.VERSATILE)
-                    .withPriority(PRIORITY_SNAT_RULE)
-                    .makeTemporary(TIME_OUT_SNAT_RULE)
-                    .fromApp(appId)
-                    .add();
-
-            flowObjectiveService.forward(deviceId, fo);
+            osFlowRuleService.setRule(
+                    appId,
+                    deviceId,
+                    sBuilder.build(),
+                    tmpBuilder.build(),
+                    PRIORITY_SNAT_RULE,
+                    GW_COMMON_TABLE,
+                    true);
         });
     }
 
@@ -410,16 +409,15 @@ public class OpenstackRoutingSnatHandler {
             TrafficTreatment.Builder tmpBuilder =
                     DefaultTrafficTreatment.builder(tBuilder.build());
             tmpBuilder.setOutput(osNodeService.externalPort(deviceId).get());
-            ForwardingObjective fo = DefaultForwardingObjective.builder()
-                    .withSelector(sBuilder.build())
-                    .withTreatment(tmpBuilder.build())
-                    .withFlag(ForwardingObjective.Flag.VERSATILE)
-                    .withPriority(PRIORITY_SNAT_RULE)
-                    .makeTemporary(TIME_OUT_SNAT_RULE)
-                    .fromApp(appId)
-                    .add();
 
-            flowObjectiveService.forward(deviceId, fo);
+            osFlowRuleService.setRule(
+                    appId,
+                    deviceId,
+                    sBuilder.build(),
+                    tmpBuilder.build(),
+                    PRIORITY_SNAT_RULE,
+                    GW_COMMON_TABLE,
+                    true);
         });
     }
 

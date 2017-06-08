@@ -41,9 +41,8 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
@@ -53,7 +52,6 @@ import org.onosproject.openstacknode.OpenstackNodeEvent;
 import org.onosproject.openstacknode.OpenstackNodeListener;
 import org.onosproject.openstacknode.OpenstackNodeService;
 import org.onosproject.openstacknode.OpenstackNodeService.NetworkMode;
-
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.NetworkType;
@@ -72,7 +70,13 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknetworking.api.Constants.*;
+import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknode.OpenstackNodeService.NodeType.COMPUTE;
 
 /**
@@ -98,9 +102,6 @@ public class OpenstackRoutingHandler {
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -111,6 +112,9 @@ public class OpenstackRoutingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     private final ExecutorService eventExecutor = newSingleThreadScheduledExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -344,14 +348,13 @@ public class OpenstackRoutingHandler {
                 .setOutput(PortNumber.CONTROLLER)
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 deviceId,
                 selector,
                 treatment,
-                ForwardingObjective.Flag.VERSATILE,
                 PRIORITY_ICMP_RULE,
+                Constants.GW_COMMON_TABLE,
                 install);
     }
 
@@ -371,16 +374,16 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setTunnelId(Long.parseLong(dstSegmentId))
+                        .transition(FORWARDING_TABLE)
                         .build();
 
-                RulePopulatorUtil.setRule(
-                        flowObjectiveService,
+                osFlowRuleService.setRule(
                         appId,
                         deviceId,
                         selector,
                         treatment,
-                        ForwardingObjective.Flag.SPECIFIC,
                         PRIORITY_INTERNAL_ROUTING_RULE,
+                        ROUTING_TABLE,
                         install);
 
                 selector = DefaultTrafficSelector.builder()
@@ -392,16 +395,16 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setTunnelId(Long.parseLong(dstSegmentId))
+                        .transition(FORWARDING_TABLE)
                         .build();
 
-                RulePopulatorUtil.setRule(
-                        flowObjectiveService,
+                osFlowRuleService.setRule(
                         appId,
                         deviceId,
                         selector,
                         treatment,
-                        ForwardingObjective.Flag.SPECIFIC,
                         PRIORITY_INTERNAL_ROUTING_RULE,
+                        ROUTING_TABLE,
                         install);
                 break;
             case VLAN:
@@ -414,16 +417,16 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setVlanId(VlanId.vlanId(dstSegmentId))
+                        .transition(FORWARDING_TABLE)
                         .build();
 
-                RulePopulatorUtil.setRule(
-                        flowObjectiveService,
+                osFlowRuleService.setRule(
                         appId,
                         deviceId,
                         selector,
                         treatment,
-                        ForwardingObjective.Flag.SPECIFIC,
                         PRIORITY_INTERNAL_ROUTING_RULE,
+                        ROUTING_TABLE,
                         install);
 
                 selector = DefaultTrafficSelector.builder()
@@ -435,16 +438,16 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setVlanId(VlanId.vlanId(dstSegmentId))
+                        .transition(FORWARDING_TABLE)
                         .build();
 
-                RulePopulatorUtil.setRule(
-                        flowObjectiveService,
+                osFlowRuleService.setRule(
                         appId,
                         deviceId,
                         selector,
                         treatment,
-                        ForwardingObjective.Flag.SPECIFIC,
                         PRIORITY_INTERNAL_ROUTING_RULE,
+                        ROUTING_TABLE,
                         install);
                 break;
             default:
@@ -488,14 +491,13 @@ public class OpenstackRoutingHandler {
                 .group(groupId)
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 deviceId,
                 sBuilder.build(),
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_EXTERNAL_ROUTING_RULE,
+                ROUTING_TABLE,
                 install);
     }
 
@@ -530,14 +532,13 @@ public class OpenstackRoutingHandler {
 
         tBuilder.setOutput(PortNumber.CONTROLLER);
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 deviceId,
                 sBuilder.build(),
                 tBuilder.build(),
-                ForwardingObjective.Flag.VERSATILE,
                 PRIORITY_EXTERNAL_ROUTING_RULE,
+                Constants.GW_COMMON_TABLE,
                 install);
     }
 
@@ -569,14 +570,13 @@ public class OpenstackRoutingHandler {
                 .group(groupId)
                 .build();
 
-        RulePopulatorUtil.setRule(
-                flowObjectiveService,
+        osFlowRuleService.setRule(
                 appId,
                 deviceId,
                 selector,
                 treatment,
-                ForwardingObjective.Flag.SPECIFIC,
                 PRIORITY_SWITCHING_RULE,
+                ROUTING_TABLE,
                 install);
     }
 

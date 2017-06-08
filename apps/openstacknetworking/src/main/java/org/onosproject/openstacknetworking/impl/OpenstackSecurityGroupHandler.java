@@ -38,13 +38,12 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -67,6 +66,8 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RULE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -101,7 +102,7 @@ public class OpenstackSecurityGroupHandler {
     protected OpenstackSecurityGroupService securityGroupService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected FlowObjectiveService flowObjectiveService;
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -196,17 +197,24 @@ public class OpenstackSecurityGroupHandler {
 
     private void populateSecurityGroupRule(SecurityGroupRule sgRule, InstancePort instPort,
                                            IpPrefix remoteIp, boolean install) {
-        ForwardingObjective.Builder foBuilder = buildFlowObjective(sgRule,
-                Ip4Address.valueOf(instPort.ipAddress().toInetAddress()), remoteIp);
-        if (foBuilder == null) {
+        Ip4Address vmIp = Ip4Address.valueOf(instPort.ipAddress().toInetAddress());
+        if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, 32))) {
+            // do nothing if the remote IP is my IP
             return;
         }
 
-        if (install) {
-            flowObjectiveService.forward(instPort.deviceId(), foBuilder.add());
-        } else {
-            flowObjectiveService.forward(instPort.deviceId(), foBuilder.remove());
-        }
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        buildMatchs(sBuilder, sgRule, vmIp, remoteIp);
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().transition(JUMP_TABLE).build();
+
+        osFlowRuleService.setRule(appId,
+                instPort.deviceId(),
+                sBuilder.build(),
+                treatment,
+                PRIORITY_ACL_RULE,
+                ACL_TABLE,
+                install);
     }
 
     /**
@@ -228,25 +236,6 @@ public class OpenstackSecurityGroupHandler {
                 .collect(Collectors.toSet());
 
         return Collections.unmodifiableSet(remoteInstPorts);
-    }
-
-    private ForwardingObjective.Builder buildFlowObjective(SecurityGroupRule sgRule,
-                                                           Ip4Address vmIp,
-                                                           IpPrefix remoteIp) {
-        if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, 32))) {
-            // do nothing if the remote IP is my IP
-            return null;
-        }
-
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        buildMatchs(sBuilder, sgRule, vmIp, remoteIp);
-
-        return DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(DefaultTrafficTreatment.builder().build())
-                .withPriority(PRIORITY_ACL_RULE)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId);
     }
 
     private void buildMatchs(TrafficSelector.Builder sBuilder, SecurityGroupRule sgRule,
