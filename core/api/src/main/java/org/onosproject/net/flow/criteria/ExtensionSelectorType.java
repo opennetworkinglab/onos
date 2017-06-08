@@ -47,7 +47,6 @@ public class ExtensionSelectorType {
         OFDPA_MATCH_OVID(17),
         OFDPA_MATCH_MPLS_L2_PORT(18),
         EXT_MATCH_FLOW_TYPE(20),
-        BMV2_MATCH_PARAMS(128),
 
         UNRESOLVED_TYPE(200);
 

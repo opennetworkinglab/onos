@@ -31,9 +31,7 @@
 \./protocols/snmp/
 \./protocols/restconf
 \./providers/snmp/
-\./providers/bmv2/
 \./providers/ietfte/
-\./drivers/bmv2/
 \./apps/kafka-integration/
 \./pom.xml.versionsBackup
 \./tools/build/buck-publish-api

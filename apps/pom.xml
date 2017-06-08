@@ -72,7 +72,6 @@
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
         <module>scalablegateway</module>
-        <module>bmv2-demo</module>
         <module>yms</module>
         <module>tetopology</module>
         <module>rabbitmq</module>

@@ -47,9 +47,6 @@
               files=".*/thirdparty/.*.java"/>
 
     <suppress checks="Javadoc.*"
-              files=".*/protocols/bmv2/.*.java"/>
-
-    <suppress checks="Javadoc.*"
               files=".*/kafkaintegration/.*.java"/>
 
     <suppress checks="Javadoc.*"
