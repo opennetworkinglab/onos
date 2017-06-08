@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.SharedExecutors;
+import org.onlab.util.SharedScheduledExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
@@ -120,6 +121,7 @@ public class CoreManager implements CoreService {
     protected void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
         SharedExecutors.shutdown();
+        SharedScheduledExecutors.shutdown();
     }
 
     @Override
