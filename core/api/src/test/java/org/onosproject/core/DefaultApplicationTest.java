@@ -28,10 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
 
 /**
@@ -48,6 +45,7 @@ public class DefaultApplicationTest {
                                                  PERMS, Optional.of(FURL), FEATURES, APPS);
         assertEquals("incorrect id", APP_ID, app.id());
         assertEquals("incorrect version", VER, app.version());
+        assertEquals("incorrect title", TITLE, app.title());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
         assertEquals("incorrect category", CATEGORY, app.category());
