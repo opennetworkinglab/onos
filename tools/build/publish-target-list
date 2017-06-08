@@ -17,7 +17,6 @@
     //cli:onos-cli
     //protocols/openflow/api:onos-protocols-openflow-api
     //protocols/openflow/ctl:onos-protocols-openflow-ctl
-    //apps/optical:onos-apps-optical
     //apps/optical-model:onos-apps-optical-model
     //apps/newoptical:onos-apps-newoptical
     //web/api:onos-rest
