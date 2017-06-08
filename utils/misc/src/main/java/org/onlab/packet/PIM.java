@@ -18,8 +18,9 @@ package org.onlab.packet;
 import org.onlab.packet.pim.PIMHello;
 import org.onlab.packet.pim.PIMJoinPrune;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -48,12 +49,10 @@ public class PIM extends BasePacket {
     public static final byte ADDRESS_FAMILY_IP6 = 0x2;
 
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
-            new HashMap<>();
-
-    static {
-        PIM.PROTOCOL_DESERIALIZER_MAP.put(PIM.TYPE_HELLO, PIMHello.deserializer());
-        PIM.PROTOCOL_DESERIALIZER_MAP.put(PIM.TYPE_JOIN_PRUNE_REQUEST, PIMJoinPrune.deserializer());
-    }
+            ImmutableMap.<Byte, Deserializer<? extends IPacket>>builder()
+                .put(PIM.TYPE_HELLO, PIMHello.deserializer())
+                .put(PIM.TYPE_JOIN_PRUNE_REQUEST, PIMJoinPrune.deserializer())
+                .build();
 
     /*
      * PIM Header fields

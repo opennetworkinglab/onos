@@ -15,8 +15,7 @@
  */
 package org.onlab.packet;
 
-import com.google.common.collect.Sets;
-
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -56,7 +55,7 @@ public class MacAddress {
     /**
      * A set of LLDP MAC addresses.
      */
-    public static final Set<MacAddress> LLDP = Sets.newHashSet(
+    public static final Set<MacAddress> LLDP = ImmutableSet.of(
             MacAddress.valueOf("01:80:c2:00:00:00"),
             MacAddress.valueOf("01:80:c2:00:00:03"),
             MacAddress.valueOf("01:80:c2:00:00:0e"));

@@ -24,9 +24,10 @@ import org.onlab.packet.ipv6.HopByHopOptions;
 import org.onlab.packet.ipv6.IExtensionHeader;
 import org.onlab.packet.ipv6.Routing;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -53,19 +54,17 @@ public class IPv6 extends IP implements IExtensionHeader {
     public static final byte LINK_LOCAL_1 = (byte) 0x80;
 
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
-            new HashMap<>();
-
-    static {
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ICMP6, ICMP6.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_TCP, TCP.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_UDP, UDP.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_HOPOPT, HopByHopOptions.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ROUTING, Routing.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_FRAG, Fragment.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_ESP, EncapSecurityPayload.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_AH, Authentication.deserializer());
-        IPv6.PROTOCOL_DESERIALIZER_MAP.put(IPv6.PROTOCOL_DSTOPT, DestinationOptions.deserializer());
-    }
+            ImmutableMap.<Byte, Deserializer<? extends IPacket>>builder()
+                .put(IPv6.PROTOCOL_ICMP6, ICMP6.deserializer())
+                .put(IPv6.PROTOCOL_TCP, TCP.deserializer())
+                .put(IPv6.PROTOCOL_UDP, UDP.deserializer())
+                .put(IPv6.PROTOCOL_HOPOPT, HopByHopOptions.deserializer())
+                .put(IPv6.PROTOCOL_ROUTING, Routing.deserializer())
+                .put(IPv6.PROTOCOL_FRAG, Fragment.deserializer())
+                .put(IPv6.PROTOCOL_ESP, EncapSecurityPayload.deserializer())
+                .put(IPv6.PROTOCOL_AH, Authentication.deserializer())
+                .put(IPv6.PROTOCOL_DSTOPT, DestinationOptions.deserializer())
+                .build();
 
     protected byte version;
     protected byte trafficClass;

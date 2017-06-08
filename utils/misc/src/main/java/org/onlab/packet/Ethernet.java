@@ -24,9 +24,10 @@ import org.onlab.packet.ndp.Redirect;
 import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.RouterSolicitation;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,15 +61,18 @@ public class Ethernet extends BasePacket {
 
     public static final short DATALAYER_ADDRESS_LENGTH = 6; // bytes
 
-    private static final Map<Short, Deserializer<? extends IPacket>> ETHERTYPE_DESERIALIZER_MAP =
-            new HashMap<>();
+    private static final Map<Short, Deserializer<? extends IPacket>> ETHERTYPE_DESERIALIZER_MAP;
 
     static {
+        ImmutableMap.Builder<Short, Deserializer<? extends IPacket>> builder =
+                ImmutableMap.builder();
+
        for (EthType.EtherType ethType : EthType.EtherType.values()) {
            if (ethType.deserializer() != null) {
-               ETHERTYPE_DESERIALIZER_MAP.put(ethType.ethType().toShort(), ethType.deserializer());
+               builder.put(ethType.ethType().toShort(), ethType.deserializer());
            }
        }
+       ETHERTYPE_DESERIALIZER_MAP = builder.build();
     }
 
     protected MacAddress destinationMACAddress;

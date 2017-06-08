@@ -19,8 +19,9 @@ package org.onlab.packet;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.collect.ImmutableMap;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
@@ -35,15 +36,14 @@ public class IPv4 extends IP {
     public static final byte PROTOCOL_UDP = 0x11;
     public static final byte PROTOCOL_PIM = 0x67;
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
-            new HashMap<>();
+            ImmutableMap.<Byte, Deserializer<? extends IPacket>>builder()
+                .put(IPv4.PROTOCOL_ICMP, ICMP.deserializer())
+                .put(IPv4.PROTOCOL_IGMP, IGMP.deserializer())
+                .put(IPv4.PROTOCOL_TCP, TCP.deserializer())
+                .put(IPv4.PROTOCOL_UDP, UDP.deserializer())
+                .put(IPv4.PROTOCOL_PIM, PIM.deserializer())
+                .build();
 
-    static {
-        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_ICMP, ICMP.deserializer());
-        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_IGMP, IGMP.deserializer());
-        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_TCP, TCP.deserializer());
-        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_UDP, UDP.deserializer());
-        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_PIM, PIM.deserializer());
-    }
 
     private static final byte DSCP_MASK = 0x3f;
     private static final byte DSCP_OFFSET = 2;
