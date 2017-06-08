@@ -631,8 +631,8 @@ public class NetconfDeviceProvider extends AbstractProvider
             if (mastershipService.getMasterFor(event.subject().id()) == null) {
                 return true;
             }
-            return SCHEME_NAME.toUpperCase()
-                    .equals(event.subject().annotations().value(AnnotationKeys.PROTOCOL)) &&
+            return (SCHEME_NAME.equalsIgnoreCase(event.subject().annotations().value(AnnotationKeys.PROTOCOL)) ||
+                    (SCHEME_NAME.equalsIgnoreCase(event.subject().id().uri().getScheme()))) &&
                     mastershipService.isLocalMaster(event.subject().id());
         }
     }
