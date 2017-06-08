@@ -1017,7 +1017,7 @@
             updateLinkLabelModel: updateLinkLabelModel,
             linkConfig: function () { return linkConfig; },
             deviceScale: deviceScale,
-            linkWidthScale: linkWidthScale,
+            linkWidthScale: linkWidthScale
         };
     }
 
