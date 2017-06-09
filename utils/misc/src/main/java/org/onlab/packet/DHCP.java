@@ -583,7 +583,6 @@ public class DHCP extends BasePacket {
             boolean foundEndOptionsMarker = false;
             while (bb.hasRemaining()) {
                 DhcpOption option;
-
                 int pos = bb.position();
                 int optCode = UNSIGNED_BYTE_MASK & bb.array()[pos]; // to unsigned integer
                 int optLen;

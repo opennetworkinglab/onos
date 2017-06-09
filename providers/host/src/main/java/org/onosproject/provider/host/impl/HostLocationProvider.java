@@ -43,6 +43,7 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -77,7 +78,10 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Dictionary;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -89,7 +93,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class HostLocationProvider extends AbstractProvider implements HostProvider {
-
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -113,6 +116,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
+
     private HostProviderService providerService;
 
     private final InternalHostProvider processor = new InternalHostProvider();
@@ -124,18 +130,18 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             label = "Enable host removal on port/device down events")
     private boolean hostRemovalEnabled = true;
 
-    @Property(name = "useArp", boolValue = true,
-            label = "Enable using ARP for neighbor discovery by the " +
+    @Property(name = "requestArp", boolValue = true,
+            label = "Request ARP packets for neighbor discovery by the " +
                     "Host Location Provider; default is true")
-    private boolean useArp = true;
+    private boolean requestArp = true;
 
-    @Property(name = "useIpv6ND", boolValue = false,
-            label = "Enable using IPv6 Neighbor Discovery by the " +
+    @Property(name = "requestIpv6ND", boolValue = false,
+            label = "Requests IPv6 Neighbor Discovery by the " +
                     "Host Location Provider; default is false")
-    private boolean useIpv6ND = false;
+    private boolean requestIpv6ND = false;
 
     @Property(name = "useDhcp", boolValue = false,
-            label = "Enable using DHCP for neighbor discovery by the " +
+            label = "Use DHCP for neighbor discovery by the " +
                     "Host Location Provider; default is false")
     private boolean useDhcp = false;
 
@@ -202,7 +208,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         TrafficSelector arpSelector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_ARP)
                 .build();
-        if (useArp) {
+        if (requestArp) {
             packetService.requestPackets(arpSelector, PacketPriority.CONTROL, appId);
         } else {
             packetService.cancelPackets(arpSelector, PacketPriority.CONTROL, appId);
@@ -219,7 +225,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 .matchIPProtocol(IPv6.PROTOCOL_ICMP6)
                 .matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT)
                 .build();
-        if (useIpv6ND) {
+        if (requestIpv6ND) {
             packetService.requestPackets(ipv6NsSelector, PacketPriority.CONTROL, appId);
             packetService.requestPackets(ipv6NaSelector, PacketPriority.CONTROL, appId);
         } else {
@@ -238,13 +244,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
                 .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
                 .build();
-        if (useDhcp) {
-            packetService.requestPackets(dhcpServerSelector, PacketPriority.CONTROL, appId);
-            packetService.requestPackets(dhcpClientSelector, PacketPriority.CONTROL, appId);
-        } else {
-            packetService.cancelPackets(dhcpServerSelector, PacketPriority.CONTROL, appId);
-            packetService.cancelPackets(dhcpClientSelector, PacketPriority.CONTROL, appId);
-        }
     }
 
     /**
@@ -278,51 +277,51 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         flag = Tools.isPropertyEnabled(properties, "hostRemovalEnabled");
         if (flag == null) {
             log.info("Host removal on port/device down events is not configured, " +
-                             "using current value of {}", hostRemovalEnabled);
+                     "using current value of {}", hostRemovalEnabled);
         } else {
             hostRemovalEnabled = flag;
             log.info("Configured. Host removal on port/device down events is {}",
                      hostRemovalEnabled ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "useArp");
+        flag = Tools.isPropertyEnabled(properties, "requestArp");
         if (flag == null) {
             log.info("Using ARP is not configured, " +
-                    "using current value of {}", useArp);
+                     "using current value of {}", requestArp);
         } else {
-            useArp = flag;
+            requestArp = flag;
             log.info("Configured. Using ARP is {}",
-                    useArp ? "enabled" : "disabled");
+                     requestArp ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "useIpv6ND");
+        flag = Tools.isPropertyEnabled(properties, "requestIpv6ND");
         if (flag == null) {
             log.info("Using IPv6 Neighbor Discovery is not configured, " +
-                             "using current value of {}", useIpv6ND);
+                             "using current value of {}", requestIpv6ND);
         } else {
-            useIpv6ND = flag;
+            requestIpv6ND = flag;
             log.info("Configured. Using IPv6 Neighbor Discovery is {}",
-                     useIpv6ND ? "enabled" : "disabled");
+                     requestIpv6ND ? "enabled" : "disabled");
         }
 
         flag = Tools.isPropertyEnabled(properties, "useDhcp");
         if (flag == null) {
             log.info("Using DHCP is not configured, " +
-                    "using current value of {}", useDhcp);
+                     "using current value of {}", useDhcp);
         } else {
             useDhcp = flag;
             log.info("Configured. Using DHCP is {}",
-                    useDhcp ? "enabled" : "disabled");
+                     useDhcp ? "enabled" : "disabled");
         }
 
         flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
         if (flag == null) {
             log.info("Request intercepts is not configured, " +
-                    "using current value of {}", requestInterceptsEnabled);
+                     "using current value of {}", requestInterceptsEnabled);
         } else {
             requestInterceptsEnabled = flag;
             log.info("Configured. Request intercepts is {}",
-                    requestInterceptsEnabled ? "enabled" : "disabled");
+                     requestInterceptsEnabled ? "enabled" : "disabled");
         }
     }
 
@@ -475,30 +474,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 createOrUpdateHost(hid, srcMac, vlan, hloc, ip);
 
             // IPv4: update location only
-            // DHCP ACK: additionally update IP of DHCP client
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
-                IPacket pkt = eth.getPayload();
-                if (pkt != null && pkt instanceof IPv4) {
-                    pkt = pkt.getPayload();
-                    if (pkt != null && pkt instanceof UDP) {
-                        pkt = pkt.getPayload();
-                        if (pkt != null && pkt instanceof DHCP) {
-                            DHCP dhcp = (DHCP) pkt;
-                            if (dhcp.getOptions().stream()
-                                    .anyMatch(dhcpOption -> dhcpOption.getCode() ==
-                                            DHCP.DHCPOptionCode.OptionCode_MessageType.getValue() &&
-                                            dhcpOption.getLength() == 1 &&
-                                            dhcpOption.getData()[0] == DHCP.MsgType.DHCPACK.getValue())) {
-                                MacAddress hostMac = MacAddress.valueOf(dhcp.getClientHardwareAddress());
-                                VlanId hostVlan = VlanId.vlanId(eth.getVlanID());
-                                HostId hostId = HostId.hostId(hostMac, hostVlan);
-                                updateHostIp(hostId, IpAddress.valueOf(dhcp.getYourIPAddress()));
-                            }
-                        }
-                    }
+                // DHCP ACK: additionally update IP of DHCP client
+                Optional<DHCP> dhcp = findDhcp(eth);
+                if (useDhcp || !dhcp.isPresent()) {
+                    createOrUpdateHost(hid, srcMac, vlan, hloc, null);
                 }
-                createOrUpdateHost(hid, srcMac, vlan, hloc, null);
-
             //
             // NeighborAdvertisement and NeighborSolicitation: possible
             // new hosts, update both location and IP.
@@ -545,6 +526,21 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 // normal IPv6 packets
                 createOrUpdateHost(hid, srcMac, vlan, hloc, null);
             }
+        }
+
+        private Optional<DHCP> findDhcp(Ethernet eth) {
+            IPacket pkt = eth.getPayload();
+            return Stream.of(pkt)
+                    .filter(Objects::nonNull)
+                    .filter(p -> p instanceof IPv4)
+                    .map(IPacket::getPayload)
+                    .filter(Objects::nonNull)
+                    .filter(p -> p instanceof UDP)
+                    .map(IPacket::getPayload)
+                    .filter(Objects::nonNull)
+                    .filter(p -> p instanceof DHCP)
+                    .map(p -> (DHCP) p)
+                    .findFirst();
         }
     }
 

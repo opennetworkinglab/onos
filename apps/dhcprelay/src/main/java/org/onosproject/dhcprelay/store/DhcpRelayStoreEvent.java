@@ -45,7 +45,7 @@ public class DhcpRelayStoreEvent extends AbstractEvent<DhcpRelayStoreEvent.Type,
      * @param type the type of event
      * @param subject the DHCP record of this event
      */
-    protected DhcpRelayStoreEvent(Type type, DhcpRecord subject) {
+    public DhcpRelayStoreEvent(Type type, DhcpRecord subject) {
         super(type, subject);
     }
 }

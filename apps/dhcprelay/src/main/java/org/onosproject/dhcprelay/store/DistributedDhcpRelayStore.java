@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
 import org.onlab.util.KryoNamespace;
@@ -43,7 +44,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Distributed DHCP relay store.
  */
-@Component
+@Component(immediate = true)
+@Service
 public class DistributedDhcpRelayStore implements DhcpRelayStore {
     private static final KryoNamespace APP_KRYO = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
