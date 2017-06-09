@@ -97,8 +97,7 @@ ONOS_DRIVERS = [
     '//drivers/lisp:onos-drivers-lisp-oar',
     '//drivers/flowspec:onos-drivers-flowspec-oar',
     '//drivers/huawei:onos-drivers-huawei-oar',
-#   Removed until we can handle v1.12 of onos-yang-tools - in the mean time build manually with Maven
-#   '//drivers/microsemi/ea1000driver:onos-drivers-microsemi-ea1000driver-oar',
+    '//drivers/microsemi:onos-drivers-microsemi-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
     '//drivers/hp:onos-drivers-hp-oar',
 ]
@@ -205,6 +204,7 @@ MODELS = [
     '//models/demo:onos-models-demo-oar',
     '//models/openroadm:onos-models-openroadm-oar',
     '//models/l3vpn:onos-models-l3vpn-oar',
+    '//models/microsemi:onos-models-microsemi-oar'
 ]
 
 APP_JARS = [
