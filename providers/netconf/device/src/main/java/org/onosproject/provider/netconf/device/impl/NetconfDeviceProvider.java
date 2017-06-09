@@ -79,12 +79,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
@@ -141,7 +144,13 @@ public class NetconfDeviceProvider extends AbstractProvider
                     "default is 30 sec")
     private int pollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
 
-    protected final ExecutorService executor =
+    private static final int DEFAULT_MAX_RETRIES = 5;
+    @Property(name = "maxRetries", intValue = DEFAULT_MAX_RETRIES,
+            label = "Configure maximum allowed number of retries for obtaining list of ports; " +
+                    "default is 5 times")
+    private int maxRetries = DEFAULT_MAX_RETRIES;
+
+    protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
                                                            "device-installer-%d", log));
     protected ScheduledExecutorService connectionExecutor
@@ -152,6 +161,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     protected DeviceProviderService providerService;
     private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
+    private final Map<DeviceId, AtomicInteger> retriedPortDiscoveryMap = new ConcurrentHashMap<>();
     protected ScheduledFuture<?> scheduledTask;
 
     protected final List<ConfigFactory> factories = ImmutableList.of(
@@ -209,6 +219,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         deviceService.removeListener(deviceListener);
         providerRegistry.unregister(this);
         providerService = null;
+        retriedPortDiscoveryMap.clear();
         factories.forEach(cfgService::unregisterConfigFactory);
         scheduledTask.cancel(true);
         executor.shutdown();
@@ -223,6 +234,10 @@ public class NetconfDeviceProvider extends AbstractProvider
             pollFrequency = Tools.getIntegerProperty(properties, "pollFrequency",
                                                      DEFAULT_POLL_FREQUENCY_SECONDS);
             log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
+
+            maxRetries = Tools.getIntegerProperty(properties, "maxRetries",
+                    DEFAULT_MAX_RETRIES);
+            log.info("Configured. Number of retries is configured to {} times", maxRetries);
         }
         if (scheduledTask != null) {
             scheduledTask.cancel(false);
@@ -341,6 +356,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
             if (deviceService.getDevice(deviceId) != null) {
                 providerService.deviceDisconnected(deviceId);
+                retriedPortDiscoveryMap.remove(deviceId);
                 log.debug("Netconf device {} removed from Netconf subController", deviceId);
             } else {
                 log.warn("Netconf device {} does not exist in the store, " +
@@ -372,6 +388,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
                   deviceId, config.ip(), config.port(), config.username());
         storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
+        retriedPortDiscoveryMap.putIfAbsent(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
             providerService.deviceConnected(deviceId, deviceDescription);
         }
@@ -408,10 +425,6 @@ public class NetconfDeviceProvider extends AbstractProvider
                                             deviceDescription, true,
                                             deviceDescription.annotations()));
                         }
-                        //if ports are not discovered, retry the discovery
-                        if (deviceService.getPorts(deviceId).isEmpty()) {
-                            discoverPorts(deviceId);
-                        }
                     }
                 } else {
                     log.warn("No DeviceDescriptionDiscovery behaviour for device {} " +
@@ -424,6 +437,12 @@ public class NetconfDeviceProvider extends AbstractProvider
                 providerService.deviceDisconnected(deviceId);
             } else if (isReachable && deviceService.isAvailable(deviceId) &&
                     mastershipService.isLocalMaster(deviceId)) {
+
+                //if ports are not discovered, retry the discovery
+                if (deviceService.getPorts(deviceId).isEmpty() &&
+                        retriedPortDiscoveryMap.get(deviceId).getAndIncrement() < maxRetries) {
+                    discoverPorts(deviceId);
+                }
                 updatePortStatistics(device);
             }
         }
