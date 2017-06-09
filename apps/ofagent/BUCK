@@ -9,7 +9,7 @@ COMPILE_DEPS = [
     '//lib:netty-buffer',
     '//lib:netty-codec',
     '//lib:netty-handler',
-    '//lib:openflowj-3.0',
+    '//lib:openflowj',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
 ]
@@ -23,10 +23,6 @@ TEST_DEPS = [
     '//web/api:onos-rest-tests',
 ]
 
-EXCLUDED_BUNDLES = [
-    '//lib:openflowj-3.0',
-]
-
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
@@ -38,5 +34,4 @@ onos_app (
     category = 'Traffic Steering',
     url = 'http://onosproject.org',
     description = 'OpenFlow agent application for virtualization subsystem.',
-    excluded_bundles = EXCLUDED_BUNDLES
 )
