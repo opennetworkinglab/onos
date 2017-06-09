@@ -24,8 +24,6 @@ RUN     apt-get update && apt-get install -y python less zip curl oracle-java8-i
         cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
         cd .. && \
         rm -rf onos && \
-        apt-get remove --purge -y `apt-mark showauto` && \
-        apt-get install oracle-java8-set-default -y && \
         apt-get clean && apt-get purge -y && apt-get autoremove -y && \
         rm -rf /var/lib/apt/lists/* && \
         rm -rf /var/cache/oracle-jdk8-installer
