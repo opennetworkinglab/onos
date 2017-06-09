@@ -1,0 +1,42 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//drivers/utilities:onos-drivers-utilities',
+    '//protocols/netconf/api:onos-protocols-netconf-api',
+    '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
+    '//models/microsemi:onos-models-microsemi',
+    '//lib:org.apache.karaf.shell.console',
+    '//incubator/api:onos-incubator-api',
+] + YANG_TOOLS
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//drivers/netconf:onos-drivers-netconf-tests',
+    '//utils/osgi:onlab-osgi-tests'
+]
+
+APPS = [
+    'org.onosproject.yang',
+#     'org.onosproject.yang-gui',
+    'org.onosproject.config',
+    'org.onosproject.netconf',
+    'org.onosproject.netconfsb',
+    'org.onosproject.drivers.netconf',
+    'org.onosproject.models.microsemi'
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources_root = 'src/main/resources',
+    resources = glob(['src/main/resources/**']),
+)
+
+onos_app (
+    app_name = 'org.onosproject.drivers.microsemi',
+    title = 'Microsemi device drivers',
+    category = 'Drivers',
+    url = 'http://onosproject.org',
+    description = 'ONOS Microsemi device drivers application.',
+    required_apps = APPS,
+)

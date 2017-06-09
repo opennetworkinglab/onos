@@ -1,0 +1,4 @@
+yang_model(
+    app_name = 'org.onosproject.models.microsemi',
+    title = 'Microsemi YANG Model',
+)

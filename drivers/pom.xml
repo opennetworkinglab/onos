@@ -47,7 +47,6 @@
         <module>juniper</module>
         <module>lisp</module>
         <module>flowspec</module>
-        <module>microsemi</module>
         <module>oplink</module>
         <!-- <module>bmv2</module> -->
         <module>hp</module>
