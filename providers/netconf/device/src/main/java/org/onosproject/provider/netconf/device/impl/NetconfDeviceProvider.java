@@ -166,7 +166,7 @@ public class NetconfDeviceProvider extends AbstractProvider
             },
             new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
                                                                     NetconfProviderConfig.class,
-                                                                    "devices",
+                                                                    "netconf_devices",
                                                                     true) {
                 @Override
                 public NetconfProviderConfig createConfig() {

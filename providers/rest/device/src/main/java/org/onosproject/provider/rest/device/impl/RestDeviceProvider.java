@@ -129,7 +129,7 @@ public class RestDeviceProvider extends AbstractProvider
     protected final List<ConfigFactory> factories = ImmutableList.of(
             new ConfigFactory<ApplicationId, RestProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  RestProviderConfig.class,
-                                                                 "devices",
+                                                                 "rest_devices",
                                                                  true) {
                 @Override
                 public RestProviderConfig createConfig() {

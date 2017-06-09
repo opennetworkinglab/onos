@@ -8,7 +8,7 @@
   },
   "apps":{
     "org.onosproject.netconf":{
-      "devices":[{
+      "netconf_devices":[{
         "username":"mininet",
         "password":"mininet",
         "ip":"192.168.56.104",

@@ -8,7 +8,7 @@
   },
   "apps": {
     "org.onosproject.restsb": {
-      "devices": [{
+      "rest_devices": [{
         "username": "dev",
         "password": "",
         "ip": "127.0.0.1",

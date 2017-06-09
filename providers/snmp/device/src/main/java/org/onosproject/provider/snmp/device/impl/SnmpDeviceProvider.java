@@ -109,7 +109,7 @@ public class SnmpDeviceProvider extends AbstractProvider
     protected final List<ConfigFactory> factories = ImmutableList.of(
             new ConfigFactory<ApplicationId, SnmpProviderConfig>(APP_SUBJECT_FACTORY,
                                                                  SnmpProviderConfig.class,
-                                                                 "devices",
+                                                                 "snmp_devices",
                                                                  true) {
                 @Override
                 public SnmpProviderConfig createConfig() {
