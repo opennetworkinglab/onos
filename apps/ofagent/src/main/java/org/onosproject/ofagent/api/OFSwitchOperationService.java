@@ -126,4 +126,28 @@ public interface OFSwitchOperationService {
      * @param msg     echo request message
      */
     void processEchoRequest(Channel channel, OFMessage msg);
+
+    /**
+     * Processes GetConfig request from the controllers.
+     *
+     * @param channel received channel
+     * @param msg     GetConfig request message
+     */
+    void processGetConfigRequest(Channel channel, OFMessage msg);
+
+    /**
+     * Processes SetConfig message from the controllers.
+     *
+     * @param channel received channel
+     * @param msg     SetConfig message
+     */
+    void processSetConfigMessage(Channel channel, OFMessage msg);
+
+    /**
+     * Processes barrier request from the controllers.
+     *
+     * @param channel received channel
+     * @param msg     barrier request message
+     */
+    void processBarrierRequest(Channel channel, OFMessage msg);
 }
