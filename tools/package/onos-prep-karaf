@@ -52,6 +52,7 @@ mv $KARAF_DIR $PREFIX
 
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
 cp -r bin $PREFIX
+cp -r runtime/bin/* $PREFIX/bin/
 cp -r init $PREFIX
 cp -r etc/* $PREFIX/$KARAF_DIR/etc/
 

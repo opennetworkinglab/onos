@@ -1,0 +1,59 @@
+#!/bin/bash
+
+#
+# Copyright 2015-present Open Networking Laboratory
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# -----------------------------------------------------------------------------
+# ONOS network configuration uploader.
+# -----------------------------------------------------------------------------
+
+# If ONOS_HOME is set, respect its value.
+# If ONOS_HOME is not set (e.g. in the init or service environment),
+# set it based on this script's path.
+ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+
+. ${ONOS_HOME}/bin/_find-node
+
+fail="--fail"
+[ "$1" == "-v" ] && shift && fail=""
+
+node=$(find_node $1)
+file="${2}"
+url="${3}"
+
+if [ "$node" == "" -o "$file" == "" ]; then
+     echo "Usage: onos-netcfg [-v] node file|DELETE [url]"
+     exit 1
+fi
+
+method="POST"
+[ $(echo $file | awk '{print tolower($0)}') == "delete" ] && method="DELETE"
+
+if [ $method == "POST" ]; then
+    # Validate JSON
+    cat $file | python -m json.tool >> /dev/null
+    if [ "$?" -ne "0" ]; then
+        echo "Not valid JSON File" && exit 1
+    fi
+    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+        -X POST -H 'Content-Type:application/json' \
+        http://$node:8181/onos/v1/network/configuration/${url} -d@$file
+elif [ $method == "DELETE" ]; then
+    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+        -X DELETE http://$node:8181/onos/v1/network/configuration/${url}
+fi

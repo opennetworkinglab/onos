@@ -53,7 +53,6 @@ tar_file(
     root = 'onos-test-%s' % ONOS_VERSION,
     srcs = glob(['tools/test/**/*']) + [
                'tools/dev/bash_profile',
-               'tools/dev/bin/onos-app',
                'tools/dev/bin/onos-create-app',
                'tools/build/envDefaults'
            ],
