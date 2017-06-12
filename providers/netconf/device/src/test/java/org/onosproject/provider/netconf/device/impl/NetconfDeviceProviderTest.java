@@ -307,7 +307,7 @@ public class NetconfDeviceProviderTest {
     }
 
     private void prepareMocks(int count) {
-        for(int i = 1; i <= count; i++) {
+        for (int i = 1; i <= count; i++) {
             deviceDescription.portDescriptions.add(new DefaultPortDescription(PortNumber.portNumber(i), true));
         }
     }
@@ -332,7 +332,7 @@ public class NetconfDeviceProviderTest {
 
         @Override
         public void disconnectDevice(DeviceId deviceId, boolean remove) {
-            netconfDeviceListeners.forEach( l -> l.deviceRemoved(deviceId));
+            netconfDeviceListeners.forEach(l -> l.deviceRemoved(deviceId));
         }
     }
 
