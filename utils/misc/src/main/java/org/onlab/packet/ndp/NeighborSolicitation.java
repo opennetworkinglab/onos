@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -37,6 +38,9 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public class NeighborSolicitation extends BasePacket {
     public static final byte HEADER_LENGTH = 20; // bytes
+    // Constants for NDP reply
+    protected static final byte NDP_HOP_LIMIT = (byte) 0x255;
+    protected static final byte RESERVED_CODE = (byte) 0x0;
 
     protected byte[] targetAddress = new byte[Ip6Address.BYTE_LENGTH];
 
@@ -214,7 +218,9 @@ public class NeighborSolicitation extends BasePacket {
      * @param destinationMac the destination mac address
      * @param vlan the vlan id
      * @return the ethernet packet containing the ndp solicitation
+     * @deprecated since 1.11.0
      */
+    @Deprecated
     public static Ethernet buildNdpSolicit(byte[] targetIp,
                                            byte[] sourceIp,
                                            byte[] destinationIp,
@@ -251,6 +257,61 @@ public class NeighborSolicitation extends BasePacket {
         // DAD packets should not contain SRC_LL_ADDR option
         if (!Arrays.equals(sourceIp, Ip6Address.ZERO.toOctets())) {
             ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS, sourceMac);
+        }
+        // Set the payloads
+        icmp6.setPayload(ns);
+        ipv6.setPayload(icmp6);
+        ethernet.setPayload(ipv6);
+
+        return ethernet;
+    }
+
+    /**
+     * Builds a NDP solicitation using the supplied parameters.
+     *
+     * @param targetIp the target ip
+     * @param sourceIp the source ip
+     * @param destinationIp the destination ip
+     * @param sourceMac the source mac address
+     * @param destinationMac the destination mac address
+     * @param vlan the vlan id
+     * @return the ethernet packet containing the ndp solicitation
+     */
+    public static Ethernet buildNdpSolicit(Ip6Address targetIp,
+                                           Ip6Address sourceIp,
+                                           Ip6Address destinationIp,
+                                           MacAddress sourceMac,
+                                           MacAddress destinationMac,
+                                           VlanId vlan) {
+
+        checkNotNull(targetIp, "Target IP address cannot be null");
+        checkNotNull(sourceIp, "Source IP address cannot be null");
+        checkNotNull(destinationIp, "Destination IP address cannot be null");
+        checkNotNull(sourceMac, "Source MAC address cannot be null");
+        checkNotNull(destinationMac, "Destination MAC address cannot be null");
+        checkNotNull(vlan, "Vlan cannot be null");
+
+        // Here we craft the Ethernet packet.
+        Ethernet ethernet = new Ethernet();
+        ethernet.setEtherType(Ethernet.TYPE_IPV6)
+                .setDestinationMACAddress(destinationMac)
+                .setSourceMACAddress(sourceMac);
+        ethernet.setVlanID(vlan.id());
+        // IPv6 packet is created.
+        IPv6 ipv6 = new IPv6();
+        ipv6.setSourceAddress(sourceIp.toOctets());
+        ipv6.setDestinationAddress(destinationIp.toOctets());
+        ipv6.setHopLimit(NDP_HOP_LIMIT);
+        // Create the ICMPv6 packet.
+        ICMP6 icmp6 = new ICMP6();
+        icmp6.setIcmpType(ICMP6.NEIGHBOR_SOLICITATION);
+        icmp6.setIcmpCode(RESERVED_CODE);
+        // Create the Neighbor Solicitation packet.
+        NeighborSolicitation ns = new NeighborSolicitation();
+        ns.setTargetAddress(targetIp.toOctets());
+        // DAD packets should not contain SRC_LL_ADDR option
+        if (!Arrays.equals(sourceIp.toOctets(), Ip6Address.ZERO.toOctets())) {
+            ns.addOption(NeighborDiscoveryOptions.TYPE_SOURCE_LL_ADDRESS, sourceMac.toBytes());
         }
         // Set the payloads
         icmp6.setPayload(ns);
