@@ -399,7 +399,8 @@ public class GossipDeviceStore
         boolean propertiesChanged =
                 !Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
                         !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
-                        !Objects.equals(oldDevice.providerId(), newDevice.providerId());
+                        !Objects.equals(oldDevice.providerId(), newDevice.providerId()) ||
+                        !Objects.equals(oldDevice.chassisId(), newDevice.chassisId());
         boolean annotationsChanged =
                 !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations());
 
