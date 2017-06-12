@@ -25,6 +25,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoCallback;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
+import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
@@ -421,6 +422,7 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
         log.trace("Creating Kryo instance for {}", this);
         Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(registrationRequired);
+        kryo.setDefaultSerializer(CompatibleFieldSerializer::new);
 
         // TODO rethink whether we want to use StdInstantiatorStrategy
         kryo.setInstantiatorStrategy(
