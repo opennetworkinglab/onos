@@ -70,6 +70,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                 + "' not found";
     }
 
+    private String subjectClassInvalidErrorString(String subjectClassKey) {
+        return "Config for '" + subjectClassKey + "' is invalid";
+    }
+
     private String subjectClassNotValidErrorString(String subjectClassKey) {
         return "subjectClassKey '" + subjectClassKey + "' not found";
     }
@@ -207,8 +211,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         List<String> errorMsgs = new ArrayList<String>();
         root.fieldNames()
                 .forEachRemaining(sk -> {
-                    if (service.getSubjectFactory(sk) == null)  {
+                    if (service.getSubjectFactory(sk) == null) {
                         errorMsgs.add(subjectClassNotValidErrorString(sk));
+                    } else if (!root.path(sk).isObject()) {
+                        errorMsgs.add(subjectClassInvalidErrorString(sk));
                     } else {
                         errorMsgs.addAll(consumeJson(service, (ObjectNode) root.path(sk),
                                 service.getSubjectFactory(sk)));
