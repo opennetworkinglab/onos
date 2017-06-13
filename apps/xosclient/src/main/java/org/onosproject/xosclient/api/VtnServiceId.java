@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Representation of VTN service identifier.
  */
+
 public final class VtnServiceId extends Identifier<String> {
     /**
      * Default constructor.

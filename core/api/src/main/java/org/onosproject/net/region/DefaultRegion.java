@@ -26,10 +26,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Default implementation of a region.
  */
 public final class DefaultRegion extends AbstractAnnotated implements Region {
+
+    private static final int NAME_MAX_LENGTH = 1024;
 
     private final RegionId id;
     private final String name;
@@ -52,6 +56,9 @@ public final class DefaultRegion extends AbstractAnnotated implements Region {
         this.name = name;
         this.type = type;
         this.masters = masters != null ? ImmutableList.copyOf(masters) : ImmutableList.of();
+        if (name != null) {
+            checkArgument(name.length() <= NAME_MAX_LENGTH, "name exceeds maximum length " + NAME_MAX_LENGTH);
+        }
     }
 
     @Override

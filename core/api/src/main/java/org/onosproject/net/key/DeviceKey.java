@@ -22,6 +22,7 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.DefaultAnnotations.builder;
@@ -31,6 +32,8 @@ import static org.onosproject.net.DefaultAnnotations.builder;
  */
 @Beta
 public class DeviceKey extends AbstractAnnotated {
+
+    private static final int LABEL_MAX_LENGTH = 1024;
 
     // device key identifier
     private final DeviceKeyId deviceKeyId;
@@ -66,6 +69,9 @@ public class DeviceKey extends AbstractAnnotated {
     private DeviceKey(DeviceKeyId id, String label, Type type, Annotations... annotations) {
         super(annotations);
         checkNotNull(id, "The DeviceKeyId cannot be null.");
+        if (label != null) {
+            checkArgument(label.length() <= LABEL_MAX_LENGTH, "label exceeds maximum length " + LABEL_MAX_LENGTH);
+        }
         this.deviceKeyId = id;
         this.label = label;
         this.type = type;
