@@ -22,7 +22,7 @@
     'use strict';
 
     // injected references
-    var $log, $scope, $location, fs, tbs, ns, mast, ps, wss, is, ks;
+    var $log, $scope, fs, ns, mast, ps, is, wss, lion;
 
     // internal state
     var detailsPanel,
@@ -196,22 +196,24 @@
 
     angular.module('ovCluster', [])
         .controller('OvClusterCtrl',
-        ['$log', '$scope', 'TableBuilderService', 'NavService', 'MastService',
-        'PanelService', 'KeyService', 'IconService','WebSocketService',
-        'FnService',
+        ['$log', '$scope', 'FnService', 'NavService', 'MastService',
+        'PanelService', 'IconService','WebSocketService',
+        'LionService', 'TableBuilderService',
 
-        function (_$log_, _$scope_, tbs, _ns_, _mast_, _ps_, _ks_, _is_,
-                _wss_, _fs_) {
+            // var $log, $scope, fs, ns, mast, ps, is, wss, lion;
+
+    function (_$log_, _$scope_, _fs_, _ns_, _mast_, _ps_, _is_, _wss_, _lion_, tbs) {
             var handlers = {};
 
             $log = _$log_;
             $scope = _$scope_;
             fs = _fs_;
             ns = _ns_;
-            is = _is_;
-            wss = _wss_;
             mast = _mast_;
             ps = _ps_;
+            is = _is_;
+            wss = _wss_;
+            lion = _lion_;
 
             $scope.panelData = {};
 
@@ -237,6 +239,11 @@
         $scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
         });
+
+        // ++++ Temp test code for Localization POC ++++
+        var bun = lion.bundle('core.cluster');
+        $log.debug('Lion bundle test: computer = ', bun.computer);
+        // ++++ Temp test code for Localization POC ++++
 
         $log.log('OvClusterCtrl has been created');
     }])
