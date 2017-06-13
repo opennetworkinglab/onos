@@ -17,17 +17,102 @@
 
 package org.onosproject.ui.lion;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Utility methods for dealing with Localization Bundles etc.
  */
 public final class LionUtils {
 
+    private static final Logger log = LoggerFactory.getLogger(LionUtils.class);
+
+    private static final String USER_LANGUAGE = "user.language";
+    private static final String USER_COUNTRY = "user.country";
+    private static final String ONOS_LOCALE = "ONOS_LOCALE";
+    private static final String EMPTY = "";
     private static final String DOT = ".";
+    private static final String LOBAR = "_";
 
     // no instantiation
     private LionUtils() {
+    }
+
+    /**
+     * Parses the given string into language and country codes, and returns
+     * a {@link Locale} instance initialized with those parameters.
+     * For example:
+     * <pre>
+     *     Locale locale = LionUtils.localeFromString("en_GB");
+     *     locale.getLanguage();   // "en"
+     *     locale.getCountry();    // "GB"
+     *
+     *     locale = LionUtils.localeFromString("ru");
+     *     locale.getLanguage();   // "ru"
+     *     locale.getCountry();    // ""
+     * </pre>
+     *
+     * @param s the locale string
+     * @return a locale instance
+     */
+    public static Locale localeFromString(String s) {
+
+        if (!s.contains(LOBAR)) {
+            return new Locale(s);
+        }
+        String[] items = s.split(LOBAR);
+        return new Locale(items[0], items[1]);
+    }
+
+    /**
+     * Sets the default locale, based on the Java properties shown below.
+     * <pre>
+     *   user.language
+     *   user.country
+     * </pre>
+     * It is expected that the host system will have set these properties
+     * appropriately. Note, however, that the default values can be
+     * overridden by use of the environment variable {@code ONOS_LOCALE}.
+     * <p>
+     * For example, to set the Locale to French-Canadian one can invoke
+     * (from the shell)...
+     * <pre>
+     * $ ONOS_LOCALE=fr_CA {command-to-invoke-onos} ...
+     * </pre>
+     *
+     * @return the runtime locale
+     */
+    public static Locale setupRuntimeLocale() {
+        Locale systemDefault = Locale.getDefault();
+        log.info("System Default Locale: [{}]", systemDefault);
+        // TODO: Review- do we need to store the system default anywhere?
+
+        // Useful to log the "user.*" properties for debugging...
+        Set<String> pn = System.getProperties().stringPropertyNames();
+        pn.removeIf(f -> !(f.startsWith("user.")));
+        for (String ukey : pn) {
+            log.debug("  {}: {}", ukey, System.getProperty(ukey));
+        }
+
+        String language = System.getProperty(USER_LANGUAGE);
+        String country = System.getProperty(USER_COUNTRY);
+        log.info("Language: [{}], Country: [{}]", language, country);
+        Locale runtime = new Locale(language != null ? language : EMPTY,
+                                    country != null ? country : EMPTY);
+
+        String override = System.getenv(ONOS_LOCALE);
+        if (override != null) {
+            log.warn("Override with ONOS_LOCALE: [{}]", override);
+            runtime = localeFromString(override);
+        }
+
+        log.info("Setting runtime locale to: [{}]", runtime);
+        Locale.setDefault(runtime);
+        return runtime;
     }
 
     /**

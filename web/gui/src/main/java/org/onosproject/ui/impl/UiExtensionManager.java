@@ -61,6 +61,7 @@ import org.onosproject.ui.UiViewHidden;
 import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
 import org.onosproject.ui.impl.topo.Traffic2Overlay;
+import org.onosproject.ui.lion.LionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,6 +247,8 @@ public class UiExtensionManager
         tokens = tokensConsistentMap.asJavaMap();
 
         register(core);
+        LionUtils.setupRuntimeLocale();
+
         log.info("Started");
     }
 

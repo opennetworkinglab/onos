@@ -38,6 +38,7 @@ public class LionUtilsTest extends AbstractUiTest {
     private static Locale systemLocale;
 
     private ResourceBundle res;
+    private Locale locale;
 
     @BeforeClass
     public static void classSetup() {
@@ -131,6 +132,68 @@ public class LionUtilsTest extends AbstractUiTest {
         title("messagesInItalian");
         Locale.setDefault(new Locale("it", "IT"));
         checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
+    }
+
+    @Test
+    public void runtimeLocale() {
+        title("runtimeLocale");
+        Locale runtime = LionUtils.setupRuntimeLocale();
+        print("locale is [%s]", runtime);
+
+        // NOTE:
+        //   Yeah, I know, "a unit test without asserts is not a unit test".
+        //
+        //   But it would NOT be a good idea to assert the locale results in
+        //   this method, because that is dependent on environment variables.
+        //
+        //   This method is here to allow manual verification of the Locale
+        //   e.g. when running tests from IntelliJ, and setting the
+        //   env-vars via the "Edit Configurations..." dialog.
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void localeFromStringNull() {
+        LionUtils.localeFromString(null);
+    }
+
+    private void checkLanguageCountry(Locale locale, String expL, String expC) {
+        assertEquals("Wrong language: " + expL, expL, locale.getLanguage());
+        assertEquals("Wrong country: " + expC, expC, locale.getCountry());
+    }
+
+    @Test
+    public void localeFromStringEmpty() {
+        title("localeFromStringEmpty");
+        locale = LionUtils.localeFromString("");
+        checkLanguageCountry(locale, "", "");
+    }
+
+    @Test
+    public void localeFromStringRu() {
+        title("localeFromStringRu");
+        locale = LionUtils.localeFromString("ru");
+        checkLanguageCountry(locale, "ru", "");
+    }
+
+    @Test
+    public void localeFromStringEnGB() {
+        title("localeFromStringEnGB");
+        locale = LionUtils.localeFromString("en_GB");
+        checkLanguageCountry(locale, "en", "GB");
+    }
+
+    @Test
+    public void localeFromStringItIT() {
+        title("localeFromStringItIT");
+        locale = LionUtils.localeFromString("it_IT");
+        checkLanguageCountry(locale, "it", "IT");
+    }
+
+    @Test
+    public void localeFromStringFrCA() {
+        title("localeFromStringFrCA");
+        locale = LionUtils.localeFromString("fr_CA");
+        checkLanguageCountry(locale, "fr", "CA");
     }
 
     @Test
