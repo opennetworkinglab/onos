@@ -21,6 +21,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.onosproject.ui.AbstractUiTest;
 
 import java.util.Locale;
@@ -130,5 +131,13 @@ public class LionUtilsTest extends AbstractUiTest {
         title("messagesInItalian");
         Locale.setDefault(new Locale("it", "IT"));
         checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
+    }
+
+    @Test
+    @Ignore("Jenkins not chinese friendly, yet...")
+    public void messagesInZhTw() {
+        title("messagesInZhTW");
+        Locale.setDefault(Locale.TRADITIONAL_CHINESE);
+        checkLookups("電腦", "磁碟", "螢幕", "鍵盤");
     }
 }
