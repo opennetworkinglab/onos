@@ -18,6 +18,8 @@ package org.onosproject.net;
 import java.net.URI;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Immutable representation of a device identity.
  */
@@ -27,6 +29,8 @@ public final class DeviceId extends ElementId {
      * Represents either no device, or an unspecified device.
      */
     public static final DeviceId NONE = deviceId("none:none");
+
+    private static final int DEVICE_ID_MAX_LENGTH = 1024;
 
     private final URI uri;
     private final String str;
@@ -61,6 +65,8 @@ public final class DeviceId extends ElementId {
      * @return DeviceId
      */
     public static DeviceId deviceId(String string) {
+        checkArgument(string.length() <= DEVICE_ID_MAX_LENGTH,
+                "deviceId exceeds maximum length " + DEVICE_ID_MAX_LENGTH);
         return deviceId(URI.create(string));
     }
 

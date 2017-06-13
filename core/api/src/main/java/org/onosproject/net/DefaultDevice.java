@@ -26,11 +26,17 @@ import org.onosproject.net.provider.ProviderId;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Default infrastructure device model implementation.
  */
 public class DefaultDevice extends AbstractElement implements Device {
+
+    private static final int MANUFACTURER_MAX_LENGTH = 256;
+    private static final int HW_VERSION_MAX_LENGTH = 256;
+    private static final int SW_VERSION_MAX_LENGTH = 256;
+    private static final int SERIAL_NUMBER_MAX_LENGTH = 256;
 
     private final Type type;
     private final String manufacturer;
@@ -67,6 +73,22 @@ public class DefaultDevice extends AbstractElement implements Device {
                          String serialNumber, ChassisId chassisId,
                          Annotations... annotations) {
         super(providerId, id, annotations);
+        if (hwVersion != null) {
+            checkArgument(hwVersion.length() <= HW_VERSION_MAX_LENGTH,
+                    "hwVersion exceeds maximum length " + HW_VERSION_MAX_LENGTH);
+        }
+        if (swVersion != null) {
+            checkArgument(swVersion.length() <= SW_VERSION_MAX_LENGTH,
+                    "swVersion exceeds maximum length " + SW_VERSION_MAX_LENGTH);
+        }
+        if (manufacturer != null) {
+            checkArgument(manufacturer.length() <= MANUFACTURER_MAX_LENGTH,
+                    "manufacturer exceeds maximum length " + MANUFACTURER_MAX_LENGTH);
+        }
+        if (serialNumber != null) {
+            checkArgument(serialNumber.length() <= SERIAL_NUMBER_MAX_LENGTH,
+                    "serialNumber exceeds maximum length " + SERIAL_NUMBER_MAX_LENGTH);
+        }
         this.type = type;
         this.manufacturer = manufacturer;
         this.hwVersion = hwVersion;
