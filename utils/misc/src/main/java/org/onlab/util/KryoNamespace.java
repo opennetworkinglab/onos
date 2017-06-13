@@ -27,6 +27,7 @@ import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.esotericsoftware.kryo.serializers.CompatibleFieldSerializer;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -71,14 +72,13 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
 
     private static final Logger log = getLogger(KryoNamespace.class);
 
-
-
     private final KryoPool pool = new KryoPool.Builder(this)
                                         .softReferences()
                                         .build();
 
     private final ImmutableList<RegistrationBlock> registeredBlocks;
 
+    private final boolean compatible;
     private final boolean registrationRequired;
     private final String friendlyName;
 
@@ -87,11 +87,22 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      */
     //@NotThreadSafe
     public static final class Builder {
+        private static final String ISSU_PROPERTY_NAME = "onos.cluster.issu.enabled";
+        private static final boolean DEFAULT_ISSU_ENABLED = false;
+
+        private static final boolean DEFAULT_COMPATIBLE_SERIALIZATION;
+
+        static {
+            String issuEnabled = System.getProperty(ISSU_PROPERTY_NAME);
+            DEFAULT_COMPATIBLE_SERIALIZATION = Strings.isNullOrEmpty(issuEnabled)
+                    ? DEFAULT_ISSU_ENABLED : Boolean.parseBoolean(issuEnabled);
+        }
 
         private int blockHeadId = INITIAL_ID;
         private List<Pair<Class<?>[], Serializer<?>>> types = new ArrayList<>();
         private List<RegistrationBlock> blocks = new ArrayList<>();
         private boolean registrationRequired = true;
+        private boolean compatible = DEFAULT_COMPATIBLE_SERIALIZATION;
 
         /**
          * Builds a {@link KryoNamespace} instance.
@@ -112,7 +123,7 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
             if (!types.isEmpty()) {
                 blocks.add(new RegistrationBlock(this.blockHeadId, types));
             }
-            return new KryoNamespace(blocks, registrationRequired, friendlyName).populate(1);
+            return new KryoNamespace(blocks, registrationRequired, compatible, friendlyName).populate(1);
         }
 
         /**
@@ -204,6 +215,20 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
         }
 
         /**
+         * Sets whether backwards/forwards compatible versioned serialization is enabled.
+         * <p>
+         * When compatible serialization is enabled, the {@link CompatibleFieldSerializer} will be set as the
+         * default serializer for types that do not otherwise explicitly specify a serializer.
+         *
+         * @param compatible whether versioned serialization is enabled
+         * @return this
+         */
+        public Builder setCompatible(boolean compatible) {
+            this.compatible = compatible;
+            return this;
+        }
+
+        /**
          * Sets the registrationRequired flag.
          *
          * @param registrationRequired Kryo's registrationRequired flag
@@ -230,14 +255,17 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
      * Creates a Kryo instance pool.
      *
      * @param registeredTypes types to register
-     * @param registrationRequired
+     * @param registrationRequired whether registration is required
+     * @param compatible whether compatible serialization is enabled
      * @param friendlyName friendly name for the namespace
      */
     private KryoNamespace(final List<RegistrationBlock> registeredTypes,
                           boolean registrationRequired,
+                          boolean compatible,
                           String friendlyName) {
         this.registeredBlocks = ImmutableList.copyOf(registeredTypes);
         this.registrationRequired = registrationRequired;
+        this.compatible = compatible;
         this.friendlyName =  checkNotNull(friendlyName);
     }
 
@@ -422,7 +450,11 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
         log.trace("Creating Kryo instance for {}", this);
         Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(registrationRequired);
-        kryo.setDefaultSerializer(CompatibleFieldSerializer::new);
+
+        // If compatible serialization is enabled, override the default serializer.
+        if (compatible) {
+            kryo.setDefaultSerializer(CompatibleFieldSerializer::new);
+        }
 
         // TODO rethink whether we want to use StdInstantiatorStrategy
         kryo.setInstantiatorStrategy(

@@ -190,16 +190,19 @@ public class KryoSerializerTest {
         StoreSerializer serializer1 = StoreSerializer.using(KryoNamespace.newBuilder()
                 .register(KryoNamespaces.BASIC)
                 .register(Versioned1.class)
+                .setCompatible(true)
                 .build());
 
         StoreSerializer serializer2 = StoreSerializer.using(KryoNamespace.newBuilder()
                 .register(KryoNamespaces.BASIC)
                 .register(Versioned2.class)
+                .setCompatible(true)
                 .build());
 
         StoreSerializer serializer3 = StoreSerializer.using(KryoNamespace.newBuilder()
                 .register(KryoNamespaces.BASIC)
                 .register(Versioned3.class)
+                .setCompatible(true)
                 .build());
 
         Versioned1 versioned1 = new Versioned1();
