@@ -25,6 +25,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class DefaultApplicationId implements ApplicationId {
 
+    private static final int NAME_MAX_LENGTH = 1024;
     private final short id;
     private final String name;
 
@@ -36,6 +37,9 @@ public class DefaultApplicationId implements ApplicationId {
      */
     public DefaultApplicationId(int id, String name) {
         checkArgument(0 <= id && id <= Short.MAX_VALUE, "id is outside range");
+        if (name != null) {
+            checkArgument(name.length() <= NAME_MAX_LENGTH, "name exceeds maximum length " + NAME_MAX_LENGTH);
+        }
         this.id = (short) id;
         this.name = name;
     }

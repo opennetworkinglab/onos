@@ -18,10 +18,14 @@ package org.onosproject.net.region;
 
 import org.onlab.util.Identifier;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Region identifier backed by a string value.
  */
 public final class RegionId extends Identifier<String> {
+
+    private static final int REGION_MAX_LENGTH = 1024;
 
     /**
      * Constructor for serialization.
@@ -37,6 +41,9 @@ public final class RegionId extends Identifier<String> {
      */
     private RegionId(String value) {
         super(value);
+        if (value != null) {
+            checkArgument(value.length() <= REGION_MAX_LENGTH, "value exceeds maximum length " + REGION_MAX_LENGTH);
+        }
     }
 
     /**
