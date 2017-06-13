@@ -16,32 +16,32 @@
 
 package org.onosproject.segmentrouting.grouphandler;
 
-import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.RandomUtils;
 import org.onosproject.net.DeviceId;
-
-import java.util.Set;
 
 /**
  * Extends its super class modifying its internal behavior.
  * Pick a neighbor will pick a random neighbor.
  */
-public class RandomNeighborSet extends NeighborSet {
+public class RandomDestinationSet extends DestinationSet {
 
-    public RandomNeighborSet(Set<DeviceId> neighbors, DeviceId dstSw) {
-        super(neighbors, true, dstSw);
+    public RandomDestinationSet(DeviceId dstSw) {
+        super(true, dstSw);
     }
 
-    public RandomNeighborSet(Set<DeviceId> neighbors, int edgeLabel,
+    public RandomDestinationSet(int edgeLabel,
                              DeviceId dstSw) {
-        super(neighbors, true, edgeLabel, dstSw);
+        super(true, edgeLabel, dstSw);
     }
 
-    public RandomNeighborSet() {
+    public RandomDestinationSet() {
         super();
     }
 
-    @Override
+    // XXX revisit the need for this class since neighbors no longer stored here
+    // will be handled when we fix pseudowires for dual-Tor scenarios
+
+
+    /*@Override
     public DeviceId getFirstNeighbor() {
         if (getDeviceIds().isEmpty()) {
             return DeviceId.NONE;
@@ -49,12 +49,12 @@ public class RandomNeighborSet extends NeighborSet {
         int size = getDeviceIds().size();
         int index = RandomUtils.nextInt(0, size);
         return Iterables.get(getDeviceIds(), index);
-    }
+    }*/
 
     @Override
     public String toString() {
-        return " RandomNeighborset Sw: " + getDeviceIds()
-                + " and Label: " + getEdgeLabel()
-                + " for destination: " + getDestinationSw();
+        return " RandomNeighborset Sw: " //+ getDeviceIds()
+                + " and Label: " //+ getEdgeLabel()
+                + " for destination: "; // + getDestinationSw();
     }
 }

@@ -17,6 +17,8 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -68,7 +70,9 @@ public class RouteHandler {
         ConnectPoint location = route.location();
 
         srManager.deviceConfiguration.addSubnet(location, prefix);
-        srManager.defaultRoutingHandler.populateSubnet(location, ImmutableSet.of(prefix));
+        // XXX need to handle the case where there are two connectpoints
+        srManager.defaultRoutingHandler.populateSubnet(Sets.newHashSet(location),
+                                                       Sets.newHashSet(prefix));
         srManager.routingRulePopulator.populateRoute(location.deviceId(), prefix,
                 nextHopMac, nextHopVlan, location.port());
     }

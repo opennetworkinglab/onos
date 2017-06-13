@@ -46,7 +46,7 @@
             <action class="org.onosproject.segmentrouting.cli.EcmpGraphCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.segmentrouting.cli.NeighborSetCommand"/>
+            <action class="org.onosproject.segmentrouting.cli.NextHopCommand"/>
         </command>
     </command-bundle>
 </blueprint>

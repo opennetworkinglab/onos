@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -38,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -58,7 +61,6 @@ public class DefaultRoutingHandler {
     private static final int MAX_CONSTANT_RETRY_ATTEMPTS = 5;
     private static final int RETRY_INTERVAL_MS = 250;
     private static final int RETRY_INTERVAL_SCALE = 1;
-    private static final String ECMPSPG_MISSING = "ECMP shortest path graph not found";
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
@@ -106,7 +108,7 @@ public class DefaultRoutingHandler {
      * Returns an immutable copy of the current ECMP shortest-path graph as
      * computed by this controller instance.
      *
-     * @return the current ECMP graph
+     * @return immutable copy of the current ECMP graph
      */
     public ImmutableMap<DeviceId, EcmpShortestPathGraph> getCurrentEmcpSpgMap() {
         Builder<DeviceId, EcmpShortestPathGraph> builder = ImmutableMap.builder();
@@ -118,44 +120,186 @@ public class DefaultRoutingHandler {
         return builder.build();
     }
 
+    //////////////////////////////////////
+    //  Route path handling
+    //////////////////////////////////////
+
+    /* The following three methods represent the three major ways in routing
+     * is triggered in the network
+     *      a) due to configuration change
+     *      b) due to route-added event
+     *      c) due to change in the topology
+     */
+
     /**
-     * Populates all routing rules to all connected routers, including default
-     * routing rules, adjacency rules, and policy rules if any.
+     * Populates all routing rules to all switches. Typically triggered at
+     * startup or after a configuration event.
      */
     public void populateAllRoutingRules() {
-
         statusLock.lock();
         try {
+            if (populationStatus == Status.STARTED) {
+                log.warn("Previous rule population is not finished. Cannot"
+                        + " proceed with populateAllRoutingRules");
+                return;
+            }
+
             populationStatus = Status.STARTED;
             rulePopulator.resetCounter();
-            log.info("Starting to populate segment-routing rules");
+            log.info("Starting to populate all routing rules");
             log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
-            for (Device sw : srManager.deviceService.getDevices()) {
-                if (!srManager.mastershipService.isLocalMaster(sw.id())) {
-                    log.debug("populateAllRoutingRules: skipping device {}..."
-                            + "we are not master", sw.id());
+            // take a snapshot of the topology
+            updatedEcmpSpgMap = new HashMap<>();
+            Set<EdgePair> edgePairs = new HashSet<>();
+            Set<ArrayList<DeviceId>> routeChanges = new HashSet<>();
+            for (Device dstSw : srManager.deviceService.getDevices()) {
+                EcmpShortestPathGraph ecmpSpgUpdated =
+                        new EcmpShortestPathGraph(dstSw.id(), srManager);
+                updatedEcmpSpgMap.put(dstSw.id(), ecmpSpgUpdated);
+                DeviceId pairDev = getPairDev(dstSw.id());
+                if (pairDev != null) {
+                    // pairDev may not be available yet, but we still need to add
+                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev, srManager);
+                    updatedEcmpSpgMap.put(pairDev, ecmpSpgUpdated);
+                    edgePairs.add(new EdgePair(dstSw.id(), pairDev));
+                }
+                DeviceId ret = shouldHandleRouting(dstSw.id());
+                if (ret == null) {
                     continue;
                 }
-
-                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(sw.id(), srManager);
-                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg, ImmutableSet.of())) {
-                    log.debug("populateAllRoutingRules: populationStatus is ABORTED");
-                    populationStatus = Status.ABORTED;
-                    log.debug("Abort routing rule population");
-                    return;
+                Set<DeviceId> devsToProcess = Sets.newHashSet(dstSw.id(), ret);
+                // To do a full reroute, assume all routes have changed
+                for (DeviceId dev : devsToProcess) {
+                    for (Device targetSw : srManager.deviceService.getDevices()) {
+                        if (targetSw.id().equals(dev)) {
+                            continue;
+                        }
+                        routeChanges.add(Lists.newArrayList(targetSw.id(), dev));
+                    }
                 }
-                currentEcmpSpgMap.put(sw.id(), ecmpSpg);
-                log.debug("Updating ECMPspg for sw:{}", sw.id());
+            }
 
-                // TODO: Set adjacency routing rule for all switches
+            if (!redoRouting(routeChanges, edgePairs, null)) {
+                log.debug("populateAllRoutingRules: populationStatus is ABORTED");
+                populationStatus = Status.ABORTED;
+                log.warn("Failed to repopulate all routing rules.");
+                return;
             }
 
             log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
             populationStatus = Status.SUCCEEDED;
-            log.info("Completed routing rule population. Total # of rules pushed : {}",
+            log.info("Completed all routing rule population. Total # of rules pushed : {}",
                     rulePopulator.getCounter());
             return;
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    /**
+     * Populate rules from all other edge devices to the connect-point(s)
+     * specified for the given subnets.
+     *
+     * @param cpts connect point(s) of the subnets being added
+     * @param subnets subnets being added
+     */ //XXX refactor
+    protected void populateSubnet(Set<ConnectPoint> cpts, Set<IpPrefix> subnets) {
+        statusLock.lock();
+        try {
+           if (populationStatus == Status.STARTED) {
+                log.warn("Previous rule population is not finished. Cannot"
+                        + " proceed with routing rules for added routes");
+                return;
+            }
+            populationStatus = Status.STARTED;
+            rulePopulator.resetCounter();
+            log.info("Starting to populate routing rules for added routes");
+            // Take snapshots of the topology
+            updatedEcmpSpgMap = new HashMap<>();
+            Set<EdgePair> edgePairs = new HashSet<>();
+            Set<ArrayList<DeviceId>> routeChanges = new HashSet<>();
+            boolean handleRouting = false;
+
+            if (cpts.size() == 2) {
+                // ensure connect points are edge-pairs
+                Iterator<ConnectPoint> iter = cpts.iterator();
+                DeviceId dev1 = iter.next().deviceId();
+                DeviceId pairDev = getPairDev(dev1);
+                if (iter.next().deviceId().equals(pairDev)) {
+                    edgePairs.add(new EdgePair(dev1, pairDev));
+                } else {
+                    log.warn("Connectpoints {} for subnets {} not on "
+                            + "pair-devices.. aborting populateSubnet", cpts, subnets);
+                    populationStatus = Status.ABORTED;
+                    return;
+                }
+                for (ConnectPoint cp : cpts) {
+                    EcmpShortestPathGraph ecmpSpgUpdated =
+                            new EcmpShortestPathGraph(cp.deviceId(), srManager);
+                    updatedEcmpSpgMap.put(cp.deviceId(), ecmpSpgUpdated);
+                    DeviceId retId = shouldHandleRouting(cp.deviceId());
+                    if (retId == null) {
+                        continue;
+                    }
+                    handleRouting = true;
+                }
+            } else {
+                // single connect point
+                DeviceId dstSw = cpts.iterator().next().deviceId();
+                EcmpShortestPathGraph ecmpSpgUpdated =
+                        new EcmpShortestPathGraph(dstSw, srManager);
+                updatedEcmpSpgMap.put(dstSw, ecmpSpgUpdated);
+                if (srManager.mastershipService.isLocalMaster(dstSw)) {
+                    handleRouting = true;
+                }
+            }
+
+            if (!handleRouting) {
+                log.debug("This instance is not handling ecmp routing to the "
+                        + "connectPoint(s) {}", cpts);
+                populationStatus = Status.ABORTED;
+                return;
+            }
+
+            // if it gets here, this instance should handle routing for the
+            // connectpoint(s). Assume all route-paths have to be updated to
+            // the connectpoint(s) with the following exceptions
+            // 1. if target is non-edge no need for routing rules
+            // 2. if target is one of the connectpoints
+            for (ConnectPoint cp : cpts) {
+                DeviceId dstSw = cp.deviceId();
+                for (Device targetSw : srManager.deviceService.getDevices()) {
+                    boolean isEdge = false;
+                    try {
+                        isEdge = config.isEdgeDevice(targetSw.id());
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage() + "aborting populateSubnet");
+                        populationStatus = Status.ABORTED;
+                        return;
+                    }
+                    if (dstSw.equals(targetSw.id()) || !isEdge ||
+                            (cpts.size() == 2 &&
+                                targetSw.id().equals(getPairDev(dstSw)))) {
+                        continue;
+                    }
+                    routeChanges.add(Lists.newArrayList(targetSw.id(), dstSw));
+                }
+            }
+
+            if (!redoRouting(routeChanges, edgePairs, subnets)) {
+                log.debug("populateSubnet: populationStatus is ABORTED");
+                populationStatus = Status.ABORTED;
+                log.warn("Failed to repopulate the rules for subnet.");
+                return;
+            }
+
+            log.debug("populateSubnet: populationStatus is SUCCEEDED");
+            populationStatus = Status.SUCCEEDED;
+            log.info("Completed subnet population. Total # of rules pushed : {}",
+                    rulePopulator.getCounter());
+            return;
+
         } finally {
             statusLock.unlock();
         }
@@ -174,7 +318,7 @@ public class DefaultRoutingHandler {
      *                  link-down or a removed switch
      * @param switchDown the removed switch, or null for other conditions such as
      *                  link-down or link-up
-     */
+     */ // refactor
     public void populateRoutingRulesForLinkStatusChange(Link linkDown,
                                                            Link linkUp,
                                                            DeviceId switchDown) {
@@ -189,27 +333,34 @@ public class DefaultRoutingHandler {
         try {
 
             if (populationStatus == Status.STARTED) {
-                log.warn("Previous rule population is not finished.");
+                log.warn("Previous rule population is not finished. Cannot"
+                        + " proceeed with routingRules for Link Status change");
                 return;
             }
 
-            // Take the snapshots of the links
+            // Take snapshots of the topology
             updatedEcmpSpgMap = new HashMap<>();
+            Set<EdgePair> edgePairs = new HashSet<>();
             for (Device sw : srManager.deviceService.getDevices()) {
-                if (!srManager.mastershipService.isLocalMaster(sw.id())) {
-                    continue;
-                }
                 EcmpShortestPathGraph ecmpSpgUpdated =
                         new EcmpShortestPathGraph(sw.id(), srManager);
                 updatedEcmpSpgMap.put(sw.id(), ecmpSpgUpdated);
+                DeviceId pairDev = getPairDev(sw.id());
+                if (pairDev != null) {
+                    // pairDev may not be available yet, but we still need to add
+                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev, srManager);
+                    updatedEcmpSpgMap.put(pairDev, ecmpSpgUpdated);
+                    edgePairs.add(new EdgePair(sw.id(), pairDev));
+                }
             }
 
-            log.info("Starts rule population from link change");
+            log.info("Starting to populate routing rules from link status change");
 
             Set<ArrayList<DeviceId>> routeChanges;
             log.debug("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
             populationStatus = Status.STARTED;
+            rulePopulator.resetCounter();
             // try optimized re-routing
             if (linkDown == null) {
                 // either a linkUp or a switchDown - compute all route changes by
@@ -219,7 +370,7 @@ public class DefaultRoutingHandler {
                 if (routeChanges != null) {
                     // deal with linkUp of a seen-before link
                     if (linkUp != null && srManager.isSeenLink(linkUp)) {
-                        if (!isBidirectional(linkUp)) {
+                        if (!srManager.isBidirectional(linkUp)) {
                             log.warn("Not a bidirectional link yet .. not "
                                     + "processing link {}", linkUp);
                             srManager.updateSeenLink(linkUp, true);
@@ -264,7 +415,9 @@ public class DefaultRoutingHandler {
 
             // do full re-routing if optimized routing returns null routeChanges
             if (routeChanges == null) {
-                log.info("Optimized routing failed... doing full re-route");
+                log.info("Optimized routing failed... opting for full reroute");
+                populationStatus = Status.ABORTED;
+                statusLock.unlock();
                 populateAllRoutingRules();
                 return;
             }
@@ -277,16 +430,16 @@ public class DefaultRoutingHandler {
             }
 
             // reroute of routeChanges
-            if (repopulateRoutingRulesForRoutes(routeChanges)) {
+            if (redoRouting(routeChanges, edgePairs, null)) {
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is SUCCEEDED");
                 populationStatus = Status.SUCCEEDED;
-                log.info("Completed repopulation of rules. # of rules populated : {}",
-                        rulePopulator.getCounter());
+                log.info("Completed repopulation of rules for link-status change."
+                        + " # of rules populated : {}", rulePopulator.getCounter());
                 return;
             } else {
                 log.debug("populateRoutingRulesForLinkStatusChange: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
-                log.warn("Failed to repopulate the rules.");
+                log.warn("Failed to repopulate the rules for link status change.");
                 return;
             }
         } finally {
@@ -295,24 +448,354 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Returns true if the link being queried is a bidirectional link. A bidi
-     * link is defined as a link, whose reverse link - ie. the link in the reverse
-     * direction - has been seen-before and is up.
+     * Processes a set a route-path changes by reprogramming routing rules and
+     * creating new hash-groups or editing them if necessary. This method also
+     * determines the next-hops for the route-path from the src-switch (target)
+     * of the path towards the dst-switch of the path.
      *
-     * @param link the infrastructure link being queried
-     * @return true if another unidirectional link exists in the reverse direction,
-     *              has been seen-before and is up
+     * @param routeChanges a set of route-path changes, where each route-path is
+     *                     a list with its first element the src-switch (target)
+     *                     of the path, and the second element the dst-switch of
+     *                     the path.
+     * @param edgePairs a set of edge-switches that are paired by configuration
+     * @param subnets  a set of prefixes that need to be populated in the routing
+     *                 table of the target switch in the route-path. Can be null,
+     *                 in which case all the prefixes belonging to the dst-switch
+     *                 will be populated in the target switch
+     * @return true if successful in repopulating all routes
      */
-    private boolean isBidirectional(Link link) {
-        Link reverseLink = srManager.linkService.getLink(link.dst(), link.src());
-        if (reverseLink == null) {
+    private boolean redoRouting(Set<ArrayList<DeviceId>> routeChanges,
+                                Set<EdgePair> edgePairs, Set<IpPrefix> subnets) {
+        // first make every entry two-elements
+        Set<ArrayList<DeviceId>> changedRoutes = new HashSet<>();
+        for (ArrayList<DeviceId> route : routeChanges) {
+            if (route.size() == 1) {
+                DeviceId dstSw = route.get(0);
+                EcmpShortestPathGraph ec = updatedEcmpSpgMap.get(dstSw);
+                if (ec == null) {
+                    log.warn("No graph found for {} .. aborting redoRouting", dstSw);
+                    return false;
+                }
+                ec.getAllLearnedSwitchesAndVia().keySet().forEach(key -> {
+                    ec.getAllLearnedSwitchesAndVia().get(key).keySet().forEach(target -> {
+                        changedRoutes.add(Lists.newArrayList(target, dstSw));
+                    });
+                });
+            } else {
+                DeviceId targetSw = route.get(0);
+                DeviceId dstSw = route.get(1);
+                changedRoutes.add(Lists.newArrayList(targetSw, dstSw));
+            }
+        }
+
+        // now process changedRoutes according to edgePairs
+        if (!redoRoutingEdgePairs(edgePairs, subnets, changedRoutes)) {
+            return false; //abort routing and fail fast
+        }
+
+        // whatever is left in changedRoutes is now processed for individual dsts.
+        if (!redoRoutingIndividualDests(subnets, changedRoutes)) {
+            return false; //abort routing and fail fast
+        }
+
+        //XXX should we do hashgroupchanges here?
+
+        // update ecmpSPG for all edge-pairs
+        for (EdgePair ep : edgePairs) {
+            currentEcmpSpgMap.put(ep.dev1, updatedEcmpSpgMap.get(ep.dev1));
+            currentEcmpSpgMap.put(ep.dev2, updatedEcmpSpgMap.get(ep.dev2));
+            log.debug("Updating ECMPspg for edge-pair:{}-{}", ep.dev1, ep.dev2);
+        }
+        return true;
+    }
+
+    /**
+     * Programs targetSw in the changedRoutes for given prefixes reachable by
+     * an edgePair. If no prefixes are given, the method will use configured
+     * subnets/prefixes. If some configured subnets belong only to a specific
+     * destination in the edgePair, then the target switch will be programmed
+     * only to that destination.
+     *
+     * @param edgePairs set of edge-pairs for which target will be programmed
+     * @param subnets a set of prefixes that need to be populated in the routing
+     *                 table of the target switch in the changedRoutes. Can be null,
+     *                 in which case all the configured prefixes belonging to the
+     *                 paired switches will be populated in the target switch
+     * @param changedRoutes a set of route-path changes, where each route-path is
+     *                     a list with its first element the src-switch (target)
+     *                     of the path, and the second element the dst-switch of
+     *                     the path.
+     * @return true if successful
+     */
+    private boolean redoRoutingEdgePairs(Set<EdgePair> edgePairs,
+                                      Set<IpPrefix> subnets,
+                                      Set<ArrayList<DeviceId>> changedRoutes) {
+        for (EdgePair ep : edgePairs) {
+            // temp store for a target's changedRoutes to this edge-pair
+            Map<DeviceId, Set<ArrayList<DeviceId>>> targetRoutes = new HashMap<>();
+            Iterator<ArrayList<DeviceId>> i = changedRoutes.iterator();
+            while (i.hasNext()) {
+                ArrayList<DeviceId> route = i.next();
+                DeviceId dstSw = route.get(1);
+                if (ep.includes(dstSw)) {
+                    // routeChange for edge pair found
+                    // sort by target iff target is edge and remove from changedRoutes
+                    DeviceId targetSw = route.get(0);
+                    try {
+                        if (!srManager.deviceConfiguration.isEdgeDevice(targetSw)) {
+                            continue;
+                        }
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage() + "aborting redoRouting");
+                        return false;
+                    }
+                    // route is from another edge to this edge-pair
+                    if (targetRoutes.containsKey(targetSw)) {
+                        targetRoutes.get(targetSw).add(route);
+                    } else {
+                        Set<ArrayList<DeviceId>> temp = new HashSet<>();
+                        temp.add(route);
+                        targetRoutes.put(targetSw, temp);
+                    }
+                    i.remove();
+                }
+            }
+            // so now for this edgepair we have a per target set of routechanges
+            // process target->edgePair route
+            for (Map.Entry<DeviceId, Set<ArrayList<DeviceId>>> entry :
+                            targetRoutes.entrySet()) {
+                log.debug("* redoRoutingDstPair Target:{} -> edge-pair {}",
+                          entry.getKey(), ep);
+                DeviceId targetSw = entry.getKey();
+                Map<DeviceId, Set<DeviceId>> perDstNextHops = new HashMap<>();
+                entry.getValue().forEach(route -> {
+                    Set<DeviceId> nhops = getNextHops(route.get(0), route.get(1));
+                    log.debug("route: target {} -> dst {} found with next-hops {}",
+                              route.get(0), route.get(1), nhops);
+                    perDstNextHops.put(route.get(1), nhops);
+                });
+                Set<IpPrefix> ipDev1 = (subnets == null) ? config.getSubnets(ep.dev1)
+                                                         : subnets;
+                Set<IpPrefix> ipDev2 = (subnets == null) ? config.getSubnets(ep.dev2)
+                                                         : subnets;
+                ipDev1 = (ipDev1 == null) ? Sets.newHashSet() : ipDev1;
+                ipDev2 = (ipDev2 == null) ? Sets.newHashSet() : ipDev2;
+                // handle routing to subnets common to edge-pair
+                // only if the targetSw is not part of the edge-pair
+                if (!ep.includes(targetSw)) {
+                    if (!populateEcmpRoutingRulePartial(
+                             targetSw,
+                             ep.dev1, ep.dev2,
+                             perDstNextHops,
+                             Sets.intersection(ipDev1, ipDev2))) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+                // handle routing to subnets that only belong to dev1
+                Set<IpPrefix> onlyDev1Subnets = Sets.difference(ipDev1, ipDev2);
+                if (!onlyDev1Subnets.isEmpty() && perDstNextHops.get(ep.dev1) != null) {
+                    Map<DeviceId, Set<DeviceId>> onlyDev1NextHops = new HashMap<>();
+                    onlyDev1NextHops.put(ep.dev1, perDstNextHops.get(ep.dev1));
+                    if (!populateEcmpRoutingRulePartial(
+                            targetSw,
+                            ep.dev1, null,
+                            onlyDev1NextHops,
+                            onlyDev1Subnets)) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+                // handle routing to subnets that only belong to dev2
+                Set<IpPrefix> onlyDev2Subnets = Sets.difference(ipDev2, ipDev1);
+                if (!onlyDev2Subnets.isEmpty() && perDstNextHops.get(ep.dev2) != null) {
+                    Map<DeviceId, Set<DeviceId>> onlyDev2NextHops = new HashMap<>();
+                    onlyDev2NextHops.put(ep.dev2, perDstNextHops.get(ep.dev2));
+                    if (!populateEcmpRoutingRulePartial(
+                            targetSw,
+                            ep.dev2, null,
+                            onlyDev2NextHops,
+                            onlyDev2Subnets)) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+            }
+            // if it gets here it has succeeded for all targets to this edge-pair
+        }
+        return true;
+    }
+
+    /**
+     * Programs targetSw in the changedRoutes for given prefixes reachable by
+     * a destination switch that is not part of an edge-pair.
+     * If no prefixes are given, the method will use configured subnets/prefixes.
+     *
+     * @param subnets a set of prefixes that need to be populated in the routing
+     *                 table of the target switch in the changedRoutes. Can be null,
+     *                 in which case all the configured prefixes belonging to the
+     *                 paired switches will be populated in the target switch
+     * @param changedRoutes a set of route-path changes, where each route-path is
+     *                     a list with its first element the src-switch (target)
+     *                     of the path, and the second element the dst-switch of
+     *                     the path.
+     * @return true if successful
+     */
+    private boolean redoRoutingIndividualDests(Set<IpPrefix> subnets,
+                                               Set<ArrayList<DeviceId>> changedRoutes) {
+        // aggregate route-path changes for each dst device
+        HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
+                new HashMap<>();
+        for (ArrayList<DeviceId> route: changedRoutes) {
+            DeviceId dstSw = route.get(1);
+            ArrayList<ArrayList<DeviceId>> deviceRoutes =
+                    routesBydevice.get(dstSw);
+            if (deviceRoutes == null) {
+                deviceRoutes = new ArrayList<>();
+                routesBydevice.put(dstSw, deviceRoutes);
+            }
+            deviceRoutes.add(route);
+        }
+        for (DeviceId impactedDstDevice : routesBydevice.keySet()) {
+            ArrayList<ArrayList<DeviceId>> deviceRoutes =
+                    routesBydevice.get(impactedDstDevice);
+            for (ArrayList<DeviceId> route: deviceRoutes) {
+                log.debug("* redoRoutingIndiDst Target: {} -> dst: {}",
+                          route.get(0), route.get(1));
+                DeviceId targetSw = route.get(0);
+                DeviceId dstSw = route.get(1); // same as impactedDstDevice
+                Set<DeviceId> nextHops = getNextHops(targetSw, dstSw);
+                Map<DeviceId, Set<DeviceId>> nhops = new HashMap<>();
+                nhops.put(dstSw, nextHops);
+                if (!populateEcmpRoutingRulePartial(targetSw, dstSw, null, nhops,
+                         (subnets == null) ? Sets.newHashSet() : subnets)) {
+                    return false; // abort routing and fail fast
+                }
+                log.debug("Populating flow rules from target: {} to dst: {}"
+                        + " is successful", targetSw, dstSw);
+            }
+            //Only if all the flows for all impacted routes to a
+            //specific target are pushed successfully, update the
+            //ECMP graph for that target. Or else the next event
+            //would not see any changes in the ECMP graphs.
+            //In another case, the target switch has gone away, so
+            //routes can't be installed. In that case, the current map
+            //is updated here, without any flows being pushed.
+            currentEcmpSpgMap.put(impactedDstDevice,
+                                  updatedEcmpSpgMap.get(impactedDstDevice));
+            log.debug("Updating ECMPspg for impacted dev:{}", impactedDstDevice);
+        }
+        return true;
+    }
+
+    /**
+     * Populate ECMP rules for subnets from target to destination via nexthops.
+     *
+     * @param targetSw Device ID of target switch in which rules will be programmed
+     * @param destSw1 Device ID of final destination switch to which the rules will forward
+     * @param destSw2 Device ID of paired destination switch to which the rules will forward
+     *                A null deviceId indicates packets should only be sent to destSw1
+     * @param nextHops Map indication a list of next hops per destSw
+     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
+     * @return true if it succeeds in populating rules
+     */ // refactor
+    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
+                                                   DeviceId destSw1,
+                                                   DeviceId destSw2,
+                                                   Map<DeviceId, Set<DeviceId>> nextHops,
+                                                   Set<IpPrefix> subnets) {
+        boolean result;
+        // If both target switch and dest switch are edge routers, then set IP
+        // rule for both subnet and router IP.
+        boolean targetIsEdge;
+        boolean dest1IsEdge;
+        Ip4Address dest1RouterIpv4, dest2RouterIpv4 = null;
+        Ip6Address dest1RouterIpv6, dest2RouterIpv6 = null;
+
+        try {
+            targetIsEdge = config.isEdgeDevice(targetSw);
+            dest1IsEdge = config.isEdgeDevice(destSw1);
+            dest1RouterIpv4 = config.getRouterIpv4(destSw1);
+            dest1RouterIpv6 = config.getRouterIpv6(destSw1);
+            if (destSw2 != null) {
+                dest2RouterIpv4 = config.getRouterIpv4(destSw2);
+                dest2RouterIpv6 = config.getRouterIpv6(destSw2);
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateEcmpRoutingRulePartial.");
             return false;
         }
-        Boolean result = srManager.isSeenLinkUp(reverseLink);
-        if (result == null) {
-            return false;
+
+        if (targetIsEdge && dest1IsEdge) {
+            subnets = (subnets != null && !subnets.isEmpty())
+                            ? Sets.newHashSet(subnets)
+                            : Sets.newHashSet(config.getSubnets(destSw1));
+            // XXX -  Rethink this
+            /*subnets.add(dest1RouterIpv4.toIpPrefix());
+            if (dest1RouterIpv6 != null) {
+                subnets.add(dest1RouterIpv6.toIpPrefix());
+            }
+            if (destSw2 != null && dest2RouterIpv4 != null) {
+                subnets.add(dest2RouterIpv4.toIpPrefix());
+                if (dest2RouterIpv6 != null) {
+                    subnets.add(dest2RouterIpv6.toIpPrefix());
+                }
+            }*/
+            log.debug(". populateEcmpRoutingRulePartial in device {} towards {} {} "
+                    + "for subnets {}", targetSw, destSw1,
+                                        (destSw2 != null) ? ("& " + destSw2) : "",
+                                        subnets);
+            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
+                                                           destSw1, destSw2,
+                                                           nextHops);
+            if (!result) {
+                return false;
+            }
+            /* XXX rethink this
+            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
+                    + "for router IP {}", targetSw, destSw, routerIpPrefix);
+            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
+                                                           destSw, nextHops);
+            if (!result) {
+                return false;
+            }
+            // If present we deal with IPv6 loopback.
+            if (destRouterIpv6 != null) {
+                routerIpPrefix = destRouterIpv6.toIpPrefix();
+                log.debug("* populateEcmpRoutingRulePartial in device {} towards {}"
+                        + " for v6 router IP {}", targetSw, destSw, routerIpPrefix);
+                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
+                                                               destSw, nextHops);
+                if (!result) {
+                    return false;
+                }
+            }*/
         }
-        return result.booleanValue();
+
+        if (!targetIsEdge && dest1IsEdge) {
+            // MPLS rules in all non-edge target devices. These rules are for
+            // individual destinations, even if the dsts are part of edge-pairs.
+            log.debug(". populateEcmpRoutingRulePartial in device{} towards {} for "
+                    + "all MPLS rules", targetSw, destSw1);
+            result = rulePopulator.populateMplsRule(targetSw, destSw1,
+                                                    nextHops.get(destSw1),
+                                                    dest1RouterIpv4);
+            if (!result) {
+                return false;
+            }
+            if (dest1RouterIpv6 != null) {
+                result = rulePopulator.populateMplsRule(targetSw, destSw1,
+                                                        nextHops.get(destSw1),
+                                                        dest1RouterIpv6);
+                if (!result) {
+                    return false;
+                }
+            }
+        }
+
+        // To save on ECMP groups
+        // avoid MPLS rules in non-edge-devices to non-edge-devices
+        // avoid MPLS transit rules in edge-devices
+        // avoid loopback IP rules in edge-devices to non-edge-devices
+        return true;
     }
 
     /**
@@ -338,7 +821,7 @@ public class DefaultRoutingHandler {
             }
 
             if (linkOrSwitchFailed) {
-                success = fixHashGroupsForRoute(route, true);
+                fixHashGroupsForRoute(route, true);
                 // it's possible that we cannot fix hash groups for a route
                 // if the target switch has failed. Nevertheless the ecmp graph
                 // for the impacted switch must still be updated.
@@ -352,8 +835,9 @@ public class DefaultRoutingHandler {
                 }
                 //linkfailed - update both sides
                 currentEcmpSpgMap.put(targetSw, updatedEcmpSpgMap.get(targetSw));
-                dstSw = route.get(1);
-                currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
+                if (dstSw != null) {
+                    currentEcmpSpgMap.put(dstSw, updatedEcmpSpgMap.get(dstSw));
+                }
                 log.debug("Updating ECMPspg for dst:{} and target:{}", dstSw, targetSw);
             } else {
                 success = fixHashGroupsForRoute(route, false);
@@ -419,6 +903,7 @@ public class DefaultRoutingHandler {
                     }
                     for (ArrayList<DeviceId> via : swViaMap.get(target)) {
                         if (via.isEmpty()) {
+                            // the dstSw is the next-hop from the targetSw
                             nextHops.add(destSw);
                         } else {
                             // first elem is next-hop in each ECMP path
@@ -448,95 +933,57 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Processes a set a route-path changes by reprogramming routing rules and
-     * creating new hash-groups if necessary.
-     *
-     * @param routeChanges a set of route-path changes, where each route-path is
-     *                     a list with its first element the src-switch of the path
-     *                     and the second element the dst-switch of the path.
-     * @return true if successful in repopulating routes
+     * Start the flow rule population process if it was never started. The
+     * process finishes successfully when all flow rules are set and stops with
+     * ABORTED status when any groups required for flows is not set yet.
      */
-    private boolean repopulateRoutingRulesForRoutes(Set<ArrayList<DeviceId>> routeChanges) {
-        rulePopulator.resetCounter();
-        HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
-                new HashMap<>();
-        for (ArrayList<DeviceId> link: routeChanges) {
-            // When only the source device is defined, reinstall routes to all other devices
-            if (link.size() == 1) {
-                log.debug("-- repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
-                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager);
-                if (populateEcmpRoutingRules(link.get(0), ecmpSpg, ImmutableSet.of())) {
-                    log.debug("Populating flow rules from all to dest:{} is successful",
-                              link.get(0));
-                    currentEcmpSpgMap.put(link.get(0), ecmpSpg);
-                    log.debug("Updating ECMPspg for dest:{}", link.get(0));
-                } else {
-                    log.warn("Failed to populate the flow rules from all to dest:{}", link.get(0));
-                    return false;
-                }
+    public void startPopulationProcess() {
+        statusLock.lock();
+        try {
+            if (populationStatus == Status.IDLE
+                    || populationStatus == Status.SUCCEEDED
+                    || populationStatus == Status.ABORTED) {
+                populateAllRoutingRules();
             } else {
-                ArrayList<ArrayList<DeviceId>> deviceRoutes =
-                        routesBydevice.get(link.get(1));
-                if (deviceRoutes == null) {
-                    deviceRoutes = new ArrayList<>();
-                    routesBydevice.put(link.get(1), deviceRoutes);
-                }
-                deviceRoutes.add(link);
+                log.warn("Not initiating startPopulationProcess as populationStatus is {}",
+                         populationStatus);
             }
+        } finally {
+            statusLock.unlock();
         }
-
-        for (DeviceId impactedDevice : routesBydevice.keySet()) {
-            ArrayList<ArrayList<DeviceId>> deviceRoutes =
-                    routesBydevice.get(impactedDevice);
-            for (ArrayList<DeviceId> link: deviceRoutes) {
-                log.debug("-- repopulateRoutingRulesForRoutes {} -> {}",
-                          link.get(0), link.get(1));
-                DeviceId src = link.get(0);
-                DeviceId dst = link.get(1);
-                EcmpShortestPathGraph ecmpSpg = updatedEcmpSpgMap.get(dst);
-                HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
-                        ecmpSpg.getAllLearnedSwitchesAndVia();
-                for (Integer itrIdx : switchVia.keySet()) {
-                    HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
-                            switchVia.get(itrIdx);
-                    for (DeviceId targetSw : swViaMap.keySet()) {
-                        if (!targetSw.equals(src)) {
-                            continue;
-                        }
-                        Set<DeviceId> nextHops = new HashSet<>();
-                        for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
-                            // in this ECMP path to the targetSw, get the next hop
-                            if (via.isEmpty()) {
-                                nextHops.add(dst);
-                            } else {
-                                nextHops.add(via.get(0));
-                            }
-                        }
-                        if (!populateEcmpRoutingRulePartial(targetSw, dst,
-                                nextHops, ImmutableSet.of())) {
-                            return false;
-                        }
-                        log.debug("Populating flow rules from {} to {} is successful",
-                                  targetSw, dst);
-                    }
-                }
-            }
-            //Only if all the flows for all impacted routes to a
-            //specific target are pushed successfully, update the
-            //ECMP graph for that target. Or else the next event
-            //would not see any changes in the ECMP graphs.
-            //In another case, the target switch has gone away, so
-            //routes can't be installed. In that case, the current map
-            //is updated here, without any flows being pushed.
-            currentEcmpSpgMap.put(impactedDevice,
-                                  updatedEcmpSpgMap.get(impactedDevice));
-            log.debug("Updating ECMPspg for impacted dev:{}", impactedDevice);
-        }
-
-        processHashGroupChange(routeChanges, false, null);
-
-        return true;
     }
+
+    /**
+     * Revoke rules of given subnet in all edge switches.
+     *
+     * @param subnets subnet being removed
+     * @return true if succeed
+     */
+    protected boolean revokeSubnet(Set<IpPrefix> subnets) {
+        statusLock.lock();
+        try {
+            return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
+        } finally {
+            statusLock.unlock();
+        }
+    }
+
+    /**
+     * Remove ECMP graph entry for the given device. Typically called when
+     * device is no longer available.
+     *
+     * @param deviceId the device for which graphs need to be purged
+     */
+    protected void purgeEcmpGraph(DeviceId deviceId) {
+        currentEcmpSpgMap.remove(deviceId);
+        if (updatedEcmpSpgMap != null) {
+            updatedEcmpSpgMap.remove(deviceId);
+        }
+    }
+
+    //////////////////////////////////////
+    //  Routing helper methods and classes
+    //////////////////////////////////////
 
     /**
      * Computes set of affected routes due to failed link. Assumes
@@ -616,46 +1063,47 @@ public class DefaultRoutingHandler {
      *         affected
      */
     private Set<ArrayList<DeviceId>> computeRouteChange() {
-
-        ImmutableSet.Builder<ArrayList<DeviceId>> changedRoutesBuilder =
+        ImmutableSet.Builder<ArrayList<DeviceId>> changedRtBldr =
                 ImmutableSet.builder();
 
         for (Device sw : srManager.deviceService.getDevices()) {
-            DeviceId rootSw = sw.id();
-            log.debug("Computing the impacted routes for device {}", rootSw);
-            if (!srManager.mastershipService.isLocalMaster(rootSw)) {
-                log.debug("No mastership for {} ... skipping route optimization",
-                          rootSw);
+            log.debug("Computing the impacted routes for device {}", sw.id());
+            DeviceId retId = shouldHandleRouting(sw.id());
+            if (retId == null) {
                 continue;
             }
-            if (log.isTraceEnabled()) {
-                log.trace("Device links for dev: {}", rootSw);
-                for (Link link: srManager.linkService.getDeviceLinks(rootSw)) {
-                    log.trace("{} -> {} ", link.src().deviceId(), link.dst().deviceId());
+            Set<DeviceId> devicesToProcess = Sets.newHashSet(retId, sw.id());
+            for (DeviceId rootSw : devicesToProcess) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Device links for dev: {}", rootSw);
+                    for (Link link: srManager.linkService.getDeviceLinks(rootSw)) {
+                        log.trace("{} -> {} ", link.src().deviceId(),
+                                  link.dst().deviceId());
+                    }
                 }
+                EcmpShortestPathGraph currEcmpSpg = currentEcmpSpgMap.get(rootSw);
+                if (currEcmpSpg == null) {
+                    log.debug("No existing ECMP graph for device {}.. adding self as "
+                            + "changed route", rootSw);
+                    changedRtBldr.add(Lists.newArrayList(rootSw));
+                    continue;
+                }
+                EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(rootSw);
+                if (log.isDebugEnabled()) {
+                    log.debug("Root switch: {}", rootSw);
+                    log.debug("  Current/Existing SPG: {}", currEcmpSpg);
+                    log.debug("       New/Updated SPG: {}", newEcmpSpg);
+                }
+                // first use the updated/new map to compare to current/existing map
+                // as new links may have come up
+                changedRtBldr.addAll(compareGraphs(newEcmpSpg, currEcmpSpg, rootSw));
+                // then use the current/existing map to compare to updated/new map
+                // as switch may have been removed
+                changedRtBldr.addAll(compareGraphs(currEcmpSpg, newEcmpSpg, rootSw));
             }
-            EcmpShortestPathGraph currEcmpSpg = currentEcmpSpgMap.get(rootSw);
-            if (currEcmpSpg == null) {
-                log.debug("No existing ECMP graph for device {}.. adding self as "
-                        + "changed route", rootSw);
-                changedRoutesBuilder.add(Lists.newArrayList(rootSw));
-                continue;
-            }
-            EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(rootSw);
-            if (log.isDebugEnabled()) {
-                log.debug("Root switch: {}", rootSw);
-                log.debug("  Current/Existing SPG: {}", currEcmpSpg);
-                log.debug("       New/Updated SPG: {}", newEcmpSpg);
-            }
-            // first use the updated/new map to compare to current/existing map
-            // as new links may have come up
-            changedRoutesBuilder.addAll(compareGraphs(newEcmpSpg, currEcmpSpg, rootSw));
-            // then use the current/existing map to compare to updated/new map
-            // as switch may have been removed
-            changedRoutesBuilder.addAll(compareGraphs(currEcmpSpg, newEcmpSpg, rootSw));
         }
 
-        Set<ArrayList<DeviceId>> changedRoutes = changedRoutesBuilder.build();
+        Set<ArrayList<DeviceId>> changedRoutes = changedRtBldr.build();
         for (ArrayList<DeviceId> route: changedRoutes) {
             log.debug("Route changes Target -> Root");
             if (route.size() == 1) {
@@ -695,8 +1143,8 @@ public class DefaultRoutingHandler {
                 if ((compPath == null) || !basePath.equals(compPath)) {
                     log.trace("Impacted route:{} -> {}", targetSw, rootSw);
                     ArrayList<DeviceId> route = new ArrayList<>();
-                    route.add(targetSw);
-                    route.add(rootSw);
+                    route.add(targetSw); // switch with rules to populate
+                    route.add(rootSw); // towards this destination
                     changedRoutesBuilder.add(route);
                 }
             }
@@ -704,6 +1152,13 @@ public class DefaultRoutingHandler {
         return changedRoutesBuilder.build();
     }
 
+    /**
+     * Returns the ECMP paths traversed to reach the target switch.
+     *
+     * @param switchVia a per-iteration view of the ECMP graph for a root switch
+     * @param targetSw the switch to reach from the root switch
+     * @return the nodes traversed on ECMP paths to the target switch
+     */
     private ArrayList<ArrayList<DeviceId>> getVia(HashMap<Integer, HashMap<DeviceId,
             ArrayList<ArrayList<DeviceId>>>> switchVia, DeviceId targetSw) {
         for (Integer itrIdx : switchVia.keySet()) {
@@ -719,6 +1174,15 @@ public class DefaultRoutingHandler {
         return null;
     }
 
+    /**
+     * Utility method to break down a path from src to dst device into a collection
+     * of links.
+     *
+     * @param src src device of the path
+     * @param dst dst device of the path
+     * @param viaMap path taken from src to dst device
+     * @return collection of links in the path
+     */
     private Set<ArrayList<DeviceId>> computeLinks(DeviceId src,
                                                   DeviceId dst,
                        HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> viaMap) {
@@ -744,131 +1208,173 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Populate ECMP rules for subnets from all switches to destination.
+     * Determines whether this controller instance should handle routing for the
+     * given {@code deviceId}, based on mastership and pairDeviceId if one exists.
+     * Returns null if this instance should not handle routing for given {@code deviceId}.
+     * Otherwise the returned value could be the given deviceId itself, or the
+     * deviceId for the paired edge device. In the latter case, this instance
+     * should handle routing for both the given device and the paired device.
      *
-     * @param destSw Device ID of destination switch
-     * @param ecmpSPG ECMP shortest path graph
-     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
-     * @return true if it succeeds in populating rules
+     * @param deviceId device identifier to consider for routing
+     * @return null or deviceId which could be the same as the given deviceId
+     *          or the deviceId of a paired edge device
      */
-    private boolean populateEcmpRoutingRules(DeviceId destSw,
-                                             EcmpShortestPathGraph ecmpSPG,
-                                             Set<IpPrefix> subnets) {
+    private DeviceId shouldHandleRouting(DeviceId deviceId) {
+        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
+            log.debug("Not master for dev:{} .. skipping routing, may get handled "
+                    + "elsewhere as part of paired devices", deviceId);
+            return null;
+        }
+        NodeId myNode = srManager.mastershipService.getMasterFor(deviceId);
+        DeviceId pairDev = getPairDev(deviceId);
 
-        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia = ecmpSPG
-                .getAllLearnedSwitchesAndVia();
-        for (Integer itrIdx : switchVia.keySet()) {
-            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap = switchVia
-                    .get(itrIdx);
-            for (DeviceId targetSw : swViaMap.keySet()) {
-                Set<DeviceId> nextHops = new HashSet<>();
-                log.debug("** Iter: {} root: {} target: {}", itrIdx, destSw, targetSw);
-                for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
-                    if (via.isEmpty()) {
-                        nextHops.add(destSw);
-                    } else {
-                        nextHops.add(via.get(0));
-                    }
-                }
-                if (!populateEcmpRoutingRulePartial(targetSw, destSw, nextHops, subnets)) {
-                    return false;
-                }
+        if (pairDev != null) {
+            if (!srManager.deviceService.isAvailable(pairDev)) {
+                log.warn("pairedDev {} not available .. routing this dev:{} "
+                        + "without mastership check",
+                          pairDev, deviceId);
+                return pairDev; // handle both temporarily
+            }
+            NodeId pairMasterNode = srManager.mastershipService.getMasterFor(pairDev);
+            if (myNode.compareTo(pairMasterNode) <= 0) {
+                log.debug("Handling routing for both dev:{} pair-dev:{}; myNode: {}"
+                        + " pairMaster:{} compare:{}", deviceId, pairDev,
+                        myNode, pairMasterNode,
+                        myNode.compareTo(pairMasterNode));
+                return pairDev; // handle both
+            } else {
+                log.debug("PairDev node: {} should handle routing for dev:{} and "
+                        + "pair-dev:{}", pairMasterNode, deviceId, pairDev);
+                return null; // handle neither
             }
         }
-
-        return true;
+        return deviceId; // not paired, just handle given device
     }
 
     /**
-     * Populate ECMP rules for subnets from target to destination via nexthops.
+     * Returns the configured paired DeviceId for the given Device, or null
+     * if no such paired device has been configured.
      *
-     * @param targetSw Device ID of target switch in which rules will be programmed
-     * @param destSw Device ID of final destination switch to which the rules will forward
-     * @param nextHops List of next hops via which destSw will be reached
-     * @param subnets Subnets to be populated. If empty, populate all configured subnets.
-     * @return true if it succees in populating rules
+     * @param deviceId
+     * @return configured pair deviceId or null
      */
-    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
-                                                   DeviceId destSw,
-                                                   Set<DeviceId> nextHops,
-                                                   Set<IpPrefix> subnets) {
-        boolean result;
-
-        if (nextHops.isEmpty()) {
-            nextHops.add(destSw);
-        }
-        // If both target switch and dest switch are edge routers, then set IP
-        // rule for both subnet and router IP.
-        boolean targetIsEdge;
-        boolean destIsEdge;
-        Ip4Address destRouterIpv4;
-        Ip6Address destRouterIpv6;
-
+    private DeviceId getPairDev(DeviceId deviceId) {
+        DeviceId pairDev;
         try {
-            targetIsEdge = config.isEdgeDevice(targetSw);
-            destIsEdge = config.isEdgeDevice(destSw);
-            destRouterIpv4 = config.getRouterIpv4(destSw);
-            destRouterIpv6 = config.getRouterIpv6(destSw);
+            pairDev = srManager.deviceConfiguration.getPairDeviceId(deviceId);
         } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateEcmpRoutingRulePartial.");
-            return false;
+            log.warn(e.getMessage() + " .. cannot continue routing for dev: {}");
+            return null;
         }
-
-        if (targetIsEdge && destIsEdge) {
-            subnets = (subnets != null && !subnets.isEmpty()) ? subnets
-                                                              : config.getSubnets(destSw);
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
-                    + "for subnets {}", targetSw, destSw, subnets);
-            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
-                                                           destSw, nextHops);
-            if (!result) {
-                return false;
-            }
-            IpPrefix routerIpPrefix = destRouterIpv4.toIpPrefix();
-            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} "
-                    + "for router IP {}", targetSw, destSw, routerIpPrefix);
-            result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
-                                                           destSw, nextHops);
-            if (!result) {
-                return false;
-            }
-            // If present we deal with IPv6 loopback.
-            if (destRouterIpv6 != null) {
-                routerIpPrefix = destRouterIpv6.toIpPrefix();
-                log.debug("* populateEcmpRoutingRulePartial in device {} towards {}"
-                        + " for v6 router IP {}", targetSw, destSw, routerIpPrefix);
-                result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix,
-                                                               destSw, nextHops);
-                if (!result) {
-                    return false;
-                }
-            }
-        }
-
-        if (!targetIsEdge && destIsEdge) {
-            // MPLS rules in all non-edge target devices
-            log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for "
-                    + "all MPLS rules", targetSw, destSw);
-            result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops,
-                                                    destRouterIpv4);
-            if (!result) {
-                return false;
-            }
-            if (destRouterIpv6 != null) {
-                result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops,
-                                                        destRouterIpv6);
-                if (!result) {
-                    return false;
-                }
-            }
-        }
-
-        // To save on ECMP groups
-        // avoid MPLS rules in non-edge-devices to non-edge-devices
-        // avoid MPLS transit rules in edge-devices
-        // avoid loopback IP rules in edge-devices to non-edge-devices
-        return true;
+        return pairDev;
     }
+
+    /**
+     * Returns the set of deviceIds which are the next hops from the targetSw
+     * to the dstSw according to the latest ECMP spg.
+     *
+     * @param targetSw the switch for which the next-hops are desired
+     * @param dstSw the switch to which the next-hops lead to from the targetSw
+     * @return set of next hop deviceIds, could be empty if no next hops are found
+     */
+    private Set<DeviceId> getNextHops(DeviceId targetSw, DeviceId dstSw) {
+        boolean targetIsEdge = false;
+        try {
+            targetIsEdge = srManager.deviceConfiguration.isEdgeDevice(targetSw);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + "Cannot determine if targetIsEdge {}.. "
+                    + "continuing to getNextHops", targetSw);
+        }
+
+        EcmpShortestPathGraph ecmpSpg = updatedEcmpSpgMap.get(dstSw);
+        if (ecmpSpg == null) {
+            log.debug("No ecmpSpg found for dstSw: {}", dstSw);
+            return ImmutableSet.of();
+        }
+        HashMap<Integer,
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> switchVia =
+                ecmpSpg.getAllLearnedSwitchesAndVia();
+        for (Integer itrIdx : switchVia.keySet()) {
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swViaMap =
+                    switchVia.get(itrIdx);
+            for (DeviceId target : swViaMap.keySet()) {
+                if (!target.equals(targetSw)) {
+                    continue;
+                }
+                if (!targetIsEdge && itrIdx > 1) {
+                    // optimization for spines to not use other leaves to get
+                    // to a leaf to avoid loops
+                    log.debug("Avoiding {} hop path for non-edge targetSw:{}"
+                            + " --> dstSw:{}", itrIdx, targetSw, dstSw);
+                    break;
+                }
+                Set<DeviceId> nextHops = new HashSet<>();
+                for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                    if (via.isEmpty()) {
+                        // the dstSw is the next-hop from the targetSw
+                        nextHops.add(dstSw);
+                    } else {
+                        // first elem is next-hop in each ECMP path
+                        nextHops.add(via.get(0));
+                    }
+                }
+                return nextHops;
+            }
+        }
+        return ImmutableSet.of(); //no next-hops found
+    }
+
+    /**
+     * Represents two devices that are paired by configuration. An EdgePair for
+     * (dev1, dev2) is the same as as EdgePair for (dev2, dev1)
+     */
+    protected final class EdgePair {
+        DeviceId dev1;
+        DeviceId dev2;
+
+        EdgePair(DeviceId dev1, DeviceId dev2) {
+            this.dev1 = dev1;
+            this.dev2 = dev2;
+        }
+
+        boolean includes(DeviceId dev) {
+            return dev1.equals(dev) || dev2.equals(dev);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof EdgePair)) {
+                return false;
+            }
+            EdgePair that = (EdgePair) o;
+            return ((this.dev1.equals(that.dev1) && this.dev2.equals(that.dev2)) ||
+                    (this.dev1.equals(that.dev2) && this.dev2.equals(that.dev1)));
+        }
+
+        @Override
+        public int hashCode() {
+            if (dev1.toString().compareTo(dev2.toString()) <= 0) {
+                return Objects.hash(dev1, dev2);
+            } else {
+                return Objects.hash(dev2, dev1);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                    .add("Dev1", dev1)
+                    .add("Dev2", dev2)
+                    .toString();
+        }
+    }
+
+    //////////////////////////////////////
+    //  Filtering rule creation
+    //////////////////////////////////////
 
     /**
      * Populates filtering rules for port, and punting rules
@@ -888,91 +1394,6 @@ public class DefaultRoutingHandler {
         }
         executorService.schedule(new RetryFilters(deviceId, firstRun),
                                  RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Start the flow rule population process if it was never started. The
-     * process finishes successfully when all flow rules are set and stops with
-     * ABORTED status when any groups required for flows is not set yet.
-     */
-    public void startPopulationProcess() {
-        statusLock.lock();
-        try {
-            if (populationStatus == Status.IDLE
-                    || populationStatus == Status.SUCCEEDED
-                    || populationStatus == Status.ABORTED) {
-                populationStatus = Status.STARTED;
-                populateAllRoutingRules();
-            } else {
-                log.warn("Not initiating startPopulationProcess as populationStatus is {}",
-                         populationStatus);
-            }
-        } finally {
-            statusLock.unlock();
-        }
-    }
-
-    /**
-     * Resume the flow rule population process if it was aborted for any reason.
-     * Mostly the process is aborted when the groups required are not set yet.
-     *  XXX is this called?
-     *
-     */
-    public void resumePopulationProcess() {
-        statusLock.lock();
-        try {
-            if (populationStatus == Status.ABORTED) {
-                populationStatus = Status.STARTED;
-                // TODO: we need to restart from the point aborted instead of
-                // restarting.
-                populateAllRoutingRules();
-            }
-        } finally {
-            statusLock.unlock();
-        }
-    }
-
-    /**
-     * Populate rules of given subnet at given location.
-     *
-     * @param cp connect point of the subnet being added
-     * @param subnets subnet being added
-     * @return true if succeed
-     */
-    protected boolean populateSubnet(ConnectPoint cp, Set<IpPrefix> subnets) {
-        statusLock.lock();
-        try {
-            EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(cp.deviceId());
-            if (ecmpSpg == null) {
-                log.warn("Fail to populating subnet {}: {}", subnets, ECMPSPG_MISSING);
-                return false;
-            }
-            return populateEcmpRoutingRules(cp.deviceId(), ecmpSpg, subnets);
-        } finally {
-            statusLock.unlock();
-        }
-    }
-
-    /**
-     * Revoke rules of given subnet at given location.
-     *
-     * @param subnets subnet being removed
-     * @return true if succeed
-     */
-    protected boolean revokeSubnet(Set<IpPrefix> subnets) {
-        statusLock.lock();
-        try {
-            return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
-        } finally {
-            statusLock.unlock();
-        }
-    }
-
-    protected void purgeEcmpGraph(DeviceId deviceId) {
-        currentEcmpSpgMap.remove(deviceId);
-        if (updatedEcmpSpgMap != null) {
-            updatedEcmpSpgMap.remove(deviceId);
-        }
     }
 
     /**

@@ -84,8 +84,9 @@ import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
-import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.DestinationSet;
+import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.SubnetAssignedVidStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
@@ -109,6 +110,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -208,10 +210,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap =
             new ConcurrentHashMap<>();
     /**
-     * Per device next objective ID store with (device id + neighbor set) as key.
+     * Per device next objective ID store with (device id + destination set) as key.
      */
-    EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
-            nsNextObjStore = null;
+    EventuallyConsistentMap<DestinationSetNextObjectiveStoreKey, NextNeighbors>
+            dsNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + subnet) as key.
      */
@@ -235,6 +237,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
+
+    private AtomicBoolean programmingScheduled = new AtomicBoolean();
 
     private final ConfigFactory<DeviceId, SegmentRoutingDeviceConfig> deviceConfigFactory =
             new ConfigFactory<DeviceId, SegmentRoutingDeviceConfig>(
@@ -307,14 +311,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         appId = coreService.registerApplication(APP_NAME);
 
         log.debug("Creating EC map nsnextobjectivestore");
-        EventuallyConsistentMapBuilder<NeighborSetNextObjectiveStoreKey, Integer>
+        EventuallyConsistentMapBuilder<DestinationSetNextObjectiveStoreKey, NextNeighbors>
                 nsNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
-        nsNextObjStore = nsNextObjMapBuilder
+        dsNextObjStore = nsNextObjMapBuilder
                 .withName("nsnextobjectivestore")
                 .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
-        log.trace("Current size {}", nsNextObjStore.size());
+        log.trace("Current size {}", dsNextObjStore.size());
 
         log.debug("Creating EC map vlannextobjectivestore");
         EventuallyConsistentMapBuilder<VlanNextObjectiveStoreKey, Integer>
@@ -399,10 +403,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private KryoNamespace.Builder createSerializer() {
         return new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
-                .register(NeighborSetNextObjectiveStoreKey.class,
+                .register(DestinationSetNextObjectiveStoreKey.class,
                         VlanNextObjectiveStoreKey.class,
                         SubnetAssignedVidStoreKey.class,
-                        NeighborSet.class,
+                        DestinationSet.class,
+                        NextNeighbors.class,
                         Tunnel.class,
                         DefaultTunnel.class,
                         Policy.class,
@@ -436,7 +441,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceListener = null;
         groupHandlerMap.clear();
 
-        nsNextObjStore.destroy();
+        dsNextObjStore.destroy();
         vlanNextObjStore.destroy();
         portNextObjStore.destroy();
         tunnelStore.destroy();
@@ -514,9 +519,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public ImmutableMap<NeighborSetNextObjectiveStoreKey, Integer> getNeighborSet() {
-        if (nsNextObjStore != null) {
-            return ImmutableMap.copyOf(nsNextObjStore.entrySet());
+    public ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDestinationSet() {
+        if (dsNextObjStore != null) {
+            return ImmutableMap.copyOf(dsNextObjStore.entrySet());
         } else {
             return ImmutableMap.of();
         }
@@ -541,12 +546,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Per device next objective ID store with (device id + neighbor set) as key.
+     * Per device next objective ID store with (device id + destination set) as key.
      *
      * @return next objective ID store
      */
-    public EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer> nsNextObjStore() {
-        return nsNextObjStore;
+    public EventuallyConsistentMap<DestinationSetNextObjectiveStoreKey, NextNeighbors>
+                dsNextObjStore() {
+        return dsNextObjStore;
     }
 
     /**
@@ -568,7 +574,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the MPLS-ECMP configuration.
+     * Returns the MPLS-ECMP configuration which indicates whether ECMP on
+     * labeled packets should be programmed or not.
      *
      * @return MPLS-ECMP value
      */
@@ -792,6 +799,66 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return false;
     }
 
+    /**
+     * Returns true if the link being queried is a bidirectional link. A bidi
+     * link is defined as a link, whose reverse link - ie. the link in the reverse
+     * direction - has been seen-before and is up. It is not necessary for the link
+     * being queried to be a seen-link.
+     *
+     * @param link the infrastructure link being queried
+     * @return true if another unidirectional link exists in the reverse direction,
+     *              has been seen-before and is up
+     */
+    public boolean isBidirectional(Link link) {
+        Link reverseLink = linkService.getLink(link.dst(), link.src());
+        if (reverseLink == null) {
+            return false;
+        }
+        Boolean result = isSeenLinkUp(reverseLink);
+        if (result == null) {
+            return false;
+        }
+        return result.booleanValue();
+    }
+
+    /**
+     * Determines if the given link should be avoided in routing calculations
+     * by policy or design.
+     *
+     * @param link the infrastructure link being queried
+     * @return true if link should be avoided
+     */
+    public boolean avoidLink(Link link) {
+        // XXX currently only avoids all pair-links. In the future can be
+        // extended to avoid any generic link
+        DeviceId src = link.src().deviceId();
+        PortNumber srcPort = link.src().port();
+        if (deviceConfiguration == null || !deviceConfiguration.isConfigured(src)) {
+            log.warn("Device {} not configured..cannot avoid link {}", src, link);
+            return false;
+        }
+        DeviceId pairDev;
+        PortNumber pairLocalPort, pairRemotePort = null;
+        try {
+            pairDev = deviceConfiguration.getPairDeviceId(src);
+            pairLocalPort = deviceConfiguration.getPairLocalPort(src);
+            if (pairDev != null) {
+                pairRemotePort = deviceConfiguration.getPairLocalPort(pairDev);
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn("Pair dev for dev {} not configured..cannot avoid link {}",
+                     src, link);
+            return false;
+        }
+
+        if (srcPort.equals(pairLocalPort) &&
+                link.dst().deviceId().equals(pairDev) &&
+                link.dst().port().equals(pairRemotePort)) {
+            return true;
+        }
+        return false;
+    }
+
     private class InternalPacketProcessor implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
@@ -807,7 +874,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 return;
             }
 
-            log.trace("Rcvd pktin: {}", ethernet);
+            log.trace("Rcvd pktin from {}: {}", context.inPacket().receivedFrom(),
+                      ethernet);
             if (ethernet.getEtherType() == TYPE_ARP) {
                 log.warn("Received unexpected ARP packet on {}",
                          context.inPacket().receivedFrom());
@@ -982,7 +1050,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private void processLinkAdded(Link link) {
         log.info("** LINK ADDED {}", link.toString());
         if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
-            log.warn("Source device of this link is not configured.");
+            log.warn("Source device of this link is not configured..not processing");
             return;
         }
         if (link.type() != Link.Type.DIRECT) {
@@ -1014,16 +1082,39 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
-        log.trace("Starting optimized route population process");
+        /*// process link only if it is bidirectional
+        if (!isBidirectional(link)) {
+            log.debug("Link not bidirectional.. waiting for other direction "
+                    + "src {} --> dst {} ", link.dst(), link.src());
+            // note that if we are not processing for routing, it should at least
+            // be considered a seen-link
+            updateSeenLink(link, true);
+            return;
+        }
+         TO DO this ensure that rehash is still done correctly even if link is
+         not processed for rerouting - perhaps rehash in both directions when
+         it ultimately becomes bidi?
+        */
+
+        log.debug("Starting optimized route population process for link "
+                + "{} --> {}", link.src(), link.dst());
         boolean seenBefore = isSeenLink(link);
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(null, link, null);
+
+        // It's possible that linkUp causes no route-path change as ECMP graph does
+        // not change if the link is a parallel link (same src-dst as another link.
+        // However we still need to update ECMP hash groups to include new buckets
+        // for the link that has come up.
         if (mastershipService.isLocalMaster(link.src().deviceId())) {
-            if (!seenBefore) {
+            if (!seenBefore && isParallelLink(link)) {
                 // if link seen first time, we need to ensure hash-groups have all ports
+                log.debug("Attempting retryHash for paralled first-time link {}", link);
                 groupHandler.retryHash(link, false, true);
             } else {
                 //seen before-link
                 if (isParallelLink(link)) {
+                    log.debug("Attempting retryHash for paralled seen-before "
+                            + "link {}", link);
                     groupHandler.retryHash(link, false, false);
                 }
             }
@@ -1062,8 +1153,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         routingRulePopulator.populateArpNdpPunts(device.id());
 
         if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
-            log.warn("Device configuration uploading. Device {} will be "
-                    + "processed after config completes.", device.id());
+            log.warn("Device configuration unavailable. Device {} will be "
+                    + "processed after configuration.", device.id());
             return;
         }
         processDeviceAddedInternal(device.id());
@@ -1110,10 +1201,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void processDeviceRemoved(Device device) {
-        nsNextObjStore.entrySet().stream()
+        dsNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> {
-                    nsNextObjStore.remove(entry.getKey());
+                    dsNextObjStore.remove(entry.getKey());
                 });
         vlanNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
@@ -1225,6 +1316,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
+        private static final long PROGRAM_DELAY = 2;
         SegmentRoutingManager srManager;
 
         /**
@@ -1240,8 +1332,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          * Reads network config and initializes related data structure accordingly.
          */
         public void configureNetwork() {
-
-            deviceConfiguration = new DeviceConfiguration(srManager);
+            if (deviceConfiguration == null) {
+                deviceConfiguration = new DeviceConfiguration(srManager);
+            } else {
+                deviceConfiguration.updateConfig();
+            }
 
             arpHandler = new ArpHandler(srManager);
             icmpHandler = new IcmpHandler(srManager);
@@ -1254,12 +1349,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             policyHandler = new PolicyHandler(appId, deviceConfiguration,
                                               flowObjectiveService,
                                               tunnelHandler, policyStore);
-
-            for (Device device : deviceService.getDevices()) {
-                processDeviceAdded(device);
+            // add a small delay to absorb multiple network config added notifications
+            if (!programmingScheduled.get()) {
+                programmingScheduled.set(true);
+                executorService.schedule(new ConfigChange(), PROGRAM_DELAY,
+                                         TimeUnit.SECONDS);
             }
-
-            defaultRoutingHandler.startPopulationProcess();
             mcastHandler.init();
         }
 
@@ -1338,6 +1433,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     default:
                         break;
                 }
+            }
+        }
+
+        private final class ConfigChange implements Runnable {
+            @Override
+            public void run() {
+                programmingScheduled.set(false);
+                for (Device device : deviceService.getDevices()) {
+                    processDeviceAdded(device);
+                }
+                defaultRoutingHandler.startPopulationProcess();
             }
         }
     }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licedses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,25 +19,25 @@ package org.onosproject.segmentrouting.storekey;
 import java.util.Objects;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 
 /**
- * Key of Neighborset next objective store.
+ * Key of Destination set next objective store.
  */
-public class NeighborSetNextObjectiveStoreKey {
+public class DestinationSetNextObjectiveStoreKey {
     private final DeviceId deviceId;
-    private final NeighborSet ns;
+    private final DestinationSet ds;
 
     /**
-     * Constructs the key of neighbor set next objective store.
+     * Constructs the key of destination set next objective store.
      *
      * @param deviceId device ID
-     * @param ns neighbor set
+     * @param ds destination set
      */
-    public NeighborSetNextObjectiveStoreKey(DeviceId deviceId,
-                                            NeighborSet ns) {
+    public DestinationSetNextObjectiveStoreKey(DeviceId deviceId,
+                                            DestinationSet ds) {
         this.deviceId = deviceId;
-        this.ns = ns;
+        this.ds = ds;
     }
 
     /**
@@ -50,12 +50,12 @@ public class NeighborSetNextObjectiveStoreKey {
     }
 
     /**
-     * Returns the neighbor set in the key.
+     * Returns the destination set in the key.
      *
-     * @return neighbor set
+     * @return destination set
      */
-    public NeighborSet neighborSet() {
-        return this.ns;
+    public DestinationSet destinationSet() {
+        return this.ds;
     }
 
     @Override
@@ -63,27 +63,27 @@ public class NeighborSetNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NeighborSetNextObjectiveStoreKey)) {
+        if (!(o instanceof DestinationSetNextObjectiveStoreKey)) {
             return false;
         }
-        NeighborSetNextObjectiveStoreKey that =
-                (NeighborSetNextObjectiveStoreKey) o;
+        DestinationSetNextObjectiveStoreKey that =
+                (DestinationSetNextObjectiveStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
-                Objects.equals(this.ns, that.ns));
+                Objects.equals(this.ds, that.ds));
     }
 
-    // The list of neighbor ids and label are used for comparison.
+    // The list of destination ids and label are used for comparison.
     @Override
     public int hashCode() {
         int result = 17;
         result = 31 * result + Objects.hashCode(this.deviceId)
-                + Objects.hashCode(this.ns);
+                + Objects.hashCode(this.ds);
 
         return result;
     }
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " " + ns;
+        return "Device: " + deviceId + " " + ds;
     }
 }

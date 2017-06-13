@@ -35,7 +35,7 @@ import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -56,8 +56,10 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -119,14 +121,14 @@ public class RoutingRulePopulator {
      */
     public void populateRoute(DeviceId deviceId, IpPrefix prefix,
                               MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
-        log.debug("Populate routing entry for route {} at {}:{}",
+        log.debug("Populate direct routing entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
                                               hostVlanId, outPort, false);
         } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
+            log.warn(e.getMessage() + " Aborting direct populateRoute");
             return;
         }
         if (fwdBuilder == null) {
@@ -135,9 +137,10 @@ public class RoutingRulePopulator {
             return;
         }
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Routing rule for route {} populated", prefix),
+                (objective) -> log.debug("Direct routing rule for route {} populated",
+                                         prefix),
                 (objective, error) ->
-                        log.warn("Failed to populate routing rule for route {}: {}",
+                        log.warn("Failed to populate direct routing rule for route {}: {}",
                                  prefix, error));
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
@@ -258,18 +261,27 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates IP flow rules for the subnets of the destination router.
+     * Populates IP flow rules for all the given prefixes reachable from the
+     * destination switch(es).
      *
-     * @param deviceId switch ID to set the rules
-     * @param subnets subnet being added
-     * @param destSw destination switch ID
-     * @param nextHops next hop switch ID list
+     * @param targetSw switch where rules are to be programmed
+     * @param subnets subnets/prefixes being added
+     * @param destSw1 destination switch where the prefixes are reachable
+     * @param destSw2 paired destination switch if one exists for the subnets/prefixes.
+     *                Should be null if there is no paired destination switch (by config)
+     *                or if the given prefixes are reachable only via destSw1
+     * @param nextHops a map containing a set of next-hops for each destination switch.
+     *                 If destSw2 is not null, then this map must contain an
+     *                 entry for destSw2 with its next-hops from the targetSw
+     *                 (although the next-hop set may be empty in certain scenarios).
+     *                 If destSw2 is null, there should not be an entry in this
+     *                 map for destSw2.
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForSubnet(DeviceId deviceId, Set<IpPrefix> subnets,
-            DeviceId destSw, Set<DeviceId> nextHops) {
+    public boolean populateIpRuleForSubnet(DeviceId targetSw, Set<IpPrefix> subnets,
+            DeviceId destSw1, DeviceId destSw2, Map<DeviceId, Set<DeviceId>> nextHops) {
         for (IpPrefix subnet : subnets) {
-            if (!populateIpRuleForRouter(deviceId, subnet, destSw, nextHops)) {
+            if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
                 return false;
             }
         }
@@ -277,7 +289,7 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Revokes IP flow rules for the subnets.
+     * Revokes IP flow rules for the subnets in each edge switch.
      *
      * @param subnets subnet being removed
      * @return true if all rules are removed successfully, false otherwise
@@ -293,23 +305,36 @@ public class RoutingRulePopulator {
 
     /**
      * Populates IP flow rules for an IP prefix in the target device. The prefix
-     * is reachable via destination device.
+     * is reachable via destination device(s).
      *
-     * @param deviceId target device ID to set the rules
-     * @param ipPrefix the destination IP prefix
-     * @param destSw device ID of the destination router
-     * @param nextHops next hop switch ID list
+     * @param targetSw target device ID to set the rules
+     * @param ipPrefix the IP prefix
+     * @param destSw1 destination switch where the prefixes are reachable
+     * @param destSw2 paired destination switch if one exists for the subnets/prefixes.
+     *                Should be null if there is no paired destination switch (by config)
+     *                or if the given prefixes are reachable only via destSw1
+     * @param nextHops map of destination switches and their next-hops.
+     *                  Should only contain destination switches that are
+     *                  actually meant to be routed to. If destSw2 is null, there
+     *                  should not be an entry for destSw2 in this map.
      * @return true if all rules are set successfully, false otherwise
      */
-    public boolean populateIpRuleForRouter(DeviceId deviceId,
-                                           IpPrefix ipPrefix, DeviceId destSw,
-                                           Set<DeviceId> nextHops) {
-        int segmentId;
+    public boolean populateIpRuleForRouter(DeviceId targetSw,
+                                           IpPrefix ipPrefix, DeviceId destSw1,
+                                           DeviceId destSw2,
+                                           Map<DeviceId, Set<DeviceId>> nextHops) {
+        int segmentId1, segmentId2 = -1;
         try {
             if (ipPrefix.isIp4()) {
-                segmentId = config.getIPv4SegmentId(destSw);
+                segmentId1 = config.getIPv4SegmentId(destSw1);
+                if (destSw2 != null) {
+                    segmentId2 = config.getIPv4SegmentId(destSw2);
+                }
             } else {
-                segmentId = config.getIPv6SegmentId(destSw);
+                segmentId1 = config.getIPv6SegmentId(destSw1);
+                if (destSw2 != null) {
+                    segmentId2 = config.getIPv6SegmentId(destSw2);
+                }
             }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForRouter.");
@@ -320,17 +345,35 @@ public class RoutingRulePopulator {
         TrafficSelector selector = sbuilder.build();
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        NeighborSet ns;
+        DestinationSet ds;
         TrafficTreatment treatment;
 
         // If the next hop is the same as the final destination, then MPLS label
         // is not set.
-        if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
+        /*if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
             tbuilder.immediate().decNwTtl();
-            ns = new NeighborSet(nextHops, false, destSw);
+            ds = new DestinationSet(false, destSw);
             treatment = tbuilder.build();
         } else {
-            ns = new NeighborSet(nextHops, false, segmentId, destSw);
+            ds = new DestinationSet(false, segmentId, destSw);
+            treatment = null;
+        }*/
+        if (destSw2 == null) {
+            // single dst - create destination set based on next-hop
+            Set<DeviceId> nhd1 = nextHops.get(destSw1);
+            if (nhd1.size() == 1 && nhd1.iterator().next().equals(destSw1)) {
+                tbuilder.immediate().decNwTtl();
+                ds = new DestinationSet(false, destSw1);
+                treatment = tbuilder.build();
+            } else {
+                ds = new DestinationSet(false, segmentId1, destSw1);
+                treatment = null;
+            }
+        } else {
+            // dst pair - IP rules for dst-pairs are always from other edge nodes
+            // the destination set needs to have both destinations, even if there
+            // are no next hops to one of them
+            ds = new DestinationSet(false, segmentId1, destSw1, segmentId2, destSw2);
             treatment = null;
         }
 
@@ -339,16 +382,17 @@ public class RoutingRulePopulator {
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
         metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
-        DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
+        DefaultGroupHandler grpHandler = srManager.getGroupHandler(targetSw);
         if (grpHandler == null) {
             log.warn("populateIPRuleForRouter: groupHandler for device {} "
-                    + "not found", deviceId);
+                    + "not found", targetSw);
             return false;
         }
 
-        int nextId = grpHandler.getNextObjectiveId(ns, metabuilder.build(), true);
+        int nextId = grpHandler.getNextObjectiveId(ds, nextHops,
+                                                   metabuilder.build(), true);
         if (nextId <= 0) {
-            log.warn("No next objective in {} for ns: {}", deviceId, ns);
+            log.warn("No next objective in {} for ds: {}", targetSw, ds);
             return false;
         }
 
@@ -364,14 +408,14 @@ public class RoutingRulePopulator {
             fwdBuilder.withTreatment(treatment);
         }
         log.debug("Installing IPv4 forwarding objective for router IP/subnet {} "
-                + "in switch {} with nextId: {}", ipPrefix, deviceId, nextId);
+                + "in switch {} with nextId: {}", ipPrefix, targetSw, nextId);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("IP rule for router {} populated in dev:{}",
-                                         ipPrefix, deviceId),
+                                         ipPrefix, targetSw),
                 (objective, error) ->
                         log.warn("Failed to populate IP rule for router {}: {} in dev:{}",
-                                 ipPrefix, error, deviceId));
-        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
+                                 ipPrefix, error, targetSw));
+        srManager.flowObjectiveService.forward(targetSw, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
 
         return true;
@@ -419,12 +463,13 @@ public class RoutingRulePopulator {
      * @param routerIp the router ip
      * @return a collection of fwdobjective
      */
-    private Collection<ForwardingObjective> handleMpls(DeviceId targetSwId,
-                                                       DeviceId destSwId,
-                                                       Set<DeviceId> nextHops,
-                                                       int segmentId,
-                                                       IpAddress routerIp,
-                                                       boolean isMplsBos) {
+    private Collection<ForwardingObjective> handleMpls(
+                                        DeviceId targetSwId,
+                                        DeviceId destSwId,
+                                        Set<DeviceId> nextHops,
+                                        int segmentId,
+                                        IpAddress routerIp,
+                                        boolean isMplsBos) {
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         List<ForwardingObjective.Builder> fwdObjBuilders = Lists.newArrayList();
@@ -443,7 +488,8 @@ public class RoutingRulePopulator {
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             // If the next hop is the destination router for the segment, do pop
             log.debug("populateMplsRule: Installing MPLS forwarding objective for "
-                    + "label {} in switch {} with pop", segmentId, targetSwId);
+                    + "label {} in switch {} with pop to next-hops {}",
+                    segmentId, targetSwId, nextHops);
             // Not-bos pop case (php for the current label). If MPLS-ECMP
             // has been configured, the application we will request the
             // installation for an MPLS-ECMP group.
@@ -463,8 +509,9 @@ public class RoutingRulePopulator {
 
         } else {
             // next hop is not destination, SR CONTINUE case (swap with self)
-            log.debug("Installing MPLS forwarding objective for label {} in "
-                    + "switch {} without pop", segmentId, targetSwId);
+            log.debug("Installing MPLS forwarding objective for "
+                    + "label {} in switch {} without pop to next-hops {}",
+                    segmentId, targetSwId, nextHops);
             // Not-bos pop case. If MPLS-ECMP has been configured, the
             // application we will request the installation for an MPLS-ECMP
             // group.
@@ -522,7 +569,8 @@ public class RoutingRulePopulator {
      * @return true if all rules are set successfully, false otherwise
      */
     public boolean populateMplsRule(DeviceId targetSwId, DeviceId destSwId,
-                                    Set<DeviceId> nextHops, IpAddress routerIp) {
+                                    Set<DeviceId> nextHops,
+                                    IpAddress routerIp) {
 
         int segmentId;
         try {
@@ -563,7 +611,7 @@ public class RoutingRulePopulator {
     }
 
     private ForwardingObjective.Builder getMplsForwardingObjective(
-                                             DeviceId deviceId,
+                                             DeviceId targetSw,
                                              Set<DeviceId> nextHops,
                                              boolean phpRequired,
                                              boolean isBos,
@@ -600,33 +648,36 @@ public class RoutingRulePopulator {
         fwdBuilder.withTreatment(tbuilder.build());
         // if MPLS-ECMP == True we will build a standard NeighborSet.
         // Otherwise a RandomNeighborSet.
-        NeighborSet ns = NeighborSet.neighborSet(false, nextHops, false, destSw);
+        DestinationSet ns = DestinationSet.destinationSet(false, false, destSw);
         if (!isBos && this.srManager.getMplsEcmp()) {
-            ns = NeighborSet.neighborSet(false, nextHops, true, destSw);
+            ns = DestinationSet.destinationSet(false, true, destSw);
         } else if (!isBos && !this.srManager.getMplsEcmp()) {
-            ns = NeighborSet.neighborSet(true, nextHops, true, destSw);
+            ns = DestinationSet.destinationSet(true, true, destSw);
         }
+
         log.debug("Trying to get a nextObjId for mpls rule on device:{} to ns:{}",
-                  deviceId, ns);
+                  targetSw, ns);
+        DefaultGroupHandler gh = srManager.getGroupHandler(targetSw);
+        if (gh == null) {
+            log.warn("getNextObjectiveId query - groupHandler for device {} "
+                    + "not found", targetSw);
+            return null;
+        }
         // If BoS == True, all forwarding is via L3 ECMP group.
         // If Bos == False, the forwarding can be via MPLS-ECMP group or through
         // MPLS-Interface group. This depends on the configuration of the option
         // MPLS-ECMP.
         // The metadata informs the driver that the next-Objective will be used
         // by MPLS flows and if Bos == False the driver will use MPLS groups.
-        DefaultGroupHandler grpHandler = srManager.getGroupHandler(deviceId);
-        if (grpHandler == null) {
-            log.warn("populateIPRuleForRouter: groupHandler for device {} "
-                    + "not found", deviceId);
-            return null;
-        }
-        int nextId = grpHandler.getNextObjectiveId(ns, meta, isBos);
+        Map<DeviceId, Set<DeviceId>> dstNextHops = new HashMap<>();
+        dstNextHops.put(destSw, nextHops);
+        int nextId = gh.getNextObjectiveId(ns, dstNextHops, meta, isBos);
         if (nextId <= 0) {
-            log.warn("No next objective in {} for ns: {}", deviceId, ns);
+            log.warn("No next objective in {} for ns: {}", targetSw, ns);
             return null;
         } else {
             log.debug("nextObjId found:{} for mpls rule on device:{} to ns:{}",
-                      nextId, deviceId, ns);
+                      nextId, targetSw, ns);
         }
 
         fwdBuilder.nextStep(nextId);
@@ -775,11 +826,15 @@ public class RoutingRulePopulator {
      * @param deviceId the switch dpid for the router
      */
     public void populateIpPunts(DeviceId deviceId) {
-        Ip4Address routerIpv4;
-        Ip6Address routerIpv6;
+        Ip4Address routerIpv4, pairRouterIpv4 = null;
+        Ip6Address routerIpv6, pairRouterIpv6 = null;
         try {
             routerIpv4 = config.getRouterIpv4(deviceId);
             routerIpv6 = config.getRouterIpv6(deviceId);
+            if (config.isPairedEdge(deviceId)) {
+                pairRouterIpv4 = config.getRouterIpv4(config.getPairDeviceId(deviceId));
+                pairRouterIpv6 = config.getRouterIpv6(config.getPairDeviceId(deviceId));
+            }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpPunts.");
             return;
@@ -794,6 +849,12 @@ public class RoutingRulePopulator {
         allIps.add(routerIpv4);
         if (routerIpv6 != null) {
             allIps.add(routerIpv6);
+        }
+        if (pairRouterIpv4 != null) {
+            allIps.add(pairRouterIpv4);
+        }
+        if (pairRouterIpv6 != null) {
+            allIps.add(pairRouterIpv6);
         }
         for (IpAddress ipaddr : allIps) {
             TrafficSelector.Builder sbuilder = buildIpSelectorFromIpAddress(ipaddr);

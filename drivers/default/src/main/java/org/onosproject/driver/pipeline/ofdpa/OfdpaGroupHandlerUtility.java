@@ -29,6 +29,8 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -105,6 +107,25 @@ public final class OfdpaGroupHandlerUtility {
     }
 
     /**
+     * Returns the MPLS label-id in a traffic treatment.
+     *
+     * @param tt the traffic treatment
+     * @return an integer representing the MPLS label-id, or -1 if not found
+     */
+    protected static int readLabelFromTreatment(TrafficTreatment tt) {
+        for (Instruction ins : tt.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction insl2 = (L2ModificationInstruction) ins;
+                if (insl2.subtype() == L2SubType.MPLS_LABEL) {
+                    return ((L2ModificationInstruction.ModMplsLabelInstruction) insl2)
+                                .label().id();
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Helper enum to handle the different MPLS group
      * types.
      */
@@ -163,8 +184,8 @@ public final class OfdpaGroupHandlerUtility {
     }
 
     /**
-     * Gets duplicated output ports between group key chains and existing groups
-     * in the device.
+     * Returns the set of existing output ports in the group represented by
+     * allActiveKeys.
      *
      * @param allActiveKeys list of group key chain
      * @param groupService the group service to get group information
@@ -189,6 +210,49 @@ public final class OfdpaGroupHandlerUtility {
             }
         });
         return existingPorts;
+    }
+
+    /**
+     * Returns true if the group represented by allActiveKeys contains a bucket
+     * (group-chain) with actions that match the given outport and label.
+     *
+     * @param allActiveKeys the representation of the group
+     * @param groupService groups service for querying group information
+     * @param deviceId the device id for the device that contains the group
+     * @param portToMatch the port to match in the group buckets
+     * @param labelToMatch the MPLS label-id to match in the group buckets
+     * @return true if a bucket (group-chain) is found with actions that match
+     *                  the given portToMatch and labelToMatch
+     */
+    public static boolean existingPortAndLabel(List<Deque<GroupKey>> allActiveKeys,
+                                               GroupService groupService,
+                                               DeviceId deviceId,
+                                               PortNumber portToMatch,
+                                               int labelToMatch) {
+        for (Deque<GroupKey> keyChain : allActiveKeys) {
+            GroupKey ifaceGroupKey = keyChain.peekLast();
+            Group ifaceGroup = groupService.getGroup(deviceId, ifaceGroupKey);
+            if (ifaceGroup != null && !ifaceGroup.buckets().buckets().isEmpty()) {
+                PortNumber portNumber = readOutPortFromTreatment(
+                   ifaceGroup.buckets().buckets().iterator().next().treatment());
+                if (portNumber != null && portNumber.equals(portToMatch)) {
+                    // check for label in the 2nd group of this chain
+                    GroupKey secondKey = (GroupKey) keyChain.toArray()[1];
+                    Group secondGroup = groupService.getGroup(deviceId, secondKey);
+                    if (secondGroup != null &&
+                            !secondGroup.buckets().buckets().isEmpty()) {
+                        int label = readLabelFromTreatment(
+                                        secondGroup.buckets().buckets()
+                                        .iterator().next().treatment());
+                        if (label == labelToMatch) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

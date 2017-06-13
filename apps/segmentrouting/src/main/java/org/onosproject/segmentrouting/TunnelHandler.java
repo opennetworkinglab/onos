@@ -20,7 +20,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.NeighborSet;
+import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
@@ -222,7 +222,7 @@ public class TunnelHandler {
             deviceIds.add(config.getDeviceId(sid));
         }
         // For these NeighborSet isMpls is meaningless.
-        NeighborSet ns = new NeighborSet(deviceIds, false,
+        DestinationSet ns = new DestinationSet(false,
                                          tunnel.labelIds().get(2),
                                          DeviceId.NONE);
 
@@ -234,7 +234,7 @@ public class TunnelHandler {
             tunnel.allowToRemoveGroup(true);
         }
 
-        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null, true);
+        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null, null, true);
     }
 
 }

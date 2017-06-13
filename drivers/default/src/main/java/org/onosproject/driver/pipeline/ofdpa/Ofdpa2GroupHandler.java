@@ -442,7 +442,7 @@ public class Ofdpa2GroupHandler {
                 portNum = ((Instructions.OutputInstruction) ins).port().toLong();
                 innerTtb.add(ins);
             } else {
-                log.warn("Driver does not handle this type of TrafficTreatment"
+                log.debug("Driver does not handle this type of TrafficTreatment"
                         + " instruction in nextObjectives:  {}", ins.type());
             }
         }
@@ -1026,7 +1026,19 @@ public class Ofdpa2GroupHandler {
                 return;
             }
             if (existingPorts.contains(portNumber)) {
-                duplicateBuckets.add(trafficTreatment);
+                // its possible that portnumbers are same but labels are different
+                int label = readLabelFromTreatment(trafficTreatment);
+                if (label == -1) {
+                    duplicateBuckets.add(trafficTreatment);
+                } else {
+                    boolean exists = existingPortAndLabel(allActiveKeys, groupService,
+                                                          deviceId, portNumber, label);
+                    if (exists) {
+                        duplicateBuckets.add(trafficTreatment);
+                    } else {
+                        nonDuplicateBuckets.add(trafficTreatment);
+                    }
+                }
             } else {
                 nonDuplicateBuckets.add(trafficTreatment);
             }

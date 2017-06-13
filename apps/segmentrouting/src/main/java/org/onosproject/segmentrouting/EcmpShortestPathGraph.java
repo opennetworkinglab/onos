@@ -24,17 +24,18 @@ import org.onosproject.net.Path;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Set;
 
 /**
- * This class creates bandwidth constrained breadth first tree and returns paths
- * from root Device to leaf Devices (target devices) which satisfies the bandwidth condition. If
- * bandwidth parameter is not specified, the normal breadth first tree will be
- * calculated. The paths are snapshot paths at the point of the class
- * instantiation.
+ * This class creates breadth-first-search (BFS) tree for a given root device
+ * and returns paths from the root Device to leaf Devices (target devices).
+ * The paths are snapshot paths at the point of the class instantiation.
  */
 public class EcmpShortestPathGraph {
     LinkedList<DeviceId> deviceQueue = new LinkedList<>();
@@ -45,21 +46,7 @@ public class EcmpShortestPathGraph {
     HashMap<Integer, ArrayList<DeviceId>> distanceDeviceMap = new HashMap<>();
     DeviceId rootDevice;
     private SegmentRoutingManager srManager;
-    private static final Logger log = LoggerFactory
-            .getLogger(EcmpShortestPathGraph.class);
-
-    /**
-     * Constructor.
-     *
-     * @param rootDevice root of the BFS tree
-     * @param linkListToAvoid link list to avoid
-     * @param deviceIdListToAvoid device list to avoid
-     */
-    public EcmpShortestPathGraph(DeviceId rootDevice, List<String> deviceIdListToAvoid,
-                                 List<Link> linkListToAvoid) {
-        this.rootDevice = rootDevice;
-        calcECMPShortestPathGraph(deviceIdListToAvoid, linkListToAvoid);
-    }
+    private static final Logger log = LoggerFactory.getLogger(EcmpShortestPathGraph.class);
 
     /**
      * Constructor.
@@ -74,26 +61,28 @@ public class EcmpShortestPathGraph {
     }
 
     /**
-     * Calculates the BFS tree using any provided constraints and Intents.
+     * Calculates the BFS tree.
      */
-    private void calcECMPShortestPathGraph() {
+   private void calcECMPShortestPathGraph() {
         deviceQueue.add(rootDevice);
         int currDistance = 0;
         distanceQueue.add(currDistance);
         deviceSearched.put(rootDevice, currDistance);
         while (!deviceQueue.isEmpty()) {
             DeviceId sw = deviceQueue.poll();
-            DeviceId prevSw = null;
+            Set<DeviceId> prevSw = Sets.newHashSet();
             currDistance = distanceQueue.poll();
 
             for (Link link : srManager.linkService.getDeviceEgressLinks(sw)) {
+                if (srManager.avoidLink(link)) {
+                    continue;
+                }
                 DeviceId reachedDevice = link.dst().deviceId();
-                if ((prevSw != null)
-                        && (prevSw.equals(reachedDevice))) {
-                    /* Ignore LAG links between the same set of Devicees */
+                if (prevSw.contains(reachedDevice)) {
+                    // Ignore LAG links between the same set of Devices
                     continue;
                 } else  {
-                    prevSw = reachedDevice;
+                    prevSw.add(reachedDevice);
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
@@ -101,7 +90,7 @@ public class EcmpShortestPathGraph {
                     continue;
                 }
                 if (distance == null) {
-                    /* First time visiting this Device node */
+                    // First time visiting this Device node
                     deviceQueue.add(reachedDevice);
                     distanceQueue.add(currDistance + 1);
                     deviceSearched.put(reachedDevice, currDistance + 1);
@@ -125,108 +114,11 @@ public class EcmpShortestPathGraph {
                     //upstreamLinkArray.add(link);
                     upstreamLinks.put(reachedDevice, upstreamLinkArray);
                 } else {
-                    /* ECMP links */
+                    // ECMP links
                     upstreamLinkArray.add(copyDefaultLink(link));
                 }
             }
         }
-    }
-
-    /**
-     * Calculates the BFS tree using any provided constraints and Intents.
-     */
-    private void calcECMPShortestPathGraph(List<String> deviceIdListToAvoid, List<Link> linksToAvoid) {
-        deviceQueue.add(rootDevice);
-        int currDistance = 0;
-        distanceQueue.add(currDistance);
-        deviceSearched.put(rootDevice, currDistance);
-        boolean foundLinkToAvoid = false;
-        while (!deviceQueue.isEmpty()) {
-            DeviceId sw = deviceQueue.poll();
-            DeviceId prevSw = null;
-            currDistance = distanceQueue.poll();
-            for (Link link : srManager.linkService.getDeviceEgressLinks(sw)) {
-                for (Link linkToAvoid: linksToAvoid) {
-                    // TODO: equls should work
-                    //if (link.equals(linkToAvoid)) {
-                    if (linkContains(link, linksToAvoid)) {
-                        foundLinkToAvoid = true;
-                        break;
-                    }
-                }
-                if (foundLinkToAvoid) {
-                    foundLinkToAvoid = false;
-                    continue;
-                }
-                DeviceId reachedDevice = link.dst().deviceId();
-                if (deviceIdListToAvoid.contains(reachedDevice.toString())) {
-                    continue;
-                }
-                if ((prevSw != null)
-                        && (prevSw.equals(reachedDevice))) {
-                    /* Ignore LAG links between the same set of Devicees */
-                    continue;
-                } else {
-                    prevSw = reachedDevice;
-                }
-
-                Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance < (currDistance + 1))) {
-                    continue;
-                }
-                if (distance == null) {
-                    /* First time visiting this Device node */
-                    deviceQueue.add(reachedDevice);
-                    distanceQueue.add(currDistance + 1);
-                    deviceSearched.put(reachedDevice, currDistance + 1);
-
-                    ArrayList<DeviceId> distanceSwArray = distanceDeviceMap
-                            .get(currDistance + 1);
-                    if (distanceSwArray == null) {
-                        distanceSwArray = new ArrayList<>();
-                        distanceSwArray.add(reachedDevice);
-                        distanceDeviceMap.put(currDistance + 1, distanceSwArray);
-                    } else {
-                        distanceSwArray.add(reachedDevice);
-                    }
-                }
-
-                ArrayList<Link> upstreamLinkArray =
-                        upstreamLinks.get(reachedDevice);
-                if (upstreamLinkArray == null) {
-                    upstreamLinkArray = new ArrayList<>();
-                    upstreamLinkArray.add(copyDefaultLink(link));
-                    upstreamLinks.put(reachedDevice, upstreamLinkArray);
-                } else {
-                    /* ECMP links */
-                    upstreamLinkArray.add(copyDefaultLink(link));
-                }
-            }
-        }
-    }
-
-
-    private boolean linkContains(Link link, List<Link> links) {
-
-        DeviceId srcDevice1 = link.src().deviceId();
-        DeviceId dstDevice1 = link.dst().deviceId();
-        long srcPort1 = link.src().port().toLong();
-        long dstPort1 = link.dst().port().toLong();
-
-        for (Link link2: links) {
-            DeviceId srcDevice2 = link2.src().deviceId();
-            DeviceId dstDevice2 = link2.dst().deviceId();
-            long srcPort2 = link2.src().port().toLong();
-            long dstPort2 = link2.dst().port().toLong();
-
-            if (srcDevice1.toString().equals(srcDevice2.toString())
-                    && dstDevice1.toString().equals(dstDevice2.toString())
-                    && srcPort1 == srcPort2 && dstPort1 == dstPort2) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void getDFSPaths(DeviceId dstDeviceDeviceId, Path path, ArrayList<Path> paths) {
@@ -360,7 +252,7 @@ public class EcmpShortestPathGraph {
     public String toString() {
         StringBuilder sBuilder = new StringBuilder();
         for (Device device: srManager.deviceService.getDevices()) {
-            if (device.id() != rootDevice) {
+            if (!device.id().equals(rootDevice)) {
                 sBuilder.append("\r\n  Paths from " + rootDevice + " to "
                                 + device.id());
                 ArrayList<Path> paths = getECMPPaths(device.id());

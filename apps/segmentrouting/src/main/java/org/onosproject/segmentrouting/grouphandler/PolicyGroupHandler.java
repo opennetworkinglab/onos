@@ -199,7 +199,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                     tBuilder.setOutput(bucketId.outPort())
                             .setEthDst(neighborEthDst)
                             .setEthSrc(nodeMacAddr);
-                    if (bucketId.label() != NeighborSet.NO_EDGE_LABEL) {
+                    if (bucketId.label() != DestinationSet.NO_EDGE_LABEL) {
                         tBuilder.pushMpls()
                             .setMpls(MplsLabel.mplsLabel(bucketId.label()));
                     }

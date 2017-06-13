@@ -17,7 +17,8 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.DeviceId;
-import org.onosproject.segmentrouting.storekey.NeighborSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -128,9 +129,9 @@ public interface SegmentRoutingService {
     ImmutableMap<DeviceId, EcmpShortestPathGraph> getCurrentEcmpSpg();
 
     /**
-     * Returns the neighborSet-NextObjective store contents.
+     * Returns the destinatiomSet-NextObjective store contents.
      *
-     * @return current contents of the neighborSetNextObjectiveStore
+     * @return current contents of the destinationSetNextObjectiveStore
      */
-    ImmutableMap<NeighborSetNextObjectiveStoreKey, Integer> getNeighborSet();
+    ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDestinationSet();
 }
