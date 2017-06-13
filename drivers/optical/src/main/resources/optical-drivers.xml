@@ -21,7 +21,7 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.optical.handshaker.OfOpticalSwitchImplLinc13"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.optical.query.LincOELambdaQuery"/>
+                   impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
     </driver>

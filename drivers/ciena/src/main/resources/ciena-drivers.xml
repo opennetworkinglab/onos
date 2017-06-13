@@ -15,11 +15,14 @@
   ~ limitations under the License.
   -->
 <drivers>
+    <!-- Waveserver supports flex grid, although this driver only enables 50 GHz fixed grid. -->
     <driver name="restCiena" manufacturer="Ciena" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.ciena.CienaWaveserverDeviceDescription"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
     </driver>
 </drivers>
 

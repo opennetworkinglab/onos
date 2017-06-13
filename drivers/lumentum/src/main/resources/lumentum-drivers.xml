@@ -34,7 +34,8 @@
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.driver.optical.config.ConfigFlowRuleProgrammable"/>
-
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
     </driver>
 </drivers>
 

@@ -15,11 +15,15 @@
   ~ limitations under the License.
   -->
 <drivers>
+    <!-- T100 supports 96 (50 GHz) or 128 (37.5 GHz) C-band channels,
+     although this driver only enables 80 50 GHz channels. -->
     <driver name="fujitsu-netconf" manufacturer="Fujitsu" hwVersion="T100" swVersion="01-01-X">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.fujitsu.FujitsuT100DeviceDescription"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.optical.query.CBand50LambdaQuery"/>
     </driver>
     <driver name="fujitsu-volt-netconf" manufacturer="Fujitsu" hwVersion="svkOLT" swVersion="v1.0">
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
