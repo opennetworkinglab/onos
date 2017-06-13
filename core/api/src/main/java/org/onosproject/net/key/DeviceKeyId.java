@@ -18,10 +18,14 @@ package org.onosproject.net.key;
 
 import org.onlab.util.Identifier;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Device key identifier backed by a string value.
  */
 public final class DeviceKeyId extends Identifier<String> {
+
+    private static final int ID_MAX_LENGTH = 1024;
 
     /**
      * Constructor for serialization.
@@ -46,6 +50,9 @@ public final class DeviceKeyId extends Identifier<String> {
      * @return device key identifier
      */
     public static DeviceKeyId deviceKeyId(String id) {
+        if (id != null) {
+            checkArgument(id.length() <= ID_MAX_LENGTH, "id exceeds maximum length " + ID_MAX_LENGTH);
+        }
         return new DeviceKeyId(id);
     }
 

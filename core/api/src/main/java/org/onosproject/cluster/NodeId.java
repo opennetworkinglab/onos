@@ -17,10 +17,14 @@ package org.onosproject.cluster;
 
 import org.onlab.util.Identifier;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Controller cluster identity.
  */
 public final class NodeId extends Identifier<String> implements Comparable<NodeId> {
+
+    private static final int ID_MAX_LENGTH = 1024;
 
     /**
      * Constructor for serialization.
@@ -36,6 +40,7 @@ public final class NodeId extends Identifier<String> implements Comparable<NodeI
      */
     public NodeId(String id) {
         super(id);
+        checkArgument(id.length() <= ID_MAX_LENGTH, "id exceeds maximum length " + ID_MAX_LENGTH);
     }
 
     /**
