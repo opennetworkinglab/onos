@@ -18,7 +18,8 @@ COPY . /src/onos/
 
 # Build ONOS
 WORKDIR /src
-RUN     apt-get update && apt-get install -y python less zip curl oracle-java8-installer oracle-java8-set-default && \
+RUN     apt-get update && \
+        apt-get install -y python less zip curl oracle-java8-installer oracle-java8-set-default ssh && \
         cd onos && \
         tools/build/onos-buck build onos && \
         cp buck-out/gen/tools/package/onos-package/onos.tar.gz /tmp/ && \
