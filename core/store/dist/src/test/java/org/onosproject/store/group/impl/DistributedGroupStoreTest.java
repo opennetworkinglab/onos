@@ -15,10 +15,9 @@
  */
 package org.onosproject.store.group.impl;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.testing.EqualsTester;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,9 +48,9 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapte
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.TestStorageService;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.testing.EqualsTester;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -62,8 +61,11 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
-import static org.onosproject.net.group.GroupDescription.Type.*;
-import static org.onosproject.net.group.GroupStore.UpdateType.*;
+import static org.onosproject.net.group.GroupDescription.Type.ALL;
+import static org.onosproject.net.group.GroupDescription.Type.INDIRECT;
+import static org.onosproject.net.group.GroupDescription.Type.SELECT;
+import static org.onosproject.net.group.GroupStore.UpdateType.ADD;
+import static org.onosproject.net.group.GroupStore.UpdateType.SET;
 /**
  * Distributed group store test.
  */
@@ -122,6 +124,18 @@ public class DistributedGroupStoreTest {
         @Override
         public NodeId getMasterFor(DeviceId deviceId) {
             return new NodeId("foo");
+        }
+    }
+
+    static class MasterNull extends MastershipServiceAdapter {
+        @Override
+        public MastershipRole getLocalRole(DeviceId deviceId) {
+            return null;
+        }
+
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return null;
         }
     }
 
@@ -498,4 +512,33 @@ public class DistributedGroupStoreTest {
                 .addEqualityGroup(key3)
                 .testEquals();
     }
+
+    @Test
+    public void testMasterNull() throws Exception {
+        groupStore.deviceInitialAuditCompleted(deviceId1, true);
+        assertThat(groupStore.deviceInitialAuditStatus(deviceId1), is(true));
+        // Make sure the pending list starts out empty
+        assertThat(auditPendingReqQueue.size(), is(0));
+        //Simulate master null
+        groupStoreImpl.mastershipService = new MasterNull();
+        //Add a group
+        groupStore.storeGroupDescription(groupDescription1);
+        assertThat(groupStore.getGroupCount(deviceId1), is(0));
+        assertThat(groupStore.getGroup(deviceId1, groupId1), nullValue());
+        assertThat(groupStore.getGroup(deviceId1, groupKey1), nullValue());
+        //reset master
+        groupStoreImpl.mastershipService = new MasterOfAll();
+        // Master was null when the group add attempt is made.
+        // So size of the pending list should be 1 now.
+        assertThat(auditPendingReqQueue.size(), is(1));
+        groupStore.deviceInitialAuditCompleted(deviceId1, true);
+        //After the audit , the group should be removed from pending audit queue
+        assertThat(auditPendingReqQueue.size(), is(0));
+        //test whether the group is added to the store
+        assertThat(groupStore.getGroupCount(deviceId1), is(1));
+        assertThat(groupStore.getGroup(deviceId1, groupId1), notNullValue());
+        assertThat(groupStore.getGroup(deviceId1, groupKey1), notNullValue());
+    }
+
+
 }

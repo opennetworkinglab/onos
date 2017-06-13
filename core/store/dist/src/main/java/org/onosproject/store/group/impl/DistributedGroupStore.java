@@ -446,10 +446,10 @@ public class DistributedGroupStore
             log.debug("storeGroupDescription: Device {} local role is not MASTER",
                       groupDesc.deviceId());
             if (mastershipService.getMasterFor(groupDesc.deviceId()) == null) {
-                log.error("No Master for device {}..."
-                                  + "Can not perform add group operation",
+                log.debug("No Master for device {}..."
+                                  + "Queuing Group ADD request",
                           groupDesc.deviceId());
-                //TODO: Send Group operation failure event
+                addToPendingAudit(groupDesc);
                 return;
             }
             GroupStoreMessage groupOp = GroupStoreMessage.
@@ -479,6 +479,21 @@ public class DistributedGroupStore
         log.debug("Store group for device {} is getting handled locally",
                   groupDesc.deviceId());
         storeGroupDescriptionInternal(groupDesc);
+    }
+
+    private void addToPendingAudit(GroupDescription groupDesc) {
+        Integer groupIdVal = groupDesc.givenGroupId();
+        GroupId groupId = (groupIdVal != null) ? new GroupId(groupIdVal) : dummyGroupId;
+        addToPendingKeyTable(new DefaultGroup(groupId, groupDesc));
+    }
+
+    private void addToPendingKeyTable(StoredGroupEntry group) {
+        group.setState(GroupState.WAITING_AUDIT_COMPLETE);
+        Map<GroupStoreKeyMapKey, StoredGroupEntry> pendingKeyTable =
+                getPendingGroupKeyTable();
+        pendingKeyTable.put(new GroupStoreKeyMapKey(group.deviceId(),
+                        group.appCookie()),
+                group);
     }
 
     private Group getMatchingExtraneousGroupbyId(DeviceId deviceId, Integer groupId) {
