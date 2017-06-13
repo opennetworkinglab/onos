@@ -196,7 +196,7 @@ def osgi_jar(
   ### Checkstyle
   if do_checkstyle:
       checkstyle(
-          name = name + '-checkstyle-files',
+          name = name,
           srcs = srcs,
           jar_target = ':'+ name,
       )
@@ -287,7 +287,7 @@ def osgi_jar_with_tests(
       )
 
       checkstyle(
-          name = name + '-tests',
+          name = name + '-tests' + '-checkstyle',
           srcs = test_srcs,
           jar_target = ':' + name + '-tests',
       )

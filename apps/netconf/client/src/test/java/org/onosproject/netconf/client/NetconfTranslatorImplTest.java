@@ -1,6 +1,5 @@
 /*
- * Copyright 2017-present
- *  Open Networking Laboratory
+ * Copyright 2017-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +26,7 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test class for {@link NetconfTranslatorImpl}
+ * Test class for {@link NetconfTranslatorImpl}.
  */
 @Beta
 public class NetconfTranslatorImplTest {
@@ -54,7 +53,8 @@ public class NetconfTranslatorImplTest {
             "      </t:top>\n" +
             "    </data>\n" +
             "  </rpc-reply>";
-    private static final String CORRECT_FILTERED_GET_REPLY = "<t:top xmlns:t=\"http://example.com/schema/1.2/stats\">\n" +
+    private static final String CORRECT_FILTERED_GET_REPLY =
+            "<t:top xmlns:t=\"http://example.com/schema/1.2/stats\">\n" +
             "        <t:interfaces>\n" +
             "          <t:interface t:ifName=\"eth0\">\n" +
             "            <t:ifInOctets>45621</t:ifInOctets>\n" +
@@ -103,7 +103,9 @@ public class NetconfTranslatorImplTest {
         matcher.find();
 //        System.out.println(matcher.group(1));
 //        System.out.println(DESIRED_SUBSTRING_GET_CONFIG);
-        assertEquals("Messages did not match", CORRECT_FILTERED_GET_CONFIG_REPLY, matcher.group(GET_CONFIG_CORE_MESSAGE_GROUP));
+        assertEquals("Messages did not match",
+                    CORRECT_FILTERED_GET_CONFIG_REPLY,
+                    matcher.group(GET_CONFIG_CORE_MESSAGE_GROUP));
         //Basic check for the get regex.
         matcher = GET_CORE_MESSAGE_PATTERN.matcher(SAMPLE_GET_REPLY);
         matcher.find();

@@ -15,7 +15,6 @@
  */
 
 /**
- * Interface for translation utility for communication between yang entities
- * and the NETCONF southbound.
+ * OpenROADM service models.
  */
-package org.onosproject.netconf.client;
+ package org.onosproject.openroadm.service;

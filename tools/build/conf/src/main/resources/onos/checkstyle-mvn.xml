@@ -140,9 +140,9 @@
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
         <module name="JavadocMethod">
             <property name="scope" value="package"/>
-	    <property name="allowMissingJavadoc" value="true"/>
+            <property name="allowMissingJavadoc" value="true"/>
             <property name="allowUndeclaredRTE" value="true"/>
-	    <property name="suppressLoadErrors" value="true"/>
+            <property name="suppressLoadErrors" value="true"/>
         </module>
         <module name="JavadocType">
             <property name="severity" value="warning"/>

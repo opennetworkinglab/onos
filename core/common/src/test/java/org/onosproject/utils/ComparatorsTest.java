@@ -1,42 +1,38 @@
+/*
+ * Copyright 2017-present Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.onosproject.utils;
 
-import com.google.common.collect.ImmutableList;
-import org.junit.Test;
-import org.onlab.packet.ChassisId;
-import org.onlab.packet.Ip4Address;
-
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultControllerNode;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.core.*;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.incubator.net.virtual.*;
-import org.onosproject.net.*;
-
-import org.onosproject.net.flow.*;
-import org.onosproject.net.group.*;
-import org.onosproject.net.intent.IntentTestsMocks;
-import org.onosproject.net.key.DeviceKey;
-import org.onosproject.net.key.DeviceKeyId;
-import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.region.DefaultRegion;
-import org.onosproject.net.region.Region;
-import org.onosproject.net.region.RegionId;
-import org.onosproject.net.statistic.DefaultLoad;
-import org.onosproject.net.statistic.FlowEntryWithLoad;
-import org.onosproject.net.statistic.Load;
-import org.onosproject.net.topology.*;
-import org.onosproject.ui.model.topo.UiTopoLayout;
-import org.onosproject.ui.model.topo.UiTopoLayoutId;
-import org.onosproject.net.group.DefaultGroupTest;
-
-
-import java.util.Optional;
-
-
-import static org.junit.Assert.*;
-
-import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.APPS;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.CATEGORY;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.DESC;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.FEATURES;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.FURL;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.ICON;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.ORIGIN;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.PERMS;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.README;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.ROLE;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.TITLE;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.URL;
+import static org.onosproject.app.DefaultApplicationDescriptionTest.VER;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
@@ -60,17 +56,76 @@ import static org.onosproject.utils.Comparators.VIRTUAL_DEVICE_COMPARATOR;
 import static org.onosproject.utils.Comparators.VIRTUAL_NETWORK_COMPARATOR;
 import static org.onosproject.utils.Comparators.VIRTUAL_PORT_COMPARATOR;
 
+import java.util.Optional;
+
+import org.junit.Test;
+import org.onlab.packet.ChassisId;
+import org.onlab.packet.Ip4Address;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.core.Application;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultApplication;
+import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.core.GroupId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
+import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
+import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
+import org.onosproject.incubator.net.virtual.NetworkId;
+import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.incubator.net.virtual.VirtualDevice;
+import org.onosproject.incubator.net.virtual.VirtualNetwork;
+import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultPort;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Element;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultFlowEntry;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.group.DefaultGroup;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.key.DeviceKey;
+import org.onosproject.net.key.DeviceKeyId;
+import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.region.DefaultRegion;
+import org.onosproject.net.region.Region;
+import org.onosproject.net.region.RegionId;
+import org.onosproject.net.statistic.DefaultLoad;
+import org.onosproject.net.statistic.FlowEntryWithLoad;
+import org.onosproject.net.topology.DefaultTopologyCluster;
+import org.onosproject.net.topology.DefaultTopologyVertex;
+import org.onosproject.net.topology.TopologyCluster;
+import org.onosproject.ui.model.topo.UiTopoLayout;
+import org.onosproject.ui.model.topo.UiTopoLayoutId;
+
+import com.google.common.collect.ImmutableList;
+
 
 public class ComparatorsTest {
-    private final ProviderId PID = new ProviderId("of", "foo");
-    private final DeviceId DID = deviceId("of:foo");
-    private final String MFR = "whitebox";
-    private final String HW = "1.1.x";
-    private final String HW1 = "2.2.x";
-    private final String SW = "3.9.1";
-    private final String SW1 = "4.0.0";
-    private final String SN = "43311-12345";
-    private final ChassisId CID = new ChassisId();
+    private static final ProviderId PID = new ProviderId("of", "foo");
+    private static final DeviceId DID = deviceId("of:foo");
+    private static final String MFR = "whitebox";
+    private static final String HW = "1.1.x";
+    private static final String HW1 = "2.2.x";
+    private static final String SW = "3.9.1";
+    private static final String SW1 = "4.0.0";
+    private static final String SN = "43311-12345";
+    private static final ChassisId CID = new ChassisId();
     private final ConnectPoint cp =
             new ConnectPoint(DeviceId.deviceId("of:00001"), PortNumber.portNumber(100));
     private final GroupBucket testBucket =
@@ -148,12 +203,15 @@ public class ComparatorsTest {
     @Test
     public void testFlowEntryWithLoad() {
         //Rate = (current-previous)/interval
-        assertEquals(0, FLOWENTRY_WITHLOAD_COMPARATOR.compare(FWLoad(20, 10, 1), FWLoad(20, 10, 1)));
-        assertEquals(0, FLOWENTRY_WITHLOAD_COMPARATOR.compare(FWLoad(50, 30, 2), FWLoad(100, 50, 5)));
-        assertEquals(-1, FLOWENTRY_WITHLOAD_COMPARATOR.compare(FWLoad(200, 100, 4), FWLoad(300, 200, 10)));
+        assertEquals(0, FLOWENTRY_WITHLOAD_COMPARATOR.compare(flowEntryWithLoad(20, 10, 1),
+                                                              flowEntryWithLoad(20, 10, 1)));
+        assertEquals(0, FLOWENTRY_WITHLOAD_COMPARATOR.compare(flowEntryWithLoad(50, 30, 2),
+                                                              flowEntryWithLoad(100, 50, 5)));
+        assertEquals(-1, FLOWENTRY_WITHLOAD_COMPARATOR.compare(flowEntryWithLoad(200, 100, 4),
+                                                               flowEntryWithLoad(300, 200, 10)));
     }
 
-    private FlowEntryWithLoad FWLoad(long current, long previous, long interval) {
+    private FlowEntryWithLoad flowEntryWithLoad(long current, long previous, long interval) {
         return new FlowEntryWithLoad(cp, fEntry, new DefaultLoad(current, previous, interval));
     }
 
@@ -213,9 +271,12 @@ public class ComparatorsTest {
 
     @Test
     public void testInterfaceComparator() {
-        assertEquals(0, INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 100), intface("of:0000000000000001", 100)));
-        assertTrue(INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 2), intface("of:0000000000000001", 100)) < 0);
-        assertTrue(INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 2), intface("of:0000000000000002", 2)) < 0);
+        assertEquals(0, INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 100),
+                                                      intface("of:0000000000000001", 100)));
+        assertTrue(INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 2),
+                                                 intface("of:0000000000000001", 100)) < 0);
+        assertTrue(INTERFACES_COMPARATOR.compare(intface("of:0000000000000001", 2),
+                                                 intface("of:0000000000000002", 2)) < 0);
     }
 
     private Interface intface(String deviceID, long port) {
@@ -228,13 +289,16 @@ public class ComparatorsTest {
 
     @Test
     public void testDeviceKeyComparator() {
-        assertEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID1", "label", "name"), testDK("ID1", "label", "name")));
-        assertEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID2", "label", "name"), testDK("ID2", "label", "name")));
-        assertNotEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID1", "label", "name"), testDK("ID2", "label", "name")));
+        assertEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID1", "label", "name"),
+                                                      testDK("ID1", "label", "name")));
+        assertEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID2", "label", "name"),
+                                                      testDK("ID2", "label", "name")));
+        assertNotEquals(0, DEVICE_KEY_COMPARATOR.compare(testDK("ID1", "label", "name"),
+                                                         testDK("ID2", "label", "name")));
     }
 
-    private DeviceKey testDK(String ID, String testLabel, String testName) {
-        return DeviceKey.createDeviceKeyUsingCommunityName(DeviceKeyId.deviceKeyId(ID), testLabel, testName);
+    private DeviceKey testDK(String id, String testLabel, String testName) {
+        return DeviceKey.createDeviceKeyUsingCommunityName(DeviceKeyId.deviceKeyId(id), testLabel, testName);
     }
 
     @Test
@@ -284,13 +348,13 @@ public class ComparatorsTest {
 
     @Test
     public void testVirtualDeviceComparator() {
-        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(VD(0, "of:foo"), VD(0, "of:foo")));
-        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(VD(3, "of:foo"), VD(0, "of:foo")));
-        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(VD(0, "of:bar"), VD(0, "of:foo")));
-        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(VD(3, "of:bar"), VD(0, "of:foo")));
+        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(0, "of:foo"), vd(0, "of:foo")));
+        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(3, "of:foo"), vd(0, "of:foo")));
+        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(0, "of:bar"), vd(0, "of:foo")));
+        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(3, "of:bar"), vd(0, "of:foo")));
     }
 
-    private VirtualDevice VD(int netID, String devID) {
+    private VirtualDevice vd(int netID, String devID) {
         return new DefaultVirtualDevice(NetworkId.networkId(netID), DeviceId.deviceId(devID));
     }
 

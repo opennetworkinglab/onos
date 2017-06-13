@@ -18,7 +18,6 @@ package org.onosproject.bmv2.model;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.testing.EqualsTester;
 import org.hamcrest.collection.IsIterableContainingInOrder;
@@ -32,7 +31,6 @@ import org.onosproject.net.pi.model.PiTableMatchFieldModel;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 

@@ -81,7 +81,7 @@ public class CheckstyleRunner implements BuckTask {
             checker.addListener(listener);
 
             // run Checker
-            List<File> fileList = input.subList(2, input.size() - 1).stream()
+            List<File> fileList = input.subList(2, input.size()).stream()
                     .filter(s -> !s.contains("/:"))  // Yes, fighting a hack with a hack.
                     .map(File::new)
                     .collect(Collectors.toList());

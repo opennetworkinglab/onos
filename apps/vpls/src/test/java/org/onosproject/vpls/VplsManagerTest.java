@@ -33,7 +33,7 @@ import static org.onosproject.net.EncapsulationType.*;
 import static org.onosproject.vpls.api.VplsData.VplsState.*;
 
 /**
- * Test for {@link VplsManager}
+ * Test for {@link VplsManager}.
  */
 public class VplsManagerTest extends VplsTest {
     private VplsManager vplsManager;
