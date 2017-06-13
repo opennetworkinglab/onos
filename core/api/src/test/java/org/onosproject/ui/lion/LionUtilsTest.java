@@ -99,23 +99,36 @@ public class LionUtilsTest extends AbstractUiTest {
         assertEquals("v2 value wrong", "ghost", v2);
     }
 
-    @Test
-    public void messageInEnglish() {
-        title("messageInEnglish");
-        // use default locale
+    private void checkLookups(String computer, String disk, String monitor,
+                              String keyboard) {
         res = LionUtils.getBundledResource(LionUtils.class, "MyBundle");
         print("res locale is %s", res.getLocale().getLanguage());
-        assertEquals("not disk", "disk", res.getString("disk"));
-        assertEquals("not keyboard", "keyboard", res.getString("keyboard"));
+        print("a keyboard in this language is '%s'", res.getString("keyboard"));
+
+        assertEquals("wrong computer", computer, res.getString("computer"));
+        assertEquals("wrong disk", disk, res.getString("disk"));
+        assertEquals("wrong monitor", monitor, res.getString("monitor"));
+        assertEquals("wrong keyboard", keyboard, res.getString("keyboard"));
     }
 
     @Test
-    public void messageInGerman() {
-        title("messageInGerman");
+    public void messagesInEnglish() {
+        title("messagesInEnglish");
+        // use default locale
+        checkLookups("computer", "disk", "monitor", "keyboard");
+    }
+
+    @Test
+    public void messagesInGerman() {
+        title("messagesInGerman");
         Locale.setDefault(new Locale("de", "DE"));
-        res = LionUtils.getBundledResource(LionUtils.class, "MyBundle");
-        print("res locale is %s", res.getLocale().getLanguage());
-        assertEquals("not DE-disk", "Platte", res.getString("disk"));
-        assertEquals("not DE-keyboard", "Tastatur", res.getString("keyboard"));
+        checkLookups("Computer", "Platte", "Monitor", "Tastatur");
+    }
+
+    @Test
+    public void messagesInItalian() {
+        title("messagesInItalian");
+        Locale.setDefault(new Locale("it", "IT"));
+        checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
     }
 }
