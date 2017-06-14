@@ -135,6 +135,14 @@ public class LionUtilsTest extends AbstractUiTest {
     }
 
     @Test
+    @Ignore("Not korean friendly, yet...")
+    public void messagesInKorean() {
+        title("messagesInKorean");
+        Locale.setDefault(Locale.KOREA);
+        checkLookups("컴퓨터", "디스크", "모니터", "키보드");
+    }
+
+    @Test
     public void runtimeLocale() {
         title("runtimeLocale");
         Locale runtime = LionUtils.setupRuntimeLocale();
@@ -194,6 +202,13 @@ public class LionUtilsTest extends AbstractUiTest {
         title("localeFromStringFrCA");
         locale = LionUtils.localeFromString("fr_CA");
         checkLanguageCountry(locale, "fr", "CA");
+    }
+
+    @Test
+    public void localeFromStringKoKR() {
+        title("localeFromStringKoKR");
+        locale = LionUtils.localeFromString("ko_KR");
+        checkLanguageCountry(locale, "ko", "KR");
     }
 
     @Test
