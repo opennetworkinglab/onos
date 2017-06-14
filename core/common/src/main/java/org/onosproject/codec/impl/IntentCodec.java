@@ -68,15 +68,13 @@ public final class IntentCodec extends JsonCodec<Intent> {
         final ArrayNode jsonResources = result.putArray(RESOURCES);
 
         intent.resources()
-                .parallelStream()
-                .forEach(
-                        resource -> {
-                            if (resource instanceof Link) {
-                                jsonResources.add(context.codec(Link.class).encode((Link) resource, context));
-                            } else {
-                                jsonResources.add(resource.toString());
-                            }
-                        });
+                .forEach(resource -> {
+                    if (resource instanceof Link) {
+                        jsonResources.add(context.codec(Link.class).encode((Link) resource, context));
+                    } else {
+                        jsonResources.add(resource.toString());
+                    }
+                });
 
         IntentService service = context.getService(IntentService.class);
         IntentState state = service.getIntentState(intent.key());
