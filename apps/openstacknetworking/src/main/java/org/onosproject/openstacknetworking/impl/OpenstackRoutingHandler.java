@@ -94,6 +94,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -206,6 +207,13 @@ public class OpenstackRoutingHandler {
 
     private void routerUpdated(Router osRouter) {
         ExternalGateway exGateway = osRouter.getExternalGatewayInfo();
+
+        osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
+            Network network = osNetworkService.network(osNetworkService.subnet(iface.getSubnetId())
+                    .getNetworkId());
+            setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), !osRouter.isAdminStateUp());
+        });
+
         if (exGateway == null) {
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                 setSourceNat(osRouter, iface, false);
@@ -217,6 +225,14 @@ public class OpenstackRoutingHandler {
         }
     }
 
+    private void routerRemove(Router osRouter) {
+        osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
+            Network network = osNetworkService.network(osNetworkService.subnet(iface.getSubnetId())
+                    .getNetworkId());
+            setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), false);
+        });
+    }
+
     private void routerIfaceAdded(Router osRouter, RouterInterface osRouterIface) {
         Subnet osSubnet = osNetworkService.subnet(osRouterIface.getSubnetId());
         if (osSubnet == null) {
@@ -226,6 +242,12 @@ public class OpenstackRoutingHandler {
                     osRouterIface.getSubnetId());
             throw new IllegalStateException(error);
         }
+
+        if (!osRouter.isAdminStateUp()) {
+            Network network = osNetworkService.network(osSubnet.getNetworkId());
+            setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), true);
+        }
+
         setInternalRoutes(osRouter, osSubnet, true);
         setGatewayIcmp(osSubnet, true);
         ExternalGateway exGateway = osRouter.getExternalGatewayInfo();
@@ -243,6 +265,11 @@ public class OpenstackRoutingHandler {
                     osRouterIface.getId(),
                     osRouterIface.getSubnetId());
             throw new IllegalStateException(error);
+        }
+
+        if (!osRouter.isAdminStateUp()) {
+            Network network = osNetworkService.network(osSubnet.getNetworkId());
+            setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), false);
         }
 
         setInternalRoutes(osRouter, osSubnet, false);
@@ -812,6 +839,43 @@ public class OpenstackRoutingHandler {
                 install);
     }
 
+    private void setRouterAdminRules(String segmentId, NetworkType networkType, boolean install) {
+        TrafficTreatment treatment;
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4);
+
+        switch (networkType) {
+            case VXLAN:
+                sBuilder.matchTunnelId(Long.parseLong(segmentId));
+                break;
+            case VLAN:
+                sBuilder.matchVlanId(VlanId.vlanId(segmentId));
+                break;
+            default:
+                final String error = String.format(
+                        ERR_UNSUPPORTED_NET_TYPE + "%s",
+                        networkType.toString());
+                throw new IllegalStateException(error);
+        }
+
+        treatment = DefaultTrafficTreatment.builder()
+                .drop()
+                .build();
+
+        osNodeService.completeNodes().stream()
+                .filter(osNode -> osNode.type() == COMPUTE)
+                .forEach(osNode -> {
+                    osFlowRuleService.setRule(
+                            appId,
+                            osNode.intgBridge(),
+                            sBuilder.build(),
+                            treatment,
+                            PRIORITY_ADMIN_RULE,
+                            ROUTING_TABLE,
+                            install);
+                });
+    }
+
     private class InternalRouterEventListener implements OpenstackRouterListener {
 
         @Override
@@ -841,6 +905,7 @@ public class OpenstackRoutingHandler {
                     log.debug("Router(name:{}, ID:{}) is removed",
                             event.subject().getName(),
                             event.subject().getId());
+                    eventExecutor.execute(() -> routerRemove(event.subject()));
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_ADDED:
                     log.debug("Router interface {} added to router {}",
