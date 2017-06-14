@@ -18,6 +18,8 @@
     <driver name="restArista" manufacturer="Arista Networks" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.arista.DeviceDescriptionDiscoveryAristaImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
+                   impl="org.onosproject.drivers.arista.ControllerConfigAristaImpl"/>
     </driver>
 </drivers>
 
