@@ -104,6 +104,7 @@ ONOS_DRIVERS = [
 #   '//drivers/microsemi/ea1000driver:onos-drivers-microsemi-ea1000driver-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
     '//drivers/bmv2:onos-drivers-bmv2-oar',
+    '//drivers/hp:onos-drivers-hp-oar',
 ]
 
 ONOS_PROVIDERS = [
