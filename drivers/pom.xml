@@ -51,6 +51,7 @@
         <module>microsemi</module>
         <module>oplink</module>
         <module>huawei</module>
+        <module>hp</module>
     </modules>
 
     <!--<properties>

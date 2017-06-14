@@ -100,6 +100,7 @@ ONOS_DRIVERS = [
 #   Removed until we can handle v1.12 of onos-yang-tools - in the mean time build manually with Maven
 #   '//drivers/microsemi/ea1000driver:onos-drivers-microsemi-ea1000driver-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
+    '//drivers/hp:onos-drivers-hp-oar',
 ]
 
 ONOS_PROVIDERS = [
