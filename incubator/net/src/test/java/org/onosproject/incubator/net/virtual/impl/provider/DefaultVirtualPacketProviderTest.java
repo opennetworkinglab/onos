@@ -154,7 +154,7 @@ public class DefaultVirtualPacketProviderTest {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
 
-        virtualProvider.startPacketHandling(VNET_ID);
+        virtualProvider.startPacketHandling();
     }
 
     @After

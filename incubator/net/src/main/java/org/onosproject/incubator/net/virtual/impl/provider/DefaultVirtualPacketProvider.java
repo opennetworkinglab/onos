@@ -31,6 +31,8 @@ import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
+import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
+import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
 import org.onosproject.incubator.net.virtual.VirtualPacketContext;
 import org.onosproject.incubator.net.virtual.VirtualPort;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
@@ -86,10 +88,13 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected VirtualProviderRegistryService providerRegistryService;
 
-    private ApplicationId appId;
-    private InternalPacketProcessor processor;
+    private final VirtualNetworkListener virtualNetListener = new InternalVirtualNetworkListener();
 
-    private Set<NetworkId> requestsSet = Sets.newHashSet();
+    private InternalPacketProcessor processor = null;
+
+    private Set<NetworkId> networkIdSet = Sets.newConcurrentHashSet();
+
+    private ApplicationId appId;
 
     /**
      * Creates a provider with the supplied identifier.
@@ -102,16 +107,17 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.virtual.virtual-packet");
         providerRegistryService.registerProvider(this);
+        vnaService.addListener(virtualNetListener);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        if (processor != null) {
-            packetService.removeProcessor(processor);
-        }
+
         providerRegistryService.unregisterProvider(this);
+        vnaService.removeListener(virtualNetListener);
+
         log.info("Stopped");
     }
 
@@ -127,22 +133,12 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
                .forEach(outboundPacket -> packetService.emit(outboundPacket));
     }
 
-    @Override
-    public void startPacketHandling(NetworkId networkId) {
-        requestsSet.add(networkId);
-        if (processor == null) {
-            processor = new InternalPacketProcessor();
-            packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
-        }
-    }
-
-    @Override
-    public void stopPacketHandling(NetworkId networkId) {
-        requestsSet.remove(networkId);
-        if (requestsSet.isEmpty()) {
-            packetService.removeProcessor(processor);
-            processor = null;
-        }
+    /**
+     * Just for test.
+     */
+    protected void startPacketHandling() {
+        processor = new InternalPacketProcessor();
+        packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
     }
 
     /**
@@ -187,7 +183,7 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
 
             VirtualPacketContext vContext =
                     new DefaultVirtualPacketContext(context.time(), inPacket, outPkt,
-                                             context.isHandled(), vPort.networkId(),
+                                             false, vPort.networkId(),
                                              this);
 
             return vContext;
@@ -373,6 +369,9 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
 
         @Override
         public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            }
             VirtualPacketContext vContexts = virtualize(context);
 
             if (vContexts == null) {
@@ -388,4 +387,35 @@ public class DefaultVirtualPacketProvider extends AbstractVirtualProvider
             }
         }
     }
+
+    private class InternalVirtualNetworkListener implements VirtualNetworkListener {
+
+        @Override
+        public void event(VirtualNetworkEvent event) {
+            switch (event.type()) {
+                case NETWORK_ADDED:
+                    if (networkIdSet.isEmpty()) {
+                        processor = new InternalPacketProcessor();
+                        packetService.addProcessor(processor, PACKET_PROCESSOR_PRIORITY);
+                        log.info("Packet processor {} for virtual network is added.", processor.getClass().getName());
+                    }
+                    networkIdSet.add(event.subject());
+                    break;
+
+                case NETWORK_REMOVED:
+                    networkIdSet.remove(event.subject());
+                    if (networkIdSet.isEmpty()) {
+                        packetService.removeProcessor(processor);
+                        log.info("Packet processor {} for virtual network is removed.", processor.getClass().getName());
+                        processor = null;
+                    }
+                    break;
+
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+    }
+
 }

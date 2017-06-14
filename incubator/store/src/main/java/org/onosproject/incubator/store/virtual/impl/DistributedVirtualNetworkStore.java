@@ -696,7 +696,11 @@ public class DistributedVirtualNetworkStore
         Set<NetworkId> networkIdSet = tenantIdNetworkIdSetMap.get(tenantId);
         Set<VirtualNetwork> virtualNetworkSet = new HashSet<>();
         if (networkIdSet != null) {
-            networkIdSet.forEach(networkId -> virtualNetworkSet.add(networkIdVirtualNetworkMap.get(networkId)));
+            networkIdSet.forEach(networkId -> {
+                if (networkIdVirtualNetworkMap.get(networkId) != null) {
+                    virtualNetworkSet.add(networkIdVirtualNetworkMap.get(networkId));
+                }
+            });
         }
         return ImmutableSet.copyOf(virtualNetworkSet);
     }

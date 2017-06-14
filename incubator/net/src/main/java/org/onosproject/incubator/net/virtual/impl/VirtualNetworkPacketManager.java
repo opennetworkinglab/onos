@@ -280,8 +280,6 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
             } else {
                 pushToAllDevices(request);
             }
-
-            providerService.provider().startPacketHandling(networkId);
         }
 
         @Override
@@ -293,8 +291,6 @@ public class VirtualNetworkPacketManager extends AbstractVnetService
             } else {
                 removeFromAllDevices(request);
             }
-
-            providerService.provider().stopPacketHandling(networkId);
         }
     }
 

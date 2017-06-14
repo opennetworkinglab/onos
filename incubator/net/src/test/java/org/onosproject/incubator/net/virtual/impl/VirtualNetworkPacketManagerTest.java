@@ -333,15 +333,6 @@ public class VirtualNetworkPacketManagerTest extends VirtualNetworkTestUtil {
             emittedPacket = packet;
         }
 
-        @Override
-        public void startPacketHandling(NetworkId networkId) {
-
-        }
-
-        @Override
-        public void stopPacketHandling(NetworkId networkId) {
-
-        }
     }
 
     private class TestProcessor implements PacketProcessor {
