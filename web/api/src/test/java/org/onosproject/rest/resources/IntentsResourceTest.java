@@ -65,6 +65,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.provider.ProviderId;
 
+
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -476,7 +477,7 @@ public class IntentsResourceTest extends ResourceTest {
     /**
      * Factory to allocate an IntentRelatedFlows matcher.
      *
-     * @param pathEntries list of path conatining flow entries of a particular intent
+     * @param pathEntries   list of path conatining flow entries of a particular intent
      * @param expectedAppId expected app id we are looking for
      * @return matcher
      */
@@ -735,7 +736,7 @@ public class IntentsResourceTest extends ResourceTest {
                 .andReturn(IntentState.INSTALLED)
                 .anyTimes();
         // Register the services needed for the test
-        final CodecManager codecService =  new CodecManager();
+        final CodecManager codecService = new CodecManager();
         codecService.activate();
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
@@ -1116,4 +1117,30 @@ public class IntentsResourceTest extends ResourceTest {
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 
+    @Test
+    public void testIntentsMiniSummary() {
+        final Intent intent1 = new MockIntent(1L, Collections.emptyList());
+        final HashSet<NetworkResource> resources = new HashSet<>();
+        resources.add(new MockResource(1));
+        resources.add(new MockResource(2));
+        resources.add(new MockResource(3));
+        final Intent intent2 = new MockIntent(2L, resources);
+        intents.add(intent1);
+        intents.add(intent2);
+        final WebTarget wt = target();
+        replay(mockIntentService);
+        final String response = wt.path("intents/minisummary").request().get(String.class);
+        assertThat(response, containsString("{\"All\":{"));
+        final JsonObject result = Json.parse(response).asObject();
+        assertThat(result, notNullValue());
+        assertThat(result.names(), hasSize(2));
+        assertThat(result.names().get(0), containsString("All"));
+        JsonObject jsonIntents = (JsonObject) result.get("All");
+        assertThat(jsonIntents, notNullValue());
+        assertThat(jsonIntents.get("total").toString(), containsString("2"));
+        jsonIntents = (JsonObject) result.get("Mock");
+        assertThat(jsonIntents, notNullValue());
+        assertThat(jsonIntents.get("installed").toString(), containsString("2"));
+    }
 }
+

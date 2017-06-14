@@ -31,6 +31,7 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.util.IntentFilter;
+import org.onosproject.net.intent.util.IntentMiniSummary;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
@@ -49,6 +50,7 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -96,6 +98,29 @@ public class IntentsWebResource extends AbstractWebResource {
         final ObjectNode root = encodeArray(Intent.class, "intents", intents);
         return ok(root).build();
     }
+
+
+    /**
+     * Gets Summary of all intents.
+     * Returns Summary of the intents in the system.
+     *
+     * @return 200 OK with Summary of all the intents in the system
+     * @onos.rsModel Minisummary
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("minisummary")
+    public Response getIntentSummary() {
+        final Iterable<Intent> intents = get(IntentService.class).getIntents();
+        ObjectNode root = mapper().createObjectNode();
+        IntentMiniSummary intentminisummary = new IntentMiniSummary();
+        Map<String, IntentMiniSummary> map = intentminisummary.summarize(intents, get(IntentService.class));
+        map.values().stream().forEach(intentsummary -> {
+            root.put(intentsummary.getIntentType(), codec(IntentMiniSummary.class).encode(intentsummary, this));
+        });
+        return ok(root).build();
+    }
+
 
     /**
      * Gets intent intallables by application ID and key.

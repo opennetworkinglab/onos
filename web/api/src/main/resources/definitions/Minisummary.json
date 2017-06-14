@@ -1,0 +1,70 @@
+{
+  "type": "object",
+  "title":"All",
+  "required": [
+    "All"
+  ],
+    "properties": {
+      "All": {
+        "required": [
+          "total",
+          "installed",
+          "failed",
+          "installReq",
+          "installing",
+          "compiling",
+          "recompiling",
+          "withdrawReq",
+          "withdrawing",
+          "withdrawn",
+          "unknownState"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 1
+          },
+          "installed": {
+            "type": "integer",
+            "example": 0
+          },
+          "failed": {
+            "type": "integer",
+            "example": 0
+          },
+          "installReq": {
+            "type": "integer",
+            "example": 0
+          },
+          "installing": {
+            "type": "integer",
+            "example": 0
+          },
+          "compiling": {
+            "type": "integer",
+            "example": 0
+          },
+          "recompiling": {
+            "type": "integer",
+            "example": 0
+          },
+          "withdrawReq": {
+            "type": "integer",
+            "example": 0
+          },
+          "withdrawing": {
+            "type": "integer",
+            "example": 0
+          },
+          "withdrawn": {
+            "type": "integer",
+            "example": 0
+          },
+          "unknownState": {
+            "type": "integer",
+            "example": 0
+          }
+        }
+      }
+  }
+}
