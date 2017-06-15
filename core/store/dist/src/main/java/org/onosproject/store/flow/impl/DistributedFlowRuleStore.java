@@ -27,7 +27,6 @@ package org.onosproject.store.flow.impl;
  import java.util.concurrent.ScheduledExecutorService;
  import java.util.concurrent.ScheduledFuture;
  import java.util.concurrent.TimeUnit;
- import java.util.concurrent.atomic.AtomicInteger;
  import java.util.concurrent.atomic.AtomicReference;
  import java.util.stream.Collectors;
 
@@ -91,7 +90,7 @@ package org.onosproject.store.flow.impl;
  import com.google.common.collect.Iterables;
  import com.google.common.collect.Maps;
  import com.google.common.collect.Sets;
- import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.Futures;
 
  import static com.google.common.base.Strings.isNullOrEmpty;
  import static org.onlab.util.Tools.get;
@@ -333,9 +332,9 @@ public class DistributedFlowRuleStore
     // make it device specific.
     @Override
     public int getFlowRuleCount() {
-        AtomicInteger sum = new AtomicInteger(0);
-        deviceService.getDevices().forEach(device -> sum.addAndGet(Iterables.size(getFlowEntries(device.id()))));
-        return sum.get();
+        return Streams.stream(deviceService.getDevices()).parallel()
+                        .mapToInt(device -> Iterables.size(getFlowEntries(device.id())))
+                        .sum();
     }
 
     @Override
