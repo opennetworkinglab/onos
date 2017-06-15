@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Abstraction of a network connection point expressed as a pair of the
  * network element identifier and port number.
  */
-public class ConnectPoint {
+public class ConnectPoint implements Comparable<ConnectPoint> {
 
     private final ElementId elementId;
     private final PortNumber portNumber;
@@ -167,4 +167,13 @@ public class ConnectPoint {
         return elementId + "/" + portNumber;
     }
 
+    @Override
+    public int compareTo(ConnectPoint o) {
+        int result = deviceId().toString().compareTo(o.deviceId().toString());
+        if (result == 0) {
+            long delta = port().toLong() - o.port().toLong();
+            result = delta == 0 ? 0 : (delta < 0 ? -1 : +1);
+        }
+        return result;
+    }
 }

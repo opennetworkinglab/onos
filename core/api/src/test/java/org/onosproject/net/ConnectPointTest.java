@@ -21,6 +21,9 @@ import org.junit.Test;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.ConnectPointTest.Relate.AFTER;
+import static org.onosproject.net.ConnectPointTest.Relate.BEFORE;
+import static org.onosproject.net.ConnectPointTest.Relate.SAME_AS;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
@@ -34,9 +37,13 @@ public class ConnectPointTest {
     private static final PortNumber P1 = portNumber(1);
     private static final PortNumber P2 = portNumber(2);
 
+    private ConnectPoint cp(DeviceId d, PortNumber p) {
+        return new ConnectPoint(d, p);
+    }
+
     @Test
     public void basics() {
-        ConnectPoint p = new ConnectPoint(DID1, P2);
+        ConnectPoint p = cp(DID1, P2);
         assertEquals("incorrect element id", DID1, p.deviceId());
         assertEquals("incorrect element id", P2, p.port());
     }
@@ -44,9 +51,9 @@ public class ConnectPointTest {
     @Test
     public void testEquality() {
         new EqualsTester()
-                .addEqualityGroup(new ConnectPoint(DID1, P1), new ConnectPoint(DID1, P1))
-                .addEqualityGroup(new ConnectPoint(DID1, P2), new ConnectPoint(DID1, P2))
-                .addEqualityGroup(new ConnectPoint(DID2, P1), new ConnectPoint(DID2, P1))
+                .addEqualityGroup(cp(DID1, P1), cp(DID1, P1))
+                .addEqualityGroup(cp(DID1, P2), cp(DID1, P2))
+                .addEqualityGroup(cp(DID2, P1), cp(DID2, P1))
                 .testEquals();
     }
 
@@ -106,5 +113,35 @@ public class ConnectPointTest {
         } catch (Exception e) {
             assertTrue(true);
         }
+    }
+
+    enum Relate { BEFORE, SAME_AS, AFTER }
+
+    private void checkComparison(ConnectPoint cpA, Relate r, ConnectPoint cpB) {
+        switch (r) {
+            case BEFORE:
+                assertTrue("Bad before", cpA.compareTo(cpB) < 0);
+                break;
+            case SAME_AS:
+                assertTrue("Bad same_as", cpA.compareTo(cpB) == 0);
+                break;
+            case AFTER:
+                assertTrue("Bad after", cpA.compareTo(cpB) > 0);
+                break;
+            default:
+                fail("Bad relation");
+        }
+    }
+
+    @Test
+    public void comparator() {
+        checkComparison(cp(DID1, P1), SAME_AS, cp(DID1, P1));
+        checkComparison(cp(DID1, P1), BEFORE, cp(DID1, P2));
+        checkComparison(cp(DID1, P2), AFTER, cp(DID1, P1));
+
+        checkComparison(cp(DID1, P1), BEFORE, cp(DID2, P1));
+        checkComparison(cp(DID1, P2), BEFORE, cp(DID2, P1));
+        checkComparison(cp(DID1, P1), BEFORE, cp(DID2, P2));
+        checkComparison(cp(DID1, P2), BEFORE, cp(DID2, P2));
     }
 }

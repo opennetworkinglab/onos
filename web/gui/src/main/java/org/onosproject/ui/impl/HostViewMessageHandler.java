@@ -15,11 +15,14 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -27,11 +30,17 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.HostLocationFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.HostId.hostId;
 
 /**
  * Message handler for host view related messages.
@@ -42,22 +51,51 @@ public class HostViewMessageHandler extends UiMessageHandler {
     private static final String HOST_DATA_RESP = "hostDataResponse";
     private static final String HOSTS = "hosts";
 
+    private static final String HOST_DETAILS_REQ = "hostDetailsRequest";
+    private static final String HOST_DETAILS_RESP = "hostDetailsResponse";
+    private static final String DETAILS = "details";
+
+    private static final String HOST_NAME_CHANGE_REQ = "hostNameChangeRequest";
+    private static final String HOST_NAME_CHANGE_RESP = "hostNameChangeResponse";
+
     private static final String TYPE_IID = "_iconid_type";
+    private static final String NAME = "name";
     private static final String ID = "id";
     private static final String MAC = "mac";
     private static final String VLAN = "vlan";
     private static final String IPS = "ips";
     private static final String LOCATION = "location";
+    private static final String LOCATIONS = "locations";
+    private static final String CONFIGURED = "configured";
+
 
     private static final String HOST_ICON_PREFIX = "hostIcon_";
 
     private static final String[] COL_IDS = {
-            TYPE_IID, ID, MAC, VLAN, IPS, LOCATION
+            TYPE_IID, NAME, ID, MAC, VLAN, CONFIGURED, IPS, LOCATION
     };
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new HostDataRequest());
+        return ImmutableSet.of(
+                new HostDataRequest(),
+                new DetailRequestHandler(),
+                new NameChangeHandler()
+        );
+    }
+
+    private String getTypeIconId(Host host) {
+        String hostType = host.annotations().value(AnnotationKeys.TYPE);
+        return HOST_ICON_PREFIX +
+                (isNullOrEmpty(hostType) ? "endstation" : hostType);
+    }
+
+    // returns the "friendly name" for the host
+    private String getHostName(Host host) {
+        // TODO: acutally use the name field (not just the ID)
+        return host.id().toString();
     }
 
     // handler for host table requests
@@ -96,17 +134,14 @@ public class HostViewMessageHandler extends UiMessageHandler {
 
         private void populateRow(TableModel.Row row, Host host) {
             row.cell(TYPE_IID, getTypeIconId(host))
+                    .cell(NAME, getHostName(host))
                     .cell(ID, host.id())
                     .cell(MAC, host.mac())
                     .cell(VLAN, host.vlan())
+                    .cell(CONFIGURED, host.configured())
                     .cell(IPS, host.ipAddresses())
                     .cell(LOCATION, host.location());
-        }
-
-        private String getTypeIconId(Host host) {
-            String hostType = host.annotations().value(AnnotationKeys.TYPE);
-            return HOST_ICON_PREFIX +
-                    (isNullOrEmpty(hostType) ? "endstation" : hostType);
+            // Note: leave complete list of all LOCATIONS to the details panel
         }
 
         private final class IpSetFormatter implements CellFormatter {
@@ -123,8 +158,7 @@ public class HostViewMessageHandler extends UiMessageHandler {
                     sb.append(ip.toString())
                             .append(COMMA);
                 }
-                removeTrailingComma(sb);
-                return sb.toString();
+                return removeTrailingComma(sb).toString();
             }
 
             private StringBuilder removeTrailingComma(StringBuilder sb) {
@@ -132,6 +166,67 @@ public class HostViewMessageHandler extends UiMessageHandler {
                 sb.delete(pos, sb.length());
                 return sb;
             }
+        }
+    }
+
+
+    private final class DetailRequestHandler extends RequestHandler {
+        private DetailRequestHandler() {
+            super(HOST_DETAILS_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            String id = string(payload, ID, "");
+
+            HostId hostId = hostId(id);
+            HostService service = get(HostService.class);
+            Host host = service.getHost(hostId);
+            ObjectNode data = objectNode();
+
+            data.put(TYPE_IID, getTypeIconId(host))
+                    .put(NAME, getHostName(host))
+                    .put(ID, hostId.toString())
+                    .put(MAC, host.mac().toString())
+                    .put(VLAN, host.vlan().toString())
+                    .put(CONFIGURED, host.configured())
+                    .put(LOCATION, host.location().toString());
+
+            List<IpAddress> sortedIps = new ArrayList<>(host.ipAddresses());
+            Collections.sort(sortedIps);
+            ArrayNode ips = arrayNode();
+            for (IpAddress ip : sortedIps) {
+                ips.add(ip.toString());
+            }
+            data.set(IPS, ips);
+
+            List<HostLocation> sortedLocs = new ArrayList<>(host.locations());
+            Collections.sort(sortedLocs);
+            ArrayNode locs = arrayNode();
+            for (HostLocation hl : sortedLocs) {
+                locs.add(hl.toString());
+            }
+            data.set(LOCATIONS, locs);
+
+            ObjectNode root = objectNode();
+            root.set(DETAILS, data);
+
+            sendMessage(HOST_DETAILS_RESP, root);
+        }
+    }
+
+    private final class NameChangeHandler extends RequestHandler {
+        public NameChangeHandler() {
+            super(HOST_NAME_CHANGE_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            // TODO:
+
+            ObjectNode root = objectNode();
+
+            sendMessage(HOST_NAME_CHANGE_RESP, root);
         }
     }
 }

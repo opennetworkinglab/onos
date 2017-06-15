@@ -148,6 +148,8 @@
         setUpPanel();
         populateTop(details);
         detailsPanel.height(pHeight);
+        // configure width based on content.. for now hardcoded
+        detailsPanel.width(600);
     }
 
     function respDetailsCb(data) {

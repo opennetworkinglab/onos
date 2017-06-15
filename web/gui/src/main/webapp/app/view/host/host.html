@@ -15,9 +15,11 @@
             <table>
                 <tr>
                     <td colId="type" class="table-icon"></td>
+                    <td colId="name" sortable>Friendly Name </td>
                     <td colId="id" sortable>Host ID </td>
                     <td colId="mac" sortable>MAC Address </td>
                     <td colId="vlan" sortable>VLAN ID </td>
+                    <td colId="configured" sortable>Configured </td>
                     <td colId="ips" sortable>IP Addresses </td>
                     <td colId="location" sortable>Location </td>
                 </tr>
@@ -27,7 +29,7 @@
         <div class="table-body">
             <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
-                    <td colspan="6">
+                    <td colspan="8">
                         {{annots.no_rows_msg}}
                     </td>
                 </tr>
@@ -39,9 +41,11 @@
                     <td class="table-icon">
                         <div icon icon-id="{{host._iconid_type}}"></div>
                     </td>
+                    <td>{{host.name}}</td>
                     <td>{{host.id}}</td>
                     <td>{{host.mac}}</td>
                     <td>{{host.vlan}}</td>
+                    <td>{{host.configured}}</td>
                     <td>{{host.ips}}</td>
                     <td>{{host.location}}</td>
                 </tr>
