@@ -1116,6 +1116,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .forEach(entry -> {
                     portNextObjStore.remove(entry.getKey());
                 });
+
+        seenLinks.keySet().removeIf(key -> key.src().deviceId().equals(device.id()) ||
+                key.dst().deviceId().equals(device.id()));
+
         groupHandlerMap.remove(device.id());
         defaultRoutingHandler.purgeEcmpGraph(device.id());
         // Note that a switch going down is associated with all of its links
