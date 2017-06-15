@@ -238,4 +238,11 @@ public class LionUtilsTest extends AbstractUiTest {
         checkLookups("컴퓨터", "디스크", "모니터", "키보드");
     }
 
+    @Test
+    @Ignore("Not chinese friendly, yet...")
+    public void messagesInZhCN() {
+        title("messagesInZhCN");
+        Locale.setDefault(Locale.SIMPLIFIED_CHINESE);
+        checkLookups("电脑", "磁盘", "屏幕", "键盘");
+    }
 }
