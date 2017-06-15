@@ -101,47 +101,8 @@ public class LionUtilsTest extends AbstractUiTest {
         assertEquals("v2 value wrong", "ghost", v2);
     }
 
-    private void checkLookups(String computer, String disk, String monitor,
-                              String keyboard) {
-        res = LionUtils.getBundledResource(LionUtils.class, "MyBundle");
-        print("res locale is %s", res.getLocale().getLanguage());
-        print("a keyboard in this language is '%s'", res.getString("keyboard"));
 
-        assertEquals("wrong computer", computer, res.getString("computer"));
-        assertEquals("wrong disk", disk, res.getString("disk"));
-        assertEquals("wrong monitor", monitor, res.getString("monitor"));
-        assertEquals("wrong keyboard", keyboard, res.getString("keyboard"));
-    }
-
-    @Test
-    public void messagesInEnglish() {
-        title("messagesInEnglish");
-        // use default locale
-        checkLookups("computer", "disk", "monitor", "keyboard");
-    }
-
-    @Test
-    public void messagesInGerman() {
-        title("messagesInGerman");
-        Locale.setDefault(new Locale("de", "DE"));
-        checkLookups("Computer", "Platte", "Monitor", "Tastatur");
-    }
-
-    @Test
-    public void messagesInItalian() {
-        title("messagesInItalian");
-        Locale.setDefault(new Locale("it", "IT"));
-        checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
-    }
-
-    @Test
-    @Ignore("Not korean friendly, yet...")
-    public void messagesInKorean() {
-        title("messagesInKorean");
-        Locale.setDefault(Locale.KOREA);
-        checkLookups("컴퓨터", "디스크", "모니터", "키보드");
-    }
-
+    // --- RUNTIME Locale ---
     @Test
     public void runtimeLocale() {
         title("runtimeLocale");
@@ -152,13 +113,15 @@ public class LionUtilsTest extends AbstractUiTest {
         //   Yeah, I know, "a unit test without asserts is not a unit test".
         //
         //   But it would NOT be a good idea to assert the locale results in
-        //   this method, because that is dependent on environment variables.
+        //   this method, because that is dependent on an environment variable.
         //
         //   This method is here to allow manual verification of the Locale
         //   e.g. when running tests from IntelliJ, and setting the
-        //   env-vars via the "Edit Configurations..." dialog.
+        //   ONOS_LOCALE env.var. via the "Edit Configurations..." dialog.
     }
 
+
+    // --- LOCALE from String ---
     @Test(expected = NullPointerException.class)
     public void localeFromStringNull() {
         LionUtils.localeFromString(null);
@@ -211,11 +174,68 @@ public class LionUtilsTest extends AbstractUiTest {
         checkLanguageCountry(locale, "ko", "KR");
     }
 
+
+    // -- Testing loading of correct bundle, based on locale
+    private void checkLookups(String computer, String disk, String monitor,
+                              String keyboard) {
+        res = LionUtils.getBundledResource(LionUtils.class, "MyBundle");
+        print("res locale is %s", res.getLocale().getLanguage());
+        print("a keyboard in this language is '%s'", res.getString("keyboard"));
+
+        assertEquals("wrong computer", computer, res.getString("computer"));
+        assertEquals("wrong disk", disk, res.getString("disk"));
+        assertEquals("wrong monitor", monitor, res.getString("monitor"));
+        assertEquals("wrong keyboard", keyboard, res.getString("keyboard"));
+    }
+
     @Test
-    @Ignore("Jenkins not chinese friendly, yet...")
+    public void messagesInEnglish() {
+        title("messagesInEnglish");
+        // use default locale
+        checkLookups("computer", "disk", "monitor", "keyboard");
+    }
+
+    @Test
+    public void messagesInGerman() {
+        title("messagesInGerman");
+        Locale.setDefault(Locale.GERMAN);
+        checkLookups("Computer", "Platte", "Monitor", "Tastatur");
+    }
+
+    @Test
+    public void messagesInItalian() {
+        title("messagesInItalian");
+        Locale.setDefault(Locale.ITALIAN);
+        checkLookups("Calcolatore", "Disco", "Schermo", "Tastiera");
+    }
+
+    // TODO: figure out why extended character sets are not handled properly
+    /*  For example, the Korean test fails as follows
+
+        === messagesInKorean ===
+        res locale is ko
+        a keyboard in this language is 'í¤ë³´ë'
+
+        org.junit.ComparisonFailure: wrong computer
+        Expected :컴퓨터
+        Actual   :ì»´í¨í°
+
+     */
+
+    @Test
+    @Ignore("Not chinese friendly, yet...")
     public void messagesInZhTw() {
         title("messagesInZhTW");
         Locale.setDefault(Locale.TRADITIONAL_CHINESE);
         checkLookups("電腦", "磁碟", "螢幕", "鍵盤");
     }
+
+    @Test
+    @Ignore("Not korean friendly, yet...")
+    public void messagesInKorean() {
+        title("messagesInKorean");
+        Locale.setDefault(Locale.KOREA);
+        checkLookups("컴퓨터", "디스크", "모니터", "키보드");
+    }
+
 }
