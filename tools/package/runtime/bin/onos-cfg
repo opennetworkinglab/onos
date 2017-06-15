@@ -17,7 +17,7 @@
 #
 
 # -----------------------------------------------------------------------------
-# ONOS network configuration uploader.
+# Tool to manage ONOS component configurations using REST API.
 # -----------------------------------------------------------------------------
 
 # If ONOS_HOME is set, respect its value.
@@ -27,30 +27,40 @@ ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
 ONOS_WEB_USER=${ONOS_WEB_USER:-onos} # ONOS WEB User defaults to 'onos'
 ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
 
-. ${ONOS_HOME}/bin/_find-node
-. ${ONOS_HOME}/bin/_check-json
-
 fail="--fail"
 [ "$1" == "-v" ] && shift && fail=""
 
+. ${ONOS_HOME}/bin/_find-node
+. ${ONOS_HOME}/bin/_check-json
+
 node=$(find_node $1)
-file="${2}"
-url="${3}"
+cmd=${2:-list}
+component=${3}
+file=${4}
 
-if [ "$node" == "" -o "$file" == "" ]; then
-     echo "Usage: onos-netcfg [-v] node file|DELETE [url]"
-     exit 1
+export URL=http://$node:8181/onos/v1/configuration/${component}
+export curl="curl ${fail} -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy ${node} "
+
+usage() {
+    echo "Usage: onos-cfg node [list|post|delete] component [JSON file if posting or deleting]"
+}
+
+if [ "$node" == "" -o "$component" == "" ]; then
+     usage && exit 1
 fi
 
-method="POST"
-[ $(echo $file | awk '{print tolower($0)}') == "delete" ] && method="DELETE"
+case $cmd in
+    list)
+        ${curl} -X GET ${URL} && echo;;
+    post|delete)
+        checkJson "$file"
+        $curl -X $cmd -H 'Content-Type:application/json' \
+            ${URL} -d@$file && echo;;
+    *) usage && exit 1;;
+esac
 
-if [ $method == "POST" ]; then
-    checkJson $file
-    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
-        -X POST -H 'Content-Type:application/json' \
-        http://$node:8181/onos/v1/network/configuration/${url} -d@$file
-elif [ $method == "DELETE" ]; then
-    curl $fail -sSL --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
-        -X DELETE http://$node:8181/onos/v1/network/configuration/${url}
-fi
+
+
+
+
+
