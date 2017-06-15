@@ -115,7 +115,7 @@ public class DefaultGroupHandler {
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
             .register(URI.class).register(HashSet.class)
-            .register(DeviceId.class).register(PortNumber.class)
+            .register(PortNumber.class)
             .register(NeighborSet.class).register(PolicyGroupIdentifier.class)
             .register(PolicyGroupParams.class)
             .register(GroupBucketIdentifier.class)
