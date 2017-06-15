@@ -33,6 +33,8 @@
                 </tr>
 
                 <tr ng-repeat="host in tableData track by $index"
+                    ng-click="selectCallback($event, host)"
+                    ng-class="{selected: host.id === selId}"
                     ng-repeat-complete row-id="{{host.id}}">
                     <td class="table-icon">
                         <div icon icon-id="{{host._iconid_type}}"></div>
@@ -47,5 +49,7 @@
         </div>
 
     </div>
+
+    <host-details-panel></host-details-panel>
 
 </div>

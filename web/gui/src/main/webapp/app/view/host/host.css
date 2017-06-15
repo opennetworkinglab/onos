@@ -25,3 +25,79 @@
 #ov-host div.ctrl-btns {
     width: 45px;
 }
+
+/* More in generic panel.css */
+
+#host-details-panel.floatpanel {
+    z-index: 0;
+}
+
+
+#host-details-panel .container {
+    padding: 8px 12px;
+}
+
+#host-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#host-details-panel .host-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#host-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
+
+
+#host-details-panel h2 input {
+    font-size: 0.90em;
+    width: 106%;
+}
+
+#host-details-panel .top-tables {
+    font-size: 12pt;
+}
+
+#host-details-panel .top div.left {
+    float: left;
+    padding: 0 18px 0 0;
+}
+#host-details-panel .top div.right {
+    display: inline-block;
+}
+
+#host-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#host-details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#host-details-panel hr {
+    width: 100%;
+    margin: 2px auto;
+}
+
+#host-details-panel .bottom table {
+    border-spacing: 0;
+}
+
+#host-details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#host-details-panel .bottom th,
+#host-details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
