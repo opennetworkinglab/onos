@@ -112,10 +112,14 @@
                     <td class="right">{{flow.packets}}</td>
                     <td class="right">{{flow.bytes}}</td>
                 </tr>
-                <tr row-id="{{flow.id}}" ng-hide="brief">
+                <tr ng-click="selectCallback($event, flow)"
+                    ng-class="{selected: flow.id === selId}"
+                    row-id="{{flow.id}}" ng-hide="brief">
                     <td class="selector" colspan="10" >{{flow.selector}} </td>
                 </tr>
-                <tr row-id="{{flow.id}}" ng-repeat-end ng-hide="brief">
+                <tr ng-click="selectCallback($event, flow)"
+                    ng-class="{selected: flow.id === selId}"
+                    row-id="{{flow.id}}" ng-hide="brief" ng-repeat-end>
                     <td class="treatment" colspan="10">{{flow.treatment}}</td>
                 </tr>
             </table>
