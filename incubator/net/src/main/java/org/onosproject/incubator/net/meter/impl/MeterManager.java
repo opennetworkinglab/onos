@@ -260,7 +260,9 @@ public class MeterManager
 
             storedMeterMap.keySet().stream()
                     .filter(m -> m.getLeft().equals(deviceId)).forEach(m -> {
-                if (!meterEntriesMap.containsKey(m.getRight())) {
+                if ((storedMeterMap.get(m).state().equals(MeterState.PENDING_ADD) ||
+                        storedMeterMap.get(m).state().equals(MeterState.ADDED)) &&
+                        !meterEntriesMap.containsKey(m.getRight())) {
                     // The meter is missing in the device. Reinstall!
                     Meter meter = storedMeterMap.get(Pair.of(deviceId, m.getRight()));
                     provider().performMeterOperation(deviceId,
