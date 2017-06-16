@@ -2,6 +2,7 @@ import os
 import socket
 import re
 import json
+import urllib2
 
 from mininet.log import info, warn, error
 from mininet.node import Switch
@@ -12,7 +13,7 @@ if 'ONOS_ROOT' not in os.environ:
 
 BMV2_TARGET = 'simple_switch_grpc'
 ONOS_ROOT = os.environ["ONOS_ROOT"]
-INIT_BMV2_JSON = '%s/tools/test/p4src/p4c-out/empty.json' % ONOS_ROOT
+INIT_BMV2_JSON = '%s/tools/test/p4src/p4-16/p4c-out/empty.json' % ONOS_ROOT
 
 
 class ONOSBmv2Switch(Switch):
@@ -81,10 +82,16 @@ class ONOSBmv2Switch(Switch):
         }}
         with open(self.netcfgfile, 'w') as fp:
             json.dump(cfgData, fp, indent=4)
-        out = self.cmd("%s/tools/test/bin/onos-netcfg %s %s"
-                       % (ONOS_ROOT, controllerIP, self.netcfgfile))
-        if out:
-            print out
+        # Build netcfg URL
+        url = 'http://%s:8181/onos/v1/network/configuration/' % controllerIP
+        # Instantiate password manager for HTTP auth
+        pm = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        pm.add_password(None, url, os.environ['ONOS_WEB_USER'], os.environ['ONOS_WEB_PASS'])
+        urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(pm)))
+        # Push config data to controller
+        f = urllib2.urlopen(urllib2.Request(url, json.dumps(cfgData), {'Content-Type': 'application/json'}))
+        print f.read()
+        f.close()
 
     def start(self, controllers):
         args = [BMV2_TARGET, '--device-id %s' % str(self.deviceId)]
